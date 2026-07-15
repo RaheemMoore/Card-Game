@@ -67,42 +67,33 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           boxShadow: `0 0 ${20 * glowIntensity}px ${borderColors.primary}55`,
         }}
       >
-        {/* Portrait art — behind the frame */}
-        <div
-          className="absolute overflow-hidden"
-          style={{
-            top: '8%',
-            right: '7%',
-            bottom: '30%',
-            left: '7.5%',
-            zIndex: 1,
-          }}
-        >
-          {card.portraitAsset ? (
-            <img
-              src={card.portraitAsset}
-              alt={card.nameAndTitle || card.archetype}
-              className="w-full h-full object-cover object-top"
-            />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center"
+        {/* Portrait art — fills card, frame overlay masks edges */}
+        {card.portraitAsset ? (
+          <img
+            src={card.portraitAsset}
+            alt={card.nameAndTitle || card.archetype}
+            className="absolute w-full object-cover object-top"
+            style={{ zIndex: 1, top: '8%', left: 0, right: 0, bottom: 0 }}
+          />
+        ) : (
+          <div
+            className="absolute inset-0 w-full h-full flex items-center justify-center"
+            style={{
+              background: `radial-gradient(ellipse at center top, ${borderColors.primary}33 0%, #0a0a0f 80%)`,
+              zIndex: 1,
+            }}
+          >
+            <span
+              className="font-fantasy font-bold opacity-20"
               style={{
-                background: `radial-gradient(ellipse at center top, ${borderColors.primary}33 0%, #0a0a0f 80%)`,
+                fontSize: isThumbnail ? '28px' : '64px',
+                color: borderColors.primary,
               }}
             >
-              <span
-                className="font-fantasy font-bold opacity-20"
-                style={{
-                  fontSize: isThumbnail ? '28px' : '64px',
-                  color: borderColors.primary,
-                }}
-              >
-                {card.archetype.charAt(0)}
-              </span>
-            </div>
-          )}
-        </div>
+              {card.archetype.charAt(0)}
+            </span>
+          </div>
+        )}
 
         {/* Border frame */}
         <img
