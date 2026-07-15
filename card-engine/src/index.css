@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #0a0a0f;
+  --color-abyss: #12121a;
+  --color-obsidian: #1a1a2e;
+  --color-slate-dark: #2a2a3e;
+  --color-ash: #8a8a9a;
+  --color-bone: #c4c4d4;
+  --color-ivory: #e8e8f0;
+
+  --color-power: #dc2626;
+  --color-power-glow: #ef4444;
+  --color-speed: #06b6d4;
+  --color-speed-glow: #22d3ee;
+  --color-endurance: #d97706;
+  --color-endurance-glow: #f59e0b;
+  --color-stability: #64748b;
+  --color-stability-glow: #94a3b8;
+  --color-support: #ec4899;
+  --color-support-glow: #f472b6;
+  --color-patience: #7c3aed;
+  --color-patience-glow: #8b5cf6;
+
+  --color-gold: #fbbf24;
+  --color-bronze: #cd7f32;
+
+  --font-fantasy: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-void);
+  color: var(--color-bone);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes die-tumble {
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  25% { transform: rotateX(90deg) rotateY(180deg) rotateZ(45deg); }
+  50% { transform: rotateX(200deg) rotateY(90deg) rotateZ(135deg); }
+  75% { transform: rotateX(300deg) rotateY(270deg) rotateZ(200deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
+}
+
+@keyframes die-land {
+  0% { transform: rotateX(300deg) rotateY(270deg) rotateZ(200deg); }
+  60% { transform: rotateX(20deg) rotateY(-15deg) rotateZ(5deg); }
+  80% { transform: rotateX(-8deg) rotateY(8deg) rotateZ(-2deg); }
+  100% { transform: rotateX(-15deg) rotateY(20deg) rotateZ(0deg); }
+}
+
+@keyframes glow-pulse {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 0.8; }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+.card-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
