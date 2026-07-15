@@ -56,15 +56,17 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           boxShadow: `0 0 ${20 * glowIntensity}px ${borderColors.primary}55`,
         }}
       >
-        {/* Portrait art */}
+        {/* z-index layers: 1=portrait (behind), 2=border frame (on top, transparent window reveals portrait), 3=all text/UI overlays */}
+
+        {/* Portrait art — behind the frame so crystals/gems overlap edges */}
         <div
           className="absolute overflow-hidden"
           style={{
             top: '8%',
-            left: '8%',
-            right: '8%',
-            bottom: '38%',
-            borderRadius: isThumbnail ? '4px' : '8px',
+            right: '7%',
+            bottom: '30%',
+            left: '7.5%',
+            zIndex: 1,
           }}
         >
           {card.portraitAsset ? (
@@ -93,22 +95,23 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           )}
         </div>
 
-        {/* Border frame overlay */}
+        {/* Border frame — on top of portrait, transparent window shows through */}
         <img
           src={borderFrame}
           alt=""
           className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ objectFit: 'fill' }}
+          style={{ objectFit: 'fill', zIndex: 2 }}
           draggable={false}
         />
 
-        {/* Card Name — top banner (Figma: top ~6.9%, inset ~29% sides) */}
+        {/* Card Name — top banner */}
         <div
           className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
           style={{
             top: '5.5%',
             height: '3.5%',
             padding: `0 ${isThumbnail ? 18 : 44}px`,
+            zIndex: 3,
           }}
         >
           <h3
@@ -123,7 +126,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           </h3>
         </div>
 
-        {/* Mana Cost — top-RIGHT crystal (Figma: ~80% from left, ~7.5% top) */}
+        {/* Mana Cost — top-right crystal */}
         <div
           className="absolute pointer-events-none flex items-center justify-center"
           style={{
@@ -131,6 +134,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
             right: isThumbnail ? '4%' : '7.5%',
             width: isThumbnail ? '18px' : '42px',
             height: isThumbnail ? '20px' : '46px',
+            zIndex: 3,
           }}
         >
           <span
@@ -145,13 +149,14 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           </span>
         </div>
 
-        {/* Name & Title — parchment banner (Figma: top ~70%) */}
+        {/* Name & Title — parchment banner */}
         <div
           className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
           style={{
             top: '69%',
             height: '4%',
             padding: `0 ${isThumbnail ? 14 : 36}px`,
+            zIndex: 3,
           }}
         >
           <p
@@ -166,11 +171,11 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           </p>
         </div>
 
-        {/* Stat display — vertical list with badge+icon (Figma: perks at top ~77.5%, inset ~25%) */}
+        {/* Stat display — badge+icon list */}
         {!isThumbnail && (
           <div
             className="absolute pointer-events-none"
-            style={{ top: '75.5%', left: '25.5%', right: '25%' }}
+            style={{ top: '75.5%', left: '25.5%', right: '25%', zIndex: 3 }}
           >
             <div className="flex flex-col gap-[12px]">
               <div className="flex items-center gap-2">
@@ -191,7 +196,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           </div>
         )}
 
-        {/* Power/Toughness — bottom-right (Figma: top ~89%, left ~79%, right ~11%) */}
+        {/* Power/Toughness — bottom-right */}
         <div
           className="absolute pointer-events-none flex items-center justify-center"
           style={{
@@ -199,6 +204,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
             bottom: isThumbnail ? '3%' : 'auto',
             right: isThumbnail ? '8%' : '11%',
             left: isThumbnail ? 'auto' : '79%',
+            zIndex: 3,
           }}
         >
           <span
