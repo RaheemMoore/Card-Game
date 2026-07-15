@@ -2,12 +2,29 @@ import type { Card } from '../types/card';
 
 const STORAGE_KEY = 'card-engine-collection';
 
+function isNewFormatCard(c: unknown): c is Card {
+  if (!c || typeof c !== 'object') return false;
+  const obj = c as Record<string, unknown>;
+  if (!obj.stats || typeof obj.stats !== 'object') return false;
+  const stats = obj.stats as Record<string, unknown>;
+  return (
+    stats.Atk !== undefined &&
+    typeof stats.Atk === 'object' &&
+    (stats.Atk as Record<string, unknown>).value !== undefined
+  );
+}
+
 function readCollection(): Card[] {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
-    const cards = JSON.parse(raw) as Card[];
-    return cards.filter((c) => c.stats && 'atk' in c.stats && 'def' in c.stats);
+    const items = JSON.parse(raw) as unknown[];
+    const cards = items.filter(isNewFormatCard);
+    if (cards.length < items.length) {
+      console.warn(`Filtered out ${items.length - cards.length} legacy card(s) with old stat format`);
+      writeCollection(cards);
+    }
+    return cards;
   } catch {
     return [];
   }
@@ -45,12 +62,10 @@ export function deleteCard(cardId: string): void {
 export function getCollectionStats() {
   const cards = readCollection();
   const byArchetype: Record<string, number> = {};
-  const byRank: Record<string, number> = {};
 
   for (const card of cards) {
     byArchetype[card.archetype] = (byArchetype[card.archetype] ?? 0) + 1;
-    byRank[card.rank] = (byRank[card.rank] ?? 0) + 1;
   }
 
-  return { total: cards.length, byArchetype, byRank };
+  return { total: cards.length, byArchetype };
 }

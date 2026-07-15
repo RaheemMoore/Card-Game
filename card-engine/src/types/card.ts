@@ -10,27 +10,49 @@ export type ArchetypeName = typeof ARCHETYPE_NAMES[number];
 export const BORDER_VARIANTS = ['Dominance', 'Influencing', 'Steadiness', 'Conscientiousness', 'Default'] as const;
 export type BorderVariant = typeof BORDER_VARIANTS[number];
 
-export interface CombatStats {
-  atk: number;
-  def: number;
+export const BIAS_TIERS = ['Very Low', 'Low', 'Mid', 'Mid-High', 'High', 'Very High'] as const;
+export type BiasTier = typeof BIAS_TIERS[number];
+
+export const STAT_NAMES = ['Atk', 'Def', 'Mana', 'Tech'] as const;
+export type StatName = typeof STAT_NAMES[number];
+
+export interface StatEntry {
+  value: number;
+  bias: BiasTier;
+  hardCap: number;
+}
+
+export interface CardStats {
+  Atk: StatEntry;
+  Def: StatEntry;
+  Mana?: StatEntry;
+  Tech?: StatEntry;
+}
+
+export interface ArtSnapshot {
+  portraitUrl: string;
+  cardName: string;
+  lore: string;
+}
+
+export type EvolutionHistory = Partial<Record<StatName, Partial<Record<Rank, ArtSnapshot | null>>>>;
+
+export interface CardBorder {
+  baseVariant: BorderVariant;
+  baseSource: string;
 }
 
 export interface Card {
   cardId: string;
   archetype: ArchetypeName;
-  rank: Rank;
   cardName: string;
   nameAndTitle: string;
   portraitAsset: string;
-  stats: CombatStats;
-  manaCost: number;
+  stats: CardStats;
+  dominantStat: StatName | null;
   border: CardBorder;
   lore: string;
   whisperWords: string[];
+  evolutionHistory: EvolutionHistory;
   createdAt: string;
-}
-
-export interface CardBorder {
-  baseVariant: BorderVariant;
-  baseSource: string;
 }

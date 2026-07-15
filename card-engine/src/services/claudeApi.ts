@@ -1,5 +1,14 @@
-import type { ArchetypeName, Rank, CombatStats } from '../types/card';
+import type { ArchetypeName, Rank, CardStats, StatName } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
+import {
+  deriveStatRanks,
+  getDominantStat,
+  getOverallRank,
+  getSpecializationSuffix,
+  getVisualMotif,
+  getAbsenceMotifs,
+  getStatNames,
+} from '../data/powerSystem';
 
 const RANK_MEANINGS: Record<Rank, string> = {
   Foundation: 'The beginning — raw, unproven, rough around the edges',
@@ -93,14 +102,26 @@ interface GeneratedText {
   lore: string;
 }
 
+function buildStatLine(stats: CardStats, archetype: ArchetypeName): string {
+  const ranks = deriveStatRanks(stats);
+  const names = getStatNames(archetype);
+  return names
+    .map((name) => {
+      const entry = stats[name]!;
+      return `${name} ${entry.value} (${ranks[name]}, bias: ${entry.bias})`;
+    })
+    .join(', ');
+}
+
 export async function generateCardText(
   archetype: ArchetypeName,
-  rank: Rank,
-  stats: CombatStats,
-  manaCost: number,
+  stats: CardStats,
   whisperWords: string[],
 ): Promise<GeneratedText> {
   const arch = ARCHETYPES[archetype];
+  const overallRank = getOverallRank(stats);
+  const dominant = getDominantStat(stats);
+  const ranks = deriveStatRanks(stats);
 
   const namingStyle = pick(NAMING_STYLES);
   const tone = pick(TONE_WORDS);
@@ -109,16 +130,45 @@ export async function generateCardText(
   const epithetFlavor = pick(EPITHET_FLAVORS);
   const extraTones = pickN(TONE_WORDS.filter(t => t !== tone), 2);
 
+  const specializationSuffix = dominant
+    ? getSpecializationSuffix(archetype, dominant, ranks[dominant]!)
+    : '';
+  const visualMotif = dominant
+    ? getVisualMotif(dominant, ranks[dominant]!)
+    : '';
+  const absenceMotifs = getAbsenceMotifs(stats);
+
+  const statLine = buildStatLine(stats, archetype);
+  const resourceType = stats.Tech ? 'Tech' : 'Mana';
+
+  let specializationBlock = '';
+  if (specializationSuffix) {
+    specializationBlock += `\nSPECIALIZATION: ${specializationSuffix}`;
+  }
+  if (visualMotif) {
+    specializationBlock += `\nVISUAL MOTIF: ${visualMotif}`;
+  }
+  if (absenceMotifs.length > 0) {
+    specializationBlock += `\nABSENCE MOTIFS (weak stats): ${absenceMotifs.join('; ')}`;
+  }
+
+  const atkValue = stats.Atk.value;
+  const defValue = stats.Def.value;
+  const resourceValue = (stats.Tech ?? stats.Mana)!.value;
+
   const prompt = `You are a fantasy card game creative director. Generate a unique, memorable character card.
 
 ARCHETYPE: ${archetype}
-RANK: ${rank} — ${RANK_MEANINGS[rank]}
-STATS: ATK ${stats.atk}, DEF ${stats.def}, Mana ${manaCost}
+OVERALL RANK: ${overallRank} — ${RANK_MEANINGS[overallRank]}
+STATS: ${statLine}
+DOMINANT STAT: ${dominant ?? 'None (tied)'}
+RESOURCE TYPE: ${resourceType}
 WHISPER WORDS: ${whisperWords.length > 0 ? whisperWords.join(', ') : 'none'}
 
 ARCHETYPE IDENTITY: ${arch.identity}
 VISUAL MOTIFS: ${arch.motifs}
-RANK APPEARANCE: ${arch.rankProgression[rank]}
+RANK APPEARANCE: ${arch.rankProgression[overallRank]}
+${specializationBlock}
 
 CREATIVE DIRECTION FOR THIS CARD:
 - Name style: ${namingStyle}
@@ -127,8 +177,8 @@ CREATIVE DIRECTION FOR THIS CARD:
 - The lore should touch on: ${loreTheme}
 - The epithet/title should be: ${epithetFlavor}
 
-${stats.atk > stats.def ? 'This character leans aggressive — reflect that in their personality or fighting style.' : stats.def > stats.atk ? 'This character is a protector or endurer — reflect their resilience or patience.' : 'This character is balanced — equally dangerous and durable.'}
-${manaCost >= 6 ? 'High mana cost means this is a powerful, costly being — the lore should feel weighty.' : manaCost <= 2 ? 'Low mana cost means this is a scrappy, quick, or expendable figure.' : ''}
+${atkValue > defValue ? 'This character leans aggressive — reflect that in their personality or fighting style.' : defValue > atkValue ? 'This character is a protector or endurer — reflect their resilience or patience.' : 'This character is balanced — equally dangerous and durable.'}
+${resourceValue >= 70 ? `High ${resourceType} means this is a powerful, costly being — the lore should feel weighty.` : resourceValue <= 25 ? `Low ${resourceType} means this is a scrappy, quick, or expendable figure.` : ''}
 
 Generate ONLY a JSON object:
 - cardName: a fantasy name (1-3 words, no title). MUST follow the naming style above.
@@ -141,7 +191,7 @@ Respond with ONLY valid JSON, no markdown, no explanation.`;
     const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
     if (!apiKey) {
       console.warn('No Anthropic API set — using fallback generator');
-      return generateFallbackText(archetype, rank, whisperWords);
+      return generateFallbackText(archetype, overallRank, whisperWords);
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -176,7 +226,7 @@ Respond with ONLY valid JSON, no markdown, no explanation.`;
     return parsed;
   } catch (err) {
     console.error('Claude API error, using fallback:', err);
-    return generateFallbackText(archetype, rank, whisperWords);
+    return generateFallbackText(archetype, overallRank, whisperWords);
   }
 }
 

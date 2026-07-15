@@ -1,25 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { CombatStats, Rank } from '../types/card';
-import { generateCombatStats } from '../services/cardGenerator';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { ArchetypeName, CardStats, StatName } from '../types/card';
+import { generateStats } from '../services/cardGenerator';
+import { getStatNames, BIAS_RANGES, CLASS_AFFINITY } from '../data/powerSystem';
 
 interface DiceRollProps {
-  rank: Rank;
-  onComplete: (stats: CombatStats, manaCost: number) => void;
+  archetype: ArchetypeName;
+  onComplete: (stats: CardStats) => void;
 }
 
-const DICE_CONFIG = [
-  { key: 'atk', label: 'ATK', color: '#dc2626', glow: 'rgba(220,38,38,0.6)', face: 'rgba(220,38,38,0.75)', edge: '#ef4444' },
-  { key: 'def', label: 'DEF', color: '#2563eb', glow: 'rgba(37,99,235,0.6)', face: 'rgba(37,99,235,0.75)', edge: '#60a5fa' },
-  { key: 'mana', label: 'MANA', color: '#7c3aed', glow: 'rgba(124,58,237,0.6)', face: 'rgba(124,58,237,0.75)', edge: '#a78bfa' },
-] as const;
+const STAT_STYLES: Record<StatName, { label: string; color: string; glow: string; face: string; edge: string }> = {
+  Atk:  { label: 'ATK',  color: '#dc2626', glow: 'rgba(220,38,38,0.6)',  face: 'rgba(220,38,38,0.75)',  edge: '#ef4444' },
+  Def:  { label: 'DEF',  color: '#2563eb', glow: 'rgba(37,99,235,0.6)',  face: 'rgba(37,99,235,0.75)',  edge: '#60a5fa' },
+  Mana: { label: 'MANA', color: '#7c3aed', glow: 'rgba(124,58,237,0.6)', face: 'rgba(124,58,237,0.75)', edge: '#a78bfa' },
+  Tech: { label: 'TECH', color: '#d97706', glow: 'rgba(217,119,6,0.6)',   face: 'rgba(217,119,6,0.75)',  edge: '#fbbf24' },
+};
 
-function GemDie({ value, config, rolling, landed, delay }: {
+const MAX_REROLLS = 3;
+
+function GemDie({ value, statName, rolling, landed, delay }: {
   value: number;
-  config: typeof DICE_CONFIG[number];
+  statName: StatName;
   rolling: boolean;
   landed: boolean;
   delay: number;
 }) {
+  const config = STAT_STYLES[statName];
   const size = 70;
   const half = size / 2;
 
@@ -32,7 +37,7 @@ function GemDie({ value, config, rolling, landed, delay }: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '24px',
+    fontSize: '20px',
     fontWeight: 'bold',
     color: '#fff',
     textShadow: `0 0 10px ${config.glow}, 0 2px 4px rgba(0,0,0,0.8)`,
@@ -47,7 +52,6 @@ function GemDie({ value, config, rolling, landed, delay }: {
         className="relative"
         style={{ width: size, height: size, perspective: '500px' }}
       >
-        {/* Glow burst on land */}
         {landed && (
           <div
             className="absolute rounded-full"
@@ -59,7 +63,6 @@ function GemDie({ value, config, rolling, landed, delay }: {
           />
         )}
 
-        {/* 3D cube */}
         <div
           style={{
             width: size,
@@ -67,42 +70,31 @@ function GemDie({ value, config, rolling, landed, delay }: {
             position: 'relative',
             transformStyle: 'preserve-3d',
             animation: rolling
-              ? `die-tumble 0.5s ease-in-out infinite`
+              ? `die-tumble 0.5s ease-in-out ${delay * 0.05}s infinite`
               : landed
-                ? 'die-land 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+                ? 'die-land 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0s forwards'
                 : 'none',
             transform: !rolling && !landed ? 'rotateX(-15deg) rotateY(20deg)' : undefined,
-            animationDelay: rolling ? `${delay * 0.05}s` : '0s',
           }}
         >
-          {/* Front */}
-          <div style={faceStyle({ transform: `translateZ(${half}px)` })}>
-            <span className="tabular-nums">{value}</span>
-          </div>
-          {/* Back */}
-          <div style={faceStyle({ transform: `translateZ(-${half}px) rotateY(180deg)` })}>
-            <span className="tabular-nums">{value}</span>
-          </div>
-          {/* Right */}
-          <div style={faceStyle({ transform: `translateX(${half}px) rotateY(90deg)` })}>
-            <span className="tabular-nums">{value}</span>
-          </div>
-          {/* Left */}
-          <div style={faceStyle({ transform: `translateX(-${half}px) rotateY(-90deg)` })}>
-            <span className="tabular-nums">{value}</span>
-          </div>
-          {/* Top */}
-          <div style={faceStyle({ transform: `translateY(-${half}px) rotateX(90deg)` })}>
-            <span className="tabular-nums">{value}</span>
-          </div>
-          {/* Bottom */}
-          <div style={faceStyle({ transform: `translateY(${half}px) rotateX(-90deg)` })}>
-            <span className="tabular-nums">{value}</span>
-          </div>
+          {(['front', 'back', 'right', 'left', 'top', 'bottom'] as const).map((face) => {
+            const transforms: Record<string, string> = {
+              front: `translateZ(${half}px)`,
+              back: `translateZ(-${half}px) rotateY(180deg)`,
+              right: `translateX(${half}px) rotateY(90deg)`,
+              left: `translateX(-${half}px) rotateY(-90deg)`,
+              top: `translateY(-${half}px) rotateX(90deg)`,
+              bottom: `translateY(${half}px) rotateX(-90deg)`,
+            };
+            return (
+              <div key={face} style={faceStyle({ transform: transforms[face] })}>
+                <span className="tabular-nums">{value}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Label */}
       <span
         className="font-fantasy text-sm font-bold tracking-wider transition-opacity duration-300"
         style={{ color: config.color, opacity: landed ? 1 : 0.5 }}
@@ -113,46 +105,64 @@ function GemDie({ value, config, rolling, landed, delay }: {
   );
 }
 
-export function DiceRoll({ rank, onComplete }: DiceRollProps) {
-  const [result, setResult] = useState<{ stats: CombatStats; manaCost: number } | null>(null);
+export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
+  const statNames = useMemo(() => getStatNames(archetype), [archetype]);
+  const affinity = CLASS_AFFINITY[archetype];
+
+  const [result, setResult] = useState<CardStats | null>(null);
   const [phase, setPhase] = useState<'idle' | 'rolling' | 'done'>('idle');
-  const [landed, setLanded] = useState({ atk: false, def: false, mana: false });
-  const [cycleValues, setCycleValues] = useState({ atk: 1, def: 1, mana: 1 });
+  const [landed, setLanded] = useState<Record<StatName, boolean>>({ Atk: false, Def: false, Mana: false, Tech: false });
+  const [cycleValues, setCycleValues] = useState<Record<StatName, number>>({ Atk: 30, Def: 30, Mana: 30, Tech: 30 });
+  const [rerollsLeft, setRerollsLeft] = useState(MAX_REROLLS);
 
   const roll = useCallback(() => {
-    const r = generateCombatStats(rank);
-    setResult(r);
+    const names = getStatNames(archetype);
+    const aff = CLASS_AFFINITY[archetype];
+    const stats = generateStats(archetype);
+    setResult(stats);
     setPhase('rolling');
-    setLanded({ atk: false, def: false, mana: false });
+    setLanded({ Atk: false, Def: false, Mana: false, Tech: false });
 
     const cycleInterval = setInterval(() => {
-      setCycleValues({
-        atk: Math.ceil(Math.random() * 10),
-        def: Math.ceil(Math.random() * 10),
-        mana: Math.ceil(Math.random() * 8),
-      });
+      const newValues: Record<StatName, number> = { Atk: 30, Def: 30, Mana: 30, Tech: 30 };
+      for (const name of names) {
+        const bias = aff[name]!;
+        const [min, max] = BIAS_RANGES[bias].foundation;
+        newValues[name] = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      setCycleValues(newValues);
     }, 80);
 
-    setTimeout(() => setLanded((p) => ({ ...p, atk: true })), 900);
-    setTimeout(() => setLanded((p) => ({ ...p, def: true })), 1400);
-    setTimeout(() => {
-      setLanded({ atk: true, def: true, mana: true });
-      clearInterval(cycleInterval);
-      setPhase('done');
-    }, 1900);
-  }, [rank]);
+    const delays = [900, 1400, 1900];
+    names.forEach((name, i) => {
+      setTimeout(() => {
+        setLanded((p) => ({ ...p, [name]: true }));
+        if (i === names.length - 1) {
+          clearInterval(cycleInterval);
+          setPhase('done');
+        }
+      }, delays[i]);
+    });
+  }, [archetype]);
 
   useEffect(() => {
     roll();
   }, [roll]);
 
-  const values = result
-    ? {
-        atk: landed.atk ? result.stats.atk : cycleValues.atk,
-        def: landed.def ? result.stats.def : cycleValues.def,
-        mana: landed.mana ? result.manaCost : cycleValues.mana,
-      }
-    : cycleValues;
+  function handleReroll() {
+    if (rerollsLeft <= 0) return;
+    setRerollsLeft((r) => r - 1);
+    roll();
+  }
+
+  const values: Record<StatName, number> = { Atk: 0, Def: 0, Mana: 0, Tech: 0 };
+  for (const name of statNames) {
+    if (result && landed[name]) {
+      values[name] = result[name]!.value;
+    } else {
+      values[name] = cycleValues[name];
+    }
+  }
 
   return (
     <div className="w-full max-w-md mx-auto space-y-8">
@@ -162,32 +172,46 @@ export function DiceRoll({ rank, onComplete }: DiceRollProps) {
       </div>
 
       <div className="flex justify-center gap-10">
-        {DICE_CONFIG.map((config, i) => {
-          const key = config.key;
-          return (
-            <GemDie
-              key={key}
-              value={values[key]}
-              config={config}
-              rolling={phase === 'rolling' && !landed[key]}
-              landed={landed[key]}
-              delay={i}
-            />
-          );
-        })}
+        {statNames.map((name, i) => (
+          <GemDie
+            key={name}
+            value={values[name]}
+            statName={name}
+            rolling={phase === 'rolling' && !landed[name]}
+            landed={landed[name]}
+            delay={i}
+          />
+        ))}
       </div>
 
-      <div className="flex justify-center gap-4">
+      {/* Stat ranges hint */}
+      {phase === 'done' && result && (
+        <div className="flex justify-center gap-4 text-[10px] text-ash/60">
+          {statNames.map((name) => {
+            const bias = affinity[name]!;
+            const [min, max] = BIAS_RANGES[bias].foundation;
+            return (
+              <span key={name}>
+                {name}: {min}–{max} ({bias})
+              </span>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="flex justify-center items-center gap-4">
         <button
-          onClick={roll}
+          onClick={handleReroll}
+          disabled={rerollsLeft <= 0 || phase === 'rolling'}
           className="px-6 py-2 rounded-lg bg-slate-dark text-ash hover:text-ivory
-            font-fantasy text-sm transition-colors border border-slate-dark hover:border-ash"
+            font-fantasy text-sm transition-colors border border-slate-dark hover:border-ash
+            disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          Reroll
+          Reroll ({rerollsLeft})
         </button>
         {phase === 'done' && result && (
           <button
-            onClick={() => onComplete(result.stats, result.manaCost)}
+            onClick={() => onComplete(result)}
             className="px-6 py-2 rounded-lg font-fantasy text-sm font-bold transition-all
               bg-gradient-to-r from-power to-endurance text-ivory
               hover:shadow-[0_0_15px_rgba(220,38,38,0.3)]"

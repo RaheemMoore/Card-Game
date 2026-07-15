@@ -1,69 +1,65 @@
-import type { Card, CombatStats, Rank, ArchetypeName, BorderVariant } from '../types/card';
-import { ARCHETYPE_NAMES, RANKS } from '../types/card';
+import type { Card, CardStats, StatEntry, ArchetypeName, BiasTier, StatName } from '../types/card';
+import { ARCHETYPE_NAMES } from '../types/card';
+import { CLASS_AFFINITY, BIAS_RANGES, getDominantStat, getBorderForDominantStat, getStatNames } from '../data/powerSystem';
 
 function randomInRange(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const RANK_STAT_RANGES: Record<Rank, { atk: [number, number]; def: [number, number]; mana: [number, number] }> = {
-  Foundation: { atk: [1, 4], def: [1, 4], mana: [1, 3] },
-  Forged: { atk: [3, 7], def: [3, 7], mana: [2, 5] },
-  Ascendant: { atk: [5, 10], def: [5, 10], mana: [4, 8] },
-};
-
-export function generateCombatStats(rank: Rank): { stats: CombatStats; manaCost: number } {
-  const ranges = RANK_STAT_RANGES[rank];
-  const atk = randomInRange(...ranges.atk);
-  const def = randomInRange(...ranges.def);
-  const manaCost = randomInRange(...ranges.mana);
-  return { stats: { atk, def }, manaCost };
+function rollStat(bias: BiasTier): StatEntry {
+  const range = BIAS_RANGES[bias];
+  return {
+    value: randomInRange(...range.foundation),
+    bias,
+    hardCap: range.hardCap,
+  };
 }
 
-export function getBorderForArchetype(archetype: ArchetypeName): BorderVariant {
-  const mapping: Partial<Record<ArchetypeName, BorderVariant>> = {
-    Barbarian: 'Dominance',
-    Monk: 'Conscientiousness',
-    Beastmaster: 'Steadiness',
-    Druid: 'Steadiness',
-    Necromancer: 'Influencing',
-    Vampire: 'Dominance',
-    'Mech Pilot': 'Conscientiousness',
-    Android: 'Conscientiousness',
-    Seraph: 'Influencing',
-    Human: 'Default',
+export function generateStats(archetype: ArchetypeName): CardStats {
+  const affinity = CLASS_AFFINITY[archetype];
+  const stats: CardStats = {
+    Atk: rollStat(affinity.Atk!),
+    Def: rollStat(affinity.Def!),
   };
-  return mapping[archetype] ?? 'Default';
+
+  if (affinity.Tech) {
+    stats.Tech = rollStat(affinity.Tech);
+  } else {
+    stats.Mana = rollStat(affinity.Mana!);
+  }
+
+  return stats;
+}
+
+export function getStatValue(stats: CardStats, name: StatName): number {
+  const entry = stats[name];
+  return entry ? entry.value : 0;
 }
 
 export function buildCardShell(
   archetype: ArchetypeName,
-  rank: Rank,
-  stats: CombatStats,
-  manaCost: number,
+  stats: CardStats,
   whisperWords: string[],
 ): Omit<Card, 'cardName' | 'nameAndTitle' | 'lore'> {
-  const borderVariant = getBorderForArchetype(archetype);
+  const dominant = getDominantStat(stats);
+  const borderVariant = getBorderForDominantStat(dominant);
 
   return {
     cardId: crypto.randomUUID(),
     archetype,
-    rank,
     portraitAsset: '',
     stats,
-    manaCost,
+    dominantStat: dominant,
     border: {
       baseVariant: borderVariant,
-      baseSource: archetype,
+      baseSource: dominant ?? 'none',
     },
     whisperWords,
+    evolutionHistory: {},
     createdAt: new Date().toISOString(),
   };
 }
 
 export function randomArchetype(): ArchetypeName {
   return ARCHETYPE_NAMES[Math.floor(Math.random() * ARCHETYPE_NAMES.length)];
-}
-
-export function randomRank(): Rank {
-  return RANKS[Math.floor(Math.random() * RANKS.length)];
 }

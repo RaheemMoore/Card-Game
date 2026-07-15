@@ -46,6 +46,7 @@ Card Game/                          # Git root
 │   │   │   └── portraitGenerator.ts # Placeholder portrait (gradient + letter)
 │   │   ├── data/
 │   │   │   ├── archetypes.ts       # 10 archetype definitions
+│   │   │   ├── powerSystem.ts      # Class affinity matrix, bias ranges, rank derivation, prompt suffixes
 │   │   │   └── stats.ts            # Border color palette
 │   │   ├── index.css               # Tailwind @theme, keyframes (dice, shimmer, fadeIn)
 │   │   └── App.tsx                 # Router + fantasy background layout
@@ -61,38 +62,52 @@ Card Game/                          # Git root
 └── card-engine-archetype-prompt-library.md
 ```
 
-## Current Data Model
+## Current Data Model — Power System
 
-The stat system was refactored from 6 fitness stats to a standard TCG model:
+Stats use a **class-affinity-based** system. Each archetype has bias tiers per stat that determine roll ranges and hard ceilings. Stats scale **1–100**. Rank is **derived** from stat values (not stored). Mech Pilot/Android use **Tech** instead of Mana.
 
 ```typescript
+interface StatEntry {
+  value: number;       // 1-100
+  bias: BiasTier;      // 'Very Low' | 'Low' | 'Mid' | 'Mid-High' | 'High' | 'Very High'
+  hardCap: number;
+}
+
 interface Card {
   cardId: string;
-  archetype: ArchetypeName;     // 10 options: Barbarian, Monk, Beastmaster, Druid, Necromancer, Vampire, Mech Pilot, Android, Seraph, Human
-  rank: Rank;                   // Foundation | Forged | Ascendant
+  archetype: ArchetypeName;     // 10 options
   cardName: string;             // AI-generated
-  nameAndTitle: string;         // AI-generated (e.g. "Kael, the Unbroken")
+  nameAndTitle: string;         // AI-generated
   portraitAsset: string;        // Placeholder gradient for now
-  stats: { atk: number; def: number };
-  manaCost: number;
+  stats: {
+    Atk: StatEntry;
+    Def: StatEntry;
+    Mana?: StatEntry;           // undefined for Tech classes
+    Tech?: StatEntry;           // undefined for Mana classes
+  };
+  dominantStat: StatName | null; // highest value stat, null on tie
   border: { baseVariant: BorderVariant; baseSource: string };
-  lore: string;                 // AI-generated
+  lore: string;
   whisperWords: string[];
+  evolutionHistory: EvolutionHistory; // keyed by StatName → Rank → ArtSnapshot
   createdAt: string;
 }
 ```
 
-**Stat ranges by rank:**
-- Foundation: ATK/DEF 1-4, Mana 1-3
-- Forged: ATK/DEF 3-7, Mana 2-5
-- Ascendant: ATK/DEF 5-10, Mana 4-8
+**Bias tier ranges (Foundation roll → Forged floor → Ascendant floor → Hard cap):**
+- Very Low: 5-25 → 26 → 41 → 55
+- Low: 15-35 → 36 → 56 → 70
+- Mid: 30-50 → 51 → 71 → 85
+- Mid-High: 40-60 → 61 → 76 → 90
+- High: 50-65 → 66 → 81 → 100
+- Very High: 60-75 → 76 → 86 → 100
 
-**Border variant is determined by archetype** (not highest stat):
-- Barbarian/Vampire → Dominance (red)
-- Monk/Mech Pilot/Android → Conscientiousness (blue)
-- Beastmaster/Druid → Steadiness (green)
-- Necromancer/Seraph → Influencing (gold)
-- Human → Default
+**Border variant is determined by dominant stat** (highest value):
+- ATK dominant → Dominance (red)
+- DEF dominant → Steadiness (green)
+- Mana dominant → Conscientiousness (blue)
+- Tech dominant → Influencing (yellow)
+- Tied → Default
 
 ## Card Renderer Positioning (from Figma)
 
@@ -102,7 +117,7 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 | Element | Position | Notes |
 |---------|----------|-------|
 | Card Name | top: 5.5% | Centered, ~29% side padding |
-| Mana Cost | top: 2%, right: 7.5% | Top-right crystal shield, 22px white text |
+| Resource (Mana/Tech) | top: 2%, right: 7.5% | Top-right crystal shield, 22px white text |
 | Portrait | top: 8%, sides: 8%, bottom: 38% | Image or gradient placeholder |
 | Name & Title | top: 69% | Centered in parchment banner, dark text |
 | ATK/DEF perks | top: 75.5%, left: 25.5% | Vertical list with badge+icon, full size only |
@@ -112,10 +127,10 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 
 4 stages: `archetype` → `stats` → `whisper` → `forging/reveal`
 
-1. **Archetype + Rank** — grid of 10 archetypes, then 3 rank tiers. Both have "Random" options.
-2. **Dice Roll** — 3D CSS cube animation. Three dice (red ATK, blue DEF, purple MANA) tumble and land sequentially. Numbers cycle during roll. Reroll is unlimited.
+1. **Archetype** — grid of 10 archetypes with affinity preview on hover. "Random" option. No rank selection (rank is derived from stats).
+2. **Dice Roll** — 3D CSS cube animation. Three dice (ATK/DEF + MANA or TECH depending on archetype) tumble and land sequentially. Values roll within the archetype's Foundation bias range (1–100 scale). **3 rerolls max**, rerolls all stats fresh.
 3. **Whisper Words** — 3 categories (Element, Physique, Lineage) with 6 preset options each + custom text. Optional (can skip).
-4. **Forge** — Calls Claude API, builds card, saves to localStorage, reveals with fade-in animation.
+4. **Forge** — Calls Claude API (with specialization suffix + visual motifs), builds card, saves to localStorage, reveals with fade-in animation.
 
 ## Figma Design Reference
 
@@ -126,7 +141,7 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 
 ## Phase Status
 
-- **Phase 1: Card Engine** — IN PROGRESS (core forge + collection working, dice animation added)
+- **Phase 1: Card Engine** — IN PROGRESS (core forge + collection + power system working, Leonardo API integration next)
 - **Phase 2: Backend + Accounts** — NOT STARTED (Supabase, user profiles, cloud save)
 - **Phase 3: Leveling & Minigames** — NOT STARTED
 - **Phase 4: PvP Battles** — NOT STARTED
@@ -135,11 +150,13 @@ Do NOT proceed to Phase 2 unless explicitly asked.
 
 ## Known Limitations / Next Steps (Phase 1)
 
-- Portraits are placeholder gradients — no real AI image generation yet
-- No `.env.example` file (add one with `VITE_ANTHROPIC_API_KEY=your-key-here`)
-- The existing `card-engine-development-plan.md` and `card-engine-project-knowledge.md` reference the old 6-stat system — they are partially outdated. This CLAUDE.md is the source of truth.
+- Portraits are placeholder gradients — Leonardo API integration is next
+- The existing `card-engine-development-plan.md` and `card-engine-project-knowledge.md` reference the old 6-stat system — they are partially outdated. This CLAUDE.md and `card-engine-power-system-spec.md` are the source of truth.
 - Dice animation uses CSS 3D cubes — functional but could be polished further
 - Card images in `Card Images/` folder exist but aren't integrated into the app yet
+- Evolution history data structure exists but UI for viewing/managing art per tier is not built (needs minigames)
+- Rank-sum cap of 7 is enforced in the data model but the trade-demotion UI is not built (needs minigames)
+- Promotion/demotion flow, Very Low difficulty modifier, and Tech vs organic combat modifier are deferred to later phases
 
 ## Conventions
 

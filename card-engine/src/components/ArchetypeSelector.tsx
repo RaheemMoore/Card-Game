@@ -1,110 +1,53 @@
 import { useState } from 'react';
-import type { ArchetypeName, Rank } from '../types/card';
-import { ARCHETYPE_NAMES, RANKS } from '../types/card';
+import type { ArchetypeName } from '../types/card';
+import { ARCHETYPE_NAMES } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
+import { CLASS_AFFINITY } from '../data/powerSystem';
+import type { StatName, BiasTier } from '../types/card';
 
 interface ArchetypeSelectorProps {
-  onSelect: (archetype: ArchetypeName, rank: Rank) => void;
+  onSelect: (archetype: ArchetypeName) => void;
 }
 
+const BIAS_LABEL: Record<BiasTier, string> = {
+  'Very Low': 'VL',
+  'Low': 'L',
+  'Mid': 'M',
+  'Mid-High': 'MH',
+  'High': 'H',
+  'Very High': 'VH',
+};
+
+const STAT_COLORS: Record<StatName, string> = {
+  Atk: '#dc2626',
+  Def: '#2563eb',
+  Mana: '#7c3aed',
+  Tech: '#d97706',
+};
+
 export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
-  const [selectedArchetype, setSelectedArchetype] = useState<ArchetypeName | null>(null);
+  const [hoveredArchetype, setHoveredArchetype] = useState<ArchetypeName | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const [rollingName, setRollingName] = useState<ArchetypeName | null>(null);
 
   function handleRandomArchetype() {
     setIsRolling(true);
     let count = 0;
     const interval = setInterval(() => {
-      setSelectedArchetype(ARCHETYPE_NAMES[Math.floor(Math.random() * ARCHETYPE_NAMES.length)]);
+      setRollingName(ARCHETYPE_NAMES[Math.floor(Math.random() * ARCHETYPE_NAMES.length)]);
       count++;
       if (count > 12) {
         clearInterval(interval);
+        const final = ARCHETYPE_NAMES[Math.floor(Math.random() * ARCHETYPE_NAMES.length)];
+        setRollingName(final);
         setIsRolling(false);
+        setTimeout(() => onSelect(final), 400);
       }
     }, 80);
   }
 
-  function handleRankSelect(rank: Rank) {
-    if (selectedArchetype) {
-      onSelect(selectedArchetype, rank);
-    }
-  }
-
-  function handleRandomRank() {
-    if (!selectedArchetype) return;
-    const rank = RANKS[Math.floor(Math.random() * RANKS.length)];
-    onSelect(selectedArchetype, rank);
-  }
-
-  if (selectedArchetype && !isRolling) {
-    const arch = ARCHETYPES[selectedArchetype];
-    return (
-      <div className="w-full max-w-2xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <button
-            onClick={() => setSelectedArchetype(null)}
-            className="text-ash hover:text-ivory text-sm transition-colors"
-          >
-            &larr; Change archetype
-          </button>
-          <h2 className="font-fantasy text-2xl font-bold text-ivory">
-            {selectedArchetype}
-          </h2>
-          <p className="text-ash text-sm">{arch.identity}</p>
-        </div>
-
-        <div className="text-center">
-          <p className="font-fantasy text-lg text-bone mb-4">Choose Your Rank</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {RANKS.map((rank) => {
-            const intensity = rank === 'Ascendant' ? 1 : rank === 'Forged' ? 0.6 : 0.3;
-            return (
-              <button
-                key={rank}
-                onClick={() => handleRankSelect(rank)}
-                className="group relative rounded-lg p-4 text-center transition-all hover:scale-105 border"
-                style={{
-                  background: `linear-gradient(180deg, ${arch.palette.primary}${Math.round(intensity * 40).toString(16).padStart(2, '0')} 0%, #12121a 100%)`,
-                  borderColor: `${arch.palette.accent}${Math.round(intensity * 100).toString(16).padStart(2, '0')}`,
-                  boxShadow: `0 0 ${intensity * 20}px ${arch.palette.accent}22`,
-                }}
-              >
-                <h3
-                  className="font-fantasy font-bold text-lg mb-1"
-                  style={{
-                    color: arch.palette.accent,
-                    textShadow: rank === 'Ascendant' ? `0 0 8px ${arch.palette.accent}` : 'none',
-                  }}
-                >
-                  {rank}
-                </h3>
-                <p className="text-xs text-ash">
-                  {rank === 'Foundation' && 'The beginning. Raw potential, unrefined.'}
-                  {rank === 'Forged' && 'Shaped by trial. Gaining power.'}
-                  {rank === 'Ascendant' && 'Mastery achieved. Legendary presence.'}
-                </p>
-                <p className="text-[10px] text-ash/60 mt-2 italic">
-                  {arch.rankProgression[rank]}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="text-center">
-          <button
-            onClick={handleRandomRank}
-            className="px-6 py-2 rounded-lg bg-slate-dark text-ash hover:text-ivory
-              font-fantasy text-sm transition-colors border border-slate-dark hover:border-ash"
-          >
-            Random Rank
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const previewArchetype = hoveredArchetype ?? rollingName;
+  const previewAffinity = previewArchetype ? CLASS_AFFINITY[previewArchetype] : null;
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
@@ -116,17 +59,17 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {ARCHETYPE_NAMES.map((name) => {
           const arch = ARCHETYPES[name];
-          const isSelected = selectedArchetype === name;
           return (
             <button
               key={name}
-              onClick={() => { setIsRolling(false); setSelectedArchetype(name); }}
-              className={`group relative rounded-lg p-3 text-center transition-all hover:scale-105 border ${
-                isSelected ? 'ring-2 ring-gold scale-105' : ''
-              }`}
+              onClick={() => { if (!isRolling) onSelect(name); }}
+              onMouseEnter={() => setHoveredArchetype(name)}
+              onMouseLeave={() => setHoveredArchetype(null)}
+              disabled={isRolling}
+              className="group relative rounded-lg p-3 text-center transition-all hover:scale-105 border disabled:opacity-50"
               style={{
                 background: `linear-gradient(180deg, ${arch.palette.primary}33 0%, #12121a 100%)`,
-                borderColor: isSelected ? arch.palette.accent : '#2a2a3e',
+                borderColor: '#2a2a3e',
               }}
             >
               <div
@@ -145,6 +88,20 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
           );
         })}
       </div>
+
+      {/* Affinity preview on hover */}
+      {previewArchetype && previewAffinity && (
+        <div className="flex justify-center">
+          <div className="bg-abyss/80 border border-slate-dark rounded-lg px-4 py-2 flex gap-4 text-xs">
+            {(Object.entries(previewAffinity) as [StatName, BiasTier][]).map(([stat, bias]) => (
+              <span key={stat} className="flex items-center gap-1">
+                <span className="font-bold" style={{ color: STAT_COLORS[stat] }}>{stat}</span>
+                <span className="text-ash">{BIAS_LABEL[bias]}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="text-center">
         <button

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ArchetypeName, Rank, CombatStats, Card } from '../types/card';
+import type { ArchetypeName, CardStats, Card } from '../types/card';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
 import { WhisperWords } from '../components/WhisperWords';
@@ -9,6 +9,7 @@ import { buildCardShell } from '../services/cardGenerator';
 import { generateCardText } from '../services/claudeApi';
 import { generatePlaceholderPortrait } from '../services/portraitGenerator';
 import { saveCard } from '../services/storage';
+import { getOverallRank } from '../data/powerSystem';
 
 type Stage = 'archetype' | 'stats' | 'whisper' | 'forging' | 'reveal';
 
@@ -16,38 +17,29 @@ export function CardForge() {
   const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>('archetype');
   const [archetype, setArchetype] = useState<ArchetypeName | null>(null);
-  const [rank, setRank] = useState<Rank | null>(null);
-  const [stats, setStats] = useState<CombatStats | null>(null);
-  const [manaCost, setManaCost] = useState<number>(0);
+  const [stats, setStats] = useState<CardStats | null>(null);
   const [card, setCard] = useState<Card | null>(null);
 
-  function handleArchetypeSelect(a: ArchetypeName, r: Rank) {
+  function handleArchetypeSelect(a: ArchetypeName) {
     setArchetype(a);
-    setRank(r);
     setStage('stats');
   }
 
-  function handleStatsComplete(s: CombatStats, mana: number) {
+  function handleStatsComplete(s: CardStats) {
     setStats(s);
-    setManaCost(mana);
     setStage('whisper');
   }
 
   async function handleWhisperComplete(words: string[]) {
-    if (!archetype || !rank || !stats) return;
+    if (!archetype || !stats) return;
 
     setStage('forging');
 
-    const shell = buildCardShell(archetype, rank, stats, manaCost, words);
-    const portrait = generatePlaceholderPortrait(archetype, rank);
+    const shell = buildCardShell(archetype, stats, words);
+    const overallRank = getOverallRank(stats);
+    const portrait = generatePlaceholderPortrait(archetype, overallRank);
 
-    const text = await generateCardText(
-      archetype,
-      rank,
-      stats,
-      manaCost,
-      words,
-    );
+    const text = await generateCardText(archetype, stats, words);
 
     const fullCard: Card = {
       ...shell,
@@ -65,9 +57,7 @@ export function CardForge() {
   function handleForgeAnother() {
     setStage('archetype');
     setArchetype(null);
-    setRank(null);
     setStats(null);
-    setManaCost(0);
     setCard(null);
   }
 
@@ -97,8 +87,8 @@ export function CardForge() {
         <ArchetypeSelector onSelect={handleArchetypeSelect} />
       )}
 
-      {stage === 'stats' && rank && (
-        <DiceRoll rank={rank} onComplete={handleStatsComplete} />
+      {stage === 'stats' && archetype && (
+        <DiceRoll archetype={archetype} onComplete={handleStatsComplete} />
       )}
 
       {stage === 'whisper' && (

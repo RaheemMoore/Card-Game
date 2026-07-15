@@ -1,5 +1,7 @@
-import type { Card, Rank, BorderVariant } from '../types/card';
+import type { Card, StatName } from '../types/card';
+import type { BorderVariant, Rank } from '../types/card';
 import { BORDER_COLORS } from '../data/stats';
+import { getOverallRank, getResourceStat, deriveRank } from '../data/powerSystem';
 
 interface CardRendererProps {
   card: Card;
@@ -21,11 +23,20 @@ const RANK_GLOW: Record<Rank, number> = {
   Ascendant: 1,
 };
 
+const STAT_ICON_COLORS: Record<StatName, string> = {
+  Atk: '#dc2626',
+  Def: '#2563eb',
+  Mana: '#7c3aed',
+  Tech: '#d97706',
+};
+
 export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps) {
   const borderColors = BORDER_COLORS[card.border.baseVariant];
   const borderFrame = BORDER_FRAME_MAP[card.border.baseVariant];
-  const glowIntensity = RANK_GLOW[card.rank];
+  const overallRank = getOverallRank(card.stats);
+  const glowIntensity = RANK_GLOW[overallRank];
   const isThumbnail = size === 'thumbnail';
+  const resource = getResourceStat(card.stats);
 
   const scale = isThumbnail ? 0.42 : 1;
   const cardW = Math.round(326 * scale);
@@ -34,7 +45,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
   return (
     <div
       className={`relative select-none ${onClick ? 'cursor-pointer hover:scale-[1.03] transition-transform' : ''} ${
-        card.rank === 'Ascendant' ? 'card-shimmer' : ''
+        overallRank === 'Ascendant' ? 'card-shimmer' : ''
       }`}
       style={{ width: cardW, height: cardH }}
       onClick={onClick}
@@ -56,9 +67,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           boxShadow: `0 0 ${20 * glowIntensity}px ${borderColors.primary}55`,
         }}
       >
-        {/* z-index layers: 1=portrait (behind), 2=border frame (on top, transparent window reveals portrait), 3=all text/UI overlays */}
-
-        {/* Portrait art — behind the frame so crystals/gems overlap edges */}
+        {/* Portrait art — behind the frame */}
         <div
           className="absolute overflow-hidden"
           style={{
@@ -95,7 +104,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           )}
         </div>
 
-        {/* Border frame — on top of portrait, transparent window shows through */}
+        {/* Border frame */}
         <img
           src={borderFrame}
           alt=""
@@ -126,7 +135,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           </h3>
         </div>
 
-        {/* Mana Cost — top-right crystal */}
+        {/* Resource cost — top-right crystal */}
         <div
           className="absolute pointer-events-none flex items-center justify-center"
           style={{
@@ -142,10 +151,10 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
             style={{
               fontSize: isThumbnail ? '9px' : '22px',
               color: '#fff',
-              textShadow: '0 0 10px rgba(167,139,250,0.8), 0 2px 4px rgba(0,0,0,0.9)',
+              textShadow: `0 0 10px ${resource.name === 'Tech' ? 'rgba(217,119,6,0.8)' : 'rgba(167,139,250,0.8)'}, 0 2px 4px rgba(0,0,0,0.9)`,
             }}
           >
-            {card.manaCost}
+            {resource.entry.value}
           </span>
         </div>
 
@@ -171,7 +180,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
           </p>
         </div>
 
-        {/* Stat display — badge+icon list */}
+        {/* Stat display — full size only */}
         {!isThumbnail && (
           <div
             className="absolute pointer-events-none"
@@ -183,14 +192,18 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
                   <img src="/assets/badges/red.png" alt="" className="absolute inset-0 w-full h-full rounded-full" style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.4))' }} />
                   <img src="/assets/icons/fist.png" alt="" className="relative w-[12px] h-[12px]" style={{ filter: 'brightness(2)' }} />
                 </div>
-                <span className="text-[12px] font-medium tracking-[0.24px]" style={{ color: '#000', textShadow: '0 2px 3px rgba(0,0,0,0.4)' }}>ATK {card.stats.atk}</span>
+                <span className="text-[12px] font-medium tracking-[0.24px]" style={{ color: '#000', textShadow: '0 2px 3px rgba(0,0,0,0.4)' }}>
+                  ATK {card.stats.Atk.value}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative w-[24px] h-[24px] shrink-0 flex items-center justify-center">
                   <img src="/assets/badges/blue.png" alt="" className="absolute inset-0 w-full h-full rounded-full" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }} />
                   <img src="/assets/icons/castle-turret.png" alt="" className="relative w-[12px] h-[12px]" style={{ filter: 'brightness(2)' }} />
                 </div>
-                <span className="text-[12px] font-medium tracking-[0.24px]" style={{ color: '#000', textShadow: '0 2px 3px rgba(0,0,0,0.4)' }}>DEF {card.stats.def}</span>
+                <span className="text-[12px] font-medium tracking-[0.24px]" style={{ color: '#000', textShadow: '0 2px 3px rgba(0,0,0,0.4)' }}>
+                  DEF {card.stats.Def.value}
+                </span>
               </div>
             </div>
           </div>
@@ -216,7 +229,7 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
               letterSpacing: '0.64px',
             }}
           >
-            {card.stats.atk}/{card.stats.def}
+            {card.stats.Atk.value}/{card.stats.Def.value}
           </span>
         </div>
       </div>

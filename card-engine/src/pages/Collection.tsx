@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ArchetypeName, Rank } from '../types/card';
+import type { ArchetypeName } from '../types/card';
 import { ARCHETYPE_NAMES, RANKS } from '../types/card';
+import type { Rank } from '../types/card';
 import { getAllCards, deleteCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
+import { getOverallRank } from '../data/powerSystem';
 
-type SortOption = 'newest' | 'oldest' | 'highest-atk' | 'by-rank';
+type SortOption = 'newest' | 'oldest' | 'highest-atk' | 'by-rank' | 'total-stats';
 
 export function Collection() {
   const navigate = useNavigate();
@@ -18,7 +20,7 @@ export function Collection() {
   const filtered = useMemo(() => {
     let result = [...cards];
     if (filterArchetype) result = result.filter((c) => c.archetype === filterArchetype);
-    if (filterRank) result = result.filter((c) => c.rank === filterRank);
+    if (filterRank) result = result.filter((c) => getOverallRank(c.stats) === filterRank);
 
     switch (sort) {
       case 'newest':
@@ -28,11 +30,21 @@ export function Collection() {
         result.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
         break;
       case 'highest-atk':
-        result.sort((a, b) => b.stats.atk - a.stats.atk);
+        result.sort((a, b) => b.stats.Atk.value - a.stats.Atk.value);
         break;
       case 'by-rank': {
-        const rankOrder = { Ascendant: 0, Forged: 1, Foundation: 2 };
-        result.sort((a, b) => rankOrder[a.rank] - rankOrder[b.rank]);
+        const rankOrder: Record<Rank, number> = { Ascendant: 0, Forged: 1, Foundation: 2 };
+        result.sort((a, b) => rankOrder[getOverallRank(a.stats)] - rankOrder[getOverallRank(b.stats)]);
+        break;
+      }
+      case 'total-stats': {
+        const total = (c: typeof cards[0]) => {
+          let sum = c.stats.Atk.value + c.stats.Def.value;
+          if (c.stats.Mana) sum += c.stats.Mana.value;
+          if (c.stats.Tech) sum += c.stats.Tech.value;
+          return sum;
+        };
+        result.sort((a, b) => total(b) - total(a));
         break;
       }
     }
@@ -79,7 +91,6 @@ export function Collection() {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 text-sm">
         <select
           value={filterArchetype}
@@ -114,11 +125,11 @@ export function Collection() {
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
           <option value="highest-atk">Highest ATK</option>
+          <option value="total-stats">Total Stats</option>
           <option value="by-rank">By Rank</option>
         </select>
       </div>
 
-      {/* Card Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
         {filtered.map((card) => (
           <div key={card.cardId} className="relative group">
@@ -137,7 +148,7 @@ export function Collection() {
                 transition-opacity flex items-center justify-center"
               title="Delete card"
             >
-              ×
+              x
             </button>
           </div>
         ))}
@@ -147,7 +158,6 @@ export function Collection() {
         <p className="text-center text-ash py-8">No cards match the current filters.</p>
       )}
 
-      {/* Delete confirmation modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-void/80 backdrop-blur-sm">
           <div className="bg-abyss border border-slate-dark rounded-xl p-6 max-w-sm mx-4 space-y-4">
