@@ -1,4 +1,4 @@
-import type { ArchetypeName, Rank, CardStats, StatName } from '../types/card';
+import type { ArchetypeName, Rank, CardStats, StatName, ModifierStack } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
 import {
   deriveStatRanks,
@@ -117,6 +117,8 @@ export async function generateCardText(
   archetype: ArchetypeName,
   stats: CardStats,
   whisperWords: string[],
+  modifiers?: ModifierStack,
+  existingName?: string,
 ): Promise<GeneratedText> {
   const arch = ARCHETYPES[archetype];
   const overallRank = getOverallRank(stats);
@@ -179,11 +181,23 @@ CREATIVE DIRECTION FOR THIS CARD:
 
 ${atkValue > defValue ? 'This character leans aggressive — reflect that in their personality or fighting style.' : defValue > atkValue ? 'This character is a protector or endurer — reflect their resilience or patience.' : 'This character is balanced — equally dangerous and durable.'}
 ${resourceValue >= 70 ? `High ${resourceType} means this is a powerful, costly being — the lore should feel weighty.` : resourceValue <= 25 ? `Low ${resourceType} means this is a scrappy, quick, or expendable figure.` : ''}
+${modifiers ? `
+PORTRAIT MODIFIERS (the card's portrait depicts this — weave these into the lore and title):
+- Setting: ${modifiers.setting}
+- Demeanor: ${modifiers.demeanor}
+- Signature Detail: ${modifiers.signatureDetail}
+- Lighting/Atmosphere: ${modifiers.lighting}
+
+The character's name, title, and lore should feel coherent with this visual. Let the setting, detail, and mood emerge naturally in the flavor text.` : ''}
+
+${existingName ? `
+EVOLUTION CONTEXT:
+This character's name is "${existingName}" — they are evolving to a higher rank. Do NOT change the cardName. Keep it exactly "${existingName}". Generate a NEW, more powerful title/epithet and new lore that reflects their growth, accumulated power, and the battles they've survived to reach ${overallRank} rank.` : ''}
 
 Generate ONLY a JSON object:
-- cardName: a fantasy name (1-3 words, no title). MUST follow the naming style above.
-- nameAndTitle: full name with epithet (e.g. "Kael, the Unbroken"). The title must reflect the rank's weight — Foundation titles are humble or uncertain, Forged titles show earned respect, Ascendant titles inspire awe.
-- lore: 2-3 sentences of evocative flavor text. Weave the whisper words into the mood naturally — don't force them in literally. The lore should hint at a living character with history, not a generic description.
+- cardName: ${existingName ? `MUST be exactly "${existingName}" — do not change this.` : 'a fantasy name (1-3 words, no title). MUST follow the naming style above.'}
+- nameAndTitle: full name with epithet (e.g. "Kael, the Unbroken"). The title must reflect the rank's weight — Foundation titles are humble or uncertain, Forged titles show earned respect, Ascendant titles inspire awe.${existingName ? ` The title should feel like a dramatic upgrade from the previous rank — this character has grown more powerful and feared.` : ''}
+- lore: 2-3 sentences of evocative flavor text. Weave the whisper words into the mood naturally — don't force them in literally. The lore should hint at a living character with history, not a generic description.${existingName ? ` Reference their journey and transformation — they are not new, they are reforged by experience.` : ''}
 
 Respond with ONLY valid JSON, no markdown, no explanation.`;
 

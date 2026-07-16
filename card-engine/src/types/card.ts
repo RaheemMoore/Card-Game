@@ -32,10 +32,18 @@ export interface CardStats {
 export interface ArtSnapshot {
   portraitUrl: string;
   cardName: string;
+  nameAndTitle: string;
   lore: string;
 }
 
 export type EvolutionHistory = Partial<Record<StatName, Partial<Record<Rank, ArtSnapshot | null>>>>;
+
+export interface ModifierStack {
+  setting: string;
+  demeanor: string;
+  signatureDetail: string;
+  lighting: string;
+}
 
 export interface CardBorder {
   baseVariant: BorderVariant;
@@ -53,6 +61,7 @@ export interface Card {
   border: CardBorder;
   lore: string;
   whisperWords: string[];
+  modifiers?: ModifierStack;
   evolutionHistory: EvolutionHistory;
   createdAt: string;
 }

@@ -146,20 +146,24 @@ const SPECIALIZATION_SUFFIX: Record<StatName, Record<Rank, string>> = {
 
 const VISUAL_MOTIFS: Partial<Record<StatName, Partial<Record<Rank, string>>>> = {
   Atk: {
-    Forged: 'battle scars, larger weapons',
-    Ascendant: 'battle scars, oversized weapons, aggressive stance',
+    Foundation: 'basic weapon held ready, untested grip, latent strength',
+    Forged: 'battle scars glowing faintly, larger weapons crackling with aggressive energy, combat-ready tension in every muscle',
+    Ascendant: 'blazing weapon aura engulfing the frame, devastating strike pose, shockwave energy radiating outward, weapon trails of pure destructive force',
   },
   Def: {
-    Forged: 'reinforced armor, shield',
-    Ascendant: 'layered plating, tower shield, unmoving posture',
+    Foundation: 'simple guard, basic protective stance, cautious posture',
+    Forged: 'reinforced layered armor, energy-traced shield raised, stance rooted and unyielding, glowing defensive runes',
+    Ascendant: 'impenetrable fortress of layered glowing shields, absolute unmovable stance, ground cracking beneath their weight, barrier energy cascading around them',
   },
   Mana: {
-    Forged: 'arcane sigils, faint glow',
-    Ascendant: 'arcane sigils orbiting body, glowing eyes, floating slightly',
+    Foundation: 'faint magical shimmer around the hands, dormant arcane potential',
+    Forged: 'arcane sigils swirling around the body, hands glowing with channeled power, eyes beginning to shine with inner light',
+    Ascendant: 'arcane sigils orbiting body in a blazing vortex, eyes erupting with raw power, levitating with devastating energy pouring from outstretched hands, reality warping around them',
   },
   Tech: {
-    Forged: 'visible cybernetic enhancements',
-    Ascendant: 'integrated cybernetics, HUD glow, mechanical augmentations visible',
+    Foundation: 'basic interface panels, simple HUD flicker, early-stage augmentation',
+    Forged: 'visible cybernetic enhancements glowing with power, tactical HUD overlay active, integrated weapon systems powering up',
+    Ascendant: 'fully integrated combat mech form, targeting HUD blazing across the visor, all weapon systems deployed and firing, energy core overclocked and radiating',
   },
 };
 

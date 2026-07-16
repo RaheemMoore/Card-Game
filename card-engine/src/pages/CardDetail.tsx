@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCard, deleteCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
 import { BORDER_COLORS } from '../data/stats';
-import type { StatName } from '../types/card';
+import type { StatName, Card, ArtSnapshot, Rank } from '../types/card';
 import {
   deriveRank,
   getOverallRank,
   computeRankSum,
   getStatNames,
-  getBorderForDominantStat,
 } from '../data/powerSystem';
+import { canTierUp, tierUpCard } from '../services/tierUp';
 
 const STAT_COLORS: Record<StatName, { bg: string; border: string; text: string }> = {
   Atk:  { bg: 'rgba(220,38,38,0.1)', border: '#dc2626', text: '#ef4444' },
@@ -29,8 +29,9 @@ export function CardDetail() {
   const { cardId } = useParams<{ cardId: string }>();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  const card = cardId ? getCard(cardId) : null;
+  const [card, setCard] = useState<Card | null>(() => cardId ? getCard(cardId) : null);
+  const [isTieringUp, setIsTieringUp] = useState(false);
+  const [viewingTierIdx, setViewingTierIdx] = useState(-1); // -1 = current
 
   if (!card) {
     return (
@@ -53,10 +54,42 @@ export function CardDetail() {
     navigate('/collection');
   }
 
+  async function handleTierUp() {
+    if (!card || isTieringUp) return;
+    setIsTieringUp(true);
+    try {
+      const upgraded = await tierUpCard(card);
+      setCard(upgraded);
+    } catch (err) {
+      console.error('Tier up failed:', err);
+    } finally {
+      setIsTieringUp(false);
+    }
+  }
+
   const borderColor = BORDER_COLORS[card.border.baseVariant];
   const overallRank = getOverallRank(card.stats);
   const rankSum = computeRankSum(card.stats);
   const activeStats = getStatNames(card.archetype);
+  const canUpgrade = canTierUp(card);
+
+  const tierTimeline = useMemo(() => buildTierTimeline(card), [card]);
+  const hasPreviousTiers = tierTimeline.length > 0;
+  const allTiers = [...tierTimeline, { rank: overallRank as Rank, snapshot: null }];
+  const currentIdx = viewingTierIdx === -1 ? allTiers.length - 1 : viewingTierIdx;
+
+  const isViewingHistory = currentIdx !== allTiers.length - 1 && !!allTiers[currentIdx]?.snapshot;
+  const displayCard = useMemo(() => {
+    if (!isViewingHistory) return card;
+    const snap = allTiers[currentIdx].snapshot!;
+    return {
+      ...card,
+      portraitAsset: snap.portraitUrl,
+      cardName: snap.cardName,
+      nameAndTitle: snap.nameAndTitle ?? snap.cardName,
+      lore: snap.lore,
+    };
+  }, [card, currentIdx, isViewingHistory, allTiers]);
 
   return (
     <div className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
@@ -69,12 +102,75 @@ export function CardDetail() {
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
         <div className="shrink-0 mx-auto md:mx-0">
-          <CardRenderer card={card} />
+          <CardRenderer card={displayCard} />
+
+          {/* Tier navigation */}
+          {hasPreviousTiers && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setViewingTierIdx(Math.max(0, currentIdx - 1))}
+                disabled={currentIdx === 0}
+                className="w-8 h-8 rounded-full border border-slate-dark text-ash
+                  hover:text-ivory hover:border-gold/50 transition-colors
+                  disabled:opacity-20 disabled:cursor-not-allowed
+                  flex items-center justify-center text-sm"
+              >
+                ◀
+              </button>
+
+              <div className="flex items-center gap-2">
+                {allTiers.map((tier, i) => {
+                  const isActive = i === currentIdx;
+                  const isCurrent = i === allTiers.length - 1;
+                  const colors = RANK_BADGE_COLORS[tier.rank];
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setViewingTierIdx(i === allTiers.length - 1 ? -1 : i)}
+                      className="flex flex-col items-center gap-1 transition-all"
+                    >
+                      <span
+                        className="px-2 py-0.5 rounded-full font-fantasy text-[10px] transition-all"
+                        style={{
+                          background: isActive ? colors.text : colors.bg,
+                          color: isActive ? '#0a0a0f' : colors.text,
+                          opacity: isActive ? 1 : 0.6,
+                        }}
+                      >
+                        {tier.rank}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[8px] text-ash/50">current</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setViewingTierIdx(
+                  currentIdx >= allTiers.length - 1 ? -1 : currentIdx + 1 === allTiers.length - 1 ? -1 : currentIdx + 1
+                )}
+                disabled={currentIdx === allTiers.length - 1}
+                className="w-8 h-8 rounded-full border border-slate-dark text-ash
+                  hover:text-ivory hover:border-gold/50 transition-colors
+                  disabled:opacity-20 disabled:cursor-not-allowed
+                  flex items-center justify-center text-sm"
+              >
+                ▶
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 space-y-6 min-w-0">
           <div>
-            <h1 className="font-fantasy text-3xl font-bold text-ivory">{card.nameAndTitle}</h1>
+            <h1 className="font-fantasy text-3xl font-bold text-ivory">{displayCard.nameAndTitle}</h1>
+            {isViewingHistory && (
+              <p className="text-xs text-gold/60 mt-1 font-fantasy italic">
+                Viewing {allTiers[currentIdx].rank} tier
+              </p>
+            )}
             <div className="flex gap-3 mt-2 text-sm">
               <span className="px-2 py-0.5 rounded bg-slate-dark text-ash">{card.archetype}</span>
               <span
@@ -100,9 +196,9 @@ export function CardDetail() {
             </div>
           </div>
 
-          {card.lore && (
+          {displayCard.lore && (
             <div className="border-l-2 pl-4" style={{ borderColor: `${borderColor.primary}44` }}>
-              <p className="text-bone/80 italic leading-relaxed">"{card.lore}"</p>
+              <p className="text-bone/80 italic leading-relaxed">"{displayCard.lore}"</p>
             </div>
           )}
 
@@ -183,11 +279,54 @@ export function CardDetail() {
             </div>
           )}
 
+
+          {card.modifiers && (
+            <div>
+              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Portrait Modifiers</h3>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="text-ash"><span className="text-bone/60">Setting:</span> {card.modifiers.setting}</div>
+                <div className="text-ash"><span className="text-bone/60">Demeanor:</span> {card.modifiers.demeanor}</div>
+                <div className="text-ash"><span className="text-bone/60">Detail:</span> {card.modifiers.signatureDetail}</div>
+                <div className="text-ash"><span className="text-bone/60">Lighting:</span> {card.modifiers.lighting}</div>
+              </div>
+            </div>
+          )}
+
           <div className="text-xs text-ash/60 space-y-1">
             <p>Border: {card.border.baseVariant} — {card.dominantStat ? `${card.dominantStat} dominant` : 'no dominant stat'}</p>
             <p>Created: {new Date(card.createdAt).toLocaleDateString()}</p>
             <p>ID: {card.cardId}</p>
           </div>
+
+          {/* Dev: Tier Up */}
+          {canUpgrade && (
+            <div className="border border-dashed border-gold/30 rounded-lg p-3 bg-gold/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-fantasy text-xs font-bold text-gold/80">DEV: Tier Up</span>
+                  <p className="text-[10px] text-ash/60 mt-0.5">
+                    Bumps stats to next rank, regenerates portrait &amp; lore (~$0.04)
+                  </p>
+                </div>
+                <button
+                  onClick={handleTierUp}
+                  disabled={isTieringUp}
+                  className="px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
+                    bg-gradient-to-r from-gold/80 to-amber-600/80 text-obsidian
+                    hover:shadow-[0_0_12px_rgba(234,179,8,0.3)]
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isTieringUp ? 'Evolving...' : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
+                </button>
+              </div>
+              {isTieringUp && (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+                  <span className="text-[10px] text-gold/60 animate-pulse">Forging new form...</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="pt-2">
             {!showDeleteConfirm ? (
@@ -221,4 +360,23 @@ export function CardDetail() {
       </div>
     </div>
   );
+}
+
+function buildTierTimeline(card: Card): { rank: Rank; snapshot: ArtSnapshot }[] {
+  const entries: { rank: Rank; snapshot: ArtSnapshot }[] = [];
+  const seen = new Set<string>();
+
+  for (const statHistory of Object.values(card.evolutionHistory)) {
+    if (!statHistory) continue;
+    for (const [rank, snapshot] of Object.entries(statHistory)) {
+      if (!snapshot) continue;
+      if (seen.has(rank)) continue;
+      seen.add(rank);
+      entries.push({ rank: rank as Rank, snapshot });
+    }
+  }
+
+  const rankOrder: Record<string, number> = { Foundation: 0, Forged: 1, Ascendant: 2 };
+  entries.sort((a, b) => rankOrder[a.rank] - rankOrder[b.rank]);
+  return entries;
 }
