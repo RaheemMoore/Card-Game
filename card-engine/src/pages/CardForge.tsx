@@ -7,9 +7,14 @@ import { WhisperWheel } from '../components/WhisperWheel';
 import { CardRenderer } from '../components/CardRenderer';
 import { buildCardShell } from '../services/cardGenerator';
 import { generateCardText } from '../services/claudeApi';
-import { generatePortrait } from '../services/leonardoApi';
+import { generatePortraitStrict } from '../services/leonardoApi';
 import { saveCard } from '../services/storage';
 import { getOverallRank } from '../data/powerSystem';
+import * as wallet from '../services/economy/walletService';
+import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
+import { CurrencyCost } from '../components/economy/CurrencyCost';
+import { InsufficientFundsModal } from '../components/economy/InsufficientFundsModal';
+import { useBalance } from '../services/economy/useWallet';
 
 type Stage = 'archetype' | 'stats' | 'wheel' | 'forging' | 'reveal';
 
@@ -21,6 +26,8 @@ const FORGING_MESSAGES = [
   'Sealing the card...',
 ];
 
+const FORGE_PRICE = PREMIUM_PRICE_CATALOG.forge_card.premiumCost;
+
 export function CardForge() {
   const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>('archetype');
@@ -28,8 +35,11 @@ export function CardForge() {
   const [stats, setStats] = useState<CardStats | null>(null);
   const [card, setCard] = useState<Card | null>(null);
   const [forgingMessage, setForgingMessage] = useState(FORGING_MESSAGES[0]);
+  const [forgeError, setForgeError] = useState<string | null>(null);
+  const [insufficientFunds, setInsufficientFunds] = useState(false);
   const messageInterval = useRef<ReturnType<typeof setInterval>>(null);
   const forgingStarted = useRef(false);
+  const premiumBalance = useBalance('premium');
 
   useEffect(() => {
     if (stage === 'forging') {
@@ -57,37 +67,66 @@ export function CardForge() {
   async function handleWheelComplete(mods: ModifierStack, whisperWords: string[]) {
     if (!archetype || !stats) return;
     if (forgingStarted.current) return;
-    forgingStarted.current = true;
 
+    // Reserve premium currency before we spend a single API call. On failure
+    // (Leonardo down, moderator block, network drop), refund automatically —
+    // per the plan's Section 7.2, no paid card ships without a real portrait.
+    let reservation;
+    try {
+      reservation = wallet.reserve({
+        currency: 'premium',
+        amount: FORGE_PRICE,
+        actionId: 'forge_card',
+      });
+    } catch (err) {
+      if (err instanceof wallet.InsufficientFundsError) {
+        setInsufficientFunds(true);
+        return;
+      }
+      throw err;
+    }
+
+    forgingStarted.current = true;
+    setForgeError(null);
     setStage('forging');
 
-    const shell = buildCardShell(archetype, stats, whisperWords);
-    const overallRank = getOverallRank(stats);
+    try {
+      const shell = buildCardShell(archetype, stats, whisperWords);
+      const overallRank = getOverallRank(stats);
 
-    // Claude now composes the Leonardo prompt (guaranteed <= 1300 chars) alongside lore,
-    // so we call it first, THEN hand its portraitPrompt to Leonardo. Two sequential calls
-    // instead of parallel — but Claude Haiku is fast (~1s) and it prevents 1500-char errors.
-    const text = await generateCardText(archetype, stats, whisperWords, mods);
-    const portrait = await generatePortrait(
-      text.portraitPrompt,
-      text.negativePrompt,
-      archetype,
-      overallRank,
-    );
+      // Claude first (composes the Leonardo prompt), then Leonardo. Both must
+      // succeed or the whole action refunds — no half-forged card gets minted.
+      const text = await generateCardText(archetype, stats, whisperWords, mods);
+      const portrait = await generatePortraitStrict(
+        text.portraitPrompt,
+        text.negativePrompt,
+      );
 
-    const fullCard: Card = {
-      ...shell,
-      cardName: text.cardName,
-      nameAndTitle: text.nameAndTitle,
-      lore: text.lore,
-      portraitAsset: portrait,
-      modifiers: mods,
-      identity: text.identity,
-    };
+      const fullCard: Card = {
+        ...shell,
+        cardName: text.cardName,
+        nameAndTitle: text.nameAndTitle,
+        lore: text.lore,
+        portraitAsset: portrait,
+        modifiers: mods,
+        identity: text.identity,
+      };
 
-    saveCard(fullCard);
-    setCard(fullCard);
-    setStage('reveal');
+      saveCard(fullCard);
+      wallet.commit(reservation.transactionId);
+      setCard(fullCard);
+      setStage('reveal');
+    } catch (err) {
+      wallet.refund(
+        reservation.transactionId,
+        err instanceof Error ? err.message : String(err),
+      );
+      forgingStarted.current = false;
+      setForgeError(
+        err instanceof Error ? err.message : String(err),
+      );
+      setStage('wheel');
+    }
   }
 
   function handleForgeAnother() {
@@ -96,6 +135,7 @@ export function CardForge() {
     setArchetype(null);
     setStats(null);
     setCard(null);
+    setForgeError(null);
   }
 
   const stages = ['archetype', 'stats', 'wheel', 'reveal'] as const;
@@ -130,11 +170,29 @@ export function CardForge() {
       )}
 
       {stage === 'wheel' && archetype && stats && (
-        <WhisperWheel
-          archetype={archetype}
-          overallRank={getOverallRank(stats)}
-          onComplete={handleWheelComplete}
-        />
+        <div className="w-full flex flex-col items-center gap-3">
+          <div className="text-xs text-ash flex items-center gap-2">
+            <span>Forging will charge</span>
+            <CurrencyCost
+              currency="premium"
+              amount={FORGE_PRICE}
+              insufficient={premiumBalance < FORGE_PRICE}
+            />
+            {premiumBalance < FORGE_PRICE && (
+              <span className="text-power">— insufficient balance</span>
+            )}
+          </div>
+          {forgeError && (
+            <div className="max-w-md text-xs text-power border border-power/40 rounded-lg p-2 bg-power/5">
+              Forge failed: {forgeError}. Your {FORGE_PRICE} was refunded.
+            </div>
+          )}
+          <WhisperWheel
+            archetype={archetype}
+            overallRank={getOverallRank(stats)}
+            onComplete={handleWheelComplete}
+          />
+        </div>
       )}
 
       {stage === 'forging' && (
@@ -144,6 +202,16 @@ export function CardForge() {
             {forgingMessage}
           </p>
         </div>
+      )}
+
+      {insufficientFunds && (
+        <InsufficientFundsModal
+          currency="premium"
+          required={FORGE_PRICE}
+          available={premiumBalance}
+          actionLabel="Forging a new card"
+          onClose={() => setInsufficientFunds(false)}
+        />
       )}
 
       {stage === 'reveal' && card && (

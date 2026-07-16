@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCard, deleteCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
@@ -13,6 +13,14 @@ import {
 import { canTierUp, tierUpCard } from '../services/tierUp';
 import { regeneratePortrait } from '../services/regeneratePortrait';
 import { generateAscendantPaths, type AscendantPath } from '../services/ascendantPaths';
+import * as wallet from '../services/economy/walletService';
+import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
+import { CurrencyCost } from '../components/economy/CurrencyCost';
+import { InsufficientFundsModal } from '../components/economy/InsufficientFundsModal';
+import { useBalance } from '../services/economy/useWallet';
+
+const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
+const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
 
 const STAT_COLORS: Record<StatName, { bg: string; border: string; text: string }> = {
   Atk:  { bg: 'rgba(220,38,38,0.1)', border: '#dc2626', text: '#ef4444' },
@@ -39,6 +47,15 @@ export function CardDetail() {
   // Ascendant Whisper Fusion: null = not open, [] = loading, [p1, p2] = ready
   const [ascendantPaths, setAscendantPaths] = useState<AscendantPath[] | null>(null);
   const [isLoadingPaths, setIsLoadingPaths] = useState(false);
+  const [insufficientFor, setInsufficientFor] = useState<
+    | null
+    | { currency: 'premium'; required: number; actionLabel: string }
+  >(null);
+  const premiumBalance = useBalance('premium');
+  // Ascendant tier-up reservation must be held across the modal — the wallet
+  // is charged when the user clicks Tier Up, but the actual generation waits
+  // for the path pick. Kept in a ref so re-renders don't lose the txn ID.
+  const pendingTierUpTxnId = useRef<string | null>(null);
 
   if (!card) {
     return (
@@ -63,16 +80,42 @@ export function CardDetail() {
 
   async function handleRegeneratePortrait() {
     if (!card || isRegenerating) return;
+
+    let reservation;
+    try {
+      reservation = wallet.reserve({
+        currency: 'premium',
+        amount: REGEN_PRICE,
+        actionId: 'regenerate_portrait',
+        cardId: card.cardId,
+      });
+    } catch (err) {
+      if (err instanceof wallet.InsufficientFundsError) {
+        setInsufficientFor({
+          currency: 'premium',
+          required: REGEN_PRICE,
+          actionLabel: 'Rebuilding this portrait',
+        });
+        return;
+      }
+      throw err;
+    }
+
     setIsRegenerating(true);
     setTierUpWarning(null);
     try {
       const updated = await regeneratePortrait(card);
+      wallet.commit(reservation.transactionId);
       setCard(updated);
     } catch (err) {
+      wallet.refund(
+        reservation.transactionId,
+        err instanceof Error ? err.message : String(err),
+      );
       console.error('Portrait regeneration failed:', err);
       setTierUpWarning(
         `Portrait regeneration failed: ${err instanceof Error ? err.message : String(err)}. ` +
-          'Try again — Leonardo\'s content moderator sometimes blocks a specific roll but passes the next.',
+          `Your ${REGEN_PRICE} was refunded. Try again — Leonardo's content moderator sometimes blocks a specific roll but passes the next.`,
       );
     } finally {
       setIsRegenerating(false);
@@ -83,9 +126,30 @@ export function CardDetail() {
     if (!card || isTieringUp || isLoadingPaths) return;
     setTierUpWarning(null);
 
-    // Ascendant tier-up gets the Whisper Fusion modal — Claude generates 2
-    // dramatic combined-whisper narratives, the user picks one, then the
-    // main tier-up runs with that narrative as the organizing image.
+    // Reserve once. The Ascendant path (Forged→Ascendant) makes an extra
+    // Claude call for path options; per plan Section 4.2 this cost is bundled
+    // into evolve_card_art so we do NOT reserve twice.
+    let reservation;
+    try {
+      reservation = wallet.reserve({
+        currency: 'premium',
+        amount: EVOLVE_PRICE,
+        actionId: 'evolve_card_art',
+        cardId: card.cardId,
+      });
+    } catch (err) {
+      if (err instanceof wallet.InsufficientFundsError) {
+        setInsufficientFor({
+          currency: 'premium',
+          required: EVOLVE_PRICE,
+          actionLabel: 'Evolving this card',
+        });
+        return;
+      }
+      throw err;
+    }
+    pendingTierUpTxnId.current = reservation.transactionId;
+
     const currentRank = getOverallRank(card.stats);
     if (currentRank === 'Forged') {
       setIsLoadingPaths(true);
@@ -108,22 +172,46 @@ export function CardDetail() {
 
   async function runTierUp(ascendantNarrative: string | undefined) {
     if (!card) return;
+    const txnId = pendingTierUpTxnId.current;
     setIsTieringUp(true);
     setTierUpWarning(null);
     try {
       const result = await tierUpCard(card, ascendantNarrative);
-      setCard(result.card);
+      // tierUpCard uses generatePortraitStrict internally BUT it catches the
+      // error and returns portraitRegenerated=false, keeping the old portrait.
+      // For a paid action that's a "text-only evolution" and per Section 7.3
+      // we refund — the player didn't get the promised new artwork.
       if (!result.portraitRegenerated) {
+        if (txnId) {
+          wallet.refund(
+            txnId,
+            `portrait_failed: ${result.portraitError ?? 'unknown'}`,
+          );
+        }
+        // Don't save the partially-evolved card — the plan requires preserving
+        // the original card on portrait failure.
         setTierUpWarning(
           `New portrait couldn't be generated (${result.portraitError ?? 'unknown error'}). ` +
-            'Stats and lore updated; previous portrait kept. You can retry Tier Up to try again.',
+            `Your ${EVOLVE_PRICE} was refunded. Card is unchanged. Retry Tier Up when ready.`,
+        );
+        return;
+      }
+      if (txnId) wallet.commit(txnId);
+      setCard(result.card);
+    } catch (err) {
+      if (txnId) {
+        wallet.refund(
+          txnId,
+          err instanceof Error ? err.message : String(err),
         );
       }
-    } catch (err) {
       console.error('Tier up failed:', err);
-      setTierUpWarning(`Tier up failed: ${err instanceof Error ? err.message : String(err)}`);
+      setTierUpWarning(
+        `Tier up failed: ${err instanceof Error ? err.message : String(err)}. Your ${EVOLVE_PRICE} was refunded.`,
+      );
     } finally {
       setIsTieringUp(false);
+      pendingTierUpTxnId.current = null;
     }
   }
 
@@ -134,6 +222,12 @@ export function CardDetail() {
 
   function handleCancelAscendantModal() {
     setAscendantPaths(null);
+    // User backed out AFTER we already paid for the ascendant paths lookup.
+    // Refund the reservation — no portrait was minted.
+    if (pendingTierUpTxnId.current) {
+      wallet.refund(pendingTierUpTxnId.current, 'user_cancelled_ascendant_modal');
+      pendingTierUpTxnId.current = null;
+    }
   }
 
   const borderColor = BORDER_COLORS[card.border.baseVariant];
@@ -376,7 +470,7 @@ export function CardDetail() {
                   <span className="font-fantasy text-xs font-bold text-power">Portrait Missing</span>
                   <p className="text-[10px] text-ash/70 mt-0.5">
                     This card's portrait was corrupted or blocked by content moderation.
-                    Rebuild it (~$0.036) — stats, name, lore, and evolution history are all preserved.
+                    Rebuild it — stats, name, lore, and evolution history are all preserved.
                   </p>
                 </div>
                 <button
@@ -385,9 +479,20 @@ export function CardDetail() {
                   className="shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
                     bg-gradient-to-r from-power to-power-glow text-ivory
                     hover:shadow-[0_0_12px_rgba(220,38,38,0.4)]
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    flex items-center gap-2"
                 >
-                  {isRegenerating ? 'Rebuilding...' : 'Rebuild Portrait'}
+                  <span>{isRegenerating ? 'Rebuilding...' : 'Rebuild Portrait'}</span>
+                  <span
+                    className="px-1.5 py-0.5 rounded bg-black/30"
+                    style={{ opacity: 0.9 }}
+                  >
+                    <CurrencyCost
+                      currency="premium"
+                      amount={REGEN_PRICE}
+                      insufficient={premiumBalance < REGEN_PRICE}
+                    />
+                  </span>
                 </button>
               </div>
               {isRegenerating && (
@@ -399,14 +504,14 @@ export function CardDetail() {
             </div>
           )}
 
-          {/* Dev: Tier Up */}
+          {/* Tier Up */}
           {canUpgrade && (
             <div className="border border-dashed border-gold/30 rounded-lg p-3 bg-gold/5">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-fantasy text-xs font-bold text-gold/80">DEV: Tier Up</span>
+                  <span className="font-fantasy text-xs font-bold text-gold/80">Tier Up</span>
                   <p className="text-[10px] text-ash/60 mt-0.5">
-                    Bumps stats to next rank, regenerates portrait &amp; lore (~$0.04)
+                    Bumps stats to next rank; regenerates portrait &amp; lore.
                   </p>
                 </div>
                 <button
@@ -415,9 +520,19 @@ export function CardDetail() {
                   className="px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
                     bg-gradient-to-r from-gold/80 to-amber-600/80 text-obsidian
                     hover:shadow-[0_0_12px_rgba(234,179,8,0.3)]
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    flex items-center gap-2"
                 >
-                  {isTieringUp ? 'Evolving...' : isLoadingPaths ? 'Divining fate...' : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
+                  <span>
+                    {isTieringUp ? 'Evolving...' : isLoadingPaths ? 'Divining fate...' : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-black/30">
+                    <CurrencyCost
+                      currency="premium"
+                      amount={EVOLVE_PRICE}
+                      insufficient={premiumBalance < EVOLVE_PRICE}
+                    />
+                  </span>
                 </button>
               </div>
               {(isTieringUp || isLoadingPaths) && (
@@ -479,6 +594,16 @@ export function CardDetail() {
           </div>
         </div>
       </div>
+
+      {insufficientFor && (
+        <InsufficientFundsModal
+          currency={insufficientFor.currency}
+          required={insufficientFor.required}
+          available={premiumBalance}
+          actionLabel={insufficientFor.actionLabel}
+          onClose={() => setInsufficientFor(null)}
+        />
+      )}
 
       {/* Ascendant Whisper Fusion modal */}
       {ascendantPaths && (

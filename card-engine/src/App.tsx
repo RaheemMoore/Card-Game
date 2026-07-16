@@ -3,6 +3,9 @@ import { CardForge } from './pages/CardForge';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { NavBar } from './components/NavBar';
+import { initialize as initializeWallet } from './services/economy/walletService';
+
+initializeWallet();
 
 export default function App() {
   return (

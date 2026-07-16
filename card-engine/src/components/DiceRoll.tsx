@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ArchetypeName, CardStats, StatName } from '../types/card';
 import { generateStats } from '../services/cardGenerator';
 import { getStatNames, BIAS_RANGES, CLASS_AFFINITY } from '../data/powerSystem';
+import * as wallet from '../services/economy/walletService';
+import {
+  GAMEPLAY_PRICE_CATALOG,
+  FREE_REROLLS_PER_FORGE,
+} from '../data/economy/gameplayPriceCatalog';
+import { CurrencyCost } from './economy/CurrencyCost';
+import { InsufficientFundsModal } from './economy/InsufficientFundsModal';
+import { useBalance } from '../services/economy/useWallet';
+
+const REROLL_COST = GAMEPLAY_PRICE_CATALOG.stat_reroll.gameplayCost;
 
 interface DiceRollProps {
   archetype: ArchetypeName;
@@ -14,8 +24,6 @@ const STAT_STYLES: Record<StatName, { label: string; color: string; glow: string
   Mana: { label: 'MANA', color: '#7c3aed', glow: 'rgba(124,58,237,0.6)', face: 'rgba(124,58,237,0.75)', edge: '#a78bfa' },
   Tech: { label: 'TECH', color: '#d97706', glow: 'rgba(217,119,6,0.6)',   face: 'rgba(217,119,6,0.75)',  edge: '#fbbf24' },
 };
-
-const MAX_REROLLS = 3;
 
 function GemDie({ value, statName, rolling, landed, delay }: {
   value: number;
@@ -113,7 +121,9 @@ export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
   const [phase, setPhase] = useState<'idle' | 'rolling' | 'done'>('idle');
   const [landed, setLanded] = useState<Record<StatName, boolean>>({ Atk: false, Def: false, Mana: false, Tech: false });
   const [cycleValues, setCycleValues] = useState<Record<StatName, number>>({ Atk: 30, Def: 30, Mana: 30, Tech: 30 });
-  const [rerollsLeft, setRerollsLeft] = useState(MAX_REROLLS);
+  const [freeRerollsLeft, setFreeRerollsLeft] = useState(FREE_REROLLS_PER_FORGE);
+  const [insufficientGold, setInsufficientGold] = useState(false);
+  const goldBalance = useBalance('gameplay');
 
   const roll = useCallback(() => {
     const names = getStatNames(archetype);
@@ -150,8 +160,33 @@ export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
   }, [roll]);
 
   function handleReroll() {
-    if (rerollsLeft <= 0) return;
-    setRerollsLeft((r) => r - 1);
+    if (phase === 'rolling') return;
+
+    if (freeRerollsLeft > 0) {
+      setFreeRerollsLeft((r) => r - 1);
+      roll();
+      return;
+    }
+
+    // Free reroll used; charge gameplay currency for the next.
+    let reservation;
+    try {
+      reservation = wallet.reserve({
+        currency: 'gameplay',
+        amount: REROLL_COST,
+        actionId: 'stat_reroll',
+      });
+    } catch (err) {
+      if (err instanceof wallet.InsufficientFundsError) {
+        setInsufficientGold(true);
+        return;
+      }
+      throw err;
+    }
+    // Reroll is instant and local — no async failure surface, so commit
+    // immediately. If we later add server-side reroll logic, wrap this in
+    // try/refund the same way as forge/tier-up.
+    wallet.commit(reservation.transactionId);
     roll();
   }
 
@@ -202,12 +237,22 @@ export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
       <div className="flex justify-center items-center gap-4">
         <button
           onClick={handleReroll}
-          disabled={rerollsLeft <= 0 || phase === 'rolling'}
+          disabled={phase === 'rolling' || (freeRerollsLeft <= 0 && goldBalance < REROLL_COST)}
           className="px-6 py-2 rounded-lg bg-slate-dark text-ash hover:text-ivory
             font-fantasy text-sm transition-colors border border-slate-dark hover:border-ash
-            disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled:opacity-30 disabled:cursor-not-allowed
+            flex items-center gap-2"
         >
-          Reroll ({rerollsLeft})
+          <span>Reroll</span>
+          {freeRerollsLeft > 0 ? (
+            <span className="text-[10px] text-gold/80">FREE</span>
+          ) : (
+            <CurrencyCost
+              currency="gameplay"
+              amount={REROLL_COST}
+              insufficient={goldBalance < REROLL_COST}
+            />
+          )}
         </button>
         {phase === 'done' && result && (
           <button
@@ -220,6 +265,16 @@ export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
           </button>
         )}
       </div>
+
+      {insufficientGold && (
+        <InsufficientFundsModal
+          currency="gameplay"
+          required={REROLL_COST}
+          available={goldBalance}
+          actionLabel="Rerolling the dice"
+          onClose={() => setInsufficientGold(false)}
+        />
+      )}
     </div>
   );
 }
