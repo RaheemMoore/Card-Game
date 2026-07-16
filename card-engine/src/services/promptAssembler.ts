@@ -72,6 +72,21 @@ export function assemblePortraitPrompt(
     `Lighting: ${modifiers.lighting}`,
   );
 
+  if (modifiers.element) {
+    parts.push(`Elemental affinity woven into their appearance: ${modifiers.element}`);
+  }
+  if (modifiers.physique) {
+    parts.push(`Physique: ${modifiers.physique}`);
+  }
+  if (modifiers.lineage) {
+    parts.push(`Lineage cues visible in bearing and dress: ${modifiers.lineage}`);
+  }
+  if (modifiers.classSignature && rank !== 'Foundation') {
+    parts.push(
+      `CLASS SIGNATURE — a defining element that must be visible in the portrait: ${modifiers.classSignature}. This is not background flavor; render it clearly and prominently.`,
+    );
+  }
+
   const prompt = parts.join('. ');
 
   const baseNegative = [
@@ -79,6 +94,10 @@ export function assemblePortraitPrompt(
     'extra limbs', 'extra fingers', 'disfigured', 'bad anatomy',
     'bad proportions', 'duplicate', 'multiple characters', 'split frame',
     'comic panels', 'UI elements', 'border', 'frame', 'card border',
+    // Steer away from content-moderation triggers (Phoenix classifier is strict —
+    // when it flags, url comes back null and we lose the whole call).
+    'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
+    'blood spatter', 'realistic injury', 'nudity', 'suggestive',
   ].join(', ');
 
   const rankNegative = RANK_NEGATIVE_ADDITIONS[rank] ?? '';

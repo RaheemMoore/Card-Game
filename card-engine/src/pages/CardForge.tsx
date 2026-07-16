@@ -3,17 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import type { ArchetypeName, CardStats, Card, ModifierStack } from '../types/card';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
-import { WhisperWords } from '../components/WhisperWords';
-import { ModifierSelector } from '../components/ModifierSelector';
+import { WhisperWheel } from '../components/WhisperWheel';
 import { CardRenderer } from '../components/CardRenderer';
 import { buildCardShell } from '../services/cardGenerator';
 import { generateCardText } from '../services/claudeApi';
 import { generatePortrait } from '../services/leonardoApi';
-import { assemblePortraitPrompt } from '../services/promptAssembler';
 import { saveCard } from '../services/storage';
 import { getOverallRank } from '../data/powerSystem';
 
-type Stage = 'archetype' | 'stats' | 'whisper' | 'modifiers' | 'forging' | 'reveal';
+type Stage = 'archetype' | 'stats' | 'wheel' | 'forging' | 'reveal';
 
 const FORGING_MESSAGES = [
   'Summoning your champion...',
@@ -28,7 +26,6 @@ export function CardForge() {
   const [stage, setStage] = useState<Stage>('archetype');
   const [archetype, setArchetype] = useState<ArchetypeName | null>(null);
   const [stats, setStats] = useState<CardStats | null>(null);
-  const [whisperWords, setWhisperWords] = useState<string[]>([]);
   const [card, setCard] = useState<Card | null>(null);
   const [forgingMessage, setForgingMessage] = useState(FORGING_MESSAGES[0]);
   const messageInterval = useRef<ReturnType<typeof setInterval>>(null);
@@ -54,15 +51,10 @@ export function CardForge() {
 
   function handleStatsComplete(s: CardStats) {
     setStats(s);
-    setStage('whisper');
+    setStage('wheel');
   }
 
-  function handleWhisperComplete(words: string[]) {
-    setWhisperWords(words);
-    setStage('modifiers');
-  }
-
-  async function handleModifiersComplete(mods: ModifierStack) {
+  async function handleWheelComplete(mods: ModifierStack, whisperWords: string[]) {
     if (!archetype || !stats) return;
     if (forgingStarted.current) return;
     forgingStarted.current = true;
@@ -71,12 +63,17 @@ export function CardForge() {
 
     const shell = buildCardShell(archetype, stats, whisperWords);
     const overallRank = getOverallRank(stats);
-    const { prompt, negativePrompt } = assemblePortraitPrompt(archetype, overallRank, stats, mods);
 
-    const [portrait, text] = await Promise.all([
-      generatePortrait(prompt, negativePrompt, archetype, overallRank),
-      generateCardText(archetype, stats, whisperWords, mods),
-    ]);
+    // Claude now composes the Leonardo prompt (guaranteed <= 1300 chars) alongside lore,
+    // so we call it first, THEN hand its portraitPrompt to Leonardo. Two sequential calls
+    // instead of parallel — but Claude Haiku is fast (~1s) and it prevents 1500-char errors.
+    const text = await generateCardText(archetype, stats, whisperWords, mods);
+    const portrait = await generatePortrait(
+      text.portraitPrompt,
+      text.negativePrompt,
+      archetype,
+      overallRank,
+    );
 
     const fullCard: Card = {
       ...shell,
@@ -85,6 +82,7 @@ export function CardForge() {
       lore: text.lore,
       portraitAsset: portrait,
       modifiers: mods,
+      identity: text.identity,
     };
 
     saveCard(fullCard);
@@ -97,12 +95,11 @@ export function CardForge() {
     setStage('archetype');
     setArchetype(null);
     setStats(null);
-    setWhisperWords([]);
     setCard(null);
   }
 
-  const stages = ['archetype', 'stats', 'whisper', 'modifiers', 'reveal'] as const;
-  const stageIndex = stages.indexOf(stage === 'forging' ? 'reveal' : stage as typeof stages[number]);
+  const stages = ['archetype', 'stats', 'wheel', 'reveal'] as const;
+  const stageIndex = stages.indexOf(stage === 'forging' ? 'reveal' : (stage as typeof stages[number]));
 
   return (
     <div className="flex-1 flex flex-col items-center px-4 py-8 gap-6">
@@ -132,12 +129,12 @@ export function CardForge() {
         <DiceRoll archetype={archetype} onComplete={handleStatsComplete} />
       )}
 
-      {stage === 'whisper' && (
-        <WhisperWords onComplete={handleWhisperComplete} />
-      )}
-
-      {stage === 'modifiers' && (
-        <ModifierSelector onComplete={handleModifiersComplete} />
+      {stage === 'wheel' && archetype && stats && (
+        <WhisperWheel
+          archetype={archetype}
+          overallRank={getOverallRank(stats)}
+          onComplete={handleWheelComplete}
+        />
       )}
 
       {stage === 'forging' && (

@@ -14,14 +14,40 @@ function isNewFormatCard(c: unknown): c is Card {
   );
 }
 
+/**
+ * Is this a portraitAsset value the CardRenderer can actually display?
+ * Some cards were saved with `data:text/html;base64,…` from an earlier bug
+ * where a null Leonardo URL was fetched as text and stored as a data URL.
+ */
+function isDisplayablePortrait(asset: unknown): asset is string {
+  if (typeof asset !== 'string' || asset.length === 0) return false;
+  return (
+    asset.startsWith('data:image/') ||
+    asset.startsWith('/assets/') ||
+    /^https?:\/\//i.test(asset)
+  );
+}
+
 function readCollection(): Card[] {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
     const items = JSON.parse(raw) as unknown[];
-    const cards = items.filter(isNewFormatCard);
-    if (cards.length < items.length) {
-      console.warn(`Filtered out ${items.length - cards.length} legacy card(s) with old stat format`);
+    const validItems = items.filter(isNewFormatCard);
+    const droppedCount = items.length - validItems.length;
+    let sanitizedCount = 0;
+    const cards = validItems.map((c) => {
+      if (isDisplayablePortrait(c.portraitAsset)) return c;
+      sanitizedCount++;
+      return { ...c, portraitAsset: '' };
+    });
+    if (droppedCount > 0) {
+      console.warn(`Filtered out ${droppedCount} legacy card(s) with old stat format`);
+    }
+    if (sanitizedCount > 0) {
+      console.warn(`Sanitized ${sanitizedCount} card(s) with corrupted portrait data — use "Regenerate Portrait" to rebuild.`);
+    }
+    if (droppedCount > 0 || sanitizedCount > 0) {
       writeCollection(cards);
     }
     return cards;
