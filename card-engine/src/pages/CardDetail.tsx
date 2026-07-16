@@ -11,6 +11,8 @@ import {
   getStatNames,
 } from '../data/powerSystem';
 import { canTierUp, tierUpCard } from '../services/tierUp';
+import { regeneratePortrait } from '../services/regeneratePortrait';
+import { generateAscendantPaths, type AscendantPath } from '../services/ascendantPaths';
 
 const STAT_COLORS: Record<StatName, { bg: string; border: string; text: string }> = {
   Atk:  { bg: 'rgba(220,38,38,0.1)', border: '#dc2626', text: '#ef4444' },
@@ -31,7 +33,12 @@ export function CardDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [card, setCard] = useState<Card | null>(() => cardId ? getCard(cardId) : null);
   const [isTieringUp, setIsTieringUp] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [viewingTierIdx, setViewingTierIdx] = useState(-1); // -1 = current
+  const [tierUpWarning, setTierUpWarning] = useState<string | null>(null);
+  // Ascendant Whisper Fusion: null = not open, [] = loading, [p1, p2] = ready
+  const [ascendantPaths, setAscendantPaths] = useState<AscendantPath[] | null>(null);
+  const [isLoadingPaths, setIsLoadingPaths] = useState(false);
 
   if (!card) {
     return (
@@ -54,17 +61,79 @@ export function CardDetail() {
     navigate('/collection');
   }
 
-  async function handleTierUp() {
-    if (!card || isTieringUp) return;
-    setIsTieringUp(true);
+  async function handleRegeneratePortrait() {
+    if (!card || isRegenerating) return;
+    setIsRegenerating(true);
+    setTierUpWarning(null);
     try {
-      const upgraded = await tierUpCard(card);
-      setCard(upgraded);
+      const updated = await regeneratePortrait(card);
+      setCard(updated);
+    } catch (err) {
+      console.error('Portrait regeneration failed:', err);
+      setTierUpWarning(
+        `Portrait regeneration failed: ${err instanceof Error ? err.message : String(err)}. ` +
+          'Try again — Leonardo\'s content moderator sometimes blocks a specific roll but passes the next.',
+      );
+    } finally {
+      setIsRegenerating(false);
+    }
+  }
+
+  async function handleTierUp() {
+    if (!card || isTieringUp || isLoadingPaths) return;
+    setTierUpWarning(null);
+
+    // Ascendant tier-up gets the Whisper Fusion modal — Claude generates 2
+    // dramatic combined-whisper narratives, the user picks one, then the
+    // main tier-up runs with that narrative as the organizing image.
+    const currentRank = getOverallRank(card.stats);
+    if (currentRank === 'Forged') {
+      setIsLoadingPaths(true);
+      try {
+        const paths = await generateAscendantPaths(card);
+        setAscendantPaths(paths);
+      } catch (err) {
+        console.error('Ascendant paths generation failed:', err);
+        setTierUpWarning(`Couldn't generate Ascendant paths: ${err instanceof Error ? err.message : String(err)}. Proceeding without fusion.`);
+        await runTierUp(undefined);
+      } finally {
+        setIsLoadingPaths(false);
+      }
+      return;
+    }
+
+    // Foundation → Forged: no fusion, straight through.
+    await runTierUp(undefined);
+  }
+
+  async function runTierUp(ascendantNarrative: string | undefined) {
+    if (!card) return;
+    setIsTieringUp(true);
+    setTierUpWarning(null);
+    try {
+      const result = await tierUpCard(card, ascendantNarrative);
+      setCard(result.card);
+      if (!result.portraitRegenerated) {
+        setTierUpWarning(
+          `New portrait couldn't be generated (${result.portraitError ?? 'unknown error'}). ` +
+            'Stats and lore updated; previous portrait kept. You can retry Tier Up to try again.',
+        );
+      }
     } catch (err) {
       console.error('Tier up failed:', err);
+      setTierUpWarning(`Tier up failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsTieringUp(false);
     }
+  }
+
+  async function handleChoosePath(path: AscendantPath) {
+    setAscendantPaths(null);
+    await runTierUp(path.narrative);
+  }
+
+  function handleCancelAscendantModal() {
+    setAscendantPaths(null);
   }
 
   const borderColor = BORDER_COLORS[card.border.baseVariant];
@@ -298,6 +367,38 @@ export function CardDetail() {
             <p>ID: {card.cardId}</p>
           </div>
 
+          {/* Regenerate Portrait — ONLY appears when the portrait is broken/missing.
+              Prevents users from burning Leonardo credits on cosmetic re-rolls. */}
+          {!card.portraitAsset && (
+            <div className="border border-power/50 rounded-lg p-3 bg-power/5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="font-fantasy text-xs font-bold text-power">Portrait Missing</span>
+                  <p className="text-[10px] text-ash/70 mt-0.5">
+                    This card's portrait was corrupted or blocked by content moderation.
+                    Rebuild it (~$0.036) — stats, name, lore, and evolution history are all preserved.
+                  </p>
+                </div>
+                <button
+                  onClick={handleRegeneratePortrait}
+                  disabled={isRegenerating || isTieringUp}
+                  className="shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
+                    bg-gradient-to-r from-power to-power-glow text-ivory
+                    hover:shadow-[0_0_12px_rgba(220,38,38,0.4)]
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRegenerating ? 'Rebuilding...' : 'Rebuild Portrait'}
+                </button>
+              </div>
+              {isRegenerating && (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-ash/30 border-t-bone rounded-full animate-spin" />
+                  <span className="text-[10px] text-ash/70 animate-pulse">Painting portrait...</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Dev: Tier Up */}
           {canUpgrade && (
             <div className="border border-dashed border-gold/30 rounded-lg p-3 bg-gold/5">
@@ -310,21 +411,41 @@ export function CardDetail() {
                 </div>
                 <button
                   onClick={handleTierUp}
-                  disabled={isTieringUp}
+                  disabled={isTieringUp || isLoadingPaths}
                   className="px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
                     bg-gradient-to-r from-gold/80 to-amber-600/80 text-obsidian
                     hover:shadow-[0_0_12px_rgba(234,179,8,0.3)]
                     disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isTieringUp ? 'Evolving...' : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
+                  {isTieringUp ? 'Evolving...' : isLoadingPaths ? 'Divining fate...' : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
                 </button>
               </div>
-              {isTieringUp && (
+              {(isTieringUp || isLoadingPaths) && (
                 <div className="mt-2 flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
-                  <span className="text-[10px] text-gold/60 animate-pulse">Forging new form...</span>
+                  <span className="text-[10px] text-gold/60 animate-pulse">
+                    {isLoadingPaths ? 'Weaving Ascendant paths...' : 'Forging new form...'}
+                  </span>
                 </div>
               )}
+            </div>
+          )}
+
+          {tierUpWarning && (
+            <div className="border border-power/40 rounded-lg p-3 bg-power/5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="font-fantasy text-xs font-bold text-power">Portrait not updated</span>
+                  <p className="text-[11px] text-bone/70 mt-1 leading-relaxed">{tierUpWarning}</p>
+                </div>
+                <button
+                  onClick={() => setTierUpWarning(null)}
+                  className="text-ash hover:text-ivory text-sm shrink-0"
+                  aria-label="Dismiss"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           )}
 
@@ -358,6 +479,68 @@ export function CardDetail() {
           </div>
         </div>
       </div>
+
+      {/* Ascendant Whisper Fusion modal */}
+      {ascendantPaths && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-[fadeIn_0.3s_ease-out]"
+          onClick={handleCancelAscendantModal}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[85vh] bg-obsidian border-2 border-gold/60
+              rounded-xl shadow-[0_0_40px_rgba(212,175,55,0.4)] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-gold/30 bg-gradient-to-b from-gold/10 to-transparent">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-fantasy text-xl font-bold text-gold">Ascendant Apotheosis</h3>
+                  <p className="text-xs text-ash/80 italic mt-1">
+                    Two paths fuse {card.cardName}'s whispers into a mythic ending.
+                    Choose the one you want their legend to become.
+                  </p>
+                </div>
+                <button
+                  onClick={handleCancelAscendantModal}
+                  className="text-ash hover:text-ivory text-2xl leading-none shrink-0"
+                  aria-label="Cancel"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4 space-y-3">
+              {ascendantPaths.map((path, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleChoosePath(path)}
+                  disabled={isTieringUp}
+                  className="w-full text-left p-4 rounded-lg border-2 border-slate-dark
+                    bg-slate-dark/40 hover:border-gold/60 hover:bg-gold/5
+                    hover:shadow-[0_0_18px_rgba(212,175,55,0.25)]
+                    transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                    group"
+                >
+                  <div className="font-fantasy text-sm font-bold text-gold group-hover:text-amber-300 mb-2">
+                    {path.title}
+                  </div>
+                  <p className="text-bone/85 text-sm italic leading-relaxed">
+                    "{path.narrative}"
+                  </p>
+                </button>
+              ))}
+            </div>
+            <div className="p-3 border-t border-slate-dark text-center">
+              <button
+                onClick={handleCancelAscendantModal}
+                className="text-xs text-ash hover:text-ivory font-fantasy transition-colors"
+              >
+                Cancel — don't tier up yet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

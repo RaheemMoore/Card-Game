@@ -63,7 +63,9 @@ async function submitGeneration(
 
   if (initImageId) {
     body.init_image_id = initImageId;
-    body.init_strength = 0.35;
+    // 0.45 is the sweet spot for tier-ups: strong enough to keep the same face
+    // and skin tone, loose enough to let the prompt drive aging + new modifiers.
+    body.init_strength = 0.45;
   }
 
   const response = await fetch(`${LEONARDO_API_BASE}/generations`, {
@@ -117,7 +119,16 @@ async function pollForResult(
       if (!images || images.length === 0) {
         throw new Error('Leonardo returned no images');
       }
-      return images[0].url;
+      // Leonardo returns url: null when nsfw content moderation blocks an image.
+      // Fantasy prompts (blood, undead, "burning") trip this often — treat as a
+      // generation failure so callers can fall back or preserve prior art.
+      const first = images[0];
+      const url: unknown = first?.url;
+      if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+        const nsfw = first?.nsfw ? ' (nsfw filter)' : '';
+        throw new Error(`Leonardo returned no usable image URL${nsfw}`);
+      }
+      return url;
     }
 
     if (generation.status === 'FAILED') {
@@ -136,12 +147,55 @@ async function fetchAsDataUrl(imageUrl: string): Promise<string> {
     throw new Error(`Failed to fetch Leonardo image (${response.status})`);
   }
   const blob = await response.blob();
+  if (!blob.type.startsWith('image/')) {
+    throw new Error(`Fetched non-image content (${blob.type || 'unknown'})`);
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
+    reader.onloadend = () => {
+      const result = reader.result;
+      if (typeof result === 'string' && result.startsWith('data:image/')) {
+        resolve(result);
+      } else {
+        reject(new Error('FileReader produced non-image data URL'));
+      }
+    };
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
+}
+
+/**
+ * Runs the Leonardo pipeline and throws on any failure. Returns a valid image
+ * data URL or throws. Use this when the caller wants to keep a previous portrait
+ * instead of accepting a placeholder (e.g. tier-up).
+ */
+export async function generatePortraitStrict(
+  prompt: string,
+  negativePrompt: string,
+  initImageDataUrl?: string,
+): Promise<string> {
+  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY;
+  if (!apiKey) {
+    throw new Error('No Leonardo API key configured');
+  }
+
+  let initImageId: string | undefined;
+  if (initImageDataUrl && !initImageDataUrl.startsWith('linear-gradient')) {
+    try {
+      initImageId = await uploadInitImage(apiKey, initImageDataUrl);
+    } catch (err) {
+      console.warn('Init image upload failed, falling back to text-only generation:', err);
+    }
+  }
+
+  const { generationId } = await submitGeneration(apiKey, prompt, negativePrompt, initImageId);
+  const imageUrl = await pollForResult(apiKey, generationId);
+  const dataUrl = await fetchAsDataUrl(imageUrl);
+  if (!dataUrl.startsWith('data:image/')) {
+    throw new Error('Leonardo returned non-image data URL');
+  }
+  return dataUrl;
 }
 
 export async function generatePortrait(
@@ -151,25 +205,8 @@ export async function generatePortrait(
   rank: Rank,
   initImageDataUrl?: string,
 ): Promise<string> {
-  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY;
-  if (!apiKey) {
-    console.warn('No Leonardo API key — using placeholder portrait');
-    return generatePlaceholderPortrait(archetype, rank);
-  }
-
   try {
-    let initImageId: string | undefined;
-    if (initImageDataUrl && !initImageDataUrl.startsWith('linear-gradient')) {
-      try {
-        initImageId = await uploadInitImage(apiKey, initImageDataUrl);
-      } catch (err) {
-        console.warn('Init image upload failed, falling back to text-only generation:', err);
-      }
-    }
-
-    const { generationId } = await submitGeneration(apiKey, prompt, negativePrompt, initImageId);
-    const imageUrl = await pollForResult(apiKey, generationId);
-    return await fetchAsDataUrl(imageUrl);
+    return await generatePortraitStrict(prompt, negativePrompt, initImageDataUrl);
   } catch (err) {
     console.error('Leonardo API error, using placeholder:', err);
     return generatePlaceholderPortrait(archetype, rank);
