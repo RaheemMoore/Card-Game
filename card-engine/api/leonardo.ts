@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Production replacement for the vite dev proxy defined in vite.config.ts.
-// Rewrites /api/leonardo/* -> https://cloud.leonardo.ai/api/rest/v1/* and
-// injects the server-side LEONARDO_API_KEY so the key never ships to the browser.
+// Single-file proxy for Leonardo. All /api/leonardo/** paths are routed here
+// via a vercel.json rewrite that captures the sub-path into ?leonardoPath=.
+// The [...path].ts catch-all approach had inconsistent multi-segment routing
+// in Vercel — this pattern is more reliable.
 
 export const config = { maxDuration: 60 };
 
@@ -15,11 +16,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // Vercel's [...path] catch-all doesn't reliably populate req.query.path
-  // for this file layout, so derive the upstream URL from req.url directly.
-  // Matches the vite dev proxy's `path.replace(/^\/api\/leonardo/, '/api/rest/v1')`.
-  const suffix = (req.url ?? '').replace(/^\/api\/leonardo/, '');
-  const url = `${LEONARDO_UPSTREAM}${suffix}`;
+  const rawPath = req.query.leonardoPath;
+  const subPath = Array.isArray(rawPath) ? rawPath.join('/') : rawPath ?? '';
+  const url = `${LEONARDO_UPSTREAM}/${subPath}`;
 
   const method = req.method || 'GET';
   const headers: Record<string, string> = {
