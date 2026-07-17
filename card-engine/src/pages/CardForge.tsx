@@ -15,6 +15,25 @@ import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
 import { CurrencyCost } from '../components/economy/CurrencyCost';
 import { InsufficientFundsModal } from '../components/economy/InsufficientFundsModal';
 import { useBalance } from '../services/economy/useWallet';
+import { AuthModal } from '../components/AuthModal';
+import { getCurrentUserId, isCurrentUserAnonymous } from '../services/persistence/supabaseClient';
+
+// Dismissed once per uid — never nag again for that guest. Real users
+// (with email) never see it.
+function signupPromptDismissedKey(uid: string): string {
+  return `card-engine-signup-prompt-dismissed:${uid}`;
+}
+function shouldShowFirstForgePrompt(): boolean {
+  if (!isCurrentUserAnonymous()) return false;
+  const uid = getCurrentUserId();
+  if (!uid) return false;
+  return !localStorage.getItem(signupPromptDismissedKey(uid));
+}
+function markFirstForgePromptDismissed(): void {
+  const uid = getCurrentUserId();
+  if (!uid) return;
+  localStorage.setItem(signupPromptDismissedKey(uid), new Date().toISOString());
+}
 
 type Stage = 'archetype' | 'stats' | 'wheel' | 'forging' | 'reveal';
 
@@ -37,6 +56,7 @@ export function CardForge() {
   const [forgingMessage, setForgingMessage] = useState(FORGING_MESSAGES[0]);
   const [forgeError, setForgeError] = useState<string | null>(null);
   const [insufficientFunds, setInsufficientFunds] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const messageInterval = useRef<ReturnType<typeof setInterval>>(null);
   const forgingStarted = useRef(false);
   const premiumBalance = useBalance('premium');
@@ -125,6 +145,7 @@ export function CardForge() {
       wallet.commit(reservation.transactionId);
       setCard(fullCard);
       setStage('reveal');
+      if (shouldShowFirstForgePrompt()) setShowSignupPrompt(true);
     } catch (err) {
       wallet.refund(
         reservation.transactionId,
@@ -220,6 +241,18 @@ export function CardForge() {
           available={premiumBalance}
           actionLabel="Forging a new card"
           onClose={() => setInsufficientFunds(false)}
+        />
+      )}
+
+      {showSignupPrompt && (
+        <AuthModal
+          headline="Your card is saved on this browser only."
+          body="Create an account and it lives with you — sign in from any device, never lose your collection. Later this will also unlock rules, leaderboards, and trading."
+          defaultMode="sign_up"
+          onClose={() => {
+            markFirstForgePromptDismissed();
+            setShowSignupPrompt(false);
+          }}
         />
       )}
 

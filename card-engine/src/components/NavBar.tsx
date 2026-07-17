@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { CurrencyBalance } from './economy/CurrencyBalance';
 import { WalletDevPanel } from './economy/WalletDevPanel';
 import { SyncStatusPill } from './SyncStatusPill';
+import { AuthModal } from './AuthModal';
+import {
+  getCurrentUser,
+  isCurrentUserAnonymous,
+  signOut,
+  subscribeToAuth,
+  fetchIsAdmin,
+} from '../services/persistence/supabaseClient';
 
 const links = [
   { to: '/forge', label: 'Card Forge' },
@@ -11,7 +19,20 @@ const links = [
 
 export function NavBar() {
   const [showDevPanel, setShowDevPanel] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [, setAuthTick] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const isDev = import.meta.env.DEV;
+
+  // Re-render on auth changes so the chip flips between "Sign in" and email.
+  useEffect(() => subscribeToAuth(() => setAuthTick((n) => n + 1)), []);
+  useEffect(() => {
+    void fetchIsAdmin().then(setIsAdmin);
+  }, []);
+
+  const user = getCurrentUser();
+  const isAnon = isCurrentUserAnonymous();
+  const authLabel = !user ? null : isAnon ? 'Guest' : user.email ?? 'Signed in';
 
   return (
     <nav className="sticky top-0 z-50">
@@ -82,12 +103,66 @@ export function NavBar() {
                   {label}
                 </NavLink>
               ))}
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `px-3 py-1.5 rounded-full text-sm font-medium font-fantasy transition-all ${
+                      isActive ? 'text-[#d6f2ec] shadow-md' : 'text-[#a9895d] hover:text-[#4a3211]'
+                    }`
+                  }
+                  style={({ isActive }) =>
+                    isActive
+                      ? { background: 'linear-gradient(to bottom, #9bb6b3, #5f888a)' }
+                      : {}
+                  }
+                >
+                  Admin
+                </NavLink>
+              )}
             </div>
+
+            <div className="w-px h-6 mx-1" style={{ background: 'rgba(74,50,17,0.2)' }} />
+
+            {authLabel && isAnon && (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="px-3 py-1 rounded-full text-[11px] font-fantasy font-bold"
+                style={{
+                  background: 'rgba(74,50,17,0.12)',
+                  color: '#4a3211',
+                  border: '1px solid rgba(74,50,17,0.3)',
+                }}
+                title="Guest account — sign up to save your progress across devices"
+              >
+                Sign in / Save
+              </button>
+            )}
+            {authLabel && !isAnon && (
+              <div className="flex items-center gap-1">
+                <span
+                  className="px-2 py-1 rounded-full text-[11px] font-fantasy"
+                  style={{ color: '#4a3211' }}
+                  title={user?.email ?? undefined}
+                >
+                  {authLabel.length > 20 ? authLabel.slice(0, 18) + '…' : authLabel}
+                </span>
+                <button
+                  onClick={() => void signOut().then(() => window.location.reload())}
+                  className="px-2 py-1 rounded-full text-[10px] font-fantasy"
+                  style={{ color: '#8a1c1c' }}
+                  title="Sign out"
+                >
+                  ↩
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {showDevPanel && <WalletDevPanel onClose={() => setShowDevPanel(false)} />}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </nav>
   );
 }
