@@ -17,17 +17,24 @@ const links = [
   { to: '/collection', label: 'Collection' },
 ] as const;
 
+type AuthModalMode = 'sign_up' | 'change_password' | null;
+
 export function NavBar() {
   const [showDevPanel, setShowDevPanel] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
+  const [authModal, setAuthModal] = useState<AuthModalMode>(null);
   const [, setAuthTick] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const isDev = import.meta.env.DEV;
 
-  // Re-render on auth changes so the chip flips between "Sign in" and email.
-  useEffect(() => subscribeToAuth(() => setAuthTick((n) => n + 1)), []);
+  // Every auth change (sign-in, sign-up, sign-out, password change)
+  // triggers a re-render AND a fresh isAdmin fetch so the Admin link
+  // shows/hides correctly for the new identity.
   useEffect(() => {
     void fetchIsAdmin().then(setIsAdmin);
+    return subscribeToAuth(() => {
+      setAuthTick((n) => n + 1);
+      void fetchIsAdmin().then(setIsAdmin);
+    });
   }, []);
 
   const user = getCurrentUser();
@@ -126,7 +133,7 @@ export function NavBar() {
 
             {authLabel && isAnon && (
               <button
-                onClick={() => setShowAuth(true)}
+                onClick={() => setAuthModal('sign_up')}
                 className="px-3 py-1 rounded-full text-[11px] font-fantasy font-bold"
                 style={{
                   background: 'rgba(74,50,17,0.12)',
@@ -140,13 +147,14 @@ export function NavBar() {
             )}
             {authLabel && !isAnon && (
               <div className="flex items-center gap-1">
-                <span
-                  className="px-2 py-1 rounded-full text-[11px] font-fantasy"
+                <button
+                  onClick={() => setAuthModal('change_password')}
+                  className="px-2 py-1 rounded-full text-[11px] font-fantasy hover:underline"
                   style={{ color: '#4a3211' }}
-                  title={user?.email ?? undefined}
+                  title={`Signed in as ${user?.email ?? ''} — click to change password`}
                 >
                   {authLabel.length > 20 ? authLabel.slice(0, 18) + '…' : authLabel}
-                </span>
+                </button>
                 <button
                   onClick={() => void signOut().then(() => window.location.reload())}
                   className="px-2 py-1 rounded-full text-[10px] font-fantasy"
@@ -162,7 +170,12 @@ export function NavBar() {
       </div>
 
       {showDevPanel && <WalletDevPanel onClose={() => setShowDevPanel(false)} />}
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {authModal && (
+        <AuthModal
+          defaultMode={authModal}
+          onClose={() => setAuthModal(null)}
+        />
+      )}
     </nav>
   );
 }
