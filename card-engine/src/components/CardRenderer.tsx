@@ -35,12 +35,20 @@ export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps
   const cardW = Math.round(326 * scale);
   const cardH = Math.round(470 * scale);
 
+  // Full-size cards allow shrinking to fit narrow viewports while preserving
+  // aspect ratio; children use percentage positions so they scale with it.
+  // Thumbnails keep a fixed footprint because they live inside grids that
+  // budget for a known size.
+  const outerStyle: React.CSSProperties = isThumbnail
+    ? { width: cardW, height: cardH }
+    : { width: `min(${cardW}px, 100%)`, aspectRatio: `${cardW} / ${cardH}` };
+
   return (
     <div
       className={`relative select-none ${onClick ? 'cursor-pointer hover:scale-[1.03] transition-transform' : ''} ${
         overallRank === 'Ascendant' ? 'card-shimmer' : ''
       }`}
-      style={{ width: cardW, height: cardH }}
+      style={outerStyle}
       onClick={onClick}
     >
       {/* Outer glow for rank */}
