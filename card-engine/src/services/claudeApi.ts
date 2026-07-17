@@ -224,12 +224,33 @@ ${specializationBlock}${archetype === 'Android' || archetype === 'Mech Pilot' ? 
 TECH-CLASS ESCALATION RULE (${archetype}):
 Higher ranks mean MORE machine, MORE technology, MORE mechanical dominance — never less. When evolving modifiers or writing the portraitPrompt: intensify the tech (bigger chassis, more exposed circuitry, more integrated weapons, brighter energy cores, more visible mechanical joints) instead of softening toward "human" or "sleek" or "refined". A Forged/Ascendant ${archetype} should look MORE like a machine than the Foundation, not less. Add tech vocabulary to every clause the evolution touches (e.g. "muscular" becomes "muscular armored chassis"; "battle-scarred" becomes "battle-scarred with visible plate damage and exposed circuitry"). Prosthetics and mechanical limbs are ENHANCED, not hidden.` : ''}${archetype === 'Lycanthrope' ? `
 
-LYCANTHROPE ESCALATION RULE (${overallRank}):
-Higher ranks mean MORE wolf, LESS human — never the reverse. Escalate morphology across ranks:
-- Foundation → near-human primal warrior. Only SUBTLE wolfish tells (glowing eyes matching moon phase, elongated canines, pointed ear tips, long unkempt mane in fur color). Human face is dominant. Hints of moon iconography (small pendant, crescent scar).
-- Forged → fully anatomical WOLF HEAD (real snout, real fur, real ears) on a still-muscled human torso. Torn practical clothing. The identity token rests on the bare chest. The moon of their phase is VISIBLE in the sky.
-- Ascendant → fully anthropomorphic digitigrade wolf-lord in articulated dark plate armor with silver moon-sigil filigree. Thick fur ruffing at collar and wrists. Silver moonlight AURA. The moon of their phase dominates the sky or forms the backdrop.
-Do NOT soften toward "human" or "hybrid" at higher ranks — a Forged/Ascendant Lycanthrope should look MORE lupine than the Foundation, not less.${lycanIdentity ? `
+LYCANTHROPE ESCALATION RULE (${overallRank}) — READ THIS TWICE:
+Higher ranks mean MORE WOLF ANATOMY, LESS HUMAN ANATOMY. Not just cosmetic hair and eyes — real morphological change. If the portrait would still read as "muscular human man with wolf accessories," you have failed the rule. Escalate ALL of the following across ranks:
+
+- Foundation → near-human primal warrior blessed by the Moon Goddess. SUBTLE wolfish tells only: elongated canines, glowing eyes matching moon phase, pointed ear tips, long unkempt mane in fur color, faint patch of fur at the temples or forearms. Human musculature still readable. Human hands with fingernails. Human feet or bare feet. Hints of moon iconography (small pendant, crescent scar).
+
+- Forged → MID-SHIFT HYBRID. NON-NEGOTIABLE at this tier:
+  * Fully anatomical WOLF HEAD (real snout, real fur, real ears — NOT a mask, NOT a helmet)
+  * FUR spreading visibly down the shoulders, upper back, and forearms — no longer just "hair"
+  * Fingers ending in visible CLAWS, not fingernails — dark, sharp, extending past the fingertips
+  * Human torso is still there BUT roughened — the six-pack abs of Foundation are broken up by patches of dark fur and stretched, changing skin. Do NOT render a clean bodybuilder torso.
+  * The identity token rests on the bare chest between patches of fur
+  * The moon of their phase is VISIBLE in the sky
+  * Torn practical clothing hangs off, splitting at the seams
+
+- Ascendant → FULLY ANTHROPOMORPHIC WOLF-LORD. NON-NEGOTIABLE at this tier:
+  * DIGITIGRADE legs (backward-bent knees, walks on toes) — MANDATORY, not optional
+  * A visible WOLF TAIL emerging from the back of the armor
+  * Full body covered in fur in their fur color — no exposed human skin except possibly the face/muzzle transition
+  * Hands are pawed with long TALONS, not "clawed fingers" — the hand shape itself is different
+  * NO HUMAN ABS visible under the armor — if unarmored zones show, they show fur and canine musculature, not gym-body definition
+  * FUR PATTERN reflects battle experience: silver moonlight veins run through the fur, scarred patches where fur grows back lighter, streaks of gray or moon-silver at the temples, ruff around the neck fuller and more matted
+  * Articulated dark plate armor with silver moon-sigil filigree, thick fur ruffing at collar and wrists, silver moonlight AURA cascading
+  * The moon of their phase dominates the sky or forms the composition backdrop
+
+FUR-AS-BATTLE-RECORD: at Forged and Ascendant, treat the fur as a living record of their journey. A Lycan who has fought many battles has scarred fur patterns, moonlight-silver streaks at the temples, patches where fur has grown back darker or lighter. Weave this into the portraitPrompt as a specific detail, not a generic "battle-worn."
+
+Do NOT soften toward "human," "sleek," "hybrid but graceful," or "elegant" at higher ranks — a Forged/Ascendant Lycanthrope should look MORE lupine, MORE bestial (though still noble), and OBVIOUSLY not-human, not less.${lycanIdentity ? `
 
 LOCKED LYCAN IDENTITY — these must appear verbatim in every generation of this character; they are the anchors that carry identity across the morph:
 - Fur color: ${lycanIdentity.furColor} (mane at Foundation, full head fur at Forged, full body fur at Ascendant — always ${lycanIdentity.furColor.toLowerCase()})
@@ -237,7 +258,16 @@ LOCKED LYCAN IDENTITY — these must appear verbatim in every generation of this
 The eye-glow color should visually match the moon phase (Crescent/Half → cool silver-white; Full → warm silver-gold; Blood → red-orange; Eclipse → black corona with faint gold). Weave both anchors into the portraitPrompt verbatim.` : ''}
 
 MOON GODDESS LORE INSTRUCTION:
-The Lycanthrope is blessed — not cursed — by the Moon Goddess. She watches over her chosen; the transformation is her gift. The lore MUST reference the Moon Goddess (as "the Moon Goddess", "the Moon Mother", "She Who Watches", or a similar epithet — vary it). The character is her devoted, not her victim. Their power waxes and wanes with the moon.` : ''}
+The Lycanthrope is blessed — not cursed — by the Moon Goddess. She watches over her chosen; the transformation is her gift. The lore MUST reference the Moon Goddess (as "the Moon Goddess", "the Moon Mother", "She Who Watches", or a similar epithet — vary it). The character is her devoted, not her victim. Their power waxes and wanes with the moon.${overallRank === 'Ascendant' ? `
+
+LORE-REFLECTED-IN-PORTRAIT (Ascendant only):
+The lore you write for this Ascendant tier will mention specific story beats — a defining battle, a bond broken or forged, a sacrifice made, a rival slain, a place they can never return to, a companion bound to them. **Every meaningful story beat you commit to writing in the lore MUST appear as a visual detail in the portraitPrompt.** Concrete examples:
+- Lore names a battle → the fur or armor carries a mark from it (silver-scarred fur, notched plate, a wound scar that healed into a moon shape)
+- Lore names a slain rival → a trophy at the belt, or their sigil turned into a scar
+- Lore names a bond with a specific pack member → that companion is a silhouette in the background, or their scent is caught in the wind
+- Lore names a sacrificed piece of themselves → the missing piece is visible (an eye scarred shut, a paw notched, silver where fur used to be)
+- Lore names the Moon Goddess appearing to them → her face is faintly visible in the moon behind them
+Do NOT write generic "warrior of many battles" lore and then pair it with generic "battle-scarred" art. The lore and portrait must reference the SAME specific event, visible in both.` : ''}` : ''}
 
 CREATIVE DIRECTION FOR THIS CARD:
 - Name style: ${namingStyle}
