@@ -63,6 +63,43 @@ describe('reserve → refund', () => {
     expect(refundTxn.metadata?.originalTransactionId).toBe(txn.transactionId);
     expect(refundTxn.metadata?.reason).toBe('leonardo_failed');
   });
+
+  it('uses a deterministic refund id derived from the original — enables idempotent upsert on retry', () => {
+    wallet.initialize();
+    const txn = wallet.reserve({ currency: 'premium', amount: 20 });
+    const refundTxn = wallet.refund(txn.transactionId, 'leonardo_failed');
+    // Prior implementation used a random uuid, so a retried remote
+    // upsert could create two refund audit rows for the same original.
+    expect(refundTxn.transactionId).toBe(`${txn.transactionId}:refund`);
+  });
+
+  it('refunding twice is blocked locally by the state check', () => {
+    wallet.initialize();
+    const txn = wallet.reserve({ currency: 'premium', amount: 20 });
+    wallet.refund(txn.transactionId, 'leonardo_failed');
+    expect(() => wallet.refund(txn.transactionId, 'again')).toThrow(wallet.TransactionStateError);
+  });
+});
+
+describe('sequence field', () => {
+  it('assigns strictly increasing sequence values in write order', () => {
+    wallet.initialize();
+    const seq0 = wallet.getBalance('premium'); // just to warm state
+    void seq0;
+    const a = wallet.reserve({ currency: 'premium', amount: 10 });
+    const b = wallet.reserve({ currency: 'premium', amount: 10 });
+    const c = wallet.grantReward({ currency: 'gameplay', amount: 25, rewardId: 'x' });
+    expect(a.sequence).toBeGreaterThan(0);
+    expect(b.sequence).toBe(a.sequence + 1);
+    expect(c.sequence).toBe(b.sequence + 1);
+  });
+
+  it('the refund audit row gets its own sequence — later than the original', () => {
+    wallet.initialize();
+    const spend = wallet.reserve({ currency: 'premium', amount: 20 });
+    const refundTxn = wallet.refund(spend.transactionId, 'x');
+    expect(refundTxn.sequence).toBeGreaterThan(spend.sequence);
+  });
 });
 
 describe('insufficient funds', () => {

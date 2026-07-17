@@ -11,18 +11,19 @@ export function isSupabaseConfigured(): boolean {
 }
 
 export function getSupabaseClient(): SupabaseClient | null {
+  // Cached client wins — this covers the test override path where a
+  // fake client has been injected without any env vars set.
+  if (client) return client;
   if (!isSupabaseConfigured()) return null;
-  if (!client) {
-    client = createClient(url!, key!, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        // Custom key so this doesn't collide with any other Supabase-using
-        // app on the same origin during dev.
-        storageKey: 'card-engine-auth',
-      },
-    });
-  }
+  client = createClient(url!, key!, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      // Custom key so this doesn't collide with any other Supabase-using
+      // app on the same origin during dev.
+      storageKey: 'card-engine-auth',
+    },
+  });
   return client;
 }
 
@@ -71,4 +72,11 @@ export async function ensureSession(): Promise<EnsureSessionResult> {
 // when attaching user_id to writes.
 export function getCurrentUserId(): string | null {
   return cachedUserId;
+}
+
+// Test-only override. Lets adapter/migration tests inject a fake client
+// without needing real env vars. Not used by application code.
+export function __setClientForTest(next: SupabaseClient | null, userId: string | null): void {
+  client = next;
+  cachedUserId = userId;
 }

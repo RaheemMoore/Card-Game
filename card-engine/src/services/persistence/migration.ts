@@ -52,7 +52,8 @@ function readLocalLedger(): EconomyTransaction[] {
 
 // Assign sequence numbers in createdAt order to any transactions that
 // pre-date the sequence field (localStorage state from before this PR).
-function backfillSequences(txns: EconomyTransaction[]): EconomyTransaction[] {
+// Exported for direct unit-testing; not part of the module's public API.
+export function backfillSequences(txns: EconomyTransaction[]): EconomyTransaction[] {
   const missing = txns.filter((t) => typeof t.sequence !== 'number');
   if (missing.length === 0) return txns;
   const sorted = [...missing].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
