@@ -93,11 +93,54 @@ export function Admin() {
         className="w-full max-w-sm mb-3 px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
       />
 
-      <div className="sm:hidden mb-2 text-[10px] text-bone/50 italic">
-        Swipe the table left to see more columns →
+      {/* Mobile: stacked cards. Desktop: table. */}
+      <div className="sm:hidden space-y-2">
+        {filtered === null && (
+          <div className="rounded border border-bone/15 p-4 text-center text-bone/60 text-sm">Loading…</div>
+        )}
+        {filtered && filtered.length === 0 && (
+          <div className="rounded border border-bone/15 p-4 text-center text-bone/60 text-sm">No users match.</div>
+        )}
+        {filtered?.map((u) => (
+          <button
+            key={u.user_id}
+            onClick={() => setSelectedUid(u.user_id)}
+            className="w-full text-left rounded-lg border border-bone/15 bg-void/40 p-3 space-y-2 hover:bg-bone/5 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm text-bone">
+                  {u.email ?? <span className="text-bone/50 italic">no email</span>}
+                </div>
+                <div className="text-[10px] text-bone/40 font-mono truncate">
+                  {u.user_id.slice(0, 12)}… {u.is_anonymous && '· guest'}
+                </div>
+              </div>
+              {u.role === 'admin' && (
+                <span
+                  className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold"
+                  style={{ background: 'rgba(155,182,179,0.2)', color: '#d6f2ec' }}
+                >
+                  ADMIN
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-4 gap-1 text-[10px] text-bone/70">
+              <MobileStat label="Cards" value={u.card_count} />
+              <MobileStat label="Txns" value={u.txn_count} />
+              <MobileStat label="Prem" value={u.premium_balance} />
+              <MobileStat label="Gold" value={u.gameplay_balance} />
+            </div>
+            {u.last_activity && u.last_activity !== '-infinity' && (
+              <div className="text-[10px] text-bone/50">
+                Last: {new Date(u.last_activity).toLocaleString()}
+              </div>
+            )}
+          </button>
+        ))}
       </div>
 
-      <div className="overflow-x-auto rounded border border-bone/15">
+      <div className="hidden sm:block overflow-x-auto rounded border border-bone/15">
         <table className="w-full text-sm text-bone/90">
           <thead className="bg-void/60 text-xs uppercase tracking-wider">
             <tr>
@@ -162,6 +205,15 @@ function Stat({ label, value, sub }: { label: string; value: number; sub?: strin
       <div className="text-[10px] uppercase tracking-wider text-bone/60">{label}</div>
       <div className="font-fantasy text-lg font-bold text-bone">{value}</div>
       {sub && <div className="text-[10px] text-bone/50">{sub}</div>}
+    </div>
+  );
+}
+
+function MobileStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded bg-void/40 px-1.5 py-1 text-center">
+      <div className="uppercase tracking-wider text-bone/50">{label}</div>
+      <div className="font-fantasy text-sm font-bold text-bone">{value}</div>
     </div>
   );
 }
