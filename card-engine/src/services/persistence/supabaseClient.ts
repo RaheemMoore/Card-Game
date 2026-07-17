@@ -61,9 +61,15 @@ export async function ensureSession(): Promise<EnsureSessionResult> {
 
   const { data: existing } = await c.auth.getSession();
   if (existing.session) {
-    cachedUserId = existing.session.user.id;
-    cachedUser = existing.session.user;
-    return { ok: true, session: existing.session };
+    // Refresh so the cached user reflects any server-side changes
+    // (email attached, role updated, admin-driven confirmation, etc.)
+    // that happened out of band since the token was last minted.
+    // On refresh failure we fall back to the cached session.
+    const { data: refreshed } = await c.auth.refreshSession();
+    const session = refreshed.session ?? existing.session;
+    cachedUserId = session.user.id;
+    cachedUser = session.user;
+    return { ok: true, session };
   }
 
   const { data, error } = await c.auth.signInAnonymously();
@@ -130,7 +136,7 @@ function clearRoleCache(): void {
 // Sign-up / sign-in / sign-out --------------------------------------
 
 export type AuthActionResult =
-  | { ok: true; user: User }
+  | { ok: true; user: User; needsEmailConfirmation?: boolean }
   | { ok: false; message: string };
 
 // Converts an anonymous session into a permanent email+password
@@ -144,15 +150,17 @@ export async function signUpWithEmail(email: string, password: string): Promise<
 
   if (isCurrentUserAnonymous()) {
     // updateUser on an anon session attaches the email+password to
-    // the same uid. Email verification, if enabled project-side, is
-    // required before the account is fully permanent.
+    // the same uid. If email verification is enabled project-side, the
+    // email lands in email_change (pending) and needs a link-click
+    // before the account is fully permanent.
     const { data, error } = await c.auth.updateUser({ email, password });
     if (error) return { ok: false, message: error.message };
     if (!data.user) return { ok: false, message: 'updateUser returned no user.' };
     cachedUser = data.user;
     clearRoleCache();
     notifyAuthChange();
-    return { ok: true, user: data.user };
+    const needsEmailConfirmation = !data.user.email || data.user.email !== email;
+    return { ok: true, user: data.user, needsEmailConfirmation };
   }
 
   const { data, error } = await c.auth.signUp({ email, password });
@@ -162,7 +170,9 @@ export async function signUpWithEmail(email: string, password: string): Promise<
   cachedUser = data.user;
   clearRoleCache();
   notifyAuthChange();
-  return { ok: true, user: data.user };
+  // signUp: if no session came back, email confirmation is required.
+  const needsEmailConfirmation = !data.session;
+  return { ok: true, user: data.user, needsEmailConfirmation };
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthActionResult> {
@@ -187,6 +197,23 @@ export async function signOut(): Promise<void> {
   cachedUser = null;
   clearRoleCache();
   notifyAuthChange();
+}
+
+// Update the current user's password. Requires a signed-in session
+// (guarded UI-side). Supabase does not require the current password
+// for this call — it trusts the session token as proof of identity.
+export async function changePassword(newPassword: string): Promise<AuthActionResult> {
+  const c = getSupabaseClient();
+  if (!c) return { ok: false, message: 'Supabase not configured.' };
+  if (isCurrentUserAnonymous()) {
+    return { ok: false, message: 'Sign up first — guest accounts have no password.' };
+  }
+  const { data, error } = await c.auth.updateUser({ password: newPassword });
+  if (error) return { ok: false, message: error.message };
+  if (!data.user) return { ok: false, message: 'updateUser returned no user.' };
+  cachedUser = data.user;
+  notifyAuthChange();
+  return { ok: true, user: data.user };
 }
 
 // Cached after ensureSession() resolves. Adapters read this synchronously
