@@ -15,9 +15,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const pathParam = req.query.path;
-  const pathParts = Array.isArray(pathParam) ? pathParam : pathParam ? [pathParam] : [];
-  const url = `${LEONARDO_UPSTREAM}/${pathParts.join('/')}`;
+  // Vercel's [...path] catch-all doesn't reliably populate req.query.path
+  // for this file layout, so derive the upstream URL from req.url directly.
+  // Matches the vite dev proxy's `path.replace(/^\/api\/leonardo/, '/api/rest/v1')`.
+  const suffix = (req.url ?? '').replace(/^\/api\/leonardo/, '');
+  const url = `${LEONARDO_UPSTREAM}${suffix}`;
 
   const method = req.method || 'GET';
   const headers: Record<string, string> = {
