@@ -68,7 +68,13 @@ vite.config.ts.timestamp-*
 *.sw?
 
 # Claude Code
-.claude/
+# Ignore session-local state by default, but check in the studio scaffolding
+# (agents, skills, verify script, launch config) so it survives a fresh clone.
+.claude/*
+!.claude/agents/
+!.claude/skills/
+!.claude/verify/
+!.claude/launch.json
 
 # yarn v3
 .pnp.*

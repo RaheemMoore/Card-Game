@@ -32,8 +32,9 @@ Card Game/                          # Git root
 │   │   │   ├── CardRenderer.tsx    # Card display with Figma-matched positioning
 │   │   │   ├── DiceRoll.tsx        # 3D CSS cube dice roll animation
 │   │   │   ├── ArchetypeSelector.tsx
-│   │   │   ├── WhisperWords.tsx
-│   │   │   └── NavBar.tsx
+│   │   │   ├── WhisperWheel.tsx
+│   │   │   ├── NavBar.tsx
+│   │   │   └── economy/           # CurrencyBalance, CurrencyCost, WalletPopover, etc.
 │   │   ├── pages/
 │   │   │   ├── CardForge.tsx       # 4-stage creation flow
 │   │   │   ├── Collection.tsx      # Card grid with filters/sort
@@ -42,12 +43,20 @@ Card Game/                          # Git root
 │   │   ├── services/
 │   │   │   ├── cardGenerator.ts    # Stat generation, border mapping, card shell builder
 │   │   │   ├── claudeApi.ts        # Anthropic API call for card text
+│   │   │   ├── promptAssembler.ts  # Base + DNA + rank + modifier pools → final prompt
+│   │   │   ├── leonardoApi.ts      # Leonardo portrait generation
+│   │   │   ├── regeneratePortrait.ts # Portrait regen with Character Reference
+│   │   │   ├── tierUp.ts           # Foundation → Forged → Ascendant evolution flow
+│   │   │   ├── ascendantPaths.ts   # Ascendant-tier specialization branching
+│   │   │   ├── portraitGenerator.ts # Placeholder portrait (gradient + letter)
 │   │   │   ├── storage.ts          # localStorage CRUD
-│   │   │   └── portraitGenerator.ts # Placeholder portrait (gradient + letter)
+│   │   │   └── economy/            # walletService, transactionLedger, pricingCalculator, validation, useWallet (+ tests)
 │   │   ├── data/
 │   │   │   ├── archetypes.ts       # 10 archetype definitions
 │   │   │   ├── powerSystem.ts      # Class affinity matrix, bias ranges, rank derivation, prompt suffixes
-│   │   │   └── stats.ts            # Border color palette
+│   │   │   ├── modifierPools.ts    # 4 pools × 25 entries (Setting, Demeanor, Signature Detail, Lighting)
+│   │   │   ├── stats.ts            # Border color palette
+│   │   │   └── economy/            # apiCostCatalog, premiumPriceCatalog, gameplayPriceCatalog, rewardCatalog, bundles, assumptions
 │   │   ├── index.css               # Tailwind @theme, keyframes (dice, shimmer, fadeIn)
 │   │   └── App.tsx                 # Router + fantasy background layout
 │   └── public/
@@ -141,27 +150,47 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 
 ## Phase Status
 
-- **Phase 1: Card Engine** — IN PROGRESS (core forge + collection + power system working, Leonardo API integration next)
-- **Phase 2: Backend + Accounts** — NOT STARTED (Supabase, user profiles, cloud save)
-- **Phase 3: Leveling & Minigames** — NOT STARTED
-- **Phase 4: PvP Battles** — NOT STARTED
+- **Phase 1: Card Engine** — CORE COMPLETE. Forge flow, collection, power system, Leonardo portraits, modifier pools, tier-up evolution + history viewer, whisper wheel, and two-currency economy (localStorage) are all working.
+- **Phase 1.5: Economy hardening + polish** — IN PROGRESS. Governance rules for the economy live in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md). Any change to prices, rewards, bundles, or exchange rules requires explicit Raheem approval — see charter.
+- **Phase 2: Backend + Accounts** — NOT STARTED. Supabase migration, auth, server-authoritative wallet + ledger. This is a hard prerequisite for real-money bundle sales.
+- **Phase 3: Leveling & Minigames** — NOT STARTED.
+- **Phase 4: PvP Battles + Trading** — NOT STARTED.
 
 Do NOT proceed to Phase 2 unless explicitly asked.
 
-## Known Limitations / Next Steps (Phase 1)
+## Economy System
 
-- Portraits are placeholder gradients — Leonardo API integration is next
-- The existing `card-engine-development-plan.md` and `card-engine-project-knowledge.md` reference the old 6-stat system — they are partially outdated. This CLAUDE.md and `card-engine-power-system-spec.md` are the source of truth.
-- Dice animation uses CSS 3D cubes — functional but could be polished further
-- Card images in `Card Images/` folder exist but aren't integrated into the app yet
-- Evolution history data structure exists but UI for viewing/managing art per tier is not built (needs minigames)
-- Rank-sum cap of 7 is enforced in the data model but the trade-demotion UI is not built (needs minigames)
-- Promotion/demotion flow, Very Low difficulty modifier, and Tech vs organic combat modifier are deferred to later phases
+Two-currency model implemented on localStorage (prototype only — not production-safe for real money):
+
+- **Premium currency** (`premium`, working name "Forge Crystals") — pays for AI-generated actions (forge card, evolve art, regenerate portrait).
+- **Gameplay currency** (`gameplay`, working name "Gold") — earned through play; supports non-API progression.
+
+Architecture is catalog-driven: `data/economy/` holds the source-of-truth catalogs (API cost estimates, premium prices, gameplay prices, rewards, bundles, tunable assumptions). No component may hardcode prices. `services/economy/walletService.ts` handles reserve → commit → refund transactions via `transactionLedger.ts`.
+
+**Governance:** [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md) §13 is binding. I never change player prices, reward values, bundle values, starting balances, or exchange rules without explicit Raheem approval and a documented reason.
+
+## Known Limitations / Next Steps
+
+- `Card Images/` folder holds portrait sources but they're not integrated into the app pipeline yet — Leonardo is the live path.
+- Dice animation uses CSS 3D cubes — functional but could be polished.
+- Rank-sum cap of 7 is enforced in the data model but the trade-demotion UI is deferred (needs minigames to drive it).
+- Promotion/demotion flow, Very Low difficulty modifier, and Tech vs organic combat modifier are deferred to Phase 3/4.
+- Economy is localStorage-only — see [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md) §9 for the production-security prerequisites before any real-money work.
+- The legacy 6-stat docs (`card-engine-development-plan.md`, `card-engine-project-knowledge.md`) have been moved to [docs/archive/](docs/archive/) — do not consult them as source of truth.
+
+## Studio Structure
+
+This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER.md)). I am the Studio Lead — I do all implementation. Specialist subagents advise, skills define reusable workflows.
+
+- `.claude/agents/` — 4 specialists: game-systems-designer, art-prompt-director, ui-ux-director, technical-architect. Invoke only for open-ended design questions.
+- `.claude/skills/` — 6 workflows: design-feature, ship-approved-plan, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only).
+- `.claude/verify/card-engine.sh` — project verify script the built-in `verify` skill bootstraps.
+- `.claude/launch.json` — dev-server preview config (`card-engine-dev` on :5173).
 
 ## Conventions
 
 - Tailwind v4 `@theme` block for design tokens — do not use `tailwind.config`
 - Fantasy-themed UI: dark backgrounds, parchment/gold accents, `font-fantasy` (Cinzel) for headings
 - Card rendering uses absolute positioning with percentage values overlaid on border frame PNGs
-- No test suite yet — verify changes visually using the dev server
+- Economy modules have vitest unit tests (`services/economy/*.test.ts`). Other code has no tests yet — verify UI/renderer changes visually using the dev server (see `.claude/verify/card-engine.sh`).
 - Commit messages should be concise, describe the "why"

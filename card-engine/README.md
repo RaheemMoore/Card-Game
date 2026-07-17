@@ -1,32 +1,27 @@
-# React + TypeScript + Vite
+# card-engine
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite + TypeScript app. This is the Card Engine — a fantasy TCG in mid-Phase 1.
 
-Currently, two official plugins are available:
+Canonical project docs live at the repo root — see [../CLAUDE.md](../CLAUDE.md) for full context (data model, project structure, phase status, economy governance).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Quick start
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # dev server on :5173
+npm run test       # vitest (economy tests)
+npm run build      # tsc -b && vite build
+npm run lint       # oxlint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Requires `.env` with `VITE_ANTHROPIC_API_KEY` (Claude for card text) and `VITE_LEONARDO_API_KEY` (portrait generation). See `.env.example`.
+
+## Verify a change
+
+Run the project verify script — layered checks, fastest first:
+
+```bash
+../.claude/verify/card-engine.sh
+```
+
+Or via the built-in `verify` skill in a Claude Code session.
