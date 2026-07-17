@@ -24,6 +24,28 @@ export interface MigrationResult {
   error?: string;
 }
 
+// Supabase errors are plain objects, not Error instances — `String(err)`
+// yields "[object Object]". Extract something readable.
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  if (err && typeof err === 'object') {
+    const obj = err as { message?: unknown; error?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+    const parts: string[] = [];
+    if (obj.message) parts.push(String(obj.message));
+    if (obj.details) parts.push(`details=${String(obj.details)}`);
+    if (obj.hint) parts.push(`hint=${String(obj.hint)}`);
+    if (obj.code) parts.push(`code=${String(obj.code)}`);
+    if (parts.length > 0) return parts.join(' — ');
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return '(unserializable error)';
+    }
+  }
+  return String(err);
+}
+
 function sentinelKey(userId: string): string {
   return `${MIGRATED_SENTINEL_PREFIX}${userId}`;
 }
@@ -323,6 +345,10 @@ export async function runMigrationIfNeeded(): Promise<MigrationResult> {
       portraitFailures,
     };
   } catch (err) {
+    // Log the raw error so devs can inspect it in the console; the
+    // returned string is what gets rendered to the user.
+    // eslint-disable-next-line no-console
+    console.error('[migration] failed:', err);
     return {
       ran: false,
       reason: 'failed',
@@ -330,7 +356,7 @@ export async function runMigrationIfNeeded(): Promise<MigrationResult> {
       txnCount: 0,
       portraitCount: 0,
       portraitFailures: [],
-      error: err instanceof Error ? err.message : String(err),
+      error: errorMessage(err),
     };
   } finally {
     lock.release();

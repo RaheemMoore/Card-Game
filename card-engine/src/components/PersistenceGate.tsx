@@ -13,6 +13,26 @@ type GateState =
   | { kind: 'ready'; mode: 'supabase' | 'local'; note?: string }
   | { kind: 'error'; reason: EnsureSessionReason | 'migration' | 'hydrate' | 'unknown'; message: string };
 
+function extractErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  if (err && typeof err === 'object') {
+    const obj = err as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+    const parts: string[] = [];
+    if (obj.message) parts.push(String(obj.message));
+    if (obj.details) parts.push(`details=${String(obj.details)}`);
+    if (obj.hint) parts.push(`hint=${String(obj.hint)}`);
+    if (obj.code) parts.push(`code=${String(obj.code)}`);
+    if (parts.length > 0) return parts.join(' — ');
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return '(unserializable error)';
+    }
+  }
+  return String(err);
+}
+
 // Mounts before the router. Responsible for:
 //   1. Choosing the persistence mode (Supabase if configured, otherwise
 //      the legacy localStorage-only path).
@@ -89,10 +109,12 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       try {
         await Promise.all([cardStore.hydrate(), ledgerStore.hydrate()]);
       } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[persistence] hydrate failed:', err);
         setState({
           kind: 'error',
           reason: 'hydrate',
-          message: err instanceof Error ? err.message : String(err),
+          message: extractErrorMessage(err),
         });
         return;
       }
