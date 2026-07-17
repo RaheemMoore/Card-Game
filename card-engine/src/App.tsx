@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
+import { Admin } from './pages/Admin';
 import { NavBar } from './components/NavBar';
 import { PersistenceGate } from './components/PersistenceGate';
 
@@ -30,6 +31,7 @@ export default function App() {
                 <Route path="/forge" element={<CardForge />} />
                 <Route path="/collection" element={<Collection />} />
                 <Route path="/card/:cardId" element={<CardDetail />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
