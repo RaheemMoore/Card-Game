@@ -187,7 +187,7 @@ Architecture is catalog-driven: `data/economy/` holds the source-of-truth catalo
 This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER.md)). I am the Studio Lead — I do all implementation. Specialist subagents advise, skills define reusable workflows.
 
 - `.claude/agents/` — 4 specialists: game-systems-designer, art-prompt-director, ui-ux-director, technical-architect. Invoke only for open-ended design questions.
-- `.claude/skills/` — 6 workflows: design-feature, ship-approved-plan, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only).
+- `.claude/skills/` — 7 workflows: design-feature, ship-approved-plan, create-archetype, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only).
 - `.claude/verify/card-engine.sh` — project verify script the built-in `verify` skill bootstraps.
 - `.claude/launch.json` — dev-server preview config (`card-engine-dev` on :5173).
 - **Skill/agent opportunities:** I raise credible candidates proactively (Reuse Forecast in `design-feature`, Reuse Review in `ship-approved-plan`); Raheem approves before I create anything. See [STUDIO_CHARTER.md](STUDIO_CHARTER.md) — *Proactive Workflow Discovery*.

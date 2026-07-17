@@ -81,12 +81,13 @@ Four initial specialists live in `.claude/agents/`. Each:
 
 ## Skills
 
-Six initial workflows live in `.claude/skills/`. Each defines: inputs, workflow steps, which specialists to consult, human approval gates, validation, expected outputs.
+Seven workflows live in `.claude/skills/`. Each defines: inputs, workflow steps, which specialists to consult, human approval gates, validation, expected outputs.
 
 | Skill | Purpose |
 |---|---|
 | `design-feature` | Take a feature idea → structured design proposal ready for approval. Consults relevant specialists. |
 | `ship-approved-plan` | Post-approval handoff: branch, task decomposition, commits, PR body. Does NOT re-do plan mode's job. |
+| `create-archetype` | Specialized delivery for a new archetype — ~10 mandatory file edits, Foundation Leonardo gate, real-incident failure-mode checklist. Sits between `design-feature` and `ship-approved-plan`. |
 | `sync-project-knowledge` | After code changes, update the canonical docs (CLAUDE.md, spec files) so they don't drift. |
 | `audit-project-knowledge` | Detect drift between docs and code (like the Phase 0 report), file the fix list. |
 | `art-pipeline` | Leonardo prompt assembly → generation → Character Reference re-use → tier evolution art. |
