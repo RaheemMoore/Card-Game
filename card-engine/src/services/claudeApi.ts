@@ -250,7 +250,20 @@ Higher ranks mean MORE WOLF ANATOMY, LESS HUMAN ANATOMY. Not just cosmetic hair 
 
 FUR-AS-BATTLE-RECORD: at Forged and Ascendant, treat the fur as a living record of their journey. A Lycan who has fought many battles has scarred fur patterns, moonlight-silver streaks at the temples, patches where fur has grown back darker or lighter. Weave this into the portraitPrompt as a specific detail, not a generic "battle-worn."
 
-Do NOT soften toward "human," "sleek," "hybrid but graceful," or "elegant" at higher ranks — a Forged/Ascendant Lycanthrope should look MORE lupine, MORE bestial (though still noble), and OBVIOUSLY not-human, not less.${lycanIdentity ? `
+Do NOT soften toward "human," "sleek," "hybrid but graceful," or "elegant" at higher ranks — a Forged/Ascendant Lycanthrope should look MORE lupine, MORE bestial (though still noble), and OBVIOUSLY not-human, not less.${overallRank !== 'Foundation' ? `
+
+LYCANTHROPE PROMPT-STRUCTURE OVERRIDE (${overallRank}):
+Leonardo weights the first clauses of the prompt heaviest. For this Lycanthrope Forged/Ascendant generation, the portraitPrompt MUST open in this order (do NOT bury the wolf-anatomy mandate after identity or modifiers):
+1. Style anchor ("fantasy character portrait, painterly digital art, chest-up, single character centered")
+2. **WOLF-ANATOMY MANDATE CLAUSE — comes SECOND, before identity or modifiers.** For ${overallRank}:
+   ${overallRank === 'Forged'
+     ? '"wolf-headed mid-shift hybrid, fur spreading down shoulders and forearms, dark claws replacing fingernails, human torso broken up by fur patches (NOT clean six-pack abs), skin visibly changing"'
+     : '"fully anthropomorphic digitigrade wolf-warrior, visible wolf tail, full-body fur (NO exposed human abs), pawed hands with long talons, canine musculature (NOT human gym body)"'}
+3. Then identity block, then rank energy, then everything else.
+This ordering is mandatory — it exists because the first two generations of this archetype came out with clean human bodybuilder abs when the mandate was buried mid-prompt.
+
+LYCANTHROPE NEGATIVE-PROMPT ADDITIONS (${overallRank}):
+The negativePrompt you emit MUST include these terms in addition to the base list: "clean six-pack abs, gym body, bodybuilder chest, smooth human hands, human fingernails, defined human torso, smooth human skin, human anatomy, non-lupine body, muscle definition without fur, sexy fantasy warrior aesthetic". These force Leonardo away from the observed failure mode.` : ''}${lycanIdentity ? `
 
 LOCKED LYCAN IDENTITY — these must appear verbatim in every generation of this character; they are the anchors that carry identity across the morph:
 - Fur color: ${lycanIdentity.furColor} (mane at Foundation, full head fur at Forged, full body fur at Ascendant — always ${lycanIdentity.furColor.toLowerCase()})
