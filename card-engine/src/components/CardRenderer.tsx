@@ -1,7 +1,7 @@
-import type { Card, StatName } from '../types/card';
+import type { Card } from '../types/card';
 import type { BorderVariant, Rank } from '../types/card';
 import { BORDER_COLORS } from '../data/stats';
-import { getOverallRank, getResourceStat, deriveRank } from '../data/powerSystem';
+import { getOverallRank, getResourceStat } from '../data/powerSystem';
 
 interface CardRendererProps {
   card: Card;
@@ -21,13 +21,6 @@ const RANK_GLOW: Record<Rank, number> = {
   Foundation: 0.25,
   Forged: 0.5,
   Ascendant: 1,
-};
-
-const STAT_ICON_COLORS: Record<StatName, string> = {
-  Atk: '#dc2626',
-  Def: '#2563eb',
-  Mana: '#7c3aed',
-  Tech: '#d97706',
 };
 
 export function CardRenderer({ card, size = 'full', onClick }: CardRendererProps) {

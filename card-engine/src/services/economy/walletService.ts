@@ -9,34 +9,41 @@ import { DEMO_SEED_REASON, DEMO_STARTING_BALANCES } from '../../data/economy/ass
 import * as ledger from './transactionLedger';
 
 export class InsufficientFundsError extends Error {
-  constructor(
-    public readonly currency: CurrencyId,
-    public readonly required: number,
-    public readonly available: number,
-  ) {
-    super(
-      `Insufficient ${currency} funds: need ${required}, have ${available}.`,
-    );
+  readonly currency: CurrencyId;
+  readonly required: number;
+  readonly available: number;
+
+  constructor(currency: CurrencyId, required: number, available: number) {
+    super(`Insufficient ${currency} funds: need ${required}, have ${available}.`);
+    this.currency = currency;
+    this.required = required;
+    this.available = available;
     this.name = 'InsufficientFundsError';
   }
 }
 
 export class TransactionNotFoundError extends Error {
-  constructor(public readonly transactionId: string) {
+  readonly transactionId: string;
+
+  constructor(transactionId: string) {
     super(`Transaction ${transactionId} not found.`);
+    this.transactionId = transactionId;
     this.name = 'TransactionNotFoundError';
   }
 }
 
 export class TransactionStateError extends Error {
-  constructor(
-    public readonly transactionId: string,
-    public readonly currentStatus: TransactionStatus,
-    public readonly attemptedTransition: string,
-  ) {
+  readonly transactionId: string;
+  readonly currentStatus: TransactionStatus;
+  readonly attemptedTransition: string;
+
+  constructor(transactionId: string, currentStatus: TransactionStatus, attemptedTransition: string) {
     super(
       `Cannot ${attemptedTransition} transaction ${transactionId}: current status is ${currentStatus}.`,
     );
+    this.transactionId = transactionId;
+    this.currentStatus = currentStatus;
+    this.attemptedTransition = attemptedTransition;
     this.name = 'TransactionStateError';
   }
 }

@@ -1,4 +1,4 @@
-import type { ArchetypeName, Rank, CardStats, StatName, ModifierStack, CharacterIdentity } from '../types/card';
+import type { ArchetypeName, Rank, CardStats, ModifierStack, CharacterIdentity } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
 import { assemblePortraitPrompt } from './promptAssembler';
 import {
@@ -372,7 +372,7 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
         for (const key of Object.keys(modifiers) as (keyof ModifierStack)[]) {
           const inputValue = modifiers[key];
           if (!inputValue) continue;
-          const evolved = (raw as Record<string, unknown>)[key];
+          const evolved = (raw as unknown as Record<string, unknown>)[key];
           if (typeof evolved === 'string' && evolved.length > 0) {
             merged[key] = evolved;
             anyEvolved = true;

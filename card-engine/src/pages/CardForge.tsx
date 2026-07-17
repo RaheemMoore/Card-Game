@@ -92,7 +92,6 @@ export function CardForge() {
 
     try {
       const shell = buildCardShell(archetype, stats, whisperWords);
-      const overallRank = getOverallRank(stats);
 
       // Claude first (composes the Leonardo prompt), then Leonardo. Both must
       // succeed or the whole action refunds — no half-forged card gets minted.

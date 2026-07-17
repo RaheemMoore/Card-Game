@@ -1,6 +1,6 @@
 import type { Card, CardStats, StatEntry, ArchetypeName, BiasTier, StatName } from '../types/card';
 import { ARCHETYPE_NAMES } from '../types/card';
-import { CLASS_AFFINITY, BIAS_RANGES, getDominantStat, getBorderForDominantStat, getStatNames } from '../data/powerSystem';
+import { CLASS_AFFINITY, BIAS_RANGES, getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 
 function randomInRange(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;

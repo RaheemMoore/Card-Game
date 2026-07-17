@@ -1,4 +1,4 @@
-import type { Card } from '../types/card';
+import type { Card, ModifierStack } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
 
 export interface AscendantPath {
@@ -24,7 +24,7 @@ export async function generateAscendantPaths(card: Card): Promise<AscendantPath[
   }
 
   const arch = ARCHETYPES[card.archetype];
-  const mods = card.modifiers ?? {};
+  const mods: Partial<ModifierStack> = card.modifiers ?? {};
 
   const modLines = [
     mods.element && `Element: ${mods.element}`,
@@ -113,7 +113,7 @@ Respond with ONLY a JSON object, no markdown, no explanation:
 }
 
 function fallbackPaths(card: Card): AscendantPath[] {
-  const mods = card.modifiers ?? {};
+  const mods: Partial<ModifierStack> = card.modifiers ?? {};
   const element = mods.element ?? 'silent power';
   const setting = mods.setting ?? 'a place lost to time';
   const lineage = mods.lineage ?? 'their forgotten birthright';

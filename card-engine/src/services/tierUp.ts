@@ -23,7 +23,7 @@ const NEXT_RANK: Partial<Record<Rank, Rank>> = {
   Forged: 'Ascendant',
 };
 
-function bumpStatsToNextRank(stats: CardStats, archetype: string, activeStats: StatName[]): CardStats {
+function bumpStatsToNextRank(stats: CardStats, _archetype: string, activeStats: StatName[]): CardStats {
   const newStats = structuredClone(stats);
 
   for (const name of activeStats) {

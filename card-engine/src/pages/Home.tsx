@@ -5,15 +5,19 @@ import type { Card } from '../types/card';
 const DEMO_CARD: Card = {
   cardId: 'demo-001',
   archetype: 'Barbarian',
-  rank: 'Ascendant',
   cardName: 'Kael',
   nameAndTitle: 'Kael, the Unbroken',
   portraitAsset: '/portraits/sample/raheem_ascendant.jpg',
-  stats: { Power: 88, Speed: 52, Endurance: 71, Stability: 63, Support: 45, Patience: 39 },
-  highestStat: 'Power',
-  border: { baseVariant: 'Dominance', baseSource: 'Highest stat = Power' },
+  stats: {
+    Atk:  { value: 88, bias: 'High',     hardCap: 100 },
+    Def:  { value: 52, bias: 'Mid',      hardCap: 85 },
+    Mana: { value: 22, bias: 'Very Low', hardCap: 55 },
+  },
+  dominantStat: 'Atk',
+  border: { baseVariant: 'Dominance', baseSource: 'Dominant stat = Atk' },
   lore: 'Born in the volcanic trenches of the Ashlands, Kael earned every scar before his fifteenth winter.',
   whisperWords: ['scarred', 'ancient', 'unbroken'],
+  evolutionHistory: {},
   createdAt: new Date().toISOString(),
 };
 

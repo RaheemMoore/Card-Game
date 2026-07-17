@@ -26,11 +26,6 @@ const ICON_SIZE_NAV: Record<CurrencyId, number> = {
   gameplay: 30,
 };
 
-const ICON_SIZE_COST: Record<CurrencyId, number> = {
-  premium: 13,
-  gameplay: 16,
-};
-
 const NAV_TEXT: Record<CurrencyId, string> = {
   premium: '#4a3211',
   gameplay: '#4a3211',

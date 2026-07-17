@@ -57,6 +57,32 @@ export function CardDetail() {
   // for the path pick. Kept in a ref so re-renders don't lose the txn ID.
   const pendingTierUpTxnId = useRef<string | null>(null);
 
+  // Hoisted above the early return so rules-of-hooks isn't violated when the
+  // card lookup fails. All null-card branches return safe defaults; the real
+  // computation is guarded internally.
+  const tierTimeline = useMemo(() => (card ? buildTierTimeline(card) : []), [card]);
+  const viewState = useMemo(() => {
+    if (!card) return null;
+    const overallRank = getOverallRank(card.stats);
+    const allTiers = [...tierTimeline, { rank: overallRank as Rank, snapshot: null }];
+    const currentIdx = viewingTierIdx === -1 ? allTiers.length - 1 : viewingTierIdx;
+    const isViewingHistory =
+      currentIdx !== allTiers.length - 1 && !!allTiers[currentIdx]?.snapshot;
+    const displayCard = isViewingHistory
+      ? (() => {
+          const snap = allTiers[currentIdx].snapshot!;
+          return {
+            ...card,
+            portraitAsset: snap.portraitUrl,
+            cardName: snap.cardName,
+            nameAndTitle: snap.nameAndTitle ?? snap.cardName,
+            lore: snap.lore,
+          };
+        })()
+      : card;
+    return { overallRank, allTiers, currentIdx, isViewingHistory, displayCard };
+  }, [card, tierTimeline, viewingTierIdx]);
+
   if (!card) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 gap-4">
@@ -231,28 +257,11 @@ export function CardDetail() {
   }
 
   const borderColor = BORDER_COLORS[card.border.baseVariant];
-  const overallRank = getOverallRank(card.stats);
   const rankSum = computeRankSum(card.stats);
   const activeStats = getStatNames(card.archetype);
   const canUpgrade = canTierUp(card);
-
-  const tierTimeline = useMemo(() => buildTierTimeline(card), [card]);
   const hasPreviousTiers = tierTimeline.length > 0;
-  const allTiers = [...tierTimeline, { rank: overallRank as Rank, snapshot: null }];
-  const currentIdx = viewingTierIdx === -1 ? allTiers.length - 1 : viewingTierIdx;
-
-  const isViewingHistory = currentIdx !== allTiers.length - 1 && !!allTiers[currentIdx]?.snapshot;
-  const displayCard = useMemo(() => {
-    if (!isViewingHistory) return card;
-    const snap = allTiers[currentIdx].snapshot!;
-    return {
-      ...card,
-      portraitAsset: snap.portraitUrl,
-      cardName: snap.cardName,
-      nameAndTitle: snap.nameAndTitle ?? snap.cardName,
-      lore: snap.lore,
-    };
-  }, [card, currentIdx, isViewingHistory, allTiers]);
+  const { overallRank, allTiers, currentIdx, isViewingHistory, displayCard } = viewState!;
 
   return (
     <div className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">

@@ -1,4 +1,4 @@
-import type { ArchetypeName, BiasTier, StatName, Rank, CardStats, BorderVariant } from '../types/card';
+import type { ArchetypeName, BiasTier, StatName, StatEntry, Rank, CardStats, BorderVariant } from '../types/card';
 
 export const CLASS_AFFINITY: Record<ArchetypeName, Partial<Record<StatName, BiasTier>>> = {
   Barbarian:    { Atk: 'High',      Def: 'Mid',       Mana: 'Very Low' },
