@@ -178,10 +178,10 @@ export async function generatePortraitStrict(
   initImageDataUrl?: string,
   initStrength?: number,
 ): Promise<string> {
-  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY;
-  if (!apiKey) {
-    throw new Error('No Leonardo API key configured');
-  }
+  // In production the /api/leonardo proxy injects a server-side LEONARDO_API_KEY,
+  // so the client no longer needs one. Dev still uses the vite proxy which
+  // passes VITE_LEONARDO_API_KEY through unchanged.
+  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY ?? '';
 
   let initImageId: string | undefined;
   if (initImageDataUrl && !initImageDataUrl.startsWith('linear-gradient')) {

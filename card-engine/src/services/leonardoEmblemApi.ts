@@ -142,10 +142,8 @@ export async function generateEmblem(prompt: string): Promise<EmblemGenerationRe
     );
   }
 
-  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY;
-  if (!apiKey) {
-    throw new Error('No Leonardo API key configured');
-  }
+  // Server-side LEONARDO_API_KEY overrides in prod (see leonardoApi.ts).
+  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY ?? '';
 
   const { generationId, cost } = await submitGeneration(apiKey, prompt);
   const imageUrl = await pollForResult(apiKey, generationId);
