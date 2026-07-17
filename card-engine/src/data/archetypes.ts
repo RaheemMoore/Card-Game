@@ -83,6 +83,17 @@ export const ARCHETYPES: Record<ArchetypeName, ArchetypeDefinition> = {
       Ascendant: 'Full regal vampiric regalia with blood-mist effects',
     },
   },
+  Lycanthrope: {
+    name: 'Lycanthrope',
+    identity: 'Shape-shifting hunter blessed by the Moon Goddess — man and wolf are two forms of the same devotion. The transformation IS the character, becoming MORE lupine at higher ranks, never more human. Their lycan form is a gift, not a curse.',
+    palette: { primary: '#6b7280', secondary: '#f5f5f4', accent: '#f59e0b' },
+    motifs: 'Escalating wolf anatomy (mane and wolfish tells → full snout and fur → digitigrade lupine warrior), scarred human skin fading under fur, torn practical clothing that survives the shift, twin curved blades or extending claws, an identity token (dog-tags, cord pendant, scar pattern) preserved across every form, moon iconography that grows more prominent by rank (small pendant → visible sky moon → moonlight aura and moon-sigil in armor filigree)',
+    rankProgression: {
+      Foundation: 'Near-human primal warrior blessed by the Moon Goddess — shirtless muscular frame, long unkempt mane and beard in their fur color, only SUBTLE wolfish features (slightly elongated canines, faintly glowing eyes matching their moon phase, pointed ear tips), primitive leather kilt and armored bracers, twin curved blades. A small moon-shaped scar, tattoo, or pendant hints at the goddess\'s blessing. Setting: misty forest or moonlit clearing. The wolf is still mostly under the skin.',
+      Forged: 'Feral mid-shift hybrid — muscled human torso and arms with a FULLY anatomical wolf head (real snout, real fur in their fur color, real ears — not a mask), tribal arm markings visible on bare skin, torn jeans or practical fatigues, their identity token (dog-tags, cord, or medallion) resting on the bare chest. The moon of their phase is now VISIBLE in the sky behind them — a clear sign of the goddess\'s presence. Cold gray mist or wilderness backdrop. Human below the neck, wolf above, and the seam is not smoothed over.',
+      Ascendant: 'Fully anthropomorphic wolf-lord blessed by the Moon Goddess — near-seven-foot digitigrade lupine warrior in articulated dark plate armor with silver filigree in the shape of moon-sigils, thick fur in their fur color ruffing at the collar and wrists, glowing eyes matching their moon phase, longsword held point-down with both hands resting on the pommel in ritual guard. Silver moonlight AURA cascades from their form. The moon of their phase dominates the sky behind them (or forms the backdrop composition). Their identity token from earlier ranks still hangs at the belt or throat. Gothic cathedral silhouette optional. This is a NOBLE PREDATOR chosen by a goddess, not a rampaging beast.',
+    },
+  },
   'Mech Pilot': {
     name: 'Mech Pilot',
     identity: 'Armored technology, heavy combat suit — the machine is the character',

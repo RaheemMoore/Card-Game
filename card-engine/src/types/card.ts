@@ -3,9 +3,26 @@ export type Rank = typeof RANKS[number];
 
 export const ARCHETYPE_NAMES = [
   'Barbarian', 'Monk', 'Beastmaster', 'Druid', 'Necromancer',
-  'Vampire', 'Mech Pilot', 'Android', 'Seraph', 'Human',
+  'Vampire', 'Lycanthrope', 'Mech Pilot', 'Android', 'Seraph', 'Human',
 ] as const;
 export type ArchetypeName = typeof ARCHETYPE_NAMES[number];
+
+export const LYCAN_FUR_COLORS = ['Black', 'Brown', 'Gray', 'White'] as const;
+export type LycanFurColor = typeof LYCAN_FUR_COLORS[number];
+
+export const LYCAN_MOON_PHASES = ['Crescent', 'Half', 'Full', 'Blood', 'Eclipse'] as const;
+export type LycanMoonPhase = typeof LYCAN_MOON_PHASES[number];
+
+/**
+ * Lycanthrope-only. Rolled once at Foundation forge, locked to the card, and
+ * re-injected verbatim into every regeneration so the same wolf carries across
+ * ranks despite the human→lycan morphology change. eyeColor + identityToken
+ * live on the standard CharacterIdentity (eyes + distinctiveFeatures).
+ */
+export interface LycanthropeIdentity {
+  furColor: LycanFurColor;
+  moonPhase: LycanMoonPhase;
+}
 
 export const BORDER_VARIANTS = ['Dominance', 'Influencing', 'Steadiness', 'Conscientiousness', 'Default'] as const;
 export type BorderVariant = typeof BORDER_VARIANTS[number];
@@ -88,6 +105,8 @@ export interface Card {
    * `card.modifiers` always reflects the current rank's values.
    */
   modifierLineage?: Partial<Record<Rank, ModifierStack>>;
+  /** Lycanthrope only. See LycanthropeIdentity. */
+  lycanIdentity?: LycanthropeIdentity;
   evolutionHistory: EvolutionHistory;
   createdAt: string;
 }

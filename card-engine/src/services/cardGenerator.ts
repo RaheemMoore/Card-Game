@@ -1,5 +1,15 @@
-import type { Card, CardStats, StatEntry, ArchetypeName, BiasTier, StatName } from '../types/card';
-import { ARCHETYPE_NAMES } from '../types/card';
+import type {
+  Card,
+  CardStats,
+  StatEntry,
+  ArchetypeName,
+  BiasTier,
+  StatName,
+  LycanthropeIdentity,
+  LycanFurColor,
+  LycanMoonPhase,
+} from '../types/card';
+import { ARCHETYPE_NAMES, LYCAN_FUR_COLORS, LYCAN_MOON_PHASES } from '../types/card';
 import { CLASS_AFFINITY, BIAS_RANGES, getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 
 function randomInRange(min: number, max: number): number {
@@ -36,6 +46,12 @@ export function getStatValue(stats: CardStats, name: StatName): number {
   return entry ? entry.value : 0;
 }
 
+export function rollLycanthropeIdentity(): LycanthropeIdentity {
+  const furColor: LycanFurColor = LYCAN_FUR_COLORS[Math.floor(Math.random() * LYCAN_FUR_COLORS.length)];
+  const moonPhase: LycanMoonPhase = LYCAN_MOON_PHASES[Math.floor(Math.random() * LYCAN_MOON_PHASES.length)];
+  return { furColor, moonPhase };
+}
+
 export function buildCardShell(
   archetype: ArchetypeName,
   stats: CardStats,
@@ -44,7 +60,7 @@ export function buildCardShell(
   const dominant = getDominantStat(stats);
   const borderVariant = getBorderForDominantStat(dominant);
 
-  return {
+  const shell: Omit<Card, 'cardName' | 'nameAndTitle' | 'lore'> = {
     cardId: crypto.randomUUID(),
     archetype,
     portraitAsset: '',
@@ -58,6 +74,12 @@ export function buildCardShell(
     evolutionHistory: {},
     createdAt: new Date().toISOString(),
   };
+
+  if (archetype === 'Lycanthrope') {
+    shell.lycanIdentity = rollLycanthropeIdentity();
+  }
+
+  return shell;
 }
 
 export function randomArchetype(): ArchetypeName {

@@ -18,6 +18,7 @@ Each archetype has a bias tier per stat that determines both roll ranges at gene
 | Druid | Low-Mid | Mid | High | — | Nature-caster with survivability |
 | Necromancer | Low | Low | Very High | — | Glass cannon mage |
 | Vampire | High | Low-Mid | High | — | Dual threat, fragile in daylight |
+| Lycanthrope | High | Very Low | Mid | — | Moon-blessed transformer — savage in lycan form, exposed in human |
 | Mech Pilot | High | Very High | — | Very High | Trades organic mana for machine power |
 | Android | Mid | High | — | Very High | Synthetic precision, no mana access |
 | Seraph | Mid | High | High | — | Premium all-rounder |

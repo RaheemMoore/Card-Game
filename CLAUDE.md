@@ -88,7 +88,7 @@ interface StatEntry {
 
 interface Card {
   cardId: string;
-  archetype: ArchetypeName;     // 10 options
+  archetype: ArchetypeName;     // 11 options
   cardName: string;             // AI-generated
   nameAndTitle: string;         // AI-generated
   portraitAsset: string;        // Placeholder gradient for now
@@ -140,7 +140,7 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 
 4 stages: `archetype` → `stats` → `whisper` → `forging/reveal`
 
-1. **Archetype** — grid of 10 archetypes with affinity preview on hover. "Random" option. No rank selection (rank is derived from stats).
+1. **Archetype** — grid of 11 archetypes with affinity preview on hover. "Random" option. No rank selection (rank is derived from stats).
 2. **Dice Roll** — 3D CSS cube animation. Three dice (ATK/DEF + MANA or TECH depending on archetype) tumble and land sequentially. Values roll within the archetype's Foundation bias range (1–100 scale). **3 rerolls max**, rerolls all stats fresh.
 3. **Whisper Words** — 3 categories (Element, Physique, Lineage) with 6 preset options each + custom text. Optional (can skip).
 4. **Forge** — Calls Claude API (with specialization suffix + visual motifs), builds card, saves to localStorage, reveals with fade-in animation.
@@ -198,4 +198,5 @@ This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER
 - Fantasy-themed UI: dark backgrounds, parchment/gold accents, `font-fantasy` (Cinzel) for headings
 - Card rendering uses absolute positioning with percentage values overlaid on border frame PNGs
 - Economy modules have vitest unit tests (`services/economy/*.test.ts`). Other code has no tests yet — verify UI/renderer changes visually using the dev server (see `.claude/verify/card-engine.sh`).
+- **Lycanthrope pipeline deviation:** unlike other archetypes, Lycanthrope regenerations use `init_strength = 0.30` (via `getInitStrengthForArchetype`) so the model can morph human → hybrid → full lycan across ranks. Identity is carried by four locked textual anchors (fur color, moon phase, eye color, identity token) re-injected verbatim on every regen. See [card-engine-archetype-prompt-library.md](card-engine-archetype-prompt-library.md) §11.
 - Commit messages should be concise, describe the "why"

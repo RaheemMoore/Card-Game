@@ -37,7 +37,7 @@ This 3-stage modifier is archetype-agnostic — it's the same instruction set re
 
 ---
 
-## The 10 Archetype DNA Blocks
+## The 11 Archetype DNA Blocks
 
 Each block is the only thing that needs to change per archetype — drop it into the Base Visual Style + Rank Modifier formula above to get a complete prompt.
 
@@ -110,6 +110,15 @@ Each block is the only thing that needs to change per archetype — drop it into
 - **Motifs:** none supernatural — realistic athletic wear, minimal accessories
 - **Body/posture:** realistic athletic physique, matching real training results
 - **Foundation → Ascendant:** basic athletic wear → performance gear → premium elite athletic gear (still no fantasy elements at any rank — "elite," not "magical")
+
+### 11. Lycanthrope
+- **Identity:** shape-shifting hunter blessed by the Moon Goddess — man and wolf are two forms of the same devotion. The transformation IS the character, becoming MORE lupine at higher ranks, never more human. The lycan form is a gift, not a curse.
+- **Palette:** slate gray or fur-color-matched primary (Black / Brown / Gray / White — rolled per card), bone white, cold moonlight silver, eye-glow matching the card's moon phase (silver-white for Crescent/Half, silver-gold for Full, red-orange for Blood, black-corona for Eclipse)
+- **Motifs:** escalating wolf anatomy (mane → snout → full lupine head → digitigrade legs), scarred human skin fading under fur, torn practical clothing that survives the shift, twin curved blades or extending claws, an identity token (dog-tags, cord pendant, scar pattern) preserved across every form, progressive moon presence (subtle pendant/scar → sky-visible moon → moonlight aura + moon-sigil in armor filigree)
+- **Body/posture:** athletic-to-powerful build, low center of gravity, weight forward on the balls of the feet — hunter's stance, never a soldier's parade rest
+- **Foundation → Ascendant:** near-human primal warrior with subtle wolfish tells (elongated canines, glowing eyes matching moon phase), primitive leather kilt + twin blades, small moon-token → wolf-headed hybrid on a muscled human torso, torn practical clothing, identity token on bare chest, moon visible in sky → fully anthropomorphic digitigrade wolf-lord in articulated dark plate with silver moon-sigil filigree, silver moonlight aura, moon dominating the composition
+
+**Lycanthrope pipeline deviation:** Character Reference `init_strength` drops from the default 0.45 to **0.30** so the model can morph face geometry across ranks. Identity is carried instead by four locked textual anchors persisted on the card: **furColor** (rolled at forge), **moonPhase** (rolled at forge), **eyeColor** (Claude picks at forge, written into `CharacterIdentity.eyes`), and **identityToken** (Claude picks at forge, written into `CharacterIdentity.distinctiveFeatures`). All four anchors are re-injected verbatim into every regeneration prompt.
 
 ---
 

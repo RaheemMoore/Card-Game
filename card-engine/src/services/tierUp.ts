@@ -8,7 +8,7 @@ import {
   getBorderForDominantStat,
   getStatNames,
 } from '../data/powerSystem';
-import { generatePortraitStrict } from './leonardoApi';
+import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
 import { generateCardText } from './claudeApi';
 import { saveCard } from './storage';
 import {
@@ -122,6 +122,7 @@ export async function tierUpCard(
     card.identity,
     true,
     ascendantNarrative,
+    card.lycanIdentity,
   );
 
   // Adopt the evolved modifiers if Claude returned them; otherwise stick with
@@ -152,7 +153,8 @@ export async function tierUpCard(
     (card.portraitAsset.startsWith('data:image/') || card.portraitAsset.startsWith('/assets/'));
   const initImage = previousIsUsableImage ? card.portraitAsset : undefined;
 
-  const portrait = await generatePortraitStrict(text.portraitPrompt, text.negativePrompt, initImage)
+  const initStrength = getInitStrengthForArchetype(card.archetype);
+  const portrait = await generatePortraitStrict(text.portraitPrompt, text.negativePrompt, initImage, initStrength)
     .catch((err: unknown) => {
       portraitRegenerated = false;
       portraitError = err instanceof Error ? err.message : String(err);
