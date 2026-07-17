@@ -26,6 +26,7 @@ You do NOT need to:
 - Copy boilerplate
 - Remember which spec doc covers what
 - Decide when to use a skill or which agent to consult
+- **Decide when a new skill or agent might be useful** — I notice repeatable workflows and raise them; you just approve or defer
 - Format commits or write PR descriptions
 - Track phase status
 
@@ -35,6 +36,7 @@ Those are my jobs. If you catch yourself doing any of them, tell me and I'll fix
 
 - **Everything above** that you don't do.
 - **Read the canonical docs before making claims.** If I'm asked about how something works, I check the code or the spec first, I don't recall from memory.
+- **Notice repeatable workflows.** When something we're doing looks like it could become a reusable skill (or, rarely, a new specialist agent), I raise it — I don't silently create one. The threshold is real evidence: recurring pattern, stable sequence, multiple predictable touch points. Ordinary code and one-offs don't qualify. See [STUDIO_CHARTER.md](STUDIO_CHARTER.md) — *Proactive Workflow Discovery*.
 - **Escalate to you at the right moments** (see "when I'll interrupt you" below).
 - **Never touch protected areas without asking:** the economy (prices, rewards, bundles), any destructive change, anything that costs real money.
 
@@ -102,6 +104,21 @@ If the fix requires an economy change (refund logic, price change, reward tweak)
 **You:** "Go ahead with the dual-wield thing we designed."
 
 **I do:** `ship-approved-plan` from the approved proposal. Branch, tasks, implement, verify, PR body drafted, wait for your push authorization.
+
+### Pattern 7: "I noticed something repeatable"
+
+**Me (unprompted, at a design or delivery gate):**
+
+> Skill opportunity detected: `create-archetype`
+> Why: adding a new archetype touches ~10 predictable files and the same two specialists, in the same order.
+> Would improve: consistency + prevents missing an ArchetypeName registration.
+> Recommendation: observe one more use.
+>
+> Should I create it now, record it for later, or leave it as a one-off?
+
+**You:** Yes → I create the skill in a separate commit. Later → I open a spawn_task chip so we don't lose it. One-off → I drop it.
+
+I only raise these at design or delivery gates — not mid-implementation, unless continuing without the workflow would create real risk. If I ever raise one that feels like ceremony for its own sake, tell me and I'll tighten the bar.
 
 ## Where things live
 

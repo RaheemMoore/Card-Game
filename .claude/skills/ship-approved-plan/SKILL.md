@@ -36,7 +36,19 @@ Invoke the built-in `verify` skill — it bootstraps `.claude/verify/card-engine
 
 For UI changes, exercise the feature in the browser preview (`preview_start` with `card-engine-dev`) and share proof.
 
-### 6. Draft the PR body
+### 6. Reuse Review (mandatory)
+
+Before drafting the PR body, answer these five questions honestly. If the honest answer to (1) is "no," the review is one line — do not manufacture opportunities to look thorough.
+
+1. Did implementation reveal a repeatable workflow?
+2. Is the sequence stable enough to encode?
+3. What evidence supports the recommendation? (Cite the process log if one was kept, or the specific steps that repeated across similar past work.)
+4. Should an existing skill be updated, a new skill be proposed, or nothing change?
+5. What human approval gates must remain outside automation?
+
+When a credible candidate exists, **raise it with Raheem using the standard prompt** (see [STUDIO_CHARTER.md](../../../STUDIO_CHARTER.md) — *Proactive Workflow Discovery*). Do not create the skill. Wait for approval.
+
+### 7. Draft the PR body
 When work is complete and verified, draft (do not push without asking):
 
 ```
@@ -73,6 +85,7 @@ Usually none — design is done, execution is the Studio Lead's job. Consult `te
 - [ ] For UI changes: browser proof shared.
 - [ ] Commits are atomic and messages explain the why.
 - [ ] Nothing outside the plan's scope was changed.
+- [ ] Reuse Review answered (even if the honest answer is "no repeatable workflow revealed").
 
 ## Expected outputs
 

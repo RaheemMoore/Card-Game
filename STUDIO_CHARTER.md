@@ -96,6 +96,56 @@ Six initial workflows live in `.claude/skills/`. Each defines: inputs, workflow 
 
 Where a built-in Claude Code skill already covers the workflow (like `verify` or `run`), I bootstrap it with a project-specific script rather than re-implementing. See `.claude/verify/card-engine.sh`.
 
+## Proactive Workflow Discovery
+
+I am responsible for noticing when completed or planned work could become a reusable workflow. Raheem does not have to identify these opportunities. When I spot a credible one, I raise it — I do not silently create, install, or materially expand a skill or agent.
+
+**The prompt I use when raising an opportunity:**
+
+```
+Skill opportunity detected: <proposed-name>
+Why: <specific repeated or predictable pattern>
+Would improve: <consistency, speed, verification, documentation, or cost control>
+Recommendation: <create now / observe one more use / log for later>
+
+Should I create it now, record it for later, or leave it as a one-off?
+```
+
+### Signals that a task is a credible skill candidate
+
+Several of the following should be true — one signal alone is not enough:
+
+- The task has occurred before or is reasonably likely to recur.
+- It follows a stable sequence of steps.
+- It touches several predictable files, systems, or documentation sources.
+- Missing one step could create bugs, drift, inconsistent content, or wasted paid API calls.
+- It repeatedly needs the same specialist consultations.
+- It has recognizable inputs, outputs, approval gates, and verification steps.
+- Capturing it would reduce future clerical work without hiding important decisions from Raheem.
+- The workflow is specific enough to execute consistently but broad enough to reuse.
+
+**Do not recommend skills for:** trivial fixes, ordinary coding patterns, one-file edits, or speculative processes with no demonstrated value.
+
+### Signals that a new specialist *agent* is warranted (higher bar)
+
+Recommend a new agent only when repeated work requires a distinct reasoning specialty that:
+
+- Is not adequately covered by the current specialists.
+- Will be consulted across multiple future features.
+- Requires its own durable reading list, principles, and decision framework.
+
+A repeatable process should normally become a skill, not an agent. I do not create an "Archetype Agent" merely because archetype creation is repeatable — existing specialists can contribute through an archetype-creation *skill*.
+
+### When to raise opportunities
+
+- **During feature design** — as a **Reuse Forecast** section in the `design-feature` proposal.
+- **After implementation** — as a mandatory **Reuse Review** in `ship-approved-plan`, before the final delivery summary.
+- **Mid-work only if continuing without the workflow would create risk** — otherwise, hold the observation for the appropriate gate. I do not interrupt implementation at arbitrary moments.
+
+### Guardrail against skill sprawl
+
+Every new skill is a maintenance burden. Every new agent is a cold-context cost per invocation. The default answer to "should this become a skill?" is **no** — the exception is credible repeated value with multiple signals present. I say "no reusable workflow opportunity identified" when that is the honest answer, and I do not manufacture opportunities to look thorough.
+
 ## Repository Rules
 
 - One source of truth per topic.
@@ -132,6 +182,7 @@ Changes from the original `STUDIO_BOOTSTRAP_Execution_Charter.docx`:
 5. **"Balance Playtest" skill added as scaffold.** Real balancing waits for Phase 3 telemetry, but the workflow file exists so the Game Systems Designer has a workflow to point at.
 6. **"Self-improving" softened to "self-organizing."** Sets correct expectations — the system won't rewrite itself.
 7. **Phase 0 report includes a Contradictions section.** Named the specific drift up front so specialists don't cite stale docs as truth.
+8. **Proactive Workflow Discovery added as a standing behavior.** Skill/agent opportunities are Claude's job to detect and raise; Raheem approves before anything is created or materially expanded. `design-feature` gains a Reuse Forecast; `ship-approved-plan` gains a Reuse Review.
 
 ## Author's Note on Structure
 

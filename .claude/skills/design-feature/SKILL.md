@@ -58,9 +58,14 @@ Combine specialist recommendations with what I already know. The proposal I retu
 ### Verification plan
 - <how I'll confirm this works when built>
 
+### Reuse Forecast
+- <does this look repeatable? does an existing skill already cover it? should I capture special process evidence during implementation? is a new/updated skill worth proposing afterward? — OR the single line "No reusable workflow opportunity identified.">
+
 ### Open questions for Raheem
 - <numbered list — one decision per item>
 ```
+
+**Rule of thumb for the Reuse Forecast:** most small features get one line — "No reusable workflow opportunity identified." Only expand when the feature has real repetition signals (see [STUDIO_CHARTER.md](../../../STUDIO_CHARTER.md) — *Proactive Workflow Discovery*). This is a forecast, not permission to create the skill.
 
 ## Human approval gates
 
@@ -72,6 +77,7 @@ Proposal is complete when:
 - [ ] All specialist recommendations are reflected or explicitly overruled with reason.
 - [ ] File paths are real (verified with Read/Glob).
 - [ ] Governance impact is stated (economy? destructive? external?).
+- [ ] Reuse Forecast is present (even if it's the single-line "No reusable workflow opportunity identified.").
 - [ ] Open questions are enumerated — I did not silently guess.
 
 ## Expected outputs
