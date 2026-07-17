@@ -206,7 +206,7 @@ export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
         <p className="text-ash text-sm">Your champion's power is being forged...</p>
       </div>
 
-      <div className="flex justify-center gap-10">
+      <div className="flex justify-center gap-4 sm:gap-10">
         {statNames.map((name, i) => (
           <GemDie
             key={name}
@@ -221,12 +221,12 @@ export function DiceRoll({ archetype, onComplete }: DiceRollProps) {
 
       {/* Stat ranges hint */}
       {phase === 'done' && result && (
-        <div className="flex justify-center gap-4 text-[10px] text-ash/60">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] text-ash/60">
           {statNames.map((name) => {
             const bias = affinity[name]!;
             const [min, max] = BIAS_RANGES[bias].foundation;
             return (
-              <span key={name}>
+              <span key={name} className="whitespace-nowrap">
                 {name}: {min}–{max} ({bias})
               </span>
             );
