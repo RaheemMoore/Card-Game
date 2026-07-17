@@ -39,6 +39,10 @@ export interface EconomyTransaction {
   status: TransactionStatus;
   balanceBefore: number;
   balanceAfter: number;
+  // Monotonic per-client counter. Together with createdAt this gives a
+  // deterministic order when two writes share a millisecond, and is the
+  // tiebreak for cross-device rehydrate.
+  sequence: number;
   createdAt: string;
   completedAt?: string;
   metadata?: Record<string, string | number | boolean>;
