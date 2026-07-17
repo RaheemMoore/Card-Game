@@ -49,6 +49,7 @@ Do these in dependency order. Each is small (~1–15 lines).
 5. **`card-engine-archetype-prompt-library.md`** — add DNA block section (title, identity, palette, motifs, body/posture, Foundation → Ascendant progression). Bump the "N Archetype DNA Blocks" heading counter.
 6. **`card-engine-power-system-spec.md`** — add matrix row in §1.
 7. **`CLAUDE.md`** — bump "N options" and "grid of N archetypes" counters (usually 2 occurrences). If a per-archetype pipeline deviation shipped, add a Conventions bullet describing it.
+8. **`card-engine/src/data/archetypeEmblems.ts`** — add a `Record<ArchetypeName, EmblemMeta>` entry with `status: 'not_started'`, `assetPath: null`, and TBD `primarySymbol` / `palette`. The emblem itself is designed later in step 7 via `design-archetype-emblem`; this entry keeps the `Record` exhaustive so `ArchetypeSelector` compiles.
 
 ### 5. Implement — per-archetype exceptions (optional, only when approved)
 
@@ -72,21 +73,29 @@ Commit strategy: land the universal 10 as one atomic commit. Land each significa
   - Save + reload a card, confirm persistence and border derivation.
 - **Do not spend Leonardo credits at this point** — visual verification of the frame + wiring is enough to gate.
 
-### 7. Foundation Leonardo gate (Raheem-approved 1 generation)
+### 7. Emblem phase (invoke `design-archetype-emblem`)
+
+Once step 6 verify passes and the new tile is visible, hand off to the [`design-archetype-emblem`](../design-archetype-emblem/SKILL.md) skill. That skill owns the entire emblem workflow — lore-first analysis, prompt authoring, Leonardo API call, draft storage, `archetypeEmblems.ts` metadata update, and [emblem library](../../../card-engine-archetype-emblem-library.md) sync.
+
+**First-pass autonomy applies here.** When invoked from `create-archetype`, the emblem skill fires the Leonardo call automatically (no pre-generation approval gate). The returned draft wires into `ArchetypeSelector.tsx` immediately so Raheem can review live. The emblem is orthogonal to Foundation/Forged/Ascendant portrait work and can proceed in parallel with step 8.
+
+Do NOT duplicate emblem-workflow steps here. If the emblem skill is missing or errors, stop and report — do not fall back to hand-writing an emblem prompt in this skill.
+
+### 8. Foundation Leonardo gate (Raheem-approved 1 generation)
 
 Forge exactly ONE Foundation card of the new archetype via the real Leonardo pipeline. Screenshot the reveal, share it with Raheem, and **halt**. Do NOT proceed to Forged/Ascendant regen tuning without explicit approval. Test-generation budget ceiling is 5 total unless Raheem extends it.
 
 If the Foundation looks wrong (missing anchor, wrong palette, prompt not landing), iterate on the branch: revise the escalation block or lore instruction, re-verify, regen. If it looks right, wait for Raheem to clear the gate.
 
-### 8. Optional Phase B tuning (only after Raheem clears Foundation gate)
+### 9. Optional Phase B tuning (only after Raheem clears Foundation gate)
 
 Up to 4 more Leonardo generations (one Forged, up to two Ascendant candidates, one control). Iterate on the escalation prompt if the first Forged/Ascendant reveals a failure mode. **Common failure to watch for:** if the Foundation image is human-anchored and Character Reference at the default 0.45 is preserving human silhouette, drop `init_strength` further (Lycan went to 0.15) AND add negative-prompt terms for the observed failure (e.g. "clean six-pack abs, gym body") AND front-load the anti-failure mandate in the composed portraitPrompt. All three together, not just one.
 
-### 9. Reuse Review (mandatory, per ship-approved-plan §6)
+### 10. Reuse Review (mandatory, per ship-approved-plan §6)
 
 Before drafting the PR body, answer honestly (see `.claude/skills/ship-approved-plan/SKILL.md` for the 5 questions). Update the process log's "Notes for the Reuse Review" section with what worked, what surprised you, and any new automation-candidate steps. If the archetype exposed a new pattern this skill doesn't cover, raise an opportunity — do not silently extend this skill.
 
-### 10. Draft PR body
+### 11. Draft PR body
 
 Standard ship-approved-plan §7 template. Include:
 - Summary of what the archetype adds.
@@ -108,6 +117,7 @@ Standard ship-approved-plan §7 template. Include:
 
 - Before creating the branch, if approval is ambiguous or the proposal is missing decisions (class-affinity, exceptions, lore instruction).
 - **Foundation Leonardo gate** — always. Never proceed to Phase B tuning without Raheem's explicit yes.
+- **Emblem approval** — the emblem skill fires its first Leonardo call automatically, but promoting the draft to `approved` and `integrated` always requires Raheem's visual sign-off.
 - Before spending beyond the 5-generation Leonardo budget ceiling.
 - Before pushing to remote or opening a PR.
 - If the plan turns out to require economy changes — full stop, escalate (should never happen for an archetype).
@@ -126,10 +136,12 @@ Documented from real incidents:
 ## Validation
 
 - [ ] All ~10 universal file edits are present.
+- [ ] `archetypeEmblems.ts` entry exists (even if `not_started`) — TypeScript will fail otherwise.
 - [ ] Class-signature modifier pool entry exists (mandatory).
 - [ ] Any per-archetype exception is intentional, documented in the process log, and has its own commit.
 - [ ] `./.claude/verify/card-engine.sh` passes.
 - [ ] Local UI smoke test done (tile visible, affinity correct, dice ranges match).
+- [ ] `design-archetype-emblem` invoked and returned a `draft_generated` emblem (auto-fired).
 - [ ] Foundation Leonardo generation reviewed and cleared by Raheem.
 - [ ] Process log updated with "Notes for the Reuse Review" section.
 - [ ] Reuse Review answered (per ship-approved-plan §6).
@@ -137,9 +149,10 @@ Documented from real incidents:
 
 ## Expected outputs
 
-- A `feat/<archetype>-archetype` branch with atomic commits (base implementation + one commit per significant per-archetype deviation + any post-gate tuning commits).
+- A `feat/<archetype>-archetype` branch with atomic commits (base implementation + emblem draft + one commit per significant per-archetype deviation + any post-gate tuning commits).
 - A verified, working, forge-able archetype.
 - One Foundation-tier real Leonardo generation reviewed by Raheem.
+- One emblem draft wired into `ArchetypeSelector.tsx` (status `draft_generated`, promoted to `integrated` after Raheem approves).
 - Updated process log preserved at `.claude/process-logs/<archetype>.md` (session-local scratch by default).
 - A drafted PR body ready for Raheem's sign-off.
 

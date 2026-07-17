@@ -45,6 +45,7 @@ Card Game/                          # Git root
 │   │   │   ├── claudeApi.ts        # Anthropic API call for card text
 │   │   │   ├── promptAssembler.ts  # Base + DNA + rank + modifier pools → final prompt
 │   │   │   ├── leonardoApi.ts      # Leonardo portrait generation
+│   │   │   ├── leonardoEmblemApi.ts # Leonardo emblem generation (1024² square, no CR)
 │   │   │   ├── regeneratePortrait.ts # Portrait regen with Character Reference
 │   │   │   ├── tierUp.ts           # Foundation → Forged → Ascendant evolution flow
 │   │   │   ├── ascendantPaths.ts   # Ascendant-tier specialization branching
@@ -52,7 +53,8 @@ Card Game/                          # Git root
 │   │   │   ├── storage.ts          # localStorage CRUD
 │   │   │   └── economy/            # walletService, transactionLedger, pricingCalculator, validation, useWallet (+ tests)
 │   │   ├── data/
-│   │   │   ├── archetypes.ts       # 10 archetype definitions
+│   │   │   ├── archetypes.ts       # 11 archetype definitions
+│   │   │   ├── archetypeEmblems.ts # Selection-tile emblem metadata (status, palette, asset path)
 │   │   │   ├── powerSystem.ts      # Class affinity matrix, bias ranges, rank derivation, prompt suffixes
 │   │   │   ├── modifierPools.ts    # 4 pools × 25 entries (Setting, Demeanor, Signature Detail, Lighting)
 │   │   │   ├── stats.ts            # Border color palette
@@ -64,13 +66,15 @@ Card Game/                          # Git root
 │           ├── borders/            # 5 card frame overlays (926x1336 @2x)
 │           ├── badges/             # Colored circle badges for stat display
 │           ├── icons/              # Stat icons (fist, castle-turret, star, etc.)
+│           ├── archetype-emblems/  # 10 approved 1:1 selection emblems (Lycanthrope pending)
 │           └── backgrounds/        # Fantasy landscape background
-├── Card Images/                    # Portrait source images (not used in app yet)
+├── Card Images/                    # Portrait sources + approved emblems (Archetype Emblems/Approved)
 ├── STUDIO_CHARTER.md               # Studio structure, roles, approval rules
 ├── WORKFLOW.md                     # How to work with this repo (day-to-day)
 ├── card-engine-power-system-spec.md         # Stats, bias tiers, rank derivation, rank-sum cap
 ├── card-engine-modifier-pools.md            # 4 modifier pools × 25 entries (art prompts)
 ├── card-engine-archetype-prompt-library.md  # Archetype DNA blocks for portrait prompts
+├── card-engine-archetype-emblem-library.md  # Selection-emblem spec, palettes, prompts, status
 ├── card-engine-economy-currency-system-plan.md # Economy governance + catalog rules (binding)
 └── docs/archive/                   # Retired 6-stat design docs — do not consult
 ```
@@ -187,7 +191,7 @@ Architecture is catalog-driven: `data/economy/` holds the source-of-truth catalo
 This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER.md)). I am the Studio Lead — I do all implementation. Specialist subagents advise, skills define reusable workflows.
 
 - `.claude/agents/` — 4 specialists: game-systems-designer, art-prompt-director, ui-ux-director, technical-architect. Invoke only for open-ended design questions.
-- `.claude/skills/` — 7 workflows: design-feature, ship-approved-plan, create-archetype, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only).
+- `.claude/skills/` — 8 workflows: design-feature, ship-approved-plan, create-archetype, design-archetype-emblem, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only).
 - `.claude/verify/card-engine.sh` — project verify script the built-in `verify` skill bootstraps.
 - `.claude/launch.json` — dev-server preview config (`card-engine-dev` on :5173).
 - **Skill/agent opportunities:** I raise credible candidates proactively (Reuse Forecast in `design-feature`, Reuse Review in `ship-approved-plan`); Raheem approves before I create anything. See [STUDIO_CHARTER.md](STUDIO_CHARTER.md) — *Proactive Workflow Discovery*.

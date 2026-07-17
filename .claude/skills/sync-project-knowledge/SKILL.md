@@ -23,6 +23,7 @@ Read `git log --oneline <range>` and the diffs of the relevant commits. Understa
 | Stat / rank / bias tier / rank-sum change | [card-engine-power-system-spec.md](../../../card-engine-power-system-spec.md) |
 | Modifier pool entries added or reweighted | [card-engine-modifier-pools.md](../../../card-engine-modifier-pools.md) |
 | Archetype DNA block revision | [card-engine-archetype-prompt-library.md](../../../card-engine-archetype-prompt-library.md) |
+| Archetype emblem spec, prompt, status, or approved asset change | [card-engine-archetype-emblem-library.md](../../../card-engine-archetype-emblem-library.md) |
 | Economy catalog / assumptions / rules | [card-engine-economy-currency-system-plan.md](../../../card-engine-economy-currency-system-plan.md) |
 | Phase completed or new phase started | [CLAUDE.md](../../../CLAUDE.md) — Phase Status |
 | Test suite added/expanded | [CLAUDE.md](../../../CLAUDE.md) — Conventions |

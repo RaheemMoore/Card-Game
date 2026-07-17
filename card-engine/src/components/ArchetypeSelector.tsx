@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ArchetypeName } from '../types/card';
 import { ARCHETYPE_NAMES } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
+import { ARCHETYPE_EMBLEMS } from '../data/archetypeEmblems';
 import { CLASS_AFFINITY } from '../data/powerSystem';
 import type { StatName, BiasTier } from '../types/card';
 
@@ -59,6 +60,8 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {ARCHETYPE_NAMES.map((name) => {
           const arch = ARCHETYPES[name];
+          const emblem = ARCHETYPE_EMBLEMS[name];
+          const hasEmblem = emblem.assetPath !== null;
           return (
             <button
               key={name}
@@ -66,22 +69,31 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
               onMouseEnter={() => setHoveredArchetype(name)}
               onMouseLeave={() => setHoveredArchetype(null)}
               disabled={isRolling}
-              className="group relative rounded-lg p-3 text-center transition-all hover:scale-105 border disabled:opacity-50"
+              className="group relative rounded-lg p-2 text-center transition-all hover:scale-105 border disabled:opacity-50"
               style={{
                 background: `linear-gradient(180deg, ${arch.palette.primary}33 0%, #12121a 100%)`,
                 borderColor: '#2a2a3e',
               }}
             >
-              <div
-                className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center text-lg font-bold font-fantasy"
-                style={{
-                  background: `${arch.palette.primary}44`,
-                  color: arch.palette.accent,
-                  border: `1px solid ${arch.palette.accent}44`,
-                }}
-              >
-                {name.charAt(0)}
-              </div>
+              {hasEmblem ? (
+                <img
+                  src={emblem.assetPath!}
+                  alt={`${name} emblem`}
+                  className="w-full aspect-square rounded-md mb-2 object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div
+                  className="w-full aspect-square rounded-md mb-2 flex items-center justify-center text-2xl font-bold font-fantasy"
+                  style={{
+                    background: `${arch.palette.primary}44`,
+                    color: arch.palette.accent,
+                    border: `1px solid ${arch.palette.accent}44`,
+                  }}
+                >
+                  {name.charAt(0)}
+                </div>
+              )}
               <h3 className="font-fantasy text-xs font-bold text-ivory truncate">{name}</h3>
               <p className="text-[9px] text-ash mt-0.5 line-clamp-2">{arch.identity}</p>
             </button>
