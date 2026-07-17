@@ -212,7 +212,21 @@ WHISPER WORDS: ${whisperWords.length > 0 ? whisperWords.join(', ') : 'none'}
 ARCHETYPE IDENTITY: ${arch.identity}
 VISUAL MOTIFS: ${arch.motifs}
 RANK APPEARANCE: ${arch.rankProgression[overallRank]}
-${specializationBlock}${archetype === 'Android' || archetype === 'Mech Pilot' ? `
+${specializationBlock}${overallRank !== 'Foundation' ? `
+
+LORE-REFLECTED-IN-PORTRAIT (${overallRank}):
+Every specific person, place, event, oath, or loss you name in the lore MUST appear in the portraitPrompt as a physical object, mark, silhouette, or figure the character carries, wears, bears as a scar, or is visible in the environment behind them. Intangibles are rendered as concrete tokens — if you cannot picture it, you cannot name it. Do NOT pair generic "veteran of many wars" lore with generic "battle-scarred" art; the lore and portrait must reference the SAME specific event, visible in both. The epithet in nameAndTitle counts as a named beat — if the title is "the Oathbreaker" or "Worldsplitter," the referent must appear visually.
+
+Cross-archetype examples (illustrative — match the archetype, don't copy):
+- Lore names a specific battle → a concrete mark from it: a notched pauldron, a cracked visor stripe, a burn-scar shaped like the enemy's sigil, or the weapon that struck the killing blow visibly nicked at that point
+- Lore names a slain rival → their trophy is worn or carried: the rival's blade sheathed at the belt, their crest turned into a scar, their squadron patch fused into hull plating, their skull cupped in the character's off-hand
+- Lore names a bond with a specific companion (person, beast, spirit, unit) → that companion is present as a silhouette, a reflection in armor, an empty collar at the belt, a second seat left welded shut, or a scar shaped like their touch
+- Lore names a sacrifice of the self → the missing piece is visible: an eye scarred shut, a hand replaced with mismatched salvage, hair shorn on one side where a vow was sworn, a rib-cage panel left open where something used to sit
+- Lore names a place they can never return to → a portable token of it: the exact vine species from that grove wrapped around the staff, coordinates etched into a bracer, a door-key still on the belt, a jar of that soil at the hip
+- Lore names a broken oath, curse, or debt → a concrete artifact carries it: an unbroken signet ring on a chain instead of the finger, a contract-scar inked across the forearm, a locket with the portrait scored out
+- Lore names a divine/patron encounter → the patron is faintly rendered in the environment: a face in cloudbank, a silhouette in stained-glass reflection, a symbol scorched into the ground the character stands on
+
+Tokens can live on non-human carriers when the archetype calls for it — etched into hull, grown into bark, fused into bone, woven into feathers. If Forged lore names only one or two specifics, only those need visual counterparts; at Ascendant, every named beat must have one.` : ''}${archetype === 'Android' || archetype === 'Mech Pilot' ? `
 
 TECH-CLASS ESCALATION RULE (${archetype}):
 Higher ranks mean MORE machine, MORE technology, MORE mechanical dominance — never less. When evolving modifiers or writing the portraitPrompt: intensify the tech (bigger chassis, more exposed circuitry, more integrated weapons, brighter energy cores, more visible mechanical joints) instead of softening toward "human" or "sleek" or "refined". A Forged/Ascendant ${archetype} should look MORE like a machine than the Foundation, not less. Add tech vocabulary to every clause the evolution touches (e.g. "muscular" becomes "muscular armored chassis"; "battle-scarred" becomes "battle-scarred with visible plate damage and exposed circuitry"). Prosthetics and mechanical limbs are ENHANCED, not hidden.` : ''}
