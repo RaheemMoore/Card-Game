@@ -1,4 +1,4 @@
-import type { ArchetypeName, Rank, CardStats, ModifierStack, CharacterIdentity } from '../types/card';
+import type { ArchetypeName, Rank, CardStats, ModifierStack, CharacterIdentity, LycanthropeIdentity } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
 import { assemblePortraitPrompt } from './promptAssembler';
 import {
@@ -161,6 +161,13 @@ export async function generateCardText(
    * narrative wins any conflict.
    */
   ascendantNarrative?: string,
+  /**
+   * Lycanthrope-only. Rolled at forge (furColor, moonPhase) and locked to the
+   * card. Re-injected verbatim on every regen so the same wolf carries across
+   * ranks despite the human → lycan morphology change. Ignored for other
+   * archetypes.
+   */
+  lycanIdentity?: LycanthropeIdentity,
 ): Promise<GeneratedText> {
   const arch = ARCHETYPES[archetype];
   const overallRank = getOverallRank(stats);
@@ -215,7 +222,22 @@ RANK APPEARANCE: ${arch.rankProgression[overallRank]}
 ${specializationBlock}${archetype === 'Android' || archetype === 'Mech Pilot' ? `
 
 TECH-CLASS ESCALATION RULE (${archetype}):
-Higher ranks mean MORE machine, MORE technology, MORE mechanical dominance — never less. When evolving modifiers or writing the portraitPrompt: intensify the tech (bigger chassis, more exposed circuitry, more integrated weapons, brighter energy cores, more visible mechanical joints) instead of softening toward "human" or "sleek" or "refined". A Forged/Ascendant ${archetype} should look MORE like a machine than the Foundation, not less. Add tech vocabulary to every clause the evolution touches (e.g. "muscular" becomes "muscular armored chassis"; "battle-scarred" becomes "battle-scarred with visible plate damage and exposed circuitry"). Prosthetics and mechanical limbs are ENHANCED, not hidden.` : ''}
+Higher ranks mean MORE machine, MORE technology, MORE mechanical dominance — never less. When evolving modifiers or writing the portraitPrompt: intensify the tech (bigger chassis, more exposed circuitry, more integrated weapons, brighter energy cores, more visible mechanical joints) instead of softening toward "human" or "sleek" or "refined". A Forged/Ascendant ${archetype} should look MORE like a machine than the Foundation, not less. Add tech vocabulary to every clause the evolution touches (e.g. "muscular" becomes "muscular armored chassis"; "battle-scarred" becomes "battle-scarred with visible plate damage and exposed circuitry"). Prosthetics and mechanical limbs are ENHANCED, not hidden.` : ''}${archetype === 'Lycanthrope' ? `
+
+LYCANTHROPE ESCALATION RULE (${overallRank}):
+Higher ranks mean MORE wolf, LESS human — never the reverse. Escalate morphology across ranks:
+- Foundation → near-human primal warrior. Only SUBTLE wolfish tells (glowing eyes matching moon phase, elongated canines, pointed ear tips, long unkempt mane in fur color). Human face is dominant. Hints of moon iconography (small pendant, crescent scar).
+- Forged → fully anatomical WOLF HEAD (real snout, real fur, real ears) on a still-muscled human torso. Torn practical clothing. The identity token rests on the bare chest. The moon of their phase is VISIBLE in the sky.
+- Ascendant → fully anthropomorphic digitigrade wolf-lord in articulated dark plate armor with silver moon-sigil filigree. Thick fur ruffing at collar and wrists. Silver moonlight AURA. The moon of their phase dominates the sky or forms the backdrop.
+Do NOT soften toward "human" or "hybrid" at higher ranks — a Forged/Ascendant Lycanthrope should look MORE lupine than the Foundation, not less.${lycanIdentity ? `
+
+LOCKED LYCAN IDENTITY — these must appear verbatim in every generation of this character; they are the anchors that carry identity across the morph:
+- Fur color: ${lycanIdentity.furColor} (mane at Foundation, full head fur at Forged, full body fur at Ascendant — always ${lycanIdentity.furColor.toLowerCase()})
+- Moon phase: ${lycanIdentity.moonPhase} moon — this SPECIFIC moon must appear in the composition at every rank (subtle pendant/scar at Foundation; visible in sky at Forged; dominant in composition + reflected in armor filigree at Ascendant)
+The eye-glow color should visually match the moon phase (Crescent/Half → cool silver-white; Full → warm silver-gold; Blood → red-orange; Eclipse → black corona with faint gold). Weave both anchors into the portraitPrompt verbatim.` : ''}
+
+MOON GODDESS LORE INSTRUCTION:
+The Lycanthrope is blessed — not cursed — by the Moon Goddess. She watches over her chosen; the transformation is her gift. The lore MUST reference the Moon Goddess (as "the Moon Goddess", "the Moon Mother", "She Who Watches", or a similar epithet — vary it). The character is her devoted, not her victim. Their power waxes and wanes with the moon.` : ''}
 
 CREATIVE DIRECTION FOR THIS CARD:
 - Name style: ${namingStyle}
@@ -316,7 +338,7 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
     const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
     if (!apiKey) {
       console.warn('No Anthropic API set — using fallback generator');
-      return generateFallbackText(archetype, overallRank, stats, whisperWords, modifiers);
+      return generateFallbackText(archetype, overallRank, stats, whisperWords, modifiers, lockedIdentity);
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {

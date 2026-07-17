@@ -50,6 +50,7 @@ async function submitGeneration(
   prompt: string,
   negativePrompt: string,
   initImageId?: string,
+  initStrength?: number,
 ): Promise<{ generationId: string; cost: string }> {
   const body: Record<string, unknown> = {
     prompt,
@@ -65,7 +66,8 @@ async function submitGeneration(
     body.init_image_id = initImageId;
     // 0.45 is the sweet spot for tier-ups: strong enough to keep the same face
     // and skin tone, loose enough to let the prompt drive aging + new modifiers.
-    body.init_strength = 0.45;
+    // Lycanthrope overrides with ~0.30 so the model can morph human → wolf across ranks.
+    body.init_strength = initStrength ?? 0.45;
   }
 
   const response = await fetch(`${LEONARDO_API_BASE}/generations`, {
@@ -174,6 +176,7 @@ export async function generatePortraitStrict(
   prompt: string,
   negativePrompt: string,
   initImageDataUrl?: string,
+  initStrength?: number,
 ): Promise<string> {
   const apiKey = import.meta.env.VITE_LEONARDO_API_KEY;
   if (!apiKey) {
@@ -189,7 +192,7 @@ export async function generatePortraitStrict(
     }
   }
 
-  const { generationId } = await submitGeneration(apiKey, prompt, negativePrompt, initImageId);
+  const { generationId } = await submitGeneration(apiKey, prompt, negativePrompt, initImageId, initStrength);
   const imageUrl = await pollForResult(apiKey, generationId);
   const dataUrl = await fetchAsDataUrl(imageUrl);
   if (!dataUrl.startsWith('data:image/')) {
@@ -198,15 +201,28 @@ export async function generatePortraitStrict(
   return dataUrl;
 }
 
+/**
+ * Per-archetype init_strength for tier-up / regen. Default 0.45 works for the
+ * standard "same face, aged and hardened" pattern. Lycanthrope drops to 0.30
+ * so the model can morph human → hybrid → full lycan across ranks — locked
+ * textual anchors (fur color, moon phase, eye color, identity token) carry
+ * identity instead.
+ */
+export function getInitStrengthForArchetype(archetype: ArchetypeName): number {
+  if (archetype === 'Lycanthrope') return 0.30;
+  return 0.45;
+}
+
 export async function generatePortrait(
   prompt: string,
   negativePrompt: string,
   archetype: ArchetypeName,
   rank: Rank,
   initImageDataUrl?: string,
+  initStrength?: number,
 ): Promise<string> {
   try {
-    return await generatePortraitStrict(prompt, negativePrompt, initImageDataUrl);
+    return await generatePortraitStrict(prompt, negativePrompt, initImageDataUrl, initStrength);
   } catch (err) {
     console.error('Leonardo API error, using placeholder:', err);
     return generatePlaceholderPortrait(archetype, rank);

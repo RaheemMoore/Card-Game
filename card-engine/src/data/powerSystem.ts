@@ -7,6 +7,7 @@ export const CLASS_AFFINITY: Record<ArchetypeName, Partial<Record<StatName, Bias
   Druid:        { Atk: 'Low',       Def: 'Mid',       Mana: 'High' },
   Necromancer:  { Atk: 'Low',       Def: 'Low',       Mana: 'Very High' },
   Vampire:      { Atk: 'High',      Def: 'Low',       Mana: 'High' },
+  Lycanthrope:  { Atk: 'High',      Def: 'Very Low',  Mana: 'Mid' },
   'Mech Pilot': { Atk: 'High',      Def: 'Very High', Tech: 'Very High' },
   Android:      { Atk: 'Mid',       Def: 'High',      Tech: 'Very High' },
   Seraph:       { Atk: 'Mid',       Def: 'High',      Mana: 'High' },

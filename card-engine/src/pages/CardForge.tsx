@@ -95,7 +95,17 @@ export function CardForge() {
 
       // Claude first (composes the Leonardo prompt), then Leonardo. Both must
       // succeed or the whole action refunds — no half-forged card gets minted.
-      const text = await generateCardText(archetype, stats, whisperWords, mods);
+      const text = await generateCardText(
+        archetype,
+        stats,
+        whisperWords,
+        mods,
+        undefined,
+        undefined,
+        false,
+        undefined,
+        shell.lycanIdentity,
+      );
       const portrait = await generatePortraitStrict(
         text.portraitPrompt,
         text.negativePrompt,

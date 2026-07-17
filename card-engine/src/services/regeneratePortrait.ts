@@ -1,5 +1,5 @@
 import type { Card, ModifierStack } from '../types/card';
-import { generatePortraitStrict } from './leonardoApi';
+import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
 import { generateCardText } from './claudeApi';
 import { getOverallRank, getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 import {
@@ -43,6 +43,9 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
     modifiers,
     card.cardName,
     card.identity,
+    false,
+    undefined,
+    card.lycanIdentity,
   );
 
   // Only pass a valid image as init image. Corrupted portraitAsset (empty or
@@ -53,7 +56,8 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
       ? card.portraitAsset
       : undefined;
 
-  const portrait = await generatePortraitStrict(text.portraitPrompt, text.negativePrompt, initImage);
+  const initStrength = getInitStrengthForArchetype(card.archetype);
+  const portrait = await generatePortraitStrict(text.portraitPrompt, text.negativePrompt, initImage, initStrength);
 
   // Also re-derive dominant/border in case older cards weren't computed post-fix.
   const dominant = getDominantStat(card.stats);
