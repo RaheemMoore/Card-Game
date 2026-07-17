@@ -66,9 +66,13 @@ Card Game/                          # Git root
 │           ├── icons/              # Stat icons (fist, castle-turret, star, etc.)
 │           └── backgrounds/        # Fantasy landscape background
 ├── Card Images/                    # Portrait source images (not used in app yet)
-├── card-engine-development-plan.md # Original 4-phase plan (partially outdated)
-├── card-engine-project-knowledge.md # Figma node IDs and design reference (partially outdated)
-└── card-engine-archetype-prompt-library.md
+├── STUDIO_CHARTER.md               # Studio structure, roles, approval rules
+├── WORKFLOW.md                     # How to work with this repo (day-to-day)
+├── card-engine-power-system-spec.md         # Stats, bias tiers, rank derivation, rank-sum cap
+├── card-engine-modifier-pools.md            # 4 modifier pools × 25 entries (art prompts)
+├── card-engine-archetype-prompt-library.md  # Archetype DNA blocks for portrait prompts
+├── card-engine-economy-currency-system-plan.md # Economy governance + catalog rules (binding)
+└── docs/archive/                   # Retired 6-stat design docs — do not consult
 ```
 
 ## Current Data Model — Power System
