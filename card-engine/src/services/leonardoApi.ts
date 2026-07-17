@@ -203,13 +203,15 @@ export async function generatePortraitStrict(
 
 /**
  * Per-archetype init_strength for tier-up / regen. Default 0.45 works for the
- * standard "same face, aged and hardened" pattern. Lycanthrope drops to 0.30
- * so the model can morph human → hybrid → full lycan across ranks — locked
+ * standard "same face, aged and hardened" pattern. Lycanthrope drops to 0.15
+ * so the model has room to break the human silhouette (bodybuilder chest,
+ * human hands) that the Foundation image otherwise anchors — the four locked
  * textual anchors (fur color, moon phase, eye color, identity token) carry
- * identity instead.
+ * identity instead. Was 0.30 initially, but the first two Forged generations
+ * kept clean human abs and no claws — needed to weaken CR further.
  */
 export function getInitStrengthForArchetype(archetype: ArchetypeName): number {
-  if (archetype === 'Lycanthrope') return 0.30;
+  if (archetype === 'Lycanthrope') return 0.15;
   return 0.45;
 }
 
