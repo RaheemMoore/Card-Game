@@ -50,7 +50,8 @@ Card Game/                          # Git root
 │   │   │   ├── tierUp.ts           # Foundation → Forged → Ascendant evolution flow
 │   │   │   ├── ascendantPaths.ts   # Ascendant-tier specialization branching
 │   │   │   ├── portraitGenerator.ts # Placeholder portrait (gradient + letter)
-│   │   │   ├── storage.ts          # localStorage CRUD
+│   │   │   ├── storage.ts          # Sync facade delegating to the active CardStore
+│   │   │   ├── persistence/        # supabaseClient, SyncQueue, CardStore/SupabaseCardStore, SupabaseLedgerStore, migration
 │   │   │   └── economy/            # walletService, transactionLedger, pricingCalculator, validation, useWallet (+ tests)
 │   │   ├── data/
 │   │   │   ├── archetypes.ts       # 11 archetype definitions
@@ -160,11 +161,11 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 
 - **Phase 1: Card Engine** — CORE COMPLETE. Forge flow, collection, power system, Leonardo portraits, modifier pools, tier-up evolution + history viewer, whisper wheel, and two-currency economy (localStorage) are all working.
 - **Phase 1.5: Economy hardening + polish** — IN PROGRESS. Governance rules for the economy live in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md). Any change to prices, rewards, bundles, or exchange rules requires explicit Raheem approval — see charter.
-- **Phase 2: Backend + Accounts** — NOT STARTED. Supabase migration, auth, server-authoritative wallet + ledger. This is a hard prerequisite for real-money bundle sales.
-- **Phase 3: Leveling & Minigames** — NOT STARTED.
+- **Phase 2: Backend + Accounts** — PERSISTENCE HALF LANDED. Supabase project (Card-Game, `ofrcpmiytqgziozsourn`) holds `profiles`, `cards`, `economy_transactions` with RLS keyed on `auth.uid()`, and a private `portraits` storage bucket with per-user-path RLS. Session is anonymous (Supabase Auth is wired but no real login yet — real login flips on later without a second migration). One-time localStorage → Supabase migration runs on first boot behind `<PersistenceGate>`; hard cutover afterwards (localStorage keys wiped). Server-authoritative wallet + real-money bundle sales are still out of scope — the ledger lives in Supabase now but the client is still trusted, and the payment rails from §9 of the economy plan still need to land before real money is safe. See [card-engine/supabase/README.md](card-engine/supabase/README.md) for the schema + the one dashboard step needed to enable anonymous sign-ins.
+- **Phase 3: Leveling & Minigames** — NOT STARTED. First minigame is the next scheduled work.
 - **Phase 4: PvP Battles + Trading** — NOT STARTED.
 
-Do NOT proceed to Phase 2 unless explicitly asked.
+Do NOT proceed to real-money bundle sales without landing the rest of Phase 2 (§9 production security prerequisites in the economy plan).
 
 ## Economy System
 
@@ -183,7 +184,7 @@ Architecture is catalog-driven: `data/economy/` holds the source-of-truth catalo
 - Dice animation uses CSS 3D cubes — functional but could be polished.
 - Rank-sum cap of 7 is enforced in the data model but the trade-demotion UI is deferred (needs minigames to drive it).
 - Promotion/demotion flow, Very Low difficulty modifier, and Tech vs organic combat modifier are deferred to Phase 3/4.
-- Economy is localStorage-only — see [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md) §9 for the production-security prerequisites before any real-money work.
+- Economy now persists to Supabase (Card-Game project) under an anonymous session — real-money bundle sales still need §9 production-security prerequisites (server-side generation calls, receipt verification, idempotency keys) in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md).
 - The legacy 6-stat docs (`card-engine-development-plan.md`, `card-engine-project-knowledge.md`) have been moved to [docs/archive/](docs/archive/) — do not consult them as source of truth.
 
 ## Studio Structure

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { CurrencyBalance } from './economy/CurrencyBalance';
 import { WalletDevPanel } from './economy/WalletDevPanel';
+import { SyncStatusPill } from './SyncStatusPill';
 
 const links = [
   { to: '/forge', label: 'Card Forge' },
@@ -33,9 +34,13 @@ export function NavBar() {
           <span
             className="ml-3 px-2 py-0.5 rounded text-[9px] font-fantasy font-bold tracking-wider uppercase"
             style={{ background: 'rgba(220,38,38,0.15)', color: '#8a1c1c', border: '1px solid rgba(220,38,38,0.3)' }}
-            title="Balances live in localStorage and cannot be exchanged for real money."
+            title="Balances persist to Supabase under an anonymous session; still not authorized for real-money exchange."
           >
             Demo Economy
+          </span>
+
+          <span className="ml-2">
+            <SyncStatusPill />
           </span>
 
           <div className="ml-auto flex items-center gap-2">

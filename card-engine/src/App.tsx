@@ -3,34 +3,39 @@ import { CardForge } from './pages/CardForge';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { NavBar } from './components/NavBar';
-import { initialize as initializeWallet } from './services/economy/walletService';
+import { PersistenceGate } from './components/PersistenceGate';
 
-initializeWallet();
+// Wallet + card-store initialization now happens inside PersistenceGate,
+// which awaits Supabase auth + migration + hydrate before the router
+// mounts. On the legacy path (no VITE_SUPABASE_URL) PersistenceGate
+// falls through immediately with the same initializeWallet() call.
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-dvh flex flex-col text-bone relative">
-        {/* Fantasy background */}
-        <div
-          className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/assets/backgrounds/fantasy-landscape.jpg')" }}
-        />
-        <div className="fixed inset-0 bg-void/70" />
+    <PersistenceGate>
+      <BrowserRouter>
+        <div className="min-h-dvh flex flex-col text-bone relative">
+          {/* Fantasy background */}
+          <div
+            className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "url('/assets/backgrounds/fantasy-landscape.jpg')" }}
+          />
+          <div className="fixed inset-0 bg-void/70" />
 
-        <div className="relative z-10 min-h-dvh flex flex-col">
-        <NavBar />
-        <main className="flex-1 flex flex-col">
-          <Routes>
-            <Route path="/" element={<CardForge />} />
-            <Route path="/forge" element={<CardForge />} />
-            <Route path="/collection" element={<Collection />} />
-            <Route path="/card/:cardId" element={<CardDetail />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+          <div className="relative z-10 min-h-dvh flex flex-col">
+            <NavBar />
+            <main className="flex-1 flex flex-col">
+              <Routes>
+                <Route path="/" element={<CardForge />} />
+                <Route path="/forge" element={<CardForge />} />
+                <Route path="/collection" element={<Collection />} />
+                <Route path="/card/:cardId" element={<CardDetail />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+          </div>
         </div>
-      </div>
-    </BrowserRouter>
+      </BrowserRouter>
+    </PersistenceGate>
   );
 }

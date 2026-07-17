@@ -9,6 +9,10 @@ export interface LedgerStore {
   read(): string | null;
   write(value: string): void;
   remove(): void;
+  // Optional. Async bootstrap for remote-backed stores; called by
+  // PersistenceGate before the router mounts. LocalStorage/InMemory
+  // implementations don't need this — reads are already fresh.
+  hydrate?(): Promise<void>;
 }
 
 class LocalStorageLedgerStore implements LedgerStore {

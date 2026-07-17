@@ -73,6 +73,17 @@ function newTxnId(): string {
   return `txn_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+// Monotonic per-client counter used for deterministic multi-write ordering
+// when createdAt collides at the millisecond boundary. On a fresh ledger
+// starts at 1; on a rehydrated ledger continues from the max existing value.
+function nextSequence(): number {
+  let max = 0;
+  for (const t of ledger.all()) {
+    if (typeof t.sequence === 'number' && t.sequence > max) max = t.sequence;
+  }
+  return max + 1;
+}
+
 // Balance = sum of `amount` for all transactions in {pending, committed}.
 // Reservations (pending, negative amount) reduce apparent balance so a rapid
 // second reserve can't overspend the wallet.
@@ -112,6 +123,7 @@ export function initialize(): void {
       status: 'committed',
       balanceBefore: 0,
       balanceAfter: amount,
+      sequence: nextSequence(),
       createdAt: at,
       completedAt: at,
       metadata: { reason: DEMO_SEED_REASON },
@@ -150,6 +162,7 @@ export function reserve(input: ReserveInput): EconomyTransaction {
     status: 'pending',
     balanceBefore,
     balanceAfter: balanceBefore - input.amount,
+    sequence: nextSequence(),
     createdAt: at,
     metadata: input.metadata,
   };
@@ -186,8 +199,10 @@ export function refund(transactionId: string, reason: string): EconomyTransactio
     metadata: { refundReason: reason },
   });
   // ...and append a paired refund record for audit clarity.
+  // Deterministic id derived from the original so a retried remote upsert
+  // is idempotent (same primary key => single row, not two audit records).
   const refundTxn: EconomyTransaction = {
-    transactionId: newTxnId(),
+    transactionId: `${transactionId}:refund`,
     currency: txn.currency,
     amount: 0,
     type: 'refund',
@@ -196,6 +211,7 @@ export function refund(transactionId: string, reason: string): EconomyTransactio
     status: 'committed',
     balanceBefore: getBalance(txn.currency),
     balanceAfter: getBalance(txn.currency),
+    sequence: nextSequence(),
     createdAt: at,
     completedAt: at,
     metadata: {
@@ -230,6 +246,7 @@ export function grantReward(input: GrantRewardInput): EconomyTransaction {
     status: 'committed',
     balanceBefore,
     balanceAfter: balanceBefore + input.amount,
+    sequence: nextSequence(),
     createdAt: at,
     completedAt: at,
     metadata: input.metadata,
