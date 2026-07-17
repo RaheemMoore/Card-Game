@@ -59,7 +59,7 @@ export function Admin() {
   const selected = users?.find((u) => u.user_id === selectedUid) ?? null;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6">
       <h1 className="font-fantasy text-2xl font-bold mb-4 text-bone">Admin</h1>
 
       {loadError && (
@@ -92,6 +92,10 @@ export function Admin() {
         onChange={(e) => setQuery(e.target.value)}
         className="w-full max-w-sm mb-3 px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
       />
+
+      <div className="sm:hidden mb-2 text-[10px] text-bone/50 italic">
+        Swipe the table left to see more columns →
+      </div>
 
       <div className="overflow-x-auto rounded border border-bone/15">
         <table className="w-full text-sm text-bone/90">
