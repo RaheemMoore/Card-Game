@@ -1,14 +1,17 @@
 import { useSyncExternalStore } from 'react';
 import { getStatus, subscribe } from '../services/persistence/SyncQueue';
-import { isSupabaseConfigured } from '../services/persistence/supabaseClient';
+import { getCurrentUserId } from '../services/persistence/supabaseClient';
 
-// Small header pill reflecting SyncQueue state. Hidden on the legacy
-// path since there's no queue there. Idle state is intentionally muted
-// so it doesn't compete with the other nav elements.
+// Small header pill reflecting SyncQueue state. Hidden when we're not
+// actually talking to Supabase (env vars unset, OR anonymous sign-in
+// was refused and we fell back to the legacy localStorage path). Idle
+// state is intentionally muted so it doesn't compete with other nav.
 export function SyncStatusPill() {
   const status = useSyncExternalStore(subscribe, getStatus, getStatus);
 
-  if (!isSupabaseConfigured()) return null;
+  // No session => not syncing. Covers both "no env vars" and
+  // "anon disabled → fell back to localStorage".
+  if (!getCurrentUserId()) return null;
 
   const styles = {
     idle: {
