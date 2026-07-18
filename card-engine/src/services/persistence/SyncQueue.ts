@@ -10,7 +10,14 @@ import { openDB, type IDBPDatabase } from 'idb';
 // Every SyncOp has a client-generated id; handlers must be idempotent so
 // duplicate delivery after a partial flush is safe.
 
-export type SyncOpKind = 'card_upsert' | 'card_delete' | 'txn_upsert' | 'profile_upsert';
+export type SyncOpKind =
+  | 'card_upsert'
+  | 'card_delete'
+  | 'txn_upsert'
+  | 'profile_upsert'
+  | 'ability_ref_upsert'
+  | 'ability_ref_delete'
+  | 'player_discovery_upsert';
 
 export interface SyncOp {
   id: string;

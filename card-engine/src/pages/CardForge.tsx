@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ArchetypeName, CardStats, Card, ModifierStack } from '../types/card';
+import type { ArchetypeName, CardStats, Card, ModifierStack, AbilityHistorySnapshot } from '../types/card';
+import type { CardAbilityReference } from '../types/abilities';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
 import { WhisperWheel } from '../components/WhisperWheel';
@@ -10,6 +11,9 @@ import { generateCardText } from '../services/claudeApi';
 import { generatePortraitStrict } from '../services/leonardoApi';
 import { saveCard } from '../services/storage';
 import { getOverallRank } from '../data/powerSystem';
+import { proposeAbility } from '../services/abilities/proposalService';
+import { getAbilityStore, saveReference } from '../services/abilities/registry';
+import { grantDiscoveryReward } from '../services/abilities/discoveryLedger';
 import * as wallet from '../services/economy/walletService';
 import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
 import { CurrencyCost } from '../components/economy/CurrencyCost';
@@ -125,11 +129,63 @@ export function CardForge() {
         false,
         undefined,
         shell.lycanIdentity,
+        // Foundation forge always requests a Core ability. If Claude omits
+        // or malforms the field, the card ships without an ability and the
+        // legacy backfill pass fills it later.
+        'core',
       );
       const portrait = await generatePortraitStrict(
         text.portraitPrompt,
         text.negativePrompt,
       );
+
+      // Ability proposal — auto-attach on exact-normalized-match, queue novel
+      // for admin review. Silent fallback on any failure so the forge
+      // completes even when the ability path errors out.
+      let abilityHistorySnapshot: AbilityHistorySnapshot[] = [];
+      if (text.abilityCandidate) {
+        try {
+          const outcome = proposeAbility(getAbilityStore(), {
+            candidate: text.abilityCandidate,
+            // Anonymous sessions have a uid too — the discovery record still
+            // lands under the correct user, and links carry through sign-up.
+            userId: getCurrentUserId() ?? 'anon',
+          });
+          if (outcome.kind === 'attached') {
+            const ref: CardAbilityReference = {
+              cardId: shell.cardId,
+              abilityId: outcome.abilityId,
+              abilityVersionId: outcome.abilityVersionId,
+              slotType: 'core',
+              localTier: 'Foundation',
+              displayOrder: 0,
+            };
+            saveReference(ref);
+            abilityHistorySnapshot = [{
+              abilityId: outcome.abilityId,
+              abilityVersionId: outcome.abilityVersionId,
+              slotType: 'core',
+            }];
+            if (outcome.firstDiscoveryForPlayer) {
+              const reward = grantDiscoveryReward(getAbilityStore(), outcome.abilityId);
+              if (reward.kind === 'granted') {
+                const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
+                console.info(`[forge] discovery reward granted: ${summary}`);
+              } else if (reward.kind === 'zero_value_placeholder') {
+                console.info(`[forge] discovery recorded (reward paused): ${reward.rewardId}`);
+              }
+            }
+          } else if (outcome.kind === 'queued') {
+            console.info(
+              `[forge] ability queued for admin review: ${outcome.abilityId} (experimental=${outcome.experimental})`,
+            );
+          } else if (outcome.kind === 'rejected') {
+            console.warn('[forge] ability candidate rejected:', outcome.errors);
+          }
+        } catch (err) {
+          console.warn('[forge] ability proposal failed, card ships without ability:', err);
+        }
+      }
 
       const fullCard: Card = {
         ...shell,
@@ -139,6 +195,9 @@ export function CardForge() {
         portraitAsset: portrait,
         modifiers: mods,
         identity: text.identity,
+        abilityHistory: abilityHistorySnapshot.length > 0
+          ? { Foundation: abilityHistorySnapshot }
+          : undefined,
       };
 
       saveCard(fullCard);

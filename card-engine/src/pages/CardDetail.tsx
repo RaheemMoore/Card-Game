@@ -18,6 +18,12 @@ import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
 import { CurrencyCost } from '../components/economy/CurrencyCost';
 import { InsufficientFundsModal } from '../components/economy/InsufficientFundsModal';
 import { useBalance } from '../services/economy/useWallet';
+import {
+  getReferencesForCard,
+  getDefinition,
+  getCurrentVersion,
+  getArtForAbility,
+} from '../services/abilities/registry';
 
 const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
 const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
@@ -432,6 +438,66 @@ export function CardDetail() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Abilities — A5 minimal slot indicator. Full tile art comes at A7. */}
+          <div className="space-y-2">
+            <h3 className="font-fantasy text-sm font-bold text-ivory">Abilities</h3>
+            {(() => {
+              const refs = getReferencesForCard(card.cardId).filter(
+                (r) => r.localTier === overallRank,
+              );
+              if (refs.length === 0) {
+                return (
+                  <p className="text-xs text-ash/70 italic">
+                    No abilities yet — reforge or tier-up will add one for this rank.
+                  </p>
+                );
+              }
+              refs.sort((a, b) => a.displayOrder - b.displayOrder);
+              return (
+                <div className="grid gap-2">
+                  {refs.map((ref) => {
+                    const def = getDefinition(ref.abilityId);
+                    const version = getCurrentVersion(ref.abilityId);
+                    const art = getArtForAbility(ref.abilityId);
+                    return (
+                      <div
+                        key={`${ref.slotType}-${ref.localTier}`}
+                        className="flex gap-3 rounded-md p-3 border border-gold/20 bg-slate-dark/40"
+                      >
+                        {art && (
+                          <img
+                            src={art.assetUrl}
+                            alt=""
+                            className="w-12 h-12 rounded shrink-0 border border-gold/20"
+                          />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between mb-1 gap-2">
+                            <span className="font-fantasy text-sm text-ivory truncate">
+                              {def?.displayName ?? ref.abilityId}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-widest text-gold/70 shrink-0">
+                              {ref.slotType}
+                            </span>
+                          </div>
+                          {def?.descriptionShort && (
+                            <p className="text-xs text-bone/70">{def.descriptionShort}</p>
+                          )}
+                          {version && (
+                            <div className="text-[10px] text-ash/60 mt-1 tabular-nums">
+                              cost {version.resourceCost} {version.resourceType}
+                              {version.cooldownRounds ? ` · cd ${version.cooldownRounds}` : ''}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
           {card.whisperWords.length > 0 && (

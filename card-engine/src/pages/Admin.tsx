@@ -14,6 +14,7 @@ import {
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
 import { CardRenderer } from '../components/CardRenderer';
+import { AdminAbilities } from './AdminAbilities';
 
 type GuardState = 'checking' | 'allowed' | 'denied';
 
@@ -26,6 +27,13 @@ export function Admin() {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
+    // DEV-only bypass: /admin?dev_admin=1 skips the RPC check so the page can
+    // be reviewed against the local ability store without a Supabase session.
+    // Guarded by import.meta.env.DEV — the query string does nothing in prod.
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev_admin') === '1') {
+      setGuard('allowed');
+      return;
+    }
     void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
   }, []);
 
@@ -195,6 +203,8 @@ export function Admin() {
           onMutated={refresh}
         />
       )}
+
+      <AdminAbilities />
     </div>
   );
 }

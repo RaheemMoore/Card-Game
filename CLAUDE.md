@@ -51,7 +51,10 @@ Card Game/                          # Git root
 │   │   │   ├── ascendantPaths.ts   # Ascendant-tier specialization branching
 │   │   │   ├── portraitGenerator.ts # Placeholder portrait (gradient + letter)
 │   │   │   ├── storage.ts          # Sync facade delegating to the active CardStore
-│   │   │   ├── persistence/        # supabaseClient, SyncQueue, CardStore/SupabaseCardStore, SupabaseLedgerStore, migration
+│   │   │   ├── persistence/        # supabaseClient, SyncQueue, CardStore/SupabaseCardStore, SupabaseLedgerStore, AbilityStore/SupabaseAbilityStore, BossStore/SupabaseBossStore, migration
+│   │   │   ├── abilities/          # registry, seed, proposalService, duplicateDetector, validator, discoveryLedger, moderation, canonicalArtPipeline, legacyBackfill (+ tests)
+│   │   │   ├── bosses/             # registry, seed
+│   │   │   ├── combat/             # RandomStream, formulas, reducer, harness, useBattle, battleRewardService, balancePass tests
 │   │   │   └── economy/            # walletService, transactionLedger, pricingCalculator, validation, useWallet (+ tests)
 │   │   ├── data/
 │   │   │   ├── archetypes.ts       # 11 archetype definitions
@@ -77,6 +80,8 @@ Card Game/                          # Git root
 ├── card-engine-archetype-prompt-library.md  # Archetype DNA blocks for portrait prompts
 ├── card-engine-archetype-emblem-library.md  # Selection-emblem spec, palettes, prompts, status
 ├── card-engine-economy-currency-system-plan.md # Economy governance + catalog rules (binding)
+├── card-engine-ability-system-spec.md          # Ability data model, primitives, validation, art pipeline, moderation
+├── card-engine-boss-battle-spec.md             # Combat contract, turn structure, formulas, bosses, rewards
 └── docs/archive/                   # Retired 6-stat design docs — do not consult
 ```
 
@@ -162,7 +167,10 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 - **Phase 1: Card Engine** — CORE COMPLETE. Forge flow, collection, power system, Leonardo portraits, modifier pools, tier-up evolution + history viewer, whisper wheel, and two-currency economy (localStorage) are all working.
 - **Phase 1.5: Economy hardening + polish** — IN PROGRESS. Governance rules for the economy live in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md). Any change to prices, rewards, bundles, or exchange rules requires explicit Raheem approval — see charter.
 - **Phase 2: Backend + Accounts** — PERSISTENCE + AUTH + ADMIN LANDED. Supabase project (Card-Game, `ofrcpmiytqgziozsourn`) holds `profiles` (with `role`), `cards`, `economy_transactions` with RLS keyed on `auth.uid() OR is_admin()`, and a private `portraits` storage bucket with per-user-path RLS. Email+password sign-up via `<AuthModal>` uses `auth.updateUser` on anonymous sessions to preserve the uid (existing cards + ledger carry over). Admin role gates a `/admin` route with user list, per-user drawer (currency grants w/ required reason → `admin_adjustment` in the ledger, readonly cards + ledger). Server-side RPCs (`list_users_for_admin`, `get_system_stats`, `grant_admin_adjustment`) run SECURITY DEFINER with is_admin() guard. Server-authoritative wallet + real-money bundle sales are still out of scope — the client JWT is still trusted, and the payment rails from §9 of the economy plan still need to land before real money is safe. See [card-engine/supabase/README.md](card-engine/supabase/README.md) for the schema + the one dashboard step needed (Anonymous Sign-Ins toggle).
-- **Phase 3: Leveling & Minigames** — NOT STARTED. First minigame is the next scheduled work.
+- **Phase 3: Ability System + Boss Battles** — COMPLETE (Stage A + Stage B shipped 2026-07-18).
+  - **Ability System (A0–A9):** typed effect/target/trigger/condition/status catalogs; power-budget validator; 5 seed abilities; Supabase `ability_*` tables with library-read/admin-write RLS; forge + tier-up ability proposals with duplicate detection (exact-match auto-attach, fuzzy queues); discovery rewards (Gold + Forge Crystals per rarity, idempotent via ledger); Codex home + family + ability pages; canonical art pipeline with placeholders + Leonardo (3 seed abilities generated); admin moderation queue with approve/reject/merge/deprecate. Spec: [card-engine-ability-system-spec.md](card-engine-ability-system-spec.md).
+  - **Boss Battles (B0–B7):** turn-based combat contract; pure deterministic reducer with seeded RNG + snapshot-immutable ability resolution; headless 5000-run simulator; Supabase `boss_*` tables; Emberborn Wraith (fire elemental, 2 phases) as first boss; playable `/battle` route with hero picker + encounter screen + intent banner + event log; idempotent battle rewards (first-clear 500g/100c, repeat 100g/15c) via ledger `battleId` scan; data-driven damage numbers; hit-shake + reduced-motion; mobile responsive. Spec: [card-engine-boss-battle-spec.md](card-engine-boss-battle-spec.md).
+- **Phase 3.5: Boss art polish** — DEFERRED pending art-direction alignment. Placeholder card renders in-app; final Leonardo boss art will follow the same 2D fantasy pipeline as ability art. See boss battle spec §18.
 - **Phase 4: PvP Battles + Trading** — NOT STARTED.
 
 Do NOT proceed to real-money bundle sales without landing the rest of Phase 2 (§9 production security prerequisites in the economy plan).

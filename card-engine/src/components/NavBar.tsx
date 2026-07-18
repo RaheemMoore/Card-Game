@@ -15,6 +15,8 @@ import {
 const links = [
   { to: '/forge', label: 'Card Forge' },
   { to: '/collection', label: 'Collection' },
+  { to: '/codex', label: 'Codex' },
+  { to: '/battle', label: 'Battle' },
 ] as const;
 
 type AuthModalMode = 'sign_up' | 'change_password' | null;

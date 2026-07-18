@@ -108,5 +108,26 @@ export interface Card {
   /** Lycanthrope only. See LycanthropeIdentity. */
   lycanIdentity?: LycanthropeIdentity;
   evolutionHistory: EvolutionHistory;
+  /**
+   * Per-rank snapshot of the card's CardAbilityReference rows. Ability refs
+   * live in their own store (services/abilities/registry) so combat can
+   * resolve without loading the card blob — this map is a historical trace
+   * only. Populated at tier-up in A5.
+   *
+   * Keyed by Rank → array of ability id + slot type (thin snapshot; the full
+   * version details live in the ability library).
+   */
+  abilityHistory?: Partial<Record<Rank, AbilityHistorySnapshot[]>>;
   createdAt: string;
+}
+
+/**
+ * Thin snapshot recorded on tier-up. Enough to render a "what abilities did
+ * this card have at Foundation" view without joining against the live
+ * CardAbilityReference table.
+ */
+export interface AbilityHistorySnapshot {
+  abilityId: string;
+  abilityVersionId?: string;
+  slotType: 'core' | 'signature' | 'ultimate';
 }

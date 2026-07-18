@@ -3,6 +3,10 @@ import { CardForge } from './pages/CardForge';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { Admin } from './pages/Admin';
+import { Codex } from './pages/Codex';
+import { Battle } from './pages/Battle';
+import { CodexFamily } from './pages/CodexFamily';
+import { CodexAbility } from './pages/CodexAbility';
 import { NavBar } from './components/NavBar';
 import { PersistenceGate } from './components/PersistenceGate';
 
@@ -31,6 +35,10 @@ export default function App() {
                 <Route path="/forge" element={<CardForge />} />
                 <Route path="/collection" element={<Collection />} />
                 <Route path="/card/:cardId" element={<CardDetail />} />
+                <Route path="/codex" element={<Codex />} />
+                <Route path="/codex/family/:familyId" element={<CodexFamily />} />
+                <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
+                <Route path="/battle" element={<Battle />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

@@ -1,4 +1,5 @@
 import type { ArchetypeName, Rank, CardStats, ModifierStack, CharacterIdentity, LycanthropeIdentity } from '../types/card';
+import type { AbilityCandidate, AbilitySlotType } from '../types/abilities';
 import { ARCHETYPES } from '../data/archetypes';
 import { assemblePortraitPrompt } from './promptAssembler';
 import {
@@ -10,6 +11,7 @@ import {
   getAbsenceMotifs,
   getStatNames,
 } from '../data/powerSystem';
+import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/promptFragment';
 
 const RANK_MEANINGS: Record<Rank, string> = {
   Foundation: 'The beginning — raw, unproven, rough around the edges',
@@ -116,6 +118,12 @@ interface GeneratedText {
    * preserved, values amplified. See CLAUDE prompt for the evolution rules.
    */
   evolvedModifiers?: ModifierStack;
+  /**
+   * Ability candidate for the requested slot. Present when abilitySlotToFill
+   * is provided. May be undefined if Claude omits or malforms the field —
+   * callers should treat as "no ability this pass" and fall back to backfill.
+   */
+  abilityCandidate?: AbilityCandidate;
 }
 
 const PORTRAIT_PROMPT_MAX = 1300;
@@ -168,6 +176,13 @@ export async function generateCardText(
    * archetypes.
    */
   lycanIdentity?: LycanthropeIdentity,
+  /**
+   * When set, the prompt asks Claude to also propose an AbilityCandidate for
+   * this slot (returned in `abilityCandidate`). Foundation forge = 'core',
+   * Forged tier-up = 'signature', Ascendant tier-up = 'ultimate'. Omit to
+   * skip ability generation (the caller will fall back to legacy backfill).
+   */
+  abilitySlotToFill?: AbilitySlotType,
 ): Promise<GeneratedText> {
   const arch = ARCHETYPES[archetype];
   const overallRank = getOverallRank(stats);
@@ -387,7 +402,9 @@ Generate ONLY a JSON object:
 - portraitPrompt: an image-generation prompt for Leonardo AI Phoenix 1.0. MUST be under ${PORTRAIT_PROMPT_MAX} characters. Compose a single dense, comma-separated prompt that captures ALL of the above into evocative visual language. Structure: [style anchor: "fantasy character portrait, painterly digital art, chest-up, single character centered, ultra-detailed face, rich textures"], [IDENTITY BLOCK — verbatim gender/ethnicity/hair/eyes/distinctive features from LOCKED or NEW identity above], [rank-appropriate energy: Foundation = ready stance; Forged = dynamic action, visible aura; Ascendant = ultimate form, explosive power, overwhelming presence], [character maturity: Foundation youthful/unmarked; Forged battle-scarred, hardened eyes; Ascendant ancient eyes, deep scars, peak physical form], [archetype identity + motifs + specialization visuals], [modifiers woven in — elemental affinity, physique, lineage, setting, demeanor, signature detail, lighting, class trait], and [same-character continuity phrase for Forged/Ascendant, e.g. "same character as prior rank, aged and hardened, identical facial structure and skin tone"]. Prefer punchy visual clauses over paragraphs. NO gore, NO explicit violence, NO exposed wounds. Every impactful detail must appear.
 - negativePrompt: image-gen negative prompt, under ${NEGATIVE_PROMPT_MAX} characters. Start with "${BASE_NEGATIVE}" and add anything that would ruin THIS specific character (if Foundation, add "grizzled, ancient, legendary aura"; if the character is regal, add "sloppy, casual"; ALWAYS add "different person, wrong ethnicity, different gender, changed face, inconsistent identity"). Comma-separated.
 - identity: an object {gender, apparentAge, ethnicity, hair, eyes, bodyType, distinctiveFeatures}. ${lockedIdentity ? 'MUST be EXACTLY the LOCKED identity above, verbatim (all 7 fields).' : 'Invent it now — this locks the character\'s look across all future tiers. Every field must be specific and non-generic. bodyType MUST follow the diversity mandate — no defaulting to "lean and wiry".'}${shouldEvolve && modifiers ? `
-- evolvedModifiers: an object with the same keys as the EVOLVE MODIFIERS block above (only the keys present in the input). Each value is the escalated version per the rules and examples given. These must be what you actually referenced when composing the portraitPrompt.` : ''}
+- evolvedModifiers: an object with the same keys as the EVOLVE MODIFIERS block above (only the keys present in the input). Each value is the escalated version per the rules and examples given. These must be what you actually referenced when composing the portraitPrompt.` : ''}${abilitySlotToFill ? `
+- abilityCandidate: an ability proposal per the ABILITY GENERATION block below. This is optional — omit the key entirely if you cannot produce a coherent ability for this character.` : ''}
+${abilitySlotToFill ? buildAbilityPromptFragment({ archetype, stats, rank: overallRank, slotType: abilitySlotToFill }) : ''}
 
 Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt is under ${PORTRAIT_PROMPT_MAX} chars — this is a hard constraint from the image API.`;
 
@@ -408,7 +425,9 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
+        // Bumped from 1200 → 1600 to fit the optional abilityCandidate block.
+        // Existing forge output is ~800-1000 tokens; ability adds ~200-300.
+        max_tokens: 1600,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -464,6 +483,15 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
       }
     }
 
+    // abilityCandidate: only parse when we asked for one. Missing / malformed
+    // fields → undefined so the caller falls back to legacy backfill.
+    const abilityCandidate = abilitySlotToFill
+      ? parseAbilityCandidate((parsed as unknown as { abilityCandidate?: unknown }).abilityCandidate)
+      : undefined;
+    if (abilitySlotToFill && !abilityCandidate) {
+      console.warn('Claude did not return a usable abilityCandidate; will fall back to backfill.');
+    }
+
     return {
       cardName: parsed.cardName,
       nameAndTitle: parsed.nameAndTitle,
@@ -472,6 +500,7 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
       negativePrompt,
       identity,
       evolvedModifiers,
+      abilityCandidate,
     };
   } catch (err) {
     console.error('Claude API error, using fallback:', err);

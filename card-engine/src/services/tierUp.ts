@@ -1,4 +1,5 @@
-import type { Card, CardStats, StatName, Rank, ArtSnapshot, ModifierStack } from '../types/card';
+import type { Card, CardStats, StatName, Rank, ArtSnapshot, ModifierStack, AbilityHistorySnapshot } from '../types/card';
+import type { AbilitySlotType, CardAbilityReference } from '../types/abilities';
 import {
   BIAS_RANGES,
   deriveRank,
@@ -17,6 +18,10 @@ import {
   rollSurprise,
   rollWeighted,
 } from '../data/modifierPools';
+import { proposeAbility } from './abilities/proposalService';
+import { getAbilityStore, saveReference, getReferencesForCard } from './abilities/registry';
+import { grantDiscoveryReward } from './abilities/discoveryLedger';
+import { getCurrentUserId } from './persistence/supabaseClient';
 
 const NEXT_RANK: Partial<Record<Rank, Rank>> = {
   Foundation: 'Forged',
@@ -106,6 +111,19 @@ export async function tierUpCard(
         : baseModifiers.classSignature,
   };
 
+  // Slot to unlock on this tier-up. Foundation → Forged unlocks signature;
+  // Forged → Ascendant unlocks ultimate. If the previous rank already had
+  // a signature/ultimate (e.g. legacy card promoted via backfill), we still
+  // propose to fill the newly-required slot — Claude sees the archetype's
+  // family affinity and produces a distinct ability.
+  const oldRank = getOverallRank(card.stats);
+  const abilitySlotToFill: AbilitySlotType | undefined =
+    newOverallRank === 'Forged' && oldRank === 'Foundation'
+      ? 'signature'
+      : newOverallRank === 'Ascendant' && oldRank === 'Forged'
+        ? 'ultimate'
+        : undefined;
+
   // Claude composes lore AND the Leonardo prompt (guaranteed <= 1300 chars) — this
   // replaces the local prompt assembler for tier-up so we can't blow the 1500 cap.
   // Passing card.identity keeps the same person across ranks — Claude weaves the
@@ -123,6 +141,7 @@ export async function tierUpCard(
     true,
     ascendantNarrative,
     card.lycanIdentity,
+    abilitySlotToFill,
   );
 
   // Adopt the evolved modifiers if Claude returned them; otherwise stick with
@@ -131,7 +150,7 @@ export async function tierUpCard(
 
   // Populate the modifier lineage so we can show the escalation history later.
   // Initialize the current rank's snapshot too, in case the card predates this feature.
-  const oldRank = getOverallRank(card.stats);
+  // (oldRank already computed above for slot-unlock detection.)
   const priorLineage = card.modifierLineage ?? {};
   const modifierLineage: Partial<Record<Rank, ModifierStack>> = {
     ...priorLineage,
@@ -163,6 +182,79 @@ export async function tierUpCard(
       return card.portraitAsset;
     });
 
+  // Ability handling on tier-up:
+  //   1. Copy every ref from the previous rank forward with localTier = newRank
+  //      (Core carries into Forged/Ascendant; Signature into Ascendant).
+  //   2. If a new slot unlocks and Claude returned an abilityCandidate,
+  //      propose it and attach on exact-match. Silent fallback on failure.
+  //   3. Snapshot the resulting set into card.abilityHistory[newRank].
+  const abilitySnapshots: AbilityHistorySnapshot[] = [];
+  try {
+    const priorRefs = getReferencesForCard(card.cardId);
+    for (const priorRef of priorRefs) {
+      // Only forward the newest-tier row for each slot; skip stale duplicates
+      // if this card has already been tiered up in the past.
+      if (priorRef.localTier !== oldRank) continue;
+      const carried: CardAbilityReference = {
+        ...priorRef,
+        localTier: newOverallRank,
+      };
+      saveReference(carried);
+      abilitySnapshots.push({
+        abilityId: carried.abilityId,
+        abilityVersionId: carried.abilityVersionId,
+        slotType: carried.slotType,
+      });
+    }
+
+    if (abilitySlotToFill && text.abilityCandidate) {
+      const outcome = proposeAbility(getAbilityStore(), {
+        candidate: text.abilityCandidate,
+        userId: getCurrentUserId() ?? 'anon',
+      });
+      if (outcome.kind === 'attached') {
+        const displayOrder = abilitySlotToFill === 'core' ? 0 : abilitySlotToFill === 'signature' ? 1 : 2;
+        const newRef: CardAbilityReference = {
+          cardId: card.cardId,
+          abilityId: outcome.abilityId,
+          abilityVersionId: outcome.abilityVersionId,
+          slotType: abilitySlotToFill,
+          localTier: newOverallRank,
+          displayOrder,
+        };
+        saveReference(newRef);
+        abilitySnapshots.push({
+          abilityId: outcome.abilityId,
+          abilityVersionId: outcome.abilityVersionId,
+          slotType: abilitySlotToFill,
+        });
+        if (outcome.firstDiscoveryForPlayer) {
+          const reward = grantDiscoveryReward(getAbilityStore(), outcome.abilityId);
+          if (reward.kind === 'granted') {
+            const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
+            console.info(`[tier-up] discovery reward granted: ${summary}`);
+          } else if (reward.kind === 'zero_value_placeholder') {
+            console.info(`[tier-up] discovery recorded (reward paused): ${reward.rewardId}`);
+          }
+        }
+      } else if (outcome.kind === 'queued') {
+        console.info(
+          `[tier-up] ${abilitySlotToFill} queued for admin review: ${outcome.abilityId}`,
+        );
+      } else if (outcome.kind === 'rejected') {
+        console.warn(`[tier-up] ${abilitySlotToFill} candidate rejected:`, outcome.errors);
+      }
+    }
+  } catch (err) {
+    console.warn('[tier-up] ability handling failed, card ships without ability update:', err);
+  }
+
+  const priorAbilityHistory = card.abilityHistory ?? {};
+  const abilityHistory: Partial<Record<Rank, AbilityHistorySnapshot[]>> =
+    abilitySnapshots.length > 0
+      ? { ...priorAbilityHistory, [newOverallRank]: abilitySnapshots }
+      : priorAbilityHistory;
+
   const updatedCard: Card = {
     ...card,
     stats: newStats,
@@ -177,6 +269,7 @@ export async function tierUpCard(
     // one Claude generated for cards created before identity-lock existed.
     identity: card.identity ?? text.identity,
     evolutionHistory: history,
+    abilityHistory: Object.keys(abilityHistory).length > 0 ? abilityHistory : undefined,
   };
 
   saveCard(updatedCard);
