@@ -74,6 +74,17 @@ export interface TierUpResult {
   card: Card;
   portraitRegenerated: boolean;
   portraitError?: string;
+  /**
+   * Set when this tier-up granted a NEW ability that was also the player's
+   * first discovery of it. Drives the Relic Discovery modal (Gate 7A).
+   * `moment='evolution'` for the Foundation→Forged signature reveal;
+   * `moment='ultimate'` for the Forged→Ascendant ultimate awakening.
+   */
+  newAbilityDiscovery?: {
+    abilityId: string;
+    slotType: AbilitySlotType;
+    resource?: 'mana' | 'tech';
+  };
 }
 
 export async function tierUpCard(
@@ -189,6 +200,7 @@ export async function tierUpCard(
   //      propose it and attach on exact-match. Silent fallback on failure.
   //   3. Snapshot the resulting set into card.abilityHistory[newRank].
   const abilitySnapshots: AbilityHistorySnapshot[] = [];
+  let newAbilityDiscovery: TierUpResult['newAbilityDiscovery'];
   try {
     const priorRefs = getReferencesForCard(card.cardId);
     for (const priorRef of priorRefs) {
@@ -236,6 +248,15 @@ export async function tierUpCard(
           } else if (reward.kind === 'zero_value_placeholder') {
             console.info(`[tier-up] discovery recorded (reward paused): ${reward.rewardId}`);
           }
+          const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
+          newAbilityDiscovery = {
+            abilityId: outcome.abilityId,
+            slotType: abilitySlotToFill,
+            resource:
+              version?.resourceType === 'mana' || version?.resourceType === 'tech'
+                ? version.resourceType
+                : undefined,
+          };
         }
       } else if (outcome.kind === 'queued') {
         console.info(
@@ -273,5 +294,5 @@ export async function tierUpCard(
   };
 
   saveCard(updatedCard);
-  return { card: updatedCard, portraitRegenerated, portraitError };
+  return { card: updatedCard, portraitRegenerated, portraitError, newAbilityDiscovery };
 }

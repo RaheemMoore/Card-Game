@@ -25,7 +25,58 @@
   --color-gold: #fbbf24;
   --color-bronze: #cd7f32;
 
+  /* Ability visual system — canonical tokens from Figma (file
+     j1ASIqfaEcXMXhJtC6KHb5). Do not rename; components read these via
+     var() and match Figma exactly. */
+
+  /* Surfaces (Command Strip + Detail Card + Relic backgrounds) */
+  --surface-command-default: #17120f;
+  --surface-command-raised: #241a15;
+  --surface-command-cooldown: #39414c;
+  --surface-command-disabled: #5b5551;
+  --surface-detail: #0f0c0a;
+  --surface-icon-well: #0f0c0a;
+
+  /* Borders */
+  --border-default: #4a382f;
+  --border-signature: #b56ae8;
+  --border-ultimate: #f3c95b;
+  --border-selected: #f3c95b;
+  --border-hover: #e57c52;
+
+  /* Tier accents */
+  --accent-core: #d66b3c;
+  --accent-signature: #b56ae8;
+  --accent-ultimate: #f3c95b;
+
+  /* Palette */
+  --color-ember-500: #b6472d;
+  --color-ember-300: #e57c52;
+  --color-ash-400: #9a8f86;
+  --color-bone-100: #f4e8d2;
+  --color-forge-800: #241a15;
+  --color-forge-950: #0f0c0a;
+  --color-gold-500: #c9963a;
+  --color-gold-300: #e8c46a;
+  --color-parchment-100: #e8d7b0;
+  --color-state-selected: #f3c95b;
+  --color-state-disabled: #5b5551;
+
+  /* Text */
+  --text-primary: #f4e8d2;
+  --text-secondary: #e8d7b0;
+  --text-muted: #9a8f86;
+  --text-on-light: #17120f;
+
+  /* Resource identity */
+  --ability-resource-mana-surface: #6d4bd8;
+  --ability-resource-mana-glow: #b2a3ff;
+  --ability-resource-tech-surface: #3d9be0;
+  --ability-resource-tech-core: #cfe8ff;
+  --ability-resource-insufficient: #b83321;
+
   --font-fantasy: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', serif;
+  --font-ability-name: 'IM Fell English', 'Cinzel', 'Palatino Linotype', serif;
   --font-body: 'Inter', system-ui, sans-serif;
 }
 

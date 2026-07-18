@@ -80,15 +80,26 @@ describe('registerPlaceholderArt', () => {
     expect(art?.assetUrl.startsWith('data:image/svg+xml;utf8,')).toBe(true);
   });
 
-  it('runs during seedAbilityLibrary — every seed ability ends up with placeholder art', async () => {
+  it('runs during seedAbilityLibrary — every seed ability ends up with art (placeholder or manifest)', async () => {
     const store = new InMemoryAbilityStore();
     const result = await seedAbilityLibrary(store);
     expect(result.placeholderArtsCreated).toBeGreaterThan(0);
 
+    // Slugs with approved Gate 7A crops register as provider='manual' with
+    // an assets triple pointing at /assets/abilities/approved/<slug>/.
+    // Everything else is a family-tinted SVG placeholder in all three roles.
+    const approvedSlugs = new Set(['ember-cleave', 'aegis-ward']);
     for (const def of store.getAllDefinitions()) {
       const art = store.getArtForAbility(def.id);
       expect(art, `art for ${def.id}`).toBeTruthy();
-      expect(art?.provider).toBe('placeholder');
+      expect(art?.assets, `crops for ${def.id}`).toBeTruthy();
+      if (approvedSlugs.has(def.slug)) {
+        expect(art?.provider).toBe('manual');
+        expect(art?.assets?.combat.url).toMatch(/\/assets\/abilities\/approved\//);
+      } else {
+        expect(art?.provider).toBe('placeholder');
+        expect(art?.assetUrl.startsWith('data:image/svg+xml;utf8,')).toBe(true);
+      }
     }
   });
 
@@ -115,5 +126,40 @@ describe('buildLeonardoPrompt', () => {
     expect(prompt).toContain('sweep');
     expect(prompt).toContain('burn');
     expect(negativePrompt).toContain('watermark');
+  });
+
+  it('applies family-appropriate atmosphere — tech does not get warm-ember language', async () => {
+    const store = new InMemoryAbilityStore();
+    await seedAbilityLibrary(store);
+    const def = store.getDefinition('ability_aegis_ward')!;
+    const version = store.getCurrentVersion('ability_aegis_ward')!;
+    const techFamily = store.getFamily('tech');
+    const fireFamily = store.getFamily('fire');
+
+    const tech = buildLeonardoPrompt({ def, version, family: techFamily });
+    expect(tech.prompt).toContain('cobalt');
+    expect(tech.prompt).not.toMatch(/warm ember|forged metal accents/);
+    expect(tech.negativePrompt).toContain('steampunk gears');
+    expect(tech.negativePrompt).not.toContain('sci-fi panels');
+
+    const fire = buildLeonardoPrompt({ def, version, family: fireFamily });
+    expect(fire.prompt).toContain('ember');
+    expect(fire.negativePrompt).toContain('sci-fi panels');
+  });
+
+  it('crop parameter shifts composition hints — combat vs detail vs relic', async () => {
+    const store = new InMemoryAbilityStore();
+    await seedAbilityLibrary(store);
+    const def = store.getDefinition('ability_ember_cleave')!;
+    const version = store.getCurrentVersion('ability_ember_cleave')!;
+    const family = store.getFamily('fire');
+
+    const combat = buildLeonardoPrompt({ def, version, family, crop: 'combat' });
+    const detail = buildLeonardoPrompt({ def, version, family, crop: 'detail' });
+    const relic = buildLeonardoPrompt({ def, version, family, crop: 'relic' });
+
+    expect(combat.prompt).toContain('64 pixels');
+    expect(detail.prompt).toContain('landscape 13:10');
+    expect(relic.prompt).toContain('ceremonial');
   });
 });

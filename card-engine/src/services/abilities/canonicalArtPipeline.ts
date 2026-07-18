@@ -1,4 +1,5 @@
 import type {
+  AbilityArtCrops,
   AbilityDefinition,
   AbilityFamily,
   AbilityVersion,
@@ -6,6 +7,7 @@ import type {
 } from '../../types/abilities';
 import type { AbilityStore } from '../persistence/AbilityStore';
 import { generatePortraitStrict } from '../leonardoApi';
+import { getApprovedArt } from '../../data/abilities/visualManifest';
 
 /**
  * Ability art pipeline. Two providers:
@@ -76,9 +78,15 @@ export interface RegisterPlaceholderOptions {
 }
 
 /**
- * Idempotent: if the ability already has ANY art asset (placeholder or
- * Leonardo), do nothing. This lets the seed pass run every session without
- * clobbering a real Leonardo asset that landed later.
+ * Idempotent: if the ability already has ANY art asset (placeholder,
+ * approved manifest, or Leonardo), do nothing.
+ *
+ * Two paths depending on the ability slug:
+ *   - Approved manifest hit (Gate 7A: ember-cleave, aegis-ward) → register
+ *     a `provider='manual'` asset with the three canonical crops from
+ *     `/public/assets/abilities/approved/<slug>/`.
+ *   - Otherwise → family-tinted placeholder SVG in all three crops so the
+ *     Codex / Battle rail always has something readable.
  */
 export async function registerPlaceholderArt(
   store: AbilityStore,
@@ -90,13 +98,36 @@ export async function registerPlaceholderArt(
   if (existing) return null;
 
   const now = opts.now ?? new Date().toISOString();
-  const id = opts.id ?? `art_${def.id}_placeholder_v1`;
+  const approved = getApprovedArt(def.slug);
+
+  if (approved) {
+    const asset: CanonicalArtAsset = {
+      id: opts.id ?? `art_${def.id}_manifest_v1`,
+      abilityId: def.id,
+      provider: 'manual',
+      assetUrl: approved.combat.url,
+      thumbnailUrl: approved.combat.thumbnailUrl,
+      assets: approved,
+      status: 'approved',
+      createdAt: now,
+    };
+    await store.saveArt(asset);
+    return asset;
+  }
+
   const svg = buildPlaceholderSvg(def, family);
+  const svgUrl = svgToDataUrl(svg);
+  const crops: AbilityArtCrops = {
+    combat: { url: svgUrl },
+    detail: { url: svgUrl },
+    relic: { url: svgUrl },
+  };
   const asset: CanonicalArtAsset = {
-    id,
+    id: opts.id ?? `art_${def.id}_placeholder_v1`,
     abilityId: def.id,
     provider: 'placeholder',
-    assetUrl: svgToDataUrl(svg),
+    assetUrl: svgUrl,
+    assets: crops,
     status: 'approved',
     createdAt: now,
   };
@@ -114,37 +145,101 @@ export interface LeonardoArtInput {
   def: AbilityDefinition;
   version: AbilityVersion;
   family: AbilityFamily | undefined;
+  /**
+   * Which presentation role this generation targets — drives composition
+   * hints (combat = tightly-cropped icon, detail = wider hero scene, relic =
+   * ceremonial framed). Defaults to 'combat' to preserve legacy behaviour.
+   */
+  crop?: 'combat' | 'detail' | 'relic';
 }
+
+/**
+ * Family-appropriate lighting + material accents. The previous global
+ * "warm ember / forged metal / crystal" line poisoned tech / holy / nature
+ * generations; each family now supplies its own atmosphere.
+ */
+const FAMILY_ATMOSPHERE: Record<string, string> = {
+  fire:       'warm ember lighting, glowing coals and molten steel accents',
+  martial:    'forged metal accents, tempered edges, disciplined stance',
+  nature:     'soft dappled forest light, moss and living-wood accents',
+  holy:       'clean radiant light, gilded halo accents, cathedral glow',
+  necromancy: 'cold indigo underglow, bone and shadow accents, wisps of soul-smoke',
+  tech:       'clean cobalt luminance, brushed alloy panels, embedded circuitry glow',
+  defense:    'steady steel-blue light, tempered plating and rune-etched sigils',
+  beast:      'moonlit shadows, fur and fang accents, low predatory light',
+};
+
+const DEFAULT_ATMOSPHERE = 'balanced fantasy studio lighting, painterly material accents';
+
+/**
+ * Family-specific negatives. `tech` needs "sci-fi panels" out of its
+ * exclusion list or Leonardo strips the identity we're asking for. Every
+ * family still excludes text, UI, borders, and card frames globally.
+ */
+const GLOBAL_NEGATIVES = [
+  'text', 'watermark', 'logo', 'signature', 'blurry', 'deformed',
+  'multiple subjects', 'ui panels', 'border', 'card frame',
+  'photo realistic', 'flat spreadsheet', 'generic clipart',
+];
+const FAMILY_NEGATIVES_EXTRA: Record<string, string[]> = {
+  fire:       ['sci-fi panels', 'steampunk gears'],
+  martial:    ['sci-fi panels', 'steampunk gears'],
+  nature:     ['sci-fi panels', 'steampunk gears', 'chrome finish'],
+  holy:       ['sci-fi panels', 'grimdark gore'],
+  necromancy: ['sci-fi panels', 'cheerful pastels'],
+  tech:       ['steampunk gears', 'medieval leather', 'wood grain'],
+  defense:    ['sci-fi panels', 'steampunk gears'],
+  beast:      ['sci-fi panels', 'steampunk gears', 'chrome finish'],
+};
+
+const CROP_COMPOSITION: Record<NonNullable<LeonardoArtInput['crop']>, string[]> = {
+  combat: [
+    'fantasy ability icon',
+    'tightly cropped centered subject on subtle background',
+    'strong silhouette readable at 64 pixels',
+    'square 1:1 composition',
+  ],
+  detail: [
+    'fantasy ability hero illustration',
+    'medium-wide painterly scene with dramatic lighting',
+    'clear focal subject with ambient environment',
+    'landscape 13:10 composition, room to breathe on all sides',
+  ],
+  relic: [
+    'ceremonial relic illustration',
+    'symmetrical hero framing, subject slightly elevated within the frame',
+    'iconic silhouette wreathed in atmospheric glow',
+    'square 1:1 composition, ornate but subject-first',
+  ],
+};
 
 /** Build the Leonardo prompt for an ability's canonical art. */
 export function buildLeonardoPrompt(input: LeonardoArtInput): {
   prompt: string;
   negativePrompt: string;
 } {
-  const { def, family } = input;
-  const familyName = family?.name ?? 'martial';
+  const { def, family, crop = 'combat' } = input;
+  const familyId = family?.id ?? 'martial';
+  const familyName = family?.name ?? 'Martial';
   const themeHint = family?.visualTheme?.trim() || `${familyName} identity`;
   const tags = def.tags.length > 0 ? def.tags.join(', ') : def.role;
+  const atmosphere = FAMILY_ATMOSPHERE[familyId] ?? DEFAULT_ATMOSPHERE;
 
-  // Anchored on the approved Figma benchmark direction — forged fantasy
-  // iconography, painterly digital art, centered subject at 64px combat scale.
   const prompt = [
-    'fantasy ability icon, painterly digital art, centered subject on subtle background',
+    ...CROP_COMPOSITION[crop],
+    'painterly digital art, premium collectible fantasy craftsmanship',
     themeHint,
     `${familyName} family motif`,
     `role: ${def.role}`,
     `tags: ${tags}`,
     def.descriptionShort,
-    'strong silhouette, small-size readable, premium collectible fantasy craftsmanship',
-    'warm ember lighting, forged metal accents, embedded crystal detail',
+    atmosphere,
     'no text, no UI, no borders, no card frame',
   ].join(', ');
 
   const negativePrompt = [
-    'text', 'watermark', 'logo', 'signature', 'blurry', 'deformed',
-    'multiple subjects', 'ui panels', 'border', 'card frame',
-    'photo realistic', 'sci-fi panels', 'steampunk gears',
-    'flat spreadsheet', 'generic clipart',
+    ...GLOBAL_NEGATIVES,
+    ...(FAMILY_NEGATIVES_EXTRA[familyId] ?? []),
   ].join(', ');
 
   return { prompt, negativePrompt };
@@ -184,12 +279,18 @@ export async function generateCanonicalArt(
 
   const dataUrl = await generatePortraitStrict(prompt, negativePrompt);
 
+  // Until the three-crop Leonardo pipeline lands (see canonical prompt
+  // cleanup, Phase 6 of Gate 7A), a single generated image fills all three
+  // presentation roles. Downstream consumers use getArtCrops() which is
+  // safe either way.
+  const singleCrop = { url: dataUrl };
   const asset: CanonicalArtAsset = {
     id,
     abilityId: input.def.id,
     provider: 'leonardo',
     sourcePromptVersion: opts.promptVersion ?? 'v1',
     assetUrl: dataUrl,
+    assets: { combat: singleCrop, detail: singleCrop, relic: singleCrop },
     status: 'approved',
     createdAt: now,
   };

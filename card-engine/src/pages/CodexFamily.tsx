@@ -6,13 +6,19 @@ import {
   getAllDiscoveries,
   getArtForAbility,
 } from '../services/abilities/registry';
-import type { AbilityDefinition } from '../types/abilities';
+import { getArtCrops, type AbilityDefinition, type AbilityFamily } from '../types/abilities';
+import {
+  AbilityCommandStateOverlay,
+  AbilityCommandStrip,
+  type AbilityTier,
+  type BadgeResource,
+} from '../components/abilities';
 
 /**
- * Per-family Codex page. Discovered abilities show full data (name, tags,
- * short description). Undiscovered abilities show rarity teaser only —
- * per Raheem's spoiler rule (Stage 0 decision #7): no name, no silhouette,
- * no description.
+ * Per-family Codex page. Discovered abilities render as readOnly Command
+ * Strips (canonical Gate 7A visual). Undiscovered abilities preserve the
+ * strict Stage 0 spoiler rule (decision #7): no name, no silhouette, no
+ * description — just family + rarity teaser.
  */
 export function CodexFamily() {
   const { familyId } = useParams<{ familyId: string }>();
@@ -22,13 +28,18 @@ export function CodexFamily() {
     return (
       <div className="flex-1 px-4 py-8 max-w-3xl mx-auto w-full">
         <p className="text-ash italic">Unknown family.</p>
-        <Link to="/codex" className="text-gold hover:underline text-sm">← Back to Codex</Link>
+        <Link to="/codex" className="text-gold hover:underline text-sm">
+          ← Back to Codex
+        </Link>
       </div>
     );
   }
 
   const definitions = getAllDefinitions().filter(
-    (d) => d.status !== 'merged' && d.status !== 'deprecated' && d.familyIds.includes(family.id),
+    (d) =>
+      d.status !== 'merged' &&
+      d.status !== 'deprecated' &&
+      d.familyIds.includes(family.id),
   );
   const discoveredIds = new Set(getAllDiscoveries().map((d) => d.abilityId));
   const discovered = definitions.filter((d) => discoveredIds.has(d.id));
@@ -38,7 +49,9 @@ export function CodexFamily() {
 
   return (
     <div className="flex-1 px-4 py-8 max-w-3xl mx-auto w-full">
-      <Link to="/codex" className="text-gold/70 hover:text-gold text-sm">← Back to Codex</Link>
+      <Link to="/codex" className="text-gold/70 hover:text-gold text-sm">
+        ← Back to Codex
+      </Link>
       <header className="mb-6 mt-2">
         <h1 className="font-fantasy text-3xl font-bold text-ivory">{family.name}</h1>
         <p className="text-sm text-bone/80 mt-1">{family.description}</p>
@@ -52,9 +65,9 @@ export function CodexFamily() {
           <h2 className="font-fantasy text-sm uppercase tracking-widest text-gold/70 mb-3">
             Discovered
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col items-center gap-3">
             {discovered.map((def) => (
-              <DiscoveredCard key={def.id} def={def} />
+              <DiscoveredStrip key={def.id} def={def} family={family} />
             ))}
           </div>
         </section>
@@ -65,9 +78,9 @@ export function CodexFamily() {
           <h2 className="font-fantasy text-sm uppercase tracking-widest text-gold/70 mb-3">
             Still unknown ({undiscovered.length})
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col items-center gap-3">
             {undiscovered.map((def) => (
-              <UndiscoveredCard key={def.id} def={def} />
+              <UndiscoveredStrip key={def.id} def={def} />
             ))}
           </div>
         </section>
@@ -82,63 +95,80 @@ export function CodexFamily() {
 
 const RARITY_ORDER = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythic: 4 } as const;
 
-function rarityArticle(rarity: string): 'A' | 'An' {
-  return /^[aeiou]/i.test(rarity) ? 'An' : 'A';
-}
-
 function byRarityThenName(a: AbilityDefinition, b: AbilityDefinition): number {
   const rDiff = RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity];
   return rDiff !== 0 ? rDiff : a.displayName.localeCompare(b.displayName);
 }
 
-function DiscoveredCard({ def }: { def: AbilityDefinition }) {
+function rarityArticle(rarity: string): 'A' | 'An' {
+  return /^[aeiou]/i.test(rarity) ? 'An' : 'A';
+}
+
+/** Discovered ability — clickable Command Strip. */
+function DiscoveredStrip({ def, family }: { def: AbilityDefinition; family: AbilityFamily }) {
   const version = getCurrentVersion(def.id);
   const art = getArtForAbility(def.id);
+  const iconUrl = art ? getArtCrops(art).combat.url : undefined;
+
+  const tier: AbilityTier = version?.slotType ?? 'core';
+  const resource: BadgeResource | undefined =
+    version?.resourceType === 'mana' || version?.resourceType === 'tech'
+      ? version.resourceType
+      : undefined;
+  const metaText = `${tier} • ${family.name} • ${def.rarity}`.toUpperCase();
+
   return (
     <Link
       to={`/codex/ability/${def.id}`}
-      className="flex gap-3 rounded-md border border-gold/30 bg-slate-dark/60 p-3 hover:border-gold/60 transition-colors"
+      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-[10px]"
     >
-      {art && (
-        <img
-          src={art.assetUrl}
-          alt=""
-          className="w-12 h-12 rounded shrink-0 border border-gold/20"
-        />
-      )}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between mb-1 gap-2">
-          <span className="font-fantasy text-sm text-ivory truncate">{def.displayName}</span>
-          <span className="text-[10px] uppercase tracking-widest text-gold/70 shrink-0">
-            {def.rarity}
-          </span>
-        </div>
-        <p className="text-xs text-bone/70 line-clamp-2">{def.descriptionShort}</p>
-        {version && (
-          <div className="text-[10px] text-ash/60 mt-1 tabular-nums">
-            {version.slotType} · cost {version.resourceCost} {version.resourceType}
-          </div>
-        )}
-      </div>
+      <AbilityCommandStrip
+        tier={tier}
+        state="ready"
+        displayName={def.displayName}
+        effectText={def.descriptionShort}
+        metaText={metaText}
+        resource={resource}
+        resourceCost={version?.resourceCost}
+        readOnly
+        iconSlot={
+          iconUrl ? (
+            <img
+              src={iconUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              draggable={false}
+              style={{ transform: 'rotate(45deg)' }}
+            />
+          ) : null
+        }
+      />
     </Link>
   );
 }
 
-function UndiscoveredCard({ def }: { def: AbilityDefinition }) {
-  // Spoiler rule (decision #7): family + rarity teaser only. No name, no
-  // silhouette, no description. The card is a placeholder.
+/**
+ * Undiscovered ability — Command Strip skeleton with an `undiscovered`
+ * overlay that hides the strip's content behind the "???" pill + veil.
+ * Spoiler rule: no real name, no icon, no description, no cost.
+ */
+function UndiscoveredStrip({ def }: { def: AbilityDefinition }) {
   return (
     <div
-      className="rounded-md border border-gold/10 bg-slate-dark/30 p-3 opacity-60 select-none"
       aria-label={`Undiscovered ${def.rarity} ability`}
+      className="relative"
+      style={{ width: 360, height: 92 }}
     >
-      <div className="flex items-baseline justify-between mb-1">
-        <span className="font-fantasy text-sm text-ash/60 italic">???</span>
-        <span className="text-[10px] uppercase tracking-widest text-gold/40">{def.rarity}</span>
-      </div>
-      <p className="text-xs text-ash/40 italic">
-        {rarityArticle(def.rarity)} {def.rarity} ability waiting to be discovered.
-      </p>
+      <AbilityCommandStrip
+        tier="core"
+        state="ready"
+        displayName=""
+        effectText={`${rarityArticle(def.rarity)} ${def.rarity} ability waiting to be discovered.`}
+        readOnly
+        iconSlot={null}
+      >
+        <AbilityCommandStateOverlay variant="undiscovered" />
+      </AbilityCommandStrip>
     </div>
   );
 }

@@ -512,15 +512,62 @@ export interface PlayerAbilityDiscovery {
   rewardTransactionId?: string;
 }
 
+/**
+ * A single artwork crop for one presentation role. `url` may be a data: URL
+ * (placeholder SVG or Leonardo base64) or a static /assets path.
+ */
+export interface AbilityArtCrop {
+  url: string;
+  thumbnailUrl?: string;
+}
+
+/**
+ * The three approved presentation roles from the Ability Tile Art Direction
+ * Spec (§8): combat (Command Strip icon well, 64–128px), detail (Forged
+ * Detail Card artwork window, ~364×280), relic (ceremonial Relic
+ * Presentation, ~364×364). See ATS §20/§21 for framing.
+ */
+export interface AbilityArtCrops {
+  combat: AbilityArtCrop;
+  detail: AbilityArtCrop;
+  relic: AbilityArtCrop;
+}
+
 export interface CanonicalArtAsset {
   id: string;
   abilityId: string;
   provider: CanonicalArtProvider;
   sourcePromptVersion?: string;
+  /**
+   * Legacy single-crop URL. Kept as a mirror of `assets.combat.url` for
+   * backwards compatibility with pre-Gate-7A consumers (CodexFamily,
+   * CodexAbility, CardDetail) and the Supabase `asset_url` column. Do not
+   * read this in new code — call getArtCrops() instead.
+   */
   assetUrl: string;
   thumbnailUrl?: string;
+  /**
+   * Approved three-crop set. Optional on old rows for backwards compat; new
+   * writers always populate it. Readers should prefer getArtCrops() which
+   * falls back to `assetUrl` when `assets` is absent.
+   */
+  assets?: AbilityArtCrops;
   status: CanonicalArtStatus;
   createdAt: string;
+}
+
+/**
+ * Resolve the three presentation crops for an art asset. If `assets` is set,
+ * returns it; otherwise falls back to `assetUrl` for all three roles so
+ * legacy placeholder rows still render everywhere.
+ */
+export function getArtCrops(asset: CanonicalArtAsset): AbilityArtCrops {
+  if (asset.assets) return asset.assets;
+  const fallback: AbilityArtCrop = {
+    url: asset.assetUrl,
+    thumbnailUrl: asset.thumbnailUrl,
+  };
+  return { combat: fallback, detail: fallback, relic: fallback };
 }
 
 /**

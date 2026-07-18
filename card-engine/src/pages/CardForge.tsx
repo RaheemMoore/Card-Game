@@ -20,7 +20,9 @@ import { CurrencyCost } from '../components/economy/CurrencyCost';
 import { InsufficientFundsModal } from '../components/economy/InsufficientFundsModal';
 import { useBalance } from '../services/economy/useWallet';
 import { AuthModal } from '../components/AuthModal';
+import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
 import { getCurrentUserId, isCurrentUserAnonymous } from '../services/persistence/supabaseClient';
+import type { BadgeResource } from '../components/abilities';
 
 // Dismissed once per uid — never nag again for that guest. Real users
 // (with email) never see it.
@@ -57,6 +59,11 @@ export function CardForge() {
   const [archetype, setArchetype] = useState<ArchetypeName | null>(null);
   const [stats, setStats] = useState<CardStats | null>(null);
   const [card, setCard] = useState<Card | null>(null);
+  // Gate 7A: newly-discovered ability on this forge → fire the Relic modal
+  // once card + text are on screen. Cleared on dismiss.
+  const [relicDiscovery, setRelicDiscovery] = useState<
+    { abilityId: string; resource?: BadgeResource } | null
+  >(null);
   const [forgingMessage, setForgingMessage] = useState(FORGING_MESSAGES[0]);
   const [forgeError, setForgeError] = useState<string | null>(null);
   const [insufficientFunds, setInsufficientFunds] = useState(false);
@@ -174,6 +181,12 @@ export function CardForge() {
               } else if (reward.kind === 'zero_value_placeholder') {
                 console.info(`[forge] discovery recorded (reward paused): ${reward.rewardId}`);
               }
+              const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
+              const resource: BadgeResource | undefined =
+                version?.resourceType === 'mana' || version?.resourceType === 'tech'
+                  ? version.resourceType
+                  : undefined;
+              setRelicDiscovery({ abilityId: outcome.abilityId, resource });
             }
           } else if (outcome.kind === 'queued') {
             console.info(
@@ -312,6 +325,15 @@ export function CardForge() {
             markFirstForgePromptDismissed();
             setShowSignupPrompt(false);
           }}
+        />
+      )}
+
+      {stage === 'reveal' && card && relicDiscovery && (
+        <RelicDiscoveryModal
+          abilityId={relicDiscovery.abilityId}
+          moment="discovery"
+          resourceAccent={relicDiscovery.resource}
+          onClose={() => setRelicDiscovery(null)}
         />
       )}
 

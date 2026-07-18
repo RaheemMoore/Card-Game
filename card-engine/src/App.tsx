@@ -4,9 +4,10 @@ import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { Admin } from './pages/Admin';
 import { Codex } from './pages/Codex';
-import { Battle } from './pages/Battle';
+import { Battle } from './pages/battle';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
+import { DevAbilities } from './pages/DevAbilities';
 import { NavBar } from './components/NavBar';
 import { PersistenceGate } from './components/PersistenceGate';
 
@@ -40,6 +41,7 @@ export default function App() {
                 <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
                 <Route path="/battle" element={<Battle />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/dev/abilities" element={<DevAbilities />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

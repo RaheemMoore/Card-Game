@@ -24,6 +24,8 @@ import {
   getCurrentVersion,
   getArtForAbility,
 } from '../services/abilities/registry';
+import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
+import type { BadgeResource, RelicMoment } from '../components/abilities';
 
 const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
 const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
@@ -50,6 +52,11 @@ export function CardDetail() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [viewingTierIdx, setViewingTierIdx] = useState(-1); // -1 = current
   const [tierUpWarning, setTierUpWarning] = useState<string | null>(null);
+  // Gate 7A: newly-discovered ability on this tier-up → Relic modal. Moment
+  // depends on which slot filled: signature = evolution, ultimate = ultimate.
+  const [relicDiscovery, setRelicDiscovery] = useState<
+    { abilityId: string; moment: RelicMoment; resource?: BadgeResource } | null
+  >(null);
   // Ascendant Whisper Fusion: null = not open, [] = loading, [p1, p2] = ready
   const [ascendantPaths, setAscendantPaths] = useState<AscendantPath[] | null>(null);
   const [isLoadingPaths, setIsLoadingPaths] = useState(false);
@@ -230,6 +237,13 @@ export function CardDetail() {
       }
       if (txnId) wallet.commit(txnId);
       setCard(result.card);
+      if (result.newAbilityDiscovery) {
+        setRelicDiscovery({
+          abilityId: result.newAbilityDiscovery.abilityId,
+          moment: result.newAbilityDiscovery.slotType === 'ultimate' ? 'ultimate' : 'evolution',
+          resource: result.newAbilityDiscovery.resource,
+        });
+      }
     } catch (err) {
       if (txnId) {
         wallet.refund(
@@ -677,6 +691,15 @@ export function CardDetail() {
           available={premiumBalance}
           actionLabel={insufficientFor.actionLabel}
           onClose={() => setInsufficientFor(null)}
+        />
+      )}
+
+      {relicDiscovery && (
+        <RelicDiscoveryModal
+          abilityId={relicDiscovery.abilityId}
+          moment={relicDiscovery.moment}
+          resourceAccent={relicDiscovery.resource}
+          onClose={() => setRelicDiscovery(null)}
         />
       )}
 

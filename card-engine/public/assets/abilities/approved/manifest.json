@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "visualBenchmarks": {
+    "ember-cleave": {
+      "status": "approved",
+      "resourceType": "mana",
+      "files": {
+        "combat": "approved/ember-cleave-icon.jpg",
+        "detail": "approved/ember-cleave-detail.jpg",
+        "relic": "approved/ember-cleave-relic.jpg"
+      },
+      "note": "Visual benchmark only. Do not derive gameplay values from artwork or Figma copy."
+    },
+    "aegis-ward": {
+      "status": "approved",
+      "resourceType": "tech",
+      "files": {
+        "combat": "approved/aegis-ward-icon.jpg",
+        "detail": "approved/aegis-ward-detail.jpg",
+        "relic": "approved/aegis-ward-relic.jpg"
+      },
+      "note": "Visual benchmark only. Do not derive gameplay values from artwork or Figma copy."
+    }
+  },
+  "assets": [
+    {
+      "file": "approved/ember-cleave-icon.jpg",
+      "width": 128,
+      "height": 128,
+      "status": "approved",
+      "integrationStatus": "pending"
+    },
+    {
+      "file": "approved/ember-cleave-detail.jpg",
+      "width": 384,
+      "height": 384,
+      "status": "approved",
+      "integrationStatus": "pending"
+    },
+    {
+      "file": "approved/ember-cleave-relic.jpg",
+      "width": 384,
+      "height": 384,
+      "status": "approved",
+      "integrationStatus": "pending"
+    },
+    {
+      "file": "approved/aegis-ward-icon.jpg",
+      "width": 256,
+      "height": 256,
+      "status": "approved",
+      "integrationStatus": "pending"
+    },
+    {
+      "file": "approved/aegis-ward-detail.jpg",
+      "width": 728,
+      "height": 560,
+      "status": "approved",
+      "integrationStatus": "pending"
+    },
+    {
+      "file": "approved/aegis-ward-relic.jpg",
+      "width": 512,
+      "height": 512,
+      "status": "approved",
+      "integrationStatus": "pending"
+    }
+  ]
+}
