@@ -213,7 +213,7 @@ export async function tierUpCard(
         userId: getCurrentUserId() ?? 'anon',
       });
       if (outcome.kind === 'attached') {
-        const displayOrder = abilitySlotToFill === 'core' ? 0 : abilitySlotToFill === 'signature' ? 1 : 2;
+        const displayOrder = abilitySlotToFill === 'signature' ? 1 : 2;
         const newRef: CardAbilityReference = {
           cardId: card.cardId,
           abilityId: outcome.abilityId,

@@ -7,11 +7,9 @@ import { backfillCardAbilities, isLegacyCard } from './legacyBackfill';
 function makeCard(overrides: Partial<Card> & Pick<Card, 'archetype' | 'stats'>): Card {
   return {
     cardId: overrides.cardId ?? `card_${overrides.archetype}_${Date.now()}${Math.random()}`,
-    archetype: overrides.archetype,
     cardName: 'Test',
     nameAndTitle: 'Test, the Tested',
     portraitAsset: '',
-    stats: overrides.stats,
     dominantStat: null,
     border: { baseVariant: 'Default', baseSource: 'none' },
     lore: 'Test lore.',

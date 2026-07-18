@@ -99,7 +99,7 @@ function bossReward(bossId: string, tier: 'first_clear' | 'repeat'): RewardDefin
       rewardId: `boss_${bossId}_${tier}`,
       mode: 'milestone',
       guaranteed: [],
-      approvedBy: 'default',
+      approvedBy: 'Raheem',
       version: 1,
     };
   }

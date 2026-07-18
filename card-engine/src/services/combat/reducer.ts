@@ -9,7 +9,6 @@ import type {
   BattleState,
   BossCombatant,
   HeroCombatant,
-  HeroSnapshot,
   PlayerAction,
   StatusInstance,
   TurnPhase,

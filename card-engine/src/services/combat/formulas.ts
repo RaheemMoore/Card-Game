@@ -87,7 +87,7 @@ function scalingBonus(rule: ScalingRule | undefined, stats: CardStats): number {
 }
 
 export function resistanceMultiplier(
-  target: HeroCombatant | BossCombatant,
+  _target: HeroCombatant | BossCombatant,
   damageType: DamageType,
   resistanceProfile: ResistanceProfile,
 ): number {
