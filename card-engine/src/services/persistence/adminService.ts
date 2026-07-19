@@ -126,3 +126,55 @@ export async function deleteUserCard(cardId: string): Promise<void> {
   const { error } = await client().from('cards').delete().eq('card_id', cardId);
   if (error) throw error;
 }
+
+// Phase 3 — cross-user card listing for /admin/cards.
+
+export interface AdminCardListEntry {
+  card_id: string;
+  user_id: string;
+  user_email: string | null;
+  archetype: string;
+  card_name: string | null;
+  name_and_title: string | null;
+  portrait_url: string | null;
+  created_at: string;
+  total_count: number;
+}
+
+export interface AdminCardListResult {
+  entries: AdminCardListEntry[];
+  totalCount: number;
+}
+
+export async function listAllCards(input: {
+  search?: string;
+  archetype?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminCardListResult> {
+  const { data, error } = await client().rpc('list_cards_for_admin', {
+    search_query: input.search?.trim() || null,
+    archetype_filter: input.archetype ?? null,
+    limit_count: input.limit ?? 50,
+    offset_count: input.offset ?? 0,
+  });
+  if (error) throw error;
+  const rows = (data ?? []) as AdminCardListEntry[];
+  return {
+    entries: rows.map((r) => ({ ...r, total_count: toNumber(r.total_count) })),
+    totalCount: rows.length > 0 ? toNumber(rows[0].total_count) : 0,
+  };
+}
+
+// Fetches the full Card blob for one card. Widened admin RLS on the
+// cards table lets an admin SELECT any user's card directly.
+export async function getCardForAdmin(cardId: string): Promise<Card | null> {
+  const { data, error } = await client()
+    .from('cards')
+    .select('data')
+    .eq('card_id', cardId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return (data as { data: Card }).data;
+}
