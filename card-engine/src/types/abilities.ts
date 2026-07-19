@@ -48,6 +48,7 @@ export type AbilityFamilyStatus = typeof ABILITY_FAMILY_STATUSES[number];
 export const CANONICAL_ART_STATUSES = [
   'pending',
   'generating',
+  'candidate',
   'approved',
   'rejected',
   'replaced',

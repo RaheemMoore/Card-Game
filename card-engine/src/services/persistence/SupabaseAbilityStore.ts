@@ -116,6 +116,9 @@ export class SupabaseAbilityStore implements AbilityStore {
     }
     return undefined;
   }
+  getAllArt(): CanonicalArtAsset[] {
+    return Array.from(this.art.values());
+  }
 
   // ---- Library writes (admin-only) ----
   async saveFamily(family: AbilityFamily): Promise<void> {

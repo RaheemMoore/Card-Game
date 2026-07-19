@@ -311,8 +311,12 @@ export interface LeonardoResult {
 
 /**
  * Fire Leonardo for a single ability. Callers MUST have Raheem's per-family
- * approval for the containing family before calling this. Any prior approved
- * art for the ability is marked 'replaced' so the history remains queryable.
+ * approval for the containing family before calling this.
+ *
+ * Phase 4 lifecycle fix: the prior 'approved' asset is left untouched.
+ * The new asset lands as 'candidate' and must be explicitly promoted via
+ * promoteCandidateArt() before it becomes 'approved'. A failed Leonardo
+ * call therefore leaves the library exactly as it was.
  */
 export async function generateCanonicalArt(
   store: AbilityStore,
@@ -326,22 +330,14 @@ export async function generateCanonicalArt(
   const now = opts.now ?? new Date().toISOString();
   const id = opts.id ?? `art_${input.def.id}_leonardo_${Date.now()}`;
 
-  // Mark any prior approved asset as replaced BEFORE the new call so a
-  // failure mid-flight leaves the library in a clean state (prior asset
-  // still queryable via history but no longer 'approved').
+  // Snapshot the currently approved asset only for reporting — do NOT
+  // mutate it before the Leonardo call. Callers still need the ID so
+  // reviewers can compare candidate vs current.
   const prior = store.getArtForAbility(input.def.id);
-  let supersededId: string | undefined;
-  if (prior && prior.status === 'approved') {
-    await store.saveArt({ ...prior, status: 'replaced' });
-    supersededId = prior.id;
-  }
+  const supersededId = prior && prior.status === 'approved' ? prior.id : undefined;
 
   const { dataUrl } = await generatePortraitStrict(prompt, negativePrompt);
 
-  // Until the three-crop Leonardo pipeline lands (see canonical prompt
-  // cleanup, Phase 6 of Gate 7A), a single generated image fills all three
-  // presentation roles. Downstream consumers use getArtCrops() which is
-  // safe either way.
   const singleCrop = { url: dataUrl };
   const asset: CanonicalArtAsset = {
     id,
@@ -350,9 +346,57 @@ export async function generateCanonicalArt(
     sourcePromptVersion: opts.promptVersion ?? 'v1',
     assetUrl: dataUrl,
     assets: { combat: singleCrop, detail: singleCrop, relic: singleCrop },
-    status: 'approved',
+    status: 'candidate',
     createdAt: now,
   };
   await store.saveArt(asset);
   return { asset, supersededId };
+}
+
+/**
+ * Human-approves a candidate art asset. Atomically flips the candidate
+ * to 'approved' and the prior approved (if any) to 'replaced', preserving
+ * both in art history. Returns the new approved asset for callers that
+ * want to refresh caches.
+ */
+export async function promoteCandidateArt(
+  store: AbilityStore,
+  candidateId: string,
+): Promise<CanonicalArtAsset> {
+  const found = findArtById(store, candidateId);
+  if (!found) throw new Error(`Candidate art ${candidateId} not found`);
+  if (found.status !== 'candidate') {
+    throw new Error(`Cannot promote art ${candidateId} — status is ${found.status}, expected candidate`);
+  }
+  const prior = store.getArtForAbility(found.abilityId);
+  if (prior && prior.status === 'approved' && prior.id !== found.id) {
+    await store.saveArt({ ...prior, status: 'replaced' });
+  }
+  const approved: CanonicalArtAsset = { ...found, status: 'approved' };
+  await store.saveArt(approved);
+  return approved;
+}
+
+/**
+ * Rejects a candidate — leaves the prior approved asset untouched and
+ * marks the candidate 'rejected' so it stays queryable in art history.
+ */
+export async function rejectCandidateArt(
+  store: AbilityStore,
+  candidateId: string,
+): Promise<CanonicalArtAsset> {
+  const found = findArtById(store, candidateId);
+  if (!found) throw new Error(`Candidate art ${candidateId} not found`);
+  if (found.status !== 'candidate') {
+    throw new Error(`Cannot reject art ${candidateId} — status is ${found.status}, expected candidate`);
+  }
+  const rejected: CanonicalArtAsset = { ...found, status: 'rejected' };
+  await store.saveArt(rejected);
+  return rejected;
+}
+
+function findArtById(store: AbilityStore, artId: string): CanonicalArtAsset | undefined {
+  // No direct getter on AbilityStore; scan getAllArt() which every impl
+  // exposes for the review UI.
+  return store.getAllArt().find((a) => a.id === artId);
 }
