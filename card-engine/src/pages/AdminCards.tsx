@@ -7,6 +7,7 @@ import {
   getCardForAdmin,
   type AdminCardListEntry,
 } from '../services/persistence/adminService';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Cross-user card gallery. Search by card name / owner email / uid /
 // card_id, filter by archetype, paginate server-side (limit/offset).
@@ -75,6 +76,18 @@ export function AdminCards() {
 
   return (
     <div>
+      <AdminPageDescription
+        title="Cards — every user-owned card"
+        body={
+          'Every row here is a real card sitting in a real user\'s collection ' +
+          '(one row per row in the cards table). Failed forges are never persisted; ' +
+          'Prompt Lab test forges live in prompt_test_runs and are not shown here; ' +
+          'ability art assets live in canonical_art_assets and appear under /admin/abilities. ' +
+          'Search matches card name / owner email / uid / card_id. Filter by archetype. ' +
+          'Click any card to see its full renderer + prompt provenance in a right-side drawer.'
+        }
+      />
+
       <div className="flex flex-wrap gap-3 items-center mb-3">
         <input
           type="search"

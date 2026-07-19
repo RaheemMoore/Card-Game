@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Phase-0 spike display for the provider diagnostic endpoints. Guard +
 // header live on AdminShell now — this page just renders the two Run
@@ -85,9 +86,13 @@ export function AdminDiagnostics() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-bone/70">
-        Admin diagnostics + one-shot migrations.
-      </p>
+      <AdminPageDescription
+        title="Diagnostics — provider probes + one-shot migrations"
+        body={
+          'Tools that don\'t fit anywhere else. Each card fires an admin-only server endpoint and prints the raw JSON so we can inspect provider behavior or run a housekeeping migration without leaving the browser.\n\n' +
+          'Probes are safe to run any time. Migrations are one-shot — read the description on each before firing.'
+        }
+      />
 
       <ProbeCard
         title="Anthropic Admin API"
@@ -104,6 +109,9 @@ export function AdminDiagnostics() {
       <ProbeCard
         title="Migrate ability art (data URL → bucket)"
         endpoint="/api/admin-migrate-ability-art"
+        description={
+          'One-shot housekeeping. Walks canonical_art_assets, finds rows where asset_url still starts with data: (image bytes stored inline in the DB, ~200KB per row), uploads those bytes into the private ability-art Supabase Storage bucket, and rewrites asset_url + the crops inside the row\'s data jsonb to the new public bucket URL. Idempotent — rows already pointing at https URLs are skipped. Run once after Phase 4 landed; no need to run again unless new data-URL rows appear.'
+        }
         slot={migrateArt}
         onRun={migrate}
         actionLabel="Run migration"
@@ -115,24 +123,28 @@ export function AdminDiagnostics() {
 function ProbeCard(props: {
   title: string;
   endpoint: string;
+  description?: string;
   slot: ProbeSlot;
   onRun: () => void;
   actionLabel?: string;
 }) {
-  const { title, endpoint, slot, onRun, actionLabel } = props;
+  const { title, endpoint, description, slot, onRun, actionLabel } = props;
   const disabled = slot.state === 'running';
   return (
     <section className="border border-bone/20 rounded-lg p-4 bg-void/60">
-      <div className="flex items-center justify-between mb-3">
-        <div>
+      <div className="flex items-center justify-between mb-3 gap-3">
+        <div className="min-w-0 flex-1">
           <h2 className="font-fantasy text-lg font-bold text-bone">{title}</h2>
           <code className="text-xs text-bone/50">{endpoint}</code>
+          {description && (
+            <p className="text-xs text-bone/70 mt-2">{description}</p>
+          )}
         </div>
         <button
           type="button"
           onClick={onRun}
           disabled={disabled}
-          className="px-3 py-1.5 rounded font-fantasy font-bold text-xs bg-gold/80 text-void hover:bg-gold disabled:opacity-50"
+          className="shrink-0 px-3 py-1.5 rounded font-fantasy font-bold text-xs bg-gold/80 text-void hover:bg-gold disabled:opacity-50"
         >
           {slot.state === 'running' ? 'Running…' : actionLabel ?? 'Run probe'}
         </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
 import { API_COST_CATALOG } from '../data/economy/apiCostCatalog';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Costs & System. First-cut Phase 2 dashboard: provider spend (MTD +
 // today + 7d avg), per-game-action rollup, and catalog-vs-observed
@@ -102,6 +103,14 @@ export function AdminCosts() {
 
   return (
     <div className="space-y-6">
+      <AdminPageDescription
+        title="Costs — provider spend + per-action rollup"
+        body={
+          'Every paid provider call writes one row into api_usage_events. This page rolls that ledger up for the current month plus a 7-day rolling average.\n\n' +
+          'Leonardo costs come straight from the provider response (cost_amount, badged "provider"). Anthropic has no per-call cost in its API response, so cost is calculated from tokens × published Haiku 4.5 rate (badged "calculated"). Both badges appear on the provider cards so you can trust or distrust a number by source.\n\n' +
+          'The per-game-action table sorts by MTD spend. The catalog-vs-observed section compares the estimates in apiCostCatalog against what the ledger actually paid — a big red delta means the catalog is out of date.'
+        }
+      />
       <FreshnessLine checkedAt={summary.checkedAt} latestEvent={summary.latestEvent} />
 
       <section>

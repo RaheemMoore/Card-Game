@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ARCHETYPE_NAMES, type ArchetypeName } from '../types/card';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Prompt change proposals. Global scope requires Raheem's approval
 // (approve_prompt_change_proposal RPC enforces is_global_approver());
@@ -66,6 +67,16 @@ export function AdminChangeProposals() {
 
   return (
     <div className="space-y-6">
+      <AdminPageDescription
+        title="Proposals — prompt change proposals with audit trail"
+        body={
+          'Anywhere in the Prompt Lab you can flag a card as "propose change" — those drafts land here.\n\n' +
+          '• Scope archetype = any admin can approve. Scope global = only Raheem can approve (the flag lives on profiles.is_global_approver and is enforced by the approve_prompt_change_proposal RPC, not the UI, so it can\'t be bypassed).\n' +
+          '• State machine: draft → evidence_ready → awaiting_raheem → approved | rejected → implemented → verified. Delete is only allowed while draft or evidence_ready.\n' +
+          '• Every approve/reject writes an admin_audit_log row in the same transaction, so we always have a paper trail.\n' +
+          '• The evidence pill on each proposal shows how many prompt_test_runs are pinned as source material — click "Evidence" on the row to see the run ids.'
+        }
+      />
       <div className="flex items-baseline justify-between">
         <div>
           <h2 className="font-fantasy text-sm uppercase tracking-wider text-bone/80">Prompt change proposals</h2>

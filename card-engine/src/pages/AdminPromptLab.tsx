@@ -24,6 +24,7 @@ import { getSupabaseClient } from '../services/persistence/supabaseClient';
 import { API_COST_CATALOG } from '../data/economy/apiCostCatalog';
 import { CardRenderer } from '../components/CardRenderer';
 import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Prompt Lab — realistic tier chain tester.
 //
@@ -372,16 +373,17 @@ export function AdminPromptLab() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-fantasy text-sm uppercase tracking-wider text-bone/80 mb-2">
-          Prompt Lab — tier chain
-        </h2>
-        <p className="text-xs text-bone/60 max-w-2xl">
-          Foundation → Forged → Ascendant against the same shared Claude + Leonardo services
-          production forge uses. Answers, element buckets, and bonds all mirror what real
-          players see so tests match production.
-        </p>
-      </div>
+      <AdminPageDescription
+        title="Prompt Lab — Foundation → Forged → Ascendant tier tester"
+        body={
+          'Runs the same shared Claude + Leonardo services production forge uses. Every input, prompt, response, cost, and image is persisted so a reviewer can reproduce a test months later without console logs.\n\n' +
+          '• Story pillar answers auto-sample on archetype change and are editable inline.\n' +
+          '• Element dropdown is filtered to what the archetype actually allows given those answers, grouped by bucket. "Roll like a player" uses the same rollElement() the real forge does.\n' +
+          '• Each tier column renders the resulting card with the production CardRenderer so what you see is what the player will see.\n' +
+          '• Judgment form scores any of the three tiers on 5 axes with a required disposition. Actionable dispositions surface as a "⚑ review" pill on the session card and count into the Overview pending banner.\n' +
+          '• Session cards below the tier columns replace the old batch log. Click one to open the right-side drawer with all three tiers, prompt provenance, and a "Propose change" mini-form per tier that pins the runId to the proposal for later review.'
+        }
+      />
 
       <section className="rounded-lg border border-bone/15 bg-void/40 p-4 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

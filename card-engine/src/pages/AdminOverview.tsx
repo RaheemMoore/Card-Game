@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getSystemStats, type SystemStats } from '../services/persistence/adminService';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Overview destination — the primary operational view. Above the fold:
 // provider funds, Users, Cards, pending work. Everything else is pushed
@@ -98,6 +99,15 @@ export function AdminOverview() {
 
   return (
     <div className="space-y-6">
+      <AdminPageDescription
+        title="Overview — operational at-a-glance"
+        body={
+          'Snapshot of what most needs attention. Provider funds shows live token balance for Leonardo (from /me) and a "unavailable" line for Anthropic (admin API not on our plan). ' +
+          'The Users/Cards/Ability review/Prompt review tiles are direct links to their respective admin pages with the live count. ' +
+          'The "Awaiting review" banner appears when judgments are flagged for action or when there are non-terminal change proposals — click through to /admin/prompt-lab or /admin/proposals to work them down. ' +
+          'System diagnostics is collapsed by default; expand it for the low-value aggregate totals that used to live above the fold.'
+        }
+      />
       {error && (
         <div className="p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
           {error}

@@ -12,6 +12,7 @@ import {
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
 import { CardRenderer } from '../components/CardRenderer';
+import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Users destination. Shell (guard, sub-nav, header) is provided by
 // AdminShell — this page renders inside its Outlet.
@@ -52,6 +53,17 @@ export function AdminUsers() {
 
   return (
     <div>
+      <AdminPageDescription
+        title="Users — accounts + per-user drawer"
+        body={
+          'Every signed-in account (Supabase profiles row) plus the Google/email guest anonymous ones. ' +
+          'Guests hidden by default — flip "Show guests" to include them. Click a row to open a drawer with three tabs:\n\n' +
+          '• Currency — grant or deduct premium/gameplay balance with a required reason. Every adjustment writes an admin_adjustment row into economy_transactions and shows up in the ledger tab.\n' +
+          '• Cards — that user\'s active cards, with a per-card delete button (immediate + irreversible; a proper audit flow is in the plan).\n' +
+          '• Ledger — full economy_transactions history for that user.\n\n' +
+          'Aggregate totals shown next to the search bar. All admin-facing user reads go through the list_users_for_admin SECURITY DEFINER RPC.'
+        }
+      />
       {loadError && (
         <div className="mb-4 p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
           {loadError}
