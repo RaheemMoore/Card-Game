@@ -25,6 +25,10 @@ const BASE_NEGATIVE = [
   'comic panels', 'UI elements', 'border', 'frame', 'card border',
   'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
   'blood spatter', 'nudity', 'suggestive',
+  'head cropped', 'face cropped', 'face cut off', 'forehead cropped',
+  'eyes cropped', 'top of head cropped', 'headless', 'decapitated',
+  'chin only', 'face out of frame', 'head out of frame',
+  'zoomed too close', 'extreme close-up',
   'younger than previous rank', 'thinner than previous rank',
   'more muscular than previous rank', 'healthier than previous rank',
   'more conventionally attractive than previous rank',
@@ -53,7 +57,7 @@ export function assemblePortraitPrompt(
     .join(' ; ');
 
   const parts: string[] = [
-    'Fantasy character portrait, painterly digital art, chest-up composition, single character centered, detailed face, rich textures',
+    'fantasy character portrait, painterly digital art, chest-up composition, single character centered in frame, entire head fully visible from top of hair to shoulders, detailed face with eyes and forehead clearly rendered, rich textures',
     `Archetype: ${input.archetype} — identity through ${c.identityThrough}`,
     `Recognition cues: ${c.visualDNA.recognitionCues}`,
     `Materials: ${c.symbolAndMaterial.materials}`,
@@ -62,6 +66,7 @@ export function assemblePortraitPrompt(
   ];
 
   if (pillarSeed) parts.push(`Story anchors (must be visible): ${pillarSeed}`);
+  parts.push('entire head fully in frame, eyes and forehead visible, chest-up composition centered');
 
   const prompt = parts.join('. ');
 

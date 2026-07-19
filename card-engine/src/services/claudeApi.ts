@@ -75,6 +75,12 @@ const BASE_NEGATIVE = [
   'comic panels', 'UI elements', 'border', 'frame', 'card border',
   'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
   'blood spatter', 'nudity', 'suggestive',
+  // M3.5 composition fix — the longer prompt was causing Leonardo to render
+  // the face above the top of the frame. Belt-and-suspenders negatives.
+  'head cropped', 'face cropped', 'face cut off', 'forehead cropped',
+  'eyes cropped', 'top of head cropped', 'headless', 'decapitated',
+  'chin only', 'face out of frame', 'head out of frame',
+  'zoomed too close', 'extreme close-up',
   // Bible §Rank continuity forbids automatic escalation across ranks —
   // added universally to steer Leonardo away from these defaults.
   'younger than previous rank', 'thinner than previous rank',
@@ -84,6 +90,14 @@ const BASE_NEGATIVE = [
   // Bible §14 universal Avoid signals across archetypes.
   'generic fantasy stereotype', 'costume-carrying stereotype',
 ].join(', ');
+
+/**
+ * Style anchor that MUST open every portraitPrompt. Repeated near the top
+ * of Claude's instruction and enforced in the JSON template so composition
+ * survives the 1300-char truncate cut.
+ */
+const STYLE_ANCHOR =
+  'fantasy character portrait, painterly digital art, chest-up composition, single character centered in frame, entire head fully visible from top of hair to shoulders, detailed face with eyes and forehead clearly rendered, rich textures';
 
 interface GeneratedText {
   cardName: string;
@@ -271,7 +285,7 @@ Return ONLY a JSON object with these fields:
   "cardName": ${existingName ? `MUST be exactly "${existingName}" — do not change.` : 'a 1-3 word name that fits the archetype\'s culture and the answers'},
   "nameAndTitle": "full name with epithet, e.g. \\"Kaelen, Keeper of Names\\". Ordinary earned title — no prestige role unless the answers plainly earn it.",
   "lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the mood WITHOUT quoting them literally. Reflect the emotional throughline you identified. ${isEvolution ? `Reference the character's growth into ${overallRank} — same person, deepened by trials.` : ''}",
-  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Structure in this order: [style anchor: 'fantasy character portrait, painterly digital art, chest-up, single character centered, detailed face, rich textures'], [IDENTITY BLOCK — verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from Hidden Fate you inferred'}], [archetype-specific recognition cues from the Visual DNA field above], [ELEMENT SPECTACLE — the ${element.element} element visibly manifested per the ELEMENT SPECTACLE guidance for ${overallRank} rank; this is a fantasy battle game — show the power], [ABILITY SPECTACLE — visual signature of the character's abilities woven into equipment, pose, or environment per the EXISTING ABILITIES block above], [Story-Pillar-derived materials, symbols, and specific objects], [weather + lighting + environmentDetails from Hidden Fate], [rank-appropriate carriage per the archetype chapter]. ${overallRank === 'Ascendant' ? "This is a climactic Ascendant portrait — the character's mastery of their element and their signature abilities is FULLY MANIFESTED (aura around body, elemental effects, ultimate stance, summoned allies where lore fits). BUT the same body/age/scars from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled. Bible §Visual quality rule: elemental effects + rank glow + ability spectacle can be removed and the character still remains recognizable through silhouette + body + materials." : ''} Do NOT contradict any locked identity above.",
+  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. MUST OPEN with this exact style anchor verbatim so composition never breaks: \\"${STYLE_ANCHOR}\\". After the anchor, in order: [IDENTITY BLOCK — verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from Hidden Fate you inferred'}], [archetype-specific recognition cues from the Visual DNA field above], [ELEMENT SPECTACLE — the ${element.element} element visibly manifested per the ELEMENT SPECTACLE guidance for ${overallRank} rank], [ABILITY SPECTACLE — visual signature of the character's abilities woven into equipment, pose, or environment per the EXISTING ABILITIES block above], [Story-Pillar-derived materials, symbols, and specific objects], [weather + lighting + environmentDetails from Hidden Fate], [rank-appropriate carriage per the archetype chapter]. MUST END with the phrase 'entire head fully in frame, eyes and forehead visible, chest-up composition centered' so composition survives truncation. ${overallRank === 'Ascendant' ? "This is a climactic Ascendant portrait — the character's mastery of their element and their signature abilities is FULLY MANIFESTED (aura around body, elemental effects, ultimate stance, summoned allies where lore fits). BUT the same body/age/scars from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled. Bible §Visual quality rule: elemental effects + rank glow + ability spectacle can be removed and the character still remains recognizable through silhouette + body + materials." : ''} Do NOT contradict any locked identity above.",
   "negativePrompt": "starts with \\"${BASE_NEGATIVE}\\" then add archetype-specific §14 Avoid items and any anti-continuity terms that fit this specific character. Comma-separated, under ${NEGATIVE_PROMPT_MAX} characters.",
   "hiddenFate": {
     "age": "e.g. 'early 60s' — inferred from the answers, LOCKED after this call",
