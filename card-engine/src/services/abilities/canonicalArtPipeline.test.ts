@@ -103,6 +103,60 @@ describe('registerPlaceholderArt', () => {
     }
   });
 
+  it('backfills a stale placeholder row when the slug is in the approved manifest', async () => {
+    const store = new InMemoryAbilityStore();
+    await seedAbilityLibrary(store);
+    const def = store.getDefinition('ability_ember_cleave')!;
+    const family = store.getFamily('fire');
+    // Simulate an already-seeded prod account that landed BEFORE Gate 7A:
+    // mark the current manifest row as 'replaced' and drop a bare placeholder
+    // in its place, matching what pre-Gate-7A seed rows look like.
+    const existing = store.getArtForAbility(def.id)!;
+    await store.saveArt({ ...existing, status: 'replaced' });
+    const svg = buildPlaceholderSvg(def, family);
+    await store.saveArt({
+      id: `art_${def.id}_placeholder_v1`,
+      abilityId: def.id,
+      provider: 'placeholder',
+      assetUrl: svgToDataUrl(svg),
+      status: 'approved',
+      createdAt: now,
+    });
+    expect(store.getArtForAbility(def.id)?.provider).toBe('placeholder');
+
+    // Re-running the seed pass must upgrade the row to the approved manifest.
+    const upgraded = await registerPlaceholderArt(store, def, family, { now });
+    expect(upgraded).not.toBeNull();
+    expect(upgraded?.provider).toBe('manual');
+    expect(upgraded?.assets?.combat.url).toMatch(/\/assets\/abilities\/approved\/ember-cleave\//);
+    // Same asset id — updates in place, no orphan row.
+    expect(upgraded?.id).toBe(`art_${def.id}_placeholder_v1`);
+
+    // Idempotent from here on.
+    const noop = await registerPlaceholderArt(store, def, family, { now });
+    expect(noop).toBeNull();
+  });
+
+  it('leaves a landed Leonardo asset alone even if the slug is now in the manifest', async () => {
+    const store = new InMemoryAbilityStore();
+    await seedAbilityLibrary(store);
+    const def = store.getDefinition('ability_ember_cleave')!;
+    // Retire the manifest seed row and land a Leonardo asset on top.
+    const existing = store.getArtForAbility(def.id)!;
+    await store.saveArt({ ...existing, status: 'replaced' });
+    await store.saveArt({
+      id: `art_${def.id}_leonardo_test`,
+      abilityId: def.id,
+      provider: 'leonardo',
+      assetUrl: 'data:image/png;base64,zzz',
+      status: 'approved',
+      createdAt: now,
+    });
+    const result = await registerPlaceholderArt(store, def, store.getFamily('fire'), { now });
+    expect(result).toBeNull();
+    expect(store.getArtForAbility(def.id)?.provider).toBe('leonardo');
+  });
+
   it('subsequent seedAbilityLibrary calls do not create duplicate placeholders', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);

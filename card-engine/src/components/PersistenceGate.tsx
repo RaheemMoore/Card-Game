@@ -10,7 +10,10 @@ import { setBossStore, getBossStore } from '../services/bosses/registry';
 import { seedAbilityLibrary } from '../services/abilities/seed';
 import { seedBossLibrary } from '../services/bosses/seed';
 import { backfillCardAbilities } from '../services/abilities/legacyBackfill';
-import { generateCanonicalArt } from '../services/abilities/canonicalArtPipeline';
+import {
+  generateCanonicalArt,
+  backfillApprovedArt,
+} from '../services/abilities/canonicalArtPipeline';
 import * as ledger from '../services/economy/transactionLedger';
 import { initialize as initializeWallet, auditBalance } from '../services/economy/walletService';
 import { runMigrationIfNeeded, clearLegacyLocalStorage } from '../services/persistence/migration';
@@ -54,6 +57,18 @@ async function seedAndBackfillAbilitiesLocal(): Promise<void> {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[abilities] local seed failed:', err);
+  }
+  // Runs unconditionally — heals accounts that had definitions seeded
+  // before Gate 7A landed (their art rows are stale placeholders).
+  try {
+    const artResult = await backfillApprovedArt(store);
+    if (artResult.upgraded > 0) {
+      // eslint-disable-next-line no-console
+      console.info(`[abilities] approved-art backfill upgraded ${artResult.upgraded} row(s)`);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[abilities] approved-art backfill failed:', err);
   }
   try {
     const result = backfillCardAbilities(store, getAllCards());
@@ -221,6 +236,25 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
             extractErrorMessage(err),
           );
         }
+      }
+
+      // Approved-art backfill runs every session. Heals pre-Gate-7A accounts
+      // whose ember-cleave / aegis-ward rows are stale placeholder SVGs.
+      // Non-admin sessions catch the RLS rejection inside the function.
+      try {
+        const artResult = await backfillApprovedArt(abilityStore);
+        if (artResult.upgraded > 0) {
+          // eslint-disable-next-line no-console
+          console.info(
+            `[abilities] approved-art backfill upgraded ${artResult.upgraded} row(s)`,
+          );
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.info(
+          '[abilities] approved-art backfill skipped:',
+          extractErrorMessage(err),
+        );
       }
 
       if (bossStore.getAllDefinitions().length === 0) {

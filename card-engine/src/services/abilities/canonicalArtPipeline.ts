@@ -7,7 +7,7 @@ import type {
 } from '../../types/abilities';
 import type { AbilityStore } from '../persistence/AbilityStore';
 import { generatePortraitStrict } from '../leonardoApi';
-import { getApprovedArt } from '../../data/abilities/visualManifest';
+import { getApprovedArt, APPROVED_ABILITY_ART } from '../../data/abilities/visualManifest';
 
 /**
  * Ability art pipeline. Two providers:
@@ -78,15 +78,16 @@ export interface RegisterPlaceholderOptions {
 }
 
 /**
- * Idempotent: if the ability already has ANY art asset (placeholder,
- * approved manifest, or Leonardo), do nothing.
- *
  * Two paths depending on the ability slug:
  *   - Approved manifest hit (Gate 7A: ember-cleave, aegis-ward) → register
  *     a `provider='manual'` asset with the three canonical crops from
- *     `/public/assets/abilities/approved/<slug>/`.
+ *     `/public/assets/abilities/approved/<slug>/`. Backfills stale
+ *     `provider='placeholder'` rows on already-seeded accounts.
  *   - Otherwise → family-tinted placeholder SVG in all three crops so the
  *     Codex / Battle rail always has something readable.
+ *
+ * Idempotent for the placeholder branch, and for manifest hits whose row
+ * is already up-to-date. Skips if a real Leonardo asset has landed since.
  */
 export async function registerPlaceholderArt(
   store: AbilityStore,
@@ -95,25 +96,39 @@ export async function registerPlaceholderArt(
   opts: RegisterPlaceholderOptions = {},
 ): Promise<CanonicalArtAsset | null> {
   const existing = store.getArtForAbility(def.id);
-  if (existing) return null;
-
   const now = opts.now ?? new Date().toISOString();
   const approved = getApprovedArt(def.slug);
 
   if (approved) {
+    // Skip the write when the existing row is already the approved manifest
+    // asset (idempotent). Also skip when a real Leonardo asset has landed
+    // — don't clobber post-manifest generations.
+    const alreadyManifest =
+      existing?.provider === 'manual' &&
+      existing.assets?.combat.url === approved.combat.url &&
+      existing.assets?.detail.url === approved.detail.url &&
+      existing.assets?.relic.url === approved.relic.url;
+    if (alreadyManifest) return null;
+    if (existing?.provider === 'leonardo') return null;
+
+    // Otherwise write / backfill. Keep the same asset id when upgrading a
+    // placeholder so the Supabase row updates in place instead of creating
+    // an orphan.
     const asset: CanonicalArtAsset = {
-      id: opts.id ?? `art_${def.id}_manifest_v1`,
+      id: opts.id ?? existing?.id ?? `art_${def.id}_manifest_v1`,
       abilityId: def.id,
       provider: 'manual',
       assetUrl: approved.combat.url,
       thumbnailUrl: approved.combat.thumbnailUrl,
       assets: approved,
       status: 'approved',
-      createdAt: now,
+      createdAt: existing?.createdAt ?? now,
     };
     await store.saveArt(asset);
     return asset;
   }
+
+  if (existing) return null;
 
   const svg = buildPlaceholderSvg(def, family);
   const svgUrl = svgToDataUrl(svg);
@@ -133,6 +148,48 @@ export async function registerPlaceholderArt(
   };
   await store.saveArt(asset);
   return asset;
+}
+
+/**
+ * Idempotent backfill for the approved manifest. Walks every slug in
+ * APPROVED_ABILITY_ART, finds the matching definition, and upgrades its
+ * art row to `provider='manual'` with the three canonical crops.
+ *
+ * Runs on every app boot (see PersistenceGate) — critical for accounts
+ * that had definitions seeded BEFORE Gate 7A landed, where the ordinary
+ * seed pass is skipped because `getAllDefinitions().length !== 0`. Safe:
+ * skips rows that already match, skips rows that have been superseded
+ * by a Leonardo asset, and swallows admin-write RLS rejections silently.
+ */
+export interface BackfillResult {
+  upgraded: number;
+  skipped: number;
+  errors: number;
+}
+
+export async function backfillApprovedArt(store: AbilityStore): Promise<BackfillResult> {
+  const result: BackfillResult = { upgraded: 0, skipped: 0, errors: 0 };
+  const defs = store.getAllDefinitions();
+  for (const slug of Object.keys(APPROVED_ABILITY_ART)) {
+    const def = defs.find((d) => d.slug === slug);
+    if (!def) {
+      result.skipped++;
+      continue;
+    }
+    const family = def.familyIds[0] ? store.getFamily(def.familyIds[0]) : undefined;
+    try {
+      const written = await registerPlaceholderArt(store, def, family);
+      if (written) result.upgraded++;
+      else result.skipped++;
+    } catch (err) {
+      // Non-admin sessions can't write library rows — RLS rejects. That's
+      // fine; an admin session (or a subsequent migration) will heal it.
+      result.errors++;
+      // eslint-disable-next-line no-console
+      console.info(`[abilities] approved-art backfill skipped for ${slug}:`, err);
+    }
+  }
+  return result;
 }
 
 /* ------------------------------------------------------------------ */
