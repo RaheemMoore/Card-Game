@@ -552,48 +552,64 @@ export function CardDetail() {
             <p>ID: {card.cardId}</p>
           </div>
 
-          {/* Regenerate Portrait — ONLY appears when the portrait is broken/missing.
-              Prevents users from burning Leonardo credits on cosmetic re-rolls. */}
-          {!card.portraitAsset && (
-            <div className="border border-power/50 rounded-lg p-3 bg-power/5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <span className="font-fantasy text-xs font-bold text-power">Portrait Missing</span>
-                  <p className="text-[10px] text-ash/70 mt-0.5">
-                    This card's portrait was corrupted or blocked by content moderation.
-                    Rebuild it — stats, name, lore, and evolution history are all preserved.
-                  </p>
-                </div>
-                <button
-                  onClick={handleRegeneratePortrait}
-                  disabled={isRegenerating || isTieringUp}
-                  className="shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
-                    bg-gradient-to-r from-power to-power-glow text-ivory
-                    hover:shadow-[0_0_12px_rgba(220,38,38,0.4)]
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    flex items-center gap-2"
-                >
-                  <span>{isRegenerating ? 'Rebuilding...' : 'Rebuild Portrait'}</span>
-                  <span
-                    className="px-1.5 py-0.5 rounded bg-black/30"
-                    style={{ opacity: 0.9 }}
-                  >
-                    <CurrencyCost
-                      currency="premium"
-                      amount={REGEN_PRICE}
-                      insufficient={premiumBalance < REGEN_PRICE}
-                    />
-                  </span>
-                </button>
+          {/* Regenerate Portrait — visible for missing OR healthy portraits.
+              M3.7: prompts iterate rapidly right now, so at-will regen is
+              useful. Missing-portrait case gets stronger visual language;
+              healthy-portrait case is a quieter action. */}
+          <div className={`border rounded-lg p-3 ${
+            !card.portraitAsset ? 'border-power/50 bg-power/5' : 'border-slate-dark bg-obsidian/40'
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                {!card.portraitAsset ? (
+                  <>
+                    <span className="font-fantasy text-xs font-bold text-power">Portrait Missing</span>
+                    <p className="text-[10px] text-ash/70 mt-0.5">
+                      This card's portrait was corrupted or blocked by content moderation.
+                      Rebuild it — stats, name, lore, and evolution history are all preserved.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-fantasy text-xs font-bold text-ivory">Regenerate Portrait</span>
+                    <p className="text-[10px] text-ash/70 mt-0.5">
+                      Reroll the portrait against the current prompt system. Stats, name, lore,
+                      Story Pillars, and evolution history are all preserved — only the image changes.
+                    </p>
+                  </>
+                )}
               </div>
-              {isRegenerating && (
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-ash/30 border-t-bone rounded-full animate-spin" />
-                  <span className="text-[10px] text-ash/70 animate-pulse">Painting portrait...</span>
-                </div>
-              )}
+              <button
+                onClick={handleRegeneratePortrait}
+                disabled={isRegenerating || isTieringUp}
+                className={`shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
+                  text-ivory
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  flex items-center gap-2
+                  ${!card.portraitAsset
+                    ? 'bg-gradient-to-r from-power to-power-glow hover:shadow-[0_0_12px_rgba(220,38,38,0.4)]'
+                    : 'bg-slate-dark hover:bg-slate-dark/80 border border-ash/40'}`}
+              >
+                <span>{isRegenerating ? 'Rebuilding...' : !card.portraitAsset ? 'Rebuild Portrait' : 'Regenerate'}</span>
+                <span
+                  className="px-1.5 py-0.5 rounded bg-black/30"
+                  style={{ opacity: 0.9 }}
+                >
+                  <CurrencyCost
+                    currency="premium"
+                    amount={REGEN_PRICE}
+                    insufficient={premiumBalance < REGEN_PRICE}
+                  />
+                </span>
+              </button>
             </div>
-          )}
+            {isRegenerating && (
+              <div className="mt-2 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-ash/30 border-t-bone rounded-full animate-spin" />
+                <span className="text-[10px] text-ash/70 animate-pulse">Painting portrait...</span>
+              </div>
+            )}
+          </div>
 
           {/* Tier Up */}
           {canUpgrade && (
