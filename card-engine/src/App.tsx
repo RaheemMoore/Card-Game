@@ -9,6 +9,7 @@ import { AdminCards } from './pages/AdminCards';
 import { AdminCosts } from './pages/AdminCosts';
 import { AdminAbilities } from './pages/AdminAbilities';
 import { AdminDiagnostics } from './pages/AdminDiagnostics';
+import { AdminPromptLab } from './pages/AdminPromptLab';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { CodexFamily } from './pages/CodexFamily';
@@ -54,7 +55,7 @@ export default function App() {
                   <Route path="costs" element={<AdminCosts />} />
                   <Route path="abilities" element={<AdminAbilities />} />
                   <Route path="diagnostics" element={<AdminDiagnostics />} />
-                  <Route path="prompt-lab" element={<M55Harness />} />
+                  <Route path="prompt-lab" element={<AdminPromptLab />} />
                 </Route>
                 <Route path="/dev/abilities" element={<DevAbilities />} />
                 <Route path="/m55harness" element={<M55Harness />} />
