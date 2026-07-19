@@ -8,6 +8,7 @@ import type {
 import type { AbilityStore } from '../persistence/AbilityStore';
 import { generatePortraitStrict } from '../leonardoApi';
 import { getApprovedArt, APPROVED_ABILITY_ART } from '../../data/abilities/visualManifest';
+import { getSupabaseClient } from '../persistence/supabaseClient';
 
 /**
  * Ability art pipeline. Two providers:
@@ -350,6 +351,27 @@ export async function generateCanonicalArt(
     createdAt: now,
   };
   await store.saveArt(asset);
+
+  // Phase 4 cleanup: shove the data URL into the ability-art bucket and
+  // rewrite the row's URLs to the public bucket URL. Non-fatal — a
+  // failure leaves the data URL in place and the periodic
+  // /api/admin-migrate-ability-art (bulk mode) will catch it later.
+  try {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (token) {
+        await fetch(`/api/admin-migrate-ability-art?assetId=${encodeURIComponent(asset.id)}`, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${token}` },
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[abilities] bucket upload post-generation failed', err);
+  }
+
   return { asset, supersededId };
 }
 
