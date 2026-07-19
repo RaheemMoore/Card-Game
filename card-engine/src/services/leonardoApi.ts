@@ -21,10 +21,13 @@ export const LEONARDO_MODELS = {
     displayName: 'Phoenix 1.0',
     supportsAlchemy: true,
   },
+  // M3.6 test round 1 revealed Concept Art and Illustrative Albedo are
+  // Kino-family models under the hood — Kino 2.1 does NOT support Alchemy.
+  // Flagged accordingly so the request body omits the alchemy field.
   concept_art: {
     id: 'dd29ac47-ea88-4720-8678-b8633245c09c',
     displayName: 'Concept Art',
-    supportsAlchemy: true,
+    supportsAlchemy: false,
   },
   lucid_origin: {
     id: '7b592283-e8a7-4c5a-9ba6-d18c31f258b9',
@@ -34,7 +37,7 @@ export const LEONARDO_MODELS = {
   illustrative_albedo: {
     id: '2067ae52-33fd-4a82-bb92-c2c55e7d2786',
     displayName: 'Illustrative Albedo',
-    supportsAlchemy: true,
+    supportsAlchemy: false,
   },
 } as const;
 
@@ -289,11 +292,12 @@ export async function generatePortrait(
  * the same style of prompt without user preference bias. Storage in
  * localStorage keeps the rotation stable across page reloads.
  */
+// M3.7 direction — Phoenix 1.0 only while we dial the action / eruption
+// prompt. Concept Art and Illustrative Albedo don't support Alchemy;
+// Lucid Origin is held back for a follow-up round after Phoenix's aesthetic
+// is confirmed dialed.
 const AB_TEST_POOL: LeonardoModelKey[] = [
   'phoenix_1_0',
-  'concept_art',
-  'lucid_origin',
-  'illustrative_albedo',
 ];
 const AB_TEST_KEY = 'card-engine-ab-test-cursor';
 
