@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ArchetypeName, CardStats, Card, ModifierStack, AbilityHistorySnapshot } from '../types/card';
+import type { ArchetypeName, CardStats, Card, AbilityHistorySnapshot } from '../types/card';
 import type { CardAbilityReference } from '../types/abilities';
+import type { ElementName, ElementSelection, StoryPillarAnswers } from '../types/bible';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
-import { WhisperWheel } from '../components/WhisperWheel';
+import { StoryPillarWizard } from '../components/StoryPillarWizard';
+import { BondPicker } from '../components/BondPicker';
+import { rollElement } from '../services/elementRoller';
 import { CardRenderer } from '../components/CardRenderer';
 import { buildCardShell } from '../services/cardGenerator';
-import { generateCardText } from '../services/claudeApi';
-import { generatePortraitStrict } from '../services/leonardoApi';
+import { generateCardTextWithRetry } from '../services/claudeApi';
+import { generatePortraitStrict, pickAbTestModel } from '../services/leonardoApi';
 import { saveCard } from '../services/storage';
-import { getOverallRank } from '../data/powerSystem';
 import { proposeAbility } from '../services/abilities/proposalService';
 import { getAbilityStore, saveReference } from '../services/abilities/registry';
 import { grantDiscoveryReward } from '../services/abilities/discoveryLedger';
@@ -24,8 +26,14 @@ import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
 import { getCurrentUserId, isCurrentUserAnonymous } from '../services/persistence/supabaseClient';
 import type { BadgeResource } from '../components/abilities';
 
-// Dismissed once per uid — never nag again for that guest. Real users
-// (with email) never see it.
+/**
+ * Card Forge — Bible-driven flow.
+ *
+ * Stages: archetype → stats (dice) → story pillars → element + bond → forge → reveal.
+ * Whisper wheel and modifier pool are retired. Story Pillar answers and the
+ * element + bond are the ONLY player-provided inputs to the Bible pipeline.
+ */
+
 function signupPromptDismissedKey(uid: string): string {
   return `card-engine-signup-prompt-dismissed:${uid}`;
 }
@@ -41,7 +49,7 @@ function markFirstForgePromptDismissed(): void {
   localStorage.setItem(signupPromptDismissedKey(uid), new Date().toISOString());
 }
 
-type Stage = 'archetype' | 'stats' | 'wheel' | 'forging' | 'reveal';
+type Stage = 'archetype' | 'stats' | 'pillars' | 'element' | 'forging' | 'reveal';
 
 const FORGING_MESSAGES = [
   'Summoning your champion...',
@@ -58,9 +66,9 @@ export function CardForge() {
   const [stage, setStage] = useState<Stage>('archetype');
   const [archetype, setArchetype] = useState<ArchetypeName | null>(null);
   const [stats, setStats] = useState<CardStats | null>(null);
+  const [storyPillars, setStoryPillars] = useState<StoryPillarAnswers | null>(null);
+  const [rolledElement, setRolledElement] = useState<ElementName | null>(null);
   const [card, setCard] = useState<Card | null>(null);
-  // Gate 7A: newly-discovered ability on this forge → fire the Relic modal
-  // once card + text are on screen. Cleared on dismiss.
   const [relicDiscovery, setRelicDiscovery] = useState<
     { abilityId: string; resource?: BadgeResource } | null
   >(null);
@@ -92,16 +100,25 @@ export function CardForge() {
 
   function handleStatsComplete(s: CardStats) {
     setStats(s);
-    setStage('wheel');
+    setStage('pillars');
   }
 
-  async function handleWheelComplete(mods: ModifierStack, whisperWords: string[]) {
-    if (!archetype || !stats) return;
+  function handlePillarsComplete(answers: StoryPillarAnswers) {
+    if (!archetype) return;
+    setStoryPillars(answers);
+    // Bible §Element rarity gates + BUCKET_WEIGHTS — auto-roll the element
+    // now that the Story Pillar answers are locked in. Player only chooses
+    // the bond in the next stage. See services/elementRoller.ts.
+    setRolledElement(rollElement(archetype, answers));
+    setStage('element');
+  }
+
+  async function handleElementComplete(element: ElementSelection) {
+    if (!archetype || !stats || !storyPillars) return;
     if (forgingStarted.current) return;
 
-    // Reserve premium currency before we spend a single API call. On failure
-    // (Leonardo down, moderator block, network drop), refund automatically —
-    // per the plan's Section 7.2, no paid card ships without a real portrait.
+    // Reserve premium currency before we spend an API call. On failure
+    // (Leonardo down, moderator block, network drop) we refund.
     let reservation;
     try {
       reservation = wallet.reserve({
@@ -122,40 +139,39 @@ export function CardForge() {
     setStage('forging');
 
     try {
+      // Whisper words is a legacy field on the Card shell; keep it as a
+      // short derived list from Story Pillar answers so old renderers
+      // (Codex search) still have something to key on.
+      const whisperWords = storyPillars.answers
+        .slice(0, 3)
+        .map((a) => a.answer.split(/\s+/).slice(0, 3).join(' '));
       const shell = buildCardShell(archetype, stats, whisperWords);
 
-      // Claude first (composes the Leonardo prompt), then Leonardo. Both must
-      // succeed or the whole action refunds — no half-forged card gets minted.
-      const text = await generateCardText(
+      const text = await generateCardTextWithRetry({
         archetype,
         stats,
-        whisperWords,
-        mods,
-        undefined,
-        undefined,
-        false,
-        undefined,
-        shell.lycanIdentity,
-        // Foundation forge always requests a Core ability. If Claude omits
-        // or malforms the field, the card ships without an ability and the
-        // legacy backfill pass fills it later.
-        'core',
-      );
+        answers: storyPillars,
+        element,
+        abilitySlotToFill: 'core',
+      });
+
+      // M3.6 A/B — rotate through 4 painterly Leonardo models on Foundation
+      // forges so we can pick a winner from the sample. Model is recorded on
+      // the card for after-the-fact comparison in Collection.
+      const abModel = pickAbTestModel();
       const portrait = await generatePortraitStrict(
         text.portraitPrompt,
         text.negativePrompt,
+        undefined,
+        undefined,
+        abModel,
       );
 
-      // Ability proposal — auto-attach on exact-normalized-match, queue novel
-      // for admin review. Silent fallback on any failure so the forge
-      // completes even when the ability path errors out.
       let abilityHistorySnapshot: AbilityHistorySnapshot[] = [];
       if (text.abilityCandidate) {
         try {
           const outcome = proposeAbility(getAbilityStore(), {
             candidate: text.abilityCandidate,
-            // Anonymous sessions have a uid too — the discovery record still
-            // lands under the correct user, and links carry through sign-up.
             userId: getCurrentUserId() ?? 'anon',
           });
           if (outcome.kind === 'attached') {
@@ -178,8 +194,6 @@ export function CardForge() {
               if (reward.kind === 'granted') {
                 const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
                 if (import.meta.env.DEV) console.debug(`[forge] discovery reward granted: ${summary}`);
-              } else if (reward.kind === 'zero_value_placeholder') {
-                if (import.meta.env.DEV) console.debug(`[forge] discovery recorded (reward paused): ${reward.rewardId}`);
               }
               const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
               const resource: BadgeResource | undefined =
@@ -188,10 +202,6 @@ export function CardForge() {
                   : undefined;
               setRelicDiscovery({ abilityId: outcome.abilityId, resource });
             }
-          } else if (outcome.kind === 'queued') {
-            if (import.meta.env.DEV) console.debug(
-              `[forge] ability queued for admin review: ${outcome.abilityId} (experimental=${outcome.experimental})`,
-            );
           } else if (outcome.kind === 'rejected') {
             console.warn('[forge] ability candidate rejected:', outcome.errors);
           }
@@ -205,9 +215,11 @@ export function CardForge() {
         cardName: text.cardName,
         nameAndTitle: text.nameAndTitle,
         lore: text.lore,
-        portraitAsset: portrait,
-        modifiers: mods,
-        identity: text.identity,
+        portraitAsset: portrait.dataUrl,
+        generationModel: portrait.modelKey,
+        storyPillars,
+        elementSelection: element,
+        hiddenFate: text.hiddenFate,
         abilityHistory: abilityHistorySnapshot.length > 0
           ? { Foundation: abilityHistorySnapshot }
           : undefined,
@@ -224,10 +236,8 @@ export function CardForge() {
         err instanceof Error ? err.message : String(err),
       );
       forgingStarted.current = false;
-      setForgeError(
-        err instanceof Error ? err.message : String(err),
-      );
-      setStage('wheel');
+      setForgeError(err instanceof Error ? err.message : String(err));
+      setStage('element');
     }
   }
 
@@ -236,11 +246,13 @@ export function CardForge() {
     setStage('archetype');
     setArchetype(null);
     setStats(null);
+    setStoryPillars(null);
+    setRolledElement(null);
     setCard(null);
     setForgeError(null);
   }
 
-  const stages = ['archetype', 'stats', 'wheel', 'reveal'] as const;
+  const stages = ['archetype', 'stats', 'pillars', 'element', 'reveal'] as const;
   const stageIndex = stages.indexOf(stage === 'forging' ? 'reveal' : (stage as typeof stages[number]));
 
   return (
@@ -271,7 +283,11 @@ export function CardForge() {
         <DiceRoll archetype={archetype} onComplete={handleStatsComplete} />
       )}
 
-      {stage === 'wheel' && archetype && stats && (
+      {stage === 'pillars' && archetype && (
+        <StoryPillarWizard archetype={archetype} onComplete={handlePillarsComplete} />
+      )}
+
+      {stage === 'element' && archetype && storyPillars && rolledElement && (
         <div className="w-full flex flex-col items-center gap-3">
           <div className="text-xs text-ash flex items-center gap-2">
             <span>Forging will charge</span>
@@ -289,10 +305,10 @@ export function CardForge() {
               Forge failed: {forgeError}. Your {FORGE_PRICE} was refunded.
             </div>
           )}
-          <WhisperWheel
+          <BondPicker
             archetype={archetype}
-            overallRank={getOverallRank(stats)}
-            onComplete={handleWheelComplete}
+            element={rolledElement}
+            onComplete={handleElementComplete}
           />
         </div>
       )}

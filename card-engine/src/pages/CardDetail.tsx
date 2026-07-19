@@ -26,6 +26,7 @@ import {
 } from '../services/abilities/registry';
 import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
 import type { BadgeResource, RelicMoment } from '../components/abilities';
+import { getQuestionsForArchetype } from '../data/storyPillars';
 
 const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
 const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
@@ -215,7 +216,10 @@ export function CardDetail() {
     setIsTieringUp(true);
     setTierUpWarning(null);
     try {
-      const result = await tierUpCard(card, ascendantNarrative);
+      // ascendantNarrative was folded into the Bible-driven Ascendant Paths
+      // per Bible §Rank Evolution — the paths themselves carry the story.
+      void ascendantNarrative;
+      const result = await tierUpCard(card);
       // tierUpCard uses generatePortraitStrict internally BUT it catches the
       // error and returns portraitRegenerated=false, keeping the old portrait.
       // For a paid action that's a "text-only evolution" and per Section 7.3
@@ -514,33 +518,31 @@ export function CardDetail() {
             })()}
           </div>
 
-          {card.whisperWords.length > 0 && (
+          {card.storyPillars && card.storyPillars.answers.length > 0 && (
             <div>
-              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Whisper Words</h3>
-              <div className="flex gap-2">
-                {card.whisperWords.map((w, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 rounded text-xs italic"
-                    style={{ background: 'rgba(124,58,237,0.1)', color: '#a78bfa' }}
-                  >
-                    {w}
-                  </span>
-                ))}
+              <h3 className="font-fantasy text-sm font-bold text-ivory mb-2">Their Story</h3>
+              <StoryPillarSummary card={card} />
+            </div>
+          )}
+
+          {card.elementSelection && (
+            <div>
+              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Elemental Bond</h3>
+              <div className="text-[11px] text-ash">
+                <span className="font-fantasy text-gold">{card.elementSelection.element}</span>
+                <span className="text-bone/60"> — </span>
+                <span className="italic">"{card.elementSelection.bond}"</span>
+                <span className="text-bone/50 ml-2">({card.elementSelection.compatibility.replace(/_/g, ' ')})</span>
               </div>
             </div>
           )}
 
-
-          {card.modifiers && (
-            <div>
-              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Portrait Modifiers</h3>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="text-ash"><span className="text-bone/60">Setting:</span> {card.modifiers.setting}</div>
-                <div className="text-ash"><span className="text-bone/60">Demeanor:</span> {card.modifiers.demeanor}</div>
-                <div className="text-ash"><span className="text-bone/60">Detail:</span> {card.modifiers.signatureDetail}</div>
-                <div className="text-ash"><span className="text-bone/60">Lighting:</span> {card.modifiers.lighting}</div>
-              </div>
+          {card.prestige && (
+            <div className="rounded-lg border border-gold/40 bg-gold/5 p-3">
+              <h3 className="font-fantasy text-sm font-bold text-gold mb-1">
+                Prestige: {card.prestige.title}
+              </h3>
+              <p className="text-[11px] text-bone/70 italic">{card.prestige.justification}</p>
             </div>
           )}
 
@@ -550,48 +552,64 @@ export function CardDetail() {
             <p>ID: {card.cardId}</p>
           </div>
 
-          {/* Regenerate Portrait — ONLY appears when the portrait is broken/missing.
-              Prevents users from burning Leonardo credits on cosmetic re-rolls. */}
-          {!card.portraitAsset && (
-            <div className="border border-power/50 rounded-lg p-3 bg-power/5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <span className="font-fantasy text-xs font-bold text-power">Portrait Missing</span>
-                  <p className="text-[10px] text-ash/70 mt-0.5">
-                    This card's portrait was corrupted or blocked by content moderation.
-                    Rebuild it — stats, name, lore, and evolution history are all preserved.
-                  </p>
-                </div>
-                <button
-                  onClick={handleRegeneratePortrait}
-                  disabled={isRegenerating || isTieringUp}
-                  className="shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
-                    bg-gradient-to-r from-power to-power-glow text-ivory
-                    hover:shadow-[0_0_12px_rgba(220,38,38,0.4)]
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    flex items-center gap-2"
-                >
-                  <span>{isRegenerating ? 'Rebuilding...' : 'Rebuild Portrait'}</span>
-                  <span
-                    className="px-1.5 py-0.5 rounded bg-black/30"
-                    style={{ opacity: 0.9 }}
-                  >
-                    <CurrencyCost
-                      currency="premium"
-                      amount={REGEN_PRICE}
-                      insufficient={premiumBalance < REGEN_PRICE}
-                    />
-                  </span>
-                </button>
+          {/* Regenerate Portrait — visible for missing OR healthy portraits.
+              M3.7: prompts iterate rapidly right now, so at-will regen is
+              useful. Missing-portrait case gets stronger visual language;
+              healthy-portrait case is a quieter action. */}
+          <div className={`border rounded-lg p-3 ${
+            !card.portraitAsset ? 'border-power/50 bg-power/5' : 'border-slate-dark bg-obsidian/40'
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                {!card.portraitAsset ? (
+                  <>
+                    <span className="font-fantasy text-xs font-bold text-power">Portrait Missing</span>
+                    <p className="text-[10px] text-ash/70 mt-0.5">
+                      This card's portrait was corrupted or blocked by content moderation.
+                      Rebuild it — stats, name, lore, and evolution history are all preserved.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-fantasy text-xs font-bold text-ivory">Regenerate Portrait</span>
+                    <p className="text-[10px] text-ash/70 mt-0.5">
+                      Reroll the portrait against the current prompt system. Stats, name, lore,
+                      Story Pillars, and evolution history are all preserved — only the image changes.
+                    </p>
+                  </>
+                )}
               </div>
-              {isRegenerating && (
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-ash/30 border-t-bone rounded-full animate-spin" />
-                  <span className="text-[10px] text-ash/70 animate-pulse">Painting portrait...</span>
-                </div>
-              )}
+              <button
+                onClick={handleRegeneratePortrait}
+                disabled={isRegenerating || isTieringUp}
+                className={`shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
+                  text-ivory
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  flex items-center gap-2
+                  ${!card.portraitAsset
+                    ? 'bg-gradient-to-r from-power to-power-glow hover:shadow-[0_0_12px_rgba(220,38,38,0.4)]'
+                    : 'bg-slate-dark hover:bg-slate-dark/80 border border-ash/40'}`}
+              >
+                <span>{isRegenerating ? 'Rebuilding...' : !card.portraitAsset ? 'Rebuild Portrait' : 'Regenerate'}</span>
+                <span
+                  className="px-1.5 py-0.5 rounded bg-black/30"
+                  style={{ opacity: 0.9 }}
+                >
+                  <CurrencyCost
+                    currency="premium"
+                    amount={REGEN_PRICE}
+                    insufficient={premiumBalance < REGEN_PRICE}
+                  />
+                </span>
+              </button>
             </div>
-          )}
+            {isRegenerating && (
+              <div className="mt-2 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-ash/30 border-t-bone rounded-full animate-spin" />
+                <span className="text-[10px] text-ash/70 animate-pulse">Painting portrait...</span>
+              </div>
+            )}
+          </div>
 
           {/* Tier Up */}
           {canUpgrade && (
@@ -717,10 +735,10 @@ export function CardDetail() {
             <div className="p-5 border-b border-gold/30 bg-gradient-to-b from-gold/10 to-transparent">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-fantasy text-xl font-bold text-gold">Ascendant Apotheosis</h3>
+                  <h3 className="font-fantasy text-xl font-bold text-gold">Your Ascendant Story</h3>
                   <p className="text-xs text-ash/80 italic mt-1">
-                    Two paths fuse {card.cardName}'s whispers into a mythic ending.
-                    Choose the one you want their legend to become.
+                    Two paths continue {card.cardName}'s story into their Ascendant form.
+                    Choose the direction their legend takes.
                   </p>
                 </div>
                 <button
@@ -785,4 +803,32 @@ function buildTierTimeline(card: Card): { rank: Rank; snapshot: ArtSnapshot }[] 
   const rankOrder: Record<string, number> = { Foundation: 0, Forged: 1, Ascendant: 2 };
   entries.sort((a, b) => rankOrder[a.rank] - rankOrder[b.rank]);
   return entries;
+}
+
+/**
+ * Renders the player's Story Pillar answers alongside the questions that
+ * produced them, per Bible §Guided Narrative Chains. Answers are immutable
+ * — this view is read-only.
+ */
+function StoryPillarSummary({ card }: { card: Card }) {
+  if (!card.storyPillars) return null;
+  const questions = getQuestionsForArchetype(card.archetype);
+  const questionById = new Map(questions.map((q) => [q.id, q]));
+  return (
+    <div className="space-y-2">
+      {card.storyPillars.answers.map((a) => {
+        const q = questionById.get(a.questionId);
+        return (
+          <div key={a.questionId} className="rounded-md border border-slate-dark bg-obsidian/40 p-2">
+            {q && (
+              <div className="text-[10px] uppercase tracking-widest text-gold/60 mb-0.5">
+                {q.prompt}
+              </div>
+            )}
+            <div className="text-[12px] text-bone/90 italic">"{a.answer}"</div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

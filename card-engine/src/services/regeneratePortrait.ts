@@ -1,55 +1,34 @@
-import type { Card, ModifierStack } from '../types/card';
+import type { Card } from '../types/card';
 import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
-import { generateCardText } from './claudeApi';
-import { getOverallRank, getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
-import {
-  MODIFIER_CATEGORIES,
-  getClassSignaturePool,
-  rollSurprise,
-  rollWeighted,
-} from '../data/modifierPools';
+import { generateCardTextWithRetry } from './claudeApi';
+import { getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 import { saveCard } from './storage';
+import { emptyHiddenFate } from './hiddenFate';
 
 /**
- * Regenerates ONLY the portrait for a card at its current rank. Does not
- * change stats, name, lore, or history. Use when a previous portrait was
- * corrupted (nsfw filter, old data:text/html bug) or the user wants a re-roll.
+ * Regenerates ONLY the portrait for a card at its current rank. Preserves
+ * name, lore, stats, storyPillars, elementSelection, and (per Bible §Rank
+ * continuity) the locked HiddenFate identity anchors.
+ *
+ * Used when a previous portrait was corrupted or the user wants a re-roll.
+ * Does NOT re-roll Story Pillars — those are immutable generation facts.
  */
 export async function regeneratePortrait(card: Card): Promise<Card> {
-  const overallRank = getOverallRank(card.stats);
+  if (!card.storyPillars || !card.elementSelection) {
+    throw new Error(
+      'This card was created before the Character Generation Bible integration. It will be reset when the new pipeline ships.',
+    );
+  }
 
-  const baseModifiers: ModifierStack = card.modifiers ?? {
-    setting: rollSurprise(MODIFIER_CATEGORIES[0].pool, []).text,
-    demeanor: rollSurprise(MODIFIER_CATEGORIES[1].pool, []).text,
-    signatureDetail: rollSurprise(MODIFIER_CATEGORIES[2].pool, []).text,
-    lighting: rollSurprise(MODIFIER_CATEGORIES[3].pool, []).text,
-  };
+  const text = await generateCardTextWithRetry({
+    archetype: card.archetype,
+    stats: card.stats,
+    answers: card.storyPillars,
+    element: card.elementSelection,
+    existingName: card.cardName,
+    existingHiddenFate: card.hiddenFate ?? emptyHiddenFate(),
+  });
 
-  const classPool = getClassSignaturePool(card.archetype);
-  const modifiers: ModifierStack = {
-    ...baseModifiers,
-    classSignature:
-      overallRank !== 'Foundation' && !baseModifiers.classSignature && classPool.length > 0
-        ? rollWeighted(classPool).text
-        : baseModifiers.classSignature,
-  };
-
-  // Claude composes the Leonardo prompt (guaranteed <= 1300 chars). We pass
-  // the existing card name AND identity so the same character is preserved.
-  const text = await generateCardText(
-    card.archetype,
-    card.stats,
-    card.whisperWords,
-    modifiers,
-    card.cardName,
-    card.identity,
-    false,
-    undefined,
-    card.lycanIdentity,
-  );
-
-  // Only pass a valid image as init image. Corrupted portraitAsset (empty or
-  // legacy data:text/html) is not usable and would break the whole call.
   const initImage =
     typeof card.portraitAsset === 'string' &&
     (card.portraitAsset.startsWith('data:image/') || card.portraitAsset.startsWith('/assets/'))
@@ -57,20 +36,25 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
       : undefined;
 
   const initStrength = getInitStrengthForArchetype(card.archetype);
-  const portrait = await generatePortraitStrict(text.portraitPrompt, text.negativePrompt, initImage, initStrength);
+  const regenModelKey =
+    (card.generationModel as import('./leonardoApi').LeonardoModelKey | undefined) ?? 'phoenix_1_0';
+  const { dataUrl: portrait } = await generatePortraitStrict(
+    text.portraitPrompt,
+    text.negativePrompt,
+    initImage,
+    initStrength,
+    regenModelKey,
+  );
 
-  // Also re-derive dominant/border in case older cards weren't computed post-fix.
   const dominant = getDominantStat(card.stats);
   const border = getBorderForDominantStat(dominant);
 
   const updated: Card = {
     ...card,
     portraitAsset: portrait,
-    modifiers,
     dominantStat: dominant,
     border: { baseVariant: border, baseSource: `/assets/borders/${border.toLowerCase()}.png` },
-    // Preserve prior identity if we had one; otherwise adopt what Claude produced.
-    identity: card.identity ?? text.identity,
+    hiddenFate: text.hiddenFate,
   };
 
   saveCard(updated);

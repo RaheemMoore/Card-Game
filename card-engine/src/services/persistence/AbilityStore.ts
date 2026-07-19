@@ -32,6 +32,9 @@ export interface AbilityStore {
   getCurrentVersion(abilityId: string): AbilityVersion | undefined;
 
   getArtForAbility(abilityId: string): CanonicalArtAsset | undefined;
+  /** Every art asset regardless of status. Used by the review flow to
+   *  surface candidates and history. */
+  getAllArt(): CanonicalArtAsset[];
 
   // ---- Library writes (async, admin-only via RLS) ----
   saveFamily(family: AbilityFamily): Promise<void>;
@@ -150,6 +153,9 @@ export class LocalStorageAbilityStore implements AbilityStore {
     return this.readLibrary().art.find(
       (a) => a.abilityId === abilityId && a.status === 'approved',
     );
+  }
+  getAllArt(): CanonicalArtAsset[] {
+    return this.readLibrary().art;
   }
 
   async saveFamily(family: AbilityFamily): Promise<void> {
@@ -272,6 +278,9 @@ export class InMemoryAbilityStore implements AbilityStore {
   }
   getArtForAbility(abilityId: string): CanonicalArtAsset | undefined {
     return this.library.art.find((a) => a.abilityId === abilityId && a.status === 'approved');
+  }
+  getAllArt(): CanonicalArtAsset[] {
+    return this.library.art;
   }
 
   async saveFamily(family: AbilityFamily): Promise<void> {

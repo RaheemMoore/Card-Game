@@ -96,7 +96,27 @@ export interface Card {
   dominantStat: StatName | null;
   border: CardBorder;
   lore: string;
+  /** Bible-era Story Pillar answers. Immutable generation facts per Bible §Guided Narrative Chains. */
+  storyPillars?: import('./bible').StoryPillarAnswers;
+  /** Bible-era element + bond selection. */
+  elementSelection?: import('./bible').ElementSelection;
+  /** Bible-era Hidden Fate — details Claude inferred. Preserved across ranks. */
+  hiddenFate?: import('./bible').HiddenFate;
+  /**
+   * Which Leonardo model produced the current portrait. Used for the
+   * post-M3.5 A/B model comparison so the Collection can tag each card
+   * with its generator. Values are LeonardoModelKey from services/leonardoApi.
+   */
+  generationModel?: string;
+  /**
+   * Bible-era prestige role — earned through narrative, never player-selected.
+   * Set only when prestigeInference finds the character's completed answers
+   * support one of the archetype's approved titles.
+   */
+  prestige?: import('./bible').PrestigeRole;
+  /** @deprecated legacy pre-Bible whisper word list — kept for grandfathered cards. */
   whisperWords: string[];
+  /** @deprecated legacy pre-Bible modifier stack — kept for grandfathered cards. */
   modifiers?: ModifierStack;
   identity?: CharacterIdentity;
   /**

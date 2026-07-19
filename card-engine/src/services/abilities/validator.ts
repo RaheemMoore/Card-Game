@@ -185,9 +185,16 @@ function validateEffect(effect: AbilityEffect, path: string, errors: ValidationE
       break;
     case 'conditional_bonus':
       validateCondition(effect.condition, `${path}.condition`, errors);
-      effect.effects.forEach((inner, i) =>
-        validateEffect(inner, `${path}.effects[${i}]`, errors),
-      );
+      if (!Array.isArray(effect.effects)) {
+        errors.push({
+          path: `${path}.effects`,
+          message: 'conditional_bonus.effects must be an array',
+        });
+      } else {
+        effect.effects.forEach((inner, i) =>
+          validateEffect(inner, `${path}.effects[${i}]`, errors),
+        );
+      }
       break;
   }
 }

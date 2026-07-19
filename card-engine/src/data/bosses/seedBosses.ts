@@ -82,8 +82,8 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
       passiveDescriptions: ['Wisps of white-hot spark flake off with each breath.'],
       actions: [
         {
-          id: 'act_fe_infernal_lance',
-          displayName: 'Infernal Lance',
+          id: 'act_fe_ember_lance',
+          displayName: 'Ember Lance',
           intentType: 'heavy_attack',
           telegraphText: 'A javelin of white flame gathers overhead.',
           priority: 30,

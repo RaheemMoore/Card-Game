@@ -1,4 +1,5 @@
-import type { Card, CardStats, StatName, Rank, ArtSnapshot, ModifierStack, AbilityHistorySnapshot } from '../types/card';
+import type { Card, CardStats, StatName, Rank, ArtSnapshot, AbilityHistorySnapshot } from '../types/card';
+import type { HiddenFate } from '../types/bible';
 import type { AbilitySlotType, CardAbilityReference } from '../types/abilities';
 import {
   BIAS_RANGES,
@@ -10,39 +11,49 @@ import {
   getStatNames,
 } from '../data/powerSystem';
 import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
-import { generateCardText } from './claudeApi';
+import { generateCardTextWithRetry } from './claudeApi';
 import { saveCard } from './storage';
-import {
-  MODIFIER_CATEGORIES,
-  getClassSignaturePool,
-  rollSurprise,
-  rollWeighted,
-} from '../data/modifierPools';
+import { emptyHiddenFate } from './hiddenFate';
+import { inferPrestige } from './prestigeInference';
 import { proposeAbility } from './abilities/proposalService';
 import { getAbilityStore, saveReference, getReferencesForCard } from './abilities/registry';
 import { grantDiscoveryReward } from './abilities/discoveryLedger';
 import { getCurrentUserId } from './persistence/supabaseClient';
+
+/**
+ * Bible-driven tier-up.
+ *
+ * Bible §Rank continuity is inviolable:
+ *   - Same sex, age, body type, ancestry, disability, physical condition,
+ *     defining scars, core identity.
+ *   - Advancement must NOT automatically make the character younger, thinner,
+ *     more muscular, healthier, less disabled, or more conventionally
+ *     attractive.
+ *   - No forced "MORE machine each rank", no forced "MORE wolf each rank",
+ *     no forced apotheosis.
+ *
+ * Ascendant tier-ups run prestige inference — if the completed Story Pillar
+ * answers narratively support one of the archetype's approved titles, the
+ * card gains a PrestigeRole. This is never player-selected.
+ */
 
 const NEXT_RANK: Partial<Record<Rank, Rank>> = {
   Foundation: 'Forged',
   Forged: 'Ascendant',
 };
 
-function bumpStatsToNextRank(stats: CardStats, _archetype: string, activeStats: StatName[]): CardStats {
+function bumpStatsToNextRank(stats: CardStats, activeStats: StatName[]): CardStats {
   const newStats = structuredClone(stats);
-
   for (const name of activeStats) {
     const entry = newStats[name]!;
     const currentRank = deriveRank(entry.value, entry.bias);
     const target = NEXT_RANK[currentRank];
     if (!target) continue;
-
     const range = BIAS_RANGES[entry.bias];
     const floor = target === 'Forged' ? range.forgedFloor : range.ascendantFloor;
     const ceiling = target === 'Ascendant' ? range.hardCap : range.ascendantFloor - 1;
     entry.value = floor + Math.floor(Math.random() * (ceiling - floor + 1));
   }
-
   return newStats;
 }
 
@@ -55,31 +66,24 @@ function snapshotCurrentState(card: Card, activeStats: StatName[]): Card['evolut
     nameAndTitle: card.nameAndTitle,
     lore: card.lore,
   };
-
   for (const name of activeStats) {
     const rank = ranks[name]!;
     if (!history[name]) history[name] = {};
     history[name]![rank] = snapshot;
   }
-
   return history;
 }
 
 export function canTierUp(card: Card): boolean {
-  const overallRank = getOverallRank(card.stats);
-  return overallRank !== 'Ascendant';
+  return getOverallRank(card.stats) !== 'Ascendant';
 }
 
 export interface TierUpResult {
   card: Card;
   portraitRegenerated: boolean;
   portraitError?: string;
-  /**
-   * Set when this tier-up granted a NEW ability that was also the player's
-   * first discovery of it. Drives the Relic Discovery modal (Gate 7A).
-   * `moment='evolution'` for the Foundation→Forged signature reveal;
-   * `moment='ultimate'` for the Forged→Ascendant ultimate awakening.
-   */
+  /** Bible §Prestige — assigned only when the narrative supports it, at Ascendant. */
+  prestigeAwarded?: string;
   newAbilityDiscovery?: {
     abilityId: string;
     slotType: AbilitySlotType;
@@ -87,47 +91,25 @@ export interface TierUpResult {
   };
 }
 
-export async function tierUpCard(
-  card: Card,
-  /**
-   * Ascendant tier-up only: the fused-whisper narrative the user picked in the
-   * pre-tier-up modal. Gets passed to Claude as the organizing image for the
-   * portrait + lore. Omit for Forged tier-ups.
-   */
-  ascendantNarrative?: string,
-): Promise<TierUpResult> {
+export async function tierUpCard(card: Card): Promise<TierUpResult> {
   const activeStats = getStatNames(card.archetype);
   const history = snapshotCurrentState(card, activeStats);
-  const newStats = bumpStatsToNextRank(card.stats, card.archetype, activeStats);
+  const newStats = bumpStatsToNextRank(card.stats, activeStats);
   const newOverallRank = getOverallRank(newStats);
+  const oldRank = getOverallRank(card.stats);
   const newDominant = getDominantStat(newStats);
   const newBorder = getBorderForDominantStat(newDominant);
   const borderSource = `/assets/borders/${newBorder.toLowerCase()}.png`;
 
-  const baseModifiers: ModifierStack = card.modifiers ?? {
-    setting: rollSurprise(MODIFIER_CATEGORIES[0].pool, []).text,
-    demeanor: rollSurprise(MODIFIER_CATEGORIES[1].pool, []).text,
-    signatureDetail: rollSurprise(MODIFIER_CATEGORIES[2].pool, []).text,
-    lighting: rollSurprise(MODIFIER_CATEGORIES[3].pool, []).text,
-  };
+  // Bible cards MUST have storyPillars + elementSelection to tier up.
+  // Legacy cards (pre-Bible) are wiped in Phase M3; between M2 and M3 we
+  // return a graceful error so the caller can surface it.
+  if (!card.storyPillars || !card.elementSelection) {
+    throw new Error(
+      'This card was created before the Character Generation Bible integration and cannot be tiered up. It will be reset when the new pipeline ships.',
+    );
+  }
 
-  // Class Signature unlocks at Forged+. Roll one now if crossing that threshold
-  // (or the card was made before signatures existed).
-  const classPool = getClassSignaturePool(card.archetype);
-  const modifiers: ModifierStack = {
-    ...baseModifiers,
-    classSignature:
-      newOverallRank !== 'Foundation' && !baseModifiers.classSignature && classPool.length > 0
-        ? rollWeighted(classPool).text
-        : baseModifiers.classSignature,
-  };
-
-  // Slot to unlock on this tier-up. Foundation → Forged unlocks signature;
-  // Forged → Ascendant unlocks ultimate. If the previous rank already had
-  // a signature/ultimate (e.g. legacy card promoted via backfill), we still
-  // propose to fill the newly-required slot — Claude sees the archetype's
-  // family affinity and produces a distinct ability.
-  const oldRank = getOverallRank(card.stats);
   const abilitySlotToFill: AbilitySlotType | undefined =
     newOverallRank === 'Forged' && oldRank === 'Foundation'
       ? 'signature'
@@ -135,82 +117,72 @@ export async function tierUpCard(
         ? 'ultimate'
         : undefined;
 
-  // Claude composes lore AND the Leonardo prompt (guaranteed <= 1300 chars) — this
-  // replaces the local prompt assembler for tier-up so we can't blow the 1500 cap.
-  // Passing card.identity keeps the same person across ranks — Claude weaves the
-  // gender/ethnicity/hair/eyes verbatim into the new portraitPrompt.
-  // shouldEvolve=true asks Claude to escalate each modifier string to fit the
-  // new rank ("Storm" → "Tempest" at Forged, etc.) and to use the escalated
-  // values inside portraitPrompt so image + lore stay coherent.
-  const text = await generateCardText(
-    card.archetype,
-    newStats,
-    card.whisperWords,
-    modifiers,
-    card.cardName,
-    card.identity,
-    true,
-    ascendantNarrative,
-    card.lycanIdentity,
-    abilitySlotToFill,
+  // Preserve Hidden Fate identity anchors across ranks — Claude receives
+  // the previous card's HiddenFate and is instructed to keep locked
+  // fields verbatim (see claudeApi.ts).
+  const existingHiddenFate: HiddenFate = card.hiddenFate ?? emptyHiddenFate();
+
+  // Pass the card's current-rank ability refs so Claude can weave each
+  // ability's visual signature into the new portrait per M3.5.
+  const existingAbilityRefs = getReferencesForCard(card.cardId).filter(
+    (r) => r.localTier === oldRank,
   );
 
-  // Adopt the evolved modifiers if Claude returned them; otherwise stick with
-  // the input (safe fallback — nothing breaks, just no escalation this turn).
-  const finalModifiers: ModifierStack = text.evolvedModifiers ?? modifiers;
+  const text = await generateCardTextWithRetry({
+    archetype: card.archetype,
+    stats: newStats,
+    answers: card.storyPillars,
+    element: card.elementSelection,
+    existingName: card.cardName,
+    existingHiddenFate,
+    abilitySlotToFill,
+    existingAbilityRefs,
+  });
 
-  // Populate the modifier lineage so we can show the escalation history later.
-  // Initialize the current rank's snapshot too, in case the card predates this feature.
-  // (oldRank already computed above for slot-unlock detection.)
-  const priorLineage = card.modifierLineage ?? {};
-  const modifierLineage: Partial<Record<Rank, ModifierStack>> = {
-    ...priorLineage,
-    [oldRank]: priorLineage[oldRank] ?? modifiers,
-    [newOverallRank]: finalModifiers,
-  };
+  // Ascendant tier-up runs prestige inference. Non-Ascendant returns null.
+  const prestigeResult = inferPrestige(card.archetype, card.storyPillars, newOverallRank);
+  const prestige = prestigeResult.role ?? undefined;
 
-  // Portrait can fail (nsfw filter, API errors) — capture the failure reason
-  // and preserve the previous portrait so the tier-up doesn't leave the card
-  // with a broken image. The caller surfaces the reason to the user.
+  // Portrait — Bible-compliant fallback preserves previous portrait on
+  // Leonardo/NSFW failure, same as before.
   let portraitError: string | undefined;
   let portraitRegenerated = true;
-
-  // Only use the previous portrait as an init image if it's actually an image.
-  // Cards created before the NSFW-null fix may have `data:text/html` stored
-  // here — sending that as an init image would break the whole tier-up call.
   const previousIsUsableImage =
     typeof card.portraitAsset === 'string' &&
     (card.portraitAsset.startsWith('data:image/') || card.portraitAsset.startsWith('/assets/'));
   const initImage = previousIsUsableImage ? card.portraitAsset : undefined;
+  // M4.8 — pass rank so Ascendant gets a looser 0.30 init, letting Phoenix
+  // unfurl non-mortal features while keeping identity anchors from text.
+  const initStrength = getInitStrengthForArchetype(card.archetype, newOverallRank);
 
-  const initStrength = getInitStrengthForArchetype(card.archetype);
-  const portrait = await generatePortraitStrict(text.portraitPrompt, text.negativePrompt, initImage, initStrength)
-    .catch((err: unknown) => {
-      portraitRegenerated = false;
-      portraitError = err instanceof Error ? err.message : String(err);
-      console.warn('Tier-up portrait generation failed, keeping previous portrait:', err);
-      console.info(`Failed prompt (length ${text.portraitPrompt.length}):`, text.portraitPrompt);
-      return card.portraitAsset;
-    });
+  // Tier-ups keep whatever model the card was originally forged with so the
+  // Collection A/B stays coherent — a card tagged phoenix_1_0 stays phoenix
+  // through its evolutions.
+  const tierModelKey =
+    (card.generationModel as import('./leonardoApi').LeonardoModelKey | undefined) ?? 'phoenix_1_0';
+  const portraitResult = await generatePortraitStrict(
+    text.portraitPrompt,
+    text.negativePrompt,
+    initImage,
+    initStrength,
+    tierModelKey,
+  ).catch((err: unknown) => {
+    portraitRegenerated = false;
+    portraitError = err instanceof Error ? err.message : String(err);
+    console.warn('Tier-up portrait generation failed, keeping previous portrait:', err);
+    return { dataUrl: card.portraitAsset, modelKey: tierModelKey };
+  });
+  const portrait = portraitResult.dataUrl;
 
-  // Ability handling on tier-up:
-  //   1. Copy every ref from the previous rank forward with localTier = newRank
-  //      (Core carries into Forged/Ascendant; Signature into Ascendant).
-  //   2. If a new slot unlocks and Claude returned an abilityCandidate,
-  //      propose it and attach on exact-match. Silent fallback on failure.
-  //   3. Snapshot the resulting set into card.abilityHistory[newRank].
+  // Ability carry-forward + slot fill — unchanged from before, still
+  // reads from ability registry.
   const abilitySnapshots: AbilityHistorySnapshot[] = [];
   let newAbilityDiscovery: TierUpResult['newAbilityDiscovery'];
   try {
     const priorRefs = getReferencesForCard(card.cardId);
     for (const priorRef of priorRefs) {
-      // Only forward the newest-tier row for each slot; skip stale duplicates
-      // if this card has already been tiered up in the past.
       if (priorRef.localTier !== oldRank) continue;
-      const carried: CardAbilityReference = {
-        ...priorRef,
-        localTier: newOverallRank,
-      };
+      const carried: CardAbilityReference = { ...priorRef, localTier: newOverallRank };
       saveReference(carried);
       abilitySnapshots.push({
         abilityId: carried.abilityId,
@@ -245,8 +217,6 @@ export async function tierUpCard(
           if (reward.kind === 'granted') {
             const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
             if (import.meta.env.DEV) console.debug(`[tier-up] discovery reward granted: ${summary}`);
-          } else if (reward.kind === 'zero_value_placeholder') {
-            if (import.meta.env.DEV) console.debug(`[tier-up] discovery recorded (reward paused): ${reward.rewardId}`);
           }
           const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
           newAbilityDiscovery = {
@@ -258,16 +228,10 @@ export async function tierUpCard(
                 : undefined,
           };
         }
-      } else if (outcome.kind === 'queued') {
-        if (import.meta.env.DEV) console.debug(
-          `[tier-up] ${abilitySlotToFill} queued for admin review: ${outcome.abilityId}`,
-        );
-      } else if (outcome.kind === 'rejected') {
-        console.warn(`[tier-up] ${abilitySlotToFill} candidate rejected:`, outcome.errors);
       }
     }
   } catch (err) {
-    console.warn('[tier-up] ability handling failed, card ships without ability update:', err);
+    console.warn('[tier-up] ability handling failed:', err);
   }
 
   const priorAbilityHistory = card.abilityHistory ?? {};
@@ -284,15 +248,18 @@ export async function tierUpCard(
     nameAndTitle: text.nameAndTitle,
     lore: text.lore,
     portraitAsset: portrait,
-    modifiers: finalModifiers,
-    modifierLineage,
-    // Persist identity — either the pre-existing one (unchanged) or the fresh
-    // one Claude generated for cards created before identity-lock existed.
-    identity: card.identity ?? text.identity,
+    hiddenFate: text.hiddenFate,
+    prestige: prestige ?? card.prestige,
     evolutionHistory: history,
     abilityHistory: Object.keys(abilityHistory).length > 0 ? abilityHistory : undefined,
   };
 
   saveCard(updatedCard);
-  return { card: updatedCard, portraitRegenerated, portraitError, newAbilityDiscovery };
+  return {
+    card: updatedCard,
+    portraitRegenerated,
+    portraitError,
+    prestigeAwarded: prestige?.title,
+    newAbilityDiscovery,
+  };
 }
