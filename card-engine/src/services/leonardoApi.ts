@@ -6,6 +6,47 @@ const LEONARDO_API_BASE = '/api/leonardo';
 const POLL_INTERVAL_MS = 3000;
 const POLL_TIMEOUT_MS = 60000;
 
+/**
+ * Leonardo model registry — production API IDs pulled from
+ * cloud.leonardo.ai/api/rest/v2/models on 2026-07-19.
+ *
+ * All entries are painterly / fantasy-illustration styles that fit the card
+ * aesthetic. Phoenix 1.0 is the historical default and current baseline.
+ * The rest exist so we can A/B test which model handles our multi-clause
+ * Bible-driven prompts best without changing aesthetic family.
+ */
+export const LEONARDO_MODELS = {
+  phoenix_1_0: {
+    id: 'de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3',
+    displayName: 'Phoenix 1.0',
+    supportsAlchemy: true,
+  },
+  concept_art: {
+    id: 'dd29ac47-ea88-4720-8678-b8633245c09c',
+    displayName: 'Concept Art',
+    supportsAlchemy: true,
+  },
+  lucid_origin: {
+    id: '7b592283-e8a7-4c5a-9ba6-d18c31f258b9',
+    displayName: 'Lucid Origin',
+    supportsAlchemy: true,
+  },
+  illustrative_albedo: {
+    id: '2067ae52-33fd-4a82-bb92-c2c55e7d2786',
+    displayName: 'Illustrative Albedo',
+    supportsAlchemy: true,
+  },
+} as const;
+
+export type LeonardoModelKey = keyof typeof LEONARDO_MODELS;
+
+/**
+ * Default model + resolution for card portraits. Bumped 512→768 to match
+ * the resolution of Raheem's reference favorites and reveal more detail.
+ */
+export const DEFAULT_MODEL: LeonardoModelKey = 'phoenix_1_0';
+const IMAGE_SIZE = 768;
+
 async function uploadInitImage(
   apiKey: string,
   imageDataUrl: string,
@@ -49,17 +90,19 @@ async function submitGeneration(
   apiKey: string,
   prompt: string,
   negativePrompt: string,
+  modelKey: LeonardoModelKey,
   initImageId?: string,
   initStrength?: number,
 ): Promise<{ generationId: string; cost: string }> {
+  const model = LEONARDO_MODELS[modelKey];
   const body: Record<string, unknown> = {
     prompt,
     negative_prompt: negativePrompt,
-    modelId: 'de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3',
-    width: 512,
-    height: 512,
+    modelId: model.id,
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
     num_images: 1,
-    alchemy: true,
+    alchemy: model.supportsAlchemy,
   };
 
   if (initImageId) {
@@ -177,7 +220,8 @@ export async function generatePortraitStrict(
   negativePrompt: string,
   initImageDataUrl?: string,
   initStrength?: number,
-): Promise<string> {
+  modelKey: LeonardoModelKey = DEFAULT_MODEL,
+): Promise<{ dataUrl: string; modelKey: LeonardoModelKey }> {
   // In production the /api/leonardo proxy injects a server-side LEONARDO_API_KEY,
   // so the client no longer needs one. Dev still uses the vite proxy which
   // passes VITE_LEONARDO_API_KEY through unchanged.
@@ -192,13 +236,20 @@ export async function generatePortraitStrict(
     }
   }
 
-  const { generationId } = await submitGeneration(apiKey, prompt, negativePrompt, initImageId, initStrength);
+  const { generationId } = await submitGeneration(
+    apiKey,
+    prompt,
+    negativePrompt,
+    modelKey,
+    initImageId,
+    initStrength,
+  );
   const imageUrl = await pollForResult(apiKey, generationId);
   const dataUrl = await fetchAsDataUrl(imageUrl);
   if (!dataUrl.startsWith('data:image/')) {
     throw new Error('Leonardo returned non-image data URL');
   }
-  return dataUrl;
+  return { dataUrl, modelKey };
 }
 
 /**
@@ -222,11 +273,36 @@ export async function generatePortrait(
   rank: Rank,
   initImageDataUrl?: string,
   initStrength?: number,
-): Promise<string> {
+  modelKey: LeonardoModelKey = DEFAULT_MODEL,
+): Promise<{ dataUrl: string; modelKey: LeonardoModelKey }> {
   try {
-    return await generatePortraitStrict(prompt, negativePrompt, initImageDataUrl, initStrength);
+    return await generatePortraitStrict(prompt, negativePrompt, initImageDataUrl, initStrength, modelKey);
   } catch (err) {
     console.error('Leonardo API error, using placeholder:', err);
-    return generatePlaceholderPortrait(archetype, rank);
+    return { dataUrl: generatePlaceholderPortrait(archetype, rank), modelKey };
   }
+}
+
+/**
+ * A/B test pool for the M3.6 model comparison. Round-robins across four
+ * painterly / illustrative Leonardo models so we can compare quality on
+ * the same style of prompt without user preference bias. Storage in
+ * localStorage keeps the rotation stable across page reloads.
+ */
+const AB_TEST_POOL: LeonardoModelKey[] = [
+  'phoenix_1_0',
+  'concept_art',
+  'lucid_origin',
+  'illustrative_albedo',
+];
+const AB_TEST_KEY = 'card-engine-ab-test-cursor';
+
+export function pickAbTestModel(): LeonardoModelKey {
+  const raw = typeof window !== 'undefined' ? window.localStorage.getItem(AB_TEST_KEY) : null;
+  const cursor = raw ? (parseInt(raw, 10) || 0) : 0;
+  const model = AB_TEST_POOL[cursor % AB_TEST_POOL.length];
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(AB_TEST_KEY, String((cursor + 1) % AB_TEST_POOL.length));
+  }
+  return model;
 }

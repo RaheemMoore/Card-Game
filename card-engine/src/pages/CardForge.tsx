@@ -11,7 +11,7 @@ import { rollElement } from '../services/elementRoller';
 import { CardRenderer } from '../components/CardRenderer';
 import { buildCardShell } from '../services/cardGenerator';
 import { generateCardText } from '../services/claudeApi';
-import { generatePortraitStrict } from '../services/leonardoApi';
+import { generatePortraitStrict, pickAbTestModel } from '../services/leonardoApi';
 import { saveCard } from '../services/storage';
 import { proposeAbility } from '../services/abilities/proposalService';
 import { getAbilityStore, saveReference } from '../services/abilities/registry';
@@ -155,9 +155,16 @@ export function CardForge() {
         abilitySlotToFill: 'core',
       });
 
+      // M3.6 A/B — rotate through 4 painterly Leonardo models on Foundation
+      // forges so we can pick a winner from the sample. Model is recorded on
+      // the card for after-the-fact comparison in Collection.
+      const abModel = pickAbTestModel();
       const portrait = await generatePortraitStrict(
         text.portraitPrompt,
         text.negativePrompt,
+        undefined,
+        undefined,
+        abModel,
       );
 
       let abilityHistorySnapshot: AbilityHistorySnapshot[] = [];
@@ -208,7 +215,8 @@ export function CardForge() {
         cardName: text.cardName,
         nameAndTitle: text.nameAndTitle,
         lore: text.lore,
-        portraitAsset: portrait,
+        portraitAsset: portrait.dataUrl,
+        generationModel: portrait.modelKey,
         storyPillars,
         elementSelection: element,
         hiddenFate: text.hiddenFate,

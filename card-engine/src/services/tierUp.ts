@@ -153,17 +153,24 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
   const initImage = previousIsUsableImage ? card.portraitAsset : undefined;
   const initStrength = getInitStrengthForArchetype(card.archetype);
 
-  const portrait = await generatePortraitStrict(
+  // Tier-ups keep whatever model the card was originally forged with so the
+  // Collection A/B stays coherent — a card tagged phoenix_1_0 stays phoenix
+  // through its evolutions.
+  const tierModelKey =
+    (card.generationModel as import('./leonardoApi').LeonardoModelKey | undefined) ?? 'phoenix_1_0';
+  const portraitResult = await generatePortraitStrict(
     text.portraitPrompt,
     text.negativePrompt,
     initImage,
     initStrength,
+    tierModelKey,
   ).catch((err: unknown) => {
     portraitRegenerated = false;
     portraitError = err instanceof Error ? err.message : String(err);
     console.warn('Tier-up portrait generation failed, keeping previous portrait:', err);
-    return card.portraitAsset;
+    return { dataUrl: card.portraitAsset, modelKey: tierModelKey };
   });
+  const portrait = portraitResult.dataUrl;
 
   // Ability carry-forward + slot fill — unchanged from before, still
   // reads from ability registry.

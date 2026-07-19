@@ -36,11 +36,14 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
       : undefined;
 
   const initStrength = getInitStrengthForArchetype(card.archetype);
-  const portrait = await generatePortraitStrict(
+  const regenModelKey =
+    (card.generationModel as import('./leonardoApi').LeonardoModelKey | undefined) ?? 'phoenix_1_0';
+  const { dataUrl: portrait } = await generatePortraitStrict(
     text.portraitPrompt,
     text.negativePrompt,
     initImage,
     initStrength,
+    regenModelKey,
   );
 
   const dominant = getDominantStat(card.stats);

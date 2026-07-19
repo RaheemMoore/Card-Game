@@ -103,6 +103,12 @@ export interface Card {
   /** Bible-era Hidden Fate — details Claude inferred. Preserved across ranks. */
   hiddenFate?: import('./bible').HiddenFate;
   /**
+   * Which Leonardo model produced the current portrait. Used for the
+   * post-M3.5 A/B model comparison so the Collection can tag each card
+   * with its generator. Values are LeonardoModelKey from services/leonardoApi.
+   */
+  generationModel?: string;
+  /**
    * Bible-era prestige role — earned through narrative, never player-selected.
    * Set only when prestigeInference finds the character's completed answers
    * support one of the archetype's approved titles.

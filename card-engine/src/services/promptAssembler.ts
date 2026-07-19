@@ -57,7 +57,7 @@ export function assemblePortraitPrompt(
     .join(' ; ');
 
   const parts: string[] = [
-    'fantasy character portrait, painterly digital art, chest-up composition, single character centered in frame, entire head fully visible from top of hair to shoulders, detailed face with eyes and forehead clearly rendered, rich textures',
+    'fantasy trading card game illustration in the style of Magic the Gathering and Hearthstone, painterly digital art with visible brush texture and semi-realistic rendering, waist-up 3/4 body composition, single character centered and occupying 55 to 70 percent of the frame, entire head fully visible with detailed face and intense expression, dramatic backlit rim-light halo glowing behind the character, painterly-blurred architectural or environmental background, rich saturated palette with deep blacks and glowing accents',
     `Archetype: ${input.archetype} — identity through ${c.identityThrough}`,
     `Recognition cues: ${c.visualDNA.recognitionCues}`,
     `Materials: ${c.symbolAndMaterial.materials}`,
@@ -66,7 +66,7 @@ export function assemblePortraitPrompt(
   ];
 
   if (pillarSeed) parts.push(`Story anchors (must be visible): ${pillarSeed}`);
-  parts.push('entire head fully in frame, eyes and forehead visible, chest-up composition centered');
+  parts.push('entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered');
 
   const prompt = parts.join('. ');
 

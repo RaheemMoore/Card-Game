@@ -334,7 +334,7 @@ export async function generateCanonicalArt(
     supersededId = prior.id;
   }
 
-  const dataUrl = await generatePortraitStrict(prompt, negativePrompt);
+  const { dataUrl } = await generatePortraitStrict(prompt, negativePrompt);
 
   // Until the three-crop Leonardo pipeline lands (see canonical prompt
   // cleanup, Phase 6 of Gate 7A), a single generated image fills all three
