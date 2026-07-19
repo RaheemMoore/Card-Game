@@ -10,6 +10,14 @@ import { buildCardShell } from '../services/cardGenerator';
 import { generateCardText } from '../services/claudeApi';
 import { generatePortraitStrict } from '../services/leonardoApi';
 import { saveCard } from '../services/storage';
+import { getQuestionsForArchetype } from '../data/storyPillars';
+import { bucketFor } from '../data/elements';
+import type {
+  ElementSelection,
+  ElementName,
+  StoryPillarAnswers,
+} from '../types/bible';
+import { ELEMENT_NAMES } from '../types/bible';
 import { getOverallRank } from '../data/powerSystem';
 import { proposeAbility } from '../services/abilities/proposalService';
 import { getAbilityStore, saveReference } from '../services/abilities/registry';
@@ -124,23 +132,49 @@ export function CardForge() {
     try {
       const shell = buildCardShell(archetype, stats, whisperWords);
 
+      // TEMPORARY M2 bridge: the whisper wheel is still the input UI. M3
+      // replaces it with the Story Pillar wizard. Until then, we synthesize
+      // StoryPillarAnswers from the current modifier stack so the new
+      // Bible-driven claudeApi.ts contract is satisfied. Cards created this
+      // way will be wiped at the M3 gate per Raheem's fresh-start decision.
+      const questions = getQuestionsForArchetype(archetype);
+      const modAnswerSources = [
+        mods.lineage,
+        mods.demeanor,
+        mods.signatureDetail,
+        mods.setting,
+        mods.physique,
+        mods.lighting,
+        mods.classSignature,
+      ].filter((v): v is string => Boolean(v));
+      const storyPillars: StoryPillarAnswers = {
+        answers: questions.slice(0, modAnswerSources.length).map((q, i) => ({
+          questionId: q.id,
+          optionId: `legacy_${q.id}`,
+          answer: modAnswerSources[i],
+        })),
+      };
+      const elementNameRaw = (mods.element ?? 'Fire') as string;
+      const elementName: ElementName = (ELEMENT_NAMES as readonly string[]).includes(
+        elementNameRaw,
+      )
+        ? (elementNameRaw as ElementName)
+        : 'Fire';
+      const element: ElementSelection = {
+        element: elementName,
+        bond: 'It is part of who I am.',
+        compatibility: bucketFor(archetype, elementName),
+      };
+
       // Claude first (composes the Leonardo prompt), then Leonardo. Both must
       // succeed or the whole action refunds — no half-forged card gets minted.
-      const text = await generateCardText(
+      const text = await generateCardText({
         archetype,
         stats,
-        whisperWords,
-        mods,
-        undefined,
-        undefined,
-        false,
-        undefined,
-        shell.lycanIdentity,
-        // Foundation forge always requests a Core ability. If Claude omits
-        // or malforms the field, the card ships without an ability and the
-        // legacy backfill pass fills it later.
-        'core',
-      );
+        answers: storyPillars,
+        element,
+        abilitySlotToFill: 'core',
+      });
       const portrait = await generatePortraitStrict(
         text.portraitPrompt,
         text.negativePrompt,
@@ -206,8 +240,10 @@ export function CardForge() {
         nameAndTitle: text.nameAndTitle,
         lore: text.lore,
         portraitAsset: portrait,
+        storyPillars,
+        elementSelection: element,
+        hiddenFate: text.hiddenFate,
         modifiers: mods,
-        identity: text.identity,
         abilityHistory: abilityHistorySnapshot.length > 0
           ? { Foundation: abilityHistorySnapshot }
           : undefined,

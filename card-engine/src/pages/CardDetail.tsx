@@ -215,7 +215,10 @@ export function CardDetail() {
     setIsTieringUp(true);
     setTierUpWarning(null);
     try {
-      const result = await tierUpCard(card, ascendantNarrative);
+      // ascendantNarrative was folded into the Bible-driven Ascendant Paths
+      // per Bible §Rank Evolution — the paths themselves carry the story.
+      void ascendantNarrative;
+      const result = await tierUpCard(card);
       // tierUpCard uses generatePortraitStrict internally BUT it catches the
       // error and returns portraitRegenerated=false, keeping the old portrait.
       // For a paid action that's a "text-only evolution" and per Section 7.3

@@ -1,72 +1,75 @@
-import type { Card, ModifierStack } from '../types/card';
-import { ARCHETYPES } from '../data/archetypes';
+import type { Card } from '../types/card';
+import { getBibleChapter } from '../data/archetypeBible';
+
+/**
+ * Ascendant Paths — Bible §Rank Evolution.
+ *
+ * The Bible reframes Ascendant per archetype:
+ *  - NOT apotheosis
+ *  - NOT a mythic combined image
+ *  - NOT a forced fusion of whispers
+ *
+ * Instead, each archetype's Ascendant is a "living reference point who
+ * changes what the legacy will become" (Barbarian), "a living interpretation
+ * of the discipline" (Monk), "an authority whose work changes how the living
+ * remember" (Necromancer), etc.
+ *
+ * The two paths this function generates offer two believable directions the
+ * character's completed choices could take them. Both paths must:
+ *  - preserve the character's identity, body, and disability
+ *  - preserve their Story Pillar answers
+ *  - avoid inventing a prestige role (Bible §Prestige — prestige is
+ *    emergent, inferred by prestigeInference, NOT chosen here)
+ *
+ * The chosen path is threaded into the tier-up as flavor context — not as
+ * a heavy directive that overrides the answers.
+ */
 
 export interface AscendantPath {
-  /** Short evocative name for the path, e.g. "The Royal Champion of the Sandstorm". */
   title: string;
-  /** 2-3 sentence dramatic narrative fusing the character's whispers into a mythic image. */
   narrative: string;
 }
 
-/**
- * Generates 2 dramatic narrative options for an Ascendant tier-up. Each option
- * synthesizes the character's existing whispers/modifiers/lineage into a single
- * mythic direction. The user picks one, and the chosen narrative gets fed into
- * the main tier-up Claude call as a heavily-weighted prompt directive.
- *
- * Cost: ~$0.0001 (one Claude Haiku call, no image).
- */
+const AI_MODEL = 'claude-haiku-4-5-20251001';
+
 export async function generateAscendantPaths(card: Card): Promise<AscendantPath[]> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.warn('No Anthropic API key — using fallback ascendant paths');
+  if (!apiKey || !card.storyPillars || !card.elementSelection) {
     return fallbackPaths(card);
   }
 
-  const arch = ARCHETYPES[card.archetype];
-  const mods: Partial<ModifierStack> = card.modifiers ?? {};
+  const chapter = getBibleChapter(card.archetype);
+  const answers = card.storyPillars.answers
+    .map((a) => `- ${a.answer}`)
+    .join('\n');
 
-  const modLines = [
-    mods.element && `Element: ${mods.element}`,
-    mods.physique && `Physique: ${mods.physique}`,
-    mods.lineage && `Lineage: ${mods.lineage}`,
-    mods.setting && `Setting: ${mods.setting}`,
-    mods.demeanor && `Demeanor: ${mods.demeanor}`,
-    mods.signatureDetail && `Signature Detail: ${mods.signatureDetail}`,
-    mods.lighting && `Lighting: ${mods.lighting}`,
-    mods.classSignature && `Class Trait: ${mods.classSignature}`,
-  ].filter(Boolean).join('\n');
+  const prompt = `You are following the Character Generation Bible. This character is about to reach Ascendant rank. Bible §Rank Evolution for ${card.archetype}:
 
-  const prompt = `You are crafting two "Ascendant Paths" for a fantasy card character reaching their final legendary form.
+"${chapter.rankEvolution.Ascendant}"
+${chapter.rankEvolution.continuityNote ? `Continuity: ${chapter.rankEvolution.continuityNote}` : ''}
 
 CHARACTER:
 - Name: ${card.cardName}
-- Title (Forged): ${card.nameAndTitle}
-- Archetype: ${card.archetype} — ${arch.identity}
-- Current lore: ${card.lore}
+- Current title: ${card.nameAndTitle}
+- Identity through: ${chapter.identityThrough}
+- Element: ${card.elementSelection.element} (bond: "${card.elementSelection.bond}")
 
-WHISPERS (existing modifiers — these define who they are):
-${modLines}
+STORY PILLAR ANSWERS (immutable — do NOT contradict):
+${answers}
 
 YOUR TASK:
-Generate TWO distinct dramatic narrative paths for this character's Ascendant form. Each path FUSES their existing whispers (element + physique + lineage + demeanor + setting) into ONE mythic combined image. This is not evolution — this is APOTHEOSIS. The whispers should CROSS-POLLINATE.
+Generate TWO distinct paths this character's Ascendant story could take. Each path is a believable continuation of their Story Pillar answers — one might tilt toward broader service; the other toward more focused stewardship, or vice versa. Both paths must:
+- preserve the character's body, age, disability, and scars — the Bible forbids automatic beautification or youthening at rank change
+- extend the Story Pillar answers rather than replace them
+- NOT invent a prestige role (Alpha, Grandmaster, etc.) — those are inferred separately, not chosen here
+- keep the character recognizable without magical effects
+- fit ${chapter.identityThrough}-driven identity
 
-Example — for whispers "Sand, broad-shouldered brawler, royal blood":
-- Path A: "The Deposed King of the Sandstorm — the royal who lost their kingdom to the desert now returns as the storm itself, their coronation robes replaced by whirling dust, their crown crackling with heat-lightning."
-- Path B: "The Champion of the Buried City — where their palace once stood, now only dunes; they walk the ruined plaza claiming rulership over ghosts, sand pouring off their broad shoulders like a mantle."
-
-Both paths must:
-- FUSE whispers into a single unified image (not just list them)
-- Feel MYTHIC and inevitable, like the character's arc completing
-- Be DIFFERENT from each other — offer the user a real choice of direction
-- Preserve the archetype identity (a Necromancer doesn't become a Seraph)
-- Keep the character's core (${card.cardName} is still ${card.cardName})
-
-Respond with ONLY a JSON object, no markdown, no explanation:
+Return ONLY JSON:
 {
   "paths": [
-    {"title": "short evocative name, 4-8 words", "narrative": "2-3 sentences of dramatic fusion, present-tense, painterly imagery"},
-    {"title": "different direction, 4-8 words", "narrative": "2-3 sentences of dramatic fusion, present-tense, painterly imagery"}
+    {"title": "6-10 word evocative name, no prestige title", "narrative": "2 sentences of grounded, believable extension of the character's arc into their Ascendant form"},
+    {"title": "different direction, same rules", "narrative": "2 sentences, different direction"}
   ]
 }`;
 
@@ -80,22 +83,19 @@ Respond with ONLY a JSON object, no markdown, no explanation:
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: AI_MODEL,
         max_tokens: 600,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
-
     if (!response.ok) throw new Error(`Ascendant paths API failed: ${response.status}`);
     const data = await response.json();
     const raw = data.content[0].text;
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
     const parsed = JSON.parse(text) as { paths?: unknown };
 
-    if (!Array.isArray(parsed.paths) || parsed.paths.length < 2) {
-      throw new Error('Malformed paths response');
-    }
+    if (!Array.isArray(parsed.paths) || parsed.paths.length < 2) throw new Error('Malformed paths response');
 
     const paths = parsed.paths.slice(0, 2).map((p, i) => {
       const obj = p as Record<string, unknown>;
@@ -103,7 +103,6 @@ Respond with ONLY a JSON object, no markdown, no explanation:
       const narrative = typeof obj.narrative === 'string' && obj.narrative.trim() ? obj.narrative : '';
       return { title, narrative };
     });
-
     if (paths.some((p) => !p.narrative)) throw new Error('Missing narrative on a path');
     return paths;
   } catch (err) {
@@ -113,18 +112,17 @@ Respond with ONLY a JSON object, no markdown, no explanation:
 }
 
 function fallbackPaths(card: Card): AscendantPath[] {
-  const mods: Partial<ModifierStack> = card.modifiers ?? {};
-  const element = mods.element ?? 'silent power';
-  const setting = mods.setting ?? 'a place lost to time';
-  const lineage = mods.lineage ?? 'their forgotten birthright';
+  const chapter = getBibleChapter(card.archetype);
   return [
     {
-      title: `The ${card.archetype} Enthroned`,
-      narrative: `${card.cardName} stands at the center of ${setting}, their ${element} answering their command, their ${lineage} finally understood as prophecy. What began as struggle ends as sovereignty.`,
+      title: `${card.cardName}, Living Witness`,
+      narrative:
+        `${card.cardName} carries their ${chapter.identityThrough.toLowerCase()} forward into a longer, more visible role — the same person, deepened by choice, now standing where others come to learn what their tradition still means.`,
     },
     {
-      title: `The ${card.archetype} Unbound`,
-      narrative: `${card.cardName} steps beyond ${setting} entirely — ${element} pouring from them like breath, ${lineage} no longer a chain but a weapon. They are not the champion of a place. They are the storm that reshapes it.`,
+      title: `${card.cardName}, Quiet Steward`,
+      narrative:
+        `${card.cardName} chooses the smaller, more specific work — refusing spectacle, keeping the ${chapter.identityThrough.toLowerCase()} alive in the daily habits of their community rather than on any larger stage.`,
     },
   ];
 }

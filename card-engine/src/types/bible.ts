@@ -86,17 +86,20 @@ export interface StoryPillarQuestion {
 }
 
 /**
- * A single answer the player selected (or wrote free-form). Answers are
- * immutable generation facts per Bible §Guided Narrative Chains — Claude
- * may connect and interpret them but must not ignore, replace, soften, or
- * contradict them.
+ * A single answer the player selected. Answers are immutable generation
+ * facts per Bible §Guided Narrative Chains — Claude may connect and
+ * interpret them but must not ignore, replace, soften, or contradict them.
+ *
+ * The wizard does NOT accept free-form input. Players who dislike the
+ * shown options refresh (unlimited during initial implementation) until a
+ * pool answer fits.
  */
 export interface StoryPillarAnswer {
   questionId: string;
-  /** Either a chosen option id (see StoryPillarOption.id) or a free-form string. */
+  /** The chosen option id (StoryPillarOption.id). */
+  optionId: string;
+  /** The chosen option's text at selection time — snapshotted so future edits to the pool don't rewrite existing cards. */
   answer: string;
-  /** True when the player typed a custom answer rather than picking one. */
-  custom: boolean;
 }
 
 /**

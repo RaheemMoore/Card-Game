@@ -1,8 +1,10 @@
 import type { ArchetypeName, CardStats, Rank } from '../../types/card';
 import type { AbilityCandidate, AbilityResourceType, AbilitySlotType } from '../../types/abilities';
+import type { ElementSelection } from '../../types/bible';
 import { EFFECT_TYPES, TARGET_TYPES, TRIGGER_TYPES } from '../../types/abilities';
 import { STATUS_IDS } from '../../data/abilities/statuses';
 import { ARCHETYPE_PREFERRED_FAMILIES } from '../../data/abilities/families';
+import { getBibleChapter } from '../../data/archetypeBible';
 
 /**
  * Builds the ability-generation segment of the forge / tier-up Claude prompt.
@@ -27,13 +29,16 @@ export interface AbilityPromptInput {
   stats: CardStats;
   rank: Rank;
   slotType: AbilitySlotType;
+  /** Optional — when provided, ability flavor should weave the element + bond. */
+  element?: ElementSelection;
 }
 
 export function buildAbilityPromptFragment(input: AbilityPromptInput): string {
-  const { archetype, stats, rank, slotType } = input;
+  const { archetype, stats, rank, slotType, element } = input;
   const resource: AbilityResourceType = stats.Tech ? 'tech' : 'mana';
   const rarity = RARITY_BY_RANK[rank];
   const affinity = ARCHETYPE_PREFERRED_FAMILIES[archetype];
+  const chapter = getBibleChapter(archetype);
 
   return `
 
@@ -44,6 +49,14 @@ SLOT: "${slotType}"
 RESOURCE: "${resource}"
 RARITY GUIDANCE: "${rarity}" (this is the target rarity band; the validator will reject candidates whose power budget is far outside band)
 RESOURCE COST BAND: ${COST_HINT[slotType]}
+
+ARCHETYPE IDENTITY (Bible §${archetype}):
+- Identity through: ${chapter.identityThrough}
+- Core fantasy: ${chapter.coreFantasy}
+- Virtues to reflect in ability flavor: ${chapter.beliefs.virtues.slice(0, 4).join(', ')}
+- Materials/symbols to reference: ${chapter.symbolAndMaterial.symbols}
+- §14 Avoid list (do NOT lean on these tropes): ${chapter.claudeGuidance.avoid.join(', ')}
+${element ? `- Element woven into ability flavor: ${element.element} (bond: "${element.bond}")` : ''}
 
 ARCHETYPE FAMILY AFFINITY (${archetype}):
 - Preferred (pick from here first): ${affinity.preferred.join(', ') || 'none'}

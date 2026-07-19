@@ -1,130 +1,53 @@
-import type { ArchetypeName, Rank, CardStats, ModifierStack, CharacterIdentity, LycanthropeIdentity } from '../types/card';
+import type { ArchetypeName, CardStats, Rank } from '../types/card';
+import type {
+  ElementSelection,
+  HiddenFate,
+  StoryPillarAnswers,
+} from '../types/bible';
 import type { AbilityCandidate, AbilitySlotType } from '../types/abilities';
-import { ARCHETYPES } from '../data/archetypes';
+import { getBibleChapter } from '../data/archetypeBible';
+import { getQuestionsForArchetype } from '../data/storyPillars';
 import { assemblePortraitPrompt } from './promptAssembler';
 import {
   deriveStatRanks,
   getDominantStat,
   getOverallRank,
-  getSpecializationSuffix,
-  getVisualMotif,
-  getAbsenceMotifs,
   getStatNames,
 } from '../data/powerSystem';
+import { emptyHiddenFate, parseHiddenFate, preserveIdentityAcrossRanks } from './hiddenFate';
 import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/promptFragment';
 
+/**
+ * Bible-driven card text + portrait prompt generator.
+ *
+ * Follows Bible §Claude Generation Pipeline (fourteen steps):
+ *   1. Global Rules
+ *   2. Archetype chapter
+ *   3. Story Pillar answers (immutable)
+ *   4. Element + bond
+ *   5. Classify tensions
+ *   6. Preserve valid facts
+ *   7. Emotional throughline
+ *   8. Coherent summary
+ *   9. Hidden Fate
+ *   10. Visual identity summary
+ *   11. Validate archetype recognition + rank continuity
+ *   12. Remove details that do not affect the image
+ *   13. Compress Leonardo prompt below 1500 chars
+ *   14. Preserve structured facts for future rank evolution
+ *
+ * Rank continuity is inviolable: no automatic aging, no automatic muscle,
+ * no automatic disability erasure, no automatic beauty escalation.
+ */
+
 const RANK_MEANINGS: Record<Rank, string> = {
-  Foundation: 'The beginning — raw, unproven, rough around the edges',
-  Forged: 'Transformed through trial — gaining real power and presence',
-  Ascendant: 'Mastery — legendary, fully realized, elite',
+  Foundation:
+    'The beginning — the character carries their identity but has not yet been fully tested by it.',
+  Forged:
+    'Changed by trials — the character has integrated the consequences of their choices without abandoning who they are.',
+  Ascendant:
+    'A living reference point — the character\'s completed choices reshape what their tradition means going forward. NOT apotheosis. NOT a mythic dissolution of their body or identity.',
 };
-
-const NAMING_STYLES = [
-  'Norse-inspired (hard consonants, compound words — e.g. Thrynn, Ashvald, Grimholdt)',
-  'Celtic/Gaelic (flowing vowels, soft sounds — e.g. Aelwen, Ciarán, Branwen)',
-  'Japanese-inspired (short syllables, clean sounds — e.g. Kaito, Renji, Sakuya)',
-  'Arabic-inspired (liquid consonants, lyrical rhythm — e.g. Khalira, Zafir, Rashaan)',
-  'West African-inspired (tonal, rhythmic — e.g. Kofi, Amara, Tendaji)',
-  'Slavic-inspired (sharp, angular — e.g. Volkov, Yelara, Drazhan)',
-  'Latin/Roman-inspired (formal, commanding — e.g. Corvinus, Valeria, Aurelian)',
-  'Persian-inspired (elegant, poetic — e.g. Daryush, Soraya, Bahram)',
-  'Mesoamerican-inspired (strong syllables — e.g. Tlaloc, Ixchel, Cipactli)',
-  'Sanskrit-inspired (sacred, melodic — e.g. Ashvara, Devika, Rudran)',
-  'Egyptian-inspired (ancient, regal — e.g. Ankhara, Sethari, Khepren)',
-  'Korean-inspired (balanced, clear — e.g. Haneul, Jiwon, Seojin)',
-];
-
-const TONE_WORDS = [
-  'tragic', 'triumphant', 'haunted', 'wrathful', 'serene', 'cunning',
-  'melancholic', 'feral', 'noble', 'twisted', 'stoic', 'ecstatic',
-  'ruthless', 'merciful', 'desperate', 'ancient', 'rebellious', 'exiled',
-  'prophetic', 'forgotten', 'vengeful', 'wise', 'corrupted', 'reborn',
-];
-
-const ORIGIN_HOOKS = [
-  'orphaned during a great war and raised by strangers',
-  'born under a celestial eclipse that marked them for a strange destiny',
-  'once a common laborer who stumbled into forbidden power',
-  'the last heir of a bloodline thought extinct',
-  'a deserter from an elite order, carrying stolen knowledge',
-  'awakened from centuries of slumber with no memory',
-  'forged in a ritual that was never meant to succeed',
-  'betrayed by their mentor at the moment of greatest trust',
-  'discovered wandering the edge of a dead realm, changed forever',
-  'a prodigy who burned too bright and paid the price',
-  "summoned by accident during an apprentice's failed experiment",
-  'the survivor of a plague that killed everyone else in their village',
-  'raised in a monastery built on the ruins of something older',
-  'carved from living stone by a god who then vanished',
-  'a refugee from a kingdom swallowed by the sea',
-  'marked by a dying dragon with a brand that still burns',
-  'a twin whose other half was taken by shadow',
-  'chosen by a sentient weapon that refuses all other wielders',
-  'born in a prison beneath the earth, never seeing sky until adulthood',
-  'the only mortal to survive a divine tribunal',
-];
-
-const LORE_THEMES = [
-  'a defining sacrifice they made',
-  'a rival or nemesis who shapes their journey',
-  'a prophecy they are trying to fulfill or escape',
-  'a weapon, artifact, or companion that defines them',
-  'a place they can never return to',
-  'a secret they carry that would destroy them if revealed',
-  'a transformation — physical or spiritual — they underwent',
-  'a debt they owe to something inhuman',
-  'a battle that changed the course of a war',
-  'a curse or blessing they cannot remove',
-  'a student or successor they are training',
-  'a creature or spirit bound to their soul',
-];
-
-const EPITHET_FLAVORS = [
-  'based on a legendary deed or battle',
-  'referencing a physical trait or scar',
-  'named after a natural phenomenon',
-  'derived from the fear they inspire',
-  'from the place or realm they conquered',
-  'referring to a power or ability unique to them',
-  'an ironic or contradictory title',
-  'a title bestowed by enemies, not allies',
-];
-
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function pickN<T>(arr: T[], n: number): T[] {
-  const shuffled = [...arr].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, n);
-}
-
-interface GeneratedText {
-  cardName: string;
-  nameAndTitle: string;
-  lore: string;
-  /** Composed image-gen prompt, capped so Leonardo Phoenix (1500-char limit) accepts it. */
-  portraitPrompt: string;
-  /** Composed negative prompt for the same call. */
-  negativePrompt: string;
-  /**
-   * Fixed identity of the character. Generated at Foundation and passed back
-   * on every tier-up so gender/ethnicity/hair/eyes don't drift.
-   */
-  identity: CharacterIdentity;
-  /**
-   * The input modifiers escalated to fit the new rank. Only present on
-   * tier-up calls (shouldEvolve=true). Same shape as ModifierStack — keys
-   * preserved, values amplified. See CLAUDE prompt for the evolution rules.
-   */
-  evolvedModifiers?: ModifierStack;
-  /**
-   * Ability candidate for the requested slot. Present when abilitySlotToFill
-   * is provided. May be undefined if Claude omits or malforms the field —
-   * callers should treat as "no ability this pass" and fall back to backfill.
-   */
-  abilityCandidate?: AbilityCandidate;
-}
 
 const PORTRAIT_PROMPT_MAX = 1300;
 const NEGATIVE_PROMPT_MAX = 400;
@@ -136,283 +59,223 @@ const BASE_NEGATIVE = [
   'comic panels', 'UI elements', 'border', 'frame', 'card border',
   'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
   'blood spatter', 'nudity', 'suggestive',
+  // Bible §Rank continuity forbids automatic escalation across ranks —
+  // added universally to steer Leonardo away from these defaults.
+  'younger than previous rank', 'thinner than previous rank',
+  'more muscular than previous rank', 'healthier than previous rank',
+  'more conventionally attractive than previous rank',
+  'disability removed', 'scars erased',
+  // Bible §14 universal Avoid signals across archetypes.
+  'generic fantasy stereotype', 'costume-carrying stereotype',
 ].join(', ');
 
-function buildStatLine(stats: CardStats, archetype: ArchetypeName): string {
+interface GeneratedText {
+  cardName: string;
+  nameAndTitle: string;
+  lore: string;
+  /** Compressed Leonardo prompt, guaranteed <= PORTRAIT_PROMPT_MAX chars. */
+  portraitPrompt: string;
+  negativePrompt: string;
+  /** Bible §Hidden Fate — what Claude inferred to complete the picture. */
+  hiddenFate: HiddenFate;
+  /**
+   * Ability candidate for the requested slot. Present when abilitySlotToFill
+   * is provided. Undefined when Claude omits or malforms the field.
+   */
+  abilityCandidate?: AbilityCandidate;
+}
+
+// ============================================================================
+// Prompt assembly
+// ============================================================================
+
+function formatAnswers(archetype: ArchetypeName, answers: StoryPillarAnswers): string {
+  const questions = getQuestionsForArchetype(archetype);
+  const questionById = new Map(questions.map((q) => [q.id, q]));
+  return answers.answers
+    .map((a) => {
+      const q = questionById.get(a.questionId);
+      return q ? `Q: ${q.prompt}\nA: ${a.answer}` : `A: ${a.answer}`;
+    })
+    .join('\n');
+}
+
+function formatStats(stats: CardStats, archetype: ArchetypeName): string {
   const ranks = deriveStatRanks(stats);
-  const names = getStatNames(archetype);
-  return names
+  return getStatNames(archetype)
     .map((name) => {
       const entry = stats[name]!;
-      return `${name} ${entry.value} (${ranks[name]}, bias: ${entry.bias})`;
+      return `${name} ${entry.value} (${ranks[name]}, bias ${entry.bias})`;
     })
     .join(', ');
 }
 
-export async function generateCardText(
-  archetype: ArchetypeName,
-  stats: CardStats,
-  whisperWords: string[],
-  modifiers?: ModifierStack,
-  existingName?: string,
-  lockedIdentity?: CharacterIdentity,
-  /**
-   * When true, Claude escalates every modifier value to fit the target rank
-   * and uses the escalated values inside portraitPrompt. Only used from tierUp.
-   * regenerate/create-new should pass false (or omit).
-   */
-  shouldEvolve = false,
-  /**
-   * Ascendant-tier-up only: a fused-whisper narrative the user picked from the
-   * two AscendantPath options. When present, Claude treats this as the single
-   * organizing image for the portrait + lore — modifiers still exist but this
-   * narrative wins any conflict.
-   */
-  ascendantNarrative?: string,
-  /**
-   * Lycanthrope-only. Rolled at forge (furColor, moonPhase) and locked to the
-   * card. Re-injected verbatim on every regen so the same wolf carries across
-   * ranks despite the human → lycan morphology change. Ignored for other
-   * archetypes.
-   */
-  lycanIdentity?: LycanthropeIdentity,
-  /**
-   * When set, the prompt asks Claude to also propose an AbilityCandidate for
-   * this slot (returned in `abilityCandidate`). Foundation forge = 'core',
-   * Forged tier-up = 'signature', Ascendant tier-up = 'ultimate'. Omit to
-   * skip ability generation (the caller will fall back to legacy backfill).
-   */
-  abilitySlotToFill?: AbilitySlotType,
-): Promise<GeneratedText> {
-  const arch = ARCHETYPES[archetype];
-  const overallRank = getOverallRank(stats);
-  const dominant = getDominantStat(stats);
-  const ranks = deriveStatRanks(stats);
+function formatBibleChapter(archetype: ArchetypeName): string {
+  const c = getBibleChapter(archetype);
+  return [
+    `IDENTITY THROUGH: ${c.identityThrough}`,
+    `CORE FANTASY: ${c.coreFantasy}`,
+    `CORE FANTASY PROMISE: ${c.coreFantasyPromise.promise}`,
+    `EMOTIONAL PILLARS: ${c.coreFantasyPromise.emotionalPillars.join(', ')}`,
+    `ORIGINS: ${c.origins}`,
+    `CULTURE AND DAILY LIFE: ${c.cultureAndDailyLife}`,
+    `VIRTUES: ${c.beliefs.virtues.join(', ')}`,
+    `TABOOS: ${c.beliefs.taboos.join(', ')}`,
+    `FEARS: ${c.beliefs.fears.join(', ')}`,
+    `INTERNAL DIVERSITY: ${c.internalDiversity.groups.join('; ')}`,
+    `VISUAL DNA (recognition cues): ${c.visualDNA.recognitionCues}`,
+    `VISUAL DNA (AVOID): ${c.visualDNA.avoid}`,
+    `MATERIALS: ${c.symbolAndMaterial.materials}`,
+    `SYMBOLS: ${c.symbolAndMaterial.symbols}`,
+    `GENERATION PRIORITIES: ${c.claudeGuidance.generationPriorities.join(', ')}`,
+    `AVOID (§14): ${c.claudeGuidance.avoid.join(', ')}`,
+    `RECOGNITION CHECKLIST: ${c.claudeGuidance.recognitionChecklist.join(' | ')}`,
+  ].join('\n');
+}
 
-  const namingStyle = pick(NAMING_STYLES);
-  const tone = pick(TONE_WORDS);
-  const origin = pick(ORIGIN_HOOKS);
-  const loreTheme = pick(LORE_THEMES);
-  const epithetFlavor = pick(EPITHET_FLAVORS);
-  const extraTones = pickN(TONE_WORDS.filter(t => t !== tone), 2);
+function buildPrompt(input: {
+  archetype: ArchetypeName;
+  stats: CardStats;
+  answers: StoryPillarAnswers;
+  element: ElementSelection;
+  overallRank: Rank;
+  existingName?: string;
+  existingHiddenFate?: HiddenFate;
+  abilitySlotToFill?: AbilitySlotType;
+}): string {
+  const { archetype, stats, answers, element, overallRank, existingName, existingHiddenFate, abilitySlotToFill } = input;
+  const c = getBibleChapter(archetype);
+  const isEvolution = Boolean(existingName);
+  const rankProgression = c.rankEvolution[overallRank];
+  const continuityNote = c.rankEvolution.continuityNote ?? '';
 
-  const specializationSuffix = dominant
-    ? getSpecializationSuffix(archetype, dominant, ranks[dominant]!)
-    : '';
-  const visualMotif = dominant
-    ? getVisualMotif(dominant, ranks[dominant]!)
-    : '';
-  const absenceMotifs = getAbsenceMotifs(stats);
+  return `You are the generation authority for a fantasy card game. You are following the Character Generation Bible, which is the canonical source of truth. Ignore any prior stylistic conventions from other fantasy games or previous versions of this game.
 
-  const statLine = buildStatLine(stats, archetype);
-  const resourceType = stats.Tech ? 'Tech' : 'Mana';
+=== BIBLE GLOBAL RULES (inviolable) ===
+- Every archetype supports the full diversity of real bodies: fat, heavyset, soft-bodied, average-built, muscular, lean, wiry, tall and narrow, short and broad, gaunt, sickly, elderly, disabled, scarred, and visibly weathered. Archetype identity comes from culture, history, beliefs, role, equipment, and lived history — NEVER from one required heroic physique.
+- Rank progression preserves sex, age, body type, ancestry, disability, physical condition, defining scars, and core identity. Advancement must NOT automatically make a character younger, thinner, more muscular, healthier, less disabled, or more conventionally attractive.
+- Player-selected Story Pillar answers are IMMUTABLE generation facts. You may connect and interpret them, but must not ignore, replace, soften, or contradict them.
+- Prestige roles (Alpha, Grandmaster, Archdruid, Clan Chief, Blood Regent, and equivalents) emerge from narrative — you do NOT invent one uninvited. If none is warranted, leave the epithet in the range of ordinary earned titles.
+- Element rarity affects DISCOVERY FREQUENCY, not power. Do not treat the Rare bucket as "stronger" — it is less common.
+- Hidden Fate details you infer must REINFORCE the player's story, not compete with it.
 
-  let specializationBlock = '';
-  if (specializationSuffix) {
-    specializationBlock += `\nSPECIALIZATION: ${specializationSuffix}`;
-  }
-  if (visualMotif) {
-    specializationBlock += `\nVISUAL MOTIF: ${visualMotif}`;
-  }
-  if (absenceMotifs.length > 0) {
-    specializationBlock += `\nABSENCE MOTIFS (weak stats): ${absenceMotifs.join('; ')}`;
-  }
+=== ARCHETYPE CHAPTER (${archetype}) ===
+${formatBibleChapter(archetype)}
 
-  const atkValue = stats.Atk.value;
-  const defValue = stats.Def.value;
-  const resourceValue = (stats.Tech ?? stats.Mana)!.value;
+=== RANK ===
+Overall rank: ${overallRank}
+${RANK_MEANINGS[overallRank]}
+Rank progression for this archetype: ${rankProgression}
+${continuityNote ? `Continuity note: ${continuityNote}` : ''}
 
-  const prompt = `You are a fantasy card game creative director. Generate a unique, memorable character card.
+=== STATS ===
+${formatStats(stats, archetype)}
+Dominant stat: ${getDominantStat(stats) ?? 'None (tied)'}
 
-ARCHETYPE: ${archetype}
-OVERALL RANK: ${overallRank} — ${RANK_MEANINGS[overallRank]}
-STATS: ${statLine}
-DOMINANT STAT: ${dominant ?? 'None (tied)'}
-RESOURCE TYPE: ${resourceType}
-WHISPER WORDS: ${whisperWords.length > 0 ? whisperWords.join(', ') : 'none'}
+=== STORY PILLAR ANSWERS (immutable) ===
+${formatAnswers(archetype, answers)}
 
-ARCHETYPE IDENTITY: ${arch.identity}
-VISUAL MOTIFS: ${arch.motifs}
-RANK APPEARANCE: ${arch.rankProgression[overallRank]}
-${specializationBlock}${overallRank !== 'Foundation' ? `
+=== ELEMENT + BOND ===
+Element: ${element.element}
+Compatibility bucket: ${element.compatibility}
+Bond: "${element.bond}"
+The element and bond must affect biography, environment, materials, equipment, posture, visible effects, and ability flavor. Bond guidance: interpret the bond literally — an "inheritance" element is inherited; a "prison" element restricts; a "teacher" element guides; an "ally" element cooperates.
 
-LORE-REFLECTED-IN-PORTRAIT (${overallRank}):
-Every specific person, place, event, oath, or loss you name in the lore MUST appear in the portraitPrompt as a physical object, mark, silhouette, or figure the character carries, wears, bears as a scar, or is visible in the environment behind them. Intangibles are rendered as concrete tokens — if you cannot picture it, you cannot name it. Do NOT pair generic "veteran of many wars" lore with generic "battle-scarred" art; the lore and portrait must reference the SAME specific event, visible in both. The epithet in nameAndTitle counts as a named beat — if the title is "the Oathbreaker" or "Worldsplitter," the referent must appear visually.
+${existingHiddenFate ? `=== LOCKED HIDDEN FATE (Rank continuity — preserve verbatim) ===
+This character has already been generated at least once. The following identity anchors MUST NOT change. Weave them into the new portraitPrompt verbatim.
+- age: ${existingHiddenFate.age}
+- sex: ${existingHiddenFate.sex}
+- bodyType: ${existingHiddenFate.bodyType}
+- skinTone: ${existingHiddenFate.skinTone}
+- facialStructure: ${existingHiddenFate.facialStructure}
+- hair: ${existingHiddenFate.hair}
+- disabilityOrCondition: ${existingHiddenFate.disabilityOrCondition}
+- scars: ${existingHiddenFate.scars}
 
-Cross-archetype examples (illustrative — match the archetype, don't copy):
-- Lore names a specific battle → a concrete mark from it: a notched pauldron, a cracked visor stripe, a burn-scar shaped like the enemy's sigil, or the weapon that struck the killing blow visibly nicked at that point
-- Lore names a slain rival → their trophy is worn or carried: the rival's blade sheathed at the belt, their crest turned into a scar, their squadron patch fused into hull plating, their skull cupped in the character's off-hand
-- Lore names a bond with a specific companion (person, beast, spirit, unit) → that companion is present as a silhouette, a reflection in armor, an empty collar at the belt, a second seat left welded shut, or a scar shaped like their touch
-- Lore names a sacrifice of the self → the missing piece is visible: an eye scarred shut, a hand replaced with mismatched salvage, hair shorn on one side where a vow was sworn, a rib-cage panel left open where something used to sit
-- Lore names a place they can never return to → a portable token of it: the exact vine species from that grove wrapped around the staff, coordinates etched into a bracer, a door-key still on the belt, a jar of that soil at the hip
-- Lore names a broken oath, curse, or debt → a concrete artifact carries it: an unbroken signet ring on a chain instead of the finger, a contract-scar inked across the forearm, a locket with the portrait scored out
-- Lore names a divine/patron encounter → the patron is faintly rendered in the environment: a face in cloudbank, a silhouette in stained-glass reflection, a symbol scorched into the ground the character stands on
+The character may look older/wearier in language cues, but the underlying body and identity are the same person. If the previous character was heavyset, they remain heavyset. If they had a prosthetic, they still have it. If they were elderly, they are older still — NOT youthened.
+` : ''}
 
-Tokens can live on non-human carriers when the archetype calls for it — etched into hull, grown into bark, fused into bone, woven into feathers. If Forged lore names only one or two specifics, only those need visual counterparts; at Ascendant, every named beat must have one.` : ''}${archetype === 'Android' || archetype === 'Mech Pilot' ? `
+${existingName ? `=== EVOLUTION CONTEXT ===
+This character's name is "${existingName}". Do NOT change the cardName — return it verbatim. Generate a new title/epithet and new lore that reflect the ${overallRank} rank per Bible §9. If the archetype's approved prestige roles are earned (see approved list in code), you MAY use one for the epithet — but only if the story pillar answers plainly support it.
+` : ''}
 
-TECH-CLASS ESCALATION RULE (${archetype}):
-Higher ranks mean MORE machine, MORE technology, MORE mechanical dominance — never less. When evolving modifiers or writing the portraitPrompt: intensify the tech (bigger chassis, more exposed circuitry, more integrated weapons, brighter energy cores, more visible mechanical joints) instead of softening toward "human" or "sleek" or "refined". A Forged/Ascendant ${archetype} should look MORE like a machine than the Foundation, not less. Add tech vocabulary to every clause the evolution touches (e.g. "muscular" becomes "muscular armored chassis"; "battle-scarred" becomes "battle-scarred with visible plate damage and exposed circuitry"). Prosthetics and mechanical limbs are ENHANCED, not hidden.` : ''}${archetype === 'Lycanthrope' ? `
+=== YOUR TASK ===
+Follow the Bible generation pipeline internally:
+  a) Read the archetype chapter, the Story Pillar answers, and the element + bond.
+  b) Classify tensions between answers — compatible, productive tension, or hard contradiction. Preserve productive tension; only flag factual impossibilities.
+  c) Identify the strongest emotional throughline from the Emotional Pillars.
+  d) Generate a coherent character summary (do not output — internal use).
+  e) Infer Hidden Fate for age, sex, bodyType, skinTone, facialStructure, hair, disabilityOrCondition, posture, scars, weather, lighting, clothingConstruction, minorAccessories, environmentDetails. These MUST reinforce the answers.
+  f) Compose the visual summary, then compress it into a Leonardo prompt below ${PORTRAIT_PROMPT_MAX} characters.
 
-LYCANTHROPE ESCALATION RULE (${overallRank}) — READ THIS TWICE:
-Higher ranks mean MORE WOLF ANATOMY, LESS HUMAN ANATOMY. Not just cosmetic hair and eyes — real morphological change. If the portrait would still read as "muscular human man with wolf accessories," you have failed the rule. Escalate ALL of the following across ranks:
+Return ONLY a JSON object with these fields:
 
-- Foundation → near-human primal warrior blessed by the Moon Goddess. SUBTLE wolfish tells only: elongated canines, glowing eyes matching moon phase, pointed ear tips, long unkempt mane in fur color, faint patch of fur at the temples or forearms. Human musculature still readable. Human hands with fingernails. Human feet or bare feet. Hints of moon iconography (small pendant, crescent scar).
+{
+  "cardName": ${existingName ? `MUST be exactly "${existingName}" — do not change.` : 'a 1-3 word name that fits the archetype\'s culture and the answers'},
+  "nameAndTitle": "full name with epithet, e.g. \\"Kaelen, Keeper of Names\\". Ordinary earned title — no prestige role unless the answers plainly earn it.",
+  "lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the mood WITHOUT quoting them literally. Reflect the emotional throughline you identified. ${isEvolution ? `Reference the character's growth into ${overallRank} — same person, deepened by trials.` : ''}",
+  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Structure: [style anchor: 'fantasy character portrait, painterly digital art, chest-up, single character centered, detailed face, rich textures'], [IDENTITY BLOCK — verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars from Hidden Fate], [archetype-specific recognition cues from the Visual DNA field above], [element woven physically — visible in equipment/environment/posture, NEVER replacing the character], [Story-Pillar-derived materials, symbols, and specific objects], [weather + lighting + environmentDetails from Hidden Fate], [rank-appropriate carriage per the archetype chapter — NOT rank-appropriate spectacle]. Do NOT add magical aura escalation, do NOT add younger/thinner/more-muscular language, do NOT contradict any locked identity above.",
+  "negativePrompt": "starts with \\"${BASE_NEGATIVE}\\" then add archetype-specific §14 Avoid items and any anti-continuity terms that fit this specific character. Comma-separated, under ${NEGATIVE_PROMPT_MAX} characters.",
+  "hiddenFate": {
+    "age": "e.g. 'early 60s' — inferred from the answers, LOCKED after this call",
+    "sex": "male / female / nonbinary / androgynous — respect the answers where relevant",
+    "bodyType": "specific — do NOT default to 'lean and wiry' or 'athletic'; roll for real variety per Bible diversity mandate",
+    "skinTone": "specific, from any real-world human descent",
+    "facialStructure": "specific",
+    "hair": "specific",
+    "disabilityOrCondition": "if applicable, name it; empty string if not — but Bible diversity mandate says roll for it more than you would by default",
+    "posture": "how they hold themselves — reflects role and answers",
+    "scars": "specific if any; empty string if none",
+    "weather": "reinforces the answers",
+    "lighting": "reinforces the answers",
+    "clothingConstruction": "materials + repair state per §8",
+    "minorAccessories": "small tokens that reference specific answers",
+    "environmentDetails": "reinforces the answers"
+  }${abilitySlotToFill ? `,
+  "abilityCandidate": { see ABILITY GENERATION block below }` : ''}
+}
 
-- Forged → MID-SHIFT HYBRID. NON-NEGOTIABLE at this tier:
-  * Fully anatomical WOLF HEAD (real snout, real fur, real ears — NOT a mask, NOT a helmet)
-  * FUR spreading visibly down the shoulders, upper back, and forearms — no longer just "hair"
-  * Fingers ending in visible CLAWS, not fingernails — dark, sharp, extending past the fingertips
-  * Human torso is still there BUT roughened — the six-pack abs of Foundation are broken up by patches of dark fur and stretched, changing skin. Do NOT render a clean bodybuilder torso.
-  * The identity token rests on the bare chest between patches of fur
-  * The moon of their phase is VISIBLE in the sky
-  * Torn practical clothing hangs off, splitting at the seams
-
-- Ascendant → FULLY ANTHROPOMORPHIC WOLF-LORD. NON-NEGOTIABLE at this tier:
-  * DIGITIGRADE legs (backward-bent knees, walks on toes) — MANDATORY, not optional
-  * A visible WOLF TAIL emerging from the back of the armor
-  * Full body covered in fur in their fur color — no exposed human skin except possibly the face/muzzle transition
-  * Hands are pawed with long TALONS, not "clawed fingers" — the hand shape itself is different
-  * NO HUMAN ABS visible under the armor — if unarmored zones show, they show fur and canine musculature, not gym-body definition
-  * FUR PATTERN reflects battle experience: silver moonlight veins run through the fur, scarred patches where fur grows back lighter, streaks of gray or moon-silver at the temples, ruff around the neck fuller and more matted
-  * Articulated dark plate armor with silver moon-sigil filigree, thick fur ruffing at collar and wrists, silver moonlight AURA cascading
-  * The moon of their phase dominates the sky or forms the composition backdrop
-
-FUR-AS-BATTLE-RECORD: at Forged and Ascendant, treat the fur as a living record of their journey. A Lycan who has fought many battles has scarred fur patterns, moonlight-silver streaks at the temples, patches where fur has grown back darker or lighter. Weave this into the portraitPrompt as a specific detail, not a generic "battle-worn."
-
-Do NOT soften toward "human," "sleek," "hybrid but graceful," or "elegant" at higher ranks — a Forged/Ascendant Lycanthrope should look MORE lupine, MORE bestial (though still noble), and OBVIOUSLY not-human, not less.${overallRank !== 'Foundation' ? `
-
-LYCANTHROPE PROMPT-STRUCTURE OVERRIDE (${overallRank}):
-Leonardo weights the first clauses of the prompt heaviest. For this Lycanthrope Forged/Ascendant generation, the portraitPrompt MUST open in this order (do NOT bury the wolf-anatomy mandate after identity or modifiers):
-1. Style anchor ("fantasy character portrait, painterly digital art, chest-up, single character centered")
-2. **WOLF-ANATOMY MANDATE CLAUSE — comes SECOND, before identity or modifiers.** For ${overallRank}:
-   ${overallRank === 'Forged'
-     ? '"wolf-headed mid-shift hybrid, fur spreading down shoulders and forearms, dark claws replacing fingernails, human torso broken up by fur patches (NOT clean six-pack abs), skin visibly changing"'
-     : '"fully anthropomorphic digitigrade wolf-warrior, visible wolf tail, full-body fur (NO exposed human abs), pawed hands with long talons, canine musculature (NOT human gym body)"'}
-3. Then identity block, then rank energy, then everything else.
-This ordering is mandatory — it exists because the first two generations of this archetype came out with clean human bodybuilder abs when the mandate was buried mid-prompt.
-
-LYCANTHROPE NEGATIVE-PROMPT ADDITIONS (${overallRank}):
-The negativePrompt you emit MUST include these terms in addition to the base list: "clean six-pack abs, gym body, bodybuilder chest, smooth human hands, human fingernails, defined human torso, smooth human skin, human anatomy, non-lupine body, muscle definition without fur, sexy fantasy warrior aesthetic". These force Leonardo away from the observed failure mode.` : ''}${lycanIdentity ? `
-
-LOCKED LYCAN IDENTITY — these must appear verbatim in every generation of this character; they are the anchors that carry identity across the morph:
-- Fur color: ${lycanIdentity.furColor} (mane at Foundation, full head fur at Forged, full body fur at Ascendant — always ${lycanIdentity.furColor.toLowerCase()})
-- Moon phase: ${lycanIdentity.moonPhase} moon — this SPECIFIC moon must appear in the composition at every rank (subtle pendant/scar at Foundation; visible in sky at Forged; dominant in composition + reflected in armor filigree at Ascendant)
-The eye-glow color should visually match the moon phase (Crescent/Half → cool silver-white; Full → warm silver-gold; Blood → red-orange; Eclipse → black corona with faint gold). Weave both anchors into the portraitPrompt verbatim.` : ''}
-
-MOON GODDESS LORE INSTRUCTION:
-The Lycanthrope is blessed — not cursed — by the Moon Goddess. She watches over her chosen; the transformation is her gift. The lore MUST reference the Moon Goddess (as "the Moon Goddess", "the Moon Mother", "She Who Watches", or a similar epithet — vary it). The character is her devoted, not her victim. Their power waxes and wanes with the moon.${overallRank === 'Ascendant' ? `
-
-LORE-REFLECTED-IN-PORTRAIT (Ascendant only):
-The lore you write for this Ascendant tier will mention specific story beats — a defining battle, a bond broken or forged, a sacrifice made, a rival slain, a place they can never return to, a companion bound to them. **Every meaningful story beat you commit to writing in the lore MUST appear as a visual detail in the portraitPrompt.** Concrete examples:
-- Lore names a battle → the fur or armor carries a mark from it (silver-scarred fur, notched plate, a wound scar that healed into a moon shape)
-- Lore names a slain rival → a trophy at the belt, or their sigil turned into a scar
-- Lore names a bond with a specific pack member → that companion is a silhouette in the background, or their scent is caught in the wind
-- Lore names a sacrificed piece of themselves → the missing piece is visible (an eye scarred shut, a paw notched, silver where fur used to be)
-- Lore names the Moon Goddess appearing to them → her face is faintly visible in the moon behind them
-Do NOT write generic "warrior of many battles" lore and then pair it with generic "battle-scarred" art. The lore and portrait must reference the SAME specific event, visible in both.` : ''}` : ''}
-
-CREATIVE DIRECTION FOR THIS CARD:
-- Name style: ${namingStyle}
-- Emotional tone: ${tone}, with hints of ${extraTones.join(' and ')}
-- Origin: ${origin}
-- The lore should touch on: ${loreTheme}
-- The epithet/title should be: ${epithetFlavor}
-
-${atkValue > defValue ? 'This character leans aggressive — reflect that in their personality or fighting style.' : defValue > atkValue ? 'This character is a protector or endurer — reflect their resilience or patience.' : 'This character is balanced — equally dangerous and durable.'}
-${resourceValue >= 70 ? `High ${resourceType} means this is a powerful, costly being — the lore should feel weighty.` : resourceValue <= 25 ? `Low ${resourceType} means this is a scrappy, quick, or expendable figure.` : ''}
-${modifiers ? `
-PORTRAIT MODIFIERS (the card's portrait depicts this — weave these into the lore and title):
-- Setting: ${modifiers.setting}
-- Demeanor: ${modifiers.demeanor}
-- Signature Detail: ${modifiers.signatureDetail}
-- Lighting/Atmosphere: ${modifiers.lighting}${modifiers.element ? `
-- Elemental affinity: ${modifiers.element}` : ''}${modifiers.physique ? `
-- Physique: ${modifiers.physique}` : ''}${modifiers.lineage ? `
-- Lineage: ${modifiers.lineage}` : ''}${modifiers.classSignature && overallRank !== 'Foundation' ? `
-- Class Signature (a defining companion/weapon/manifestation the lore should acknowledge): ${modifiers.classSignature}` : ''}
-
-The character's name, title, and lore should feel coherent with this visual. Let the setting, detail, and mood emerge naturally in the flavor text.` : ''}
-
-${existingName ? `
-EVOLUTION CONTEXT:
-This character's name is "${existingName}" — they are evolving to a higher rank. Do NOT change the cardName. Keep it exactly "${existingName}". Generate a NEW, more powerful title/epithet and new lore that reflects their growth, accumulated power, and the battles they've survived to reach ${overallRank} rank.` : ''}
-${ascendantNarrative ? `
-!!! ASCENDANT NARRATIVE — THIS IS THE ORGANIZING IMAGE OF THE PORTRAIT AND LORE !!!
-The user chose this fused-whisper path for the character's apotheosis:
-
-"${ascendantNarrative}"
-
-This narrative WINS over any conflicting modifier language. When composing the portraitPrompt, this image should dominate the composition — every clause should serve this narrative. When writing the lore, this narrative IS the character's Ascendant story. The evolved modifiers should be shaped to fit this narrative rather than the reverse. The new nameAndTitle epithet should evoke this narrative directly. Weave every whisper (element, setting, lineage, demeanor, signature detail, class trait) INTO the narrative rather than listing them separately.` : ''}
-${lockedIdentity ? `
-LOCKED CHARACTER IDENTITY — this is the SAME PERSON as before, do NOT invent a new character:
-- Gender: ${lockedIdentity.gender}
-- Ethnicity/skin: ${lockedIdentity.ethnicity}
-- Hair: ${lockedIdentity.hair}
-- Eyes: ${lockedIdentity.eyes}
-- Body type: ${lockedIdentity.bodyType}
-- Distinctive features: ${lockedIdentity.distinctiveFeatures}
-- Base apparent age at Foundation: ${lockedIdentity.apparentAge} (they read a bit older/harder at Forged, weathered/ancient at Ascendant)
-
-The identity fields you return MUST match exactly what's above (verbatim). The portraitPrompt MUST include these identity markers word-for-word early in the prompt (right after style anchor, before modifiers). Emphasize "same character, aged and hardened" in the prompt. Body type NEVER changes with rank — a heavyset Foundation stays heavyset at Ascendant.` : `
-NEW CHARACTER IDENTITY:
-Invent a coherent visual identity for this character. Pick freely from any real-world human descent — do NOT default to European features. Be specific.
-
-**BODY TYPE DIVERSITY MANDATE**: The vast majority of fantasy portraits default to "lean and wiry" or "athletic" — do NOT do this. Roll for real variety. Consider (rotate through, don't repeat "lean" every time):
-- heavyset, powerfully built with a thick frame
-- tall and broad-shouldered, gladiator build
-- short and stocky, low center of gravity
-- muscular with a barrel chest
-- rail-thin and wiry
-- soft-bodied and imposing, weight as armor
-- amputee with a prosthetic (specify which limb + material)
-- one arm mechanical/enchanted, the other flesh
-- burn-scarred across half the body
-- one leg noticeably shorter, weight shifted
-- pregnant (mid-fight, a defiant image)
-- elderly frame, still upright and dangerous
-
-Body type is class-agnostic — a heavyset Monk is just as valid as a heavyset Barbarian. The identity you generate here is LOCKED — future tier-ups will reuse it, so pick something distinctive.`}
-${shouldEvolve && modifiers ? `
-EVOLVE MODIFIERS — escalate each modifier to fit the new ${overallRank} rank.
-
-Rules:
-- Keep the ESSENCE of each input. Storm still means storm energy. A single black feather still involves feathers. Curious still involves the same emotional root.
-- AMPLIFY, don't replace. Escalate scale, intensity, drama, or scope — not the subject.
-- Foundation → Forged is a step; Foundation → Ascendant is a leap. Match the escalation to the ${overallRank} target.
-- If the input already sounds legendary, escalate its SCALE (Storm → Tempest → Savage Storm; not Storm → Sunbeam).
-- Keep it a single tight phrase — same grammatical shape as the input where possible.
-- These evolved values MUST be what you weave into the portraitPrompt (not the raw inputs above).
-
-Examples (illustrative — match the input, don't copy):
-- Element: "Storm" → Forged "Tempest" → Ascendant "Savage Storm"
-- Element: "Water" → Forged "Tide" → Ascendant "Ocean"
-- Signature Detail: "A single black feather stuck to the shoulder" → Forged "Feathers gathering at the shoulder" → Ascendant "Wreathed in feathers"
-- Demeanor: "Curious, head tilted" → Forged "Demanding answers" → Ascendant "Commanding truth from the world"
-- Setting: "Torchlit crypt lined with old bones" → Forged "Crypt-hall trembling with old power" → Ascendant "Cathedral of bone, air itself humming"
-- Lighting: "Storm-lit, brief lightning flashes" → Forged "Continuous lightning splitting the sky" → Ascendant "Reality-tearing lightning, world reshaped by each flash"
-- Class Trait: "Book of names hovering open before them" → Forged "Book of names orbiting, pages turning by themselves" → Ascendant "Book of names blazing with light, seraphim reading over their shoulder"
-
-Return the evolved set as \`evolvedModifiers\` with EXACTLY these keys (only include a key if it was present in the input):
-${Object.entries(modifiers).filter(([, v]) => v).map(([k, v]) => `- ${k}: "${v}"`).join('\n')}` : ''}
-
-Generate ONLY a JSON object:
-- cardName: ${existingName ? `MUST be exactly "${existingName}" — do not change this.` : 'a fantasy name (1-3 words, no title). MUST follow the naming style above.'}
-- nameAndTitle: full name with epithet (e.g. "Kael, the Unbroken"). The title must reflect the rank's weight — Foundation titles are humble or uncertain, Forged titles show earned respect, Ascendant titles inspire awe.${existingName ? ` The title should feel like a dramatic upgrade from the previous rank — this character has grown more powerful and feared.` : ''}
-- lore: 2-3 sentences of evocative flavor text. Weave the whisper words into the mood naturally — don't force them in literally. The lore should hint at a living character with history, not a generic description.${existingName ? ` Reference their journey and transformation — they are not new, they are reforged by experience.` : ''}
-- portraitPrompt: an image-generation prompt for Leonardo AI Phoenix 1.0. MUST be under ${PORTRAIT_PROMPT_MAX} characters. Compose a single dense, comma-separated prompt that captures ALL of the above into evocative visual language. Structure: [style anchor: "fantasy character portrait, painterly digital art, chest-up, single character centered, ultra-detailed face, rich textures"], [IDENTITY BLOCK — verbatim gender/ethnicity/hair/eyes/distinctive features from LOCKED or NEW identity above], [rank-appropriate energy: Foundation = ready stance; Forged = dynamic action, visible aura; Ascendant = ultimate form, explosive power, overwhelming presence], [character maturity: Foundation youthful/unmarked; Forged battle-scarred, hardened eyes; Ascendant ancient eyes, deep scars, peak physical form], [archetype identity + motifs + specialization visuals], [modifiers woven in — elemental affinity, physique, lineage, setting, demeanor, signature detail, lighting, class trait], and [same-character continuity phrase for Forged/Ascendant, e.g. "same character as prior rank, aged and hardened, identical facial structure and skin tone"]. Prefer punchy visual clauses over paragraphs. NO gore, NO explicit violence, NO exposed wounds. Every impactful detail must appear.
-- negativePrompt: image-gen negative prompt, under ${NEGATIVE_PROMPT_MAX} characters. Start with "${BASE_NEGATIVE}" and add anything that would ruin THIS specific character (if Foundation, add "grizzled, ancient, legendary aura"; if the character is regal, add "sloppy, casual"; ALWAYS add "different person, wrong ethnicity, different gender, changed face, inconsistent identity"). Comma-separated.
-- identity: an object {gender, apparentAge, ethnicity, hair, eyes, bodyType, distinctiveFeatures}. ${lockedIdentity ? 'MUST be EXACTLY the LOCKED identity above, verbatim (all 7 fields).' : 'Invent it now — this locks the character\'s look across all future tiers. Every field must be specific and non-generic. bodyType MUST follow the diversity mandate — no defaulting to "lean and wiry".'}${shouldEvolve && modifiers ? `
-- evolvedModifiers: an object with the same keys as the EVOLVE MODIFIERS block above (only the keys present in the input). Each value is the escalated version per the rules and examples given. These must be what you actually referenced when composing the portraitPrompt.` : ''}${abilitySlotToFill ? `
-- abilityCandidate: an ability proposal per the ABILITY GENERATION block below. This is optional — omit the key entirely if you cannot produce a coherent ability for this character.` : ''}
 ${abilitySlotToFill ? buildAbilityPromptFragment({ archetype, stats, rank: overallRank, slotType: abilitySlotToFill }) : ''}
 
-Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt is under ${PORTRAIT_PROMPT_MAX} chars — this is a hard constraint from the image API.`;
+Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt is under ${PORTRAIT_PROMPT_MAX} chars — hard cap from the image API.`;
+}
+
+// ============================================================================
+// Public entry point
+// ============================================================================
+
+export interface GenerateCardTextInput {
+  archetype: ArchetypeName;
+  stats: CardStats;
+  answers: StoryPillarAnswers;
+  element: ElementSelection;
+  /** Provided on tier-up / regeneration — enforces Bible §Rank continuity. */
+  existingHiddenFate?: HiddenFate;
+  /** Provided on tier-up — locks the card name. */
+  existingName?: string;
+  /** Foundation forge = 'core'; Forged tier-up = 'signature'; Ascendant tier-up = 'ultimate'. */
+  abilitySlotToFill?: AbilitySlotType;
+}
+
+export async function generateCardText(input: GenerateCardTextInput): Promise<GeneratedText> {
+  const overallRank = getOverallRank(input.stats);
+
+  const prompt = buildPrompt({
+    archetype: input.archetype,
+    stats: input.stats,
+    answers: input.answers,
+    element: input.element,
+    overallRank,
+    existingName: input.existingName,
+    existingHiddenFate: input.existingHiddenFate,
+    abilitySlotToFill: input.abilitySlotToFill,
+  });
 
   try {
     const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
     if (!apiKey) {
       console.warn('No Anthropic API set — using fallback generator');
-      return generateFallbackText(archetype, overallRank, stats, whisperWords, modifiers, lockedIdentity);
+      return generateFallbackText(input, overallRank);
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -425,17 +288,13 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        // Bumped from 1200 → 1600 to fit the optional abilityCandidate block.
-        // Existing forge output is ~800-1000 tokens; ability adds ~200-300.
-        max_tokens: 1600,
+        max_tokens: 1800,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
 
     const data = await response.json();
     const raw = data.content[0].text;
@@ -446,51 +305,21 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
       throw new Error('Incomplete response — missing lore fields');
     }
 
-    // Fill in portraitPrompt/negativePrompt from local fallback if Claude omitted them,
-    // and hard-cap length so Leonardo's 1500-char limit is never exceeded.
-    const composed = composePortraitFallback(archetype, overallRank, stats, modifiers, lockedIdentity);
+    const composed = composePortraitFallback(input, overallRank);
     const portraitPrompt = truncateToLimit(parsed.portraitPrompt ?? composed.prompt, PORTRAIT_PROMPT_MAX);
     const negativePrompt = truncateToLimit(parsed.negativePrompt ?? composed.negativePrompt, NEGATIVE_PROMPT_MAX);
 
-    // Identity: if lockedIdentity was passed in, trust that over Claude's echo
-    // (Claude occasionally paraphrases). Otherwise, use what Claude generated,
-    // falling back to a neutral placeholder if missing.
-    const identity: CharacterIdentity =
-      lockedIdentity ?? parsed.identity ?? fallbackIdentity();
-
-    // evolvedModifiers: only populate when we asked for evolution. Validate
-    // that every key present in the input is present in the output; drop
-    // silently to the input modifiers if Claude misses a key or the field.
-    let evolvedModifiers: ModifierStack | undefined;
-    if (shouldEvolve && modifiers) {
-      const raw = parsed.evolvedModifiers;
-      if (raw && typeof raw === 'object') {
-        const merged: ModifierStack = { ...modifiers };
-        let anyEvolved = false;
-        for (const key of Object.keys(modifiers) as (keyof ModifierStack)[]) {
-          const inputValue = modifiers[key];
-          if (!inputValue) continue;
-          const evolved = (raw as unknown as Record<string, unknown>)[key];
-          if (typeof evolved === 'string' && evolved.length > 0) {
-            merged[key] = evolved;
-            anyEvolved = true;
-          }
-        }
-        if (anyEvolved) evolvedModifiers = merged;
-        else console.warn('Claude returned evolvedModifiers with no usable keys; falling back to input modifiers.');
-      } else {
-        console.warn('Claude did not return evolvedModifiers; falling back to input modifiers.');
-      }
+    // Hidden Fate: parse what Claude returned, then enforce Bible §Rank
+    // continuity — if the caller passed an existingHiddenFate, locked
+    // fields must survive verbatim.
+    let hiddenFate = parseHiddenFate(parsed.hiddenFate);
+    if (input.existingHiddenFate) {
+      hiddenFate = preserveIdentityAcrossRanks(input.existingHiddenFate, hiddenFate);
     }
 
-    // abilityCandidate: only parse when we asked for one. Missing / malformed
-    // fields → undefined so the caller falls back to legacy backfill.
-    const abilityCandidate = abilitySlotToFill
+    const abilityCandidate = input.abilitySlotToFill
       ? parseAbilityCandidate((parsed as unknown as { abilityCandidate?: unknown }).abilityCandidate)
       : undefined;
-    if (abilitySlotToFill && !abilityCandidate) {
-      console.warn('Claude did not return a usable abilityCandidate; will fall back to backfill.');
-    }
 
     return {
       cardName: parsed.cardName,
@@ -498,110 +327,60 @@ Respond with ONLY valid JSON, no markdown, no explanation. Ensure portraitPrompt
       lore: parsed.lore,
       portraitPrompt,
       negativePrompt,
-      identity,
-      evolvedModifiers,
+      hiddenFate,
       abilityCandidate,
     };
   } catch (err) {
     console.error('Claude API error, using fallback:', err);
-    return generateFallbackText(archetype, overallRank, stats, whisperWords, modifiers, lockedIdentity);
+    return generateFallbackText(input, overallRank);
   }
 }
 
-/** Bare-minimum identity used when Claude fails and no locked identity exists. */
-function fallbackIdentity(): CharacterIdentity {
+// ============================================================================
+// Fallbacks
+// ============================================================================
+
+function composePortraitFallback(input: GenerateCardTextInput, rank: Rank): { prompt: string; negativePrompt: string } {
+  const anchor = input.existingHiddenFate
+    ? `${input.existingHiddenFate.sex}, ${input.existingHiddenFate.skinTone}, ${input.existingHiddenFate.bodyType}, ${input.existingHiddenFate.hair}, ${input.existingHiddenFate.disabilityOrCondition ? `${input.existingHiddenFate.disabilityOrCondition}, ` : ''}${input.existingHiddenFate.scars ? `${input.existingHiddenFate.scars}, ` : ''}same character across ranks, identical facial structure and skin tone`
+    : '';
+  const { prompt, negativePrompt } = assemblePortraitPrompt({
+    archetype: input.archetype,
+    rank,
+    stats: input.stats,
+    element: input.element,
+    answers: input.answers,
+  });
+  const finalPrompt = anchor ? `${prompt}. IDENTITY (must be preserved): ${anchor}` : prompt;
   return {
-    gender: 'androgynous',
-    apparentAge: 'young adult',
-    ethnicity: 'ambiguous features, warm mid-toned skin',
-    hair: 'dark hair, medium length',
-    eyes: 'dark eyes',
-    bodyType: 'stocky and powerfully built',
-    distinctiveFeatures: 'strong jawline',
+    prompt: truncateToLimit(finalPrompt, PORTRAIT_PROMPT_MAX),
+    negativePrompt: truncateToLimit(negativePrompt, NEGATIVE_PROMPT_MAX),
   };
 }
 
-/** Hard-cap a string to `limit` chars, preferring to cut at the last comma before the limit. */
+function generateFallbackText(input: GenerateCardTextInput, rank: Rank): GeneratedText {
+  const c = getBibleChapter(input.archetype);
+  const { prompt: portraitPrompt, negativePrompt } = composePortraitFallback(input, rank);
+  const hiddenFate = input.existingHiddenFate ?? emptyHiddenFate();
+  const name = input.existingName ?? `Unnamed ${input.archetype}`;
+  return {
+    cardName: name,
+    nameAndTitle: `${name}, of the ${c.internalDiversity.groups[0] ?? 'unnamed order'}`,
+    lore: `A ${rank.toLowerCase()} ${input.archetype.toLowerCase()} whose story is still being written.`,
+    portraitPrompt,
+    negativePrompt,
+    hiddenFate,
+  };
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
 function truncateToLimit(text: string, limit: number): string {
   if (text.length <= limit) return text;
   const window = text.slice(0, limit);
   const lastComma = window.lastIndexOf(',');
   if (lastComma > limit * 0.6) return window.slice(0, lastComma);
   return window;
-}
-
-/** Local fallback prompt composer, kept short so it fits under Leonardo's cap. */
-function composePortraitFallback(
-  archetype: ArchetypeName,
-  rank: Rank,
-  stats: CardStats,
-  modifiers?: ModifierStack,
-  lockedIdentity?: CharacterIdentity,
-): { prompt: string; negativePrompt: string } {
-  const identityClause = lockedIdentity
-    ? `${lockedIdentity.gender}, ${lockedIdentity.ethnicity}, ${lockedIdentity.bodyType}, ${lockedIdentity.hair}, ${lockedIdentity.eyes}, ${lockedIdentity.distinctiveFeatures}, same character across ranks, identical facial structure, skin tone, and body type`
-    : '';
-  const identityNegative = lockedIdentity
-    ? ', different person, wrong ethnicity, different gender, changed face, changed body type, inconsistent identity'
-    : '';
-
-  if (modifiers) {
-    const { prompt, negativePrompt } = assemblePortraitPrompt(archetype, rank, stats, modifiers);
-    const withIdentity = identityClause ? `${prompt}. IDENTITY (must be preserved): ${identityClause}` : prompt;
-    return {
-      prompt: truncateToLimit(withIdentity, PORTRAIT_PROMPT_MAX),
-      negativePrompt: truncateToLimit(negativePrompt + identityNegative, NEGATIVE_PROMPT_MAX),
-    };
-  }
-  return {
-    prompt: truncateToLimit(
-      `Fantasy character portrait, painterly digital art, chest-up, ${archetype} (${rank} rank)${identityClause ? `, ${identityClause}` : ''}, detailed face, rich textures, dramatic lighting`,
-      PORTRAIT_PROMPT_MAX,
-    ),
-    negativePrompt: truncateToLimit(BASE_NEGATIVE + identityNegative, NEGATIVE_PROMPT_MAX),
-  };
-}
-
-function generateFallbackText(
-  archetype: ArchetypeName,
-  rank: Rank,
-  stats: CardStats,
-  whisperWords: string[],
-  modifiers?: ModifierStack,
-  lockedIdentity?: CharacterIdentity,
-): GeneratedText {
-  const prefixes: Record<Rank, string[]> = {
-    Foundation: ['Young', 'Untested', 'Raw', 'Fledgling', 'Novice'],
-    Forged: ['Battle-worn', 'Tempered', 'Proven', 'Hardened', 'Rising'],
-    Ascendant: ['Legendary', 'Supreme', 'Eternal', 'Mythic', 'Divine'],
-  };
-
-  const titles: Record<Rank, string[]> = {
-    Foundation: ['the Unproven', 'the Unnamed', 'of the First Step', 'the Aspirant', 'the Seeker'],
-    Forged: ['the Relentless', 'of the Iron Will', 'Stormforged', 'the Unyielding', 'Oathbound'],
-    Ascendant: ['Worldbreaker', 'the Undying', 'Dawnbringer', 'of the Infinite', 'the Ascended'],
-  };
-
-  const name = `${pick(prefixes[rank])} ${archetype.split(' ')[0]}`;
-  const shortName = name.split(' ').pop()!;
-  const title = pick(titles[rank]);
-  const whisperFlavor = whisperWords.length > 0
-    ? ` The whispers speak of one who is ${whisperWords[0]}.`
-    : '';
-
-  const { prompt: portraitPrompt, negativePrompt } = composePortraitFallback(
-    archetype,
-    rank,
-    stats,
-    modifiers,
-  );
-
-  return {
-    cardName: shortName,
-    nameAndTitle: `${shortName}, ${title}`,
-    lore: `A ${rank.toLowerCase()} ${archetype.toLowerCase()} whose legend is still being written.${whisperFlavor} Those who stand in their path know only silence.`,
-    portraitPrompt,
-    negativePrompt,
-    identity: lockedIdentity ?? fallbackIdentity(),
-  };
 }

@@ -1,6 +1,5 @@
 import type { ArchetypeName } from '../types/card';
 import type {
-  StoryPillarAnswer,
   StoryPillarOption,
   StoryPillarQuestion,
 } from '../types/bible';

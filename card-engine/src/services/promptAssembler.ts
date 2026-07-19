@@ -1,107 +1,73 @@
-import type { ArchetypeName, Rank, CardStats, ModifierStack } from '../types/card';
-import { ARCHETYPES } from '../data/archetypes';
-import {
-  getDominantStat,
-  deriveStatRanks,
-  getVisualMotif,
-  getAbsenceMotifs,
-} from '../data/powerSystem';
+import type { ArchetypeName, Rank, CardStats } from '../types/card';
+import type { ElementSelection, StoryPillarAnswers } from '../types/bible';
+import { getBibleChapter } from '../data/archetypeBible';
 
-const RANK_DRAMATIC_DIRECTION: Record<Rank, string> = {
+/**
+ * Local Leonardo prompt fallback for when the Claude API is unavailable.
+ * Bible-compliant: no automatic aging escalation, no muscle escalation, no
+ * "MORE machine each rank" language. Rank drives carriage and setting
+ * detail — not body reshaping.
+ */
+
+const RANK_CARRIAGE: Record<Rank, string> = {
   Foundation:
-    'Fantasy character portrait, painterly digital art, chest-up composition, single character centered, calm or ready stance, character at the beginning of their journey, detailed face, rich textures, high detail',
+    'grounded, ready stance, the character carries their identity but has not yet been fully tested by it, calm focused expression, clear posture that reflects their role',
   Forged:
-    'Fantasy character portrait, painterly digital art, dynamic action pose showing power, battle-ready stance, energy or aura visible around the character, mid-combat intensity, detailed face with battle experience, rich textures, high detail, dramatic lighting',
+    'settled, weathered stance that shows earned experience without shrinking or inflating the body, expression of someone whose choices have integrated into who they are, environment showing signs of the trials they have passed through',
   Ascendant:
-    'Fantasy character portrait, painterly digital art, ultimate form, explosive power display, dramatic pose channeling devastating energy, overwhelming aura filling the frame, legendary presence, climactic moment of peak power, detailed face radiating authority, rich textures, high detail, epic dramatic lighting',
+    'a person whose completed choices have reshaped what their tradition means — carriage of authority earned through service rather than spectacle, expression of witness, environment reflecting the long arc of the character\'s life',
 };
 
-const RANK_AGING: Record<Rank, string> = {
-  Foundation:
-    'Youthful face, unblemished skin, bright eyes full of potential, untested appearance, fresh and eager',
-  Forged:
-    'Weathered face with visible battle scars, harder eyes that have seen real combat, more muscular or seasoned build, faint lines of experience, confident and dangerous',
-  Ascendant:
-    'Ancient-looking eyes in a powerful face, deep scars telling stories of legendary battles, intense piercing gaze radiating wisdom and fury, physical form at absolute peak power but marked by countless wars, aura of someone who has conquered death itself',
-};
+const BASE_NEGATIVE = [
+  'text', 'watermark', 'logo', 'signature', 'blurry', 'deformed',
+  'extra limbs', 'extra fingers', 'disfigured', 'bad anatomy',
+  'bad proportions', 'duplicate', 'multiple characters', 'split frame',
+  'comic panels', 'UI elements', 'border', 'frame', 'card border',
+  'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
+  'blood spatter', 'nudity', 'suggestive',
+  'younger than previous rank', 'thinner than previous rank',
+  'more muscular than previous rank', 'healthier than previous rank',
+  'more conventionally attractive than previous rank',
+  'disability removed', 'scars erased',
+  'generic fantasy stereotype', 'costume-carrying stereotype',
+].join(', ');
 
-const RANK_NEGATIVE_ADDITIONS: Partial<Record<Rank, string>> = {
-  Forged: 'baby face, young looking, unmarked skin, innocent expression, peaceful, static pose',
-  Ascendant: 'baby face, young looking, unmarked skin, innocent expression, peaceful, calm, static pose, subtle, understated',
-};
+export interface AssemblePromptInput {
+  archetype: ArchetypeName;
+  rank: Rank;
+  stats: CardStats;
+  element: ElementSelection;
+  answers: StoryPillarAnswers;
+}
 
 export function assemblePortraitPrompt(
-  archetype: ArchetypeName,
-  rank: Rank,
-  stats: CardStats,
-  modifiers: ModifierStack,
+  input: AssemblePromptInput,
 ): { prompt: string; negativePrompt: string } {
-  const arch = ARCHETYPES[archetype];
-  const dominant = getDominantStat(stats);
-  const ranks = deriveStatRanks(stats);
-  const dominantRank = dominant ? ranks[dominant]! : rank;
+  const c = getBibleChapter(input.archetype);
 
-  const visualMotif = getVisualMotif(dominant, dominantRank);
-  const absenceMotifs = getAbsenceMotifs(stats);
+  // Fold up to three Story Pillar answers into a single evocative clause.
+  // Keeps prompt length reasonable while carrying player-selected facts.
+  const pillarSeed = input.answers.answers
+    .slice(0, 3)
+    .map((a) => a.answer)
+    .join(' ; ');
 
   const parts: string[] = [
-    RANK_DRAMATIC_DIRECTION[rank],
-    `Character archetype: ${archetype} — ${arch.identity}`,
-    `Visual elements: ${arch.motifs}`,
-    `Rank appearance (${rank}): ${arch.rankProgression[rank]}`,
-    `Character maturity: ${RANK_AGING[rank]}`,
+    'Fantasy character portrait, painterly digital art, chest-up composition, single character centered, detailed face, rich textures',
+    `Archetype: ${input.archetype} — identity through ${c.identityThrough}`,
+    `Recognition cues: ${c.visualDNA.recognitionCues}`,
+    `Materials: ${c.symbolAndMaterial.materials}`,
+    `Rank carriage (${input.rank}): ${RANK_CARRIAGE[input.rank]}`,
+    `Element woven into equipment or environment: ${input.element.element} (${input.element.compatibility.replace(/_/g, ' ')}); bond: ${input.element.bond}`,
   ];
 
-  if (rank !== 'Foundation') {
-    parts.push(
-      'This is the SAME character at a later stage of their journey — maintain consistent facial structure, skin tone, and distinguishing features while showing the passage of time and accumulated power',
-    );
-  }
-
-  if (visualMotif) {
-    parts.push(`Dominant trait visuals: ${visualMotif}`);
-  }
-  if (absenceMotifs.length > 0) {
-    parts.push(`Weakness visuals: ${absenceMotifs.join('; ')}`);
-  }
-
-  parts.push(
-    `Setting/backdrop: ${modifiers.setting}`,
-    `Character demeanor: ${modifiers.demeanor}`,
-    `Signature detail: ${modifiers.signatureDetail}`,
-    `Lighting: ${modifiers.lighting}`,
-  );
-
-  if (modifiers.element) {
-    parts.push(`Elemental affinity woven into their appearance: ${modifiers.element}`);
-  }
-  if (modifiers.physique) {
-    parts.push(`Physique: ${modifiers.physique}`);
-  }
-  if (modifiers.lineage) {
-    parts.push(`Lineage cues visible in bearing and dress: ${modifiers.lineage}`);
-  }
-  if (modifiers.classSignature && rank !== 'Foundation') {
-    parts.push(
-      `CLASS SIGNATURE — a defining element that must be visible in the portrait: ${modifiers.classSignature}. This is not background flavor; render it clearly and prominently.`,
-    );
-  }
+  if (pillarSeed) parts.push(`Story anchors (must be visible): ${pillarSeed}`);
 
   const prompt = parts.join('. ');
 
-  const baseNegative = [
-    'text', 'watermark', 'logo', 'signature', 'blurry', 'deformed',
-    'extra limbs', 'extra fingers', 'disfigured', 'bad anatomy',
-    'bad proportions', 'duplicate', 'multiple characters', 'split frame',
-    'comic panels', 'UI elements', 'border', 'frame', 'card border',
-    // Steer away from content-moderation triggers (Phoenix classifier is strict —
-    // when it flags, url comes back null and we lose the whole call).
-    'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
-    'blood spatter', 'realistic injury', 'nudity', 'suggestive',
-  ].join(', ');
-
-  const rankNegative = RANK_NEGATIVE_ADDITIONS[rank] ?? '';
-  const negativePrompt = rankNegative ? `${baseNegative}, ${rankNegative}` : baseNegative;
+  // Fold archetype-specific §14 Avoid into the negative prompt.
+  const archetypeNegatives = c.claudeGuidance.avoid.join(', ');
+  const negativePrompt = `${BASE_NEGATIVE}, ${archetypeNegatives}`;
 
   return { prompt, negativePrompt };
 }
