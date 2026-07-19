@@ -24,6 +24,7 @@ const NAV: readonly NavItem[] = [
   { label: 'Cards',       to: '/admin/cards' },
   { label: 'Abilities',   to: '/admin/abilities' },
   { label: 'Prompt Lab',  to: '/admin/prompt-lab' },
+  { label: 'Proposals',   to: '/admin/proposals' },
   { label: 'Costs',       to: '/admin/costs' },
   { label: 'Diagnostics', to: '/admin/diagnostics' },
 ];

@@ -21,11 +21,24 @@ interface LeonardoBalance {
   error?: string;
 }
 
+interface PendingSummary {
+  actionableJudgments: number;
+  openProposals: number;
+}
+
+const ACTIONABLE_DISPOSITIONS = [
+  'archetype_prompt_change_candidate',
+  'global_prompt_change_candidate',
+  'model_settings_investigation',
+  'regenerate_same_prompt',
+];
+
 export function AdminOverview() {
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leonardo, setLeonardo] = useState<LeonardoBalance | null>(null);
   const [leonardoErr, setLeonardoErr] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingSummary | null>(null);
 
   useEffect(() => {
     setError(null);
@@ -62,11 +75,49 @@ export function AdminOverview() {
     })();
   }, []);
 
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+    void (async () => {
+      const [{ count: judgeCount }, { count: propCount }] = await Promise.all([
+        supabase
+          .from('prompt_test_judgments')
+          .select('id', { count: 'exact', head: true })
+          .in('disposition', ACTIONABLE_DISPOSITIONS),
+        supabase
+          .from('prompt_change_proposals')
+          .select('id', { count: 'exact', head: true })
+          .in('status', ['draft', 'evidence_ready', 'awaiting_raheem']),
+      ]);
+      setPending({
+        actionableJudgments: judgeCount ?? 0,
+        openProposals: propCount ?? 0,
+      });
+    })();
+  }, []);
+
   return (
     <div className="space-y-6">
       {error && (
         <div className="p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
           {error}
+        </div>
+      )}
+
+      {pending && (pending.actionableJudgments > 0 || pending.openProposals > 0) && (
+        <div className="rounded-lg border p-3 text-sm flex flex-wrap items-center gap-4"
+             style={{ background: 'rgba(184,134,11,0.12)', borderColor: 'rgba(184,134,11,0.4)', color: '#f4d78a' }}>
+          <span className="font-fantasy uppercase tracking-wider text-xs">Awaiting review</span>
+          {pending.actionableJudgments > 0 && (
+            <Link to="/admin/prompt-lab" className="underline hover:text-bone">
+              {pending.actionableJudgments} judgment{pending.actionableJudgments === 1 ? '' : 's'} flagged for action
+            </Link>
+          )}
+          {pending.openProposals > 0 && (
+            <Link to="/admin/proposals" className="underline hover:text-bone">
+              {pending.openProposals} open proposal{pending.openProposals === 1 ? '' : 's'}
+            </Link>
+          )}
         </div>
       )}
 
