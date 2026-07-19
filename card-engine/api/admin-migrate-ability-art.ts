@@ -35,6 +35,7 @@ interface CanonicalArtData {
 interface ArtRow {
   id: string;
   ability_id: string;
+  provider: string | null;
   asset_url: string | null;
   data: CanonicalArtData | null;
 }
@@ -58,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const assetId = typeof req.query.assetId === 'string' ? req.query.assetId : null;
   let selectQuery = admin
     .from('canonical_art_assets')
-    .select('id, ability_id, asset_url, data');
+    .select('id, ability_id, provider, asset_url, data');
   if (assetId) selectQuery = selectQuery.eq('id', assetId);
   else selectQuery = selectQuery.limit(500);
   const { data: rowsData, error } = await selectQuery;
@@ -72,6 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   for (const row of rows) {
     const url = row.asset_url ?? '';
     if (!url.startsWith('data:')) {
+      results.skipped += 1;
+      continue;
+    }
+    // Placeholder SVG art (provider='placeholder', data:image/svg+xml;utf8,…)
+    // is 1.3KB per row, generated inline by seed code, and doesn't belong
+    // in the bucket. Same for 'manual' entries — those are hand-registered
+    // and outside the migration scope. Only migrate real Leonardo bytes.
+    if (row.provider !== 'leonardo') {
       results.skipped += 1;
       continue;
     }
