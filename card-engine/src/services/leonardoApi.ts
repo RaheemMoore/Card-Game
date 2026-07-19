@@ -256,16 +256,30 @@ export async function generatePortraitStrict(
 }
 
 /**
- * Per-archetype init_strength for tier-up / regen. Default 0.45 works for the
- * standard "same face, aged and hardened" pattern. Lycanthrope drops to 0.15
- * so the model has room to break the human silhouette (bodybuilder chest,
- * human hands) that the Foundation image otherwise anchors — the four locked
- * textual anchors (fur color, moon phase, eye color, identity token) carry
- * identity instead. Was 0.30 initially, but the first two Forged generations
- * kept clean human abs and no claws — needed to weaken CR further.
+ * Per-archetype + per-rank init_strength for tier-up / regen. Default 0.45
+ * works for the standard "same face, aged and hardened" Forged pattern.
+ * Lycanthrope drops to 0.15 across all ranks so the model can break the
+ * human silhouette.
+ *
+ * M4.8 — Ascendant drops to 0.30 so Phoenix has room to unfurl non-mortal
+ * features (wings, bat-mist, bone-form, cosmic-skin, halo — Bible §Ascendant
+ * cataclysm) while text anchors (bodyDimensions, skinPresentation, hairDetail,
+ * facialStructure) carry identity forward. At 0.45 the Foundation portrait
+ * held too tightly and Ascendant looked like Forged with a slight variation.
  */
-export function getInitStrengthForArchetype(archetype: ArchetypeName): number {
+export function getInitStrengthForArchetype(
+  archetype: ArchetypeName,
+  rank?: Rank,
+): number {
   if (archetype === 'Lycanthrope') return 0.15;
+  // M5.7 — machine archetypes (Android + Mech Pilot) need TIGHTER init
+  // strength for identity persistence. Phoenix's chrome/robotic priors
+  // override loose init images and drift the chassis silhouette + optic
+  // color between ranks. Forged 0.55 (up from 0.45), Ascendant 0.30
+  // (up from 0.20). Organic archetypes keep the looser defaults.
+  const isMachineArchetype = archetype === 'Android' || archetype === 'Mech Pilot';
+  if (rank === 'Ascendant') return isMachineArchetype ? 0.30 : 0.20;
+  if (isMachineArchetype) return 0.55;
   return 0.45;
 }
 

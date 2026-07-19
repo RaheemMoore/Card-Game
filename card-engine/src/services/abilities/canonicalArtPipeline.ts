@@ -211,19 +211,21 @@ export interface LeonardoArtInput {
 }
 
 /**
- * Family-appropriate lighting + material accents. The previous global
- * "warm ember / forged metal / crystal" line poisoned tech / holy / nature
- * generations; each family now supplies its own atmosphere.
+ * Family-appropriate lighting + material accents. Rewritten to derive from
+ * the Element Visual Language Bible (Raheem 2026-07-19) so ability art
+ * uses the same locked palette / lighting / materials as character art.
+ * The specific phrase "warm ember lighting" was removed — Raheem flagged
+ * it globally as leaking into non-fire generations.
  */
 const FAMILY_ATMOSPHERE: Record<string, string> = {
-  fire:       'warm ember lighting, glowing coals and molten steel accents',
-  martial:    'forged metal accents, tempered edges, disciplined stance',
-  nature:     'soft dappled forest light, moss and living-wood accents',
-  holy:       'clean radiant light, gilded halo accents, cathedral glow',
-  necromancy: 'cold indigo underglow, bone and shadow accents, wisps of soul-smoke',
-  tech:       'clean cobalt luminance, brushed alloy panels, embedded circuitry glow',
-  defense:    'steady steel-blue light, tempered plating and rune-etched sigils',
-  beast:      'moonlit shadows, fur and fang accents, low predatory light',
+  fire:       'red-orange-yellow flame, licking-tongue texture, heat shimmer, ember particles, curling smoke; lava / magma / burning wood / obsidian materials; bright core with dark outer edges; sky tinged red-orange',
+  martial:    'clean neutral studio light, forged metal accents, tempered edges, disciplined stance, no elemental glow',
+  nature:     'sunbeams and dappled canopy light, vivid forest greens and earth brown, bark / roots / vines / moss materials, growing organic shapes',
+  holy:       'radiant gold and white radiance, sacred fire and feathery light, ivory silk and gold-thread materials, halo-crowned symmetrical composition',
+  necromancy: 'pale blue and ghost-white spirit-glow, translucent wispy ethereal texture, cool low-key contrast, veil-cloth and ectoplasm materials',
+  tech:       'circuit-cyan and hologram-teal underglow, brushed alloy panels, embedded circuitry, HUD light, geometric hard-edge shapes',
+  defense:    'steady steel-blue light, tempered plating and rune-etched sigils, brushed metal texture, no elemental glow',
+  beast:      'moonlit shadow and natural sun/moon light, tawny brown / forest green / bone white palette, fur / sinew / tooth / claw / hide materials, no magical glow — feral physical energy only',
 };
 
 const DEFAULT_ATMOSPHERE = 'balanced fantasy studio lighting, painterly material accents';

@@ -30,8 +30,10 @@ export interface AscendantPath {
   narrative: string;
 }
 
-// Sonnet to match tier-up quality bump — the paths anchor the Ascendant story.
-const AI_MODEL = 'claude-sonnet-5';
+// M4.9 — Haiku. Sonnet was removed from the entire pipeline; it was
+// over-detailing prompts, dropping fields at tier-up, and producing
+// homogenized characters. Haiku is now the only model.
+const AI_MODEL = 'claude-haiku-4-5-20251001';
 
 export async function generateAscendantPaths(card: Card): Promise<AscendantPath[]> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;

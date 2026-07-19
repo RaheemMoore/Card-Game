@@ -74,13 +74,22 @@ export function Admin() {
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
       <div className="flex items-baseline justify-between mb-4">
         <h1 className="font-fantasy text-2xl font-bold text-bone">Admin</h1>
-        <Link
-          to="/admin/abilities"
-          className="text-xs px-3 py-1.5 rounded font-fantasy font-bold"
-          style={{ background: 'rgba(184,134,11,0.15)', color: '#f4d78a', border: '1px solid rgba(184,134,11,0.35)' }}
-        >
-          Manage abilities →
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/admin/prompt-lab"
+            className="text-xs px-3 py-1.5 rounded font-fantasy font-bold"
+            style={{ background: 'rgba(52,211,153,0.15)', color: '#a7f3d0', border: '1px solid rgba(52,211,153,0.35)' }}
+          >
+            Prompt Lab →
+          </Link>
+          <Link
+            to="/admin/abilities"
+            className="text-xs px-3 py-1.5 rounded font-fantasy font-bold"
+            style={{ background: 'rgba(184,134,11,0.15)', color: '#f4d78a', border: '1px solid rgba(184,134,11,0.35)' }}
+          >
+            Manage abilities →
+          </Link>
+        </div>
       </div>
 
       {loadError && (

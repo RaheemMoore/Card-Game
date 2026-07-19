@@ -10,7 +10,7 @@ import { BondPicker } from '../components/BondPicker';
 import { rollElement } from '../services/elementRoller';
 import { CardRenderer } from '../components/CardRenderer';
 import { buildCardShell } from '../services/cardGenerator';
-import { generateCardText } from '../services/claudeApi';
+import { generateCardTextWithRetry } from '../services/claudeApi';
 import { generatePortraitStrict, pickAbTestModel } from '../services/leonardoApi';
 import { saveCard } from '../services/storage';
 import { proposeAbility } from '../services/abilities/proposalService';
@@ -147,7 +147,7 @@ export function CardForge() {
         .map((a) => a.answer.split(/\s+/).slice(0, 3).join(' '));
       const shell = buildCardShell(archetype, stats, whisperWords);
 
-      const text = await generateCardText({
+      const text = await generateCardTextWithRetry({
         archetype,
         stats,
         answers: storyPillars,

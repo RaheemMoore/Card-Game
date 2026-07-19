@@ -5,29 +5,30 @@ import type { ArchetypeBibleChapter } from '../../types/bible';
  */
 export const DRUID_BIBLE: ArchetypeBibleChapter = {
   archetype: 'Druid',
-  identityThrough: 'Stewardship',
-  coreFantasy: 'Protect the cycles that allow life to endure',
+  identityThrough: 'Being of the forest',
+  coreFantasy:
+    'You are born of the forest and always return to it — you take human form for fun and for work, but your true body is root, wood, and canopy',
 
   selectionScreen: {
     tagline:
-      'Stewards of the living world who protect the balance between growth, decay, and renewal.',
+      'Guardians of the forest who wear human form as a convenience. They meld into trees, control wood and root, and always return to the grove.',
     body:
-      'Druids listen to nature rather than command it. They protect cycles, restore damaged lands, guide migrations, and preserve ecosystems.',
+      'A Druid is not a human who studies nature. A Druid IS nature — born of the forest, always returning to it. The human shape is a costume they put on for travel, teaching, or negotiation. Their real body is old wood, deep roots, and the canopy overhead.',
     pullQuote:
-      'Nature flourishes when every part of its cycle is allowed to endure.',
+      'The forest is not something we protect — it is what we are pretending not to be.',
   },
 
   coreFantasyPromise: {
     promise:
-      'To become a guardian of the living world whose purpose is preserving the balance that allows all life to endure.',
-    emotionalPillars: ['Harmony', 'Stewardship', 'Balance', 'Renewal', 'Reverence'],
+      'To become one with the living forest — to walk among mortals in a human shape when it suits, and to melt back into wood, root, and canopy when the forest calls you home.',
+    emotionalPillars: ['Rooted-ness', 'Kinship-with-the-grove', 'Renewal', 'Guardianship', 'Reverence'],
   },
 
   origins:
-    'Druidic traditions emerged wherever people recognized that civilization depends on healthy natural systems. Independent circles formed around forests, coasts, deserts, tundra, mountains, rivers, storms, and migration routes. Every living thing depends upon countless others that may never be seen.',
+    'The first Druids were the forests themselves learning to walk. They put on human bodies to move faster, speak with mortals, and defend their groves from those who would raze them. Independent groves formed wherever old growth remembered its own name — deep woods, mangroves, high-alpine pine, mist forests, kelp forests, coral gardens, mycorrhizal networks under prairie. Every Druid can name the grove that dreamed them into shape.',
 
   cultureAndDailyLife:
-    'Druids follow migrations, seasons, tides, rainfall, flowering, and ecological change. Their work includes restoration, observation, medicine, recordkeeping, and teaching. To understand nature is to understand change.',
+    'Druids follow the rhythms of the grove that dreamed them — seasons, sap-flow, canopy-light, root-conversation, seedfall. Their work is guardianship: keeping their forest whole, negotiating with mortals who live near it, punishing those who harm it. They MELD back into their grove for rest, weeks or years at a time, taking human form again only when the grove asks them to walk the outside world.',
 
   beliefs: {
     virtues: ['stewardship', 'patience', 'observation', 'adaptability', 'respect', 'balance'],
@@ -64,9 +65,9 @@ export const DRUID_BIBLE: ArchetypeBibleChapter = {
 
   visualDNA: {
     recognitionCues:
-      'Biome-specific materials, climate adaptation, restoration tools, medicine, observation, evidence of growth and decay, and a clear relationship to the part of nature that calls.',
+      'Biome-specific materials, evidence the human form is a costume (bark showing at wrists or neck, moss on the skin, root-vein instead of blood-vein, leaves in the hair mid-motion, eyes the color of the grove they came from). At Foundation the human form is convincing but tells slip. At Forged the wood is visibly reclaiming the body. At Ascendant the character is mid-melding-into-tree or fully returned to root-and-canopy form.',
     avoid:
-      'Universal antlers, green robes, leaf costumes, forest-only settings, overlap with Beastmaster.',
+      'Universal antlers, green robes as costume-shorthand, leaf-cape stereotypes, "human wizard in nature colors," overlap with Beastmaster (Beastmasters bond with beasts; Druids ARE the forest).',
   },
 
   symbolAndMaterial: {
@@ -78,12 +79,14 @@ export const DRUID_BIBLE: ArchetypeBibleChapter = {
   },
 
   rankEvolution: {
-    Foundation: 'Learns to hear one part of the natural world.',
-    Forged: 'Accepts responsibility for complex cycles and visible damage.',
+    Foundation:
+      'The human form is convincing — a Druid walking the outside world as a mortal would. But tells slip through: leaves stuck in the hair, bark at the wrists, root-veins glimpsed under the skin. They still speak with wood and root but they mostly wear the person-shape.',
+    Forged:
+      'The grove is reclaiming them. Wood visibly grows on the arms and shoulders, moss on the neck, roots trailing at the feet. They can meld into any tree and re-emerge from any other tree in the same grove. Half-human, half-forest.',
     Ascendant:
-      'Becomes a steward whose decisions reshape how communities coexist with nature.',
+      'They ARE the forest — a walking grove-being with canopy for hair, roots for legs, bark for skin, and wildlife nesting in their shoulders. Or mid-transformation, actively melding into a great tree with human form dissolving into wood. The grove speaks through them. They can call every root in a hundred miles.',
     continuityNote:
-      'Progression should broaden understanding and responsibility, not merely add vines, antlers, or larger magical effects.',
+      'Progression means the human costume is peeled off and the tree-being underneath becomes visible. Do not just add vines or antlers — the character LITERALLY becomes forest.',
   },
 
   futureDesignSpace:

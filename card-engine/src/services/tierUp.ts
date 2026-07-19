@@ -11,7 +11,7 @@ import {
   getStatNames,
 } from '../data/powerSystem';
 import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
-import { generateCardText } from './claudeApi';
+import { generateCardTextWithRetry } from './claudeApi';
 import { saveCard } from './storage';
 import { emptyHiddenFate } from './hiddenFate';
 import { inferPrestige } from './prestigeInference';
@@ -128,7 +128,7 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
     (r) => r.localTier === oldRank,
   );
 
-  const text = await generateCardText({
+  const text = await generateCardTextWithRetry({
     archetype: card.archetype,
     stats: newStats,
     answers: card.storyPillars,
@@ -151,7 +151,9 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
     typeof card.portraitAsset === 'string' &&
     (card.portraitAsset.startsWith('data:image/') || card.portraitAsset.startsWith('/assets/'));
   const initImage = previousIsUsableImage ? card.portraitAsset : undefined;
-  const initStrength = getInitStrengthForArchetype(card.archetype);
+  // M4.8 — pass rank so Ascendant gets a looser 0.30 init, letting Phoenix
+  // unfurl non-mortal features while keeping identity anchors from text.
+  const initStrength = getInitStrengthForArchetype(card.archetype, newOverallRank);
 
   // Tier-ups keep whatever model the card was originally forged with so the
   // Collection A/B stays coherent — a card tagged phoenix_1_0 stays phoenix

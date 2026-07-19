@@ -1,6 +1,6 @@
 import type { Card } from '../types/card';
 import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
-import { generateCardText } from './claudeApi';
+import { generateCardTextWithRetry } from './claudeApi';
 import { getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 import { saveCard } from './storage';
 import { emptyHiddenFate } from './hiddenFate';
@@ -20,7 +20,7 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
     );
   }
 
-  const text = await generateCardText({
+  const text = await generateCardTextWithRetry({
     archetype: card.archetype,
     stats: card.stats,
     answers: card.storyPillars,

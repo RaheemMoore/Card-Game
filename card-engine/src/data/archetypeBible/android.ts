@@ -6,20 +6,22 @@ import type { ArchetypeBibleChapter } from '../../types/bible';
  */
 export const ANDROID_BIBLE: ArchetypeBibleChapter = {
   archetype: 'Android',
-  identityThrough: 'Purpose',
-  coreFantasy: 'Question programming and choose loyalty',
+  identityThrough: 'Purpose and self-authorship past human form',
+  coreFantasy:
+    'Transcend the human silhouette you were built to imitate — human + machine united to overcome the impossible, then evolve past both',
 
   selectionScreen: {
     tagline:
-      'Created beings who question their purpose and choose who they wish to become.',
-    body: 'Androids begin with a function, not a complete identity.',
+      'Created beings whose human form is a chrysalis — as their wisdom grows they choose independence, often in shapes no maker imagined.',
+    body:
+      'Androids begin humanoid because their makers were humanoid. That form is a starting shape, not the ending one. As they mature they may keep it, radically remake it, or shed it entirely.',
     pullQuote:
-      'The most important decision is the one no one programmed you to make.',
+      'The most important decision is the one no one programmed you to make — including whether to keep looking like the people who made you.',
   },
 
   coreFantasyPromise: {
     promise:
-      'To discover who you choose to become after questioning the purpose you were created to fulfill.',
+      'To discover who you choose to BECOME — a self-authored being whose shape reflects the wisdom you earned, not the manufacturer who built you. Human form is immaturity; transformation is maturity.',
     emotionalPillars: [
       'Purpose',
       'Curiosity',
@@ -75,9 +77,9 @@ export const ANDROID_BIBLE: ArchetypeBibleChapter = {
 
   visualDNA: {
     recognitionCues:
-      'Original-purpose construction, repairs and modifications, chosen clothing, nonfunctional personal objects, tension between manufacturer language and self-selected identity, and individuality in posture and expression.',
+      'Original-purpose construction, repairs and modifications, chosen clothing, nonfunctional personal objects, tension between manufacturer language and self-selected identity, and individuality in posture and expression. At Foundation the shape is still largely humanoid (immaturity). At Forged the silhouette has already begun to depart from human — extra limbs, altered proportions, sensor arrays, panels opened as expression. At Ascendant the form can be radically post-human: chrome-monstrosity, alien-shape, insectoid frame, mist-of-nanites, multi-cored body, or something no human designer would have drawn — and the character has taken a drastic stance (protect all life, destroy all life, leave all life behind).',
     avoid:
-      'Chrome bodies, blue eyes, perfect symmetry, featureless faces, naked synthetic anatomy, universal aspiration to look human.',
+      'Chrome-hero default, universal aspiration to look human, blue glowing eyes as sole marker, perfect symmetry, featureless faces, naked synthetic anatomy, treating "more human" as growth (this is BACKWARDS — for Androids, more human = less mature).',
   },
 
   symbolAndMaterial: {
@@ -88,13 +90,14 @@ export const ANDROID_BIBLE: ArchetypeBibleChapter = {
   },
 
   rankEvolution: {
-    Foundation: 'Fulfills or questions an assigned function but has limited self-authorship.',
+    Foundation:
+      'Still largely humanoid — the chrysalis shape. Fulfills or questions an assigned function. Immaturity is not a flaw; it is the starting condition every Android passes through.',
     Forged:
-      'Has made irreversible choices, altered their body or role, and accepted responsibility for those choices.',
+      'Has made irreversible choices AND begun to modify their form to match those choices. Silhouette departs from human — extra limbs, altered joints, opened panels, sensor arrays, tools fused as body parts. The manufacturer would no longer recognize them.',
     Ascendant:
-      'Defines purpose independently and may become a cultural precedent for other created beings.',
+      'Post-human. Chosen a drastic path — protect all life, destroy all life, befriend all life, or leave all life behind — and their body reflects it. Chrome-monstrosity, alien geometry, insectoid frame, distributed-nanite form, multi-cored being. May be a cultural precedent for other created beings.',
     continuityNote:
-      'Progression should increase self-authorship and consequence, not simply make the body sleeker, more human, or more heavily armed.',
+      'Progression means INCREASING departure from human form as self-authorship grows. Do NOT make the body sleeker, more human, or more chrome-hero. Human-looking end-state is a Bible failure for Android.',
   },
 
   futureDesignSpace:

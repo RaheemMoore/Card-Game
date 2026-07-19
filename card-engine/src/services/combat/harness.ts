@@ -176,8 +176,8 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
 
 const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
   {
-    id: 'act_fe_infernal_lance',
-    displayName: 'Infernal Lance',
+    id: 'act_fe_ember_lance',
+    displayName: 'Ember Lance',
     intentType: 'heavy_attack',
     telegraphText: 'A javelin of white flame gathers overhead.',
     priority: 30,

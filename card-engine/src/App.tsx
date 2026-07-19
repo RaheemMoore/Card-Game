@@ -9,6 +9,7 @@ import { Battle } from './pages/battle';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
 import { DevAbilities } from './pages/DevAbilities';
+import { M55Harness } from './pages/M55Harness';
 import { NavBar } from './components/NavBar';
 import { PersistenceGate } from './components/PersistenceGate';
 
@@ -44,6 +45,8 @@ export default function App() {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/abilities" element={<AdminAbilities />} />
                 <Route path="/dev/abilities" element={<DevAbilities />} />
+                <Route path="/m55harness" element={<M55Harness />} />
+                <Route path="/admin/prompt-lab" element={<M55Harness />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

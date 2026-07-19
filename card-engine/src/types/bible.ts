@@ -152,6 +152,103 @@ export interface HiddenFate {
   clothingConstruction: string;
   minorAccessories: string;
   environmentDetails: string;
+  /**
+   * M4.6 — Body & Skin Representation Bible structured decomposition.
+   * Optional; new cards fill both these and the freeform bodyType/skinTone
+   * strings above. Existing cards keep working (fields are undefined and
+   * the pipeline falls back to bodyType/skinTone). Locked across ranks
+   * via preserveIdentityAcrossRanks alongside bodyType/skinTone.
+   */
+  bodyDimensions?: {
+    /** Bible §4.1 — very short / short / average / tall / very tall */
+    height: string;
+    /** Bible §4.2 — slight / narrow / compact / medium / broad / heavy / long-limbed */
+    frame: string;
+    /** Bible §4.3 — slim / soft / thick / stocky / broad / heavyset / fat / etc. */
+    mass: string;
+    /** Bible §4.4 — low / modest / functional / thick / highly-defined */
+    muscleVisibility: string;
+    /** Bible §4.6 — carriage. Distinct from the legacy top-level posture
+     *  field; new cards fill both to keep the SAME PERSON RULE identity
+     *  block able to consume either. */
+    posture: string;
+  };
+  skinPresentation?: {
+    /** Bible §8.1 — very fair through very deep */
+    depth: string;
+    /** Bible §8.2 — cool / neutral / warm / olive / golden / red-brown / bronze / ashy / umber */
+    undertone: string;
+    /** Bible §8.3 — smooth / weathered / freckled / scar-marked / etc. */
+    texture: string;
+    /** Bible §8.4 — how light responds. Critical for preserving detail on
+     *  darker skin per Bible §9. */
+    lightingResponse: string;
+  };
+  /**
+   * M4.7 — Fantasy Hair, Fashion, and Clothing Bible structured
+   * decomposition. Optional; parallel to freeform `hair` (top-level
+   * string) which stays required. Preserved verbatim across ranks by
+   * preserveIdentityAcrossRanks alongside the other identity anchors.
+   * Bible §Preservation Rules.
+   */
+  hairDetail?: {
+    /** Bible §4 — texture bucket + descriptor (e.g. "dense coils"). */
+    texture: string;
+    /** short / shoulder-length / long / very long / clipped */
+    length: string;
+    /** Specific arrangement — the actual hairstyle. */
+    style: string;
+    /** Bible §5 — from the appropriate color bucket. */
+    color: string;
+    /** Bible §6 — wind-tangled / polished / battlefield-cut / etc. */
+    condition: string;
+    /** Bible §8 — optional; ONE or TWO intentional pieces. */
+    adornment: string;
+    /** Bible §7 — clean-shaven / stubble / full beard / etc. */
+    facialHair: string;
+    /** Bible §9 — how hair sits under hood/helmet/veil/halo. "none" if bare. */
+    headwearInteraction: string;
+  };
+  /**
+   * M4.7 — Fashion composition per Bible §10 layered system. Rank-scaled
+   * per Bible §17: Foundation cards fill essentials (primaryGarment,
+   * waist, footwear, signatureAccessory); Forged adds structural + armor +
+   * outerLayer + rankSignal; Ascendant fills all 12 fields.
+   */
+  fashion?: {
+    /** Bible §16 — the costume identity. One of: heroic / villainous /
+     *  aristocratic / scholarly / practical / battlefield / ceremonial /
+     *  industrial. M5.4 removed the element-flavored roles (infernal,
+     *  celestial, corrupted) — element palette lives in the Element
+     *  Visual Language block, not in the fashion role. */
+    role: string;
+    /** Bible §11 — the underlayer. Optional at Foundation. */
+    baseLayer?: string;
+    /** The main outfit piece. Always present. */
+    primaryGarment: string;
+    /** Reinforcement between garment + armor. Forged+ */
+    structuralLayer?: string;
+    /** Bible §13 — armor library. Foundation = limited/absent. */
+    armor?: string;
+    /** The waist system — sash / belt / cord / harness. */
+    waist: string;
+    /** Cape / mantle / travel coat with construction detail. */
+    outerLayer?: string;
+    /** Specific footwear. */
+    footwear: string;
+    /** Gauntlets / wrapped forearms / ceremonial gloves. Ascendant primarily. */
+    armAndHandTreatment?: string;
+    /** Bible §12 — array of 2-4 specific textiles. */
+    materials: readonly string[];
+    /** Bible §15 — specific wear state. */
+    wear: string;
+    /** ONE meaningful accessory tied to the character's story. */
+    signatureAccessory: string;
+    /** Bible §17 — how the character shows their standing. Forged+ */
+    rankSignal?: string;
+    /** Bible §17 Ascendant — how magic/tech is woven INTO the outfit. Ascendant only. */
+    magicalOrTechnologicalIntegration?: string;
+  };
 }
 
 // ---------- Prestige roles ----------
