@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyUser } from './_lib/auth';
-import { recordApiUsage } from './_lib/recordApiUsage';
+import { verifyUser } from './_lib/auth.js';
+import { recordApiUsage } from './_lib/recordApiUsage.js';
 
 // Server-side Anthropic Messages proxy. The browser used to call
 // api.anthropic.com directly with a VITE-bundled key (i.e. a leaked key).
