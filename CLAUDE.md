@@ -12,15 +12,17 @@ npm install
 npm run dev        # Vite dev server on :5173
 ```
 
-Requires a `.env` file in `card-engine/` with `VITE_ANTHROPIC_API_KEY=sk-ant-...` for card text generation (Claude claude-sonnet-4-6).
+Requires a `.env` file in `card-engine/` with the client keys (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) and, for `vercel dev` or preview deploys, the server keys (`ANTHROPIC_API_KEY`, `LEONARDO_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`). Card text generation runs on Claude Haiku 4.5 via the server-side `/api/anthropic-messages` endpoint. Portrait art runs on Leonardo Phoenix via `/api/leonardo` (server-side key too).
 
 ## Tech Stack
 
 - **React 19** + **Vite 8** + **TypeScript 6**
 - **Tailwind CSS v4** (uses `@theme` block in `index.css`, not `tailwind.config`)
 - **react-router-dom v7** for routing
-- **localStorage** for card persistence (no backend in Phase 1)
-- **Anthropic API** (claude-sonnet-4-6) called client-side for card name/title/lore generation
+- **Supabase** for cards, ledger, abilities, bosses, admin RBAC, and `api_usage_events` telemetry (localStorage is retained as a legacy fallback only)
+- **Server-side Vercel Functions** under `card-engine/api/` proxy every paid provider call — no provider secret ships to the browser. Every call writes an `api_usage_events` row.
+- **Anthropic Claude Haiku 4.5** for card name/title/lore/portrait-prompt generation via `/api/anthropic-messages`
+- **Leonardo Phoenix** for portrait + emblem art via `/api/leonardo` (allowlisted sub-paths, Supabase-JWT gated)
 
 ## Project Structure
 
@@ -187,6 +189,7 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
   - **Ability System (A0–A9):** typed effect/target/trigger/condition/status catalogs; power-budget validator; 5 seed abilities; Supabase `ability_*` tables with library-read/admin-write RLS; forge + tier-up ability proposals with duplicate detection (exact-match auto-attach, fuzzy queues); discovery rewards (Gold + Forge Crystals per rarity, idempotent via ledger); Codex home + family + ability pages; canonical art pipeline with placeholders + Leonardo (3 seed abilities generated); admin moderation queue with approve/reject/merge/deprecate. Spec: [card-engine-ability-system-spec.md](card-engine-ability-system-spec.md).
   - **Boss Battles (B0–B7):** turn-based combat contract; pure deterministic reducer with seeded RNG + snapshot-immutable ability resolution; headless 5000-run simulator; Supabase `boss_*` tables; Emberborn Wraith (fire elemental, 2 phases) as first boss; playable `/battle` route with hero picker + encounter screen + intent banner + event log; idempotent battle rewards (first-clear 500g/100c, repeat 100g/15c) via ledger `battleId` scan; data-driven damage numbers; hit-shake + reduced-motion; mobile responsive. Spec: [card-engine-boss-battle-spec.md](card-engine-boss-battle-spec.md).
 - **Phase 3.5: Boss art polish** — DEFERRED pending art-direction alignment. Placeholder card renders in-app; final Leonardo boss art will follow the same 2D fantasy pipeline as ability art. See boss battle spec §18.
+- **Admin Operations Dashboard — Phase 0** — COMPLETE (2026-07-19). Provider secrets are fully server-side: `/api/anthropic-messages` (JWT-gated, forwards to Claude Haiku 4.5), `/api/leonardo` (JWT-gated, method + sub-path allowlist, cost logged), `/api/s3-upload` (JWT-gated, AWS hostname allowlist, 5 MB cap). Every paid call writes to `api_usage_events` (admin-only RLS). Admin diagnostic spikes (`/api/anthropic-admin-usage`, `/api/leonardo-account`) established that Leonardo `/me` exposes a live token balance; Anthropic's Admin API is unavailable on this plan so Anthropic balance will render "Live balance unavailable" per the plan's truthfulness rule. See [Claude_Code_Admin_Operations_Dashboard_Plan.md](Claude_Code_Admin_Operations_Dashboard_Plan.md) for Phases 1–7.
 - **Phase 4: PvP Battles + Trading** — NOT STARTED.
 
 Do NOT proceed to real-money bundle sales without landing the rest of Phase 2 (§9 production security prerequisites in the economy plan).
