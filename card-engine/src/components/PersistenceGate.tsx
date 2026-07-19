@@ -43,7 +43,7 @@ function installDevArtTools(): void {
     const family = store.getFamily(def.familyIds[0]);
     const result = await generateCanonicalArt(store, { def, version, family });
     // eslint-disable-next-line no-console
-    console.info(`[dev-art] generated ${abilityId} → asset ${result.asset.id}`);
+    console.debug(`[dev-art] generated ${abilityId} → asset ${result.asset.id}`);
     return result.asset.id;
   };
 }
@@ -62,9 +62,9 @@ async function seedAndBackfillAbilitiesLocal(): Promise<void> {
   // before Gate 7A landed (their art rows are stale placeholders).
   try {
     const artResult = await backfillApprovedArt(store);
-    if (artResult.upgraded > 0) {
+    if (artResult.upgraded > 0 && import.meta.env.DEV) {
       // eslint-disable-next-line no-console
-      console.info(`[abilities] approved-art backfill upgraded ${artResult.upgraded} row(s)`);
+      console.debug(`[abilities] approved-art backfill upgraded ${artResult.upgraded} row(s)`);
     }
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -72,9 +72,9 @@ async function seedAndBackfillAbilitiesLocal(): Promise<void> {
   }
   try {
     const result = backfillCardAbilities(store, getAllCards());
-    if (result.cardsUpdated > 0) {
+    if (result.cardsUpdated > 0 && import.meta.env.DEV) {
       // eslint-disable-next-line no-console
-      console.info(
+      console.debug(
         `[abilities] local backfill wrote ${result.referencesWritten} refs across ${result.cardsUpdated} card(s)`,
       );
     }
@@ -180,9 +180,9 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
         // hydrate — its sentinel should be set by then.
         await new Promise((r) => setTimeout(r, 1000));
       }
-      if (migration.ran) {
+      if (migration.ran && import.meta.env.DEV) {
         // eslint-disable-next-line no-console
-        console.info(
+        console.debug(
           `[persistence] migrated ${migration.cardCount} card(s), ${migration.txnCount} txn(s), ${migration.portraitCount} portrait(s)` +
             (migration.portraitFailures.length ? ` (${migration.portraitFailures.length} portrait upload(s) failed — cards keep prior URL)` : ''),
         );
@@ -225,59 +225,66 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       if (abilityStore.getAllDefinitions().length === 0) {
         try {
           const seedResult = await seedAbilityLibrary(abilityStore);
-          // eslint-disable-next-line no-console
-          console.info(
-            `[abilities] seeded library: ${seedResult.familiesUpserted} families, ${seedResult.definitionsUpserted} definitions, ${seedResult.versionsUpserted} versions`,
-          );
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.debug(
+              `[abilities] seeded library: ${seedResult.familiesUpserted} families, ${seedResult.definitionsUpserted} definitions, ${seedResult.versionsUpserted} versions`,
+            );
+          }
         } catch (err) {
-          // eslint-disable-next-line no-console
-          console.info(
-            '[abilities] library seed skipped (likely non-admin session — the seeded library will surface once an admin has run it):',
-            extractErrorMessage(err),
-          );
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.debug(
+              '[abilities] library seed skipped (likely non-admin session):',
+              extractErrorMessage(err),
+            );
+          }
         }
       }
 
-      // Approved-art backfill runs every session. Heals pre-Gate-7A accounts
-      // whose ember-cleave / aegis-ward rows are stale placeholder SVGs.
-      // Non-admin sessions catch the RLS rejection inside the function.
       try {
         const artResult = await backfillApprovedArt(abilityStore);
-        if (artResult.upgraded > 0) {
+        if (artResult.upgraded > 0 && import.meta.env.DEV) {
           // eslint-disable-next-line no-console
-          console.info(
+          console.debug(
             `[abilities] approved-art backfill upgraded ${artResult.upgraded} row(s)`,
           );
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
-        console.info(
-          '[abilities] approved-art backfill skipped:',
-          extractErrorMessage(err),
-        );
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.debug(
+            '[abilities] approved-art backfill skipped:',
+            extractErrorMessage(err),
+          );
+        }
       }
 
       if (bossStore.getAllDefinitions().length === 0) {
         try {
           const seedResult = await seedBossLibrary(bossStore);
-          // eslint-disable-next-line no-console
-          console.info(
-            `[bosses] seeded library: ${seedResult.definitionsUpserted} definitions, ${seedResult.versionsUpserted} versions`,
-          );
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.debug(
+              `[bosses] seeded library: ${seedResult.definitionsUpserted} definitions, ${seedResult.versionsUpserted} versions`,
+            );
+          }
         } catch (err) {
-          // eslint-disable-next-line no-console
-          console.info(
-            '[bosses] library seed skipped (likely non-admin session — an admin will need to run it):',
-            extractErrorMessage(err),
-          );
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.debug(
+              '[bosses] library seed skipped (likely non-admin session):',
+              extractErrorMessage(err),
+            );
+          }
         }
       }
 
       try {
         const backfill = backfillCardAbilities(abilityStore, getAllCards());
-        if (backfill.cardsUpdated > 0) {
+        if (backfill.cardsUpdated > 0 && import.meta.env.DEV) {
           // eslint-disable-next-line no-console
-          console.info(
+          console.debug(
             `[abilities] legacy backfill wrote ${backfill.referencesWritten} refs across ${backfill.cardsUpdated} card(s); ${backfill.cardsSkippedNoSeedMatch} card(s) had no seed match yet`,
           );
         }

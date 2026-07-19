@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { fetchIsAdmin } from '../services/persistence/supabaseClient';
 import {
   getAbilityStore,
   getAllDefinitions,
@@ -24,11 +26,23 @@ import type { AbilityDefinition } from '../types/abilities';
  * localStorage otherwise. RLS enforces admin-only writes on the Supabase
  * side; the local store lets any dev try the flow.
  */
+type GuardState = 'checking' | 'allowed' | 'denied';
+
 export function AdminAbilities() {
+  const [guard, setGuard] = useState<GuardState>('checking');
   const [queue, setQueue] = useState<AbilityDefinition[]>([]);
   const [analytics, setAnalytics] = useState<AbilityLibraryAnalytics | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev_admin') === '1') {
+      setGuard('allowed');
+      return;
+    }
+    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
+  }, []);
 
   const refresh = useCallback(() => {
     const store = getAbilityStore();
@@ -58,11 +72,18 @@ export function AdminAbilities() {
     [refresh],
   );
 
-  const approvedDefinitions = getAllDefinitions().filter((d) => d.status === 'approved');
+  if (guard === 'checking') return <div className="p-8 text-center text-bone/70">Checking access…</div>;
+  if (guard === 'denied') return <Navigate to="/" replace />;
+
+  const allDefinitions = getAllDefinitions();
+  const approvedDefinitions = allDefinitions.filter((d) => d.status === 'approved');
 
   return (
-    <section className="mt-8">
-      <h2 className="font-fantasy text-lg font-bold text-bone mb-3">Abilities</h2>
+    <section className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="flex items-baseline justify-between mb-4">
+        <h1 className="font-fantasy text-2xl font-bold text-bone">Abilities</h1>
+        <Link to="/admin" className="text-xs text-bone/60 underline">← Admin home</Link>
+      </div>
 
       {flash && (
         <div
@@ -139,6 +160,49 @@ export function AdminAbilities() {
               }}
             />
           ))}
+        </div>
+      )}
+
+      <div className="mt-8 flex items-baseline justify-between">
+        <h3 className="font-fantasy text-sm uppercase tracking-widest text-gold/70">
+          All abilities ({allDefinitions.length})
+        </h3>
+        <button
+          onClick={() => setShowAll((v) => !v)}
+          className="text-xs text-bone/70 underline"
+        >
+          {showAll ? 'Hide' : 'Show'}
+        </button>
+      </div>
+      {showAll && (
+        <div className="mt-2 overflow-x-auto rounded border border-bone/15">
+          <table className="w-full text-xs text-bone/90">
+            <thead className="bg-void/60 text-[10px] uppercase tracking-wider">
+              <tr>
+                <th className="text-left px-2 py-1">Name</th>
+                <th className="text-left px-2 py-1">Slug</th>
+                <th className="text-left px-2 py-1">Family</th>
+                <th className="text-left px-2 py-1">Rarity</th>
+                <th className="text-left px-2 py-1">Role</th>
+                <th className="text-left px-2 py-1">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allDefinitions
+                .slice()
+                .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                .map((d) => (
+                  <tr key={d.id} className="border-t border-bone/10">
+                    <td className="px-2 py-1">{d.displayName}</td>
+                    <td className="px-2 py-1 font-mono text-bone/60">{d.slug}</td>
+                    <td className="px-2 py-1">{d.familyIds.join(', ')}</td>
+                    <td className="px-2 py-1">{d.rarity}</td>
+                    <td className="px-2 py-1">{d.role}</td>
+                    <td className="px-2 py-1">{d.status}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
       )}
     </section>

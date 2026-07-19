@@ -9,6 +9,7 @@ import type { AbilityStore } from '../persistence/AbilityStore';
 import { normalizeCandidate } from './candidateNormalizer';
 import { validateAbilityVersion, type ValidationError } from './validator';
 import { detectDuplicate } from './duplicateDetector';
+import { registerPlaceholderArt, generateCanonicalArt } from './canonicalArtPipeline';
 import { EFFECT_CATALOG } from '../../data/abilities/effects';
 import { TARGET_CATALOG } from '../../data/abilities/targets';
 import { TRIGGER_CATALOG } from '../../data/abilities/triggers';
@@ -56,6 +57,7 @@ export function proposeAbility(
     };
     void store.saveDefinition(experimentalDef);
     void store.saveVersion(experimentalVer);
+    void autoGenerateArtForDiscovery(store, experimentalDef, experimentalVer);
     return {
       kind: 'queued',
       abilityId: experimentalDef.id,
@@ -108,6 +110,7 @@ export function proposeAbility(
   //    status='proposed' so the admin queue can find them.
   void store.saveDefinition(candidateDef);
   void store.saveVersion(candidateVer);
+  void autoGenerateArtForDiscovery(store, candidateDef, candidateVer);
   return {
     kind: 'queued',
     abilityId: candidateDef.id,
@@ -118,6 +121,35 @@ export function proposeAbility(
         ? { nearestAbilityId: dup.abilityId, overlap: dup.overlap }
         : undefined,
   };
+}
+
+/**
+ * Auto-art on discovery. Registers a family-tinted placeholder synchronously
+ * (so the Codex has something to render immediately) then fires Leonardo in
+ * the background to replace it with canonical art. Costs a Leonardo credit
+ * per novel identity — accepted trade so the Codex grows without admin
+ * intervention (see Raheem, 2026-07-18). Errors swallowed: the placeholder
+ * survives and admin can regenerate later.
+ */
+async function autoGenerateArtForDiscovery(
+  store: AbilityStore,
+  def: AbilityDefinition,
+  version: AbilityVersion,
+): Promise<void> {
+  const primaryFamily = def.familyIds[0];
+  const family = primaryFamily ? store.getFamily(primaryFamily) : undefined;
+  try {
+    await registerPlaceholderArt(store, def, family);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.info('[abilities] placeholder art skipped for', def.id, err);
+  }
+  try {
+    await generateCanonicalArt(store, { def, version, family });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[abilities] auto-Leonardo failed for', def.id, err);
+  }
 }
 
 function collectUnknownPrimitives(version: AbilityVersion): string[] {

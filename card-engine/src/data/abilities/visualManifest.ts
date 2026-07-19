@@ -22,6 +22,21 @@ export const APPROVED_ABILITY_ART: Record<string, AbilityArtCrops> = {
     detail: { url: '/assets/abilities/approved/aegis-ward/detail.jpg' },
     relic: { url: '/assets/abilities/approved/aegis-ward/relic.jpg' },
   },
+  'thornbite': {
+    combat: { url: '/assets/abilities/approved/thornbite/combat.jpg' },
+    detail: { url: '/assets/abilities/approved/thornbite/detail.jpg' },
+    relic: { url: '/assets/abilities/approved/thornbite/relic.jpg' },
+  },
+  'soul-drain': {
+    combat: { url: '/assets/abilities/approved/soul-drain/combat.jpg' },
+    detail: { url: '/assets/abilities/approved/soul-drain/detail.jpg' },
+    relic: { url: '/assets/abilities/approved/soul-drain/relic.jpg' },
+  },
+  'radiant-ward': {
+    combat: { url: '/assets/abilities/approved/radiant-ward/combat.jpg' },
+    detail: { url: '/assets/abilities/approved/radiant-ward/detail.jpg' },
+    relic: { url: '/assets/abilities/approved/radiant-ward/relic.jpg' },
+  },
 };
 
 export function getApprovedArt(slug: string | undefined): AbilityArtCrops | undefined {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { fetchIsAdmin } from '../services/persistence/supabaseClient';
 import {
   listUsers,
@@ -14,7 +14,6 @@ import {
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
 import { CardRenderer } from '../components/CardRenderer';
-import { AdminAbilities } from './AdminAbilities';
 
 type GuardState = 'checking' | 'allowed' | 'denied';
 
@@ -25,6 +24,7 @@ export function Admin() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [showGuests, setShowGuests] = useState(false);
 
   useEffect(() => {
     // DEV-only bypass: /admin?dev_admin=1 skips the RPC check so the page can
@@ -55,11 +55,15 @@ export function Admin() {
   const filtered = useMemo(() => {
     if (!users) return null;
     const q = query.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter(
+    let list = users;
+    if (!showGuests) list = list.filter((u) => !u.is_anonymous);
+    if (!q) return list;
+    return list.filter(
       (u) => (u.email ?? '').toLowerCase().includes(q) || u.user_id.toLowerCase().includes(q),
     );
-  }, [users, query]);
+  }, [users, query, showGuests]);
+
+  const guestCount = users?.filter((u) => u.is_anonymous).length ?? 0;
 
   if (guard === 'checking') return <div className="p-8 text-center text-bone/70">Checking access…</div>;
   if (guard === 'denied') return <Navigate to="/" replace />;
@@ -68,7 +72,16 @@ export function Admin() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      <h1 className="font-fantasy text-2xl font-bold mb-4 text-bone">Admin</h1>
+      <div className="flex items-baseline justify-between mb-4">
+        <h1 className="font-fantasy text-2xl font-bold text-bone">Admin</h1>
+        <Link
+          to="/admin/abilities"
+          className="text-xs px-3 py-1.5 rounded font-fantasy font-bold"
+          style={{ background: 'rgba(184,134,11,0.15)', color: '#f4d78a', border: '1px solid rgba(184,134,11,0.35)' }}
+        >
+          Manage abilities →
+        </Link>
+      </div>
 
       {loadError && (
         <div className="mb-4 p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
@@ -93,13 +106,23 @@ export function Admin() {
         </div>
       )}
 
-      <input
-        type="search"
-        placeholder="Search email or uid…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full max-w-sm mb-3 px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
-      />
+      <div className="flex flex-wrap items-center gap-3 mb-3">
+        <input
+          type="search"
+          placeholder="Search email or uid…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 min-w-[12rem] max-w-sm px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
+        />
+        <label className="flex items-center gap-2 text-xs text-bone/70 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showGuests}
+            onChange={(e) => setShowGuests(e.target.checked)}
+          />
+          Show guests ({guestCount})
+        </label>
+      </div>
 
       {/* Mobile: stacked cards. Desktop: table. */}
       <div className="sm:hidden space-y-2">
@@ -204,7 +227,6 @@ export function Admin() {
         />
       )}
 
-      <AdminAbilities />
     </div>
   );
 }

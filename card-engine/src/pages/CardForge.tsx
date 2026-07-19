@@ -177,9 +177,9 @@ export function CardForge() {
               const reward = grantDiscoveryReward(getAbilityStore(), outcome.abilityId);
               if (reward.kind === 'granted') {
                 const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
-                console.info(`[forge] discovery reward granted: ${summary}`);
+                if (import.meta.env.DEV) console.debug(`[forge] discovery reward granted: ${summary}`);
               } else if (reward.kind === 'zero_value_placeholder') {
-                console.info(`[forge] discovery recorded (reward paused): ${reward.rewardId}`);
+                if (import.meta.env.DEV) console.debug(`[forge] discovery recorded (reward paused): ${reward.rewardId}`);
               }
               const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
               const resource: BadgeResource | undefined =
@@ -189,7 +189,7 @@ export function CardForge() {
               setRelicDiscovery({ abilityId: outcome.abilityId, resource });
             }
           } else if (outcome.kind === 'queued') {
-            console.info(
+            if (import.meta.env.DEV) console.debug(
               `[forge] ability queued for admin review: ${outcome.abilityId} (experimental=${outcome.experimental})`,
             );
           } else if (outcome.kind === 'rejected') {

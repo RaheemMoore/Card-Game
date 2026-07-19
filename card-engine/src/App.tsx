@@ -3,6 +3,7 @@ import { CardForge } from './pages/CardForge';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { Admin } from './pages/Admin';
+import { AdminAbilities } from './pages/AdminAbilities';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { CodexFamily } from './pages/CodexFamily';
@@ -41,6 +42,7 @@ export default function App() {
                 <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
                 <Route path="/battle" element={<Battle />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/abilities" element={<AdminAbilities />} />
                 <Route path="/dev/abilities" element={<DevAbilities />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

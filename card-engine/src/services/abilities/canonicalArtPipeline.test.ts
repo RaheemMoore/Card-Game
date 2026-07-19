@@ -73,11 +73,13 @@ describe('registerPlaceholderArt', () => {
     expect(first).toBeNull(); // seed already registered one
     expect(second).toBeNull();
 
+    // Thornbite is now in the approved manifest — the seed pass writes a
+    // provider='manual' row backed by /assets/abilities/approved/thornbite/.
     const art = store.getArtForAbility(def.id);
     expect(art).toBeTruthy();
-    expect(art?.provider).toBe('placeholder');
+    expect(art?.provider).toBe('manual');
     expect(art?.status).toBe('approved');
-    expect(art?.assetUrl.startsWith('data:image/svg+xml;utf8,')).toBe(true);
+    expect(art?.assets?.combat.url).toMatch(/\/assets\/abilities\/approved\/thornbite\//);
   });
 
   it('runs during seedAbilityLibrary — every seed ability ends up with art (placeholder or manifest)', async () => {
@@ -88,7 +90,7 @@ describe('registerPlaceholderArt', () => {
     // Slugs with approved Gate 7A crops register as provider='manual' with
     // an assets triple pointing at /assets/abilities/approved/<slug>/.
     // Everything else is a family-tinted SVG placeholder in all three roles.
-    const approvedSlugs = new Set(['ember-cleave', 'aegis-ward']);
+    const approvedSlugs = new Set(['ember-cleave', 'aegis-ward', 'thornbite', 'soul-drain', 'radiant-ward']);
     for (const def of store.getAllDefinitions()) {
       const art = store.getArtForAbility(def.id);
       expect(art, `art for ${def.id}`).toBeTruthy();

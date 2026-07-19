@@ -244,9 +244,9 @@ export async function tierUpCard(
           const reward = grantDiscoveryReward(getAbilityStore(), outcome.abilityId);
           if (reward.kind === 'granted') {
             const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
-            console.info(`[tier-up] discovery reward granted: ${summary}`);
+            if (import.meta.env.DEV) console.debug(`[tier-up] discovery reward granted: ${summary}`);
           } else if (reward.kind === 'zero_value_placeholder') {
-            console.info(`[tier-up] discovery recorded (reward paused): ${reward.rewardId}`);
+            if (import.meta.env.DEV) console.debug(`[tier-up] discovery recorded (reward paused): ${reward.rewardId}`);
           }
           const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
           newAbilityDiscovery = {
@@ -259,7 +259,7 @@ export async function tierUpCard(
           };
         }
       } else if (outcome.kind === 'queued') {
-        console.info(
+        if (import.meta.env.DEV) console.debug(
           `[tier-up] ${abilitySlotToFill} queued for admin review: ${outcome.abilityId}`,
         );
       } else if (outcome.kind === 'rejected') {
