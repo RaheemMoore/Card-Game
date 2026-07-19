@@ -1,5 +1,6 @@
 import type { Card } from '../types/card';
 import { getBibleChapter } from '../data/archetypeBible';
+import { callAnthropicMessages } from './anthropicClient';
 
 /**
  * Ascendant Paths — Bible §Rank Evolution.
@@ -36,8 +37,7 @@ export interface AscendantPath {
 const AI_MODEL = 'claude-haiku-4-5-20251001';
 
 export async function generateAscendantPaths(card: Card): Promise<AscendantPath[]> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-  if (!apiKey || !card.storyPillars || !card.elementSelection) {
+  if (!card.storyPillars || !card.elementSelection) {
     return fallbackPaths(card);
   }
 
@@ -77,24 +77,15 @@ Return ONLY JSON:
 }`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        max_tokens: 600,
-        temperature: 1,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    const data = await callAnthropicMessages({
+      model: AI_MODEL,
+      max_tokens: 600,
+      temperature: 1,
+      messages: [{ role: 'user', content: prompt }],
+      gameAction: 'ascendant_paths',
+      cardId: card.cardId,
     });
-    if (!response.ok) throw new Error(`Ascendant paths API failed: ${response.status}`);
-    const data = await response.json();
-    const raw = data.content[0].text;
+    const raw = data.content?.[0]?.text ?? '';
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
     const parsed = JSON.parse(text) as { paths?: unknown };
 

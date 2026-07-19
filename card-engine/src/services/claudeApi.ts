@@ -1,3 +1,4 @@
+import { callAnthropicMessages } from './anthropicClient';
 import type { ArchetypeName, CardStats, Rank } from '../types/card';
 import type {
   ElementName,
@@ -1096,32 +1097,15 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
   const model = 'claude-haiku-4-5-20251001';
 
   try {
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error('No Anthropic API key configured (VITE_ANTHROPIC_API_KEY missing).');
-    }
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model,
-        // M4.9 — Haiku is the only model now; 6000 fits its response
-        // envelope even with 4 Bible blocks + LOCKED HIDDEN FATE echo.
-        max_tokens: 6000,
-        temperature: 1,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    const data = await callAnthropicMessages({
+      model,
+      // M4.9 — Haiku is the only model now; 6000 fits its response
+      // envelope even with 4 Bible blocks + LOCKED HIDDEN FATE echo.
+      max_tokens: 6000,
+      temperature: 1,
+      messages: [{ role: 'user', content: prompt }],
+      gameAction: 'forge_card_text',
     });
-
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-    const data = await response.json();
     if (data.stop_reason === 'max_tokens') {
       throw new Error('Claude output hit max_tokens — JSON is truncated. Bump max_tokens or shrink the prompt.');
     }
