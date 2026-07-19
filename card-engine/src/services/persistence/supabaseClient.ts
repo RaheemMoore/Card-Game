@@ -38,6 +38,22 @@ export function getSupabaseClient(): SupabaseClient | null {
       storageKey: 'card-engine-auth',
     },
   });
+
+  // Bridge Supabase's own auth events into our cache + notify system so
+  // out-of-band session changes (OAuth redirect callback, token refresh,
+  // sign-out from another tab) update the UI without a manual reload.
+  client.auth.onAuthStateChange((_event, session) => {
+    if (session?.user) {
+      cachedUserId = session.user.id;
+      cachedUser = session.user;
+    } else {
+      cachedUserId = null;
+      cachedUser = null;
+    }
+    clearRoleCache();
+    notifyAuthChange();
+  });
+
   return client;
 }
 
@@ -187,6 +203,26 @@ export async function signInWithEmail(email: string, password: string): Promise<
   clearRoleCache();
   notifyAuthChange();
   return { ok: true, user: data.session.user };
+}
+
+// Kicks off Google OAuth. Always uses signInWithOAuth — Supabase will
+// reuse the Google-linked user if one exists, or create it on first
+// sign-in. If the caller was anonymous, that anonymous session is
+// discarded (its cards live under a uid nobody can reach). Linking
+// anon → google would preserve the uid, but Supabase rejects link
+// attempts when the Google identity is already tied to another user,
+// which is the common case for returning players — so we take the
+// simpler, always-works path here.
+export async function signInWithGoogle(): Promise<AuthActionResult> {
+  const c = getSupabaseClient();
+  if (!c) return { ok: false, message: 'Supabase not configured.' };
+
+  const { error } = await c.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) return { ok: false, message: error.message };
+  return { ok: true, user: cachedUser!, needsEmailConfirmation: false };
 }
 
 export async function signOut(): Promise<void> {
