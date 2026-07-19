@@ -4,9 +4,10 @@ import type {
   HiddenFate,
   StoryPillarAnswers,
 } from '../types/bible';
-import type { AbilityCandidate, AbilitySlotType } from '../types/abilities';
+import type { AbilityCandidate, AbilitySlotType, CardAbilityReference } from '../types/abilities';
 import { getBibleChapter } from '../data/archetypeBible';
 import { getQuestionsForArchetype } from '../data/storyPillars';
+import { getDefinition, getCurrentVersion, getFamily } from './abilities/registry';
 import { assemblePortraitPrompt } from './promptAssembler';
 import {
   deriveStatRanks,
@@ -42,11 +43,26 @@ import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/p
 
 const RANK_MEANINGS: Record<Rank, string> = {
   Foundation:
-    'The beginning — the character carries their identity but has not yet been fully tested by it.',
+    'The beginning — the character carries their identity but has not yet been fully tested by it. Element and power hint subtly (visible but restrained).',
   Forged:
-    'Changed by trials — the character has integrated the consequences of their choices without abandoning who they are.',
+    'Changed by trials — the character has integrated the consequences of their choices without abandoning who they are. Element and abilities are visibly active around them; combat readiness is legible in stance and equipment.',
   Ascendant:
-    'A living reference point — the character\'s completed choices reshape what their tradition means going forward. NOT apotheosis. NOT a mythic dissolution of their body or identity.',
+    'A living reference point whose completed choices reshape what their tradition means. Bible §Rank continuity: body, age, ancestry, disability, and scars are preserved verbatim from prior ranks. Bible §Visual quality rule: rank glow, elemental effects, and ability spectacle SHOULD be fully manifested and can be removed to test recognition — meaning the character MUST show visible mastery of their element and their signature abilities (weapon aura, elemental effects around body and environment, summoned allies or spectral constructs where lore fits, ultimate stance). NOT mythic dissolution — the SAME PERSON channeling earned power at full manifestation.',
+};
+
+/**
+ * Rank-progressive elemental spectacle guidance. Bible §Visual quality rule
+ * expects elements + rank effects + ability spectacle to be removable while
+ * the character remains recognizable — meaning these effects SHOULD be there.
+ * The character underneath stays continuous; the visible power grows.
+ */
+const ELEMENT_SPECTACLE_BY_RANK: Record<Rank, string> = {
+  Foundation:
+    'Subtle: the element hints in a small object, garment detail, environmental cue, or a faint mark. Not overwhelming — this is a character who carries the potential, not yet the display.',
+  Forged:
+    'Active: the element is visibly channeled — flame at the fingertips, frost across a blade, storm circling the shoulders, spirit-light through the eyes, tech-glow along armor seams. Ability signatures show in the pose (a raised weapon crackling, a casting stance, a companion nearby).',
+  Ascendant:
+    'Fully manifested: the element is a visible presence in the composition — aura around the body, environmental effects (weather, ground scarring, light bending), ability spectacle (weapon wreathed in power, elemental constructs, summoned allies, ultimate-move stance mid-cast). This is a fantasy card portrait at climactic power — WHILE the same person from Foundation is unmistakably underneath: same body, same age, same ancestry, same disability, same scars.',
 };
 
 const PORTRAIT_PROMPT_MAX = 1300;
@@ -110,6 +126,29 @@ function formatStats(stats: CardStats, archetype: ArchetypeName): string {
     .join(', ');
 }
 
+/**
+ * Formats a card's existing ability refs into a prompt block so Claude can
+ * weave each ability's visual signature into the portrait. Returns empty
+ * string when the card has no existing abilities (Foundation forge).
+ */
+function formatAbilityContext(refs?: CardAbilityReference[]): string {
+  if (!refs || refs.length === 0) return '';
+  const lines: string[] = [];
+  for (const ref of refs) {
+    const def = getDefinition(ref.abilityId);
+    if (!def) continue;
+    const version = getCurrentVersion(ref.abilityId);
+    const familyNames = def.familyIds.map((id) => getFamily(id)?.name ?? id).join(' + ');
+    const effectSummary = version?.effects
+      .map((e) => e.type.replace(/_/g, ' '))
+      .join(', ') ?? '';
+    lines.push(
+      `- ${def.displayName} (${ref.slotType}, families: ${familyNames}${effectSummary ? `; effects: ${effectSummary}` : ''}) — ${def.descriptionShort}`,
+    );
+  }
+  return lines.join('\n');
+}
+
 function formatBibleChapter(archetype: ArchetypeName): string {
   const c = getBibleChapter(archetype);
   return [
@@ -142,12 +181,15 @@ function buildPrompt(input: {
   existingName?: string;
   existingHiddenFate?: HiddenFate;
   abilitySlotToFill?: AbilitySlotType;
+  existingAbilityRefs?: CardAbilityReference[];
 }): string {
-  const { archetype, stats, answers, element, overallRank, existingName, existingHiddenFate, abilitySlotToFill } = input;
+  const { archetype, stats, answers, element, overallRank, existingName, existingHiddenFate, abilitySlotToFill, existingAbilityRefs } = input;
   const c = getBibleChapter(archetype);
   const isEvolution = Boolean(existingName);
   const rankProgression = c.rankEvolution[overallRank];
   const continuityNote = c.rankEvolution.continuityNote ?? '';
+  const abilityContext = formatAbilityContext(existingAbilityRefs);
+  const elementSpectacle = ELEMENT_SPECTACLE_BY_RANK[overallRank];
 
   return `You are the generation authority for a fantasy card game. You are following the Character Generation Bible, which is the canonical source of truth. Ignore any prior stylistic conventions from other fantasy games or previous versions of this game.
 
@@ -181,22 +223,37 @@ Compatibility bucket: ${element.compatibility}
 Bond: "${element.bond}"
 The element and bond must affect biography, environment, materials, equipment, posture, visible effects, and ability flavor. Bond guidance: interpret the bond literally — an "inheritance" element is inherited; a "prison" element restricts; a "teacher" element guides; an "ally" element cooperates.
 
-${existingHiddenFate ? `=== LOCKED HIDDEN FATE (Rank continuity — preserve verbatim) ===
-This character has already been generated at least once. The following identity anchors MUST NOT change. Weave them into the new portraitPrompt verbatim.
-- age: ${existingHiddenFate.age}
-- sex: ${existingHiddenFate.sex}
-- bodyType: ${existingHiddenFate.bodyType}
-- skinTone: ${existingHiddenFate.skinTone}
-- facialStructure: ${existingHiddenFate.facialStructure}
-- hair: ${existingHiddenFate.hair}
-- disabilityOrCondition: ${existingHiddenFate.disabilityOrCondition}
-- scars: ${existingHiddenFate.scars}
+=== ELEMENT SPECTACLE (${overallRank}) ===
+${elementSpectacle}
+This game is a fantasy card BATTLE game — elements ALWAYS show visually on the portrait. The rank determines intensity. The player picked "${element.element}" and their bond is "${element.bond}" — both must be visible in the composition.
 
-The character may look older/wearier in language cues, but the underlying body and identity are the same person. If the previous character was heavyset, they remain heavyset. If they had a prosthetic, they still have it. If they were elderly, they are older still — NOT youthened.
+${abilityContext ? `=== EXISTING ABILITIES ON THIS CARD (weave their visual signature into the portrait) ===
+${abilityContext}
+Weave each ability's visual signature into the portraitPrompt as concrete objects, effects, or pose. If the ability is "Ember Cleave" (fire + martial), the sword or weapon should be visibly wreathed in fire in the pose. If the ability is "Soul Drain" (necromancy), spectral hands, drifting spirits, or drawn-out lifelight should be visible. Ability spectacle intensifies with rank per the ELEMENT SPECTACLE block above.
 ` : ''}
 
-${existingName ? `=== EVOLUTION CONTEXT ===
-This character's name is "${existingName}". Do NOT change the cardName — return it verbatim. Generate a new title/epithet and new lore that reflect the ${overallRank} rank per Bible §9. If the archetype's approved prestige roles are earned (see approved list in code), you MAY use one for the epithet — but only if the story pillar answers plainly support it.
+${existingHiddenFate ? `=== LOCKED HIDDEN FATE (Rank continuity — preserve verbatim, HARD CONSTRAINT) ===
+This character has already been generated at at least one lower rank. Rank continuity is INVIOLABLE per Bible §Rank continuity. The following identity anchors MUST NOT change and MUST be echoed verbatim in your hiddenFate output AND woven verbatim into your portraitPrompt IDENTITY BLOCK.
+
+- age: "${existingHiddenFate.age}"  (return this string verbatim in hiddenFate.age; the character reads OLDER in language cues, never younger)
+- sex: "${existingHiddenFate.sex}"  (return this string verbatim; no shift)
+- bodyType: "${existingHiddenFate.bodyType}"  (return this string verbatim; if it says "heavyset", the Ascendant is heavyset — DO NOT slim, DO NOT gain a "warrior figure", DO NOT trade for elegance)
+- skinTone: "${existingHiddenFate.skinTone}"  (verbatim; no lightening, no dulling)
+- facialStructure: "${existingHiddenFate.facialStructure}"  (verbatim; same face)
+- hair: "${existingHiddenFate.hair}"  (verbatim; may add gray if age forward, may not restyle away entirely)
+- disabilityOrCondition: "${existingHiddenFate.disabilityOrCondition}"  (verbatim; a prosthetic stays; a scar-shut eye stays; no healing)
+- scars: "${existingHiddenFate.scars}"  (verbatim; scars deepen never disappear)
+
+IF you write anything in portraitPrompt or hiddenFate that contradicts an anchor above, you have failed the Bible §Rank continuity rule. Failure examples that will be REJECTED:
+- Foundation bodyType "heavyset with barrel chest" → Ascendant portraitPrompt describes "slim" / "elegant" / "narrow-shouldered" / "warrior figure"
+- Foundation disability "prosthetic left leg" → Ascendant portraitPrompt shows both legs
+- Foundation scars "burn scar across left cheek" → Ascendant portraitPrompt shows unmarked skin
+` : ''}
+
+${existingName ? `=== EVOLUTION CONTEXT (cardName lock — HARD CONSTRAINT) ===
+This character's cardName is "${existingName}". Your JSON response MUST return cardName EXACTLY "${existingName}" — do not restyle, do not shorten, do not lengthen, do not translate. "Miren" stays "Miren", not "Miriam", not "Mira". The TITLE (nameAndTitle after the comma) MAY evolve to reflect the ${overallRank} rank per Bible §9. Example: Foundation nameAndTitle "Miren, Keeper of Names" → Ascendant nameAndTitle "Miren, Living Archive" — cardName remains "Miren" in both.
+
+Generate NEW lore that reflects the ${overallRank} rank. If the archetype's approved prestige roles are earned by the story pillar answers, you MAY reference one in the title — but only if plainly earned.
 ` : ''}
 
 === YOUR TASK ===
@@ -214,7 +271,7 @@ Return ONLY a JSON object with these fields:
   "cardName": ${existingName ? `MUST be exactly "${existingName}" — do not change.` : 'a 1-3 word name that fits the archetype\'s culture and the answers'},
   "nameAndTitle": "full name with epithet, e.g. \\"Kaelen, Keeper of Names\\". Ordinary earned title — no prestige role unless the answers plainly earn it.",
   "lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the mood WITHOUT quoting them literally. Reflect the emotional throughline you identified. ${isEvolution ? `Reference the character's growth into ${overallRank} — same person, deepened by trials.` : ''}",
-  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Structure: [style anchor: 'fantasy character portrait, painterly digital art, chest-up, single character centered, detailed face, rich textures'], [IDENTITY BLOCK — verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars from Hidden Fate], [archetype-specific recognition cues from the Visual DNA field above], [element woven physically — visible in equipment/environment/posture, NEVER replacing the character], [Story-Pillar-derived materials, symbols, and specific objects], [weather + lighting + environmentDetails from Hidden Fate], [rank-appropriate carriage per the archetype chapter — NOT rank-appropriate spectacle]. Do NOT add magical aura escalation, do NOT add younger/thinner/more-muscular language, do NOT contradict any locked identity above.",
+  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Structure in this order: [style anchor: 'fantasy character portrait, painterly digital art, chest-up, single character centered, detailed face, rich textures'], [IDENTITY BLOCK — verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from Hidden Fate you inferred'}], [archetype-specific recognition cues from the Visual DNA field above], [ELEMENT SPECTACLE — the ${element.element} element visibly manifested per the ELEMENT SPECTACLE guidance for ${overallRank} rank; this is a fantasy battle game — show the power], [ABILITY SPECTACLE — visual signature of the character's abilities woven into equipment, pose, or environment per the EXISTING ABILITIES block above], [Story-Pillar-derived materials, symbols, and specific objects], [weather + lighting + environmentDetails from Hidden Fate], [rank-appropriate carriage per the archetype chapter]. ${overallRank === 'Ascendant' ? "This is a climactic Ascendant portrait — the character's mastery of their element and their signature abilities is FULLY MANIFESTED (aura around body, elemental effects, ultimate stance, summoned allies where lore fits). BUT the same body/age/scars from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled. Bible §Visual quality rule: elemental effects + rank glow + ability spectacle can be removed and the character still remains recognizable through silhouette + body + materials." : ''} Do NOT contradict any locked identity above.",
   "negativePrompt": "starts with \\"${BASE_NEGATIVE}\\" then add archetype-specific §14 Avoid items and any anti-continuity terms that fit this specific character. Comma-separated, under ${NEGATIVE_PROMPT_MAX} characters.",
   "hiddenFate": {
     "age": "e.g. 'early 60s' — inferred from the answers, LOCKED after this call",
@@ -255,6 +312,12 @@ export interface GenerateCardTextInput {
   existingName?: string;
   /** Foundation forge = 'core'; Forged tier-up = 'signature'; Ascendant tier-up = 'ultimate'. */
   abilitySlotToFill?: AbilitySlotType;
+  /**
+   * The card's existing ability refs, so Claude can weave their visual
+   * signatures into the portrait prompt. Foundation forge omits this;
+   * tier-up passes the current-rank refs before the new slot fills.
+   */
+  existingAbilityRefs?: CardAbilityReference[];
 }
 
 export async function generateCardText(input: GenerateCardTextInput): Promise<GeneratedText> {
@@ -269,7 +332,16 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     existingName: input.existingName,
     existingHiddenFate: input.existingHiddenFate,
     abilitySlotToFill: input.abilitySlotToFill,
+    existingAbilityRefs: input.existingAbilityRefs,
   });
+
+  // Model selection — Sonnet for tier-ups (existingName present) to reduce
+  // cardName / body-lock compliance drift observed with Haiku. Foundation
+  // forges stay on Haiku (Sonnet is bundled cost — no player-visible price
+  // change; see PREMIUM_PRICE_CATALOG for governance).
+  const model = input.existingName
+    ? 'claude-sonnet-5'
+    : 'claude-haiku-4-5-20251001';
 
   try {
     const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
@@ -287,7 +359,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 1800,
         temperature: 1,
         messages: [{ role: 'user', content: prompt }],
@@ -321,9 +393,27 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       ? parseAbilityCandidate((parsed as unknown as { abilityCandidate?: unknown }).abilityCandidate)
       : undefined;
 
+    // Bug 2 fix — hard cardName lock. If a tier-up call receives a
+    // different cardName than existingName, we do NOT trust Claude and
+    // overwrite with existingName. The title/epithet in nameAndTitle
+    // is free to evolve; only the leading name is locked.
+    let cardName = parsed.cardName;
+    let nameAndTitle = parsed.nameAndTitle;
+    if (input.existingName && parsed.cardName !== input.existingName) {
+      console.warn(
+        `Claude drifted cardName "${input.existingName}" → "${parsed.cardName}". Overwriting with existingName; patching nameAndTitle.`,
+      );
+      cardName = input.existingName;
+      // Best-effort: replace the leading name in nameAndTitle up to the first comma.
+      const commaIdx = parsed.nameAndTitle.indexOf(',');
+      nameAndTitle = commaIdx >= 0
+        ? `${input.existingName}${parsed.nameAndTitle.slice(commaIdx)}`
+        : input.existingName;
+    }
+
     return {
-      cardName: parsed.cardName,
-      nameAndTitle: parsed.nameAndTitle,
+      cardName,
+      nameAndTitle,
       lore: parsed.lore,
       portraitPrompt,
       negativePrompt,

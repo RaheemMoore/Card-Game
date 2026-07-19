@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ArchetypeName, CardStats, Card, AbilityHistorySnapshot } from '../types/card';
 import type { CardAbilityReference } from '../types/abilities';
-import type { ElementSelection, StoryPillarAnswers } from '../types/bible';
+import type { ElementName, ElementSelection, StoryPillarAnswers } from '../types/bible';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
 import { StoryPillarWizard } from '../components/StoryPillarWizard';
-import { ElementBondPicker } from '../components/ElementBondPicker';
+import { BondPicker } from '../components/BondPicker';
+import { rollElement } from '../services/elementRoller';
 import { CardRenderer } from '../components/CardRenderer';
 import { buildCardShell } from '../services/cardGenerator';
 import { generateCardText } from '../services/claudeApi';
@@ -66,6 +67,7 @@ export function CardForge() {
   const [archetype, setArchetype] = useState<ArchetypeName | null>(null);
   const [stats, setStats] = useState<CardStats | null>(null);
   const [storyPillars, setStoryPillars] = useState<StoryPillarAnswers | null>(null);
+  const [rolledElement, setRolledElement] = useState<ElementName | null>(null);
   const [card, setCard] = useState<Card | null>(null);
   const [relicDiscovery, setRelicDiscovery] = useState<
     { abilityId: string; resource?: BadgeResource } | null
@@ -102,7 +104,12 @@ export function CardForge() {
   }
 
   function handlePillarsComplete(answers: StoryPillarAnswers) {
+    if (!archetype) return;
     setStoryPillars(answers);
+    // Bible §Element rarity gates + BUCKET_WEIGHTS — auto-roll the element
+    // now that the Story Pillar answers are locked in. Player only chooses
+    // the bond in the next stage. See services/elementRoller.ts.
+    setRolledElement(rollElement(archetype, answers));
     setStage('element');
   }
 
@@ -232,6 +239,7 @@ export function CardForge() {
     setArchetype(null);
     setStats(null);
     setStoryPillars(null);
+    setRolledElement(null);
     setCard(null);
     setForgeError(null);
   }
@@ -271,7 +279,7 @@ export function CardForge() {
         <StoryPillarWizard archetype={archetype} onComplete={handlePillarsComplete} />
       )}
 
-      {stage === 'element' && archetype && storyPillars && (
+      {stage === 'element' && archetype && storyPillars && rolledElement && (
         <div className="w-full flex flex-col items-center gap-3">
           <div className="text-xs text-ash flex items-center gap-2">
             <span>Forging will charge</span>
@@ -289,9 +297,9 @@ export function CardForge() {
               Forge failed: {forgeError}. Your {FORGE_PRICE} was refunded.
             </div>
           )}
-          <ElementBondPicker
+          <BondPicker
             archetype={archetype}
-            answers={storyPillars}
+            element={rolledElement}
             onComplete={handleElementComplete}
           />
         </div>

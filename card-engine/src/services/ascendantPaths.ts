@@ -30,7 +30,8 @@ export interface AscendantPath {
   narrative: string;
 }
 
-const AI_MODEL = 'claude-haiku-4-5-20251001';
+// Sonnet to match tier-up quality bump — the paths anchor the Ascendant story.
+const AI_MODEL = 'claude-sonnet-5';
 
 export async function generateAscendantPaths(card: Card): Promise<AscendantPath[]> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;

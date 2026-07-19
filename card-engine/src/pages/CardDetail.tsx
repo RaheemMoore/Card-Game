@@ -719,10 +719,10 @@ export function CardDetail() {
             <div className="p-5 border-b border-gold/30 bg-gradient-to-b from-gold/10 to-transparent">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-fantasy text-xl font-bold text-gold">Ascendant Apotheosis</h3>
+                  <h3 className="font-fantasy text-xl font-bold text-gold">Your Ascendant Story</h3>
                   <p className="text-xs text-ash/80 italic mt-1">
-                    Two paths fuse {card.cardName}'s whispers into a mythic ending.
-                    Choose the one you want their legend to become.
+                    Two paths continue {card.cardName}'s story into their Ascendant form.
+                    Choose the direction their legend takes.
                   </p>
                 </div>
                 <button

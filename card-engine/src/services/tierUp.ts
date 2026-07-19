@@ -122,6 +122,12 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
   // fields verbatim (see claudeApi.ts).
   const existingHiddenFate: HiddenFate = card.hiddenFate ?? emptyHiddenFate();
 
+  // Pass the card's current-rank ability refs so Claude can weave each
+  // ability's visual signature into the new portrait per M3.5.
+  const existingAbilityRefs = getReferencesForCard(card.cardId).filter(
+    (r) => r.localTier === oldRank,
+  );
+
   const text = await generateCardText({
     archetype: card.archetype,
     stats: newStats,
@@ -130,6 +136,7 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
     existingName: card.cardName,
     existingHiddenFate,
     abilitySlotToFill,
+    existingAbilityRefs,
   });
 
   // Ascendant tier-up runs prestige inference. Non-Ascendant returns null.
