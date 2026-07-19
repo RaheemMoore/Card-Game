@@ -80,7 +80,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // non-JSON error body from upstream; leave usage undefined
     }
 
-    void recordApiUsage({
+    // Await the insert before responding — Vercel serverless kills the
+    // invocation the moment we call res.send(), which was silently
+    // dropping every recordApiUsage promise mid-flight.
+    await recordApiUsage({
       provider: 'anthropic',
       operation: 'messages',
       gameAction: gameAction ?? null,
@@ -106,7 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (err) {
     const completedAt = new Date().toISOString();
     const durationMs = Date.now() - startedMs;
-    void recordApiUsage({
+    await recordApiUsage({
       provider: 'anthropic',
       operation: 'messages',
       gameAction: gameAction ?? null,
