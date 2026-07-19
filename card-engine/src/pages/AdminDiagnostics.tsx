@@ -42,6 +42,7 @@ async function runProbe(path: string): Promise<ProbeSlot> {
 export function AdminDiagnostics() {
   const [anthropic, setAnthropic] = useState<ProbeSlot>(EMPTY);
   const [leonardo, setLeonardo] = useState<ProbeSlot>(EMPTY);
+  const [migrateArt, setMigrateArt] = useState<ProbeSlot>(EMPTY);
 
   const run = async (
     path: string,
@@ -51,10 +52,41 @@ export function AdminDiagnostics() {
     setter(await runProbe(path));
   };
 
+  const migrate = async (): Promise<void> => {
+    setMigrateArt({ state: 'running' });
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setMigrateArt({ state: 'error', error: 'Supabase not configured' });
+      return;
+    }
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setMigrateArt({ state: 'error', error: 'No Supabase session' });
+      return;
+    }
+    try {
+      const r = await fetch('/api/admin-migrate-ability-art', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${token}` },
+      });
+      const text = await r.text();
+      let body: unknown;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        body = text;
+      }
+      setMigrateArt({ state: 'done', status: r.status, body });
+    } catch (err) {
+      setMigrateArt({ state: 'error', error: String(err) });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <p className="text-sm text-bone/70">
-        Phase-0 spike output. Runs the two admin-only provider probes and prints raw JSON.
+        Admin diagnostics + one-shot migrations.
       </p>
 
       <ProbeCard
@@ -69,6 +101,13 @@ export function AdminDiagnostics() {
         slot={leonardo}
         onRun={() => run('/api/leonardo-account', setLeonardo)}
       />
+      <ProbeCard
+        title="Migrate ability art (data URL → bucket)"
+        endpoint="/api/admin-migrate-ability-art"
+        slot={migrateArt}
+        onRun={migrate}
+        actionLabel="Run migration"
+      />
     </div>
   );
 }
@@ -78,8 +117,9 @@ function ProbeCard(props: {
   endpoint: string;
   slot: ProbeSlot;
   onRun: () => void;
+  actionLabel?: string;
 }) {
-  const { title, endpoint, slot, onRun } = props;
+  const { title, endpoint, slot, onRun, actionLabel } = props;
   const disabled = slot.state === 'running';
   return (
     <section className="border border-bone/20 rounded-lg p-4 bg-void/60">
@@ -94,7 +134,7 @@ function ProbeCard(props: {
           disabled={disabled}
           className="px-3 py-1.5 rounded font-fantasy font-bold text-xs bg-gold/80 text-void hover:bg-gold disabled:opacity-50"
         >
-          {slot.state === 'running' ? 'Running…' : 'Run probe'}
+          {slot.state === 'running' ? 'Running…' : actionLabel ?? 'Run probe'}
         </button>
       </div>
       {slot.state === 'error' && (
