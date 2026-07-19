@@ -26,6 +26,7 @@ import {
 } from '../services/abilities/registry';
 import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
 import type { BadgeResource, RelicMoment } from '../components/abilities';
+import { getQuestionsForArchetype } from '../data/storyPillars';
 
 const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
 const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
@@ -517,33 +518,31 @@ export function CardDetail() {
             })()}
           </div>
 
-          {card.whisperWords.length > 0 && (
+          {card.storyPillars && card.storyPillars.answers.length > 0 && (
             <div>
-              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Whisper Words</h3>
-              <div className="flex gap-2">
-                {card.whisperWords.map((w, i) => (
-                  <span
-                    key={i}
-                    className="px-2 py-0.5 rounded text-xs italic"
-                    style={{ background: 'rgba(124,58,237,0.1)', color: '#a78bfa' }}
-                  >
-                    {w}
-                  </span>
-                ))}
+              <h3 className="font-fantasy text-sm font-bold text-ivory mb-2">Their Story</h3>
+              <StoryPillarSummary card={card} />
+            </div>
+          )}
+
+          {card.elementSelection && (
+            <div>
+              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Elemental Bond</h3>
+              <div className="text-[11px] text-ash">
+                <span className="font-fantasy text-gold">{card.elementSelection.element}</span>
+                <span className="text-bone/60"> — </span>
+                <span className="italic">"{card.elementSelection.bond}"</span>
+                <span className="text-bone/50 ml-2">({card.elementSelection.compatibility.replace(/_/g, ' ')})</span>
               </div>
             </div>
           )}
 
-
-          {card.modifiers && (
-            <div>
-              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Portrait Modifiers</h3>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="text-ash"><span className="text-bone/60">Setting:</span> {card.modifiers.setting}</div>
-                <div className="text-ash"><span className="text-bone/60">Demeanor:</span> {card.modifiers.demeanor}</div>
-                <div className="text-ash"><span className="text-bone/60">Detail:</span> {card.modifiers.signatureDetail}</div>
-                <div className="text-ash"><span className="text-bone/60">Lighting:</span> {card.modifiers.lighting}</div>
-              </div>
+          {card.prestige && (
+            <div className="rounded-lg border border-gold/40 bg-gold/5 p-3">
+              <h3 className="font-fantasy text-sm font-bold text-gold mb-1">
+                Prestige: {card.prestige.title}
+              </h3>
+              <p className="text-[11px] text-bone/70 italic">{card.prestige.justification}</p>
             </div>
           )}
 
@@ -788,4 +787,32 @@ function buildTierTimeline(card: Card): { rank: Rank; snapshot: ArtSnapshot }[] 
   const rankOrder: Record<string, number> = { Foundation: 0, Forged: 1, Ascendant: 2 };
   entries.sort((a, b) => rankOrder[a.rank] - rankOrder[b.rank]);
   return entries;
+}
+
+/**
+ * Renders the player's Story Pillar answers alongside the questions that
+ * produced them, per Bible §Guided Narrative Chains. Answers are immutable
+ * — this view is read-only.
+ */
+function StoryPillarSummary({ card }: { card: Card }) {
+  if (!card.storyPillars) return null;
+  const questions = getQuestionsForArchetype(card.archetype);
+  const questionById = new Map(questions.map((q) => [q.id, q]));
+  return (
+    <div className="space-y-2">
+      {card.storyPillars.answers.map((a) => {
+        const q = questionById.get(a.questionId);
+        return (
+          <div key={a.questionId} className="rounded-md border border-slate-dark bg-obsidian/40 p-2">
+            {q && (
+              <div className="text-[10px] uppercase tracking-widest text-gold/60 mb-0.5">
+                {q.prompt}
+              </div>
+            )}
+            <div className="text-[12px] text-bone/90 italic">"{a.answer}"</div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }

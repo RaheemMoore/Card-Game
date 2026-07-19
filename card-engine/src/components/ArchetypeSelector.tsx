@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ArchetypeName } from '../types/card';
 import { ARCHETYPE_NAMES } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
+import { ARCHETYPE_BIBLE } from '../data/archetypeBible';
 import { ARCHETYPE_EMBLEMS } from '../data/archetypeEmblems';
 import { CLASS_AFFINITY } from '../data/powerSystem';
 import type { StatName, BiasTier } from '../types/card';
@@ -49,6 +50,7 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
 
   const previewArchetype = hoveredArchetype ?? rollingName;
   const previewAffinity = previewArchetype ? CLASS_AFFINITY[previewArchetype] : null;
+  const previewChapter = previewArchetype ? ARCHETYPE_BIBLE[previewArchetype] : null;
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
@@ -60,6 +62,7 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {ARCHETYPE_NAMES.map((name) => {
           const arch = ARCHETYPES[name];
+          const chapter = ARCHETYPE_BIBLE[name];
           const emblem = ARCHETYPE_EMBLEMS[name];
           const hasEmblem = emblem.assetPath !== null;
           return (
@@ -95,23 +98,34 @@ export function ArchetypeSelector({ onSelect }: ArchetypeSelectorProps) {
                 </div>
               )}
               <h3 className="font-fantasy text-xs font-bold text-ivory truncate">{name}</h3>
-              <p className="text-[9px] text-ash mt-0.5 line-clamp-2">{arch.identity}</p>
+              <p className="text-[9px] text-ash mt-0.5 line-clamp-2">{chapter.selectionScreen.tagline}</p>
             </button>
           );
         })}
       </div>
 
-      {/* Affinity preview on hover */}
-      {previewArchetype && previewAffinity && (
-        <div className="flex justify-center">
-          <div className="bg-abyss/80 border border-slate-dark rounded-lg px-4 py-2 flex gap-4 text-xs">
-            {(Object.entries(previewAffinity) as [StatName, BiasTier][]).map(([stat, bias]) => (
-              <span key={stat} className="flex items-center gap-1">
-                <span className="font-bold" style={{ color: STAT_COLORS[stat] }}>{stat}</span>
-                <span className="text-ash">{BIAS_LABEL[bias]}</span>
-              </span>
-            ))}
+      {/* Bible §Step 1 preview on hover */}
+      {previewArchetype && previewChapter && (
+        <div className="max-w-2xl mx-auto bg-abyss/80 border border-slate-dark rounded-lg px-4 py-3 space-y-2">
+          <div className="flex items-baseline justify-between gap-4">
+            <h4 className="font-fantasy text-sm font-bold text-gold">{previewArchetype}</h4>
+            {previewAffinity && (
+              <div className="flex gap-3 text-xs">
+                {(Object.entries(previewAffinity) as [StatName, BiasTier][]).map(([stat, bias]) => (
+                  <span key={stat} className="flex items-center gap-1">
+                    <span className="font-bold" style={{ color: STAT_COLORS[stat] }}>{stat}</span>
+                    <span className="text-ash">{BIAS_LABEL[bias]}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
+          <p className="text-xs text-bone/80 leading-relaxed">{previewChapter.selectionScreen.body}</p>
+          {previewChapter.selectionScreen.pullQuote && (
+            <p className="text-[11px] italic text-gold/80 border-l-2 border-gold/40 pl-2">
+              "{previewChapter.selectionScreen.pullQuote}"
+            </p>
+          )}
         </div>
       )}
 
