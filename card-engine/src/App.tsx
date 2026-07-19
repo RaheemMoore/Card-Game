@@ -2,7 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
-import { Admin } from './pages/Admin';
+import { AdminShell } from './components/admin/AdminShell';
+import { AdminOverview } from './pages/AdminOverview';
+import { AdminUsers } from './pages/AdminUsers';
+import { AdminCards } from './pages/AdminCards';
+import { AdminCosts } from './pages/AdminCosts';
 import { AdminAbilities } from './pages/AdminAbilities';
 import { AdminDiagnostics } from './pages/AdminDiagnostics';
 import { Codex } from './pages/Codex';
@@ -43,12 +47,17 @@ export default function App() {
                 <Route path="/codex/family/:familyId" element={<CodexFamily />} />
                 <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
                 <Route path="/battle" element={<Battle />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/admin/abilities" element={<AdminAbilities />} />
-                <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
+                <Route path="/admin" element={<AdminShell />}>
+                  <Route index element={<AdminOverview />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="cards" element={<AdminCards />} />
+                  <Route path="costs" element={<AdminCosts />} />
+                  <Route path="abilities" element={<AdminAbilities />} />
+                  <Route path="diagnostics" element={<AdminDiagnostics />} />
+                  <Route path="prompt-lab" element={<M55Harness />} />
+                </Route>
                 <Route path="/dev/abilities" element={<DevAbilities />} />
                 <Route path="/m55harness" element={<M55Harness />} />
-                <Route path="/admin/prompt-lab" element={<M55Harness />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

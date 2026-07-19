@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
-import { fetchIsAdmin } from '../services/persistence/supabaseClient';
 import {
   listUsers,
   getSystemStats,
@@ -15,27 +13,16 @@ import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
 import { CardRenderer } from '../components/CardRenderer';
 
-type GuardState = 'checking' | 'allowed' | 'denied';
+// Users destination. Shell (guard, sub-nav, header) is provided by
+// AdminShell — this page renders inside its Outlet.
 
-export function Admin() {
-  const [guard, setGuard] = useState<GuardState>('checking');
+export function AdminUsers() {
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [showGuests, setShowGuests] = useState(false);
-
-  useEffect(() => {
-    // DEV-only bypass: /admin?dev_admin=1 skips the RPC check so the page can
-    // be reviewed against the local ability store without a Supabase session.
-    // Guarded by import.meta.env.DEV — the query string does nothing in prod.
-    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev_admin') === '1') {
-      setGuard('allowed');
-      return;
-    }
-    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
-  }, []);
 
   const refresh = () => {
     setLoadError(null);
@@ -47,10 +34,7 @@ export function Admin() {
       .catch((err) => setLoadError(err?.message ?? String(err)));
   };
 
-  useEffect(() => {
-    if (guard !== 'allowed') return;
-    refresh();
-  }, [guard]);
+  useEffect(refresh, []);
 
   const filtered = useMemo(() => {
     if (!users) return null;
@@ -64,54 +48,13 @@ export function Admin() {
   }, [users, query, showGuests]);
 
   const guestCount = users?.filter((u) => u.is_anonymous).length ?? 0;
-
-  if (guard === 'checking') return <div className="p-8 text-center text-bone/70">Checking access…</div>;
-  if (guard === 'denied') return <Navigate to="/" replace />;
-
   const selected = users?.find((u) => u.user_id === selectedUid) ?? null;
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      <div className="flex items-baseline justify-between mb-4">
-        <h1 className="font-fantasy text-2xl font-bold text-bone">Admin</h1>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/admin/prompt-lab"
-            className="text-xs px-3 py-1.5 rounded font-fantasy font-bold"
-            style={{ background: 'rgba(52,211,153,0.15)', color: '#a7f3d0', border: '1px solid rgba(52,211,153,0.35)' }}
-          >
-            Prompt Lab →
-          </Link>
-          <Link
-            to="/admin/abilities"
-            className="text-xs px-3 py-1.5 rounded font-fantasy font-bold"
-            style={{ background: 'rgba(184,134,11,0.15)', color: '#f4d78a', border: '1px solid rgba(184,134,11,0.35)' }}
-          >
-            Manage abilities →
-          </Link>
-        </div>
-      </div>
-
+    <div>
       {loadError && (
         <div className="mb-4 p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
           {loadError}
-        </div>
-      )}
-
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-6">
-          <Stat label="Users" value={stats.total_users} sub={`${stats.total_admins} admin`} />
-          <Stat label="Cards" value={stats.total_cards} />
-          <Stat label="Transactions" value={stats.total_txns} />
-          <Stat label="Premium (all)" value={stats.aggregate_premium} />
-          <Stat label="Gameplay (all)" value={stats.aggregate_gameplay} />
-          <button
-            onClick={refresh}
-            className="rounded p-2 text-xs font-fantasy font-bold"
-            style={{ background: 'rgba(155,182,179,0.15)', color: '#d6f2ec', border: '1px solid rgba(155,182,179,0.3)' }}
-          >
-            Refresh
-          </button>
         </div>
       )}
 
@@ -131,6 +74,17 @@ export function Admin() {
           />
           Show guests ({guestCount})
         </label>
+        <button
+          onClick={refresh}
+          className="text-xs px-3 py-1.5 rounded font-fantasy border border-bone/20 text-bone/80 hover:text-bone hover:border-bone/40"
+        >
+          Refresh
+        </button>
+        {stats && (
+          <span className="text-xs text-bone/50">
+            {stats.total_users} total · {stats.total_admins} admin
+          </span>
+        )}
       </div>
 
       {/* Mobile: stacked cards. Desktop: table. */}
@@ -235,17 +189,6 @@ export function Admin() {
           onMutated={refresh}
         />
       )}
-
-    </div>
-  );
-}
-
-function Stat({ label, value, sub }: { label: string; value: number; sub?: string }) {
-  return (
-    <div className="rounded p-2 border border-bone/15 bg-void/30">
-      <div className="text-[10px] uppercase tracking-wider text-bone/60">{label}</div>
-      <div className="font-fantasy text-lg font-bold text-bone">{value}</div>
-      {sub && <div className="text-[10px] text-bone/50">{sub}</div>}
     </div>
   );
 }

@@ -1,13 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
-import { fetchIsAdmin, getSupabaseClient } from '../services/persistence/supabaseClient';
+import { useState } from 'react';
+import { getSupabaseClient } from '../services/persistence/supabaseClient';
 
-// Phase-0 spike display for the provider diagnostic endpoints. Runs the
-// admin-only /api/anthropic-admin-usage and /api/leonardo-account probes
-// with the caller's Supabase JWT attached and pretty-prints the JSON so
-// Raheem can share it back for review.
+// Phase-0 spike display for the provider diagnostic endpoints. Guard +
+// header live on AdminShell now — this page just renders the two Run
+// probe cards and their JSON output.
 
-type GuardState = 'checking' | 'allowed' | 'denied';
 type ProbeState = 'idle' | 'running' | 'done' | 'error';
 
 interface ProbeSlot {
@@ -43,16 +40,8 @@ async function runProbe(path: string): Promise<ProbeSlot> {
 }
 
 export function AdminDiagnostics() {
-  const [guard, setGuard] = useState<GuardState>('checking');
   const [anthropic, setAnthropic] = useState<ProbeSlot>(EMPTY);
   const [leonardo, setLeonardo] = useState<ProbeSlot>(EMPTY);
-
-  useEffect(() => {
-    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
-  }, []);
-
-  if (guard === 'checking') return <div className="p-8 text-bone/70">Checking access…</div>;
-  if (guard === 'denied') return <Navigate to="/" replace />;
 
   const run = async (
     path: string,
@@ -63,16 +52,9 @@ export function AdminDiagnostics() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="font-fantasy text-2xl font-bold text-bone">Admin Diagnostics</h1>
-        <Link to="/admin" className="text-xs text-bone/60 hover:text-bone underline">
-          Back to Admin
-        </Link>
-      </div>
+    <div className="space-y-6">
       <p className="text-sm text-bone/70">
         Phase-0 spike output. Runs the two admin-only provider probes and prints raw JSON.
-        Share the results with Claude to size the Overview provider modules.
       </p>
 
       <ProbeCard
