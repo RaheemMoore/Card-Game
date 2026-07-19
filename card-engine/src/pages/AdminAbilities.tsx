@@ -16,8 +16,9 @@ import {
   promoteCandidateArt,
   rejectCandidateArt,
 } from '../services/abilities/canonicalArtPipeline';
-import type { AbilityDefinition, CanonicalArtAsset } from '../types/abilities';
+import type { AbilityDefinition, AbilityVersion, CanonicalArtAsset } from '../types/abilities';
 import { getArtCrops } from '../types/abilities';
+import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
 
 // Ability workspace. Tabs cover the four workflows Raheem needs distinct:
 //   - Review Queue: proposed / experimental definitions awaiting approve/reject/merge.
@@ -36,6 +37,7 @@ export function AdminAbilities() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<CanonicalArtAsset[]>([]);
+  const [selectedAbilityId, setSelectedAbilityId] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     const store = getAbilityStore();
@@ -108,7 +110,12 @@ export function AdminAbilities() {
           withBusy={withBusy}
         />
       )}
-      {tab === 'approved' && <ApprovedTab definitions={approvedDefinitions} />}
+      {tab === 'approved' && (
+        <ApprovedTab
+          definitions={approvedDefinitions}
+          onSelect={setSelectedAbilityId}
+        />
+      )}
       {tab === 'art' && (
         <ArtCandidatesTab
           candidates={candidates}
@@ -118,6 +125,11 @@ export function AdminAbilities() {
         />
       )}
       {tab === 'all' && <AllTab definitions={allDefinitions} />}
+
+      <AbilityDetailPanel
+        abilityId={selectedAbilityId}
+        onClose={() => setSelectedAbilityId(null)}
+      />
     </div>
   );
 }
@@ -298,7 +310,7 @@ function QueueRow({ def, busy, approvedTargets, onApprove, onReject, onMerge, on
 
 // ---- Approved gallery tab -----------------------------------------------
 
-function ApprovedTab({ definitions }: { definitions: AbilityDefinition[] }) {
+function ApprovedTab({ definitions, onSelect }: { definitions: AbilityDefinition[]; onSelect: (id: string) => void }) {
   const store = getAbilityStore();
   const rows = useMemo(() => {
     return definitions
@@ -319,7 +331,11 @@ function ApprovedTab({ definitions }: { definitions: AbilityDefinition[] }) {
       {rows.map(({ def, art, version }) => {
         const imageUrl = art ? getArtCrops(art).detail.url : null;
         return (
-          <div key={def.id} className="rounded-lg border border-bone/15 bg-void/40 p-3">
+          <button
+            key={def.id}
+            onClick={() => onSelect(def.id)}
+            className="text-left rounded-lg border border-bone/15 bg-void/40 hover:bg-bone/5 transition-colors p-3"
+          >
             {imageUrl ? (
               <div
                 className="w-full aspect-square rounded mb-2 bg-cover bg-center bg-no-repeat"
@@ -352,9 +368,179 @@ function ApprovedTab({ definitions }: { definitions: AbilityDefinition[] }) {
                 art: {art.status}
               </div>
             )}
-          </div>
+          </button>
         );
       })}
+    </div>
+  );
+}
+
+// ---- Ability detail preview panel --------------------------------------
+
+function AbilityDetailPanel({ abilityId, onClose }: { abilityId: string | null; onClose: () => void }) {
+  const store = getAbilityStore();
+  const def = abilityId ? store.getDefinition(abilityId) : undefined;
+  const version = abilityId ? store.getCurrentVersion(abilityId) : undefined;
+  const approvedArt = abilityId ? store.getArtForAbility(abilityId) : undefined;
+  const artHistory = useMemo(() => {
+    if (!abilityId) return [] as CanonicalArtAsset[];
+    return store
+      .getAllArt()
+      .filter((a) => a.abilityId === abilityId)
+      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+  }, [abilityId, store]);
+
+  if (!abilityId || !def) {
+    return (
+      <AdminPreviewPanel open={Boolean(abilityId)} onClose={onClose} title="">
+        <div />
+      </AdminPreviewPanel>
+    );
+  }
+  const imageUrl = approvedArt ? getArtCrops(approvedArt).detail.url : null;
+
+  return (
+    <AdminPreviewPanel
+      open={Boolean(abilityId)}
+      onClose={onClose}
+      title={def.displayName}
+      subtitle={`${def.slug} · ${def.rarity} · ${def.role}`}
+    >
+      <div className="space-y-4">
+        {imageUrl ? (
+          <div className="flex justify-center">
+            <div
+              className="w-64 aspect-square rounded border border-bone/15 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url("${imageUrl}")` }}
+            />
+          </div>
+        ) : (
+          <div className="w-full aspect-square rounded bg-void/60 flex items-center justify-center text-xs text-bone/40">
+            No approved art
+          </div>
+        )}
+
+        <MetaGrid def={def} version={version} approvedArt={approvedArt} />
+
+        {def.descriptionShort && (
+          <Section title="Description">
+            <p className="text-xs text-bone/80">{def.descriptionShort}</p>
+            {def.descriptionLong && def.descriptionLong !== def.descriptionShort && (
+              <p className="text-xs text-bone/70 mt-2">{def.descriptionLong}</p>
+            )}
+          </Section>
+        )}
+
+        {version && (
+          <Section title="Mechanics (current version)">
+            <VersionSummary version={version} />
+          </Section>
+        )}
+
+        <Section title={`Art history (${artHistory.length})`}>
+          {artHistory.length === 0 && <div className="text-xs text-bone/50 italic">None</div>}
+          {artHistory.map((art) => {
+            const url = getArtCrops(art).detail.url;
+            return (
+              <div key={art.id} className="flex items-center gap-3 rounded border border-bone/10 bg-void/40 p-2">
+                <div
+                  className="w-12 h-12 rounded bg-cover bg-center bg-no-repeat shrink-0"
+                  style={{ backgroundImage: `url("${url}")` }}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] text-bone/60 font-mono truncate">{art.id}</div>
+                  <div className="text-[10px] text-bone/50">
+                    {art.status} · {art.provider} · {new Date(art.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </Section>
+
+        <details className="rounded border border-bone/15 bg-void/40">
+          <summary className="cursor-pointer px-3 py-2 text-[10px] uppercase tracking-wider text-bone/60">
+            Raw JSON
+          </summary>
+          <pre className="p-3 border-t border-bone/10 text-[10px] text-bone/70 overflow-x-auto max-h-96 whitespace-pre-wrap">
+            {JSON.stringify({ def, version, approvedArt }, null, 2)}
+          </pre>
+        </details>
+      </div>
+    </AdminPreviewPanel>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wider text-bone/60 mb-2">{title}</div>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function MetaGrid({
+  def,
+  version,
+  approvedArt,
+}: {
+  def: AbilityDefinition;
+  version: AbilityVersion | undefined;
+  approvedArt: CanonicalArtAsset | undefined;
+}) {
+  const store = getAbilityStore();
+  const families = def.familyIds.map((id) => store.getFamily(id)?.name ?? id).join(', ');
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+      <MetaRow label="Family"        value={families} />
+      <MetaRow label="Rarity"        value={def.rarity} />
+      <MetaRow label="Role"          value={def.role} />
+      <MetaRow label="Slot type"     value={version?.slotType ?? '—'} />
+      <MetaRow label="Resource"      value={version ? `${version.resourceType} · ${version.resourceCost}` : '—'} />
+      <MetaRow label="Definition"    value={def.status} />
+      <MetaRow label="Art status"    value={approvedArt?.status ?? 'none'} />
+      <MetaRow label="Version"       value={version ? `v${version.versionNumber}` : '—'} />
+      <MetaRow label="Published"     value={version?.publishedAt ? new Date(version.publishedAt).toLocaleDateString() : '—'} />
+      <MetaRow label="Power score"   value={version?.powerBudgetScore != null ? String(version.powerBudgetScore) : '—'} />
+    </div>
+  );
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <>
+      <div className="text-bone/60">{label}</div>
+      <div className="text-bone/90 font-fantasy">{value}</div>
+    </>
+  );
+}
+
+function VersionSummary({ version }: { version: AbilityVersion }) {
+  return (
+    <div className="text-xs text-bone/80 space-y-2">
+      {version.cooldownRounds != null && (
+        <div><span className="text-bone/60">Cooldown:</span> {version.cooldownRounds} rounds</div>
+      )}
+      {version.maxCharges != null && (
+        <div><span className="text-bone/60">Max charges:</span> {version.maxCharges}</div>
+      )}
+      <div>
+        <div className="text-bone/60 text-[10px] uppercase tracking-wider mb-1">Effects ({version.effects.length})</div>
+        <ul className="space-y-1">
+          {version.effects.map((e, i) => (
+            <li key={i} className="rounded border border-bone/10 bg-void/40 p-2 text-[11px] font-mono text-bone/80">
+              {JSON.stringify(e)}
+            </li>
+          ))}
+        </ul>
+      </div>
+      {version.balanceNotes && (
+        <div>
+          <div className="text-bone/60 text-[10px] uppercase tracking-wider mb-1">Balance notes</div>
+          <p className="text-[11px]">{version.balanceNotes}</p>
+        </div>
+      )}
     </div>
   );
 }

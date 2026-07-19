@@ -245,7 +245,18 @@ function ProposalRow({ proposal, isGlobalApprover, onChanged }: { proposal: Prop
             {proposal.scope}{proposal.archetype ? ` · ${proposal.archetype}` : ''} · created {new Date(proposal.created_at).toLocaleString()}
           </div>
         </div>
-        <StatusBadge status={proposal.status} scope={proposal.scope} />
+        <div className="flex items-center gap-2">
+          {proposal.evidence_run_ids.length > 0 && (
+            <span
+              className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(155,182,179,0.15)', color: '#d6f2ec' }}
+              title={proposal.evidence_run_ids.join(', ')}
+            >
+              📎 {proposal.evidence_run_ids.length} evidence
+            </span>
+          )}
+          <StatusBadge status={proposal.status} scope={proposal.scope} />
+        </div>
       </div>
 
       <details className="text-xs">
@@ -256,6 +267,21 @@ function ProposalRow({ proposal, isGlobalApprover, onChanged }: { proposal: Prop
         <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">Proposed patch</summary>
         <pre className="mt-1 bg-black/40 p-2 rounded text-bone/80 whitespace-pre-wrap max-h-64 overflow-y-auto">{proposal.proposed_patch}</pre>
       </details>
+      {proposal.evidence_run_ids.length > 0 && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">
+            Evidence ({proposal.evidence_run_ids.length})
+          </summary>
+          <ul className="mt-1 text-bone/70 font-mono space-y-0.5">
+            {proposal.evidence_run_ids.map((id) => (
+              <li key={id} className="truncate">{id}</li>
+            ))}
+          </ul>
+          <div className="mt-1 text-[10px] text-bone/50">
+            Run ids reference <code>prompt_test_runs</code>. Open <a className="underline" href="/admin/prompt-lab">/admin/prompt-lab</a> and locate the session by archetype to see the pinned card.
+          </div>
+        </details>
+      )}
 
       {error && <div className="text-xs" style={{ color: '#f9c9c9' }}>{error}</div>}
 

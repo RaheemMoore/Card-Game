@@ -840,11 +840,132 @@ function SessionPanel(props: {
                   {run.claude_response?.negativePrompt ?? '(missing)'}
                 </pre>
               </details>
+              <ProposeFromTier archetype={session.archetype} tier={tier} runId={run.id} />
             </div>
           );
         })}
       </div>
     </AdminPreviewPanel>
+  );
+}
+
+function ProposeFromTier({ archetype, tier, runId }: { archetype: ArchetypeName; tier: Rank; runId: string }) {
+  const [open, setOpen] = useState(false);
+  const [scope, setScope] = useState<'archetype' | 'global'>('archetype');
+  const [title, setTitle] = useState('');
+  const [rationale, setRationale] = useState('');
+  const [patch, setPatch] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const supabase = getSupabaseClient();
+      if (!supabase) throw new Error('Supabase not configured');
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user.id;
+      if (!uid) throw new Error('No session');
+      const { data, error: err } = await supabase
+        .from('prompt_change_proposals')
+        .insert({
+          scope,
+          archetype: scope === 'archetype' ? archetype : null,
+          title: title.trim(),
+          rationale: rationale.trim(),
+          proposed_patch: patch,
+          evidence_run_ids: [runId],
+          drafted_by_user_id: uid,
+          status: 'draft',
+        })
+        .select('id')
+        .single();
+      if (err) throw err;
+      setSaved((data as { id: string }).id);
+      setTitle('');
+      setRationale('');
+      setPatch('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded border border-bone/15 bg-void/30 mt-2">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider text-bone/70 hover:text-bone flex justify-between items-center"
+      >
+        <span>Propose change from this {tier}</span>
+        <span className="text-bone/50">{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <div className="border-t border-bone/10 p-3 space-y-2">
+          {saved ? (
+            <div className="text-xs" style={{ color: '#c9f9d9' }}>
+              Proposal drafted. Manage it at{' '}
+              <a href="/admin/proposals" className="underline">/admin/proposals</a>.
+              <button className="ml-2 underline text-bone/60" onClick={() => setSaved(null)}>
+                Draft another
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block">
+                  <span className="block text-[9px] uppercase tracking-wider text-bone/60 mb-0.5">Scope</span>
+                  <select
+                    value={scope}
+                    onChange={(e) => setScope(e.target.value as 'archetype' | 'global')}
+                    className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-xs"
+                  >
+                    <option value="archetype">archetype ({archetype})</option>
+                    <option value="global">global (Raheem-only approval)</option>
+                  </select>
+                </label>
+                <div className="text-[9px] text-bone/50 flex flex-col justify-end">
+                  Pinned evidence:<br />
+                  <code className="font-mono text-bone/60">{runId.slice(0, 8)}…</code> · {tier}
+                </div>
+              </div>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title"
+                className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-xs"
+              />
+              <textarea
+                value={rationale}
+                onChange={(e) => setRationale(e.target.value)}
+                placeholder="Rationale — what's wrong with this render or prompt?"
+                rows={2}
+                className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-xs"
+              />
+              <textarea
+                value={patch}
+                onChange={(e) => setPatch(e.target.value)}
+                placeholder="Proposed patch — what should change in the prompt / rules?"
+                rows={3}
+                className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-xs font-mono"
+              />
+              {error && <div className="text-xs" style={{ color: '#f9c9c9' }}>{error}</div>}
+              <button
+                onClick={submit}
+                disabled={busy || !title.trim() || !rationale.trim() || !patch}
+                className="px-3 py-1 rounded text-xs font-fantasy font-bold bg-gold/80 text-void disabled:opacity-40"
+              >
+                {busy ? 'Drafting…' : 'Draft proposal'}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
