@@ -117,7 +117,15 @@ interface SessionSummary {
   status: 'active' | 'complete' | 'cancelled';
   created_at: string;
   runs: RunSummary[];
+  hasActionableJudgment: boolean;
 }
+
+const ACTIONABLE_DISPOSITIONS = [
+  'archetype_prompt_change_candidate',
+  'global_prompt_change_candidate',
+  'model_settings_investigation',
+  'regenerate_same_prompt',
+];
 
 // ---- Component --------------------------------------------------------
 
@@ -214,6 +222,22 @@ export function AdminPromptLab() {
       created_at: string;
       prompt_test_runs: RunSummary[];
     }>;
+
+    // Second query: which batches have any run with an actionable
+    // judgment disposition. Fetches only the ids we're about to render.
+    const batchIds = rows.map((r) => r.id);
+    const flaggedBatchIds = new Set<string>();
+    if (batchIds.length > 0) {
+      const { data: flags } = await supabase
+        .from('prompt_test_runs')
+        .select('batch_id, prompt_test_judgments!inner(disposition)')
+        .in('batch_id', batchIds)
+        .in('prompt_test_judgments.disposition', ACTIONABLE_DISPOSITIONS);
+      for (const row of (flags ?? []) as Array<{ batch_id: string }>) {
+        flaggedBatchIds.add(row.batch_id);
+      }
+    }
+
     setSessions(
       rows.map((r) => ({
         id: r.id,
@@ -222,6 +246,7 @@ export function AdminPromptLab() {
         status: r.status,
         created_at: r.created_at,
         runs: (r.prompt_test_runs ?? []).slice().sort((a, b) => TIERS.indexOf(a.tier) - TIERS.indexOf(b.tier)),
+        hasActionableJudgment: flaggedBatchIds.has(r.id),
       })),
     );
   }, [showArchived]);
@@ -686,12 +711,23 @@ function SessionCard({ session, onOpen }: { session: SessionSummary; onOpen: () 
       onClick={onOpen}
       className="text-left rounded-lg border border-bone/15 bg-void/40 p-3 hover:bg-bone/5 transition-colors"
     >
-      <div className="flex items-baseline justify-between mb-2">
+      <div className="flex items-baseline justify-between mb-2 gap-2">
         <div className="font-fantasy text-sm font-bold text-bone truncate">{session.archetype}</div>
-        <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
-          style={{ background: statusBg(session.status), color: statusColor(session.status) }}>
-          {session.status}
-        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {session.hasActionableJudgment && (
+            <span
+              className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(184,134,11,0.2)', color: '#f4d78a' }}
+              title="At least one run has a judgment flagged for action"
+            >
+              ⚑ review
+            </span>
+          )}
+          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
+            style={{ background: statusBg(session.status), color: statusColor(session.status) }}>
+            {session.status}
+          </span>
+        </div>
       </div>
       <div className="text-xs text-bone/70 truncate mb-2 min-h-[1em]">
         {session.intent ?? <span className="italic text-bone/40">no intent</span>}
