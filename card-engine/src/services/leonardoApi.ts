@@ -1,7 +1,21 @@
 import type { ArchetypeName, Rank } from '../types/card';
 import { generatePlaceholderPortrait } from './portraitGenerator';
 
+import { getSupabaseClient } from './persistence/supabaseClient';
+
 const LEONARDO_API_BASE = '/api/leonardo';
+
+// Phase 0: the /api/leonardo proxy now requires a Supabase JWT. The
+// LEONARDO_API_KEY is server-side only; this header is auth only, and
+// the proxy replaces it with the real Leonardo bearer upstream.
+async function proxyAuthHeader(): Promise<string> {
+  const supabase = getSupabaseClient();
+  if (!supabase) throw new Error('Supabase is not configured — cannot call Leonardo proxy.');
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('No Supabase session — sign in before generating art.');
+  return `Bearer ${token}`;
+}
 
 const POLL_INTERVAL_MS = 3000;
 const POLL_TIMEOUT_MS = 60000;
@@ -51,7 +65,6 @@ export const DEFAULT_MODEL: LeonardoModelKey = 'phoenix_1_0';
 const IMAGE_SIZE = 768;
 
 async function uploadInitImage(
-  apiKey: string,
   imageDataUrl: string,
 ): Promise<string> {
   const ext = imageDataUrl.startsWith('data:image/jpeg') ? 'jpg' : 'png';
@@ -61,7 +74,7 @@ async function uploadInitImage(
     headers: {
       'accept': 'application/json',
       'content-type': 'application/json',
-      'authorization': `Bearer ${apiKey}`,
+      'authorization': await proxyAuthHeader(),
     },
     body: JSON.stringify({ extension: ext }),
   });
@@ -90,7 +103,6 @@ async function uploadInitImage(
 }
 
 async function submitGeneration(
-  apiKey: string,
   prompt: string,
   negativePrompt: string,
   modelKey: LeonardoModelKey,
@@ -121,7 +133,7 @@ async function submitGeneration(
     headers: {
       'accept': 'application/json',
       'content-type': 'application/json',
-      'authorization': `Bearer ${apiKey}`,
+      'authorization': await proxyAuthHeader(),
     },
     body: JSON.stringify(body),
   });
@@ -139,7 +151,6 @@ async function submitGeneration(
 }
 
 async function pollForResult(
-  apiKey: string,
   generationId: string,
 ): Promise<string> {
   const deadline = Date.now() + POLL_TIMEOUT_MS;
@@ -150,7 +161,7 @@ async function pollForResult(
       {
         headers: {
           'accept': 'application/json',
-          'authorization': `Bearer ${apiKey}`,
+          'authorization': await proxyAuthHeader(),
         },
       },
     );
@@ -225,29 +236,23 @@ export async function generatePortraitStrict(
   initStrength?: number,
   modelKey: LeonardoModelKey = DEFAULT_MODEL,
 ): Promise<{ dataUrl: string; modelKey: LeonardoModelKey }> {
-  // In production the /api/leonardo proxy injects a server-side LEONARDO_API_KEY,
-  // so the client no longer needs one. Dev still uses the vite proxy which
-  // passes VITE_LEONARDO_API_KEY through unchanged.
-  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY ?? '';
-
   let initImageId: string | undefined;
   if (initImageDataUrl && !initImageDataUrl.startsWith('linear-gradient')) {
     try {
-      initImageId = await uploadInitImage(apiKey, initImageDataUrl);
+      initImageId = await uploadInitImage(initImageDataUrl);
     } catch (err) {
       console.warn('Init image upload failed, falling back to text-only generation:', err);
     }
   }
 
   const { generationId } = await submitGeneration(
-    apiKey,
     prompt,
     negativePrompt,
     modelKey,
     initImageId,
     initStrength,
   );
-  const imageUrl = await pollForResult(apiKey, generationId);
+  const imageUrl = await pollForResult(generationId);
   const dataUrl = await fetchAsDataUrl(imageUrl);
   if (!dataUrl.startsWith('data:image/')) {
     throw new Error('Leonardo returned non-image data URL');

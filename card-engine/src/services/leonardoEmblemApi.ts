@@ -1,4 +1,15 @@
+import { getSupabaseClient } from './persistence/supabaseClient';
+
 const LEONARDO_API_BASE = '/api/leonardo';
+
+async function proxyAuthHeader(): Promise<string> {
+  const supabase = getSupabaseClient();
+  if (!supabase) throw new Error('Supabase is not configured — cannot call Leonardo proxy.');
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('No Supabase session — sign in before generating emblems.');
+  return `Bearer ${token}`;
+}
 
 const POLL_INTERVAL_MS = 3000;
 const POLL_TIMEOUT_MS = 60000;
@@ -17,7 +28,6 @@ export interface EmblemGenerationResult {
 }
 
 async function submitGeneration(
-  apiKey: string,
   prompt: string,
 ): Promise<{ generationId: string; cost: string }> {
   const response = await fetch(`${LEONARDO_API_BASE}/generations`, {
@@ -25,7 +35,7 @@ async function submitGeneration(
     headers: {
       'accept': 'application/json',
       'content-type': 'application/json',
-      'authorization': `Bearer ${apiKey}`,
+      'authorization': await proxyAuthHeader(),
     },
     body: JSON.stringify({
       prompt,
@@ -50,7 +60,6 @@ async function submitGeneration(
 }
 
 async function pollForResult(
-  apiKey: string,
   generationId: string,
 ): Promise<string> {
   const deadline = Date.now() + POLL_TIMEOUT_MS;
@@ -61,7 +70,7 @@ async function pollForResult(
       {
         headers: {
           'accept': 'application/json',
-          'authorization': `Bearer ${apiKey}`,
+          'authorization': await proxyAuthHeader(),
         },
       },
     );
@@ -142,11 +151,8 @@ export async function generateEmblem(prompt: string): Promise<EmblemGenerationRe
     );
   }
 
-  // Server-side LEONARDO_API_KEY overrides in prod (see leonardoApi.ts).
-  const apiKey = import.meta.env.VITE_LEONARDO_API_KEY ?? '';
-
-  const { generationId, cost } = await submitGeneration(apiKey, prompt);
-  const imageUrl = await pollForResult(apiKey, generationId);
+  const { generationId, cost } = await submitGeneration(prompt);
+  const imageUrl = await pollForResult(generationId);
   const dataUrl = await fetchAsDataUrl(imageUrl);
   if (!dataUrl.startsWith('data:image/')) {
     throw new Error('Leonardo returned non-image data URL');
