@@ -31,7 +31,7 @@ export default function App() {
 
           <div className="relative z-10 min-h-dvh flex flex-col">
             <NavBar />
-            <main className="flex-1 flex flex-col">
+            <main className="flex-1 flex flex-col lg:pl-56 pb-20 lg:pb-0">
               <Routes>
                 <Route path="/" element={<CardForge />} />
                 <Route path="/forge" element={<CardForge />} />
