@@ -12,6 +12,7 @@ export interface AuthedUser {
 }
 
 let cachedClient: SupabaseClient | null = null;
+let cachedAdminClient: SupabaseClient | null = null;
 
 function getServerSupabase(): SupabaseClient | null {
   if (cachedClient) return cachedClient;
@@ -20,6 +21,18 @@ function getServerSupabase(): SupabaseClient | null {
   if (!url || !anon) return null;
   cachedClient = createClient(url, anon, { auth: { persistSession: false } });
   return cachedClient;
+}
+
+// Service-role client used only for the profiles.role lookup. Anon-key
+// SELECTs on profiles are RLS-scoped and return nothing without an auth
+// context, so we'd always report isAdmin=false. Service role bypasses.
+function getAdminClient(): SupabaseClient | null {
+  if (cachedAdminClient) return cachedAdminClient;
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  cachedAdminClient = createClient(url, key, { auth: { persistSession: false } });
+  return cachedAdminClient;
 }
 
 /**
@@ -43,16 +56,22 @@ export async function verifyUser(req: VercelRequest): Promise<AuthedUser | null>
   const { data, error } = await supabase.auth.getUser(token);
   if (error || !data.user) return null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('user_id', data.user.id)
-    .maybeSingle();
+  // Role lookup must bypass RLS — see getAdminClient comment.
+  const admin = getAdminClient();
+  let role: string | null = null;
+  if (admin) {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('user_id', data.user.id)
+      .maybeSingle();
+    role = profile?.role ?? null;
+  }
 
   return {
     userId: data.user.id,
     email: data.user.email ?? null,
     isAnonymous: data.user.is_anonymous ?? false,
-    isAdmin: profile?.role === 'admin',
+    isAdmin: role === 'admin',
   };
 }
