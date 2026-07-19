@@ -4,6 +4,7 @@ import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { Admin } from './pages/Admin';
 import { AdminAbilities } from './pages/AdminAbilities';
+import { AdminDiagnostics } from './pages/AdminDiagnostics';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { CodexFamily } from './pages/CodexFamily';
@@ -44,6 +45,7 @@ export default function App() {
                 <Route path="/battle" element={<Battle />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/abilities" element={<AdminAbilities />} />
+                <Route path="/admin/diagnostics" element={<AdminDiagnostics />} />
                 <Route path="/dev/abilities" element={<DevAbilities />} />
                 <Route path="/m55harness" element={<M55Harness />} />
                 <Route path="/admin/prompt-lab" element={<M55Harness />} />
