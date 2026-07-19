@@ -90,7 +90,10 @@ async function uploadInitImage(
 
   const uploadRes = await fetch('/api/s3-upload', {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      'authorization': await proxyAuthHeader(),
+    },
     body: JSON.stringify({ url, fields, base64, ext }),
   });
   if (!uploadRes.ok && uploadRes.status !== 204) {
