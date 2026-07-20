@@ -1,0 +1,100 @@
+import type { Card } from '../../types/card';
+import type { BattleState, PlayerAction } from '../../types/combat';
+import type { AnimationBeat } from '../../services/combat/presentation/types';
+import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
+import { resolveCombatAssetUrl } from '../../data/combat/types';
+import { BossHUDOverlay } from './BossHUDOverlay';
+import { BossStage } from './BossStage';
+import { HeroForeground } from './HeroForeground';
+import { AbilityCommandBar } from './AbilityCommandBar';
+import { BattleControls } from './BattleControls';
+
+interface Props {
+  state: BattleState;
+  actingActorId: string | null;
+  partyCards: Card[];
+  currentBeat: AnimationBeat | null;
+  onSubmit: (action: PlayerAction) => void;
+  onExit: () => void;
+}
+
+/**
+ * The Arena scene — one continuous visual surface, not a stack of panels.
+ * Arena background fills the whole column; boss + HUD + heroes + abilities
+ * layer directly into it via absolute positioning.
+ */
+export function CombatScene({
+  state,
+  actingActorId,
+  partyCards,
+  currentBeat,
+  onSubmit,
+  onExit,
+}: Props) {
+  const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
+  const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
+
+  const boss = state.boss;
+  const actingHero =
+    (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
+    state.heroes.find((h) => !h.defeated) ??
+    state.heroes[0];
+  const canAct = state.phase === 'awaiting_player_action';
+
+  return (
+    <div className="absolute inset-0">
+      {/* Layer 1 — Arena background */}
+      <div
+        className="absolute inset-0"
+        style={
+          arenaUrl
+            ? {
+                backgroundImage: `url("${arenaUrl}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : { background: 'radial-gradient(ellipse at 50% 30%, #3a1c14 0%, #0a0508 70%)' }
+        }
+      />
+      {/* Layer 2 — subtle atmosphere: darken upper HUD zone + bottom foreground for legibility */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to bottom, rgba(5,3,8,0.55) 0%, rgba(5,3,8,0.1) 22%, rgba(5,3,8,0) 55%, rgba(5,3,8,0.35) 82%, rgba(5,3,8,0.75) 100%)',
+        }}
+      />
+
+      {/* Layer 3 — Boss HUD (upper-left overlay) */}
+      <BossHUDOverlay boss={boss} intent={boss.currentIntent} currentBeat={currentBeat} />
+
+      {/* Layer 4 — Boss stage (center-upper of arena) */}
+      <BossStage boss={boss} currentBeat={currentBeat} />
+
+      {/* Layer 5 — Hero foreground (bottom-anchored) */}
+      <HeroForeground
+        heroes={state.heroes}
+        partyCards={partyCards}
+        actingActorId={actingHero.actorId}
+        canAct={canAct}
+        currentBeat={currentBeat}
+      />
+
+      {/* Layer 6 — Ability command bar (docked lower-mid) */}
+      <AbilityCommandBar
+        hero={actingHero}
+        bossActorId={boss.actorId}
+        disabled={!canAct}
+        onSubmit={onSubmit}
+      />
+
+      {/* Layer 7 — Battle controls (Leave / Round / auxiliary) */}
+      <BattleControls
+        round={state.round}
+        onExit={onExit}
+        onSubmit={onSubmit}
+        canAct={canAct}
+      />
+    </div>
+  );
+}

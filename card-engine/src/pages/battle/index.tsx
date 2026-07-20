@@ -4,24 +4,18 @@ import type { Card } from '../../types/card';
 import { commit, refund, reserve } from '../../services/economy/walletService';
 import { GAMEPLAY_PRICE_CATALOG } from '../../data/economy/gameplayPriceCatalog';
 import { Picker } from './Picker';
-import { EncounterScreen } from './EncounterScreen';
+import { CombatViewport } from './CombatViewport';
 
 /**
- * Boss battle page.
+ * Boss battle route.
  *
- * Two stages:
- *   1. Picker (Picker.tsx) — pick 1..3 battle-ready hero cards + an active
- *      boss. Picker reserves the Gold entry cost inside its Start handler and
- *      hands the pending transaction id up to us.
- *   2. EncounterScreen (EncounterScreen.tsx) — Boss panel, Hero lanes,
- *      Ability rail, utility rail, Combat Journal, result modal.
+ *   /battle — Picker (renders inside the normal app shell)
+ *     → user picks 1..3 heroes + boss, we reserve the Gold entry cost
+ *   → CombatViewport (renders full-screen via createPortal, hiding the app
+ *     shell) drives the actual combat
  *
- * Entry cost lifecycle (plan §15.4, forfeit-on-defeat):
- *   - Picker → reserve (pending)                            [Start click]
- *   - Battle init succeeds → commit (pending → committed)   [snap here]
- *   - Battle init fails    → refund (pending → refunded)
- *   - Defeat / victory / abandon → nothing; entry stays committed
- *   - Restart → fresh reserve, same lifecycle again
+ * Entry cost lifecycle unchanged from C8: reserve on Start, commit on
+ * useBattle success, refund on init failure, forfeit on defeat/abandon.
  */
 
 const ENTRY_PRICE = GAMEPLAY_PRICE_CATALOG.battle_run_entry;
@@ -38,8 +32,6 @@ export function Battle() {
   );
   const battle = useBattle(active);
 
-  // Commit / refund the entry cost once we know whether the reducer accepted
-  // the party. Guarded by lastResolvedTxnId so a rerender doesn't double-fire.
   const lastResolvedTxnId = useRef<string | null>(null);
   useEffect(() => {
     if (!entryTxnId || entryTxnId === lastResolvedTxnId.current) return;
@@ -67,7 +59,7 @@ export function Battle() {
   }
 
   return (
-    <EncounterScreen
+    <CombatViewport
       state={battle.state}
       events={battle.events}
       actingActorId={battle.actingActorId}
@@ -76,8 +68,6 @@ export function Battle() {
       error={battle.error}
       onSubmit={battle.submit}
       onRestart={() => {
-        // New run — fresh reserve at the same price. If wallet is empty
-        // now, surface it on the Picker rather than leaving the user stuck.
         try {
           const txn = reserve({
             currency: 'gameplay',
@@ -93,7 +83,6 @@ export function Battle() {
           setSeed(Math.floor(Math.random() * 1e9));
           battle.restart();
         } catch {
-          // Out of gold — bounce back to Picker so the user sees the error.
           setParty(null);
           setBossId(null);
           setEntryTxnId(null);
