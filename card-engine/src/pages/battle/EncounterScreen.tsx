@@ -5,6 +5,7 @@ import {
   grantBattleReward,
   type BattleRewardOutcome,
 } from '../../services/combat/battleRewardService';
+import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
 import { BossPanel } from './BossPanel';
 import { HeroLane } from './HeroLane';
 import { AbilityRail } from './AbilityRail';
@@ -34,6 +35,7 @@ export function EncounterScreen({
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
+  const presentation = useCombatPresentation(events);
 
   useEffect(() => {
     if (!state || !state.result || state.phase !== 'battle_over') {
@@ -77,6 +79,7 @@ export function EncounterScreen({
   const boss = state.boss;
   const isOver = state.phase === 'battle_over';
   const canAct = state.phase === 'awaiting_player_action';
+  const currentBeat = presentation.currentBeat;
 
   return (
     <div className="max-w-4xl mx-auto px-3 py-4">
@@ -92,7 +95,7 @@ export function EncounterScreen({
       <BossPanel
         boss={boss}
         intentText={boss.currentIntent?.telegraphText ?? null}
-        lastEvent={state.log[state.log.length - 1]}
+        currentBeat={currentBeat}
       />
 
       <div className="flex justify-center items-end gap-4 py-4 mb-2 overflow-x-auto">
@@ -106,6 +109,7 @@ export function EncounterScreen({
               combatant={combatant}
               isActing={canAct && combatant.actorId === actingHero.actorId}
               laneIndex={i}
+              currentBeat={currentBeat}
             />
           );
         })}
@@ -113,7 +117,12 @@ export function EncounterScreen({
 
       <AbilityRail hero={actingHero} bossActorId={boss.actorId} disabled={!canAct} onSubmit={onSubmit} />
       <UtilityRail onSubmit={onSubmit} disabled={!canAct} />
-      <CombatJournal rawEvents={events} />
+      <CombatJournal
+        journal={presentation.journal}
+        isPlaying={presentation.isPlaying}
+        pendingCount={presentation.pendingCount}
+        onSkip={presentation.skip}
+      />
 
       {isOver && (
         <ResultModal

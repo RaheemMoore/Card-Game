@@ -1,22 +1,21 @@
 import { useEffect, useRef } from 'react';
-import type { BattleEvent } from '../../types/combat';
-import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
+import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { formatEvent } from './formatEvent';
 
 interface Props {
-  rawEvents: readonly BattleEvent[];
+  journal: readonly AnimationBeat[];
+  isPlaying: boolean;
+  pendingCount: number;
+  onSkip: () => void;
 }
 
 /**
- * Paced replacement for EventLog. Consumes the reducer's raw event stream and
- * reveals entries at Combat Wiki timings via the presentation queue.
- *
- * Interim caveat (until C4 renders hero/boss from presentation state): visual
- * HP bars will snap to their new value before the Journal reveals the hit that
- * caused it. This is expected mid-refactor.
+ * Paced replacement for EventLog. Reads its journal from an
+ * EncounterScreen-owned useCombatPresentation instance so the same beats
+ * that drive the Journal also drive floating damage numbers, hit-shake,
+ * and wind-up glows in the other components.
  */
-export function CombatJournal({ rawEvents }: Props) {
-  const { journal, isPlaying, pendingCount, skip } = useCombatPresentation(rawEvents);
+export function CombatJournal({ journal, isPlaying, pendingCount, onSkip }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export function CombatJournal({ rawEvents }: Props) {
         {isPlaying && (
           <button
             type="button"
-            onClick={skip}
+            onClick={onSkip}
             className="text-[10px] uppercase tracking-widest text-bone/60 hover:text-bone underline"
             aria-label={`Skip ${pendingCount} pending combat beats`}
           >

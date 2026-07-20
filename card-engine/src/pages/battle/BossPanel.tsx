@@ -1,37 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
-import type { BossCombatant, BattleState } from '../../types/combat';
+import type { BossCombatant } from '../../types/combat';
+import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { getBossSprite } from '../../data/combat/bossSpriteManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
+import { FloatingDamage } from './FloatingDamage';
 
 interface Props {
   boss: BossCombatant;
   intentText: string | null;
-  lastEvent: BattleState['log'][number] | undefined;
+  currentBeat: AnimationBeat | null;
 }
 
 /**
- * Boss panel. Renders Arena background + Combat Sprite from the C5 asset
- * manifests, with the historical CSS placeholder as a final fallback. Sprite
- * approvalStatus is 'placeholder' until C6 lands the real Leonardo art.
+ * Boss panel. Renders Arena background + Combat Sprite from the C5/C6 asset
+ * manifests. C7 wires visual effects (hit-shake, heavy-attack wind-up glow,
+ * floating damage) to the presentation queue's currentBeat instead of raw
+ * reducer state so effects pace with the Journal.
  */
-export function BossPanel({ boss, intentText, lastEvent }: Props) {
+export function BossPanel({ boss, intentText, currentBeat }: Props) {
   const hpPct = Math.max(0, boss.hp / boss.snapshot.maxHp);
   const [shakeKey, setShakeKey] = useState(0);
-  const prevEventIndex = useRef(-1);
+  const lastShakeBeatId = useRef<string | null>(null);
 
+  // Trigger hit-shake when the CURRENT beat is a damage_dealt targeting the boss.
   useEffect(() => {
-    if (!lastEvent) return;
-    if (lastEvent.kind !== 'damage_dealt') return;
-    if (lastEvent.targetActorId !== boss.actorId) return;
-    prevEventIndex.current += 1;
+    if (!currentBeat) return;
+    if (currentBeat.id === lastShakeBeatId.current) return;
+    const e = currentBeat.event;
+    if (e.kind !== 'damage_dealt' || e.targetActorId !== boss.actorId) return;
+    lastShakeBeatId.current = currentBeat.id;
     setShakeKey((n) => n + 1);
-  }, [lastEvent, boss.actorId]);
+  }, [currentBeat, boss.actorId]);
 
   const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
   const bossSprite = getBossSprite(boss.snapshot.bossId, 'idle');
   const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
   const spriteUrl = bossSprite ? resolveCombatAssetUrl(bossSprite) : null;
+
+  const isWindingUp =
+    currentBeat?.event.kind === 'boss_intent_declared' &&
+    (currentBeat.event.intent.intentType === 'heavy_attack' ||
+      currentBeat.event.intent.intentType === 'ultimate' ||
+      currentBeat.event.intent.intentType === 'area_attack');
 
   return (
     <div
@@ -49,7 +60,9 @@ export function BossPanel({ boss, intentText, lastEvent }: Props) {
       <div className="flex items-start gap-4 relative">
         <div
           key={shakeKey}
-          className="shrink-0 rounded-md relative overflow-hidden boss-portrait flex items-center justify-center"
+          className={`shrink-0 rounded-md relative overflow-hidden boss-portrait flex items-center justify-center ${
+            isWindingUp ? 'boss-windup' : ''
+          }`}
           style={{
             width: 148,
             height: 148,
@@ -80,6 +93,7 @@ export function BossPanel({ boss, intentText, lastEvent }: Props) {
               <div className="text-[11px] mt-1 opacity-90">Emberborn</div>
             </div>
           )}
+          <FloatingDamage currentBeat={currentBeat} actorId={boss.actorId} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-fantasy text-xl text-bone truncate">{boss.snapshot.name}</div>
@@ -94,9 +108,15 @@ export function BossPanel({ boss, intentText, lastEvent }: Props) {
             {boss.currentPhaseId.replace(/^phase_fe_/, '')}
           </div>
           {intentText && (
-            <div className="mt-3 p-2 rounded bg-crimson/15 border border-crimson/30 text-sm text-bone">
+            <div
+              className={`mt-3 p-2 rounded border text-sm text-bone transition-colors ${
+                isWindingUp
+                  ? 'bg-crimson/30 border-crimson/70 shadow-[0_0_16px_rgba(216,76,13,0.55)]'
+                  : 'bg-crimson/15 border-crimson/30'
+              }`}
+            >
               <span className="text-[10px] uppercase tracking-widest text-crimson/80 mr-2">
-                Intent
+                {isWindingUp ? 'Winding up' : 'Intent'}
               </span>
               {intentText}
             </div>
@@ -117,11 +137,18 @@ export function BossPanel({ boss, intentText, lastEvent }: Props) {
           75% { transform: translate(-1px, 1px); }
           100% { transform: translate(0, 0); filter: brightness(1); }
         }
+        @keyframes boss-windup-pulse {
+          0%, 100% { box-shadow: inset 0 0 32px rgba(0,0,0,0.55), 0 0 18px rgba(216,76,13,0.35); }
+          50%      { box-shadow: inset 0 0 40px rgba(0,0,0,0.55), 0 0 34px rgba(255,120,40,0.85); }
+        }
         .boss-portrait {
           animation: boss-bob 3s ease-in-out infinite, boss-hit-shake 0.35s ease-out;
         }
+        .boss-portrait.boss-windup {
+          animation: boss-bob 3s ease-in-out infinite, boss-windup-pulse 900ms ease-in-out infinite;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .boss-portrait {
+          .boss-portrait, .boss-portrait.boss-windup {
             animation: none !important;
           }
         }
