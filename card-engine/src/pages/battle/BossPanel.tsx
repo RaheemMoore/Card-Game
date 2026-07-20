@@ -103,7 +103,11 @@ export function BossPanel({ boss, intentText, currentBeat }: Props) {
               style={{ width: `${hpPct * 100}%` }}
             />
           </div>
-          <div className="text-[10px] text-bone/60 mt-1 tabular-nums">
+          <div
+            className="text-[10px] text-bone/60 mt-1 tabular-nums"
+            role="status"
+            aria-label={`Boss HP: ${boss.hp} of ${boss.snapshot.maxHp}. Phase ${boss.currentPhaseId.replace(/^phase_fe_/, '')}.`}
+          >
             {boss.hp} / {boss.snapshot.maxHp} HP · Phase{' '}
             {boss.currentPhaseId.replace(/^phase_fe_/, '')}
           </div>

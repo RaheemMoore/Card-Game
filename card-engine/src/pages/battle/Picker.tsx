@@ -102,8 +102,15 @@ export function Picker({ onPick }: { onPick: (cards: Card[], bossId: string) => 
             return (
               <button
                 key={c.cardId}
+                type="button"
                 onClick={() => toggleCard(c.cardId)}
-                className={`rounded-md p-3 text-left border transition-colors relative ${
+                aria-pressed={isPicked}
+                aria-label={
+                  isPicked
+                    ? `${c.cardName} — placed in Lane ${laneIdx + 1}. Click to remove.`
+                    : `${c.cardName} — click to add to party.`
+                }
+                className={`rounded-md p-3 text-left border transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
                   isPicked
                     ? 'border-gold bg-gold/10 shadow-lg shadow-gold/20'
                     : 'border-bone/20 bg-void/40 hover:border-bone/40'
@@ -141,8 +148,11 @@ export function Picker({ onPick }: { onPick: (cards: Card[], bossId: string) => 
         {bosses.map((b) => (
           <button
             key={b.id}
+            type="button"
             onClick={() => setPickedBossId(b.id)}
-            className={`rounded-md p-4 text-left border transition-colors ${
+            aria-pressed={pickedBossId === b.id}
+            aria-label={`Fight ${b.name}`}
+            className={`rounded-md p-4 text-left border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-crimson ${
               pickedBossId === b.id
                 ? 'border-crimson bg-crimson/10 shadow-lg shadow-crimson/20'
                 : 'border-bone/20 bg-void/40 hover:border-bone/40'
