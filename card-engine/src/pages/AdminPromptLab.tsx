@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Hammer } from 'lucide-react';
 import { ARCHETYPE_NAMES, type ArchetypeName, type Card, type CardStats, type Rank } from '../types/card';
+import { stashLabHandoff } from '../services/labWorkshopHandoff';
+import {
+  AdminPage,
+  AdminCard,
+  AdminButton,
+  AdminAlert,
+  AdminStatusBadge,
+  AdminUnsupportedDevice,
+  type BadgeTone,
+} from '../components/admin/ui';
 import type {
   ElementBond,
   ElementCompatibility,
@@ -25,7 +36,6 @@ import { getSupabaseClient } from '../services/persistence/supabaseClient';
 import { API_COST_CATALOG } from '../data/economy/apiCostCatalog';
 import { CardRenderer } from '../components/CardRenderer';
 import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
-import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 
 // Prompt Lab — realistic tier chain tester.
 //
@@ -44,10 +54,28 @@ import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 //   - Clicking a card opens the shared AdminPreviewPanel with full-tier
 //     CardRenderers, prompt provenance, and continue/mark complete/cancel.
 //   - "Show archived" toggles complete/cancelled visibility.
+//
+// Presentation:
+//   - The control region (archetype / pillars / element inputs) is a sticky
+//     sidebar so the tier/result canvas scrolls independently — a reviewer can
+//     compare all three tiers on desktop + iPad landscape without page-level
+//     horizontal scroll.
+//   - Below 768px paid generation controls are not mounted at all (see the
+//     AdminUnsupportedDevice guard in AdminPromptLab).
 
 type GeneratedText = Awaited<ReturnType<typeof generateCardTextWithRetry>>;
 
 const TIERS: readonly Rank[] = ['Foundation', 'Forged', 'Ascendant'];
+
+// Shared dense-control styling (opaque surface-strong per the design system).
+const CONTROL_STYLE: React.CSSProperties = {
+  background: 'var(--admin-surface-strong)',
+  border: '1px solid var(--admin-border)',
+  color: 'var(--admin-text)',
+  borderRadius: 'var(--admin-radius-control)',
+};
+const CONTROL_CLASS = 'w-full px-2 py-1.5 text-sm disabled:opacity-50';
+const FIELD_LABEL_CLASS = 'block text-[10px] uppercase tracking-wider mb-1';
 
 const BUCKET_LABEL: Record<ElementCompatibility, string> = {
   naturally_compatible: 'Naturally Compatible',
@@ -129,9 +157,52 @@ const ACTIONABLE_DISPOSITIONS = [
   'regenerate_same_prompt',
 ];
 
-// ---- Component --------------------------------------------------------
+// ---- Responsive guard --------------------------------------------------
+
+// Paid generation must be truly unmounted below 768px, not merely hidden.
+// This hook drives that decision; the workspace (and all its generation
+// hooks) only mount when true.
+function useIsDesktopWidth(): boolean {
+  const query = '(min-width: 768px)';
+  const [ok, setOk] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const handler = (e: MediaQueryListEvent) => setOk(e.matches);
+    mq.addEventListener('change', handler);
+    setOk(mq.matches);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return ok;
+}
+
+// ---- Top-level page (guard only) --------------------------------------
 
 export function AdminPromptLab() {
+  const isDesktop = useIsDesktopWidth();
+  return (
+    <AdminPage
+      title="Prompt Lab"
+      description={
+        <>
+          Foundation → Forged → Ascendant tier tester. Runs the same shared Claude + Leonardo
+          services production forge uses; every input, prompt, response, cost, and image is
+          persisted so a reviewer can reproduce a test months later. Story pillar answers,
+          filtered element buckets, and "Roll like a player" all mirror the real forge. Each tier
+          renders with the production CardRenderer, and session cards below the tier columns open a
+          right-side drawer with full provenance and a "Send to Workshop" handoff per tier.
+        </>
+      }
+    >
+      {isDesktop ? <PromptLabWorkspace /> : <AdminUnsupportedDevice feature="The Prompt Lab" />}
+    </AdminPage>
+  );
+}
+
+// ---- Workspace (paid controls; desktop/tablet only) -------------------
+
+function PromptLabWorkspace() {
   const [archetype, setArchetype] = useState<ArchetypeName>(ARCHETYPE_NAMES[0]);
   const [answers, setAnswers] = useState<StoryPillarAnswers>(() => defaultAnswers(ARCHETYPE_NAMES[0]));
   const [element, setElement] = useState<ElementName>(() => {
@@ -373,195 +444,197 @@ export function AdminPromptLab() {
   // ---- Render ---------------------------------------------------------
 
   return (
-    <div className="space-y-6">
-      <AdminPageDescription
-        title="Prompt Lab — Foundation → Forged → Ascendant tier tester"
-        body={
-          'Runs the same shared Claude + Leonardo services production forge uses. Every input, prompt, response, cost, and image is persisted so a reviewer can reproduce a test months later without console logs.\n\n' +
-          '• Story pillar answers auto-sample on archetype change and are editable inline.\n' +
-          '• Element dropdown is filtered to what the archetype actually allows given those answers, grouped by bucket. "Roll like a player" uses the same rollElement() the real forge does.\n' +
-          '• Each tier column renders the resulting card with the production CardRenderer so what you see is what the player will see.\n' +
-          '• Judgment form scores any of the three tiers on 5 axes with a required disposition. Actionable dispositions surface as a "⚑ review" pill on the session card and count into the Overview pending banner.\n' +
-          '• Session cards below the tier columns replace the old batch log. Click one to open the right-side drawer with all three tiers, prompt provenance, and a "Propose change" mini-form per tier that pins the runId to the proposal for later review.'
-        }
-      />
+    <>
+      <div className="lg:grid lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:gap-4 lg:items-start">
+        {/* Sticky control sidebar — inputs stay in view while the tier/result
+            canvas scrolls independently. */}
+        <div className="lg:sticky lg:top-4 space-y-3 mb-6 lg:mb-0">
+          <AdminCard className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+              <label className="block">
+                <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>Archetype</span>
+                <select
+                  disabled={chainStarted}
+                  value={archetype}
+                  onChange={(e) => onArchetypeChange(e.target.value as ArchetypeName)}
+                  className={CONTROL_CLASS}
+                  style={CONTROL_STYLE}
+                >
+                  {ARCHETYPE_NAMES.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>Intent (optional)</span>
+                <input
+                  type="text"
+                  disabled={chainStarted}
+                  value={intent}
+                  onChange={(e) => setIntent(e.target.value)}
+                  placeholder="e.g. ember-leak regression"
+                  className={CONTROL_CLASS}
+                  style={CONTROL_STYLE}
+                />
+              </label>
+            </div>
 
-      <section className="rounded-lg border border-bone/15 bg-void/40 p-4 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label className="block">
-            <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">Archetype</span>
-            <select
-              disabled={chainStarted}
-              value={archetype}
-              onChange={(e) => onArchetypeChange(e.target.value as ArchetypeName)}
-              className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
-            >
-              {ARCHETYPE_NAMES.map((a) => <option key={a} value={a}>{a}</option>)}
-            </select>
-          </label>
-          <label className="block">
-            <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">Intent (optional)</span>
-            <input
-              type="text"
-              disabled={chainStarted}
-              value={intent}
-              onChange={(e) => setIntent(e.target.value)}
-              placeholder="e.g. ember-leak regression"
-              className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
-            />
-          </label>
-        </div>
+            {/* Story pillar answers — eager + editable */}
+            <div>
+              <div className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>Story pillar answers</div>
+              <div className="space-y-2">
+                {answers.answers.map((a) => {
+                  const opts = getOptionsForQuestion(archetype, a.questionId);
+                  const q = getQuestionsForArchetype(archetype).find((qq) => qq.id === a.questionId);
+                  return (
+                    <label key={a.questionId} className="block">
+                      <span className="block text-[10px] mb-0.5" style={{ color: 'var(--admin-text-muted)' }}>{q?.prompt ?? a.questionId}</span>
+                      <select
+                        disabled={chainStarted}
+                        value={a.optionId}
+                        onChange={(e) => onAnswerChange(a.questionId, e.target.value)}
+                        className="w-full px-2 py-1.5 text-xs disabled:opacity-50"
+                        style={CONTROL_STYLE}
+                      >
+                        {opts.map((o) => <option key={o.id} value={o.id}>{o.text}</option>)}
+                      </select>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
 
-        {/* Story pillar answers — eager + editable */}
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-bone/60 mb-2">Story pillar answers</div>
-          <div className="space-y-2">
-            {answers.answers.map((a) => {
-              const opts = getOptionsForQuestion(archetype, a.questionId);
-              const q = getQuestionsForArchetype(archetype).find((qq) => qq.id === a.questionId);
-              return (
-                <label key={a.questionId} className="block">
-                  <span className="block text-[10px] text-bone/50 mb-0.5">{q?.prompt ?? a.questionId}</span>
+            {/* Element (filtered + bucketed) + bond */}
+            <div className="space-y-3">
+              <div>
+                <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>
+                  Element ({eligibleElements.length} eligible)
+                </span>
+                <div className="flex gap-2">
                   <select
                     disabled={chainStarted}
-                    value={a.optionId}
-                    onChange={(e) => onAnswerChange(a.questionId, e.target.value)}
-                    className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-xs disabled:opacity-50"
+                    value={element}
+                    onChange={(e) => setElement(e.target.value as ElementName)}
+                    className="flex-1 px-2 py-1.5 text-sm disabled:opacity-50"
+                    style={CONTROL_STYLE}
                   >
-                    {opts.map((o) => <option key={o.id} value={o.id}>{o.text}</option>)}
+                    {(['naturally_compatible', 'compatible_through_reinterpretation', 'rare'] as const).map((b) =>
+                      eligibleByBucket[b].length > 0 ? (
+                        <optgroup key={b} label={BUCKET_LABEL[b]}>
+                          {eligibleByBucket[b].map((el) => (
+                            <option key={el} value={el}>{el}</option>
+                          ))}
+                        </optgroup>
+                      ) : null,
+                    )}
                   </select>
-                </label>
-              );
-            })}
-          </div>
+                  <AdminButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={rollLikeAPlayer}
+                    disabled={chainStarted}
+                    title="Uses the same rollElement() the real forge does"
+                  >
+                    Roll like a player
+                  </AdminButton>
+                </div>
+                <div className="text-[10px] mt-1" style={{ color: 'var(--admin-text-muted)' }}>
+                  Current bucket: {BUCKET_LABEL[bucketFor(archetype, element)]}
+                </div>
+              </div>
+              <label className="block">
+                <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>Bond</span>
+                <select
+                  disabled={chainStarted}
+                  value={bond}
+                  onChange={(e) => setBond(e.target.value as ElementBond)}
+                  className={CONTROL_CLASS}
+                  style={CONTROL_STYLE}
+                >
+                  {ELEMENT_BONDS.map((b) => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </label>
+            </div>
+
+            {chainStarted && (
+              <div className="flex justify-end">
+                <AdminButton variant="ghost" size="sm" onClick={resetChain}>
+                  Reset chain
+                </AdminButton>
+              </div>
+            )}
+          </AdminCard>
         </div>
 
-        {/* Element (filtered + bucketed) + bond */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">
-              Element ({eligibleElements.length} eligible)
-            </span>
-            <div className="flex gap-2">
-              <select
-                disabled={chainStarted}
-                value={element}
-                onChange={(e) => setElement(e.target.value as ElementName)}
-                className="flex-1 px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
-              >
-                {(['naturally_compatible', 'compatible_through_reinterpretation', 'rare'] as const).map((b) =>
-                  eligibleByBucket[b].length > 0 ? (
-                    <optgroup key={b} label={BUCKET_LABEL[b]}>
-                      {eligibleByBucket[b].map((el) => (
-                        <option key={el} value={el}>{el}</option>
-                      ))}
-                    </optgroup>
-                  ) : null,
-                )}
-              </select>
-              <button
-                onClick={rollLikeAPlayer}
-                disabled={chainStarted}
-                className="px-3 py-1 rounded text-xs font-fantasy border border-bone/20 text-bone/80 hover:text-bone hover:border-bone/40 disabled:opacity-40"
-                title="Uses the same rollElement() the real forge does"
-              >
-                Roll like a player
-              </button>
-            </div>
-            <div className="text-[10px] text-bone/50 mt-1">
-              Current bucket: {BUCKET_LABEL[bucketFor(archetype, element)]}
-            </div>
+        {/* Scrolling tier/result canvas */}
+        <div className="space-y-6 min-w-0">
+          <div className="overflow-x-auto">
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-w-0">
+              <TierColumn
+                tier="Foundation"
+                archetype={archetype}
+                slot={foundation}
+                onRun={runFoundation}
+                setSlot={setFoundation}
+                estimatedCostUsd={estimated}
+                available
+              />
+              <TierColumn
+                tier="Forged"
+                archetype={archetype}
+                slot={forged}
+                onRun={runForged}
+                setSlot={setForged}
+                estimatedCostUsd={estimated}
+                available={foundation.phase === 'done'}
+              />
+              <TierColumn
+                tier="Ascendant"
+                archetype={archetype}
+                slot={ascendant}
+                onRun={runAscendant}
+                setSlot={setAscendant}
+                estimatedCostUsd={estimated}
+                available={forged.phase === 'done'}
+              />
+            </section>
           </div>
-          <label className="block">
-            <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">Bond</span>
-            <select
-              disabled={chainStarted}
-              value={bond}
-              onChange={(e) => setBond(e.target.value as ElementBond)}
-              className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
-            >
-              {ELEMENT_BONDS.map((b) => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </label>
-        </div>
 
-        {chainStarted && (
-          <div className="flex justify-end">
-            <button
-              onClick={resetChain}
-              className="text-xs text-bone/60 hover:text-bone underline"
-            >
-              Reset chain
-            </button>
-          </div>
-        )}
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <TierColumn
-          tier="Foundation"
-          archetype={archetype}
-          slot={foundation}
-          onRun={runFoundation}
-          setSlot={setFoundation}
-          estimatedCostUsd={estimated}
-          available
-        />
-        <TierColumn
-          tier="Forged"
-          archetype={archetype}
-          slot={forged}
-          onRun={runForged}
-          setSlot={setForged}
-          estimatedCostUsd={estimated}
-          available={foundation.phase === 'done'}
-        />
-        <TierColumn
-          tier="Ascendant"
-          archetype={archetype}
-          slot={ascendant}
-          onRun={runAscendant}
-          setSlot={setAscendant}
-          estimatedCostUsd={estimated}
-          available={forged.phase === 'done'}
-        />
-      </section>
-
-      {(foundation.phase === 'done' || forged.phase === 'done' || ascendant.phase === 'done') && (
-        <JudgmentTargets
-          runs={[foundation, forged, ascendant]
-            .map((s, i) => (s.phase === 'done' ? { tier: TIERS[i], result: s.result } : null))
-            .filter((x): x is { tier: Rank; result: TierResult } => x !== null)}
-          onSaved={refreshSessions}
-        />
-      )}
-
-      {/* Sessions grid */}
-      <section>
-        <div className="flex items-baseline justify-between mb-2">
-          <h2 className="font-fantasy text-sm uppercase tracking-wider text-bone/80">Sessions</h2>
-          <label className="flex items-center gap-2 text-xs text-bone/70 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showArchived}
-              onChange={(e) => setShowArchived(e.target.checked)}
+          {(foundation.phase === 'done' || forged.phase === 'done' || ascendant.phase === 'done') && (
+            <JudgmentTargets
+              runs={[foundation, forged, ascendant]
+                .map((s, i) => (s.phase === 'done' ? { tier: TIERS[i], result: s.result } : null))
+                .filter((x): x is { tier: Rank; result: TierResult } => x !== null)}
+              onSaved={refreshSessions}
             />
-            Show archived
-          </label>
-        </div>
+          )}
 
-        {sessions === null && <div className="text-xs text-bone/60">Loading…</div>}
-        {sessions && sessions.length === 0 && (
-          <div className="text-xs text-bone/60 italic">No {showArchived ? '' : 'active '}test sessions yet.</div>
-        )}
-        {sessions && sessions.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {sessions.map((s) => (
-              <SessionCard key={s.id} session={s} onOpen={() => setSelectedBatchId(s.id)} />
-            ))}
-          </div>
-        )}
-      </section>
+          {/* Sessions grid */}
+          <section>
+            <div className="flex items-baseline justify-between mb-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text)' }}>Sessions</h2>
+              <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--admin-text-muted)' }}>
+                <input
+                  type="checkbox"
+                  checked={showArchived}
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                />
+                Show archived
+              </label>
+            </div>
+
+            {sessions === null && <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>Loading…</div>}
+            {sessions && sessions.length === 0 && (
+              <div className="text-xs italic" style={{ color: 'var(--admin-text-muted)' }}>No {showArchived ? '' : 'active '}test sessions yet.</div>
+            )}
+            {sessions && sessions.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {sessions.map((s) => (
+                  <SessionCard key={s.id} session={s} onOpen={() => setSelectedBatchId(s.id)} />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
 
       <SessionPanel
         session={selectedSession}
@@ -570,7 +643,7 @@ export function AdminPromptLab() {
         onMarkComplete={() => selectedSession && setBatchStatus(selectedSession.id, 'complete')}
         onCancel={() => selectedSession && setBatchStatus(selectedSession.id, 'cancelled')}
       />
-    </div>
+    </>
   );
 }
 
@@ -587,52 +660,49 @@ function TierColumn(props: {
 }) {
   const { tier, archetype, slot, setSlot, onRun, estimatedCostUsd, available } = props;
   return (
-    <div className="rounded-lg border border-bone/15 bg-void/40 p-4 min-h-[520px] flex flex-col">
+    <AdminCard className="min-h-[520px] flex flex-col">
       <div className="flex items-baseline justify-between mb-2">
-        <h3 className="font-fantasy text-sm text-bone">{tier}</h3>
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>{tier}</h3>
         <StatusBadge slot={slot} />
       </div>
 
       {slot.phase === 'idle' && (
         <div className="flex-1 flex items-center justify-center">
           {available ? (
-            <button
-              onClick={() => setSlot({ phase: 'confirming' })}
-              className="px-3 py-2 rounded font-fantasy font-bold text-sm bg-gold/80 text-void hover:bg-gold"
-            >
+            <AdminButton variant="primary" onClick={() => setSlot({ phase: 'confirming' })}>
               Run {tier}
-            </button>
+            </AdminButton>
           ) : (
-            <div className="text-xs text-bone/40 text-center">Complete the prior tier first.</div>
+            <div className="text-xs text-center" style={{ color: 'var(--admin-text-muted)' }}>Complete the prior tier first.</div>
           )}
         </div>
       )}
       {slot.phase === 'confirming' && (
-        <div className="flex-1 flex flex-col justify-center gap-2 text-center">
-          <div className="text-xs text-bone/80">
+        <div className="flex-1 flex flex-col justify-center gap-3">
+          <AdminAlert tone="warning" title="Paid generation">
             Fires 1 Claude + 1 Leonardo call ~ ${estimatedCostUsd.toFixed(3)}. Continue?
-          </div>
+          </AdminAlert>
           <div className="flex justify-center gap-2">
-            <button onClick={onRun} className="px-3 py-1 rounded text-xs font-fantasy font-bold bg-gold/80 text-void">
+            <AdminButton variant="primary" size="sm" onClick={onRun}>
               Confirm
-            </button>
-            <button onClick={() => setSlot({ phase: 'idle' })} className="px-3 py-1 rounded text-xs font-fantasy border border-bone/20 text-bone/70">
+            </AdminButton>
+            <AdminButton variant="secondary" size="sm" onClick={() => setSlot({ phase: 'idle' })}>
               Cancel
-            </button>
+            </AdminButton>
           </div>
         </div>
       )}
       {slot.phase === 'running' && (
-        <div className="flex-1 flex items-center justify-center text-xs text-bone/70 italic">
+        <div className="flex-1 flex items-center justify-center text-xs italic" style={{ color: 'var(--admin-text-muted)' }}>
           {slot.step}
         </div>
       )}
       {slot.phase === 'error' && (
         <div className="flex-1 flex flex-col items-center justify-center gap-2 text-xs">
-          <span style={{ color: '#f9c9c9' }}>{slot.message}</span>
-          <button onClick={() => setSlot({ phase: 'idle' })} className="px-3 py-1 rounded text-xs font-fantasy border border-bone/20 text-bone/70">
+          <span style={{ color: 'var(--admin-danger)' }}>{slot.message}</span>
+          <AdminButton variant="secondary" size="sm" onClick={() => setSlot({ phase: 'idle' })}>
             Reset {tier}
-          </button>
+          </AdminButton>
         </div>
       )}
       {slot.phase === 'done' && (
@@ -644,46 +714,44 @@ function TierColumn(props: {
             />
           </div>
           <div className="text-xs text-center">
-            <div className="font-fantasy font-bold text-bone">{slot.result.cardName ?? '(no name)'}</div>
-            <div className="italic text-bone/70">{slot.result.nameAndTitle ?? ''}</div>
+            <div className="font-semibold" style={{ color: 'var(--admin-text)' }}>{slot.result.cardName ?? '(no name)'}</div>
+            <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>{slot.result.nameAndTitle ?? ''}</div>
           </div>
-          <details className="text-[11px]">
-            <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">Prompt</summary>
-            <pre className="whitespace-pre-wrap bg-black/40 p-2 rounded text-bone/80 max-h-32 overflow-y-auto mt-1">
-              {slot.result.portraitPrompt}
-            </pre>
-          </details>
-          <details className="text-[11px]">
-            <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">Negative</summary>
-            <pre className="whitespace-pre-wrap bg-black/40 p-2 rounded text-bone/80 max-h-24 overflow-y-auto mt-1">
-              {slot.result.negativePrompt}
-            </pre>
-          </details>
-          <details className="text-[11px]">
-            <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">Full response</summary>
-            <pre className="whitespace-pre-wrap bg-black/40 p-2 rounded text-bone/70 max-h-40 overflow-y-auto mt-1 text-[10px]">
-              {JSON.stringify(slot.result.raw, null, 2)}
-            </pre>
-          </details>
+          <ProvenanceDetails summary="Prompt" body={slot.result.portraitPrompt} maxH="8rem" />
+          <ProvenanceDetails summary="Negative" body={slot.result.negativePrompt} maxH="6rem" />
+          <ProvenanceDetails summary="Full response" body={JSON.stringify(slot.result.raw, null, 2)} maxH="10rem" mono />
         </div>
       )}
-    </div>
+    </AdminCard>
   );
 }
 
-function StatusBadge({ slot }: { slot: TierSlot }) {
-  const cfg = {
-    idle: { label: 'idle', bg: 'rgba(155,182,179,0.1)', color: '#d6f2ec' },
-    confirming: { label: 'confirm?', bg: 'rgba(184,134,11,0.2)', color: '#f4d78a' },
-    running: { label: 'running', bg: 'rgba(184,134,11,0.2)', color: '#f4d78a' },
-    error: { label: 'error', bg: 'rgba(220,38,38,0.2)', color: '#f9c9c9' },
-    done: { label: 'done', bg: 'rgba(155,182,179,0.25)', color: '#c9f9d9' },
-  }[slot.phase];
+// Reusable collapsible provenance block (prompt / negative / raw response).
+function ProvenanceDetails({ summary, body, maxH, mono }: { summary: string; body: string; maxH: string; mono?: boolean }) {
   return (
-    <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: cfg.bg, color: cfg.color }}>
-      {cfg.label}
-    </span>
+    <details className="text-[11px]">
+      <summary className="cursor-pointer text-[10px] uppercase tracking-wider" style={{ color: 'var(--admin-text-muted)' }}>{summary}</summary>
+      <pre
+        className={`whitespace-pre-wrap p-2 rounded overflow-y-auto mt-1 ${mono ? 'text-[10px]' : ''}`}
+        style={{ background: 'var(--admin-canvas)', color: 'var(--admin-text-muted)', maxHeight: maxH }}
+      >
+        {body}
+      </pre>
+    </details>
   );
+}
+
+const SLOT_BADGE: Record<TierSlot['phase'], { label: string; tone: BadgeTone }> = {
+  idle: { label: 'idle', tone: 'neutral' },
+  confirming: { label: 'confirm?', tone: 'warning' },
+  running: { label: 'running', tone: 'warning' },
+  error: { label: 'error', tone: 'danger' },
+  done: { label: 'done', tone: 'success' },
+};
+
+function StatusBadge({ slot }: { slot: TierSlot }) {
+  const cfg = SLOT_BADGE[slot.phase];
+  return <AdminStatusBadge tone={cfg.tone} className="uppercase tracking-wider">{cfg.label}</AdminStatusBadge>;
 }
 
 // ---- Session grid card ------------------------------------------------
@@ -712,52 +780,48 @@ function SessionCard({ session, onOpen }: { session: SessionSummary; onOpen: () 
   return (
     <button
       onClick={onOpen}
-      className="text-left rounded-lg border border-bone/15 bg-void/40 p-3 hover:bg-bone/5 transition-colors"
+      className="text-left rounded-[var(--admin-radius-control)] p-3 transition-colors"
+      style={{ background: 'var(--admin-surface-strong)', border: '1px solid var(--admin-border)' }}
     >
       <div className="flex items-baseline justify-between mb-2 gap-2">
-        <div className="font-fantasy text-sm font-bold text-bone truncate">{session.archetype}</div>
+        <div className="text-sm font-semibold truncate" style={{ color: 'var(--admin-text)' }}>{session.archetype}</div>
         <div className="flex items-center gap-1 shrink-0">
           {session.hasActionableJudgment && (
-            <span
-              className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(184,134,11,0.2)', color: '#f4d78a' }}
-              title="At least one run has a judgment flagged for action"
-            >
-              ⚑ review
-            </span>
+            <AdminStatusBadge tone="warning" className="uppercase tracking-wider" >
+              <span title="At least one run has a judgment flagged for action">⚑ review</span>
+            </AdminStatusBadge>
           )}
-          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded"
-            style={{ background: statusBg(session.status), color: statusColor(session.status) }}>
+          <AdminStatusBadge tone={SESSION_STATUS_TONE[session.status]} className="uppercase tracking-wider">
             {session.status}
-          </span>
+          </AdminStatusBadge>
         </div>
       </div>
-      <div className="text-xs text-bone/70 truncate mb-2 min-h-[1em]">
-        {session.intent ?? <span className="italic text-bone/40">no intent</span>}
+      <div className="text-xs truncate mb-2 min-h-[1em]" style={{ color: 'var(--admin-text-muted)' }}>
+        {session.intent ?? <span className="italic">no intent</span>}
       </div>
       <div className="grid grid-cols-3 gap-2 mb-2">
         {TIERS.map((tier) => {
           const run = session.runs.find((r) => r.tier === tier);
           const url = run ? tierUrls[run.id] : null;
           return (
-            <div key={tier} className="aspect-[3/4] rounded overflow-hidden bg-void/60 flex items-center justify-center">
+            <div key={tier} className="aspect-[3/4] rounded overflow-hidden flex items-center justify-center" style={{ background: 'var(--admin-canvas)' }}>
               {run && url ? (
                 <div
                   className="w-full h-full bg-cover bg-center bg-no-repeat"
                   style={{ backgroundImage: `url("${url}")` }}
                 />
               ) : run ? (
-                <div className="text-[9px] text-bone/40 text-center px-1">
+                <div className="text-[9px] text-center px-1" style={{ color: 'var(--admin-text-muted)' }}>
                   {run.status === 'image_expired' ? 'expired' : run.tier}
                 </div>
               ) : (
-                <div className="text-[9px] text-bone/30">—</div>
+                <div className="text-[9px]" style={{ color: 'var(--admin-text-muted)' }}>—</div>
               )}
             </div>
           );
         })}
       </div>
-      <div className="flex justify-between text-[10px] text-bone/50">
+      <div className="flex justify-between text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
         <span>{session.runs.length}/3 tiers</span>
         <span>{new Date(session.created_at).toLocaleDateString()}</span>
       </div>
@@ -765,12 +829,11 @@ function SessionCard({ session, onOpen }: { session: SessionSummary; onOpen: () 
   );
 }
 
-function statusBg(s: SessionSummary['status']): string {
-  return s === 'active' ? 'rgba(155,182,179,0.2)' : s === 'complete' ? 'rgba(20,120,60,0.2)' : 'rgba(220,38,38,0.15)';
-}
-function statusColor(s: SessionSummary['status']): string {
-  return s === 'active' ? '#d6f2ec' : s === 'complete' ? '#c9f9d9' : '#f9c9c9';
-}
+const SESSION_STATUS_TONE: Record<SessionSummary['status'], BadgeTone> = {
+  active: 'neutral',
+  complete: 'success',
+  cancelled: 'danger',
+};
 
 // ---- Session panel ----------------------------------------------------
 
@@ -812,21 +875,15 @@ function SessionPanel(props: {
 
   const actions = session.status === 'active' ? (
     <>
-      <button
-        onClick={onCancel}
-        className="px-3 py-1.5 rounded text-xs font-fantasy border border-bone/20 text-bone/70 hover:text-bone"
-      >
+      <AdminButton variant="secondary" size="sm" onClick={onCancel}>
         Cancel batch
-      </button>
-      <button
-        onClick={onMarkComplete}
-        className="px-3 py-1.5 rounded text-xs font-fantasy font-bold bg-gold/80 text-void"
-      >
+      </AdminButton>
+      <AdminButton variant="primary" size="sm" onClick={onMarkComplete}>
         Mark complete
-      </button>
+      </AdminButton>
     </>
   ) : (
-    <div className="text-xs text-bone/60 italic">Archived ({session.status})</div>
+    <div className="text-xs italic" style={{ color: 'var(--admin-text-muted)' }}>Archived ({session.status})</div>
   );
 
   return (
@@ -838,7 +895,7 @@ function SessionPanel(props: {
       actions={actions}
     >
       <div className="space-y-4">
-        <div className="text-[10px] uppercase tracking-wider text-bone/60">
+        <div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--admin-text-muted)' }}>
           {session.runs.length}/3 tiers · created {new Date(session.created_at).toLocaleString()}
         </div>
 
@@ -846,7 +903,7 @@ function SessionPanel(props: {
           const run = session.runs.find((r) => r.tier === tier);
           if (!run) {
             return (
-              <div key={tier} className="rounded border border-dashed border-bone/20 p-4 text-center text-xs text-bone/50">
+              <div key={tier} className="rounded p-4 text-center text-xs" style={{ border: '1px dashed var(--admin-border)', color: 'var(--admin-text-muted)' }}>
                 {tier} — not run yet
               </div>
             );
@@ -855,7 +912,7 @@ function SessionPanel(props: {
           return (
             <div key={run.id} className="space-y-2">
               <div className="flex items-baseline justify-between">
-                <span className="font-fantasy text-sm text-bone">{tier}</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>{tier}</span>
                 <StatusBadgeRaw status={run.status} />
               </div>
               {card ? (
@@ -863,23 +920,13 @@ function SessionPanel(props: {
                   <CardRenderer size="thumbnail" card={card} />
                 </div>
               ) : (
-                <div className="rounded border border-bone/15 p-4 text-center text-xs text-bone/50">
+                <div className="rounded p-4 text-center text-xs" style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-muted)' }}>
                   {run.status === 'image_expired' ? 'Image expired (retention policy)' : 'Not enough data to render'}
                 </div>
               )}
-              <details className="text-[11px]">
-                <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">Portrait prompt</summary>
-                <pre className="whitespace-pre-wrap bg-black/40 p-2 rounded text-bone/80 max-h-40 overflow-y-auto mt-1">
-                  {run.claude_response?.portraitPrompt ?? '(missing)'}
-                </pre>
-              </details>
-              <details className="text-[11px]">
-                <summary className="cursor-pointer text-[10px] uppercase tracking-wider text-bone/60">Negative</summary>
-                <pre className="whitespace-pre-wrap bg-black/40 p-2 rounded text-bone/80 max-h-32 overflow-y-auto mt-1">
-                  {run.claude_response?.negativePrompt ?? '(missing)'}
-                </pre>
-              </details>
-              <ProposeFromTier archetype={session.archetype} tier={tier} runId={run.id} />
+              <ProvenanceDetails summary="Portrait prompt" body={run.claude_response?.portraitPrompt ?? '(missing)'} maxH="10rem" />
+              <ProvenanceDetails summary="Negative" body={run.claude_response?.negativePrompt ?? '(missing)'} maxH="8rem" />
+              <SendToWorkshop archetype={session.archetype} tier={tier} run={run} />
             </div>
           );
         })}
@@ -888,35 +935,45 @@ function SessionPanel(props: {
   );
 }
 
-function ProposeFromTier({ archetype, tier }: { archetype: ArchetypeName; tier: Rank; runId: string }) {
-  // The old inline form (prompt_change_proposals + evidence_run_ids +
-  // Raheem-only global scope + state machine) was retired 2026-07-20 in
-  // favor of the Archetype Workshop's layered proposal model. This link
-  // deep-links into the workshop with the archetype pre-selected.
+function SendToWorkshop({ archetype, tier, run }: { archetype: ArchetypeName; tier: Rank; run: RunSummary }) {
+  const navigate = useNavigate();
+  // Weld the Lab → Workshop loop: stash THIS test (archetype, tier, generated
+  // card + prompts, runId) and open the Workshop pre-loaded with it as the
+  // critique subject. The runId rides along so a future regen-verify can
+  // re-run this exact generation with the shipped fix.
+  const send = () => {
+    stashLabHandoff({
+      source: 'prompt-lab',
+      runId: run.id,
+      archetype,
+      tier,
+      cardName: run.claude_response?.cardName,
+      nameAndTitle: run.claude_response?.nameAndTitle,
+      lore: run.claude_response?.lore,
+      portraitPrompt: run.claude_response?.portraitPrompt,
+      negativePrompt: run.claude_response?.negativePrompt,
+    });
+    navigate(`/admin/workshop?archetype=${encodeURIComponent(archetype)}&from=lab`);
+  };
   return (
-    <div className="rounded border border-bone/15 bg-void/30 mt-2">
-      <Link
-        to={`/admin/workshop?archetype=${encodeURIComponent(archetype)}`}
-        className="block px-3 py-2 text-[10px] uppercase tracking-wider text-bone/70 hover:text-bone text-center"
-      >
-        File a change in Archetype Workshop → {archetype} / {tier}
-      </Link>
+    <div className="mt-2">
+      <AdminButton variant="secondary" size="sm" icon={<Hammer size={14} />} onClick={send} className="w-full">
+        Send this {tier} test to Workshop
+      </AdminButton>
     </div>
   );
 }
 
+const RUN_STATUS_BADGE: Record<RunSummary['status'], { label: string; tone: BadgeTone }> = {
+  running: { label: 'running', tone: 'warning' },
+  success: { label: 'done', tone: 'success' },
+  error: { label: 'error', tone: 'danger' },
+  image_expired: { label: 'expired', tone: 'neutral' },
+};
+
 function StatusBadgeRaw({ status }: { status: RunSummary['status'] }) {
-  const cfg = {
-    running: { label: 'running', bg: 'rgba(184,134,11,0.2)', color: '#f4d78a' },
-    success: { label: 'done', bg: 'rgba(155,182,179,0.25)', color: '#c9f9d9' },
-    error: { label: 'error', bg: 'rgba(220,38,38,0.2)', color: '#f9c9c9' },
-    image_expired: { label: 'expired', bg: 'rgba(155,182,179,0.15)', color: '#d6f2ec' },
-  }[status];
-  return (
-    <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: cfg.bg, color: cfg.color }}>
-      {cfg.label}
-    </span>
-  );
+  const cfg = RUN_STATUS_BADGE[status];
+  return <AdminStatusBadge tone={cfg.tone} className="uppercase tracking-wider">{cfg.label}</AdminStatusBadge>;
 }
 
 // ---- Judgment (unchanged behavior) ------------------------------------
@@ -934,20 +991,21 @@ interface JudgmentInput {
 function JudgmentTargets({ runs, onSaved }: { runs: Array<{ tier: Rank; result: TierResult }>; onSaved: () => void }) {
   const [selectedRunId, setSelectedRunId] = useState<string>(runs[runs.length - 1].result.runId);
   return (
-    <section className="rounded-lg border border-bone/15 bg-void/40 p-4 space-y-3">
+    <AdminCard className="space-y-3">
       <div className="flex items-baseline gap-3">
-        <h2 className="font-fantasy text-sm uppercase tracking-wider text-bone/80">Judgment</h2>
-        <span className="text-xs text-bone/60">Target tier:</span>
+        <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text)' }}>Judgment</h2>
+        <span className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>Target tier:</span>
         <select
           value={selectedRunId}
           onChange={(e) => setSelectedRunId(e.target.value)}
-          className="px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-xs"
+          className="px-2 py-1 text-xs"
+          style={CONTROL_STYLE}
         >
           {runs.map((r) => <option key={r.result.runId} value={r.result.runId}>{r.tier}</option>)}
         </select>
       </div>
       <JudgmentForm key={selectedRunId} runId={selectedRunId} onSaved={onSaved} />
-    </section>
+    </AdminCard>
   );
 }
 
@@ -987,7 +1045,7 @@ function JudgmentForm({ runId, onSaved }: { runId: string; onSaved: () => void }
     }
   };
 
-  if (saved) return <div className="text-xs" style={{ color: '#c9f9d9' }}>Judgment saved.</div>;
+  if (saved) return <div className="text-xs" style={{ color: 'var(--admin-success)' }}>Judgment saved.</div>;
 
   return (
     <div className="space-y-3">
@@ -999,32 +1057,30 @@ function JudgmentForm({ runId, onSaved }: { runId: string; onSaved: () => void }
         <RatingField label="Anatomy / artifacts" value={j.anatomy_artifacts}   onChange={(v) => setJ({ ...j, anatomy_artifacts: v })} />
       </div>
       <label className="block">
-        <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">Disposition</span>
+        <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>Disposition</span>
         <select
           value={j.disposition}
           onChange={(e) => setJ({ ...j, disposition: e.target.value as Disposition })}
-          className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm"
+          className={CONTROL_CLASS}
+          style={CONTROL_STYLE}
         >
           {DISPOSITIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
         </select>
       </label>
       <label className="block">
-        <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">Notes</span>
+        <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>Notes</span>
         <textarea
           value={j.notes}
           onChange={(e) => setJ({ ...j, notes: e.target.value })}
           rows={3}
-          className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm"
+          className="w-full px-2 py-1.5 text-sm resize-y"
+          style={CONTROL_STYLE}
         />
       </label>
-      {error && <div className="text-xs" style={{ color: '#f9c9c9' }}>{error}</div>}
-      <button
-        onClick={submit}
-        disabled={busy}
-        className="px-4 py-2 rounded font-fantasy font-bold text-sm bg-gold/80 text-void disabled:opacity-50"
-      >
+      {error && <div className="text-xs" style={{ color: 'var(--admin-danger)' }}>{error}</div>}
+      <AdminButton variant="primary" onClick={submit} disabled={busy}>
         {busy ? 'Saving…' : 'Submit judgment'}
-      </button>
+      </AdminButton>
     </div>
   );
 }
@@ -1032,20 +1088,26 @@ function JudgmentForm({ runId, onSaved }: { runId: string; onSaved: () => void }
 function RatingField({ label, value, onChange }: { label: string; value: number | undefined; onChange: (v: number | undefined) => void }) {
   return (
     <label className="block">
-      <span className="block text-[10px] uppercase tracking-wider text-bone/60 mb-1">{label}</span>
+      <span className={FIELD_LABEL_CLASS} style={{ color: 'var(--admin-text-muted)' }}>{label}</span>
       <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onChange(value === n ? undefined : n)}
-            className={`w-6 h-6 rounded text-[10px] font-bold border ${
-              value === n ? 'bg-gold/80 text-void border-gold' : 'bg-void/60 text-bone/70 border-bone/20'
-            }`}
-          >
-            {n}
-          </button>
-        ))}
+        {[1, 2, 3, 4, 5].map((n) => {
+          const active = value === n;
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(active ? undefined : n)}
+              className="w-6 h-6 rounded text-[10px] font-bold"
+              style={{
+                background: active ? 'var(--admin-accent)' : 'var(--admin-surface-strong)',
+                color: active ? '#fff' : 'var(--admin-text-muted)',
+                border: `1px solid ${active ? 'var(--admin-accent)' : 'var(--admin-border)'}`,
+              }}
+            >
+              {n}
+            </button>
+          );
+        })}
       </div>
     </label>
   );

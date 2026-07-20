@@ -66,6 +66,13 @@ export interface ArchetypeProposalPayload {
   referenceImageUrl?: string;
   layerSnapshot: LayerSnapshot;
   cardLineage?: CardLineageRef;
+  /**
+   * Set when the proposal was opened from a Prompt Lab test via "Send to
+   * Workshop". The runId lets the future regen-verify step re-run that exact
+   * Lab generation with the shipped fix and attach before/after — closing
+   * the Lab → Workshop → fix → verify loop.
+   */
+  labRunId?: string;
 }
 
 export interface ArchetypeProposal {

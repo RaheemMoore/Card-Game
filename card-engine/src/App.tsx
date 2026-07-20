@@ -18,7 +18,7 @@ import { CodexAbility } from './pages/CodexAbility';
 import { DevAbilities } from './pages/DevAbilities';
 import { DevSeedBattle } from './pages/DevSeedBattle';
 import { M55Harness } from './pages/M55Harness';
-import { NavBar } from './components/NavBar';
+import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
 
 // Wallet + card-store initialization now happens inside PersistenceGate,
@@ -30,44 +30,37 @@ export default function App() {
   return (
     <PersistenceGate>
       <BrowserRouter>
-        <div className="min-h-dvh flex flex-col text-bone relative">
-          {/* Fantasy background */}
-          <div
-            className="fixed inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('/assets/backgrounds/fantasy-landscape.jpg')" }}
-          />
-          <div className="fixed inset-0 bg-void/70" />
+        <Routes>
+          {/* Admin: full-viewport professional operations surface. Mounts
+              outside PlayerShell — no fantasy background, no player NavBar,
+              no content offset. AdminShell owns the guard + its own chrome. */}
+          <Route path="/admin" element={<AdminShell />}>
+            <Route index element={<AdminOverview />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="cards" element={<AdminCards />} />
+            <Route path="costs" element={<AdminCosts />} />
+            <Route path="abilities" element={<AdminAbilities />} />
+            <Route path="diagnostics" element={<AdminDiagnostics />} />
+            <Route path="prompt-lab" element={<AdminPromptLab />} />
+            <Route path="workshop" element={<ArchetypeWorkshop />} />
+          </Route>
 
-          <div className="relative z-10 min-h-dvh flex flex-col">
-            <NavBar />
-            <main className="flex-1 flex flex-col lg:pl-56 pb-20 lg:pb-0">
-              <Routes>
-                <Route path="/" element={<CardForge />} />
-                <Route path="/forge" element={<CardForge />} />
-                <Route path="/collection" element={<Collection />} />
-                <Route path="/card/:cardId" element={<CardDetail />} />
-                <Route path="/codex" element={<Codex />} />
-                <Route path="/codex/family/:familyId" element={<CodexFamily />} />
-                <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
-                <Route path="/battle" element={<Battle />} />
-                <Route path="/admin" element={<AdminShell />}>
-                  <Route index element={<AdminOverview />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="cards" element={<AdminCards />} />
-                  <Route path="costs" element={<AdminCosts />} />
-                  <Route path="abilities" element={<AdminAbilities />} />
-                  <Route path="diagnostics" element={<AdminDiagnostics />} />
-                  <Route path="prompt-lab" element={<AdminPromptLab />} />
-                  <Route path="workshop" element={<ArchetypeWorkshop />} />
-                </Route>
-                <Route path="/dev/abilities" element={<DevAbilities />} />
-                <Route path="/dev/seed-battle" element={<DevSeedBattle />} />
-                <Route path="/m55harness" element={<M55Harness />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
-          </div>
-        </div>
+          {/* Player: fantasy-themed shell (background + NavBar + offset). */}
+          <Route element={<PlayerShell />}>
+            <Route path="/" element={<CardForge />} />
+            <Route path="/forge" element={<CardForge />} />
+            <Route path="/collection" element={<Collection />} />
+            <Route path="/card/:cardId" element={<CardDetail />} />
+            <Route path="/codex" element={<Codex />} />
+            <Route path="/codex/family/:familyId" element={<CodexFamily />} />
+            <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
+            <Route path="/battle" element={<Battle />} />
+            <Route path="/dev/abilities" element={<DevAbilities />} />
+            <Route path="/dev/seed-battle" element={<DevSeedBattle />} />
+            <Route path="/m55harness" element={<M55Harness />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
       </BrowserRouter>
     </PersistenceGate>
   );

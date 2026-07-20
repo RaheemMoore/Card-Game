@@ -6,6 +6,7 @@ import {
   listArchetypeProposals,
   getArchetypeProposalPayload,
 } from '../services/persistence/adminService';
+import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
@@ -33,24 +34,24 @@ import {
   getSpecializationSuffix,
   deriveStatRanks,
 } from '../data/powerSystem';
+import {
+  AdminPage,
+  AdminSection,
+  AdminCard,
+  AdminButton,
+  AdminStatusBadge,
+  AdminAlert,
+  AdminSelect,
+  AdminTextArea,
+} from '../components/admin/ui';
 
 const RANK_ORDER: Rank[] = ['Foundation', 'Forged', 'Ascendant'];
 const STAT_ORDER: StatName[] = ['Atk', 'Def', 'Mana', 'Tech'];
 
-// Workbench palette — kept in-file so it stays scoped to this page.
-const WB = {
-  bg: '#0d0b12',
-  panel: '#161320',
-  panelHi: '#1d1929',
-  border: 'rgba(200, 190, 220, 0.14)',
-  borderHi: 'rgba(200, 190, 220, 0.28)',
-  text: '#eae4f0',
-  textDim: 'rgba(234, 228, 240, 0.65)',
-  textMuted: 'rgba(234, 228, 240, 0.42)',
-  accent: '#b48eff',
-};
-
 const GITHUB_COMMIT_BASE = 'https://github.com/RaheemMoore/Card-Game/commit/';
+
+// Placeholder gradient for cards/tiers with no portrait yet.
+const PORTRAIT_PLACEHOLDER = 'linear-gradient(135deg, var(--admin-surface-strong), var(--admin-canvas))';
 
 // Plain-text relative age ("3d ago") — no color-only urgency.
 function relativeAge(iso: string): string {
@@ -67,11 +68,6 @@ function relativeAge(iso: string): string {
   return `${Math.floor(d / 365)}y ago`;
 }
 
-// Guard + admin sub-nav are provided by AdminShell (parent Outlet).
-// This page just renders the workshop surface — opts out of the shell's
-// bg-void/80 backdrop by painting its own fully opaque workbench color
-// so the fantasy background never bleeds through.
-
 export function ArchetypeWorkshop() {
   const [searchParams] = useSearchParams();
   const initialArchetype = ((): ArchetypeName => {
@@ -81,7 +77,12 @@ export function ArchetypeWorkshop() {
     }
     return 'Seraph';
   })();
-  const [archetype, setArchetype] = useState<ArchetypeName>(initialArchetype);
+  // Prompt Lab handoff (from "Send to Workshop"). Read once; if present it
+  // pre-selects the archetype and becomes the critique subject.
+  const [labHandoff] = useState<LabHandoff | null>(() =>
+    searchParams.get('from') === 'lab' ? readLabHandoff() : null,
+  );
+  const [archetype, setArchetype] = useState<ArchetypeName>(labHandoff?.archetype ?? initialArchetype);
   const [cards, setCards] = useState<Card[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -142,32 +143,37 @@ export function ArchetypeWorkshop() {
   }, [cards, selectedCardId]);
 
   return (
-    <div
-      style={{ background: WB.bg, color: WB.text }}
-      className="-mx-4 -my-6 sm:-mx-6 min-h-[calc(100dvh-8rem)]"
+    <AdminPage
+      title="Archetype Workshop"
+      description="File lore/art change proposals against a specific archetype and card, mapped to the layer where change actually happens (A Canon / B Rank & Stat Visuals / C Story Pillars & Elements / D Meta-Prompt & Escalation)."
+      actions={
+        <label className="flex items-center gap-2 text-xs uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+          Archetype
+          <AdminSelect
+            aria-label="Archetype"
+            value={archetype}
+            onChange={(e) => {
+              setArchetype(e.target.value as ArchetypeName);
+              setSelectedCardId(null);
+            }}
+            className="min-w-[10rem]"
+          >
+            {ARCHETYPE_NAMES.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </AdminSelect>
+        </label>
+      }
     >
-      <WorkshopHeader
-        archetype={archetype}
-        onArchetypeChange={(a) => {
-          setArchetype(a);
-          setSelectedCardId(null);
-        }}
-      />
-
       {loadError && (
-        <div
-          className="mx-4 mt-3 rounded p-3 text-sm"
-          style={{
-            background: 'rgba(176, 106, 112, 0.15)',
-            color: '#f9d0d4',
-            border: '1px solid rgba(176, 106, 112, 0.4)',
-          }}
-        >
+        <AdminAlert tone="danger" className="mb-4">
           {loadError}
-        </div>
+        </AdminAlert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4 p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4">
         {/* LEFT column: card picker + tiers + layer state */}
         <div className="space-y-4">
           <CardPickerRail
@@ -184,61 +190,16 @@ export function ArchetypeWorkshop() {
           <TriageForm
             archetype={archetype}
             selectedCard={selectedCard}
+            labHandoff={selectedCardId ? null : labHandoff}
             onSubmitted={() => setRefreshTick((t) => t + 1)}
           />
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="mt-4">
         <ProposalsList proposals={proposals} archetype={archetype} />
       </div>
-    </div>
-  );
-}
-
-// ─── Header ──────────────────────────────────────────────────────────
-
-function WorkshopHeader({
-  archetype,
-  onArchetypeChange,
-}: {
-  archetype: ArchetypeName;
-  onArchetypeChange: (a: ArchetypeName) => void;
-}) {
-  return (
-    <header
-      className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
-      style={{ background: WB.panel, borderBottom: `1px solid ${WB.border}` }}
-    >
-      <h1
-        className="font-fantasy text-lg font-bold flex-1"
-        style={{ color: WB.text }}
-      >
-        Archetype Workshop
-      </h1>
-      <label
-        className="flex items-center gap-2 text-xs uppercase tracking-widest"
-        style={{ color: WB.textDim }}
-      >
-        Archetype
-        <select
-          value={archetype}
-          onChange={(e) => onArchetypeChange(e.target.value as ArchetypeName)}
-          className="rounded px-2 py-1 text-sm font-fantasy"
-          style={{
-            background: WB.bg,
-            color: WB.text,
-            border: `1px solid ${WB.borderHi}`,
-          }}
-        >
-          {ARCHETYPE_NAMES.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
-      </label>
-    </header>
+    </AdminPage>
   );
 }
 
@@ -254,27 +215,24 @@ function CardPickerRail({
   onSelect: (id: string) => void;
 }) {
   return (
-    <section
-      className="rounded-lg p-3"
-      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
-    >
+    <AdminCard>
       <div className="flex items-baseline justify-between mb-2">
-        <h2 className="text-xs uppercase tracking-widest" style={{ color: WB.textDim }}>
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
           1. Pick a character
         </h2>
-        <span className="text-[10px]" style={{ color: WB.textMuted }}>
+        <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
           {cards === null ? 'loading…' : `${cards.length} cards`}
         </span>
       </div>
       {cards === null && (
-        <div className="text-sm" style={{ color: WB.textMuted }}>
+        <div className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
           Loading cards for this archetype…
         </div>
       )}
       {cards && cards.length === 0 && (
-        <div className="text-sm" style={{ color: WB.textMuted }}>
+        <div className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
           No cards of this archetype exist yet. Forge one from{' '}
-          <Link to="/forge" className="underline">
+          <Link to="/forge" className="underline" style={{ color: 'var(--admin-accent)' }}>
             /forge
           </Link>{' '}
           to have something to critique.
@@ -292,10 +250,9 @@ function CardPickerRail({
                 className="text-left rounded overflow-hidden transition-all"
                 style={{
                   border: active
-                    ? `2px solid ${WB.accent}`
-                    : `1px solid ${WB.border}`,
-                  background: active ? WB.panelHi : WB.bg,
-                  boxShadow: active ? `0 0 0 2px rgba(180, 142, 255, 0.2)` : 'none',
+                    ? '2px solid var(--admin-accent)'
+                    : '1px solid var(--admin-border)',
+                  background: active ? 'var(--admin-active-wash)' : 'var(--admin-canvas)',
                 }}
               >
                 <div
@@ -303,18 +260,18 @@ function CardPickerRail({
                   style={{
                     backgroundImage: c.portraitAsset
                       ? `url(${c.portraitAsset})`
-                      : 'linear-gradient(135deg, #2a2338, #1a1524)',
+                      : PORTRAIT_PLACEHOLDER,
                   }}
                 />
                 <div className="px-1.5 py-1">
                   <div
-                    className="text-[10px] truncate font-fantasy"
-                    style={{ color: WB.text }}
+                    className="text-[10px] truncate font-medium"
+                    style={{ color: 'var(--admin-text)' }}
                     title={c.cardName}
                   >
                     {c.cardName}
                   </div>
-                  <div className="text-[9px] uppercase" style={{ color: WB.textMuted }}>
+                  <div className="text-[9px] uppercase" style={{ color: 'var(--admin-text-muted)' }}>
                     {rank}
                   </div>
                 </div>
@@ -323,7 +280,7 @@ function CardPickerRail({
           })}
         </div>
       )}
-    </section>
+    </AdminCard>
   );
 }
 
@@ -367,19 +324,14 @@ function extractTierSnapshots(card: Card): Partial<Record<Rank, TierSnap>> {
 function TierSnapshotPanel({ card }: { card: Card | null }) {
   if (!card) {
     return (
-      <section
-        className="rounded-lg p-4 text-sm"
-        style={{
-          background: WB.panel,
-          border: `1px solid ${WB.border}`,
-          color: WB.textMuted,
-        }}
-      >
-        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: WB.textDim }}>
+      <AdminCard>
+        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--admin-text-muted)' }}>
           2. Character across tiers
         </div>
-        Select a card above to see all of its rank snapshots.
-      </section>
+        <div className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
+          Select a card above to see all of its rank snapshots.
+        </div>
+      </AdminCard>
     );
   }
 
@@ -387,15 +339,12 @@ function TierSnapshotPanel({ card }: { card: Card | null }) {
   const present = RANK_ORDER.filter((r) => tiers[r]);
 
   return (
-    <section
-      className="rounded-lg p-3"
-      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
-    >
+    <AdminCard>
       <div className="flex items-baseline justify-between mb-2">
-        <h2 className="text-xs uppercase tracking-widest" style={{ color: WB.textDim }}>
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
           2. Character across tiers
         </h2>
-        <span className="text-[10px]" style={{ color: WB.textMuted }}>
+        <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
           {present.length} of 3 tiers
         </span>
       </div>
@@ -407,8 +356,8 @@ function TierSnapshotPanel({ card }: { card: Card | null }) {
               key={rank}
               className="rounded overflow-hidden"
               style={{
-                background: WB.bg,
-                border: `1px solid ${snap ? WB.borderHi : WB.border}`,
+                background: 'var(--admin-canvas)',
+                border: '1px solid var(--admin-border)',
                 opacity: snap ? 1 : 0.5,
               }}
             >
@@ -417,32 +366,32 @@ function TierSnapshotPanel({ card }: { card: Card | null }) {
                 style={{
                   backgroundImage: snap?.portraitUrl
                     ? `url(${snap.portraitUrl})`
-                    : 'linear-gradient(135deg, #2a2338, #1a1524)',
+                    : PORTRAIT_PLACEHOLDER,
                 }}
               />
               <div className="p-2 space-y-1">
                 <div
                   className="text-[10px] uppercase tracking-widest"
-                  style={{ color: WB.accent }}
+                  style={{ color: 'var(--admin-accent)' }}
                 >
                   {rank}
                 </div>
                 {snap ? (
                   <>
-                    <div className="text-xs font-fantasy" style={{ color: WB.text }}>
+                    <div className="text-xs font-medium" style={{ color: 'var(--admin-text)' }}>
                       {snap.nameAndTitle}
                     </div>
-                    <div className="text-[11px] leading-snug" style={{ color: WB.textDim }}>
+                    <div className="text-[11px] leading-snug" style={{ color: 'var(--admin-text-muted)' }}>
                       {snap.lore}
                     </div>
                     {snap.source === 'current' && (
-                      <div className="text-[9px] italic" style={{ color: WB.textMuted }}>
+                      <div className="text-[9px] italic" style={{ color: 'var(--admin-text-muted)' }}>
                         (current rank — no evolutionHistory entry)
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="text-[11px] italic" style={{ color: WB.textMuted }}>
+                  <div className="text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
                     Not reached yet.
                   </div>
                 )}
@@ -451,7 +400,7 @@ function TierSnapshotPanel({ card }: { card: Card | null }) {
           );
         })}
       </div>
-    </section>
+    </AdminCard>
   );
 }
 
@@ -482,87 +431,86 @@ function LayerStatePanels({
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   const metaBlock = getMetaPromptBlock(archetype);
 
+  const dashBorder = '1px dashed var(--admin-border)';
+
   return (
-    <section
-      className="rounded-lg p-3"
-      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
-    >
-      <h2 className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
+    <AdminCard>
+      <h2 className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
         Current layer state for {archetype}
       </h2>
       <div className="space-y-2">
         <LayerPanel layer="A">
-          <div className="space-y-2 text-xs" style={{ color: WB.textDim }}>
+          <div className="space-y-2 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
             <div>
-              <span style={{ color: WB.textMuted }}>Identity through:</span>{' '}
-              {bible.identityThrough}
+              <span style={{ color: 'var(--admin-text-muted)' }}>Identity through:</span>{' '}
+              <span style={{ color: 'var(--admin-text)' }}>{bible.identityThrough}</span>
             </div>
             <div>
-              <span style={{ color: WB.textMuted }}>Core fantasy:</span>{' '}
-              {bible.coreFantasy}
+              <span style={{ color: 'var(--admin-text-muted)' }}>Core fantasy:</span>{' '}
+              <span style={{ color: 'var(--admin-text)' }}>{bible.coreFantasy}</span>
             </div>
             <div>
-              <span style={{ color: WB.textMuted }}>Selection tagline:</span>{' '}
-              {bible.selectionScreen.tagline}
+              <span style={{ color: 'var(--admin-text-muted)' }}>Selection tagline:</span>{' '}
+              <span style={{ color: 'var(--admin-text)' }}>{bible.selectionScreen.tagline}</span>
             </div>
-            <div className="pt-1" style={{ borderTop: `1px dashed ${WB.border}` }}>
-              <span style={{ color: WB.textMuted }}>Visual rank progression (legacy summary):</span>
+            <div className="pt-1" style={{ borderTop: dashBorder }}>
+              <span style={{ color: 'var(--admin-text-muted)' }}>Visual rank progression (legacy summary):</span>
               {RANK_ORDER.map((r) => (
                 <div key={r} className="pl-2">
-                  <span style={{ color: WB.textMuted }}>{r}:</span>{' '}
-                  {arch.rankProgression[r]}
+                  <span style={{ color: 'var(--admin-text-muted)' }}>{r}:</span>{' '}
+                  <span style={{ color: 'var(--admin-text)' }}>{arch.rankProgression[r]}</span>
                 </div>
               ))}
             </div>
-            <div className="italic pt-1" style={{ color: WB.textMuted }}>
+            <div className="italic pt-1" style={{ color: 'var(--admin-text-muted)' }}>
               Full canon: [Bible chapter §1–§14 for {archetype}] in data/archetypeBible/{archetype.toLowerCase().replace(' ', '')}.ts
             </div>
           </div>
         </LayerPanel>
         <LayerPanel layer="B">
-          <div className="text-xs" style={{ color: WB.textDim }}>
+          <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
             {card ? (
               <>
                 <div>
-                  <span style={{ color: WB.textMuted }}>Dominant stat:</span>{' '}
-                  {dominant ?? 'tied — no dominant'}
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Dominant stat:</span>{' '}
+                  <span style={{ color: 'var(--admin-text)' }}>{dominant ?? 'tied — no dominant'}</span>
                 </div>
                 {statVisual && (
                   <div className="mt-1">
-                    <span style={{ color: WB.textMuted }}>Visual motif ({dominantRank}):</span>{' '}
-                    {statVisual}
+                    <span style={{ color: 'var(--admin-text-muted)' }}>Visual motif ({dominantRank}):</span>{' '}
+                    <span style={{ color: 'var(--admin-text)' }}>{statVisual}</span>
                   </div>
                 )}
                 {specialization && (
                   <div className="mt-1">
-                    <span style={{ color: WB.textMuted }}>Specialization suffix:</span>{' '}
-                    {specialization}
+                    <span style={{ color: 'var(--admin-text-muted)' }}>Specialization suffix:</span>{' '}
+                    <span style={{ color: 'var(--admin-text)' }}>{specialization}</span>
                   </div>
                 )}
                 {!statVisual && !specialization && (
-                  <div className="italic" style={{ color: WB.textMuted }}>
+                  <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
                     No stat-specific visuals apply — this card has no dominant stat.
                   </div>
                 )}
               </>
             ) : (
-              <div className="italic" style={{ color: WB.textMuted }}>
+              <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
                 Select a card to see its stat-driven visuals.
               </div>
             )}
           </div>
         </LayerPanel>
         <LayerPanel layer="C">
-          <div className="text-xs space-y-2" style={{ color: WB.textDim }}>
+          <div className="text-xs space-y-2" style={{ color: 'var(--admin-text-muted)' }}>
             <div>
-              <span style={{ color: WB.textMuted }}>Story Pillar questions ({pillarQuestions.length}):</span>
-              <ul className="list-disc pl-4 mt-1 space-y-0.5">
+              <span style={{ color: 'var(--admin-text-muted)' }}>Story Pillar questions ({pillarQuestions.length}):</span>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5" style={{ color: 'var(--admin-text)' }}>
                 {pillarQuestions.slice(0, 6).map((q) => {
                   const opts = getOptionsForQuestion(archetype, q.id);
                   return (
                     <li key={q.id}>
                       {q.prompt}{' '}
-                      <span className="text-[10px]" style={{ color: WB.textMuted }}>
+                      <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
                         ({opts.length} seed options)
                       </span>
                     </li>
@@ -570,24 +518,24 @@ function LayerStatePanels({
                 })}
               </ul>
             </div>
-            <div className="pt-1" style={{ borderTop: `1px dashed ${WB.border}` }}>
-              <span style={{ color: WB.textMuted }}>Elements available ({elements.length} of 26):</span>
-              <div className="mt-1 space-y-0.5">
+            <div className="pt-1" style={{ borderTop: dashBorder }}>
+              <span style={{ color: 'var(--admin-text-muted)' }}>Elements available ({elements.length} of 26):</span>
+              <div className="mt-1 space-y-0.5" style={{ color: 'var(--admin-text)' }}>
                 <div>
-                  <span style={{ color: WB.textMuted }}>Naturally compatible:</span>{' '}
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Naturally compatible:</span>{' '}
                   {buckets.naturally_compatible.join(', ') || '—'}
                 </div>
                 <div>
-                  <span style={{ color: WB.textMuted }}>Through reinterpretation:</span>{' '}
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Through reinterpretation:</span>{' '}
                   {buckets.compatible_through_reinterpretation.join(', ') || '—'}
                 </div>
                 <div>
-                  <span style={{ color: WB.textMuted }}>Rare (narrative-gated):</span>{' '}
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Rare (narrative-gated):</span>{' '}
                   {buckets.rare.join(', ') || '—'}
                 </div>
                 {buckets.not_available && buckets.not_available.length > 0 && (
                   <div>
-                    <span style={{ color: WB.textMuted }}>Not available:</span>{' '}
+                    <span style={{ color: 'var(--admin-text-muted)' }}>Not available:</span>{' '}
                     {buckets.not_available.join(', ')}
                   </div>
                 )}
@@ -596,11 +544,11 @@ function LayerStatePanels({
           </div>
         </LayerPanel>
         <LayerPanel layer="D">
-          <div className="text-xs whitespace-pre-wrap" style={{ color: WB.textDim }}>
+          <div className="text-xs whitespace-pre-wrap" style={{ color: 'var(--admin-text)' }}>
             {metaBlock ? (
               metaBlock
             ) : (
-              <span className="italic" style={{ color: WB.textMuted }}>
+              <span className="italic" style={{ color: 'var(--admin-text-muted)' }}>
                 No archetype-specific escalation block. This archetype relies on the
                 generic prompt template for Forged/Ascendant — which is why the art
                 often drifts. Adding a block here is the plan for step B.
@@ -609,7 +557,7 @@ function LayerStatePanels({
           </div>
         </LayerPanel>
       </div>
-    </section>
+    </AdminCard>
   );
 }
 
@@ -640,13 +588,13 @@ function LayerPanel({
         >
           {layer}
         </span>
-        <span className="font-fantasy font-bold text-sm" style={{ color: WB.text }}>
+        <span className="font-bold text-sm" style={{ color: 'var(--admin-text)' }}>
           {copy.name}
         </span>
-        <span className="text-[10px] italic" style={{ color: WB.textDim }}>
+        <span className="text-[10px] italic" style={{ color: 'var(--admin-text-muted)' }}>
           {copy.tagline}
         </span>
-        <span className="ml-auto text-xs" style={{ color: WB.textDim }}>
+        <span className="ml-auto text-xs" style={{ color: 'var(--admin-text-muted)' }}>
           {open ? '▾' : '▸'}
         </span>
       </button>
@@ -660,10 +608,12 @@ function LayerPanel({
 function TriageForm({
   archetype,
   selectedCard,
+  labHandoff,
   onSubmitted,
 }: {
   archetype: ArchetypeName;
   selectedCard: Card | null;
+  labHandoff: LabHandoff | null;
   onSubmitted: () => void;
 }) {
   const [failureType, setFailureType] = useState<ProposalFailureType>('lore_portrait_misaligned');
@@ -720,7 +670,21 @@ function TriageForm({
         metaPromptBlock: metaBlock ?? '(none — archetype has no escalation block)',
       };
       let cardLineage: CardLineageRef | undefined;
-      if (selectedCard) {
+      // Lab handoff wins as the subject when no real player card is picked:
+      // the critique is about the Prompt Lab test the director just generated.
+      if (!selectedCard && labHandoff) {
+        cardLineage = {
+          cardId: `lab:${labHandoff.runId}`,
+          cardName: labHandoff.cardName ?? `Lab test (${labHandoff.tier})`,
+          archetype: labHandoff.archetype,
+          tiers: {
+            [labHandoff.tier]: {
+              nameAndTitle: labHandoff.nameAndTitle ?? '',
+              lore: labHandoff.lore ?? '',
+            },
+          } as CardLineageRef['tiers'],
+        };
+      } else if (selectedCard) {
         const tiers = extractTierSnapshots(selectedCard);
         // Store text-only tier metadata. Portrait URLs are omitted here
         // (per P1) and looked up on-demand from the cards table when a
@@ -754,6 +718,7 @@ function TriageForm({
         referenceImageUrl: referenceImageUrl.trim() || undefined,
         layerSnapshot: snapshot,
         cardLineage,
+        labRunId: !selectedCard && labHandoff ? labHandoff.runId : undefined,
       };
       await createArchetypeProposal({
         archetype,
@@ -762,6 +727,9 @@ function TriageForm({
         cardId: selectedCard?.cardId ?? null,
         payload,
       });
+      // The handoff is consumed — clear it so a later plain visit to the
+      // Workshop doesn't resurrect this test as the subject.
+      if (labHandoff) clearLabHandoff();
       setSuccess(
         `Proposal filed. Tell Claude "look at the latest ${archetype} proposal" in your next session.`,
       );
@@ -780,45 +748,52 @@ function TriageForm({
   }
 
   return (
-    <section
-      className="rounded-lg p-4 space-y-4"
-      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
-    >
+    <AdminCard className="space-y-4">
+      {labHandoff && !selectedCard && (
+        <AdminAlert tone="info">
+          Critiquing a Prompt Lab test — <strong>{labHandoff.archetype} · {labHandoff.tier}</strong>
+          {labHandoff.cardName ? ` · ${labHandoff.cardName}` : ''}. This proposal will reference the test run
+          so the fix can be regenerated against it. (Pick a card above to critique a real card instead.)
+        </AdminAlert>
+      )}
       <div>
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
           3. What's the failure?
         </div>
         <div className="space-y-1">
-          {FAILURE_TYPES.map((f) => (
-            <label
-              key={f.id}
-              className="flex items-start gap-2 p-2 rounded cursor-pointer"
-              style={{
-                background: failureType === f.id ? WB.panelHi : 'transparent',
-                border: `1px solid ${failureType === f.id ? WB.borderHi : 'transparent'}`,
-              }}
-            >
-              <input
-                type="radio"
-                checked={failureType === f.id}
-                onChange={() => setFailureType(f.id)}
-                className="mt-0.5"
-              />
-              <div>
-                <div className="text-sm font-fantasy" style={{ color: WB.text }}>
-                  {f.label}
+          {FAILURE_TYPES.map((f) => {
+            const active = failureType === f.id;
+            return (
+              <label
+                key={f.id}
+                className="flex items-start gap-2 p-2 rounded cursor-pointer"
+                style={{
+                  background: active ? 'var(--admin-active-wash)' : 'transparent',
+                  border: `1px solid ${active ? 'var(--admin-border)' : 'transparent'}`,
+                }}
+              >
+                <input
+                  type="radio"
+                  checked={active}
+                  onChange={() => setFailureType(f.id)}
+                  className="mt-0.5"
+                />
+                <div>
+                  <div className="text-sm font-medium" style={{ color: 'var(--admin-text)' }}>
+                    {f.label}
+                  </div>
+                  <div className="text-[11px] leading-snug" style={{ color: 'var(--admin-text-muted)' }}>
+                    {f.description}
+                  </div>
                 </div>
-                <div className="text-[11px] leading-snug" style={{ color: WB.textDim }}>
-                  {f.description}
-                </div>
-              </div>
-            </label>
-          ))}
+              </label>
+            );
+          })}
         </div>
       </div>
 
       <div>
-        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
           4. Which layer to change?
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -831,8 +806,8 @@ function TriageForm({
                 onClick={() => setLayer(id)}
                 className="text-left rounded p-2 transition-all"
                 style={{
-                  background: active ? copy.accentBg : WB.bg,
-                  border: `2px solid ${active ? copy.color : WB.border}`,
+                  background: active ? copy.accentBg : 'var(--admin-canvas)',
+                  border: `2px solid ${active ? copy.color : 'var(--admin-border)'}`,
                 }}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -842,32 +817,32 @@ function TriageForm({
                   >
                     {id}
                   </span>
-                  <span className="font-fantasy font-bold text-sm" style={{ color: WB.text }}>
+                  <span className="font-bold text-sm" style={{ color: 'var(--admin-text)' }}>
                     {copy.name}
                   </span>
                 </div>
-                <div className="text-[10px] italic mb-1" style={{ color: WB.textDim }}>
+                <div className="text-[10px] italic mb-1" style={{ color: 'var(--admin-text-muted)' }}>
                   {copy.tagline}
                 </div>
-                <div className="text-[10px] leading-snug" style={{ color: WB.textDim }}>
-                  <span style={{ color: WB.textMuted }}>Controls:</span> {copy.controls}
+                <div className="text-[10px] leading-snug" style={{ color: 'var(--admin-text-muted)' }}>
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Controls:</span> {copy.controls}
                 </div>
                 {active && (
                   <div
                     className="text-[10px] leading-snug mt-1 pt-1"
                     style={{
-                      color: WB.textDim,
+                      color: 'var(--admin-text-muted)',
                       borderTop: `1px dashed ${copy.accentBorder}`,
                     }}
                   >
                     <div>
-                      <span style={{ color: WB.textMuted }}>Affects:</span> {copy.affects}
+                      <span style={{ color: 'var(--admin-text-muted)' }}>Affects:</span> {copy.affects}
                     </div>
                     <div className="mt-1">
-                      <span style={{ color: WB.textMuted }}>Change when:</span> {copy.changeWhen}
+                      <span style={{ color: 'var(--admin-text-muted)' }}>Change when:</span> {copy.changeWhen}
                     </div>
                     <div className="mt-1 italic">{copy.example(archetype)}</div>
-                    <div className="mt-1" style={{ color: WB.textMuted }}>
+                    <div className="mt-1" style={{ color: 'var(--admin-text-muted)' }}>
                       Lives in: {copy.whereItLives}
                     </div>
                   </div>
@@ -879,117 +854,55 @@ function TriageForm({
       </div>
 
       <div className="space-y-3">
-        <FormField
+        <AdminTextArea
           label="5. Keep — the one thing that must survive"
           placeholder="e.g. The lycanthrope's identity token carrying across all three tiers."
           value={keep}
-          onChange={setKeep}
+          rows={2}
+          onChange={(e) => setKeep(e.target.value)}
         />
-        <FormField
+        <AdminTextArea
           label="6. Change — what you want different"
           placeholder="e.g. Add a Seraph-specific Forged/Ascendant block that scales wing count and halo intensity."
           value={change}
-          onChange={setChange}
+          rows={2}
+          onChange={(e) => setChange(e.target.value)}
         />
-        <FormField
+        <AdminTextArea
           label="7. Reject if — how we know we failed"
           placeholder="e.g. If the Ascendant Seraph still shows the same wing count as the Foundation."
           value={rejectIf}
-          onChange={setRejectIf}
+          rows={2}
+          onChange={(e) => setRejectIf(e.target.value)}
         />
-        <FormField
+        <AdminTextArea
           label="Notes (optional)"
           placeholder="Anything else Claude should know."
           value={notes}
-          onChange={setNotes}
-          optional
+          rows={2}
+          onChange={(e) => setNotes(e.target.value)}
         />
-        <FormField
+        <AdminTextArea
           label="Reference image URL (optional)"
           placeholder="https://…"
           value={referenceImageUrl}
-          onChange={setReferenceImageUrl}
-          optional
+          rows={2}
+          onChange={(e) => setReferenceImageUrl(e.target.value)}
         />
       </div>
 
-      {error && (
-        <div
-          className="text-xs rounded p-2"
-          style={{
-            background: 'rgba(176, 106, 112, 0.15)',
-            color: '#f9d0d4',
-            border: '1px solid rgba(176, 106, 112, 0.4)',
-          }}
-        >
-          {error}
-        </div>
-      )}
-      {success && (
-        <div
-          className="text-xs rounded p-2"
-          style={{
-            background: 'rgba(110, 163, 110, 0.15)',
-            color: '#c9f9d9',
-            border: '1px solid rgba(110, 163, 110, 0.4)',
-          }}
-        >
-          {success}
-        </div>
-      )}
+      {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+      {success && <AdminAlert tone="success">{success}</AdminAlert>}
 
-      <button
+      <AdminButton
+        variant="primary"
         onClick={submit}
         disabled={busy}
-        className="w-full py-2 rounded font-fantasy font-bold text-sm"
-        style={{
-          background: busy ? WB.panelHi : WB.accent,
-          color: '#111',
-          opacity: busy ? 0.6 : 1,
-        }}
+        className="w-full"
       >
         {busy ? 'Filing…' : 'File proposal'}
-      </button>
-    </section>
-  );
-}
-
-function FormField({
-  label,
-  placeholder,
-  value,
-  onChange,
-  optional,
-}: {
-  label: string;
-  placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
-  optional?: boolean;
-}) {
-  return (
-    <label className="block">
-      <div className="text-[11px] uppercase tracking-widest mb-1" style={{ color: WB.textDim }}>
-        {label}
-        {optional && (
-          <span className="ml-1 normal-case italic" style={{ color: WB.textMuted }}>
-            optional
-          </span>
-        )}
-      </div>
-      <textarea
-        rows={2}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded px-2 py-1.5 text-sm resize-y"
-        style={{
-          background: WB.bg,
-          color: WB.text,
-          border: `1px solid ${WB.borderHi}`,
-        }}
-      />
-    </label>
+      </AdminButton>
+    </AdminCard>
   );
 }
 
@@ -1038,101 +951,94 @@ function ProposalsList({
   }, [deepLinkId, proposals]);
 
   return (
-    <section
-      className="rounded-lg p-3"
-      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
+    <AdminSection
+      title={`Recent ${archetype} proposals`}
+      subtitle={proposals === null ? 'loading…' : `${proposals.length} filed`}
     >
-      <div className="flex items-baseline justify-between mb-2">
-        <h2 className="text-xs uppercase tracking-widest" style={{ color: WB.textDim }}>
-          Recent {archetype} proposals
-        </h2>
-        <span className="text-[10px]" style={{ color: WB.textMuted }}>
-          {proposals === null ? 'loading…' : `${proposals.length} filed`}
-        </span>
-      </div>
-      {proposals && proposals.length === 0 && (
-        <div className="text-sm italic" style={{ color: WB.textMuted }}>
-          No proposals filed for {archetype} yet.
-        </div>
-      )}
-      {proposals && proposals.length > 0 && (
-        <ul className="space-y-1">
-          {proposals.map((p) => {
-            const isOpen = expandedId === p.id;
-            const layer = ARCHETYPE_LAYERS[p.layer];
-            const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
-            return (
-              <li
-                key={p.id}
-                className="rounded"
-                style={{
-                  background: WB.bg,
-                  border: `1px solid ${isOpen ? WB.borderHi : WB.border}`,
-                }}
-              >
-                <button
-                  onClick={() => togglePayload(p.id)}
-                  className="w-full text-left flex items-center gap-2 px-3 py-2"
+      <AdminCard>
+        {proposals && proposals.length === 0 && (
+          <div className="text-sm italic" style={{ color: 'var(--admin-text-muted)' }}>
+            No proposals filed for {archetype} yet.
+          </div>
+        )}
+        {proposals && proposals.length > 0 && (
+          <ul className="space-y-1">
+            {proposals.map((p) => {
+              const isOpen = expandedId === p.id;
+              const layer = ARCHETYPE_LAYERS[p.layer];
+              const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
+              return (
+                <li
+                  key={p.id}
+                  className="rounded"
+                  style={{
+                    background: 'var(--admin-canvas)',
+                    border: '1px solid var(--admin-border)',
+                  }}
                 >
-                  <span
-                    className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
-                    style={{ background: layer.color, color: '#111' }}
+                  <button
+                    onClick={() => togglePayload(p.id)}
+                    className="w-full text-left flex items-center gap-2 px-3 py-2"
                   >
-                    {p.layer}
-                  </span>
-                  <span className="text-xs truncate flex-1" style={{ color: WB.text }}>
-                    {failure?.label ?? p.failureType}
-                  </span>
-                  <OutcomeChip proposal={p} />
-                  <span className="text-[10px] shrink-0" style={{ color: WB.textMuted }}>
-                    {new Date(p.createdAt).toLocaleDateString()}
-                  </span>
-                </button>
-                {isOpen && (
-                  <div
-                    className="px-3 pb-3 text-xs"
-                    style={{ color: WB.textDim, borderTop: `1px solid ${WB.border}` }}
-                  >
-                    <LifecycleTimeline
-                      proposal={p}
-                      payload={payloads[p.id]}
-                      payloadError={payloadErrors[p.id]}
-                    />
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
+                    <span
+                      className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
+                      style={{ background: layer.color, color: '#111' }}
+                    >
+                      {p.layer}
+                    </span>
+                    <span className="text-xs truncate flex-1" style={{ color: 'var(--admin-text)' }}>
+                      {failure?.label ?? p.failureType}
+                    </span>
+                    <OutcomeChip proposal={p} />
+                    <span className="text-[10px] shrink-0" style={{ color: 'var(--admin-text-muted)' }}>
+                      {new Date(p.createdAt).toLocaleDateString()}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div
+                      className="px-3 pb-3 text-xs"
+                      style={{ color: 'var(--admin-text-muted)', borderTop: '1px solid var(--admin-border)' }}
+                    >
+                      <LifecycleTimeline
+                        proposal={p}
+                        payload={payloads[p.id]}
+                        payloadError={payloadErrors[p.id]}
+                      />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </AdminCard>
+    </AdminSection>
   );
 }
 
 // Collapsed-row outcome chip. Surfaces the lifecycle result inline so a
 // reviewer scanning the list sees "shipped · a1b2c3d" / "rejected" /
-// "awaiting Claude · 3d ago" without expanding.
+// "awaiting Claude · 3d ago" without expanding. Tone carries the state so
+// urgency never rides on color alone.
 function OutcomeChip({ proposal }: { proposal: ArchetypeProposal }) {
-  let text: string;
-  let border = WB.border;
-  let color = WB.textDim;
   if (proposal.status === 'shipped') {
-    text = proposal.commitSha ? `shipped · ${proposal.commitSha.slice(0, 7)}` : 'shipped';
-    border = ARCHETYPE_LAYERS.C.accentBorder; // green-ish "done"
-    color = WB.text;
-  } else if (proposal.status === 'rejected') {
-    text = 'rejected';
-    border = ARCHETYPE_LAYERS.D.accentBorder; // red-ish
-  } else {
-    text = `awaiting Claude · ${relativeAge(proposal.createdAt)}`;
+    return (
+      <AdminStatusBadge tone="success" className="shrink-0 uppercase tracking-widest">
+        {proposal.commitSha ? `shipped · ${proposal.commitSha.slice(0, 7)}` : 'shipped'}
+      </AdminStatusBadge>
+    );
+  }
+  if (proposal.status === 'rejected') {
+    return (
+      <AdminStatusBadge tone="danger" className="shrink-0 uppercase tracking-widest">
+        rejected
+      </AdminStatusBadge>
+    );
   }
   return (
-    <span
-      className="text-[9px] uppercase tracking-widest shrink-0 px-2 py-0.5 rounded"
-      style={{ color, border: `1px solid ${border}` }}
-    >
-      {text}
-    </span>
+    <AdminStatusBadge tone="neutral" className="shrink-0 uppercase tracking-widest">
+      awaiting Claude · {relativeAge(proposal.createdAt)}
+    </AdminStatusBadge>
   );
 }
 
@@ -1157,11 +1063,11 @@ function LifecycleTimeline({
   // decision-first.
   const proposalText =
     payloadError !== undefined ? (
-      <div style={{ color: '#f9d0d4' }}>Failed to load payload: {payloadError}</div>
+      <div style={{ color: 'var(--admin-danger)' }}>Failed to load payload: {payloadError}</div>
     ) : payload === undefined ? (
-      <div style={{ color: WB.textMuted }}>Loading…</div>
+      <div style={{ color: 'var(--admin-text-muted)' }}>Loading…</div>
     ) : payload === null ? (
-      <div style={{ color: WB.textMuted }}>Payload not found (proposal may be deleted).</div>
+      <div style={{ color: 'var(--admin-text-muted)' }}>Payload not found (proposal may be deleted).</div>
     ) : (
       <div className="space-y-2 mt-1">
         <ProposalField label="Keep" value={payload.keep} />
@@ -1170,13 +1076,13 @@ function LifecycleTimeline({
         {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
         {payload.referenceImageUrl && (
           <div>
-            <div style={{ color: WB.textMuted }}>Reference:</div>
+            <div style={{ color: 'var(--admin-text-muted)' }}>Reference:</div>
             <a
               href={payload.referenceImageUrl}
               target="_blank"
               rel="noreferrer"
               className="underline break-all"
-              style={{ color: WB.accent }}
+              style={{ color: 'var(--admin-accent)' }}
             >
               {payload.referenceImageUrl}
             </a>
@@ -1184,8 +1090,8 @@ function LifecycleTimeline({
         )}
         {payload.cardLineage && (
           <div>
-            <div style={{ color: WB.textMuted }}>Card referenced:</div>
-            <div className="font-mono text-[10px]">
+            <div style={{ color: 'var(--admin-text-muted)' }}>Card referenced:</div>
+            <div className="font-mono text-[10px]" style={{ color: 'var(--admin-text)' }}>
               {payload.cardLineage.cardName} · {payload.cardLineage.cardId.slice(0, 8)}…
             </div>
           </div>
@@ -1206,7 +1112,7 @@ function LifecycleTimeline({
             <button
               onClick={() => setShowText((s) => !s)}
               className="text-[10px] uppercase tracking-widest underline"
-              style={{ color: WB.accent }}
+              style={{ color: 'var(--admin-accent)' }}
             >
               {showText ? 'Hide proposal text' : 'Proposal text'}
             </button>
@@ -1225,14 +1131,14 @@ function LifecycleTimeline({
       >
         {decided ? (
           <div className="mt-1">
-            <span style={{ color: WB.textMuted }}>
+            <span style={{ color: 'var(--admin-text-muted)' }}>
               {shipped ? 'Approved' : 'Rejected'}
               {proposal.decidedReason ? ':' : ''}
             </span>{' '}
             {proposal.decidedReason || <span className="italic">no reason recorded</span>}
           </div>
         ) : (
-          <div className="italic" style={{ color: WB.textMuted }}>
+          <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
             Waiting on Claude's decision (keep / change / reject).
           </div>
         )}
@@ -1249,23 +1155,23 @@ function LifecycleTimeline({
             target="_blank"
             rel="noreferrer"
             className="font-mono text-[11px] underline"
-            style={{ color: WB.accent }}
+            style={{ color: 'var(--admin-accent)' }}
           >
             {proposal.commitSha.slice(0, 7)}
           </a>
         ) : proposal.status === 'rejected' ? (
-          <div className="italic" style={{ color: WB.textMuted }}>
+          <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
             Not shipped — proposal was rejected.
           </div>
         ) : (
-          <div className="italic" style={{ color: WB.textMuted }}>
+          <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
             Pending — no commit landed yet.
           </div>
         )}
       </TimelineStep>
 
       <TimelineStep label="Verified" done={false} last>
-        <div className="italic" style={{ color: WB.textMuted }}>
+        <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
           pending — no regen evidence attached
         </div>
       </TimelineStep>
@@ -1293,24 +1199,24 @@ function TimelineStep({
         <span
           className="w-2.5 h-2.5 rounded-full mt-1"
           style={{
-            background: done ? WB.accent : 'transparent',
-            border: `1px solid ${done ? WB.accent : WB.borderHi}`,
+            background: done ? 'var(--admin-accent)' : 'transparent',
+            border: `1px solid ${done ? 'var(--admin-accent)' : 'var(--admin-border)'}`,
           }}
         />
         {!last && (
-          <span className="flex-1 w-px my-1" style={{ background: WB.border, minHeight: 12 }} />
+          <span className="flex-1 w-px my-1" style={{ background: 'var(--admin-border)', minHeight: 12 }} />
         )}
       </div>
       <div className="pb-3 flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
           <span
             className="text-[10px] uppercase tracking-widest font-bold"
-            style={{ color: done ? WB.text : WB.textMuted }}
+            style={{ color: done ? 'var(--admin-text)' : 'var(--admin-text-muted)' }}
           >
             {label}
           </span>
           {timestamp && (
-            <span className="text-[10px]" style={{ color: WB.textMuted }}>
+            <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
               {timestamp}
             </span>
           )}
@@ -1324,8 +1230,8 @@ function TimelineStep({
 function ProposalField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div style={{ color: WB.textMuted }}>{label}:</div>
-      <div>{value}</div>
+      <div style={{ color: 'var(--admin-text-muted)' }}>{label}:</div>
+      <div style={{ color: 'var(--admin-text)' }}>{value}</div>
     </div>
   );
 }

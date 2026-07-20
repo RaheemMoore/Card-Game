@@ -7,7 +7,11 @@ import {
   getCardForAdmin,
   type AdminCardListEntry,
 } from '../services/persistence/adminService';
-import { AdminPageDescription } from '../components/admin/AdminPageDescription';
+import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
+import {
+  AdminPage, AdminFilterBar, AdminField, AdminSelect, AdminButton,
+  AdminDataTable, AdminAlert, AdminCard as AdminCardBox, type AdminColumn,
+} from '../components/admin/ui';
 
 // Cross-user card gallery. Search by card name / owner email / uid /
 // card_id, filter by archetype, paginate server-side (limit/offset).
@@ -74,123 +78,91 @@ export function AdminCards() {
   const canPrev = offset > 0;
   const canNext = offset + PAGE_SIZE < totalCount;
 
-  return (
-    <div>
-      <AdminPageDescription
-        title="Cards — every user-owned card"
-        body={
-          'Every row here is a real card sitting in a real user\'s collection ' +
-          '(one row per row in the cards table). Failed forges are never persisted; ' +
-          'Prompt Lab test forges live in prompt_test_runs and are not shown here; ' +
-          'ability art assets live in canonical_art_assets and appear under /admin/abilities. ' +
-          'Search matches card name / owner email / uid / card_id. Filter by archetype. ' +
-          'Click any card to see its full renderer + prompt provenance in a right-side drawer.'
-        }
-      />
+  const columns: AdminColumn<AdminCardListEntry>[] = [
+    {
+      key: 'card',
+      header: 'Card',
+      render: (c) => (
+        <div className="flex items-center gap-3 min-w-0">
+          {c.portrait_url ? (
+            <div
+              className="w-10 h-[3.4rem] rounded overflow-hidden shrink-0 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url("${c.portrait_url}")`, border: '1px solid var(--admin-border)' }}
+            />
+          ) : (
+            <div className="w-10 h-[3.4rem] rounded shrink-0 flex items-center justify-center text-[9px]" style={{ background: 'var(--admin-surface-subtle)', color: 'var(--admin-text-muted)', border: '1px solid var(--admin-border)' }}>
+              no art
+            </div>
+          )}
+          <div className="min-w-0">
+            <div className="font-semibold truncate" style={{ color: 'var(--admin-text)' }}>
+              {c.card_name ?? <span className="italic" style={{ color: 'var(--admin-text-muted)' }}>Unnamed</span>}
+            </div>
+            {c.name_and_title && <div className="text-[11px] italic truncate" style={{ color: 'var(--admin-text-muted)' }}>{c.name_and_title}</div>}
+          </div>
+        </div>
+      ),
+    },
+    { key: 'archetype', header: 'Archetype', render: (c) => c.archetype },
+    { key: 'owner', header: 'Owner', secondary: true, render: (c) => c.user_email ?? <span className="italic" style={{ color: 'var(--admin-text-muted)' }}>guest</span> },
+    { key: 'created', header: 'Created', secondary: true, render: (c) => <span style={{ color: 'var(--admin-text-muted)' }}>{new Date(c.created_at).toLocaleDateString()}</span> },
+  ];
 
-      <div className="flex flex-wrap gap-3 items-center mb-3">
-        <input
-          type="search"
-          placeholder="Card name, owner email, uid, or card id…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[14rem] max-w-md px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
-        />
-        <select
-          value={archetype}
-          onChange={(e) => setArchetype((e.target.value as ArchetypeName) || '')}
-          className="px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
-        >
-          <option value="">All archetypes</option>
-          {ARCHETYPE_NAMES.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
-        <span className="text-xs text-bone/50">
+  return (
+    <AdminPage
+      title="Cards"
+      description="Every user-owned card (one row per row in the cards table). Failed forges and Prompt Lab test forges are excluded; ability art lives under Abilities. Search matches card name / owner email / uid / card_id. Click a row for the full renderer + prompt provenance."
+    >
+      <AdminFilterBar className="mb-3">
+        <div className="flex-1 min-w-[14rem] max-w-md">
+          <AdminField
+            type="search"
+            placeholder="Card name, owner email, uid, or card id…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[10rem]">
+          <AdminSelect value={archetype} onChange={(e) => setArchetype((e.target.value as ArchetypeName) || '')}>
+            <option value="">All archetypes</option>
+            {ARCHETYPE_NAMES.map((a) => <option key={a} value={a}>{a}</option>)}
+          </AdminSelect>
+        </div>
+        <span className="text-xs ml-auto" style={{ color: 'var(--admin-text-muted)' }}>
           {totalCount === 0 && !loading ? 'No cards match.' : `Showing ${from}–${to} of ${totalCount.toLocaleString()}`}
         </span>
-      </div>
+      </AdminFilterBar>
 
-      {error && (
-        <div className="mb-4 p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
-          {error}
-        </div>
-      )}
+      {error && <AdminAlert tone="danger" className="mb-4">{error}</AdminAlert>}
 
-      {loading && entries.length === 0 ? (
-        <div className="text-sm text-bone/60 p-8 text-center">Loading cards…</div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {entries.map((c) => (
-            <CardTile key={c.card_id} entry={c} onOpen={() => setSelectedId(c.card_id)} />
-          ))}
-        </div>
-      )}
+      <AdminDataTable
+        columns={columns}
+        rows={loading && entries.length === 0 ? null : entries}
+        rowKey={(c) => c.card_id}
+        onRowClick={(c) => setSelectedId(c.card_id)}
+        selectedKey={selectedId ?? undefined}
+        emptyTitle="No cards match"
+        emptyDescription="Adjust your search or archetype filter."
+      />
 
       {(canPrev || canNext) && (
         <div className="flex items-center justify-center gap-3 mt-6">
-          <button
-            onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-            disabled={!canPrev || loading}
-            className="text-xs px-3 py-1.5 rounded border border-bone/20 text-bone/80 disabled:opacity-40"
-          >
-            ← Prev
-          </button>
-          <button
-            onClick={() => setOffset(offset + PAGE_SIZE)}
-            disabled={!canNext || loading}
-            className="text-xs px-3 py-1.5 rounded border border-bone/20 text-bone/80 disabled:opacity-40"
-          >
-            Next →
-          </button>
+          <AdminButton size="sm" onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))} disabled={!canPrev || loading}>← Prev</AdminButton>
+          <AdminButton size="sm" onClick={() => setOffset(offset + PAGE_SIZE)} disabled={!canNext || loading}>Next →</AdminButton>
         </div>
       )}
 
-      {selectedId && (
-        <CardDetailDrawer cardId={selectedId} onClose={() => setSelectedId(null)} />
-      )}
-    </div>
+      <CardDetailDrawer cardId={selectedId} onClose={() => setSelectedId(null)} />
+    </AdminPage>
   );
 }
 
-function CardTile({ entry, onOpen }: { entry: AdminCardListEntry; onOpen: () => void }) {
-  return (
-    <button
-      onClick={onOpen}
-      className="text-left rounded-lg border border-bone/15 bg-void/40 p-3 hover:bg-bone/5 transition-colors"
-    >
-      {entry.portrait_url ? (
-        <div
-          className="w-full aspect-[3/4] rounded overflow-hidden mb-2 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url("${entry.portrait_url}")` }}
-        />
-      ) : (
-        <div className="w-full aspect-[3/4] rounded mb-2 bg-void/60 flex items-center justify-center text-bone/40 text-xs">
-          No portrait
-        </div>
-      )}
-      <div className="text-sm font-fantasy font-bold text-bone truncate">
-        {entry.card_name ?? <span className="italic text-bone/50">Unnamed</span>}
-      </div>
-      {entry.name_and_title && (
-        <div className="text-[11px] text-bone/70 truncate italic">{entry.name_and_title}</div>
-      )}
-      <div className="text-[10px] text-bone/50 mt-1">{entry.archetype}</div>
-      <div className="text-[10px] text-bone/50 truncate">
-        {entry.user_email ?? <span className="italic">guest</span>}
-      </div>
-      <div className="text-[10px] text-bone/40">
-        {new Date(entry.created_at).toLocaleDateString()}
-      </div>
-    </button>
-  );
-}
-
-function CardDetailDrawer({ cardId, onClose }: { cardId: string; onClose: () => void }) {
+function CardDetailDrawer({ cardId, onClose }: { cardId: string | null; onClose: () => void }) {
   const [card, setCard] = useState<Card | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!cardId) return;
     let cancelled = false;
     setError(null);
     setCard(null);
@@ -209,71 +181,52 @@ function CardDetailDrawer({ cardId, onClose }: { cardId: string; onClose: () => 
   const provenance = useMemo(() => extractProvenance(card), [card]);
 
   return (
-    <div
-      className="fixed inset-0 z-[80] flex justify-end"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
-      onClick={onClose}
+    <AdminPreviewPanel
+      open={Boolean(cardId)}
+      onClose={onClose}
+      title={card?.cardName ?? 'Loading…'}
+      subtitle={cardId ?? undefined}
     >
-      <div
-        className="w-full max-w-3xl h-full overflow-y-auto p-6"
-        style={{ background: '#1c1a17', color: '#f6ecd8', borderLeft: '1px solid rgba(246,236,216,0.15)' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h2 className="font-fantasy text-xl font-bold">
-              {card?.cardName ?? <span className="italic text-bone/60">Loading…</span>}
-            </h2>
-            <div className="text-[10px] font-mono text-bone/50">{cardId}</div>
+      {error && <AdminAlert tone="danger" className="mb-4">{error}</AdminAlert>}
+
+      {card && (
+        <div className="space-y-4">
+          <div className="flex justify-center">
+            <CardRenderer card={card} />
           </div>
-          <button onClick={onClose} className="text-bone/70 text-2xl leading-none" aria-label="Close">
-            ×
-          </button>
-        </div>
 
-        {error && (
-          <div className="p-3 rounded text-sm mb-4" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
-            {error}
-          </div>
-        )}
-
-        {card && (
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              <CardRenderer card={card} />
-            </div>
-
-            <details className="rounded border border-bone/15 bg-void/40" open>
-              <summary className="cursor-pointer px-3 py-2 text-xs uppercase tracking-wider text-bone/70">
+          <AdminCardBox surface="subtle" padded={false}>
+            <details open>
+              <summary className="cursor-pointer px-3 py-2 text-xs uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
                 Prompt provenance
               </summary>
-              <div className="p-3 border-t border-bone/10 space-y-3 text-xs">
-                {provenance.length === 0 && (
-                  <div className="text-bone/50">No prompt data stored on this card.</div>
-                )}
+              <div className="p-3 space-y-3 text-xs" style={{ borderTop: '1px solid var(--admin-border)' }}>
+                {provenance.length === 0 && <div style={{ color: 'var(--admin-text-muted)' }}>No prompt data stored on this card.</div>}
                 {provenance.map((row) => (
                   <div key={row.label}>
-                    <div className="text-[10px] uppercase tracking-wider text-bone/60">{row.label}</div>
-                    <pre className="whitespace-pre-wrap text-bone/80 bg-black/40 p-2 rounded mt-1 max-h-64 overflow-y-auto">
+                    <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>{row.label}</div>
+                    <pre className="whitespace-pre-wrap p-2 rounded mt-1 max-h-64 overflow-y-auto font-mono" style={{ background: 'rgba(0,0,0,0.35)', color: 'var(--admin-text)' }}>
                       {row.value}
                     </pre>
                   </div>
                 ))}
               </div>
             </details>
+          </AdminCardBox>
 
-            <details className="rounded border border-bone/15 bg-void/40">
-              <summary className="cursor-pointer px-3 py-2 text-xs uppercase tracking-wider text-bone/70">
+          <AdminCardBox surface="subtle" padded={false}>
+            <details>
+              <summary className="cursor-pointer px-3 py-2 text-xs uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
                 Raw JSON
               </summary>
-              <pre className="p-3 border-t border-bone/10 text-[10px] text-bone/70 overflow-x-auto max-h-96 whitespace-pre-wrap">
+              <pre className="p-3 text-[10px] overflow-x-auto max-h-96 whitespace-pre-wrap font-mono" style={{ borderTop: '1px solid var(--admin-border)', color: 'var(--admin-text-muted)' }}>
                 {JSON.stringify(card, null, 2)}
               </pre>
             </details>
-          </div>
-        )}
-      </div>
-    </div>
+          </AdminCardBox>
+        </div>
+      )}
+    </AdminPreviewPanel>
   );
 }
 

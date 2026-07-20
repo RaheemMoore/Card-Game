@@ -1,36 +1,36 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Navigate, Outlet } from 'react-router-dom';
-import { fetchIsAdmin } from '../../services/persistence/supabaseClient';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { fetchIsAdmin, getCurrentUser, signOut } from '../../services/persistence/supabaseClient';
+import { AdminSidebar } from './AdminSidebar';
+import { AdminWorkspaceHeader } from './AdminWorkspaceHeader';
 
-// Phase 1 admin shell. Every /admin/* page renders inside this layout.
-// Two responsibilities:
-//   1. Central admin guard (once, not re-checked per page).
-//   2. Admin sub-nav — compact rail on desktop, horizontally scrolling
-//      tabs on mobile. Preserves the game's outer NavBar for exiting
-//      admin, but puts an opaque content surface behind admin work so
-//      dense operational text stays legible over the fantasy background.
+// Full-viewport admin operations shell. Owns: the central admin guard, the
+// grouped Figma sidebar (expanded 218px / compact 80px, persisted), the
+// tablet overlay drawer, and the slim workspace header. Player chrome never
+// renders here — /admin/* mounts this outside PlayerShell (see App.tsx).
 
 type GuardState = 'checking' | 'allowed' | 'denied';
 
-interface NavItem {
-  label: string;
-  to: string;
-  end?: boolean;
-}
+const COMPACT_KEY = 'admin-sidebar-compact';
 
-const NAV: readonly NavItem[] = [
-  { label: 'Overview',    to: '/admin',              end: true },
-  { label: 'Users',       to: '/admin/users' },
-  { label: 'Cards',       to: '/admin/cards' },
-  { label: 'Abilities',   to: '/admin/abilities' },
-  { label: 'Prompt Lab',  to: '/admin/prompt-lab' },
-  { label: 'Workshop',    to: '/admin/workshop' },
-  { label: 'Costs',       to: '/admin/costs' },
-  { label: 'Diagnostics', to: '/admin/diagnostics' },
-];
+const TITLE_BY_PATH: Record<string, string> = {
+  '/admin': 'Overview',
+  '/admin/users': 'Users',
+  '/admin/cards': 'Cards',
+  '/admin/abilities': 'Abilities',
+  '/admin/prompt-lab': 'Prompt Lab',
+  '/admin/workshop': 'Archetype Workshop',
+  '/admin/costs': 'Costs',
+  '/admin/diagnostics': 'Diagnostics',
+};
 
 export function AdminShell() {
   const [guard, setGuard] = useState<GuardState>('checking');
+  const [compact, setCompact] = useState<boolean>(() => {
+    try { return localStorage.getItem(COMPACT_KEY) === '1'; } catch { return false; }
+  });
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev_admin') === '1') {
@@ -40,45 +40,61 @@ export function AdminShell() {
     void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
   }, []);
 
-  if (guard === 'checking') return <div className="p-8 text-center text-bone/70">Checking access…</div>;
+  // Close the tablet drawer on route change.
+  useEffect(() => { setDrawerOpen(false); }, [location.pathname]);
+
+  const toggleCompact = () => {
+    setCompact((c) => {
+      const next = !c;
+      try { localStorage.setItem(COMPACT_KEY, next ? '1' : '0'); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  if (guard === 'checking') {
+    return (
+      <div className="admin-root min-h-dvh grid place-items-center" style={{ background: 'var(--admin-canvas)' }}>
+        <span style={{ color: 'var(--admin-text-muted)' }}>Checking access…</span>
+      </div>
+    );
+  }
   if (guard === 'denied') return <Navigate to="/" replace />;
 
+  const title = TITLE_BY_PATH[location.pathname] ?? 'Admin';
+  const userEmail = getCurrentUser()?.email ?? null;
+  const handleSignOut = () => { void signOut().then(() => { window.location.href = '/'; }); };
+
   return (
-    <div className="min-h-full">
-      {/* Opaque work surface so operational text stays legible over the
-          fantasy background. */}
-      <div className="bg-void/85 border-b border-bone/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2">
-          <h1 className="font-fantasy text-xl sm:text-2xl font-bold text-bone">Admin</h1>
+    <div className="admin-root min-h-dvh flex" style={{ background: 'var(--admin-canvas)' }}>
+      {/* Desktop / laptop: fixed sidebar */}
+      <div className="hidden lg:block shrink-0">
+        <div className="sticky top-0 h-dvh">
+          <AdminSidebar compact={compact} onToggleCompact={toggleCompact} userEmail={userEmail} onSignOut={handleSignOut} />
         </div>
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 overflow-x-auto">
-          <ul className="flex gap-1 sm:gap-2 whitespace-nowrap pb-2">
-            {NAV.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    [
-                      'inline-block px-3 py-1.5 rounded text-xs sm:text-sm font-fantasy',
-                      isActive
-                        ? 'bg-gold/20 text-gold border border-gold/40'
-                        : 'text-bone/70 hover:text-bone border border-transparent hover:border-bone/20',
-                    ].join(' ')
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </div>
 
-      <div className="bg-void/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <Outlet />
+      {/* Tablet / portrait: overlay drawer */}
+      {drawerOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 flex" role="dialog" aria-modal="true">
+          <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={() => setDrawerOpen(false)} />
+          <div className="relative h-full">
+            <AdminSidebar
+              compact={false}
+              onToggleCompact={toggleCompact}
+              userEmail={userEmail}
+              onSignOut={handleSignOut}
+              onNavigate={() => setDrawerOpen(false)}
+            />
+          </div>
         </div>
+      )}
+
+      {/* Workspace */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <AdminWorkspaceHeader onOpenMenu={() => setDrawerOpen(true)} title={title} />
+        <main className="flex-1 p-4 sm:p-6">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
