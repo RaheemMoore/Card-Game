@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Hammer } from 'lucide-react';
 import { ARCHETYPE_NAMES, type ArchetypeName, type Card, type CardStats, type Rank } from '../types/card';
+import { stashLabHandoff } from '../services/labWorkshopHandoff';
+import { AdminButton } from '../components/admin/ui';
 import type {
   ElementBond,
   ElementCompatibility,
@@ -879,7 +882,7 @@ function SessionPanel(props: {
                   {run.claude_response?.negativePrompt ?? '(missing)'}
                 </pre>
               </details>
-              <ProposeFromTier archetype={session.archetype} tier={tier} runId={run.id} />
+              <SendToWorkshop archetype={session.archetype} tier={tier} run={run} />
             </div>
           );
         })}
@@ -888,19 +891,31 @@ function SessionPanel(props: {
   );
 }
 
-function ProposeFromTier({ archetype, tier }: { archetype: ArchetypeName; tier: Rank; runId: string }) {
-  // The old inline form (prompt_change_proposals + evidence_run_ids +
-  // Raheem-only global scope + state machine) was retired 2026-07-20 in
-  // favor of the Archetype Workshop's layered proposal model. This link
-  // deep-links into the workshop with the archetype pre-selected.
+function SendToWorkshop({ archetype, tier, run }: { archetype: ArchetypeName; tier: Rank; run: RunSummary }) {
+  const navigate = useNavigate();
+  // Weld the Lab → Workshop loop: stash THIS test (archetype, tier, generated
+  // card + prompts, runId) and open the Workshop pre-loaded with it as the
+  // critique subject. The runId rides along so a future regen-verify can
+  // re-run this exact generation with the shipped fix.
+  const send = () => {
+    stashLabHandoff({
+      source: 'prompt-lab',
+      runId: run.id,
+      archetype,
+      tier,
+      cardName: run.claude_response?.cardName,
+      nameAndTitle: run.claude_response?.nameAndTitle,
+      lore: run.claude_response?.lore,
+      portraitPrompt: run.claude_response?.portraitPrompt,
+      negativePrompt: run.claude_response?.negativePrompt,
+    });
+    navigate(`/admin/workshop?archetype=${encodeURIComponent(archetype)}&from=lab`);
+  };
   return (
-    <div className="rounded border border-bone/15 bg-void/30 mt-2">
-      <Link
-        to={`/admin/workshop?archetype=${encodeURIComponent(archetype)}`}
-        className="block px-3 py-2 text-[10px] uppercase tracking-wider text-bone/70 hover:text-bone text-center"
-      >
-        File a change in Archetype Workshop → {archetype} / {tier}
-      </Link>
+    <div className="mt-2">
+      <AdminButton variant="secondary" size="sm" icon={<Hammer size={14} />} onClick={send} className="w-full">
+        Send this {tier} test to Workshop
+      </AdminButton>
     </div>
   );
 }

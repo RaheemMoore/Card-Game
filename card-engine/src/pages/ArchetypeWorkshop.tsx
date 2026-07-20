@@ -6,6 +6,7 @@ import {
   listArchetypeProposals,
   getArchetypeProposalPayload,
 } from '../services/persistence/adminService';
+import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
@@ -81,7 +82,12 @@ export function ArchetypeWorkshop() {
     }
     return 'Seraph';
   })();
-  const [archetype, setArchetype] = useState<ArchetypeName>(initialArchetype);
+  // Prompt Lab handoff (from "Send to Workshop"). Read once; if present it
+  // pre-selects the archetype and becomes the critique subject.
+  const [labHandoff] = useState<LabHandoff | null>(() =>
+    searchParams.get('from') === 'lab' ? readLabHandoff() : null,
+  );
+  const [archetype, setArchetype] = useState<ArchetypeName>(labHandoff?.archetype ?? initialArchetype);
   const [cards, setCards] = useState<Card[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -184,6 +190,7 @@ export function ArchetypeWorkshop() {
           <TriageForm
             archetype={archetype}
             selectedCard={selectedCard}
+            labHandoff={selectedCardId ? null : labHandoff}
             onSubmitted={() => setRefreshTick((t) => t + 1)}
           />
         </div>
@@ -660,10 +667,12 @@ function LayerPanel({
 function TriageForm({
   archetype,
   selectedCard,
+  labHandoff,
   onSubmitted,
 }: {
   archetype: ArchetypeName;
   selectedCard: Card | null;
+  labHandoff: LabHandoff | null;
   onSubmitted: () => void;
 }) {
   const [failureType, setFailureType] = useState<ProposalFailureType>('lore_portrait_misaligned');
@@ -720,7 +729,21 @@ function TriageForm({
         metaPromptBlock: metaBlock ?? '(none — archetype has no escalation block)',
       };
       let cardLineage: CardLineageRef | undefined;
-      if (selectedCard) {
+      // Lab handoff wins as the subject when no real player card is picked:
+      // the critique is about the Prompt Lab test the director just generated.
+      if (!selectedCard && labHandoff) {
+        cardLineage = {
+          cardId: `lab:${labHandoff.runId}`,
+          cardName: labHandoff.cardName ?? `Lab test (${labHandoff.tier})`,
+          archetype: labHandoff.archetype,
+          tiers: {
+            [labHandoff.tier]: {
+              nameAndTitle: labHandoff.nameAndTitle ?? '',
+              lore: labHandoff.lore ?? '',
+            },
+          } as CardLineageRef['tiers'],
+        };
+      } else if (selectedCard) {
         const tiers = extractTierSnapshots(selectedCard);
         // Store text-only tier metadata. Portrait URLs are omitted here
         // (per P1) and looked up on-demand from the cards table when a
@@ -754,6 +777,7 @@ function TriageForm({
         referenceImageUrl: referenceImageUrl.trim() || undefined,
         layerSnapshot: snapshot,
         cardLineage,
+        labRunId: !selectedCard && labHandoff ? labHandoff.runId : undefined,
       };
       await createArchetypeProposal({
         archetype,
@@ -762,6 +786,9 @@ function TriageForm({
         cardId: selectedCard?.cardId ?? null,
         payload,
       });
+      // The handoff is consumed — clear it so a later plain visit to the
+      // Workshop doesn't resurrect this test as the subject.
+      if (labHandoff) clearLabHandoff();
       setSuccess(
         `Proposal filed. Tell Claude "look at the latest ${archetype} proposal" in your next session.`,
       );
@@ -784,6 +811,16 @@ function TriageForm({
       className="rounded-lg p-4 space-y-4"
       style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
     >
+      {labHandoff && !selectedCard && (
+        <div
+          className="rounded p-2 text-xs"
+          style={{ background: 'rgba(96,92,255,0.14)', border: '1px solid rgba(96,92,255,0.4)', color: '#c3bfff' }}
+        >
+          Critiquing a Prompt Lab test — <strong>{labHandoff.archetype} · {labHandoff.tier}</strong>
+          {labHandoff.cardName ? ` · ${labHandoff.cardName}` : ''}. This proposal will reference the test run
+          so the fix can be regenerated against it. (Pick a card above to critique a real card instead.)
+        </div>
+      )}
       <div>
         <div className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
           3. What's the failure?
