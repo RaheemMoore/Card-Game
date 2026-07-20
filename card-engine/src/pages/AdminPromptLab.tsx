@@ -926,39 +926,68 @@ function SessionPanel(props: {
               )}
               <ProvenanceDetails summary="Portrait prompt" body={run.claude_response?.portraitPrompt ?? '(missing)'} maxH="10rem" />
               <ProvenanceDetails summary="Negative" body={run.claude_response?.negativePrompt ?? '(missing)'} maxH="8rem" />
-              <SendToWorkshop archetype={session.archetype} tier={tier} run={run} />
             </div>
           );
         })}
+
+        <SendBatchToWorkshop session={session} />
       </div>
     </AdminPreviewPanel>
   );
 }
 
-function SendToWorkshop({ archetype, tier, run }: { archetype: ArchetypeName; tier: Rank; run: RunSummary }) {
+// One button for the whole batch. Sends every completed tier's IMAGE (by
+// stable object path) to the Workshop as the critique subject — no per-tier
+// buttons. The Workshop shows the images and lets the reviewer pick which tier
+// to critique; the chosen tier's runId rides along so regen-verify can re-run
+// that exact generation with the shipped fix.
+function SendBatchToWorkshop({ session }: { session: SessionSummary }) {
   const navigate = useNavigate();
-  // Weld the Lab → Workshop loop: stash THIS test (archetype, tier, generated
-  // card + prompts, runId) and open the Workshop pre-loaded with it as the
-  // critique subject. The runId rides along so a future regen-verify can
-  // re-run this exact generation with the shipped fix.
+  const completed = TIERS
+    .map((tier) => session.runs.find((r) => r.tier === tier && r.status === 'success' && r.output_object_path))
+    .filter((r): r is RunSummary => Boolean(r));
+
+  if (completed.length === 0) {
+    return (
+      <div className="text-xs italic pt-1" style={{ color: 'var(--admin-text-muted)' }}>
+        Run at least one tier before sending to the Workshop.
+      </div>
+    );
+  }
+
   const send = () => {
+    const tiers = completed.map((r) => ({
+      tier: r.tier,
+      runId: r.id,
+      objectPath: r.output_object_path,
+      cardName: r.claude_response?.cardName,
+      nameAndTitle: r.claude_response?.nameAndTitle,
+      lore: r.claude_response?.lore,
+      portraitPrompt: r.claude_response?.portraitPrompt,
+      negativePrompt: r.claude_response?.negativePrompt,
+    }));
+    // Primary = highest completed tier (last in TIERS order), the usual subject.
+    const primary = tiers[tiers.length - 1];
     stashLabHandoff({
       source: 'prompt-lab',
-      runId: run.id,
-      archetype,
-      tier,
-      cardName: run.claude_response?.cardName,
-      nameAndTitle: run.claude_response?.nameAndTitle,
-      lore: run.claude_response?.lore,
-      portraitPrompt: run.claude_response?.portraitPrompt,
-      negativePrompt: run.claude_response?.negativePrompt,
+      archetype: session.archetype,
+      tiers,
+      primaryRunId: primary.runId,
+      runId: primary.runId,
+      tier: primary.tier,
+      cardName: primary.cardName,
+      nameAndTitle: primary.nameAndTitle,
+      lore: primary.lore,
+      portraitPrompt: primary.portraitPrompt,
+      negativePrompt: primary.negativePrompt,
     });
-    navigate(`/admin/workshop?archetype=${encodeURIComponent(archetype)}&from=lab`);
+    navigate(`/admin/workshop?archetype=${encodeURIComponent(session.archetype)}&from=lab`);
   };
+
   return (
-    <div className="mt-2">
-      <AdminButton variant="secondary" size="sm" icon={<Hammer size={14} />} onClick={send} className="w-full">
-        Send this {tier} test to Workshop
+    <div className="pt-2">
+      <AdminButton variant="primary" icon={<Hammer size={14} />} onClick={send} className="w-full">
+        Send to Workshop ({completed.length} {completed.length === 1 ? 'image' : 'images'})
       </AdminButton>
     </div>
   );

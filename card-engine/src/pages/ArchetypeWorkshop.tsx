@@ -92,6 +92,11 @@ export function ArchetypeWorkshop() {
     searchParams.get('from') === 'lab' ? readLabHandoff() : null,
   );
   const [archetype, setArchetype] = useState<ArchetypeName>(labHandoff?.archetype ?? initialArchetype);
+  // Which sent tier the reviewer is critiquing (drives labRunId). Defaults to
+  // the primary (highest) tier the Lab batch sent over.
+  const [selectedLabRunId, setSelectedLabRunId] = useState<string | null>(
+    labHandoff?.primaryRunId ?? labHandoff?.runId ?? null,
+  );
   const [cards, setCards] = useState<Card[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -221,8 +226,15 @@ export function ArchetypeWorkshop() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4">
-        {/* LEFT column: card picker + tiers + layer state */}
+        {/* LEFT column: lab subject (if from Lab) / card picker + tiers + layer state */}
         <div className="space-y-4">
+          {labHandoff && !selectedCardId && (
+            <LabSubjectPanel
+              handoff={labHandoff}
+              selectedRunId={selectedLabRunId}
+              onSelect={setSelectedLabRunId}
+            />
+          )}
           <CardPickerRail
             cards={cards}
             selectedCardId={selectedCardId}
@@ -238,6 +250,7 @@ export function ArchetypeWorkshop() {
             archetype={archetype}
             selectedCard={selectedCard}
             labHandoff={selectedCardId ? null : labHandoff}
+            selectedLabRunId={selectedCardId ? null : selectedLabRunId}
             onSubmitted={() => setRefreshTick((t) => t + 1)}
           />
         </div>
@@ -574,6 +587,81 @@ function LayerChangeSummary({ changes }: { changes?: { layer: ProposalLayer; sum
         })}
       </ul>
     </div>
+  );
+}
+
+// ─── Lab subject panel (Prompt Lab → Workshop) ───────────────────────
+// Shows the actual images sent from the Prompt Lab so the reviewer critiques
+// the picture, not an empty card list. Clicking a tier makes it the subject.
+function LabSubjectPanel({
+  handoff,
+  selectedRunId,
+  onSelect,
+}: {
+  handoff: LabHandoff;
+  selectedRunId: string | null;
+  onSelect: (runId: string) => void;
+}) {
+  const tiers = handoff.tiers ?? [];
+  const [urls, setUrls] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const entries = await Promise.all(
+        tiers.map(async (t) => [t.runId, t.objectPath ? await signedUrl(t.objectPath) : null] as const),
+      );
+      if (!cancelled) setUrls(Object.fromEntries(entries));
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoff.primaryRunId]);
+
+  return (
+    <AdminCard>
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+          Prompt Lab test — {handoff.archetype}
+        </h2>
+        <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
+          {tiers.length} {tiers.length === 1 ? 'image' : 'images'}
+        </span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {tiers.map((t) => {
+          const active = t.runId === selectedRunId;
+          const url = urls[t.runId];
+          return (
+            <button
+              key={t.runId}
+              onClick={() => onSelect(t.runId)}
+              className="rounded overflow-hidden text-left"
+              style={{ border: `2px solid ${active ? 'var(--admin-accent)' : 'var(--admin-border)'}` }}
+              title={`Critique ${t.tier}`}
+            >
+              <div className="aspect-[3/4] grid place-items-center" style={{ background: 'var(--admin-canvas)' }}>
+                {url ? (
+                  <img src={url} alt={t.tier} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] italic px-1 text-center" style={{ color: 'var(--admin-text-muted)' }}>
+                    image expired
+                  </span>
+                )}
+              </div>
+              <div
+                className="px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wide"
+                style={{ color: active ? 'var(--admin-text)' : 'var(--admin-text-muted)' }}
+              >
+                {t.tier}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <div className="text-[11px] mt-2" style={{ color: 'var(--admin-text-muted)' }}>
+        Pick the tier to critique, then file the proposal on the right.
+      </div>
+    </AdminCard>
   );
 }
 
@@ -983,13 +1071,29 @@ function TriageForm({
   archetype,
   selectedCard,
   labHandoff,
+  selectedLabRunId,
   onSubmitted,
 }: {
   archetype: ArchetypeName;
   selectedCard: Card | null;
   labHandoff: LabHandoff | null;
+  selectedLabRunId: string | null;
   onSubmitted: () => void;
 }) {
+  // Resolve the tier the reviewer picked in the subject panel (falls back to
+  // the handoff's primary/flat fields for older stashes).
+  const labTier =
+    labHandoff?.tiers?.find((t) => t.runId === selectedLabRunId) ??
+    (labHandoff
+      ? {
+          tier: labHandoff.tier,
+          runId: labHandoff.runId,
+          objectPath: null,
+          cardName: labHandoff.cardName,
+          nameAndTitle: labHandoff.nameAndTitle,
+          lore: labHandoff.lore,
+        }
+      : null);
   const [failureType, setFailureType] = useState<ProposalFailureType>('lore_portrait_misaligned');
   const [layer, setLayer] = useState<ProposalLayer>('D');
   const [keep, setKeep] = useState('');
@@ -1046,15 +1150,15 @@ function TriageForm({
       let cardLineage: CardLineageRef | undefined;
       // Lab handoff wins as the subject when no real player card is picked:
       // the critique is about the Prompt Lab test the director just generated.
-      if (!selectedCard && labHandoff) {
+      if (!selectedCard && labHandoff && labTier) {
         cardLineage = {
-          cardId: `lab:${labHandoff.runId}`,
-          cardName: labHandoff.cardName ?? `Lab test (${labHandoff.tier})`,
+          cardId: `lab:${labTier.runId}`,
+          cardName: labTier.cardName ?? `Lab test (${labTier.tier})`,
           archetype: labHandoff.archetype,
           tiers: {
-            [labHandoff.tier]: {
-              nameAndTitle: labHandoff.nameAndTitle ?? '',
-              lore: labHandoff.lore ?? '',
+            [labTier.tier]: {
+              nameAndTitle: labTier.nameAndTitle ?? '',
+              lore: labTier.lore ?? '',
             },
           } as CardLineageRef['tiers'],
         };
@@ -1092,7 +1196,8 @@ function TriageForm({
         referenceImageUrl: referenceImageUrl.trim() || undefined,
         layerSnapshot: snapshot,
         cardLineage,
-        labRunId: !selectedCard && labHandoff ? labHandoff.runId : undefined,
+        labRunId: !selectedCard && labTier ? labTier.runId : undefined,
+        affectsImage: !selectedCard && labTier ? true : undefined,
       };
       await createArchetypeProposal({
         archetype,
@@ -1123,11 +1228,12 @@ function TriageForm({
 
   return (
     <AdminCard className="space-y-4">
-      {labHandoff && !selectedCard && (
+      {labHandoff && !selectedCard && labTier && (
         <AdminAlert tone="info">
-          Critiquing a Prompt Lab test — <strong>{labHandoff.archetype} · {labHandoff.tier}</strong>
-          {labHandoff.cardName ? ` · ${labHandoff.cardName}` : ''}. This proposal will reference the test run
-          so the fix can be regenerated against it. (Pick a card above to critique a real card instead.)
+          Critiquing a Prompt Lab test — <strong>{labHandoff.archetype} · {labTier.tier}</strong>
+          {labTier.cardName ? ` · ${labTier.cardName}` : ''}. This proposal references that test run so the
+          fix can be regenerated against it. Pick a different tier in the subject panel, or a card above to
+          critique a real card instead.
         </AdminAlert>
       )}
       <div>

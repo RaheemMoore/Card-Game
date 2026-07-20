@@ -7,18 +7,34 @@ import type { ArchetypeName, Rank } from '../types/card';
 
 const KEY = 'lab-workshop-handoff';
 
+/** One generated tier from the batch, carried so the Workshop can show it. */
+export interface LabHandoffTier {
+  tier: Rank;
+  runId: string;
+  /** Stable storage path (re-signed on display); null if the image expired. */
+  objectPath: string | null;
+  cardName?: string;
+  nameAndTitle?: string;
+  lore?: string;
+  portraitPrompt?: string;
+  negativePrompt?: string;
+}
+
 export interface LabHandoff {
   source: 'prompt-lab';
-  runId: string;
   archetype: ArchetypeName;
+  /** All completed tiers from the batch — the images being sent to critique. */
+  tiers: LabHandoffTier[];
+  /** Which tier is the initial critique subject (drives labRunId). */
+  primaryRunId: string;
+  // ── Back-compat: the primary tier flattened, for older readers. ──
+  runId: string;
   tier: Rank;
   cardName?: string;
   nameAndTitle?: string;
   lore?: string;
   portraitPrompt?: string;
   negativePrompt?: string;
-  /** Signed image URL if available at stash time; may expire — advisory only. */
-  imageUrl?: string;
 }
 
 export function stashLabHandoff(h: LabHandoff): void {
