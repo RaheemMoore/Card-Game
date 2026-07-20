@@ -447,17 +447,23 @@ const LYCANTHROPE_OPTIONS: StoryPillarOption[] = [
   opt('lyc_p2_q1_a8', 'lyc_p2_q1', 'A moon phase stitched into the hem of every garment I wear.', 'lunar', 'discipline'),
   opt('lyc_p2_q1_a9', 'lyc_p2_q1', 'A small mirror carried at the belt, catching moonlight when the sky is right.', 'lunar', 'sacred'),
   opt('lyc_p2_q1_a10', 'lyc_p2_q1', 'A ceremonial dagger my pack elder placed in my hand at fifteen.', 'lunar', 'inheritance'),
-  // P3Q1
+  // P3Q1 — pack roles. Layer-A rewrite (Tori, lore director, 2026-07-20 —
+  // proposal f67e3513, parked for Raheem). Some roles carry a Rare-element
+  // trigger word in their TEXT (the eligibility gate scans answer text):
+  //   Cook → 'poison' (Lycan-scoped, elements.ts ARCHETYPE_RARE_TAG_HINTS)
+  //   Tracker / Spy → 'secret' (global Shadow hint)
+  //   Caretaker → 'memory' (global Dream hint)
+  // Ascendant portrait pack-visibility is gated by optionId in claudeApi.ts
+  // (adults: a1/a2/a5/a13 · pups: a7 · none: a6/a9/a11/a12).
   opt('lyc_p3_q1_a1', 'lyc_p3_q1', 'Watcher — I stand awake through the long hours.', 'pack', 'protective'),
   opt('lyc_p3_q1_a2', 'lyc_p3_q1', 'Healer — the pack turns to me when the smaller wounds accumulate.', 'service', 'craft'),
-  opt('lyc_p3_q1_a3', 'lyc_p3_q1', 'Storyteller — I remember the pack out loud.', 'memory', 'legacy'),
-  opt('lyc_p3_q1_a4', 'lyc_p3_q1', 'Guide — I break the trail so the young can follow.', 'travel', 'stewardship'),
   opt('lyc_p3_q1_a5', 'lyc_p3_q1', 'Warden — I keep the boundary and its accounts.', 'guardian', 'boundary'),
-  opt('lyc_p3_q1_a6', 'lyc_p3_q1', 'Cook — everyone eats, whatever the day was.', 'service', 'kinship'),
-  opt('lyc_p3_q1_a7', 'lyc_p3_q1', 'Caretaker — the elders are mine when their pack ages out from under them.', 'kinship', 'service'),
-  opt('lyc_p3_q1_a8', 'lyc_p3_q1', 'Speaker — I am the mouth the pack sends to strangers.', 'service', 'confrontation'),
-  opt('lyc_p3_q1_a9', 'lyc_p3_q1', 'Scout — I go first and I come back.', 'travel', 'protective'),
-  opt('lyc_p3_q1_a10', 'lyc_p3_q1', 'Sitter of the fire — I hold the space where we come home.', 'kinship', 'stewardship'),
+  opt('lyc_p3_q1_a6', 'lyc_p3_q1', 'Cook — I know every root in the pot, the ones that heal and the ones that poison.', 'kinship', 'poison'),
+  opt('lyc_p3_q1_a7', 'lyc_p3_q1', 'Caretaker — the elders are mine when their pack ages out from under them; I keep their memory when they fade.', 'kinship', 'memory'),
+  opt('lyc_p3_q1_a9', 'lyc_p3_q1', 'Tracker — I follow the scent through every shadow, and keep what I find secret.', 'protective', 'secret'),
+  opt('lyc_p3_q1_a11', 'lyc_p3_q1', 'Spy — I walk other territories wearing another face, and keep my secrets close.', 'secret', 'confrontation'),
+  opt('lyc_p3_q1_a12', 'lyc_p3_q1', 'Rogue — none. No pack claims me; I run alone.', 'solitude', 'freedom'),
+  opt('lyc_p3_q1_a13', 'lyc_p3_q1', 'Beta — I answer to the one who leads, and the pack answers to me in turn.', 'pack', 'service'),
   // P3Q2
   opt('lyc_p3_q2_a1', 'lyc_p3_q2', 'I do not lie to them. Ever. About anything.', 'oath', 'trust'),
   opt('lyc_p3_q2_a2', 'lyc_p3_q2', 'They watched me refuse a promotion the day I earned it.', 'humility', 'trust'),
