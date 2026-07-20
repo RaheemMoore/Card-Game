@@ -80,6 +80,20 @@ export function CombatScene({
         currentBeat={currentBeat}
       />
 
+      {/* Command shelf — visually unifies abilities + controls into one
+          bottom band. Individual widgets remain absolute-positioned within
+          the scene; this gradient just ties them together. */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none"
+        style={{
+          height: '11rem',
+          background:
+            'linear-gradient(to top, rgba(3,2,6,0.95) 0%, rgba(3,2,6,0.85) 45%, rgba(3,2,6,0.45) 80%, rgba(3,2,6,0) 100%)',
+          zIndex: 15,
+        }}
+        aria-hidden
+      />
+
       {/* Layer 6 — Ability command bar (docked lower-mid) */}
       <AbilityCommandBar
         hero={actingHero}
@@ -88,7 +102,7 @@ export function CombatScene({
         onSubmit={onSubmit}
       />
 
-      {/* Layer 7 — Battle controls (Leave / Round / auxiliary) */}
+      {/* Layer 7 — Battle controls (Leave / Round / auxiliary + END TURN) */}
       <BattleControls
         round={state.round}
         onExit={onExit}

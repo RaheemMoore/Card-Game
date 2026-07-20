@@ -15,18 +15,53 @@ import type { Card } from '../types/card';
 
 interface SeedSpec {
   name: string;
+  title: string;
   archetype: Card['archetype'];
   atk: number;
   def: number;
   mana: number;
   abilityId: string;
   slot: 'signature' | 'core';
+  portrait: string;
+  lore: string;
 }
 
+/**
+ * The three heroes borrow reference portraits from the C0 handoff so the
+ * visual QA can judge card-first composition. Each archetype maps to a
+ * different silhouette so combat sprites read distinctly.
+ */
 const SEED_PARTY: SeedSpec[] = [
-  { name: 'Test Vanguard', archetype: 'Barbarian', atk: 62, def: 55, mana: 40, abilityId: 'ability_ember_cleave', slot: 'signature' },
-  { name: 'Test Warden',   archetype: 'Barbarian', atk: 45, def: 68, mana: 50, abilityId: 'ability_aegis_ward',   slot: 'signature' },
-  { name: 'Test Reaver',   archetype: 'Barbarian', atk: 55, def: 45, mana: 60, abilityId: 'ability_soul_drain',   slot: 'core' },
+  {
+    name: 'Gryndak',
+    title: 'Gryndak, the Half-Claimed',
+    archetype: 'Barbarian',
+    atk: 62, def: 55, mana: 40,
+    abilityId: 'ability_ember_cleave',
+    slot: 'signature',
+    portrait: '/assets/dev-portraits/Gryndak.jpg',
+    lore: 'Half his blood answered a whisper before the pact was sealed. He does not name what watches him.',
+  },
+  {
+    name: 'Seojin',
+    title: 'Seojin, Lycanthrope of the Infinite',
+    archetype: 'Lycanthrope',
+    atk: 45, def: 68, mana: 50,
+    abilityId: 'ability_aegis_ward',
+    slot: 'signature',
+    portrait: '/assets/dev-portraits/Seojin.jpg',
+    lore: 'Once, she ran only under one moon. The pack sings her name in three tongues now.',
+  },
+  {
+    name: 'Ashvara',
+    title: 'Ashvara, the Void-Synchronized',
+    archetype: 'Necromancer',
+    atk: 55, def: 45, mana: 60,
+    abilityId: 'ability_soul_drain',
+    slot: 'core',
+    portrait: '/assets/dev-portraits/Ashvara.jpg',
+    lore: 'She keeps her prayers unfinished so the dead have somewhere to arrive.',
+  },
 ];
 
 function slugId(name: string): string {
@@ -60,8 +95,8 @@ function seedCards(): { seeded: number; existing: number } {
       cardId,
       archetype: spec.archetype,
       cardName: spec.name,
-      nameAndTitle: `${spec.name}, the Test`,
-      portraitAsset: '',
+      nameAndTitle: spec.title,
+      portraitAsset: spec.portrait,
       stats: {
         Atk: { value: spec.atk, bias: 'Mid', hardCap: 100 },
         Def: { value: spec.def, bias: 'Mid', hardCap: 100 },
@@ -69,7 +104,7 @@ function seedCards(): { seeded: number; existing: number } {
       },
       dominantStat: dominant,
       border: { baseVariant: border, baseSource: '' },
-      lore: 'Injected by /dev/seed-battle for local combat walkthroughs.',
+      lore: spec.lore,
       whisperWords: [],
       evolutionHistory: {},
       createdAt: now,

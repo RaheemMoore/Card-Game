@@ -40,7 +40,7 @@ export function BossStage({ boss, currentBeat }: Props) {
     <div
       className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
       style={{
-        top: '4%',
+        top: '2%',
         pointerEvents: 'none',
       }}
     >
@@ -48,8 +48,8 @@ export function BossStage({ boss, currentBeat }: Props) {
         key={shakeKey}
         className={`boss-stage-sprite relative ${isWindingUp ? 'boss-stage-windup' : ''}`}
         style={{
-          width: 'min(360px, 34vw)',
-          height: 'min(440px, 44vh)',
+          width: 'clamp(240px, 26vw, 340px)',
+          height: 'clamp(300px, 34vh, 420px)',
         }}
         aria-label={boss.snapshot.name}
       >
@@ -75,15 +75,15 @@ export function BossStage({ boss, currentBeat }: Props) {
         {/* Floating damage lives at boss center */}
         <FloatingDamage currentBeat={currentBeat} actorId={boss.actorId} />
       </div>
-      {/* Ground shadow */}
+      {/* Ground shadow — sits directly beneath the boss's feet */}
       <div
         aria-hidden
-        className="rounded-full mt-[-16px]"
+        className="rounded-full mt-[-22px]"
         style={{
-          width: 'min(280px, 28vw)',
-          height: 'min(38px, 5vh)',
+          width: 'clamp(200px, 22vw, 280px)',
+          height: 'clamp(28px, 4vh, 42px)',
           background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0) 75%)',
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0) 78%)',
         }}
       />
 

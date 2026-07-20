@@ -21,11 +21,7 @@ export function BattleControls({ round, canAct, onExit, onSubmit }: Props) {
   return (
     <div
       className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-4 py-3"
-      style={{
-        background:
-          'linear-gradient(to top, rgba(4,2,8,0.95) 0%, rgba(4,2,8,0.55) 65%, rgba(4,2,8,0) 100%)',
-        zIndex: 30,
-      }}
+      style={{ zIndex: 30 }}
     >
       {/* Left cluster — leave + round */}
       <div className="flex items-center gap-3">

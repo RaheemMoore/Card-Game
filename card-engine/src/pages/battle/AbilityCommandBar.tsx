@@ -132,7 +132,9 @@ function AbilitySlot({
       type="button"
       onClick={onClick}
       disabled={denied}
-      className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-lg border-2 overflow-hidden transition-all ${stateBorder} focus:outline-none focus-visible:ring-2 focus-visible:ring-gold`}
+      className={`relative w-24 h-24 rounded-lg border-2 overflow-hidden transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${stateBorder} ${
+        pending ? '-translate-y-1' : ''
+      }`}
       style={{ background: 'rgba(10,6,14,0.85)' }}
       aria-label={
         empty

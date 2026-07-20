@@ -121,7 +121,7 @@ export function CombatViewport({
 
       <style>{`
         .combat-grid {
-          grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+          grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
           grid-template-rows: 1fr;
         }
         @media (max-width: 900px) {
