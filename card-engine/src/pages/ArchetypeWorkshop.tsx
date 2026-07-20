@@ -1,0 +1,1078 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, Link } from 'react-router-dom';
+import { fetchIsAdmin } from '../services/persistence/supabaseClient';
+import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import {
+  createArchetypeProposal,
+  listArchetypeProposals,
+} from '../services/persistence/adminService';
+import type {
+  ArchetypeProposal,
+  ArchetypeProposalPayload,
+  CardLineageRef,
+  LayerSnapshot,
+  ProposalFailureType,
+  ProposalLayer,
+} from '../types/archetypeProposal';
+import type { ArchetypeName, Card, Rank, StatName } from '../types/card';
+import { ARCHETYPE_NAMES } from '../types/card';
+import { ARCHETYPES } from '../data/archetypes';
+import { CLASS_SIGNATURE_POOLS } from '../data/modifierPools';
+import {
+  ARCHETYPE_LAYERS,
+  FAILURE_TYPES,
+  LAYER_ORDER,
+} from '../data/archetypeLayers';
+import { getMetaPromptBlock } from '../data/metaPromptBlocks';
+import {
+  getDominantStat,
+  getOverallRank,
+  getVisualMotif,
+  getSpecializationSuffix,
+  deriveStatRanks,
+} from '../data/powerSystem';
+
+type GuardState = 'checking' | 'allowed' | 'denied';
+
+const RANK_ORDER: Rank[] = ['Foundation', 'Forged', 'Ascendant'];
+const STAT_ORDER: StatName[] = ['Atk', 'Def', 'Mana', 'Tech'];
+
+// Workbench palette — kept in-file so it stays scoped to this page.
+const WB = {
+  bg: '#0d0b12',
+  panel: '#161320',
+  panelHi: '#1d1929',
+  border: 'rgba(200, 190, 220, 0.14)',
+  borderHi: 'rgba(200, 190, 220, 0.28)',
+  text: '#eae4f0',
+  textDim: 'rgba(234, 228, 240, 0.65)',
+  textMuted: 'rgba(234, 228, 240, 0.42)',
+  accent: '#b48eff',
+};
+
+export function ArchetypeWorkshop() {
+  const [guard, setGuard] = useState<GuardState>('checking');
+
+  useEffect(() => {
+    if (
+      import.meta.env.DEV &&
+      new URLSearchParams(window.location.search).get('dev_admin') === '1'
+    ) {
+      setGuard('allowed');
+      return;
+    }
+    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
+  }, []);
+
+  if (guard === 'checking') {
+    return (
+      <div
+        style={{ background: WB.bg, color: WB.textDim }}
+        className="min-h-dvh flex items-center justify-center"
+      >
+        Checking access…
+      </div>
+    );
+  }
+  if (guard === 'denied') return <Navigate to="/" replace />;
+
+  return <WorkshopBody />;
+}
+
+function WorkshopBody() {
+  const [archetype, setArchetype] = useState<ArchetypeName>('Seraph');
+  const [cards, setCards] = useState<Card[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [proposals, setProposals] = useState<ArchetypeProposal[] | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  // Pull all cards of the selected archetype visible to this admin (RLS
+  // widens SELECT for admins). Big single query — fine at studio scale.
+  useEffect(() => {
+    let cancelled = false;
+    setCards(null);
+    setLoadError(null);
+    const supa = getSupabaseClient();
+    if (!supa) {
+      setLoadError(
+        'Supabase not configured (VITE_SUPABASE_URL missing). The workshop needs a live database to load cards and store proposals.',
+      );
+      setCards([]);
+      return;
+    }
+    void supa
+      .from('cards')
+      .select('data')
+      .eq('archetype', archetype)
+      .order('created_at', { ascending: false })
+      .limit(200)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setLoadError(error.message);
+          setCards([]);
+          return;
+        }
+        setCards((data ?? []).map((row) => (row as { data: Card }).data));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [archetype]);
+
+  useEffect(() => {
+    let cancelled = false;
+    listArchetypeProposals({ archetype, limit: 20 })
+      .then((rows) => {
+        if (!cancelled) setProposals(rows);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn('Failed to load proposals', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [archetype, refreshTick]);
+
+  const selectedCard = useMemo(() => {
+    if (!cards || !selectedCardId) return null;
+    return cards.find((c) => c.cardId === selectedCardId) ?? null;
+  }, [cards, selectedCardId]);
+
+  return (
+    <div style={{ background: WB.bg, color: WB.text }} className="min-h-dvh">
+      <WorkshopHeader
+        archetype={archetype}
+        onArchetypeChange={(a) => {
+          setArchetype(a);
+          setSelectedCardId(null);
+        }}
+      />
+
+      {loadError && (
+        <div
+          className="mx-4 mt-3 rounded p-3 text-sm"
+          style={{
+            background: 'rgba(176, 106, 112, 0.15)',
+            color: '#f9d0d4',
+            border: '1px solid rgba(176, 106, 112, 0.4)',
+          }}
+        >
+          {loadError}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4 p-4">
+        {/* LEFT column: card picker + tiers + layer state */}
+        <div className="space-y-4">
+          <CardPickerRail
+            cards={cards}
+            selectedCardId={selectedCardId}
+            onSelect={setSelectedCardId}
+          />
+          <TierSnapshotPanel card={selectedCard} />
+          <LayerStatePanels archetype={archetype} card={selectedCard} />
+        </div>
+
+        {/* RIGHT column: triage form */}
+        <div className="lg:sticky lg:top-4 lg:self-start">
+          <TriageForm
+            archetype={archetype}
+            selectedCard={selectedCard}
+            onSubmitted={() => setRefreshTick((t) => t + 1)}
+          />
+        </div>
+      </div>
+
+      <div className="p-4">
+        <ProposalsList proposals={proposals} archetype={archetype} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Header ──────────────────────────────────────────────────────────
+
+function WorkshopHeader({
+  archetype,
+  onArchetypeChange,
+}: {
+  archetype: ArchetypeName;
+  onArchetypeChange: (a: ArchetypeName) => void;
+}) {
+  return (
+    <header
+      className="sticky top-0 z-40 flex items-center gap-3 px-4 py-3"
+      style={{ background: WB.panel, borderBottom: `1px solid ${WB.border}` }}
+    >
+      <Link
+        to="/admin"
+        className="text-xs uppercase tracking-widest px-2 py-1 rounded"
+        style={{ color: WB.textDim, border: `1px solid ${WB.border}` }}
+      >
+        ← Admin
+      </Link>
+      <h1
+        className="font-fantasy text-lg font-bold flex-1"
+        style={{ color: WB.text }}
+      >
+        Archetype Workshop
+      </h1>
+      <label
+        className="flex items-center gap-2 text-xs uppercase tracking-widest"
+        style={{ color: WB.textDim }}
+      >
+        Archetype
+        <select
+          value={archetype}
+          onChange={(e) => onArchetypeChange(e.target.value as ArchetypeName)}
+          className="rounded px-2 py-1 text-sm font-fantasy"
+          style={{
+            background: WB.bg,
+            color: WB.text,
+            border: `1px solid ${WB.borderHi}`,
+          }}
+        >
+          {ARCHETYPE_NAMES.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
+      </label>
+    </header>
+  );
+}
+
+// ─── Card picker rail ────────────────────────────────────────────────
+
+function CardPickerRail({
+  cards,
+  selectedCardId,
+  onSelect,
+}: {
+  cards: Card[] | null;
+  selectedCardId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <section
+      className="rounded-lg p-3"
+      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
+    >
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: WB.textDim }}>
+          1. Pick a character
+        </h2>
+        <span className="text-[10px]" style={{ color: WB.textMuted }}>
+          {cards === null ? 'loading…' : `${cards.length} cards`}
+        </span>
+      </div>
+      {cards === null && (
+        <div className="text-sm" style={{ color: WB.textMuted }}>
+          Loading cards for this archetype…
+        </div>
+      )}
+      {cards && cards.length === 0 && (
+        <div className="text-sm" style={{ color: WB.textMuted }}>
+          No cards of this archetype exist yet. Forge one from{' '}
+          <Link to="/forge" className="underline">
+            /forge
+          </Link>{' '}
+          to have something to critique.
+        </div>
+      )}
+      {cards && cards.length > 0 && (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto">
+          {cards.map((c) => {
+            const active = c.cardId === selectedCardId;
+            const rank = getOverallRank(c.stats);
+            return (
+              <button
+                key={c.cardId}
+                onClick={() => onSelect(c.cardId)}
+                className="text-left rounded overflow-hidden transition-all"
+                style={{
+                  border: active
+                    ? `2px solid ${WB.accent}`
+                    : `1px solid ${WB.border}`,
+                  background: active ? WB.panelHi : WB.bg,
+                  boxShadow: active ? `0 0 0 2px rgba(180, 142, 255, 0.2)` : 'none',
+                }}
+              >
+                <div
+                  className="aspect-[3/4] bg-cover bg-center"
+                  style={{
+                    backgroundImage: c.portraitAsset
+                      ? `url(${c.portraitAsset})`
+                      : 'linear-gradient(135deg, #2a2338, #1a1524)',
+                  }}
+                />
+                <div className="px-1.5 py-1">
+                  <div
+                    className="text-[10px] truncate font-fantasy"
+                    style={{ color: WB.text }}
+                    title={c.cardName}
+                  >
+                    {c.cardName}
+                  </div>
+                  <div className="text-[9px] uppercase" style={{ color: WB.textMuted }}>
+                    {rank}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ─── Tier snapshot loader ────────────────────────────────────────────
+
+interface TierSnap {
+  portraitUrl: string;
+  nameAndTitle: string;
+  lore: string;
+  source: 'evolutionHistory' | 'current';
+}
+
+function extractTierSnapshots(card: Card): Partial<Record<Rank, TierSnap>> {
+  const result: Partial<Record<Rank, TierSnap>> = {};
+  for (const rank of RANK_ORDER) {
+    for (const stat of STAT_ORDER) {
+      const snap = card.evolutionHistory?.[stat]?.[rank];
+      if (snap) {
+        result[rank] = {
+          portraitUrl: snap.portraitUrl,
+          nameAndTitle: snap.nameAndTitle,
+          lore: snap.lore,
+          source: 'evolutionHistory',
+        };
+        break;
+      }
+    }
+  }
+  const currentRank = getOverallRank(card.stats);
+  if (!result[currentRank]) {
+    result[currentRank] = {
+      portraitUrl: card.portraitAsset,
+      nameAndTitle: card.nameAndTitle,
+      lore: card.lore,
+      source: 'current',
+    };
+  }
+  return result;
+}
+
+function TierSnapshotPanel({ card }: { card: Card | null }) {
+  if (!card) {
+    return (
+      <section
+        className="rounded-lg p-4 text-sm"
+        style={{
+          background: WB.panel,
+          border: `1px solid ${WB.border}`,
+          color: WB.textMuted,
+        }}
+      >
+        <div className="text-xs uppercase tracking-widest mb-1" style={{ color: WB.textDim }}>
+          2. Character across tiers
+        </div>
+        Select a card above to see all of its rank snapshots.
+      </section>
+    );
+  }
+
+  const tiers = extractTierSnapshots(card);
+  const present = RANK_ORDER.filter((r) => tiers[r]);
+
+  return (
+    <section
+      className="rounded-lg p-3"
+      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
+    >
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: WB.textDim }}>
+          2. Character across tiers
+        </h2>
+        <span className="text-[10px]" style={{ color: WB.textMuted }}>
+          {present.length} of 3 tiers
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {RANK_ORDER.map((rank) => {
+          const snap = tiers[rank];
+          return (
+            <div
+              key={rank}
+              className="rounded overflow-hidden"
+              style={{
+                background: WB.bg,
+                border: `1px solid ${snap ? WB.borderHi : WB.border}`,
+                opacity: snap ? 1 : 0.5,
+              }}
+            >
+              <div
+                className="aspect-[3/4] bg-cover bg-center"
+                style={{
+                  backgroundImage: snap?.portraitUrl
+                    ? `url(${snap.portraitUrl})`
+                    : 'linear-gradient(135deg, #2a2338, #1a1524)',
+                }}
+              />
+              <div className="p-2 space-y-1">
+                <div
+                  className="text-[10px] uppercase tracking-widest"
+                  style={{ color: WB.accent }}
+                >
+                  {rank}
+                </div>
+                {snap ? (
+                  <>
+                    <div className="text-xs font-fantasy" style={{ color: WB.text }}>
+                      {snap.nameAndTitle}
+                    </div>
+                    <div className="text-[11px] leading-snug" style={{ color: WB.textDim }}>
+                      {snap.lore}
+                    </div>
+                    {snap.source === 'current' && (
+                      <div className="text-[9px] italic" style={{ color: WB.textMuted }}>
+                        (current rank — no evolutionHistory entry)
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-[11px] italic" style={{ color: WB.textMuted }}>
+                    Not reached yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ─── Layer state readonly panels ─────────────────────────────────────
+
+function LayerStatePanels({
+  archetype,
+  card,
+}: {
+  archetype: ArchetypeName;
+  card: Card | null;
+}) {
+  const arch = ARCHETYPES[archetype];
+  const dominant = card ? getDominantStat(card.stats) : null;
+  const rank = card ? getOverallRank(card.stats) : 'Foundation';
+  const ranks = card ? deriveStatRanks(card.stats) : {};
+  const dominantRank = dominant ? ranks[dominant] ?? rank : rank;
+
+  const statVisual =
+    dominant && card ? getVisualMotif(dominant, dominantRank) : null;
+  const specialization =
+    dominant && card
+      ? getSpecializationSuffix(archetype, dominant, dominantRank)
+      : null;
+  const classPool = CLASS_SIGNATURE_POOLS[archetype] ?? [];
+  const metaBlock = getMetaPromptBlock(archetype);
+
+  return (
+    <section
+      className="rounded-lg p-3"
+      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
+    >
+      <h2 className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
+        Current layer state for {archetype}
+      </h2>
+      <div className="space-y-2">
+        <LayerPanel layer="A">
+          <div className="space-y-1 text-xs" style={{ color: WB.textDim }}>
+            <div>
+              <span style={{ color: WB.textMuted }}>Identity:</span> {arch.identity}
+            </div>
+            <div>
+              <span style={{ color: WB.textMuted }}>Motifs:</span> {arch.motifs}
+            </div>
+            {RANK_ORDER.map((r) => (
+              <div key={r}>
+                <span style={{ color: WB.textMuted }}>{r}:</span>{' '}
+                {arch.rankProgression[r]}
+              </div>
+            ))}
+          </div>
+        </LayerPanel>
+        <LayerPanel layer="B">
+          <div className="text-xs" style={{ color: WB.textDim }}>
+            {card ? (
+              <>
+                <div>
+                  <span style={{ color: WB.textMuted }}>Dominant stat:</span>{' '}
+                  {dominant ?? 'tied — no dominant'}
+                </div>
+                {statVisual && (
+                  <div className="mt-1">
+                    <span style={{ color: WB.textMuted }}>Visual motif ({dominantRank}):</span>{' '}
+                    {statVisual}
+                  </div>
+                )}
+                {specialization && (
+                  <div className="mt-1">
+                    <span style={{ color: WB.textMuted }}>Specialization suffix:</span>{' '}
+                    {specialization}
+                  </div>
+                )}
+                {!statVisual && !specialization && (
+                  <div className="italic" style={{ color: WB.textMuted }}>
+                    No stat-specific visuals apply — this card has no dominant stat.
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="italic" style={{ color: WB.textMuted }}>
+                Select a card to see its stat-driven visuals.
+              </div>
+            )}
+          </div>
+        </LayerPanel>
+        <LayerPanel layer="C">
+          <div className="text-xs" style={{ color: WB.textDim }}>
+            <div className="mb-1">
+              <span style={{ color: WB.textMuted }}>
+                Class-trait pool ({classPool.length} entries):
+              </span>
+            </div>
+            {classPool.length === 0 ? (
+              <div className="italic" style={{ color: WB.textMuted }}>
+                No dedicated class pool for {archetype}.
+              </div>
+            ) : (
+              <ul className="list-disc pl-4 space-y-0.5 max-h-40 overflow-y-auto">
+                {classPool.map((e) => (
+                  <li key={e.text}>
+                    {e.text}
+                    {e.rarity && (
+                      <span className="ml-1 text-[9px] uppercase" style={{ color: WB.textMuted }}>
+                        {e.rarity}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </LayerPanel>
+        <LayerPanel layer="D">
+          <div className="text-xs whitespace-pre-wrap" style={{ color: WB.textDim }}>
+            {metaBlock ? (
+              metaBlock
+            ) : (
+              <span className="italic" style={{ color: WB.textMuted }}>
+                No archetype-specific escalation block. This archetype relies on the
+                generic prompt template for Forged/Ascendant — which is why the art
+                often drifts. Adding a block here is the plan for step B.
+              </span>
+            )}
+          </div>
+        </LayerPanel>
+      </div>
+    </section>
+  );
+}
+
+function LayerPanel({
+  layer,
+  children,
+}: {
+  layer: ProposalLayer;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(layer === 'A' || layer === 'D');
+  const copy = ARCHETYPE_LAYERS[layer];
+  return (
+    <div
+      className="rounded"
+      style={{
+        background: copy.accentBg,
+        border: `1px solid ${copy.accentBorder}`,
+      }}
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-3 py-2 text-left"
+      >
+        <span
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+          style={{ background: copy.color, color: '#111' }}
+        >
+          {layer}
+        </span>
+        <span className="font-fantasy font-bold text-sm" style={{ color: WB.text }}>
+          {copy.name}
+        </span>
+        <span className="text-[10px] italic" style={{ color: WB.textDim }}>
+          {copy.tagline}
+        </span>
+        <span className="ml-auto text-xs" style={{ color: WB.textDim }}>
+          {open ? '▾' : '▸'}
+        </span>
+      </button>
+      {open && <div className="px-3 pb-3">{children}</div>}
+    </div>
+  );
+}
+
+// ─── Triage form ─────────────────────────────────────────────────────
+
+function TriageForm({
+  archetype,
+  selectedCard,
+  onSubmitted,
+}: {
+  archetype: ArchetypeName;
+  selectedCard: Card | null;
+  onSubmitted: () => void;
+}) {
+  const [failureType, setFailureType] = useState<ProposalFailureType>('lore_portrait_misaligned');
+  const [layer, setLayer] = useState<ProposalLayer>('D');
+  const [keep, setKeep] = useState('');
+  const [change, setChange] = useState('');
+  const [rejectIf, setRejectIf] = useState('');
+  const [notes, setNotes] = useState('');
+  const [referenceImageUrl, setReferenceImageUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Auto-align layer to whatever the failure hint suggests, but let the
+  // user override — the hint doesn't lock the picker.
+  useEffect(() => {
+    const hint = FAILURE_TYPES.find((f) => f.id === failureType)?.hintLayer;
+    if (hint) setLayer(hint);
+  }, [failureType]);
+
+  async function submit() {
+    setError(null);
+    setSuccess(null);
+    if (!keep.trim() || !change.trim() || !rejectIf.trim()) {
+      setError('Keep, Change, and Reject-if are all required.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const arch = ARCHETYPES[archetype];
+      const classPool = CLASS_SIGNATURE_POOLS[archetype] ?? [];
+      const metaBlock = getMetaPromptBlock(archetype);
+      const snapshot: LayerSnapshot = {
+        canonIdentity: arch.identity,
+        canonMotifs: arch.motifs,
+        canonRankProgression: arch.rankProgression,
+        statVisualsForCard: selectedCard
+          ? (() => {
+              const dom = getDominantStat(selectedCard.stats);
+              const r = dom ? deriveStatRanks(selectedCard.stats)[dom] : undefined;
+              return dom && r ? getVisualMotif(dom, r) : undefined;
+            })()
+          : undefined,
+        classSignaturePoolSample: classPool.slice(0, 10).map((e) => e.text),
+        metaPromptBlock: metaBlock ?? '(none — archetype has no escalation block)',
+      };
+      let cardLineage: CardLineageRef | undefined;
+      if (selectedCard) {
+        const tiers = extractTierSnapshots(selectedCard);
+        cardLineage = {
+          cardId: selectedCard.cardId,
+          cardName: selectedCard.cardName,
+          archetype: selectedCard.archetype,
+          tiers: {
+            Foundation: tiers.Foundation && {
+              portraitUrl: tiers.Foundation.portraitUrl,
+              nameAndTitle: tiers.Foundation.nameAndTitle,
+              lore: tiers.Foundation.lore,
+            },
+            Forged: tiers.Forged && {
+              portraitUrl: tiers.Forged.portraitUrl,
+              nameAndTitle: tiers.Forged.nameAndTitle,
+              lore: tiers.Forged.lore,
+            },
+            Ascendant: tiers.Ascendant && {
+              portraitUrl: tiers.Ascendant.portraitUrl,
+              nameAndTitle: tiers.Ascendant.nameAndTitle,
+              lore: tiers.Ascendant.lore,
+            },
+          },
+        };
+      }
+      const payload: ArchetypeProposalPayload = {
+        keep: keep.trim(),
+        change: change.trim(),
+        rejectIf: rejectIf.trim(),
+        notes: notes.trim() || undefined,
+        referenceImageUrl: referenceImageUrl.trim() || undefined,
+        layerSnapshot: snapshot,
+        cardLineage,
+      };
+      await createArchetypeProposal({
+        archetype,
+        layer,
+        failureType,
+        cardId: selectedCard?.cardId ?? null,
+        payload,
+      });
+      setSuccess(
+        `Proposal filed. Tell Claude "look at the latest ${archetype} proposal" in your next session.`,
+      );
+      setKeep('');
+      setChange('');
+      setRejectIf('');
+      setNotes('');
+      setReferenceImageUrl('');
+      onSubmitted();
+    } catch (err) {
+      const e = err as { message?: string };
+      setError(e.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section
+      className="rounded-lg p-4 space-y-4"
+      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
+    >
+      <div>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
+          3. What's the failure?
+        </div>
+        <div className="space-y-1">
+          {FAILURE_TYPES.map((f) => (
+            <label
+              key={f.id}
+              className="flex items-start gap-2 p-2 rounded cursor-pointer"
+              style={{
+                background: failureType === f.id ? WB.panelHi : 'transparent',
+                border: `1px solid ${failureType === f.id ? WB.borderHi : 'transparent'}`,
+              }}
+            >
+              <input
+                type="radio"
+                checked={failureType === f.id}
+                onChange={() => setFailureType(f.id)}
+                className="mt-0.5"
+              />
+              <div>
+                <div className="text-sm font-fantasy" style={{ color: WB.text }}>
+                  {f.label}
+                </div>
+                <div className="text-[11px] leading-snug" style={{ color: WB.textDim }}>
+                  {f.description}
+                </div>
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: WB.textDim }}>
+          4. Which layer to change?
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {LAYER_ORDER.map((id) => {
+            const copy = ARCHETYPE_LAYERS[id];
+            const active = id === layer;
+            return (
+              <button
+                key={id}
+                onClick={() => setLayer(id)}
+                className="text-left rounded p-2 transition-all"
+                style={{
+                  background: active ? copy.accentBg : WB.bg,
+                  border: `2px solid ${active ? copy.color : WB.border}`,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
+                    style={{ background: copy.color, color: '#111' }}
+                  >
+                    {id}
+                  </span>
+                  <span className="font-fantasy font-bold text-sm" style={{ color: WB.text }}>
+                    {copy.name}
+                  </span>
+                </div>
+                <div className="text-[10px] italic mb-1" style={{ color: WB.textDim }}>
+                  {copy.tagline}
+                </div>
+                <div className="text-[10px] leading-snug" style={{ color: WB.textDim }}>
+                  <span style={{ color: WB.textMuted }}>Controls:</span> {copy.controls}
+                </div>
+                {active && (
+                  <div
+                    className="text-[10px] leading-snug mt-1 pt-1"
+                    style={{
+                      color: WB.textDim,
+                      borderTop: `1px dashed ${copy.accentBorder}`,
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: WB.textMuted }}>Affects:</span> {copy.affects}
+                    </div>
+                    <div className="mt-1">
+                      <span style={{ color: WB.textMuted }}>Change when:</span> {copy.changeWhen}
+                    </div>
+                    <div className="mt-1 italic">{copy.example(archetype)}</div>
+                    <div className="mt-1" style={{ color: WB.textMuted }}>
+                      Lives in: {copy.whereItLives}
+                    </div>
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <FormField
+          label="5. Keep — the one thing that must survive"
+          placeholder="e.g. The lycanthrope's identity token carrying across all three tiers."
+          value={keep}
+          onChange={setKeep}
+        />
+        <FormField
+          label="6. Change — what you want different"
+          placeholder="e.g. Add a Seraph-specific Forged/Ascendant block that scales wing count and halo intensity."
+          value={change}
+          onChange={setChange}
+        />
+        <FormField
+          label="7. Reject if — how we know we failed"
+          placeholder="e.g. If the Ascendant Seraph still shows the same wing count as the Foundation."
+          value={rejectIf}
+          onChange={setRejectIf}
+        />
+        <FormField
+          label="Notes (optional)"
+          placeholder="Anything else Claude should know."
+          value={notes}
+          onChange={setNotes}
+          optional
+        />
+        <FormField
+          label="Reference image URL (optional)"
+          placeholder="https://…"
+          value={referenceImageUrl}
+          onChange={setReferenceImageUrl}
+          optional
+        />
+      </div>
+
+      {error && (
+        <div
+          className="text-xs rounded p-2"
+          style={{
+            background: 'rgba(176, 106, 112, 0.15)',
+            color: '#f9d0d4',
+            border: '1px solid rgba(176, 106, 112, 0.4)',
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {success && (
+        <div
+          className="text-xs rounded p-2"
+          style={{
+            background: 'rgba(110, 163, 110, 0.15)',
+            color: '#c9f9d9',
+            border: '1px solid rgba(110, 163, 110, 0.4)',
+          }}
+        >
+          {success}
+        </div>
+      )}
+
+      <button
+        onClick={submit}
+        disabled={busy}
+        className="w-full py-2 rounded font-fantasy font-bold text-sm"
+        style={{
+          background: busy ? WB.panelHi : WB.accent,
+          color: '#111',
+          opacity: busy ? 0.6 : 1,
+        }}
+      >
+        {busy ? 'Filing…' : 'File proposal'}
+      </button>
+    </section>
+  );
+}
+
+function FormField({
+  label,
+  placeholder,
+  value,
+  onChange,
+  optional,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  optional?: boolean;
+}) {
+  return (
+    <label className="block">
+      <div className="text-[11px] uppercase tracking-widest mb-1" style={{ color: WB.textDim }}>
+        {label}
+        {optional && (
+          <span className="ml-1 normal-case italic" style={{ color: WB.textMuted }}>
+            optional
+          </span>
+        )}
+      </div>
+      <textarea
+        rows={2}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded px-2 py-1.5 text-sm resize-y"
+        style={{
+          background: WB.bg,
+          color: WB.text,
+          border: `1px solid ${WB.borderHi}`,
+        }}
+      />
+    </label>
+  );
+}
+
+// ─── Proposals list ──────────────────────────────────────────────────
+
+function ProposalsList({
+  proposals,
+  archetype,
+}: {
+  proposals: ArchetypeProposal[] | null;
+  archetype: ArchetypeName;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  return (
+    <section
+      className="rounded-lg p-3"
+      style={{ background: WB.panel, border: `1px solid ${WB.border}` }}
+    >
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: WB.textDim }}>
+          Recent {archetype} proposals
+        </h2>
+        <span className="text-[10px]" style={{ color: WB.textMuted }}>
+          {proposals === null ? 'loading…' : `${proposals.length} filed`}
+        </span>
+      </div>
+      {proposals && proposals.length === 0 && (
+        <div className="text-sm italic" style={{ color: WB.textMuted }}>
+          No proposals filed for {archetype} yet.
+        </div>
+      )}
+      {proposals && proposals.length > 0 && (
+        <ul className="space-y-1">
+          {proposals.map((p) => {
+            const isOpen = expandedId === p.id;
+            const layer = ARCHETYPE_LAYERS[p.layer];
+            const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
+            return (
+              <li
+                key={p.id}
+                className="rounded"
+                style={{
+                  background: WB.bg,
+                  border: `1px solid ${WB.border}`,
+                }}
+              >
+                <button
+                  onClick={() => setExpandedId(isOpen ? null : p.id)}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2"
+                >
+                  <span
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
+                    style={{ background: layer.color, color: '#111' }}
+                  >
+                    {p.layer}
+                  </span>
+                  <span className="text-xs truncate flex-1" style={{ color: WB.text }}>
+                    {failure?.label ?? p.failureType}
+                  </span>
+                  <span
+                    className="text-[9px] uppercase tracking-widest shrink-0 px-2 py-0.5 rounded"
+                    style={{
+                      color: WB.textDim,
+                      border: `1px solid ${WB.border}`,
+                    }}
+                  >
+                    {p.status}
+                  </span>
+                  <span className="text-[10px] shrink-0" style={{ color: WB.textMuted }}>
+                    {new Date(p.createdAt).toLocaleDateString()}
+                  </span>
+                </button>
+                {isOpen && (
+                  <div
+                    className="px-3 pb-3 space-y-2 text-xs"
+                    style={{ color: WB.textDim, borderTop: `1px solid ${WB.border}` }}
+                  >
+                    <ProposalField label="Keep" value={p.payload.keep} />
+                    <ProposalField label="Change" value={p.payload.change} />
+                    <ProposalField label="Reject if" value={p.payload.rejectIf} />
+                    {p.payload.notes && (
+                      <ProposalField label="Notes" value={p.payload.notes} />
+                    )}
+                    {p.payload.referenceImageUrl && (
+                      <div>
+                        <div style={{ color: WB.textMuted }}>Reference:</div>
+                        <a
+                          href={p.payload.referenceImageUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline break-all"
+                          style={{ color: WB.accent }}
+                        >
+                          {p.payload.referenceImageUrl}
+                        </a>
+                      </div>
+                    )}
+                    {p.payload.cardLineage && (
+                      <div>
+                        <div style={{ color: WB.textMuted }}>Card referenced:</div>
+                        <div className="font-mono text-[10px]">
+                          {p.payload.cardLineage.cardName} · {p.payload.cardLineage.cardId.slice(0, 8)}…
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function ProposalField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ color: WB.textMuted }}>{label}:</div>
+      <div>{value}</div>
+    </div>
+  );
+}
