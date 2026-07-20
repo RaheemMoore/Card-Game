@@ -40,13 +40,21 @@ export function AdminShell() {
     void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
   }, []);
 
-  if (guard === 'checking') return <div className="p-8 text-center text-bone/70">Checking access…</div>;
+  if (guard === 'checking') {
+    return (
+      <div className="min-h-dvh flex items-center justify-center" style={{ background: '#222131', color: '#abadbf' }}>
+        Checking access…
+      </div>
+    );
+  }
   if (guard === 'denied') return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-full">
-      {/* Opaque work surface so operational text stays legible over the
-          fantasy background. */}
+    // Full-viewport admin canvas. M1 gives it an opaque background so no
+    // player/fantasy chrome shows; M3 replaces this body with the Figma
+    // sidebar + workspace-header shell.
+    <div className="min-h-dvh" style={{ background: '#222131' }}>
+      {/* Opaque work surface. */}
       <div className="bg-void/85 border-b border-bone/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2">
           <h1 className="font-fantasy text-xl sm:text-2xl font-bold text-bone">Admin</h1>
