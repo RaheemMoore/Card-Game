@@ -50,6 +50,23 @@ const WB = {
   accent: '#b48eff',
 };
 
+const GITHUB_COMMIT_BASE = 'https://github.com/RaheemMoore/Card-Game/commit/';
+
+// Plain-text relative age ("3d ago") — no color-only urgency.
+function relativeAge(iso: string): string {
+  const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(d / 365)}y ago`;
+}
+
 // Guard + admin sub-nav are provided by AdminShell (parent Outlet).
 // This page just renders the workshop surface — opts out of the shell's
 // bg-void/80 backdrop by painting its own fully opaque workbench color
@@ -985,24 +1002,41 @@ function ProposalsList({
   proposals: ArchetypeProposal[] | null;
   archetype: ArchetypeName;
 }) {
+  const [searchParams] = useSearchParams();
+  const deepLinkId = searchParams.get('proposal');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   // Payloads are omitted from the list (P1: kept the list rows cheap).
   // Fetched on-demand when a row is expanded; cached here per proposal id.
   const [payloads, setPayloads] = useState<Record<string, ArchetypeProposalPayload | null>>({});
   const [payloadErrors, setPayloadErrors] = useState<Record<string, string>>({});
 
+  function fetchPayload(id: string) {
+    if (id in payloads || id in payloadErrors) return;
+    getArchetypeProposalPayload(id)
+      .then((p) => setPayloads((prev) => ({ ...prev, [id]: p })))
+      .catch((err) => {
+        const msg = (err as { message?: string })?.message ?? String(err);
+        setPayloadErrors((prev) => ({ ...prev, [id]: msg }));
+      });
+  }
+
   function togglePayload(id: string) {
     const nowOpen = expandedId !== id;
     setExpandedId(nowOpen ? id : null);
-    if (nowOpen && !(id in payloads)) {
-      getArchetypeProposalPayload(id)
-        .then((p) => setPayloads((prev) => ({ ...prev, [id]: p })))
-        .catch((err) => {
-          const msg = (err as { message?: string })?.message ?? String(err);
-          setPayloadErrors((prev) => ({ ...prev, [id]: msg }));
-        });
-    }
+    if (nowOpen) fetchPayload(id);
   }
+
+  // Deep-link support: /admin/workshop?...&proposal=<id> auto-expands that
+  // row once the proposals for this archetype have loaded (the archetype
+  // filter is already applied upstream via the ?archetype= param).
+  useEffect(() => {
+    if (!deepLinkId || !proposals) return;
+    if (!proposals.some((p) => p.id === deepLinkId)) return;
+    setExpandedId(deepLinkId);
+    fetchPayload(deepLinkId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId, proposals]);
+
   return (
     <section
       className="rounded-lg p-3"
@@ -1033,7 +1067,7 @@ function ProposalsList({
                 className="rounded"
                 style={{
                   background: WB.bg,
-                  border: `1px solid ${WB.border}`,
+                  border: `1px solid ${isOpen ? WB.borderHi : WB.border}`,
                 }}
               >
                 <button
@@ -1049,33 +1083,21 @@ function ProposalsList({
                   <span className="text-xs truncate flex-1" style={{ color: WB.text }}>
                     {failure?.label ?? p.failureType}
                   </span>
-                  <span
-                    className="text-[9px] uppercase tracking-widest shrink-0 px-2 py-0.5 rounded"
-                    style={{
-                      color: WB.textDim,
-                      border: `1px solid ${WB.border}`,
-                    }}
-                  >
-                    {p.status}
-                  </span>
+                  <OutcomeChip proposal={p} />
                   <span className="text-[10px] shrink-0" style={{ color: WB.textMuted }}>
                     {new Date(p.createdAt).toLocaleDateString()}
                   </span>
                 </button>
                 {isOpen && (
                   <div
-                    className="px-3 pb-3 space-y-2 text-xs"
+                    className="px-3 pb-3 text-xs"
                     style={{ color: WB.textDim, borderTop: `1px solid ${WB.border}` }}
                   >
-                    {payloadErrors[p.id] ? (
-                      <div style={{ color: '#f9d0d4' }}>Failed to load payload: {payloadErrors[p.id]}</div>
-                    ) : payloads[p.id] === undefined ? (
-                      <div style={{ color: WB.textMuted }}>Loading…</div>
-                    ) : payloads[p.id] === null ? (
-                      <div style={{ color: WB.textMuted }}>Payload not found (proposal may be deleted).</div>
-                    ) : (
-                      <ExpandedPayload payload={payloads[p.id]!} />
-                    )}
+                    <LifecycleTimeline
+                      proposal={p}
+                      payload={payloads[p.id]}
+                      payloadError={payloadErrors[p.id]}
+                    />
                   </div>
                 )}
               </li>
@@ -1087,36 +1109,215 @@ function ProposalsList({
   );
 }
 
-function ExpandedPayload({ payload }: { payload: ArchetypeProposalPayload }) {
+// Collapsed-row outcome chip. Surfaces the lifecycle result inline so a
+// reviewer scanning the list sees "shipped · a1b2c3d" / "rejected" /
+// "awaiting Claude · 3d ago" without expanding.
+function OutcomeChip({ proposal }: { proposal: ArchetypeProposal }) {
+  let text: string;
+  let border = WB.border;
+  let color = WB.textDim;
+  if (proposal.status === 'shipped') {
+    text = proposal.commitSha ? `shipped · ${proposal.commitSha.slice(0, 7)}` : 'shipped';
+    border = ARCHETYPE_LAYERS.C.accentBorder; // green-ish "done"
+    color = WB.text;
+  } else if (proposal.status === 'rejected') {
+    text = 'rejected';
+    border = ARCHETYPE_LAYERS.D.accentBorder; // red-ish
+  } else {
+    text = `awaiting Claude · ${relativeAge(proposal.createdAt)}`;
+  }
   return (
-    <>
-      <ProposalField label="Keep" value={payload.keep} />
-      <ProposalField label="Change" value={payload.change} />
-      <ProposalField label="Reject if" value={payload.rejectIf} />
-      {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
-      {payload.referenceImageUrl && (
-        <div>
-          <div style={{ color: WB.textMuted }}>Reference:</div>
+    <span
+      className="text-[9px] uppercase tracking-widest shrink-0 px-2 py-0.5 rounded"
+      style={{ color, border: `1px solid ${border}` }}
+    >
+      {text}
+    </span>
+  );
+}
+
+// Vertical lifecycle timeline for an expanded proposal. Completed steps are
+// solid with their timestamp + content; steps not yet reached are dimmed so
+// an open proposal visibly shows "what happens next".
+function LifecycleTimeline({
+  proposal,
+  payload,
+  payloadError,
+}: {
+  proposal: ArchetypeProposal;
+  payload: ArchetypeProposalPayload | null | undefined;
+  payloadError?: string;
+}) {
+  const [showText, setShowText] = useState(false);
+  const decided = proposal.status === 'shipped' || proposal.status === 'rejected';
+  const shipped = proposal.status === 'shipped';
+
+  // Proposal text (Keep/Change/Reject-if + extras). Inline before a decision;
+  // tucked behind a toggle once the proposal is decided so the timeline reads
+  // decision-first.
+  const proposalText =
+    payloadError !== undefined ? (
+      <div style={{ color: '#f9d0d4' }}>Failed to load payload: {payloadError}</div>
+    ) : payload === undefined ? (
+      <div style={{ color: WB.textMuted }}>Loading…</div>
+    ) : payload === null ? (
+      <div style={{ color: WB.textMuted }}>Payload not found (proposal may be deleted).</div>
+    ) : (
+      <div className="space-y-2 mt-1">
+        <ProposalField label="Keep" value={payload.keep} />
+        <ProposalField label="Change" value={payload.change} />
+        <ProposalField label="Reject if" value={payload.rejectIf} />
+        {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
+        {payload.referenceImageUrl && (
+          <div>
+            <div style={{ color: WB.textMuted }}>Reference:</div>
+            <a
+              href={payload.referenceImageUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="underline break-all"
+              style={{ color: WB.accent }}
+            >
+              {payload.referenceImageUrl}
+            </a>
+          </div>
+        )}
+        {payload.cardLineage && (
+          <div>
+            <div style={{ color: WB.textMuted }}>Card referenced:</div>
+            <div className="font-mono text-[10px]">
+              {payload.cardLineage.cardName} · {payload.cardLineage.cardId.slice(0, 8)}…
+            </div>
+          </div>
+        )}
+      </div>
+    );
+
+  return (
+    <ol className="mt-2 space-y-0">
+      <TimelineStep
+        label="Filed"
+        done
+        timestamp={new Date(proposal.createdAt).toLocaleString()}
+        last={false}
+      >
+        {decided ? (
+          <>
+            <button
+              onClick={() => setShowText((s) => !s)}
+              className="text-[10px] uppercase tracking-widest underline"
+              style={{ color: WB.accent }}
+            >
+              {showText ? 'Hide proposal text' : 'Proposal text'}
+            </button>
+            {showText && proposalText}
+          </>
+        ) : (
+          proposalText
+        )}
+      </TimelineStep>
+
+      <TimelineStep
+        label="Decided"
+        done={decided}
+        timestamp={proposal.decidedAt ? new Date(proposal.decidedAt).toLocaleString() : undefined}
+        last={false}
+      >
+        {decided ? (
+          <div className="mt-1">
+            <span style={{ color: WB.textMuted }}>
+              {shipped ? 'Approved' : 'Rejected'}
+              {proposal.decidedReason ? ':' : ''}
+            </span>{' '}
+            {proposal.decidedReason || <span className="italic">no reason recorded</span>}
+          </div>
+        ) : (
+          <div className="italic" style={{ color: WB.textMuted }}>
+            Waiting on Claude's decision (keep / change / reject).
+          </div>
+        )}
+      </TimelineStep>
+
+      <TimelineStep
+        label="Shipped"
+        done={shipped && !!proposal.commitSha}
+        last={false}
+      >
+        {shipped && proposal.commitSha ? (
           <a
-            href={payload.referenceImageUrl}
+            href={`${GITHUB_COMMIT_BASE}${proposal.commitSha}`}
             target="_blank"
             rel="noreferrer"
-            className="underline break-all"
+            className="font-mono text-[11px] underline"
             style={{ color: WB.accent }}
           >
-            {payload.referenceImageUrl}
+            {proposal.commitSha.slice(0, 7)}
           </a>
-        </div>
-      )}
-      {payload.cardLineage && (
-        <div>
-          <div style={{ color: WB.textMuted }}>Card referenced:</div>
-          <div className="font-mono text-[10px]">
-            {payload.cardLineage.cardName} · {payload.cardLineage.cardId.slice(0, 8)}…
+        ) : proposal.status === 'rejected' ? (
+          <div className="italic" style={{ color: WB.textMuted }}>
+            Not shipped — proposal was rejected.
           </div>
+        ) : (
+          <div className="italic" style={{ color: WB.textMuted }}>
+            Pending — no commit landed yet.
+          </div>
+        )}
+      </TimelineStep>
+
+      <TimelineStep label="Verified" done={false} last>
+        <div className="italic" style={{ color: WB.textMuted }}>
+          pending — no regen evidence attached
         </div>
-      )}
-    </>
+      </TimelineStep>
+    </ol>
+  );
+}
+
+function TimelineStep({
+  label,
+  done,
+  timestamp,
+  last,
+  children,
+}: {
+  label: string;
+  done: boolean;
+  timestamp?: string;
+  last: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-3" style={{ opacity: done ? 1 : 0.5 }}>
+      {/* Rail: dot + connector line */}
+      <div className="flex flex-col items-center shrink-0">
+        <span
+          className="w-2.5 h-2.5 rounded-full mt-1"
+          style={{
+            background: done ? WB.accent : 'transparent',
+            border: `1px solid ${done ? WB.accent : WB.borderHi}`,
+          }}
+        />
+        {!last && (
+          <span className="flex-1 w-px my-1" style={{ background: WB.border, minHeight: 12 }} />
+        )}
+      </div>
+      <div className="pb-3 flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span
+            className="text-[10px] uppercase tracking-widest font-bold"
+            style={{ color: done ? WB.text : WB.textMuted }}
+          >
+            {label}
+          </span>
+          {timestamp && (
+            <span className="text-[10px]" style={{ color: WB.textMuted }}>
+              {timestamp}
+            </span>
+          )}
+        </div>
+        {children}
+      </div>
+    </li>
   );
 }
 
