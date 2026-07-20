@@ -186,6 +186,14 @@ export interface BattleState {
   heroes: HeroCombatant[];
   boss: BossCombatant;
   phase: TurnPhase;
+  /**
+   * Hero actorIds that have not yet chosen an action this round. Populated
+   * after boss_intent_reveal with all living heroes in lane order. The head
+   * is the hero currently being asked for input. Emptied as each hero
+   * submits; when empty during resolving_reactions, control passes to the
+   * boss.
+   */
+  pendingActorIds: string[];
   log: BattleEvent[];
   result: BattleResult | null;
 }

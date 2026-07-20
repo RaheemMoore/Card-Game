@@ -1,57 +1,97 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useBattle } from '../../services/combat/useBattle';
 import type { Card } from '../../types/card';
+import { commit, refund, reserve } from '../../services/economy/walletService';
+import { GAMEPLAY_PRICE_CATALOG } from '../../data/economy/gameplayPriceCatalog';
 import { Picker } from './Picker';
-import { EncounterScreen } from './EncounterScreen';
+import { CombatViewport } from './CombatViewport';
 
 /**
- * Boss battle page — B4 vertical slice, Gate 7A visual pass.
+ * Boss battle route.
  *
- * Two stages:
- *   1. Picker (Picker.tsx) — pick a battle-ready hero card + an active boss.
- *   2. EncounterScreen (EncounterScreen.tsx) — Boss panel, Hero panel,
- *      Ability Command Strip rail with select-then-confirm, utility rail,
- *      event log, result modal.
+ *   /battle — Picker (renders inside the normal app shell)
+ *     → user picks 1..3 heroes + boss, we reserve the Gold entry cost
+ *   → CombatViewport (renders full-screen via createPortal, hiding the app
+ *     shell) drives the actual combat
  *
- * Combat reducer / useBattle / battleRewardService are untouched.
+ * Entry cost lifecycle unchanged from C8: reserve on Start, commit on
+ * useBattle success, refund on init failure, forfeit on defeat/abandon.
  */
+
+const ENTRY_PRICE = GAMEPLAY_PRICE_CATALOG.battle_run_entry;
+
 export function Battle() {
-  const [heroCard, setHeroCard] = useState<Card | null>(null);
+  const [party, setParty] = useState<Card[] | null>(null);
   const [bossId, setBossId] = useState<string | null>(null);
+  const [entryTxnId, setEntryTxnId] = useState<string | null>(null);
   const [seed, setSeed] = useState<number>(() => Math.floor(Math.random() * 1e9));
 
   const active = useMemo(
-    () =>
-      heroCard && bossId
-        ? { heroCardId: heroCard.cardId, heroCard, bossId, seed }
-        : null,
-    [heroCard, bossId, seed],
+    () => (party && bossId ? { heroCards: party, bossId, seed } : null),
+    [party, bossId, seed],
   );
   const battle = useBattle(active);
 
-  if (!heroCard || !bossId) {
+  const lastResolvedTxnId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!entryTxnId || entryTxnId === lastResolvedTxnId.current) return;
+    if (!active) return;
+    if (battle.state) {
+      commit(entryTxnId);
+      lastResolvedTxnId.current = entryTxnId;
+    } else if (battle.error) {
+      refund(entryTxnId, `battle_init_failed: ${battle.error}`);
+      lastResolvedTxnId.current = entryTxnId;
+    }
+  }, [entryTxnId, active, battle.state, battle.error]);
+
+  if (!party || !bossId) {
     return (
       <Picker
-        onPick={(card, boss) => {
-          setHeroCard(card);
+        onPick={(cards, boss, txnId) => {
+          setParty(cards);
           setBossId(boss);
+          setEntryTxnId(txnId);
+          lastResolvedTxnId.current = null;
         }}
       />
     );
   }
 
   return (
-    <EncounterScreen
+    <CombatViewport
       state={battle.state}
+      events={battle.events}
+      actingActorId={battle.actingActorId}
+      partyCards={party}
+      entryTxnId={entryTxnId}
       error={battle.error}
       onSubmit={battle.submit}
       onRestart={() => {
-        setSeed(Math.floor(Math.random() * 1e9));
-        battle.restart();
+        try {
+          const txn = reserve({
+            currency: 'gameplay',
+            amount: ENTRY_PRICE.gameplayCost,
+            actionId: ENTRY_PRICE.actionId,
+            metadata: {
+              partyCardIds: party.map((c) => c.cardId).join(','),
+              bossId,
+            },
+          });
+          setEntryTxnId(txn.transactionId);
+          lastResolvedTxnId.current = null;
+          setSeed(Math.floor(Math.random() * 1e9));
+          battle.restart();
+        } catch {
+          setParty(null);
+          setBossId(null);
+          setEntryTxnId(null);
+        }
       }}
       onExit={() => {
-        setHeroCard(null);
+        setParty(null);
         setBossId(null);
+        setEntryTxnId(null);
       }}
     />
   );

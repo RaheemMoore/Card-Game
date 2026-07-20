@@ -266,18 +266,24 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
 /** Build a full snapshot for the harness with a scripted seed. */
 export function buildBattleSnapshot(input: {
   seed: number;
-  hero: HeroSnapshot;
+  /** Convenience for solo battles. Ignored if `heroes` is provided. */
+  hero?: HeroSnapshot;
+  heroes?: HeroSnapshot[];
   boss?: BossSnapshot;
   battleId?: string;
   createdAt?: string;
 }): BattleSnapshot {
+  const heroes = input.heroes ?? (input.hero ? [input.hero] : []);
+  if (heroes.length === 0) {
+    throw new Error('buildBattleSnapshot requires at least one hero.');
+  }
   return {
     battleId: input.battleId ?? `battle_${input.seed}`,
     createdAt: input.createdAt ?? '2026-07-18T00:00:00.000Z',
     seed: input.seed,
     difficulty: 'normal',
     rewardTableVersion: 'rtv_dev',
-    heroes: [input.hero],
+    heroes,
     boss: input.boss ?? buildFireElementalBossSnapshot(),
   };
 }

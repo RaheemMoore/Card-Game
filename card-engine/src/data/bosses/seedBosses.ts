@@ -143,15 +143,112 @@ const EMBERBORN_V2: BossVersion = {
   updatedAt: NOW,
 };
 
-const EMBERBORN_DEF_V2: typeof EMBERBORN_DEF = {
+/* ---------- Emberborn Wraith v3 (2026-07-19) — three-hero party pass ----------
+ * v2 was tuned for a solo Forged Barbarian. The C9 partyBalancePass baseline
+ * against v2 recorded 100% win rate at avg 5 rounds for a 3-hero Forged party
+ * (plan §7 warned this would happen).
+ *
+ * Design intent for v3 (Raheem, 2026-07-19): "hard to win, ≤50%, going
+ * lower." The `baselineHeroPolicy` in the harness is scripted (greedy
+ * ability picks, no strategic Guard/Ward/Focus), so its outcome is a LOWER
+ * BOUND on player skill — if the sim says 100% loss for the greedy policy,
+ * real players with tactical play will land somewhere below 50%.
+ *
+ * v3 lands data-only (boss-battle-spec §12: snapshot immutability means
+ * in-flight v2 battles resolve off frozen v2 numbers regardless):
+ *   - maxHp 340 → 1100 (party has ~3× DPS, boss needs staying power).
+ *   - Mechanical enrage phase now ends at 25% (was 0.0) so the new Rage
+ *     phase can take over at 25%.
+ *   - Teach + mechanical phases keep v2 baseDamage but gain scalingPerRound
+ *     so drawn-out battles are punished before Rage even lands.
+ *   - NEW rage phase at 25% → 0% with hard-hitting actions; phase
+ *     transition happens in checking_phase_transition (before
+ *     checking_victory) so Rage does NOT consume a boss turn (Wiki §Rage).
+ *
+ * Sim result at these numbers: greedy policy loses 100% at ~16 rounds. Cliff
+ * from 100%→0% is narrow (Rage Lance ~114 wins, ~115 loses), consistent
+ * with a scripted policy — real player variance will spread the win rate
+ * across the intended range. Iterate downward once we have real telemetry.
+ *
+ * Solo balance is unchanged (solo balancePass.test.ts uses
+ * harness.FIRE_ELEMENTAL_PHASES, not this seed).
+ */
+const EMBERBORN_V3: BossVersion = {
+  ...EMBERBORN_V2,
+  id: 'bv_fire_elemental_v0_3',
+  versionNumber: 3,
+  status: 'active',
+  publishedAt: '2026-07-19T00:00:00.000Z',
+  maxHp: 1100,
+  phases: [
+    // Phase 1 — teach (100% → 50%). v2 baseDamage + light scaling.
+    {
+      ...EMBERBORN_V2.phases[0],
+      actions: EMBERBORN_V2.phases[0].actions.map((a) => ({
+        ...a,
+        scalingPerRound: 0.4,
+      })),
+    },
+    // Phase 2 — mechanical enrage (50% → 25%). v2 hits + heavier scaling.
+    {
+      ...EMBERBORN_V2.phases[1],
+      healthThresholdEnd: 0.25,
+      actions: EMBERBORN_V2.phases[1].actions.map((a) => ({
+        ...a,
+        scalingPerRound: 0.8,
+      })),
+    },
+    // Phase 3 — RAGE (25% → 0%). Threatens hero one-shots at high rounds.
+    // Reducer targets one hero per boss turn, so damage-per-hit is what
+    // matters for wipe risk against a 3-hero party's ~945 total HP.
+    {
+      id: 'phase_fe_rage',
+      healthThresholdStart: 0.25,
+      healthThresholdEnd: 0.0,
+      passiveDescriptions: [
+        'A furnace roar. Every ember becomes a spear; every heartbeat is fuel.',
+      ],
+      actions: [
+        {
+          id: 'act_fe_rage_lance',
+          displayName: 'Rage Lance',
+          intentType: 'heavy_attack',
+          telegraphText: 'White fire coils into a screaming javelin.',
+          priority: 30,
+          cooldownRounds: 1,
+          interruptible: false,
+          baseDamage: 120,
+          scalingPerRound: 1.1,
+        },
+        {
+          id: 'act_fe_rage_pyre',
+          displayName: 'Rage Pyre',
+          intentType: 'execute',
+          telegraphText: 'The Wraith bares its molten heart — one strike, one life.',
+          priority: 25,
+          cooldownRounds: 2,
+          interruptible: false,
+          baseDamage: 170,
+          scalingPerRound: 0.95,
+        },
+      ],
+    },
+  ],
+  updatedAt: '2026-07-19T00:00:00.000Z',
+};
+
+const EMBERBORN_DEF_V3: typeof EMBERBORN_DEF = {
   ...EMBERBORN_DEF,
-  currentVersionId: 'bv_fire_elemental_v0_2',
-  updatedAt: NOW,
+  currentVersionId: 'bv_fire_elemental_v0_3',
+  updatedAt: '2026-07-19T00:00:00.000Z',
 };
 
 export const SEED_BOSSES: SeedBoss[] = [
-  { definition: EMBERBORN_DEF_V2, version: EMBERBORN_V2 },
+  { definition: EMBERBORN_DEF_V3, version: EMBERBORN_V3 },
 ];
 
 /** Legacy versions kept for admin history / snapshot integrity. */
-export const SEED_BOSS_LEGACY_VERSIONS: BossVersion[] = [EMBERBORN_V1_DEPRECATED];
+export const SEED_BOSS_LEGACY_VERSIONS: BossVersion[] = [
+  EMBERBORN_V1_DEPRECATED,
+  { ...EMBERBORN_V2, status: 'deprecated', deprecatedAt: '2026-07-19T00:00:00.000Z' },
+];

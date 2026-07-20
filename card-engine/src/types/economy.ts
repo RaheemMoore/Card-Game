@@ -10,6 +10,7 @@ export type PaidActionId = typeof PAID_ACTION_IDS[number];
 
 export const GAMEPLAY_ACTION_IDS = [
   'stat_reroll',
+  'battle_run_entry',
 ] as const;
 export type GameplayActionId = typeof GAMEPLAY_ACTION_IDS[number];
 

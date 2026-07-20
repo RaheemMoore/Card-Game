@@ -31,6 +31,13 @@ export interface GrantBattleRewardInput {
   bossId: string;
   outcome: 'victory' | 'defeat' | 'abandoned';
   roundsElapsed: number;
+  /**
+   * Ledger transactionId of the Gold entry cost paid to start this battle.
+   * When present, it's mirrored into every reward row's metadata so
+   * analytics can join entry → reward 1:1. Optional — historical battles
+   * pre-C8 have no entry cost.
+   */
+  entryTxnId?: string;
 }
 
 /**
@@ -82,6 +89,7 @@ export function grantBattleReward(input: GrantBattleRewardInput): BattleRewardOu
         bossId: input.bossId,
         roundsElapsed: input.roundsElapsed,
         tier,
+        ...(input.entryTxnId ? { entryTxnId: input.entryTxnId } : {}),
       },
     });
     return { currency: item.currency, amount: item.amount, transactionId: txn.transactionId };
