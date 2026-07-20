@@ -19,14 +19,14 @@ interface Props {
  * (file 9IIvc01ts7LZJ0RaCMGanf, nodes 22:39 + 22:76). Do not fork.
  */
 export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
+  // `currentBeat` is intentionally unused here — P1 pulled the wind-up
+  // shadow pulse from the intent panel per Raheem 2026-07-20 (no screen
+  // motion). Kept in props so the component API stays stable for a later
+  // "minimal animation" pass.
+  void currentBeat;
   const hpPct = Math.max(0, boss.hp / boss.snapshot.maxHp);
   const phaseLabel = boss.currentPhaseId.replace(/^phase_fe_/, '').toUpperCase();
   const isRage = phaseLabel === 'RAGE';
-  const isWindingUp =
-    currentBeat?.event.kind === 'boss_intent_declared' &&
-    ['heavy_attack', 'area_attack', 'ultimate', 'execute'].includes(
-      currentBeat.event.intent.intentType,
-    );
 
   const RAGE_THRESHOLD = 0.25;
   const rageFillPct = Math.max(
@@ -223,15 +223,7 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
       {/* Intent panel — 360×112, attached below with matching visual language */}
       {intent && (
         <div style={{ marginTop: 6 }}>
-          <CombatFrame
-            preset="intent"
-            style={{
-              height: 112,
-              ...(isWindingUp
-                ? { boxShadow: '0px 6px 20px rgba(255,120,40,0.5)' }
-                : {}),
-            }}
-          >
+          <CombatFrame preset="intent" style={{ height: 112 }}>
             {/* Small diamond gem accent — Figma left corner at y=33 */}
             <div
               aria-hidden
@@ -260,7 +252,7 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
                 fontFamily: 'Inter, system-ui, sans-serif',
               }}
             >
-              {isWindingUp ? 'WINDING UP' : 'INTENT'}
+              INTENT
             </div>
 
             {/* Big label centered vertically */}

@@ -3,6 +3,8 @@ import { CombatFrame } from './CombatFrame';
 
 interface Props {
   canAct: boolean;
+  /** Heroes still owing a command this round. Used to size the End Turn stroke. */
+  pendingCount?: number;
   onExit: () => void;
   onSubmit: (action: PlayerAction) => void;
 }
@@ -16,7 +18,20 @@ interface Props {
  * (a full-width shelf frame using preset="commandShelf"). This component
  * places the utility tray on the left and the End Turn on the right.
  */
-export function BattleControls({ canAct, onExit, onSubmit }: Props) {
+export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit }: Props) {
+  // End Turn = "every remaining hero guards + boss goes." Submitting once per
+  // pending hero cycles the party through in one click so users don't have to
+  // hunt the End Turn button for each hero individually.
+  const endParty = () => {
+    if (!canAct) return;
+    const n = Math.max(1, pendingCount);
+    for (let i = 0; i < n; i++) onSubmit({ kind: 'guard' });
+  };
+  const endLabel = pendingCount > 1 ? `END PARTY TURN (${pendingCount})` : 'END TURN';
+  const endAria =
+    pendingCount > 1
+      ? `End party turn — guards all ${pendingCount} remaining heroes and lets the boss act`
+      : 'End turn — guards this hero and lets the boss act';
   return (
     <div
       className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-6"
@@ -43,14 +58,16 @@ export function BattleControls({ canAct, onExit, onSubmit }: Props) {
         />
       </div>
 
-      {/* End Turn button — Figma 18:65: gradient border 2px #eb962e, 190×58 */}
+      {/* End Turn button — Figma 18:65: gradient border 2px #eb962e, 190×58.
+          P1: one click ends the whole party turn (all pending heroes guard).
+          Label + aria communicate that so users don't have to guess. */}
       <button
         type="button"
-        onClick={() => canAct && onSubmit({ kind: 'guard' })}
+        onClick={endParty}
         disabled={!canAct}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
         style={{
-          width: 190,
+          width: 210,
           height: 58,
           borderRadius: 6,
           border: '2px solid #eb962e',
@@ -58,17 +75,18 @@ export function BattleControls({ canAct, onExit, onSubmit }: Props) {
             ? 'linear-gradient(to right, #592b09, #1a1412)'
             : 'linear-gradient(to right, #2a1608, #150c0e)',
           color: '#ffdb94',
-          fontSize: 18,
+          fontSize: pendingCount > 1 ? 13 : 18,
           fontWeight: 600,
-          letterSpacing: 1.8,
+          letterSpacing: 1.6,
           fontFamily: 'Inter, system-ui, sans-serif',
           cursor: canAct ? 'pointer' : 'not-allowed',
           boxShadow: canAct ? '0 0 22px rgba(235,150,46,0.35)' : 'none',
           transition: 'box-shadow 200ms, opacity 200ms',
         }}
-        aria-label="End turn"
+        aria-label={endAria}
+        title={endAria}
       >
-        END TURN
+        {endLabel}
       </button>
     </div>
   );

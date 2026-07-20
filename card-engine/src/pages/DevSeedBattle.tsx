@@ -68,6 +68,21 @@ function slugId(name: string): string {
   return 'test_' + name.toLowerCase().replace(/\s+/g, '_');
 }
 
+function ensureReference(cardId: string, spec: SeedSpec) {
+  const existing = abilityRegistry.getReferencesForCard(cardId);
+  if (existing.some((r) => r.abilityId === spec.abilityId)) return;
+  const abilityDef = SEED_ABILITIES.find((s) => s.definition.id === spec.abilityId);
+  if (!abilityDef) return;
+  abilityRegistry.saveReference({
+    cardId,
+    abilityId: spec.abilityId,
+    abilityVersionId: abilityDef.version.id,
+    slotType: spec.slot,
+    localTier: 'Forged',
+    displayOrder: 0,
+  });
+}
+
 function seedCards(): { seeded: number; existing: number } {
   const existingIds = new Set(getAllCards().map((c) => c.cardId));
   let seeded = 0;
@@ -76,6 +91,9 @@ function seedCards(): { seeded: number; existing: number } {
   for (const spec of SEED_PARTY) {
     const cardId = slugId(spec.name);
     if (existingIds.has(cardId)) {
+      // Card exists but its ability reference may not — heal that here so
+      // the Picker's "battle-ready" filter never orphans a seeded card.
+      ensureReference(cardId, spec);
       existing += 1;
       continue;
     }

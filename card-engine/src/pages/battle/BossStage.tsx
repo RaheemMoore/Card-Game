@@ -40,13 +40,15 @@ export function BossStage({ boss, currentBeat }: Props) {
     <div
       className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
       style={{
-        top: '2%',
+        // P1: dropped from 2% → 10% so the sprite's feet land on the pixel
+        // arena's central dais (candidate-4 dais sits at ~55% down the arena).
+        top: '10%',
         pointerEvents: 'none',
       }}
     >
       <div
         key={shakeKey}
-        className={`boss-stage-sprite relative ${isWindingUp ? 'boss-stage-windup' : ''}`}
+        className="boss-stage-sprite relative"
         style={{
           width: 'clamp(320px, 34vw, 460px)',
           height: 'clamp(380px, 44vh, 560px)',
@@ -57,8 +59,17 @@ export function BossStage({ boss, currentBeat }: Props) {
           <img
             src={spriteUrl}
             alt={boss.snapshot.name}
-            className="w-full h-full object-contain drop-shadow-[0_18px_18px_rgba(0,0,0,0.85)]"
-            style={{ imageRendering: 'auto' }}
+            className="w-full h-full object-contain"
+            // P1: stack a warm ember rim-light on top of the existing dark
+            // ground drop-shadow so the sprite reads as lit by the lava veins,
+            // not pasted onto the arena.
+            style={{
+              imageRendering: 'auto',
+              filter:
+                'brightness(0.96) saturate(1.08) ' +
+                'drop-shadow(0 18px 18px rgba(0,0,0,0.85)) ' +
+                'drop-shadow(0 0 24px rgba(255,110,40,0.30))',
+            }}
             draggable={false}
           />
         ) : (
@@ -75,46 +86,45 @@ export function BossStage({ boss, currentBeat }: Props) {
         {/* Floating damage lives at boss center */}
         <FloatingDamage currentBeat={currentBeat} actorId={boss.actorId} />
       </div>
-      {/* Ground shadow — sits directly beneath the boss's feet */}
+      {/* Ground shadow — tighter contact ellipse with a warm ember bleed so
+          the sprite reads as physically standing on the lava-veined dais
+          instead of floating over a neutral grey shadow. */}
       <div
         aria-hidden
-        className="rounded-full mt-[-30px]"
+        className="rounded-full mt-[-40px]"
         style={{
-          width: 'clamp(260px, 28vw, 360px)',
-          height: 'clamp(36px, 5vh, 54px)',
+          width: 'clamp(200px, 22vw, 300px)',
+          height: 'clamp(30px, 4.2vh, 46px)',
           background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,0) 78%)',
+            'radial-gradient(ellipse at center, ' +
+              'rgba(0,0,0,0.95) 0%, ' +
+              'rgba(80,20,10,0.55) 42%, ' +
+              'rgba(255,120,40,0.18) 72%, ' +
+              'rgba(255,120,40,0) 92%)',
         }}
       />
 
       <style>{`
-        @keyframes boss-stage-bob {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-6px); }
-        }
+        /* Boss is anchored to the pedestal. No idle bob, no wind-up pulse,
+           no zoom, no drift. The only motion is a brief violent shake on hit
+           (fires when shakeKey changes) so damage feels impactful without
+           breaking the sense that the boss is physically standing on the
+           dais. Filters (brightness / drop-shadow) stay inside translate
+           range so the sprite never appears to scale. */
         @keyframes boss-stage-hit-shake {
           0%   { transform: translate(0, 0); }
-          15%  { transform: translate(-6px, 2px); filter: brightness(1.5); }
-          30%  { transform: translate(6px, -2px); filter: brightness(1.5); }
+          15%  { transform: translate(-5px, 1px); filter: brightness(1.4); }
+          30%  { transform: translate(5px, -1px); filter: brightness(1.4); }
           45%  { transform: translate(-3px, 0); }
           60%  { transform: translate(3px, 0); }
-          75%  { transform: translate(-1px, 1px); }
+          75%  { transform: translate(-1px, 0); }
           100% { transform: translate(0, 0); filter: brightness(1); }
         }
-        @keyframes boss-stage-windup {
-          0%, 100% { filter: brightness(1); }
-          50%      { filter: brightness(1.35) drop-shadow(0 0 32px rgba(255,120,40,0.7)); }
-        }
         .boss-stage-sprite {
-          animation: boss-stage-bob 3.5s ease-in-out infinite, boss-stage-hit-shake 0.4s ease-out;
-        }
-        .boss-stage-sprite.boss-stage-windup {
-          animation: boss-stage-bob 3.5s ease-in-out infinite, boss-stage-windup 1.1s ease-in-out infinite;
+          animation: boss-stage-hit-shake 0.35s ease-out;
         }
         @media (prefers-reduced-motion: reduce) {
-          .boss-stage-sprite, .boss-stage-sprite.boss-stage-windup {
-            animation: none !important;
-          }
+          .boss-stage-sprite { animation: none !important; }
         }
       `}</style>
     </div>

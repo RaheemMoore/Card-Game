@@ -81,10 +81,17 @@ export function CombatViewport({
       role="dialog"
       aria-modal="true"
     >
-      {/* Two-column grid on desktop; stacked on mobile. */}
+      {/* Two-column grid on desktop; stacked on mobile.
+          `min-h-0` on both children is critical — without it CSS Grid's
+          default `min-height: auto` lets the intrinsic content of an item
+          push the `1fr` row past the container height. Once we cross that,
+          the Arena column balloons (observed 2280px in an 800px viewport),
+          the CombatScene's absolute children anchor to a bloated containing
+          block, and hero lanes end up rendered 1000px below the viewport
+          bottom. min-h-0 pins the row to the container. */}
       <div className="grid h-full combat-grid">
         {/* Arena column */}
-        <div className="relative overflow-hidden">
+        <div className="relative overflow-hidden min-h-0 h-full">
           {error ? (
             <ErrorPanel error={error} onExit={onExit} />
           ) : !state ? (
@@ -122,12 +129,17 @@ export function CombatViewport({
       <style>{`
         .combat-grid {
           grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
-          grid-template-rows: 1fr;
+          grid-template-rows: minmax(0, 1fr);
         }
+        .combat-grid > * { min-height: 0; }
         @media (max-width: 900px) {
           .combat-grid {
             grid-template-columns: 1fr;
-            grid-template-rows: 1fr auto;
+            /* Arena keeps at least 60dvh so the scene is readable; journal
+               scrolls in its own row below. minmax pins both tracks so the
+               absolute-positioned CombatScene children do not inflate the
+               row past its allotment. */
+            grid-template-rows: minmax(60dvh, 1fr) minmax(0, 320px);
             overflow-y: auto;
           }
         }

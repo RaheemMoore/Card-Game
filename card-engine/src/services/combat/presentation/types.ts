@@ -26,15 +26,20 @@ export interface AnimationBeat {
   cue: BeatCue;
 }
 
-/** C1 timing targets — Combat Wiki §Pacing. Single source of truth. */
+/**
+ * Timing targets. C1 shipped the Combat Wiki §Pacing numbers; P1 (2026-07-20,
+ * Raheem direct ask) tightens the mid-turn beats — floats, narration, intent,
+ * normal wind-up — so party-guard turns don't feel like they've stalled.
+ * Heavy/ultimate/phase beats keep their dramatic hold because they earn it.
+ */
 export const TIMINGS = {
-  narration: 200,
-  intent: 800,
-  windUpNormal: 400,
+  narration: 120,
+  intent: 550,
+  windUpNormal: 250,
   windUpHeavy: 900,
-  impact: 500,
-  floating: 800,
-  handoff: 500,
+  impact: 400,
+  floating: 350,
+  handoff: 300,
   phase: 1500,
   ultimate: 3000,
 } as const;

@@ -58,12 +58,20 @@ export function CombatScene({
             : { background: 'radial-gradient(ellipse at 50% 30%, #3a1c14 0%, #0a0508 70%)' }
         }
       />
-      {/* Layer 2 — subtle atmosphere */}
+      {/* Layer 2 — subtle atmosphere. Top stays cool-dark for HUD legibility;
+          bottom biases warm ember to match the pixel arena's lava veins so
+          the foreground reads as illuminated by the arena, not fading to
+          neutral black. */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to bottom, rgba(5,3,8,0.55) 0%, rgba(5,3,8,0.1) 22%, rgba(5,3,8,0) 55%, rgba(5,3,8,0.35) 82%, rgba(5,3,8,0.75) 100%)',
+            'linear-gradient(to bottom, ' +
+              'rgba(5,3,8,0.55) 0%, ' +
+              'rgba(5,3,8,0.10) 22%, ' +
+              'rgba(5,3,8,0.00) 55%, ' +
+              'rgba(60,18,8,0.30) 82%, ' +
+              'rgba(80,20,10,0.60) 100%)',
         }}
       />
 
@@ -164,8 +172,14 @@ export function CombatScene({
         onSubmit={onSubmit}
       />
 
-      {/* Battle controls (inside shelf) */}
-      <BattleControls onExit={onExit} onSubmit={onSubmit} canAct={canAct} />
+      {/* Battle controls (inside shelf). pendingCount = heroes still owing a
+          command this round; End Party Turn cycles through them in one click. */}
+      <BattleControls
+        onExit={onExit}
+        onSubmit={onSubmit}
+        canAct={canAct}
+        pendingCount={state.pendingActorIds.length}
+      />
     </div>
   );
 }

@@ -14,8 +14,13 @@ export const ARENA_MANIFEST: ArenaManifest = {
     path: 'arenas/forbidden-mountain-passage/base.png',
     dimensions: { width: 1360, height: 768 },
     approvalStatus: 'approved',
-    promptVersion: 'c6.v1',
-    notes: 'Leonardo Phoenix 1.0, seed=987654 (candidate-2). Approved by Raheem 2026-07-19. Losing candidate-1 kept on disk.',
+    promptVersion: 'p1.v1',
+    notes:
+      'Leonardo Phoenix 1.0 pixel-art pass (p1-candidate-4, seed=45ba9e9d job). ' +
+      'Approved by Raheem 2026-07-20. Flat circular dais, gothic pilasters, ' +
+      'lava-web floor, dark HUD-safe sky. Supersedes the C6 painted asset, ' +
+      'archived at arenas/forbidden-mountain-passage/legacy-c6-painted.png. ' +
+      'Losing p1-candidate-{1,2,3,5}.png kept on disk for reference.',
   },
 };
 
