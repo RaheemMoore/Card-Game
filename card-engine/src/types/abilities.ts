@@ -454,6 +454,12 @@ export interface AbilityVersion {
   publishedAt?: string;
   deprecatedAt?: string;
   status: AbilityVersionStatus;
+  /**
+   * Seraph corruption arc (P8) — marks a Balanced-Seraph dual-cast ability.
+   * Combat resolution of the dual-cast is a follow-up; this flag only records
+   * the intent so the data model is ready. Not yet consumed by the reducer.
+   */
+  hasTwilightMode?: boolean;
 }
 
 export interface AbilityFamily {

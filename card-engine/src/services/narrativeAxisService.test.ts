@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { computeAlignment } from './narrativeAxisService';
+import { computeAlignment, resistFall } from './narrativeAxisService';
 import { SERAPH_ALIGNMENT } from '../data/narrativeAxes';
 import type { StoryPillarAnswers } from '../types/bible';
+import type { NarrativeAxisState } from '../types/card';
 
 function answers(...optionIds: string[]): StoryPillarAnswers {
   return {
@@ -48,5 +49,34 @@ describe('computeAlignment (Seraph alignment axis)', () => {
       SERAPH_ALIGNMENT,
     );
     expect(result).toBeNull();
+  });
+});
+
+describe('resistFall', () => {
+  const axis = (score: number, path: string): NarrativeAxisState => ({
+    axisId: 'seraph_alignment',
+    score,
+    path,
+    resolvedAtRank: 'Forged',
+  });
+
+  it('shifts a Fallen score one step toward center and flags resistedFall', () => {
+    const result = resistFall(axis(-3, 'fallen'), SERAPH_ALIGNMENT, 'Ascendant');
+    expect(result.score).toBe(-2);
+    expect(result.path).toBe('fallen');
+    expect(result.resistedFall).toBe(true);
+    expect(result.resolvedAtRank).toBe('Ascendant');
+  });
+
+  it('moves off the Fallen band when the step reaches 0', () => {
+    const result = resistFall(axis(-1, 'fallen'), SERAPH_ALIGNMENT, 'Forged');
+    expect(result.score).toBe(0);
+    expect(result.path).toBe('balanced');
+  });
+
+  it('does not overshoot past center', () => {
+    const result = resistFall(axis(1, 'good'), SERAPH_ALIGNMENT, 'Forged');
+    expect(result.score).toBe(0);
+    expect(result.path).toBe('balanced');
   });
 });
