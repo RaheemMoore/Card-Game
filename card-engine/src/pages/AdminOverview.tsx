@@ -86,9 +86,9 @@ export function AdminOverview() {
           .select('id', { count: 'exact', head: true })
           .in('disposition', ACTIONABLE_DISPOSITIONS),
         supabase
-          .from('prompt_change_proposals')
+          .from('archetype_proposals')
           .select('id', { count: 'exact', head: true })
-          .in('status', ['draft', 'evidence_ready', 'awaiting_raheem']),
+          .in('status', ['submitted', 'awaiting_claude']),
       ]);
       setPending({
         actionableJudgments: judgeCount ?? 0,
@@ -104,7 +104,7 @@ export function AdminOverview() {
         body={
           'Snapshot of what most needs attention. Provider funds shows live token balance for Leonardo (from /me) and a "unavailable" line for Anthropic (admin API not on our plan). ' +
           'The Users/Cards/Ability review/Prompt review tiles are direct links to their respective admin pages with the live count. ' +
-          'The "Awaiting review" banner appears when judgments are flagged for action or when there are non-terminal change proposals — click through to /admin/prompt-lab or /admin/proposals to work them down. ' +
+          'The "Awaiting review" banner appears when judgments are flagged for action or when there are open Archetype Workshop proposals — click through to /admin/prompt-lab or /admin/workshop to work them down. ' +
           'System diagnostics is collapsed by default; expand it for the low-value aggregate totals that used to live above the fold.'
         }
       />
@@ -124,8 +124,8 @@ export function AdminOverview() {
             </Link>
           )}
           {pending.openProposals > 0 && (
-            <Link to="/admin/proposals" className="underline hover:text-bone">
-              {pending.openProposals} open proposal{pending.openProposals === 1 ? '' : 's'}
+            <Link to="/admin/workshop" className="underline hover:text-bone">
+              {pending.openProposals} open workshop proposal{pending.openProposals === 1 ? '' : 's'}
             </Link>
           )}
         </div>

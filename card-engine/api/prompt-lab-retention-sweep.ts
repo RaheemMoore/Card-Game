@@ -44,9 +44,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const nowIso = new Date().toISOString();
-  // TODO: once prompt_change_proposals lands (Phase 6), skip runs whose
-  // ids are referenced by an active proposal — plan §7 requires the
-  // retention job to flag those conflicts rather than silently deleting.
   const { data: rows, error: selectErr } = await admin
     .from('prompt_test_runs')
     .select('id, output_object_path, thumb_object_path')
