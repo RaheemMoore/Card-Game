@@ -60,21 +60,24 @@ that still goes through the normal branch → PR → console-approval path.
 5. **Verify** per `.claude/verify/card-engine.sh` if the change has a
    runtime surface (portrait/prompt/renderer).
 
-6. **Prove the change worked (the approval gate).** A proposal CANNOT be
-   parked for approval without both of these — the console's "Send for
-   approval" button is disabled and the database RLS rejects the status
-   change otherwise:
-   - **Before/after image.** Run regen verify from the Workshop "Verified"
-     step (Lab-sourced proposals reproduce the Lab run; card-sourced
-     proposals compare the card's current portrait against a fresh regen).
-     Confirm the after genuinely improves on the before and mark the
-     verdict **pass**. If it doesn't improve, the change isn't done —
-     iterate on the actual fix; do not force a pass.
-   - **Per-layer change summary.** Write a short bulleted summary of what
-     changed in each touched layer (A Canon / B Rank & Stat Visuals /
-     C Story Pillars & Elements / D Meta-Prompt & Escalation) via
-     `attachProposalChangeSummary(id, layerChanges)`. One entry per layer
-     you actually changed; leave untouched layers out.
+6. **Prove the change worked (the approval gate).** Two requirements, one
+   always and one conditional. The console's "Send for approval" button is
+   disabled and the database RLS rejects the status change until they're met.
+   - **Per-layer change summary (ALWAYS).** Write a short bulleted summary of
+     what changed in each touched layer (A Canon / B Rank & Stat Visuals /
+     C Story Pillars & Elements / D Meta-Prompt & Escalation) and record it
+     with `attachProposalChangeSummary(id, layerChanges, { affectsImage })`.
+     One entry per layer you actually changed; leave untouched layers out.
+   - **Set `affectsImage` honestly.** True only if the change touches the
+     PORTRAIT (art prompt, modifiers, meta-prompt / escalation, or any Layer
+     B/D visual). A pure lore change (canon text, story pillars) is `false`.
+   - **Before/after image (ONLY if `affectsImage`).** For image changes, run
+     regen verify from the Workshop "Verified" step — it spends ONE Leonardo
+     image (a single "after" at the card's current tier; the "before" reuses
+     existing art). Confirm the after genuinely improves on the before and
+     mark the verdict **pass**. If it doesn't improve, the change isn't done —
+     iterate on the actual fix; never force a pass. **Do NOT run verify for
+     lore-only proposals** — it wastes credits and isn't required.
 
 7. **Park it — do NOT ship.**
    - Push the branch and open a **draft** PR. Put the commit SHA and a

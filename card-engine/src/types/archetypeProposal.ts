@@ -92,6 +92,15 @@ export interface ArchetypeProposalPayload {
    * `change` (the original request) and `layerSnapshot` (the pre-change state).
    */
   layerChanges?: LayerChange[];
+  /**
+   * Whether this proposal changes the PORTRAIT (art prompt / visual layers),
+   * set during the /work-proposal flow. Lore-only changes (canon text, story
+   * pillars) leave this false/undefined and need no before/after image — the
+   * per-layer summary alone gates them. Image-affecting changes must show a
+   * passing before/after regen. Keeps Leonardo spend to only the proposals
+   * that actually touch the image (one generation per verify run).
+   */
+  affectsImage?: boolean;
 }
 
 export interface LayerChange {

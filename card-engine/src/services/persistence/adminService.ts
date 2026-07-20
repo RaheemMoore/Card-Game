@@ -387,11 +387,13 @@ export async function setUserRole(
 export async function attachProposalChangeSummary(
   id: string,
   layerChanges: LayerChange[],
+  opts?: { affectsImage?: boolean },
 ): Promise<void> {
   const payload = await getArchetypeProposalPayload(id);
   if (!payload) throw new Error('Proposal payload not found');
   const cleaned = layerChanges.filter((c) => c.summary.trim().length > 0);
   const next: ArchetypeProposalPayload = { ...payload, layerChanges: cleaned };
+  if (opts?.affectsImage !== undefined) next.affectsImage = opts.affectsImage;
   const { error } = await client()
     .from('archetype_proposals')
     .update({ payload: next })
@@ -412,16 +414,19 @@ export function checkApprovalReadiness(
   payload: ArchetypeProposalPayload | null | undefined,
 ): { ok: true } | ApprovalGateFailure {
   if (!payload) return { ok: false, reason: 'Proposal payload could not be loaded.' };
-  if (payload.verify?.verdict !== 'pass') {
-    return {
-      ok: false,
-      reason: 'Run regen verify and mark the before/after "pass" before sending for approval.',
-    };
-  }
+  // Always: a per-layer summary of what changed (cheap, no credits).
   if (!payload.layerChanges || payload.layerChanges.length === 0) {
     return {
       ok: false,
       reason: 'Add a per-layer change summary before sending for approval.',
+    };
+  }
+  // Image proof is required ONLY when the proposal changes the portrait.
+  // Lore-only proposals (affectsImage falsy) skip it — no Leonardo spend.
+  if (payload.affectsImage && payload.verify?.verdict !== 'pass') {
+    return {
+      ok: false,
+      reason: 'This proposal changes the portrait — run regen verify and mark the before/after "pass" first.',
     };
   }
   return { ok: true };

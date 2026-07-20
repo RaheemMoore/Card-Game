@@ -359,7 +359,7 @@ function PendingRow({
             <div className="pt-2">Payload not found.</div>
           ) : (
             <div className="pt-2 space-y-3">
-              <VerifyReview evidence={payload.verify} />
+              <VerifyReview evidence={payload.verify} affectsImage={payload.affectsImage} />
               <LayerChangeSummary changes={payload.layerChanges} />
               <details>
                 <summary className="cursor-pointer text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
@@ -433,7 +433,7 @@ function PendingRow({
 
 // Read-only before/after + verdict for the approval console. Resolves signed
 // URLs on mount; reuses the same VerifyThumb the working-phase step uses.
-function VerifyReview({ evidence }: { evidence?: VerifyEvidence }) {
+function VerifyReview({ evidence, affectsImage }: { evidence?: VerifyEvidence; affectsImage?: boolean }) {
   const [urls, setUrls] = useState<{ before: string | null; after: string | null }>({ before: null, after: null });
 
   useEffect(() => {
@@ -452,7 +452,9 @@ function VerifyReview({ evidence }: { evidence?: VerifyEvidence }) {
   if (!evidence) {
     return (
       <div className="italic text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
-        No before/after on file for this proposal.
+        {affectsImage
+          ? 'No before/after on file for this proposal.'
+          : 'Lore-only change — no image comparison needed.'}
       </div>
     );
   }
@@ -1746,7 +1748,8 @@ function ConfirmRun({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: 
       style={{ background: 'var(--admin-active-wash)', border: '1px solid var(--admin-border)' }}
     >
       <div style={{ color: 'var(--admin-text)' }}>
-        This spends Leonardo credits (one portrait generation). Continue?
+        Spends one Leonardo image (a single "after" portrait at this tier — the
+        "before" reuses existing art, no extra credit). Continue?
       </div>
       <div className="flex gap-2">
         <AdminButton variant="primary" onClick={onConfirm}>
