@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../types/card';
-import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
+import type { BattleEvent, BattleState, PlayerAction, TurnPhase } from '../../types/combat';
 import {
   advance,
   initializeBattle,
@@ -17,11 +17,12 @@ import { getCurrentBossVersion, getBossDefinition } from '../bosses/registry';
 import { getOverallRank } from '../../data/powerSystem';
 
 /**
- * React hook that runs a battle inside a component. Wraps the pure reducer
- * so the UI can drive it as a state machine — every phase that doesn't need
- * player input auto-advances after a short delay.
+ * React hook that runs a battle inside a component. Wraps the pure reducer.
  *
- * Not persisted (that lands in B5). Ephemeral runtime state.
+ * As of C2, pacing lives in the presentation layer (see
+ * services/combat/presentation/*). This hook runs the reducer to its next
+ * pause point synchronously and exposes the full event stream so the queue
+ * can drain it at a human-readable rate. No wall-clock lives here anymore.
  */
 
 export interface UseBattleInput {
@@ -33,13 +34,37 @@ export interface UseBattleInput {
 
 export interface UseBattleApi {
   state: BattleState | null;
+  /** Every event emitted by the reducer since battle start. Fed to useCombatPresentation. */
   events: BattleEvent[];
   submit(action: PlayerAction): void;
   restart(): void;
   error: string | null;
 }
 
-const PHASE_DELAY_MS = 140;
+/** Safety cap — advance() should always converge to a pause phase or battle_over. */
+const MAX_ADVANCE_ITERATIONS = 500;
+
+const PAUSE_PHASES: readonly TurnPhase[] = ['awaiting_player_action', 'awaiting_target', 'battle_over'];
+
+function runToNextPause(start: BattleState): { state: BattleState; events: BattleEvent[] } {
+  let state = start;
+  const events: BattleEvent[] = [];
+  for (let i = 0; i < MAX_ADVANCE_ITERATIONS; i++) {
+    if (PAUSE_PHASES.includes(state.phase)) {
+      return { state, events };
+    }
+    const step = advance(state);
+    if (step.state === state && step.events.length === 0) {
+      // Reducer returned unchanged from a non-pause phase — treat as pause.
+      return { state, events };
+    }
+    state = step.state;
+    events.push(...step.events);
+  }
+  throw new Error(
+    `runToNextPause did not converge after ${MAX_ADVANCE_ITERATIONS} iterations (phase=${state.phase})`,
+  );
+}
 
 export function useBattle(input: UseBattleInput | null): UseBattleApi {
   const [state, setState] = useState<BattleState | null>(null);
@@ -47,7 +72,6 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
   const [error, setError] = useState<string | null>(null);
   const [restartCount, setRestartCount] = useState(0);
 
-  // Initialize battle whenever input identity (card+boss+seed) changes.
   useEffect(() => {
     if (!input) {
       setState(null);
@@ -95,8 +119,9 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
         createdAt: new Date().toISOString(),
       });
       const initial = initializeBattle(snap);
-      setState(initial);
-      setEvents([...initial.log]);
+      const { state: flushed, events: flushedEvents } = runToNextPause(initial);
+      setState(flushed);
+      setEvents([...initial.log, ...flushedEvents]);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -106,40 +131,14 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input?.heroCardId, input?.bossId, input?.seed, restartCount]);
 
-  // Auto-advance non-paused phases via a single scheduled timeout per state.
-  const timeoutRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (!state) return;
-    if (state.phase === 'battle_over') return;
-    if (state.phase === 'awaiting_player_action' || state.phase === 'awaiting_target') return;
-
-    const id = setTimeout(() => {
-      timeoutRef.current = null;
-      const step = advance(state);
-      if (step.events.length > 0) {
-        setEvents((prev) => [...prev, ...step.events]);
-      }
-      setState(step.state);
-    }, PHASE_DELAY_MS) as unknown as number;
-    timeoutRef.current = id;
-    return () => {
-      if (timeoutRef.current !== null) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, [state]);
-
   const submit = useCallback((action: PlayerAction) => {
     setState((prev) => {
       if (!prev || prev.phase !== 'awaiting_player_action') return prev;
-      const step = submitPlayerAction(prev, action);
-      if (step.events.length > 0) setEvents((e) => [...e, ...step.events]);
-      return step.state;
+      const after = submitPlayerAction(prev, action);
+      const { state: flushed, events: flushedEvents } = runToNextPause(after.state);
+      const allEvents = [...after.events, ...flushedEvents];
+      if (allEvents.length > 0) setEvents((e) => [...e, ...allEvents]);
+      return flushed;
     });
   }, []);
 

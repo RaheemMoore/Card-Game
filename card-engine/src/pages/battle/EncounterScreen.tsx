@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { BattleState, PlayerAction } from '../../types/combat';
+import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
 import {
   grantBattleReward,
   type BattleRewardOutcome,
@@ -8,18 +8,19 @@ import { BossPanel } from './BossPanel';
 import { HeroPanel } from './HeroPanel';
 import { AbilityRail } from './AbilityRail';
 import { UtilityRail } from './UtilityRail';
-import { EventLog } from './EventLog';
+import { CombatJournal } from './CombatJournal';
 import { ResultModal } from './ResultModal';
 
 interface Props {
   state: BattleState | null;
+  events: readonly BattleEvent[];
   error: string | null;
   onSubmit: (action: PlayerAction) => void;
   onRestart: () => void;
   onExit: () => void;
 }
 
-export function EncounterScreen({ state, error, onSubmit, onRestart, onExit }: Props) {
+export function EncounterScreen({ state, events, error, onSubmit, onRestart, onExit }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export function EncounterScreen({ state, error, onSubmit, onRestart, onExit }: P
       <HeroPanel hero={hero} />
       <AbilityRail hero={hero} bossActorId={boss.actorId} disabled={!canAct} onSubmit={onSubmit} />
       <UtilityRail onSubmit={onSubmit} disabled={!canAct} />
-      <EventLog state={state} />
+      <CombatJournal rawEvents={events} />
 
       {isOver && (
         <ResultModal

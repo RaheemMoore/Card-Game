@@ -43,6 +43,7 @@ export function Battle() {
   return (
     <EncounterScreen
       state={battle.state}
+      events={battle.events}
       error={battle.error}
       onSubmit={battle.submit}
       onRestart={() => {
