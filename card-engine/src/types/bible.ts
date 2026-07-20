@@ -121,6 +121,14 @@ export interface StoryPillarOption {
    * classify tension. e.g. ["protective", "clan", "inherited-burden"].
    */
   tags?: string[];
+  /**
+   * P5 Seraph corruption arc — contribution of this option to the
+   * archetype's narrative-axis alignment score (+1 Good, -1 Fallen,
+   * 0 Balanced-leaning). Undefined = untagged (counts as 0 and does not
+   * qualify a card for axis computation). See
+   * services/narrativeAxisService.ts.
+   */
+  alignmentWeight?: number;
 }
 
 /** Full set of a card's Story Pillar answers, keyed by pillar index. */
