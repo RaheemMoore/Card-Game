@@ -9,6 +9,7 @@ import { setAbilityStore, getAbilityStore } from '../services/abilities/registry
 import { setBossStore, getBossStore } from '../services/bosses/registry';
 import { seedAbilityLibrary } from '../services/abilities/seed';
 import { seedBossLibrary } from '../services/bosses/seed';
+import { SEED_BOSSES } from '../data/bosses/seedBosses';
 import { backfillCardAbilities } from '../services/abilities/legacyBackfill';
 import {
   generateCanonicalArt,
@@ -260,7 +261,15 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
         }
       }
 
-      if (bossStore.getAllDefinitions().length === 0) {
+      // Boss seed runs when the store is empty OR when the currently-shipped
+      // SEED_BOSSES version isn't present yet (new version added in code but
+      // the user's Supabase row still holds an older version). The seed's
+      // upsert is idempotent — writing v4 on top of v3 is a no-op cost but
+      // makes the interruptible-actions rollout invisible to existing users.
+      const bossSeedNeeded =
+        bossStore.getAllDefinitions().length === 0 ||
+        SEED_BOSSES.some(({ version }) => !bossStore.getVersion(version.id));
+      if (bossSeedNeeded) {
         try {
           const seedResult = await seedBossLibrary(bossStore);
           if (import.meta.env.DEV) {

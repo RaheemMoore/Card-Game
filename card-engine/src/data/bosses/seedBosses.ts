@@ -182,27 +182,20 @@ const EMBERBORN_V3: BossVersion = {
   maxHp: 1100,
   phases: [
     // Phase 1 — teach (100% → 50%). v2 baseDamage + light scaling.
-    // Ember Slash (heavy, telegraphed) is now interruptible: burst enough
-    // damage in the same round and its arc fizzles. Flame Burst is a fast
-    // area sweep and stays uninterruptible.
     {
       ...EMBERBORN_V2.phases[0],
       actions: EMBERBORN_V2.phases[0].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.4,
-        interruptible: a.id === 'act_fe_ember_slash',
       })),
     },
     // Phase 2 — mechanical enrage (50% → 25%). v2 hits + heavier scaling.
-    // Ember Lance (the "javelin gathers overhead" tell) is interruptible;
-    // Execution Pyre (execute) is not — it lands the moment it's declared.
     {
       ...EMBERBORN_V2.phases[1],
       healthThresholdEnd: 0.25,
       actions: EMBERBORN_V2.phases[1].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.8,
-        interruptible: a.id === 'act_fe_ember_lance',
       })),
     },
     // Phase 3 — RAGE (25% → 0%). Threatens hero one-shots at high rounds.
@@ -244,18 +237,66 @@ const EMBERBORN_V3: BossVersion = {
   updatedAt: '2026-07-19T00:00:00.000Z',
 };
 
-const EMBERBORN_DEF_V3: typeof EMBERBORN_DEF = {
+/* ---------- Emberborn Wraith v4 (2026-07-20) — interrupt windows ----------
+ * Data-only change that layers on top of v3's numbers to unlock the new
+ * `interruptible` reducer branch (see services/combat/reducer.ts —
+ * INTERRUPT_DAMAGE_THRESHOLD). Two of the boss's telegraphed heavy attacks
+ * flip to interruptible so committed burst damage in the same round
+ * cancels the strike (cooldown still consumes — no soft-lock).
+ *
+ * Rule of thumb:
+ *   - Long, telegraphed heavy attacks with a visible "gathering" tell →
+ *     interruptible (Ember Slash, Ember Lance).
+ *   - Fast area sweeps, executes, and the Rage-phase actions →
+ *     uninterruptible (Flame Burst, Execution Pyre, Rage Lance, Rage Pyre)
+ *     — Rage is the "no more mercy" phase.
+ *
+ * Damage numbers, HP, scaling, and phase thresholds are UNCHANGED from v3.
+ * This ships as v4 (not a v3 edit) because v3 was already persisted to
+ * users' Supabase rows; PersistenceGate's boss-seed gate (see
+ * PersistenceGate.tsx) re-runs the idempotent upsert whenever the current
+ * SEED_BOSSES version is missing from the store, so existing users pick up
+ * v4 on next boot without a manual data migration.
+ */
+const EMBERBORN_V4: BossVersion = {
+  ...EMBERBORN_V3,
+  id: 'bv_fire_elemental_v0_4',
+  versionNumber: 4,
+  status: 'active',
+  publishedAt: '2026-07-20T00:00:00.000Z',
+  phases: [
+    {
+      ...EMBERBORN_V3.phases[0],
+      actions: EMBERBORN_V3.phases[0].actions.map((a) => ({
+        ...a,
+        interruptible: a.id === 'act_fe_ember_slash',
+      })),
+    },
+    {
+      ...EMBERBORN_V3.phases[1],
+      actions: EMBERBORN_V3.phases[1].actions.map((a) => ({
+        ...a,
+        interruptible: a.id === 'act_fe_ember_lance',
+      })),
+    },
+    EMBERBORN_V3.phases[2],
+  ],
+  updatedAt: '2026-07-20T00:00:00.000Z',
+};
+
+const EMBERBORN_DEF_V4: typeof EMBERBORN_DEF = {
   ...EMBERBORN_DEF,
-  currentVersionId: 'bv_fire_elemental_v0_3',
-  updatedAt: '2026-07-19T00:00:00.000Z',
+  currentVersionId: 'bv_fire_elemental_v0_4',
+  updatedAt: '2026-07-20T00:00:00.000Z',
 };
 
 export const SEED_BOSSES: SeedBoss[] = [
-  { definition: EMBERBORN_DEF_V3, version: EMBERBORN_V3 },
+  { definition: EMBERBORN_DEF_V4, version: EMBERBORN_V4 },
 ];
 
 /** Legacy versions kept for admin history / snapshot integrity. */
 export const SEED_BOSS_LEGACY_VERSIONS: BossVersion[] = [
   EMBERBORN_V1_DEPRECATED,
   { ...EMBERBORN_V2, status: 'deprecated', deprecatedAt: '2026-07-19T00:00:00.000Z' },
+  { ...EMBERBORN_V3, status: 'deprecated', deprecatedAt: '2026-07-20T00:00:00.000Z' },
 ];
