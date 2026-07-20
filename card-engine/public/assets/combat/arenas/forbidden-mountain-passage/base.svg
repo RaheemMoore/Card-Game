@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1830"/>
+      <stop offset="0.55" stop-color="#3b2540"/>
+      <stop offset="1" stop-color="#1a0f18"/>
+    </linearGradient>
+    <linearGradient id="ridge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b1e2c"/>
+      <stop offset="1" stop-color="#120a12"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <polygon points="0,720 320,540 560,600 820,460 1080,540 1360,420 1620,520 1920,470 1920,1080 0,1080" fill="url(#ridge)"/>
+  <polygon points="0,830 260,720 500,780 780,700 1080,760 1360,690 1620,730 1920,720 1920,1080 0,1080" fill="#0a060a" opacity="0.85"/>
+  <circle cx="1520" cy="220" r="80" fill="#f7c15a" opacity="0.7"/>
+  <text x="960" y="1030" text-anchor="middle" font-family="serif" font-size="28" fill="#faeaca" opacity="0.35">
+    PLACEHOLDER — Forbidden Mountain Passage (C6 will replace with painted Leonardo art)
+  </text>
+</svg>

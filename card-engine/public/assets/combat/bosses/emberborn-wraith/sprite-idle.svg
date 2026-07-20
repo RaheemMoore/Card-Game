@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384">
+  <defs>
+    <radialGradient id="ember" cx="0.5" cy="0.35" r="0.55">
+      <stop offset="0" stop-color="#ffe28a"/>
+      <stop offset="0.35" stop-color="#f28a2e"/>
+      <stop offset="0.75" stop-color="#8a1c1c"/>
+      <stop offset="1" stop-color="#1a0508" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="192" cy="180" r="150" fill="url(#ember)"/>
+  <path d="M 130 120 L 155 165 L 130 190 L 165 205 L 155 245 L 195 220 L 235 245 L 225 205 L 260 190 L 235 165 L 260 120 L 220 145 L 195 110 L 170 145 Z"
+        fill="#faeaca" opacity="0.35" stroke="#faeaca" stroke-width="2"/>
+  <text x="192" y="360" text-anchor="middle" font-family="serif" font-size="14" fill="#faeaca" opacity="0.5">
+    PLACEHOLDER — Emberborn Wraith
+  </text>
+</svg>

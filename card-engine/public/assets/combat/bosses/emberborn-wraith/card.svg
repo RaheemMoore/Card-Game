@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 720">
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b1414"/>
+      <stop offset="1" stop-color="#8a1c1c"/>
+    </linearGradient>
+    <radialGradient id="portrait" cx="0.5" cy="0.35" r="0.6">
+      <stop offset="0" stop-color="#ffb976"/>
+      <stop offset="0.4" stop-color="#8a1c1c"/>
+      <stop offset="1" stop-color="#0a0508"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="720" fill="url(#frame)"/>
+  <rect x="24" y="24" width="464" height="672" fill="url(#portrait)"/>
+  <text x="256" y="680" text-anchor="middle" font-family="serif" font-size="26" fill="#faeaca" opacity="0.7">
+    PLACEHOLDER
+  </text>
+  <text x="256" y="705" text-anchor="middle" font-family="serif" font-size="14" fill="#faeaca" opacity="0.5">
+    Emberborn Wraith boss card (C6)
+  </text>
+</svg>

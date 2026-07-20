@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BossCombatant, BattleState } from '../../types/combat';
+import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
+import { getBossSprite } from '../../data/combat/bossSpriteManifest';
+import { resolveCombatAssetUrl } from '../../data/combat/types';
 
 interface Props {
   boss: BossCombatant;
@@ -8,8 +11,9 @@ interface Props {
 }
 
 /**
- * Placeholder boss art panel. Final Leonardo art is deferred (Phase 3.5 boss
- * art polish per CLAUDE.md) — Gate 7A explicitly excludes final boss art.
+ * Boss panel. Renders Arena background + Combat Sprite from the C5 asset
+ * manifests, with the historical CSS placeholder as a final fallback. Sprite
+ * approvalStatus is 'placeholder' until C6 lands the real Leonardo art.
  */
 export function BossPanel({ boss, intentText, lastEvent }: Props) {
   const hpPct = Math.max(0, boss.hp / boss.snapshot.maxHp);
@@ -24,32 +28,58 @@ export function BossPanel({ boss, intentText, lastEvent }: Props) {
     setShakeKey((n) => n + 1);
   }, [lastEvent, boss.actorId]);
 
+  const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
+  const bossSprite = getBossSprite(boss.snapshot.bossId, 'idle');
+  const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
+  const spriteUrl = bossSprite ? resolveCombatAssetUrl(bossSprite) : null;
+
   return (
-    <div className="rounded-lg border border-crimson/30 bg-void/60 p-4 mb-3">
-      <div className="flex items-start gap-4">
+    <div
+      className="rounded-lg border border-crimson/30 p-4 mb-3 relative overflow-hidden"
+      style={
+        arenaUrl
+          ? {
+              backgroundImage: `linear-gradient(to bottom, rgba(10,5,10,0.35), rgba(10,5,10,0.75)), url("${arenaUrl}")`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }
+          : { background: 'rgba(20,10,20,0.6)' }
+      }
+    >
+      <div className="flex items-start gap-4 relative">
         <div
           key={shakeKey}
           className="shrink-0 rounded-md relative overflow-hidden boss-portrait flex items-center justify-center"
           style={{
             width: 148,
             height: 148,
-            background:
-              'radial-gradient(ellipse at 50% 55%, #f0a24a 0%, #c04010 32%, #5a1006 68%, #1a0300 100%)',
+            background: spriteUrl
+              ? 'rgba(10,5,10,0.4)'
+              : 'radial-gradient(ellipse at 50% 55%, #f0a24a 0%, #c04010 32%, #5a1006 68%, #1a0300 100%)',
             border: '2px solid rgba(184, 134, 11, 0.5)',
             boxShadow: 'inset 0 0 32px rgba(0,0,0,0.55), 0 0 18px rgba(216,76,13,0.35)',
           }}
-          aria-label={`${boss.snapshot.name} — placeholder portrait, final Leonardo art pending`}
+          aria-label={`${boss.snapshot.name} — ${bossSprite?.approvalStatus ?? 'placeholder'} sprite`}
         >
-          <span className="font-fantasy text-[10px] uppercase tracking-widest text-bone/50 absolute top-1 left-2">
+          <span className="font-fantasy text-[10px] uppercase tracking-widest text-bone/50 absolute top-1 left-2 z-10">
             Boss
           </span>
-          <div
-            className="font-fantasy text-center text-bone px-2"
-            style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}
-          >
-            <div className="text-2xl leading-tight">🜂</div>
-            <div className="text-[11px] mt-1 opacity-90">Emberborn</div>
-          </div>
+          {spriteUrl ? (
+            <img
+              src={spriteUrl}
+              alt={boss.snapshot.name}
+              className="w-full h-full object-contain"
+              style={{ imageRendering: 'auto' }}
+            />
+          ) : (
+            <div
+              className="font-fantasy text-center text-bone px-2"
+              style={{ textShadow: '0 1px 6px rgba(0,0,0,0.7)' }}
+            >
+              <div className="text-2xl leading-tight">🜂</div>
+              <div className="text-[11px] mt-1 opacity-90">Emberborn</div>
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-fantasy text-xl text-bone truncate">{boss.snapshot.name}</div>
