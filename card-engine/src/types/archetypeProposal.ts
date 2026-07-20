@@ -68,11 +68,41 @@ export interface ArchetypeProposalPayload {
   cardLineage?: CardLineageRef;
   /**
    * Set when the proposal was opened from a Prompt Lab test via "Send to
-   * Workshop". The runId lets the future regen-verify step re-run that exact
+   * Workshop". The runId lets the regen-verify step re-run that exact
    * Lab generation with the shipped fix and attach before/after — closing
    * the Lab → Workshop → fix → verify loop.
    */
   labRunId?: string;
+  /**
+   * Attached by the regen-verify step (Workshop "Run regen verify" button)
+   * on a shipped proposal. Re-runs the referenced Lab generation with the
+   * current — i.e. post-fix — Claude + Leonardo pipeline and records the
+   * before/after so a reviewer can confirm the fix actually changed the
+   * output. Only object-path references are stored (never inline image
+   * blobs), keeping the payload small per the P1 shrink.
+   */
+  verify?: VerifyEvidence;
+}
+
+/**
+ * Result of a regen-verify run. `before` is the original Lab generation the
+ * proposal was filed against; `after` is a fresh generation with the shipped
+ * pipeline. Both images live in the prompt-lab storage bucket and are signed
+ * on demand from their object paths. `verdict`/`note` are set by the reviewer
+ * after eyeballing the two portraits.
+ */
+export interface VerifyEvidence {
+  ranAt: string;
+  archetype: ArchetypeName;
+  tier: 'Foundation' | 'Forged' | 'Ascendant';
+  /** Original Lab run the proposal referenced (payload.labRunId). */
+  beforeRunId: string;
+  beforeObjectPath: string | null;
+  /** New Lab run created by the regen-verify pass. */
+  afterRunId: string;
+  afterObjectPath: string | null;
+  verdict?: 'pass' | 'fail' | 'unsure';
+  note?: string;
 }
 
 export interface ArchetypeProposal {
