@@ -39,6 +39,14 @@ export interface UseBattleApi {
   /** actorId of the hero currently being asked for input, or null if not awaiting. */
   actingActorId: string | null;
   submit(action: PlayerAction): void;
+  /**
+   * Move a specific hero to the front of `pendingActorIds` so the next
+   * `submit()` acts as them. Lets the player choose their party's action
+   * order strategically instead of being locked into canonical lane order.
+   * No-op if the actor is already at the front, isn't pending, or the
+   * battle isn't awaiting input.
+   */
+  selectActor(actorId: string): void;
   restart(): void;
   error: string | null;
 }
@@ -153,6 +161,20 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
     });
   }, []);
 
+  // Reorder pendingActorIds so `actorId` is next to act. Pure reordering —
+  // no events, no phase change. The reducer's contract stays "acts on
+  // pendingActorIds[0]"; we just let the view influence which pending id
+  // sits at index 0.
+  const selectActor = useCallback((actorId: string) => {
+    setState((prev) => {
+      if (!prev || prev.phase !== 'awaiting_player_action') return prev;
+      if (!prev.pendingActorIds.includes(actorId)) return prev;
+      if (prev.pendingActorIds[0] === actorId) return prev;
+      const reordered = [actorId, ...prev.pendingActorIds.filter((id) => id !== actorId)];
+      return { ...prev, pendingActorIds: reordered };
+    });
+  }, []);
+
   const restart = useCallback(() => {
     setRestartCount((n) => n + 1);
   }, []);
@@ -163,7 +185,7 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       : null;
 
   return useMemo(
-    () => ({ state, events, actingActorId, submit, restart, error }),
-    [state, events, actingActorId, submit, restart, error],
+    () => ({ state, events, actingActorId, submit, selectActor, restart, error }),
+    [state, events, actingActorId, submit, selectActor, restart, error],
   );
 }

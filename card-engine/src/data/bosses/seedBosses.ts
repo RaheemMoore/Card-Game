@@ -182,20 +182,27 @@ const EMBERBORN_V3: BossVersion = {
   maxHp: 1100,
   phases: [
     // Phase 1 — teach (100% → 50%). v2 baseDamage + light scaling.
+    // Ember Slash (heavy, telegraphed) is now interruptible: burst enough
+    // damage in the same round and its arc fizzles. Flame Burst is a fast
+    // area sweep and stays uninterruptible.
     {
       ...EMBERBORN_V2.phases[0],
       actions: EMBERBORN_V2.phases[0].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.4,
+        interruptible: a.id === 'act_fe_ember_slash',
       })),
     },
     // Phase 2 — mechanical enrage (50% → 25%). v2 hits + heavier scaling.
+    // Ember Lance (the "javelin gathers overhead" tell) is interruptible;
+    // Execution Pyre (execute) is not — it lands the moment it's declared.
     {
       ...EMBERBORN_V2.phases[1],
       healthThresholdEnd: 0.25,
       actions: EMBERBORN_V2.phases[1].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.8,
+        interruptible: a.id === 'act_fe_ember_lance',
       })),
     },
     // Phase 3 — RAGE (25% → 0%). Threatens hero one-shots at high rounds.

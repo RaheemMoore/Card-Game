@@ -67,6 +67,7 @@ export function Battle() {
       entryTxnId={entryTxnId}
       error={battle.error}
       onSubmit={battle.submit}
+      onSelectActor={battle.selectActor}
       onRestart={() => {
         try {
           const txn = reserve({

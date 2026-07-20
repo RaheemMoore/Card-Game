@@ -13,6 +13,7 @@ interface Props {
   actingActorId: string;
   canAct: boolean;
   currentBeat: AnimationBeat | null;
+  onSelectActor: (actorId: string) => void;
 }
 
 /**
@@ -32,6 +33,7 @@ export function HeroForeground({
   actingActorId,
   canAct,
   currentBeat,
+  onSelectActor,
 }: Props) {
   return (
     <div
@@ -52,7 +54,9 @@ export function HeroForeground({
             card={card}
             combatant={combatant}
             isActing={canAct && combatant.actorId === actingActorId}
+            canAct={canAct}
             currentBeat={currentBeat}
+            onSelect={() => onSelectActor(combatant.actorId)}
           />
         );
       })}
@@ -64,12 +68,16 @@ function HeroLaneCard({
   card,
   combatant,
   isActing,
+  canAct,
   currentBeat,
+  onSelect,
 }: {
   card: Card;
   combatant: HeroCombatant;
   isActing: boolean;
+  canAct: boolean;
   currentBeat: AnimationBeat | null;
+  onSelect: () => void;
 }) {
   const [shakeKey, setShakeKey] = useState(0);
   const lastShakeBeatId = useRef<string | null>(null);
@@ -104,10 +112,24 @@ function HeroLaneCard({
     ? 'opacity-100'
     : 'opacity-80';
 
+  const tappable = canAct && !isActing && !isDefeated;
   return (
     <div
-      className={`hero-lane relative flex flex-col items-center justify-end transition-all duration-300 ease-out pointer-events-auto ${laneTransform} ${laneOpacity}`}
-      aria-label={`${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP`}
+      className={`hero-lane relative flex flex-col items-center justify-end transition-all duration-300 ease-out pointer-events-auto ${laneTransform} ${laneOpacity} ${tappable ? 'cursor-pointer' : ''}`}
+      aria-label={`${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP${tappable ? ' — tap to act next' : ''}`}
+      onClick={tappable ? onSelect : undefined}
+      role={tappable ? 'button' : undefined}
+      tabIndex={tappable ? 0 : undefined}
+      onKeyDown={
+        tappable
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect();
+              }
+            }
+          : undefined
+      }
     >
       {/* Hero sprite — subordinate: peeks behind card top */}
       {spriteUrl && !isDefeated && (

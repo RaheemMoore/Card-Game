@@ -33,6 +33,7 @@ export function formatEvent(e: BattleState['log'][number]): string {
     case 'actor_defeated':
       return `☠ ${e.actorId} defeated`;
     case 'action_denied':
+      if (e.reason === 'interrupted') return `⚡ ${e.actorId} interrupted — action fizzles`;
       return `⛔ ${e.reason}`;
     case 'battle_ended':
       return `▮ battle ends: ${e.result.outcome}`;

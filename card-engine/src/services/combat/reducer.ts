@@ -52,6 +52,16 @@ import {
 
 const TIMEOUT_ROUND_CAP = 30;
 
+/**
+ * Fraction of boss maxHp that must be dealt during the same round (between
+ * the boss_intent_declared event and doResolveBoss) to interrupt an action
+ * flagged `interruptible`. Interrupt cancels the action's damage but still
+ * consumes its cooldown so the boss doesn't get soft-locked on the same
+ * spell — it just alternates into another action next round. Tune from
+ * telemetry once we have it.
+ */
+const INTERRUPT_DAMAGE_THRESHOLD = 0.15;
+
 /* ------------------------------------------------------------------ */
 /*  init                                                               */
 /* ------------------------------------------------------------------ */
@@ -302,14 +312,63 @@ function doResolveBoss(state: BattleState): StepResult {
   if (state.boss.defeated || !state.boss.currentIntent) {
     return transition(state, [], 'end_of_round');
   }
-  const target = state.heroes.find((h) => h.actorId === state.boss.currentIntent!.targetActorIds[0]);
-  if (!target || target.defeated) {
-    return transition(state, [], 'end_of_round');
-  }
 
   const currentPhase = state.boss.snapshot.phases.find((p) => p.id === state.boss.currentPhaseId);
   const action = currentPhase?.actions.find((a) => a.id === state.boss.currentIntent!.actionId);
   if (!action) {
+    return transition(state, [], 'end_of_round');
+  }
+
+  // Interrupt check — enough damage in the same round on an interruptible
+  // action cancels its damage. Cooldown still consumes so the boss doesn't
+  // get soft-locked into the same interruptible action forever; it rotates
+  // to another action next round.
+  if (action.interruptible) {
+    const dealt = damageToBossSinceIntent(state);
+    const threshold = Math.max(
+      1,
+      Math.floor(state.boss.snapshot.maxHp * INTERRUPT_DAMAGE_THRESHOLD),
+    );
+    if (dealt >= threshold) {
+      const events: BattleEvent[] = [
+        { kind: 'action_denied', actorId: state.boss.actorId, reason: 'interrupted' },
+      ];
+      const nextInterrupted: BattleState = {
+        ...state,
+        boss: {
+          ...state.boss,
+          actionCooldowns: [
+            ...state.boss.actionCooldowns,
+            {
+              abilityDefinitionId: action.id,
+              remainingRounds: action.cooldownRounds + 1,
+            },
+          ],
+          currentIntent: null,
+        },
+      };
+      return transition(nextInterrupted, events, 'end_of_round');
+    }
+  }
+
+  // Retarget: focus > declared target > highest-HP living hero. Focus lets
+  // a hero pull aggro deliberately; the death-fallback removes the exploit
+  // where killing the declared target skipped the boss's turn.
+  const intent = state.boss.currentIntent!;
+  const focusedId = focusedActorIdThisRound(state);
+  let target: HeroCombatant | undefined = focusedId
+    ? state.heroes.find((h) => h.actorId === focusedId && !h.defeated)
+    : undefined;
+  if (!target) {
+    const declared = state.heroes.find((h) => h.actorId === intent.targetActorIds[0]);
+    if (declared && !declared.defeated) target = declared;
+  }
+  if (!target) {
+    const alive = state.heroes.filter((h) => !h.defeated).sort((a, b) => b.hp - a.hp);
+    target = alive[0];
+  }
+  if (!target) {
+    // Party wiped between intent and resolution — nothing to hit.
     return transition(state, [], 'end_of_round');
   }
 
@@ -351,6 +410,45 @@ function doResolveBoss(state: BattleState): StepResult {
   };
 
   return transition(next, events, 'end_of_round');
+}
+
+/** Sum damage dealt to the boss between the most recent `boss_intent_declared`
+ *  event and now. Used to check interrupt thresholds. */
+function damageToBossSinceIntent(state: BattleState): number {
+  let sum = 0;
+  let counting = false;
+  for (const e of state.log) {
+    if (e.kind === 'boss_intent_declared') {
+      sum = 0;
+      counting = true;
+      continue;
+    }
+    if (!counting) continue;
+    if (e.kind === 'damage_dealt' && e.targetActorId === state.boss.actorId) {
+      sum += e.amount;
+    }
+  }
+  return sum;
+}
+
+/** Return the actorId of the last hero to `focus` this round, or null.
+ *  Focusing "draws aggro" — the boss retargets to that hero this round. */
+function focusedActorIdThisRound(state: BattleState): string | null {
+  let last: string | null = null;
+  let inRound = false;
+  for (const e of state.log) {
+    if (e.kind === 'round_started') {
+      last = null;
+      inRound = true;
+      continue;
+    }
+    if (!inRound) continue;
+    if (e.kind === 'player_action_selected' && e.action.kind === 'focus') {
+      const hero = state.heroes.find((h) => h.actorId === e.actorId);
+      if (hero && !hero.defeated) last = e.actorId;
+    }
+  }
+  return last;
 }
 
 function doEndOfRound(state: BattleState): StepResult {

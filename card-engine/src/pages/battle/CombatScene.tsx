@@ -16,6 +16,7 @@ interface Props {
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
   onSubmit: (action: PlayerAction) => void;
+  onSelectActor: (actorId: string) => void;
   onExit: () => void;
 }
 
@@ -31,6 +32,7 @@ export function CombatScene({
   partyCards,
   currentBeat,
   onSubmit,
+  onSelectActor,
   onExit,
 }: Props) {
   const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
@@ -151,6 +153,7 @@ export function CombatScene({
         actingActorId={actingHero.actorId}
         canAct={canAct}
         currentBeat={currentBeat}
+        onSelectActor={onSelectActor}
       />
 
       {/* Command Shelf — CombatFrame/CommandShelf preset. Spans the bottom

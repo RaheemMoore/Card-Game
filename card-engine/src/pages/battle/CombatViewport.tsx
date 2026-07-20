@@ -10,6 +10,7 @@ import { useCombatPresentation } from '../../services/combat/presentation/useCom
 import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
 import { ResultModal } from './ResultModal';
+import { MobileCombatScene } from './mobile/MobileCombatScene';
 
 interface Props {
   state: BattleState | null;
@@ -19,20 +20,45 @@ interface Props {
   entryTxnId: string | null;
   error: string | null;
   onSubmit: (action: PlayerAction) => void;
+  onSelectActor: (actorId: string) => void;
   onRestart: () => void;
   onExit: () => void;
 }
 
+/** Portrait-phone threshold. Below this width we render the dedicated mobile
+ *  combat scene instead of the desktop/tablet grid. 520px comfortably covers
+ *  360, 390, and 430 test targets while leaving 7"+ tablets on the desktop
+ *  composition. */
+const MOBILE_MAX_WIDTH_PX = 520;
+
+function useIsMobileCombatLayout(): boolean {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= MOBILE_MAX_WIDTH_PX;
+  });
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`);
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return isMobile;
+}
+
 /**
  * Full-screen combat shell. Escapes the normal App.tsx layout via a portal
- * to document.body, occupying 100vw × 100dvh with no shell chrome. The
- * viewport is a two-column grid on desktop (Arena scene left, Journal rail
- * right); on mobile the columns stack vertically.
+ * to document.body, occupying 100vw × 100dvh with no shell chrome.
  *
- * Route lifecycle:
- *   - Picker still renders inside the normal app shell (pre-combat).
- *   - Once a party + boss are chosen and useBattle returns state, this
- *     viewport takes over the entire screen until the user leaves.
+ * Layout dispatch:
+ *   - Desktop / tablet (>520px): two-column grid — CombatScene left, Combat
+ *     Journal rail right. Unchanged from prior implementation.
+ *   - Portrait phone (≤520px): the dedicated MobileCombatScene. No side rail;
+ *     the journal collapses to a bottom strip that opens as a drawer.
+ *
+ * Both dispatches share the same reducer state, presentation queue, wallet
+ * lifecycle, and ResultModal.
  */
 export function CombatViewport({
   state,
@@ -42,14 +68,14 @@ export function CombatViewport({
   entryTxnId,
   error,
   onSubmit,
+  onSelectActor,
   onRestart,
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
   const presentation = useCombatPresentation(events);
+  const isMobile = useIsMobileCombatLayout();
 
-  // Lock document scroll + hide any app-shell overflow behind us while
-  // combat owns the viewport.
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -81,40 +107,57 @@ export function CombatViewport({
       role="dialog"
       aria-modal="true"
     >
-      {/* Two-column grid on desktop; stacked on mobile.
-          `min-h-0` on both children is critical — without it CSS Grid's
-          default `min-height: auto` lets the intrinsic content of an item
-          push the `1fr` row past the container height. Once we cross that,
-          the Arena column balloons (observed 2280px in an 800px viewport),
-          the CombatScene's absolute children anchor to a bloated containing
-          block, and hero lanes end up rendered 1000px below the viewport
-          bottom. min-h-0 pins the row to the container. */}
-      <div className="grid h-full combat-grid">
-        {/* Arena column */}
-        <div className="relative overflow-hidden min-h-0 h-full">
+      {isMobile ? (
+        <div className="w-full h-full">
           {error ? (
             <ErrorPanel error={error} onExit={onExit} />
           ) : !state ? (
             <LoadingPanel />
           ) : (
-            <CombatScene
+            <MobileCombatScene
               state={state}
               actingActorId={actingActorId}
               partyCards={partyCards}
               currentBeat={presentation.currentBeat}
+              journal={presentation.journal}
+              isPlaying={presentation.isPlaying}
+              pendingCount={presentation.pendingCount}
+              onSkip={presentation.skip}
               onSubmit={onSubmit}
+              onSelectActor={onSelectActor}
               onExit={onExit}
             />
           )}
         </div>
-        {/* Journal rail */}
-        <CombatJournalRail
-          journal={presentation.journal}
-          isPlaying={presentation.isPlaying}
-          pendingCount={presentation.pendingCount}
-          onSkip={presentation.skip}
-        />
-      </div>
+      ) : (
+        <div className="grid h-full combat-grid">
+          {/* Arena column */}
+          <div className="relative overflow-hidden min-h-0 h-full">
+            {error ? (
+              <ErrorPanel error={error} onExit={onExit} />
+            ) : !state ? (
+              <LoadingPanel />
+            ) : (
+              <CombatScene
+                state={state}
+                actingActorId={actingActorId}
+                partyCards={partyCards}
+                currentBeat={presentation.currentBeat}
+                onSubmit={onSubmit}
+                onSelectActor={onSelectActor}
+                onExit={onExit}
+              />
+            )}
+          </div>
+          {/* Journal rail */}
+          <CombatJournalRail
+            journal={presentation.journal}
+            isPlaying={presentation.isPlaying}
+            pendingCount={presentation.pendingCount}
+            onSkip={presentation.skip}
+          />
+        </div>
+      )}
 
       {state?.phase === 'battle_over' && state.result && (
         <ResultModal
@@ -132,13 +175,9 @@ export function CombatViewport({
           grid-template-rows: minmax(0, 1fr);
         }
         .combat-grid > * { min-height: 0; }
-        @media (max-width: 900px) {
+        @media (max-width: 900px) and (min-width: 521px) {
           .combat-grid {
             grid-template-columns: 1fr;
-            /* Arena keeps at least 60dvh so the scene is readable; journal
-               scrolls in its own row below. minmax pins both tracks so the
-               absolute-positioned CombatScene children do not inflate the
-               row past its allotment. */
             grid-template-rows: minmax(60dvh, 1fr) minmax(0, 320px);
             overflow-y: auto;
           }

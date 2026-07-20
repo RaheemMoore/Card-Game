@@ -272,7 +272,8 @@ export type ActionDenialReason =
   | 'invalid_target'
   | 'actor_defeated'
   | 'silenced'
-  | 'stunned';
+  | 'stunned'
+  | 'interrupted';
 
 export type BattleResult =
   | { outcome: 'victory'; roundsElapsed: number; heroesSurviving: number }
