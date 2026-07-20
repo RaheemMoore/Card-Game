@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
-import { fetchIsAdmin } from '../services/persistence/supabaseClient';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
 import {
   createArchetypeProposal,
@@ -32,8 +31,6 @@ import {
   deriveStatRanks,
 } from '../data/powerSystem';
 
-type GuardState = 'checking' | 'allowed' | 'denied';
-
 const RANK_ORDER: Rank[] = ['Foundation', 'Forged', 'Ascendant'];
 const STAT_ORDER: StatName[] = ['Atk', 'Def', 'Mana', 'Tech'];
 
@@ -50,37 +47,21 @@ const WB = {
   accent: '#b48eff',
 };
 
+// Guard + admin sub-nav are provided by AdminShell (parent Outlet).
+// This page just renders the workshop surface — opts out of the shell's
+// bg-void/80 backdrop by painting its own fully opaque workbench color
+// so the fantasy background never bleeds through.
+
 export function ArchetypeWorkshop() {
-  const [guard, setGuard] = useState<GuardState>('checking');
-
-  useEffect(() => {
-    if (
-      import.meta.env.DEV &&
-      new URLSearchParams(window.location.search).get('dev_admin') === '1'
-    ) {
-      setGuard('allowed');
-      return;
+  const [searchParams] = useSearchParams();
+  const initialArchetype = ((): ArchetypeName => {
+    const q = searchParams.get('archetype');
+    if (q && (ARCHETYPE_NAMES as readonly string[]).includes(q)) {
+      return q as ArchetypeName;
     }
-    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
-  }, []);
-
-  if (guard === 'checking') {
-    return (
-      <div
-        style={{ background: WB.bg, color: WB.textDim }}
-        className="min-h-dvh flex items-center justify-center"
-      >
-        Checking access…
-      </div>
-    );
-  }
-  if (guard === 'denied') return <Navigate to="/" replace />;
-
-  return <WorkshopBody />;
-}
-
-function WorkshopBody() {
-  const [archetype, setArchetype] = useState<ArchetypeName>('Seraph');
+    return 'Seraph';
+  })();
+  const [archetype, setArchetype] = useState<ArchetypeName>(initialArchetype);
   const [cards, setCards] = useState<Card[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -141,7 +122,10 @@ function WorkshopBody() {
   }, [cards, selectedCardId]);
 
   return (
-    <div style={{ background: WB.bg, color: WB.text }} className="min-h-dvh">
+    <div
+      style={{ background: WB.bg, color: WB.text }}
+      className="-mx-4 -my-6 sm:-mx-6 min-h-[calc(100dvh-8rem)]"
+    >
       <WorkshopHeader
         archetype={archetype}
         onArchetypeChange={(a) => {
@@ -203,16 +187,9 @@ function WorkshopHeader({
 }) {
   return (
     <header
-      className="sticky top-0 z-40 flex items-center gap-3 px-4 py-3"
+      className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
       style={{ background: WB.panel, borderBottom: `1px solid ${WB.border}` }}
     >
-      <Link
-        to="/admin"
-        className="text-xs uppercase tracking-widest px-2 py-1 rounded"
-        style={{ color: WB.textDim, border: `1px solid ${WB.border}` }}
-      >
-        ← Admin
-      </Link>
       <h1
         className="font-fantasy text-lg font-bold flex-1"
         style={{ color: WB.text }}
