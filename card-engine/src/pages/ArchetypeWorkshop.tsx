@@ -4,6 +4,7 @@ import { getSupabaseClient } from '../services/persistence/supabaseClient';
 import {
   createArchetypeProposal,
   listArchetypeProposals,
+  getArchetypeProposalPayload,
 } from '../services/persistence/adminService';
 import type {
   ArchetypeProposal,
@@ -704,23 +705,24 @@ function TriageForm({
       let cardLineage: CardLineageRef | undefined;
       if (selectedCard) {
         const tiers = extractTierSnapshots(selectedCard);
+        // Store text-only tier metadata. Portrait URLs are omitted here
+        // (per P1) and looked up on-demand from the cards table when a
+        // reviewer expands this proposal — otherwise every proposal row
+        // is 1MB+ from three base64 data URLs.
         cardLineage = {
           cardId: selectedCard.cardId,
           cardName: selectedCard.cardName,
           archetype: selectedCard.archetype,
           tiers: {
             Foundation: tiers.Foundation && {
-              portraitUrl: tiers.Foundation.portraitUrl,
               nameAndTitle: tiers.Foundation.nameAndTitle,
               lore: tiers.Foundation.lore,
             },
             Forged: tiers.Forged && {
-              portraitUrl: tiers.Forged.portraitUrl,
               nameAndTitle: tiers.Forged.nameAndTitle,
               lore: tiers.Forged.lore,
             },
             Ascendant: tiers.Ascendant && {
-              portraitUrl: tiers.Ascendant.portraitUrl,
               nameAndTitle: tiers.Ascendant.nameAndTitle,
               lore: tiers.Ascendant.lore,
             },
@@ -984,6 +986,23 @@ function ProposalsList({
   archetype: ArchetypeName;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Payloads are omitted from the list (P1: kept the list rows cheap).
+  // Fetched on-demand when a row is expanded; cached here per proposal id.
+  const [payloads, setPayloads] = useState<Record<string, ArchetypeProposalPayload | null>>({});
+  const [payloadErrors, setPayloadErrors] = useState<Record<string, string>>({});
+
+  function togglePayload(id: string) {
+    const nowOpen = expandedId !== id;
+    setExpandedId(nowOpen ? id : null);
+    if (nowOpen && !(id in payloads)) {
+      getArchetypeProposalPayload(id)
+        .then((p) => setPayloads((prev) => ({ ...prev, [id]: p })))
+        .catch((err) => {
+          const msg = (err as { message?: string })?.message ?? String(err);
+          setPayloadErrors((prev) => ({ ...prev, [id]: msg }));
+        });
+    }
+  }
   return (
     <section
       className="rounded-lg p-3"
@@ -1018,7 +1037,7 @@ function ProposalsList({
                 }}
               >
                 <button
-                  onClick={() => setExpandedId(isOpen ? null : p.id)}
+                  onClick={() => togglePayload(p.id)}
                   className="w-full text-left flex items-center gap-2 px-3 py-2"
                 >
                   <span
@@ -1048,33 +1067,14 @@ function ProposalsList({
                     className="px-3 pb-3 space-y-2 text-xs"
                     style={{ color: WB.textDim, borderTop: `1px solid ${WB.border}` }}
                   >
-                    <ProposalField label="Keep" value={p.payload.keep} />
-                    <ProposalField label="Change" value={p.payload.change} />
-                    <ProposalField label="Reject if" value={p.payload.rejectIf} />
-                    {p.payload.notes && (
-                      <ProposalField label="Notes" value={p.payload.notes} />
-                    )}
-                    {p.payload.referenceImageUrl && (
-                      <div>
-                        <div style={{ color: WB.textMuted }}>Reference:</div>
-                        <a
-                          href={p.payload.referenceImageUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="underline break-all"
-                          style={{ color: WB.accent }}
-                        >
-                          {p.payload.referenceImageUrl}
-                        </a>
-                      </div>
-                    )}
-                    {p.payload.cardLineage && (
-                      <div>
-                        <div style={{ color: WB.textMuted }}>Card referenced:</div>
-                        <div className="font-mono text-[10px]">
-                          {p.payload.cardLineage.cardName} · {p.payload.cardLineage.cardId.slice(0, 8)}…
-                        </div>
-                      </div>
+                    {payloadErrors[p.id] ? (
+                      <div style={{ color: '#f9d0d4' }}>Failed to load payload: {payloadErrors[p.id]}</div>
+                    ) : payloads[p.id] === undefined ? (
+                      <div style={{ color: WB.textMuted }}>Loading…</div>
+                    ) : payloads[p.id] === null ? (
+                      <div style={{ color: WB.textMuted }}>Payload not found (proposal may be deleted).</div>
+                    ) : (
+                      <ExpandedPayload payload={payloads[p.id]!} />
                     )}
                   </div>
                 )}
@@ -1084,6 +1084,39 @@ function ProposalsList({
         </ul>
       )}
     </section>
+  );
+}
+
+function ExpandedPayload({ payload }: { payload: ArchetypeProposalPayload }) {
+  return (
+    <>
+      <ProposalField label="Keep" value={payload.keep} />
+      <ProposalField label="Change" value={payload.change} />
+      <ProposalField label="Reject if" value={payload.rejectIf} />
+      {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
+      {payload.referenceImageUrl && (
+        <div>
+          <div style={{ color: WB.textMuted }}>Reference:</div>
+          <a
+            href={payload.referenceImageUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="underline break-all"
+            style={{ color: WB.accent }}
+          >
+            {payload.referenceImageUrl}
+          </a>
+        </div>
+      )}
+      {payload.cardLineage && (
+        <div>
+          <div style={{ color: WB.textMuted }}>Card referenced:</div>
+          <div className="font-mono text-[10px]">
+            {payload.cardLineage.cardName} · {payload.cardLineage.cardId.slice(0, 8)}…
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

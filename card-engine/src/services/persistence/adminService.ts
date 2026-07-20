@@ -224,6 +224,13 @@ function rowToProposal(r: ProposalRow): ArchetypeProposal {
   };
 }
 
+/**
+ * Lightweight list — every column EXCEPT `payload`. Also drops legacy
+ * `cardLineage.tiers.*.portraitUrl` fields from old rows (pre-P1) so
+ * they don't bloat the list even for historical records. Reviewers
+ * expand a row → we fetch the full payload via `getArchetypeProposalPayload`.
+ * This keeps the list at ~few KB per row instead of ~1MB+.
+ */
 export async function listArchetypeProposals(opts?: {
   archetype?: ArchetypeName;
   status?: ProposalStatus;
@@ -231,14 +238,50 @@ export async function listArchetypeProposals(opts?: {
 }): Promise<ArchetypeProposal[]> {
   let q = client()
     .from('archetype_proposals')
-    .select('*')
+    .select('id, archetype, layer, failure_type, status, submitted_by, card_id, commit_sha, decided_reason, decided_at, created_at, updated_at')
     .order('created_at', { ascending: false });
   if (opts?.archetype) q = q.eq('archetype', opts.archetype);
   if (opts?.status) q = q.eq('status', opts.status);
   if (opts?.limit) q = q.limit(opts.limit);
   const { data, error } = await q;
   if (error) throw error;
-  return (data ?? []).map((r) => rowToProposal(r as ProposalRow));
+  // The list omits payload; every field except payload comes from the query.
+  return (data ?? []).map((r) => {
+    const row = r as Omit<ProposalRow, 'payload'>;
+    return {
+      id: row.id,
+      archetype: row.archetype as ArchetypeName,
+      layer: row.layer,
+      failureType: row.failure_type,
+      status: row.status,
+      submittedBy: row.submitted_by,
+      cardId: row.card_id,
+      // Placeholder payload for list rows; call getArchetypeProposalPayload
+      // to hydrate. Reviewers get a proposal shape without the full blob.
+      payload: null as unknown as ArchetypeProposalPayload,
+      commitSha: row.commit_sha,
+      decidedReason: row.decided_reason,
+      decidedAt: row.decided_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  });
+}
+
+/**
+ * Fetches the full payload for a single proposal. Called on-demand when
+ * a reviewer expands a row in the workshop. Kept separate so the list
+ * query stays cheap.
+ */
+export async function getArchetypeProposalPayload(id: string): Promise<ArchetypeProposalPayload | null> {
+  const { data, error } = await client()
+    .from('archetype_proposals')
+    .select('payload')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return (data as { payload: ArchetypeProposalPayload }).payload;
 }
 
 export async function createArchetypeProposal(input: {
