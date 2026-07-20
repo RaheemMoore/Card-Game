@@ -11,10 +11,11 @@ export const ARENA_MANIFEST: ArenaManifest = {
     id: 'forbidden_mountain_passage',
     kind: 'arena',
     source: 'leonardo',
-    path: 'arenas/forbidden-mountain-passage/base.svg',
-    dimensions: { width: 1920, height: 1080 },
-    approvalStatus: 'placeholder',
-    notes: 'Placeholder SVG — Leonardo painted 16:9 pending C6 approval.',
+    path: 'arenas/forbidden-mountain-passage/base.png',
+    dimensions: { width: 1360, height: 768 },
+    approvalStatus: 'approved',
+    promptVersion: 'c6.v1',
+    notes: 'Leonardo Phoenix 1.0, seed=987654 (candidate-2). Approved by Raheem 2026-07-19. Losing candidate-1 kept on disk.',
   },
 };
 
