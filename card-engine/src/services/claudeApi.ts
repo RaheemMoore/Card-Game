@@ -1277,7 +1277,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     // cap — they're the targeted fixes — so the parsed negative is truncated
     // first to reserve room for them, rather than truncating the whole
     // string tail-first (which would silently delete the bans).
-    const elementDriftBans = existingHiddenFate
+    const elementDriftBans = input.existingHiddenFate
       ? buildElementDriftBans(input.element.element as ElementName)
       : '';
     // Drift bans lead the tail: they're the most targeted fix and must
