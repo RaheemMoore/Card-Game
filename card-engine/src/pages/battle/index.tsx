@@ -41,6 +41,7 @@ export function Battle() {
       state={battle.state}
       events={battle.events}
       actingActorId={battle.actingActorId}
+      partyCards={party}
       error={battle.error}
       onSubmit={battle.submit}
       onRestart={() => {

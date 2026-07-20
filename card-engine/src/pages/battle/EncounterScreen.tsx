@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import type { Card } from '../../types/card';
 import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
 import {
   grantBattleReward,
   type BattleRewardOutcome,
 } from '../../services/combat/battleRewardService';
 import { BossPanel } from './BossPanel';
-import { HeroPanel } from './HeroPanel';
+import { HeroLane } from './HeroLane';
 import { AbilityRail } from './AbilityRail';
 import { UtilityRail } from './UtilityRail';
 import { CombatJournal } from './CombatJournal';
@@ -15,6 +16,7 @@ interface Props {
   state: BattleState | null;
   events: readonly BattleEvent[];
   actingActorId: string | null;
+  partyCards: Card[];
   error: string | null;
   onSubmit: (action: PlayerAction) => void;
   onRestart: () => void;
@@ -25,6 +27,7 @@ export function EncounterScreen({
   state,
   events,
   actingActorId,
+  partyCards,
   error,
   onSubmit,
   onRestart,
@@ -74,9 +77,6 @@ export function EncounterScreen({
   const boss = state.boss;
   const isOver = state.phase === 'battle_over';
   const canAct = state.phase === 'awaiting_player_action';
-  const livingCount = state.heroes.filter((h) => !h.defeated).length;
-  const showPartyIndicator = state.heroes.length > 1;
-  const actingIndex = state.heroes.findIndex((h) => h.actorId === actingHero.actorId);
 
   return (
     <div className="max-w-4xl mx-auto px-3 py-4">
@@ -94,20 +94,23 @@ export function EncounterScreen({
         intentText={boss.currentIntent?.telegraphText ?? null}
         lastEvent={state.log[state.log.length - 1]}
       />
-      {showPartyIndicator && (
-        <div className="mb-2 text-[11px] uppercase tracking-widest text-bone/60 text-center">
-          Party {livingCount} of {state.heroes.length}
-          {canAct && actingIndex >= 0 && (
-            <>
-              {' · '}
-              <span className="text-gold">
-                Lane {actingIndex + 1}: {actingHero.snapshot.displayName}
-              </span>
-            </>
-          )}
-        </div>
-      )}
-      <HeroPanel hero={actingHero} />
+
+      <div className="flex justify-center items-end gap-4 py-4 mb-2 overflow-x-auto">
+        {state.heroes.map((combatant, i) => {
+          const card = partyCards[i];
+          if (!card) return null;
+          return (
+            <HeroLane
+              key={combatant.actorId}
+              card={card}
+              combatant={combatant}
+              isActing={canAct && combatant.actorId === actingHero.actorId}
+              laneIndex={i}
+            />
+          );
+        })}
+      </div>
+
       <AbilityRail hero={actingHero} bossActorId={boss.actorId} disabled={!canAct} onSubmit={onSubmit} />
       <UtilityRail onSubmit={onSubmit} disabled={!canAct} />
       <CombatJournal rawEvents={events} />
