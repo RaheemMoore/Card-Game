@@ -18,6 +18,7 @@ interface Props {
   events: readonly BattleEvent[];
   actingActorId: string | null;
   partyCards: Card[];
+  entryTxnId: string | null;
   error: string | null;
   onSubmit: (action: PlayerAction) => void;
   onRestart: () => void;
@@ -29,6 +30,7 @@ export function EncounterScreen({
   events,
   actingActorId,
   partyCards,
+  entryTxnId,
   error,
   onSubmit,
   onRestart,
@@ -47,9 +49,10 @@ export function EncounterScreen({
       bossId: state.snapshot.boss.bossId,
       outcome: state.result.outcome,
       roundsElapsed: state.result.roundsElapsed,
+      entryTxnId: entryTxnId ?? undefined,
     });
     setRewardOutcome(outcome);
-  }, [state]);
+  }, [state, entryTxnId]);
 
   if (error) {
     return (

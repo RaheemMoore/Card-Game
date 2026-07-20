@@ -3,16 +3,24 @@ import { Link } from 'react-router-dom';
 import { getAllCards } from '../../services/storage';
 import { getAllBossDefinitions } from '../../services/bosses/registry';
 import { getAbilityStore } from '../../services/abilities/registry';
+import { GAMEPLAY_PRICE_CATALOG } from '../../data/economy/gameplayPriceCatalog';
+import { reserve, InsufficientFundsError } from '../../services/economy/walletService';
 import type { Card } from '../../types/card';
 
 const MAX_PARTY = 3;
+const ENTRY_PRICE = GAMEPLAY_PRICE_CATALOG.battle_run_entry;
 
 type PartySlots = readonly (string | null)[];
 
-export function Picker({ onPick }: { onPick: (cards: Card[], bossId: string) => void }) {
+interface PickerProps {
+  onPick: (cards: Card[], bossId: string, entryTxnId: string) => void;
+}
+
+export function Picker({ onPick }: PickerProps) {
   const cards = getAllCards();
   const bosses = getAllBossDefinitions().filter((b) => b.status === 'active');
   const abilityStore = getAbilityStore();
+  const [entryError, setEntryError] = useState<string | null>(null);
 
   const eligibleCards = useMemo(
     () => cards.filter((c) => abilityStore.getReferencesForCard(c.cardId).length > 0),
@@ -164,22 +172,56 @@ export function Picker({ onPick }: { onPick: (cards: Card[], bossId: string) => 
         ))}
       </div>
 
+      {entryError && (
+        <div
+          role="alert"
+          className="mb-3 p-3 rounded border border-crimson/50 bg-crimson/10 text-sm text-bone"
+        >
+          {entryError}
+        </div>
+      )}
       <button
+        type="button"
         onClick={() => {
+          setEntryError(null);
           const partyCards = picked
             .map((id) => cards.find((x) => x.cardId === id))
             .filter((c): c is Card => c !== undefined);
-          if (partyCards.length > 0 && pickedBossId) onPick(partyCards, pickedBossId);
+          if (partyCards.length === 0 || !pickedBossId) return;
+          try {
+            const txn = reserve({
+              currency: 'gameplay',
+              amount: ENTRY_PRICE.gameplayCost,
+              actionId: ENTRY_PRICE.actionId,
+              metadata: {
+                partyCardIds: partyCards.map((c) => c.cardId).join(','),
+                bossId: pickedBossId,
+              },
+            });
+            onPick(partyCards, pickedBossId, txn.transactionId);
+          } catch (err) {
+            if (err instanceof InsufficientFundsError) {
+              setEntryError(
+                `You need ${err.required} Gold to enter this battle (you have ${err.available}).`,
+              );
+              return;
+            }
+            setEntryError(err instanceof Error ? err.message : String(err));
+          }
         }}
         disabled={!canStart}
-        className="w-full py-3 rounded font-fantasy text-lg font-bold transition-colors disabled:opacity-40"
+        aria-label={`Enter Battle — costs ${ENTRY_PRICE.gameplayCost} Gold, forfeited on defeat`}
+        className="w-full py-3 rounded font-fantasy text-lg font-bold transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         style={{
           background: 'linear-gradient(to bottom, #b8860b, #8a1c1c)',
           color: '#faeaca',
         }}
       >
-        Enter Battle
+        Enter Battle · {ENTRY_PRICE.gameplayCost} Gold
       </button>
+      <p className="text-[10px] text-bone/50 mt-2 text-center">
+        Entry cost is forfeited on defeat or abandon.
+      </p>
     </div>
   );
 }
