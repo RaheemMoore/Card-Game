@@ -1,5 +1,12 @@
-import type { Card } from '../../types/card';
+import type { Card, ArchetypeName } from '../../types/card';
 import type { CurrencyId, EconomyTransaction } from '../../types/economy';
+import type {
+  ArchetypeProposal,
+  ArchetypeProposalPayload,
+  ProposalFailureType,
+  ProposalLayer,
+  ProposalStatus,
+} from '../../types/archetypeProposal';
 import { getSupabaseClient } from './supabaseClient';
 
 // All admin RPCs are guarded by is_admin() server-side. Non-admin
@@ -177,4 +184,107 @@ export async function getCardForAdmin(cardId: string): Promise<Card | null> {
   if (error) throw error;
   if (!data) return null;
   return (data as { data: Card }).data;
+}
+
+// ─── Archetype Workshop proposals ─────────────────────────────────────
+// Guarded by RLS policy `archetype_proposals: admin only` — non-admin
+// callers get empty results or PostgREST errors from Supabase directly.
+
+interface ProposalRow {
+  id: string;
+  archetype: string;
+  layer: ProposalLayer;
+  failure_type: ProposalFailureType;
+  status: ProposalStatus;
+  submitted_by: string | null;
+  card_id: string | null;
+  payload: ArchetypeProposalPayload;
+  commit_sha: string | null;
+  decided_reason: string | null;
+  decided_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function rowToProposal(r: ProposalRow): ArchetypeProposal {
+  return {
+    id: r.id,
+    archetype: r.archetype as ArchetypeName,
+    layer: r.layer,
+    failureType: r.failure_type,
+    status: r.status,
+    submittedBy: r.submitted_by,
+    cardId: r.card_id,
+    payload: r.payload,
+    commitSha: r.commit_sha,
+    decidedReason: r.decided_reason,
+    decidedAt: r.decided_at,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
+}
+
+export async function listArchetypeProposals(opts?: {
+  archetype?: ArchetypeName;
+  status?: ProposalStatus;
+  limit?: number;
+}): Promise<ArchetypeProposal[]> {
+  let q = client()
+    .from('archetype_proposals')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (opts?.archetype) q = q.eq('archetype', opts.archetype);
+  if (opts?.status) q = q.eq('status', opts.status);
+  if (opts?.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []).map((r) => rowToProposal(r as ProposalRow));
+}
+
+export async function createArchetypeProposal(input: {
+  archetype: ArchetypeName;
+  layer: ProposalLayer;
+  failureType: ProposalFailureType;
+  cardId?: string | null;
+  payload: ArchetypeProposalPayload;
+  status?: ProposalStatus;
+}): Promise<ArchetypeProposal> {
+  const supabase = client();
+  const { data: session } = await supabase.auth.getUser();
+  const uid = session?.user?.id ?? null;
+  const { data, error } = await supabase
+    .from('archetype_proposals')
+    .insert({
+      archetype: input.archetype,
+      layer: input.layer,
+      failure_type: input.failureType,
+      status: input.status ?? 'submitted',
+      submitted_by: uid,
+      card_id: input.cardId ?? null,
+      payload: input.payload,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToProposal(data as ProposalRow);
+}
+
+export async function updateArchetypeProposalStatus(
+  id: string,
+  patch: { status: ProposalStatus; commitSha?: string; decidedReason?: string },
+): Promise<ArchetypeProposal> {
+  const decided = patch.status === 'shipped' || patch.status === 'rejected';
+  const { data, error } = await client()
+    .from('archetype_proposals')
+    .update({
+      status: patch.status,
+      commit_sha: patch.commitSha ?? null,
+      decided_reason: patch.decidedReason ?? null,
+      decided_at: decided ? new Date().toISOString() : null,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return rowToProposal(data as ProposalRow);
 }
