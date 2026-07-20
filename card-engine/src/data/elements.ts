@@ -50,6 +50,12 @@ type ArchetypeElementBuckets = {
 /**
  * Per Bible §Step 12 per archetype. Every element in ELEMENT_NAMES that is
  * not listed for a given archetype defaults to `not_available`.
+ *
+ * NOTE (P4 Seraph corruption arc): 'Infernal' is INTENTIONALLY absent from
+ * every archetype's buckets, including Seraph. It is the Fallen-Seraph-
+ * exclusive element and is only ever assigned by alignment transmutation at
+ * tier-up (Light → Infernal — see data/narrativeAxes/seraphAlignment.ts and
+ * services/tierUp.ts). It must NOT appear in the normal forge picker.
  */
 export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBuckets> = {
   Barbarian: {

@@ -454,6 +454,26 @@ const DREAM = V({
 });
 
 /**
+ * INFERNAL — Fallen-Seraph-exclusive element (P4 Seraph corruption arc,
+ * art-director draft approved verbatim by Raheem 2026-07-20). Assigned
+ * only by alignment transmutation — never appears in the forge picker.
+ */
+const INFERNAL = V({
+  theme: 'damnation, corrupted radiance, sinister regality, contained hellfire, oath-broken glory',
+  primaryColors: 'obsidian black, void black, midnight black',
+  secondaryColors: 'blood orange, dried-blood crimson, ember red',
+  accentColors: 'sulfur yellow, molten gold-in-cracks, brimstone bronze',
+  materials: 'sculpted obsidian plate, black basalt, brimstone, fissured armor with molten veins beneath, spined black iron, sacrilegious relic-metal, cracked onyx',
+  textures: 'lava-fissured armor plates, hairline molten cracks glowing through black metal, matte-black lacquer, veined obsidian, soot-etched engravings, cooled-glass sheen',
+  lighting: 'weapon-bound firelight, glow that BLEEDS UP through cracks in black armor and stone (never bathes the whole subject), sharp rim-light on obsidian edges, dark negative space dominates, cold ambient with hot linework — NOT warm ember floodlight',
+  motion: 'slow curling ember-smoke rising from blade edge, controlled fire wreathing a single weapon or hand, drifting cinders, contained not billowing',
+  shapes: 'architectural spikes, sculpted crown-like silhouettes, bladed armor plates, thorn-shaped pauldrons, cathedral-gothic angularity, containment vessels for the flame',
+  atmosphere: 'lava-cracked ground beneath the subject, thin sulfur haze, still and heavy air, ash falling like snow, cathedral-of-the-fallen stillness',
+  symbolism: 'oaths broken, fallen grace, regal wrath, judgment inverted, purification turned to punishment, priesthood in ruin',
+  avoid: 'generic orange fire, campfire, torch, phoenix wings, wildfire, forge sparks, berserker rage flames, whole-body engulfment, warm ember lighting, dancing naturalistic flame tongues, magma landscapes as backdrop, lava rivers, volcanic eruption, pure white halo, angelic golden radiance, dove wings, holy light rays, cartoon devil horns, generic demon skulls, red-and-black checkerboard',
+});
+
+/**
  * ---------- Canonical map ----------
  */
 export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
@@ -483,6 +503,7 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Psychic: PSYCHIC,
   Moon: MOON,
   Dream: DREAM,
+  Infernal: INFERNAL,
 };
 
 /**

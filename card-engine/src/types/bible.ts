@@ -24,6 +24,11 @@ export const ELEMENT_NAMES = [
   'Nature', 'Beast', 'Blood', 'Poison', 'Metal', 'Spirit', 'Shadow',
   'Light', 'Sound', 'Ash', 'Holy', 'Void', 'Time', 'Cosmic', 'Tech',
   'Psychic', 'Moon', 'Dream',
+  // Fallen-Seraph-exclusive (P4 Seraph corruption arc). Never appears in
+  // any archetype's compatibility buckets — it is only ever assigned by
+  // alignment transmutation at tier-up (Light → Infernal when the path
+  // resolves to 'fallen'). See data/narrativeAxes/seraphAlignment.ts.
+  'Infernal',
 ] as const;
 export type ElementName = typeof ELEMENT_NAMES[number];
 

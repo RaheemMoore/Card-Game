@@ -213,6 +213,13 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a door standing alone in the background with nothing behind it',
     'a music-box lid open playing a silent tune',
   ],
+  // Fallen-Seraph exclusive (P4). Kept sparse and tonally restrained —
+  // Infernal reads as damnation, not comedy.
+  Infernal: [
+    'a snuffed votive candle still smoking at their feet',
+    'a cracked oath-seal hanging from a chain on their belt',
+    'a single white feather charring at the edges as it falls',
+  ],
 };
 
 const QUIRK_CURSOR_KEY = 'card-engine-quirk-cursor';
@@ -617,6 +624,8 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
   Ash: ', open flames replacing cold ash, active fire instead of aftermath, element changed from Ash',
   // Fire itself drifts toward generic orange blobs, not other elements.
   Fire: ', blue magic glow replacing fire, ice palette, element changed from Fire',
+  // Fallen-Seraph exclusive (P4). Infernal is molten obsidian + black light.
+  Infernal: ', generic orange fire replacing black-dominant infernal palette, campfire flames, holy radiance, white halo, element changed from Infernal',
 };
 
 /** Look up the drift-ban string for an element; empty string if none. */
