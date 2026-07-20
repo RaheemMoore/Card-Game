@@ -5,20 +5,23 @@ import {
   buildHeroSnapshot,
   runBatch,
   baselineHeroPolicy,
+  snapshotFromBossVersion,
 } from './harness';
 import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
+import { SEED_BOSSES } from '../../data/bosses/seedBosses';
 import type { CardStats } from '../../types/card';
 
 /**
- * C9 party balance baseline. Runs the 3-hero party against the shipped
- * Emberborn Wraith across a scripted seed range and RECORDS the win rate
- * via console.info — it does NOT gate CI on party numbers. Per the plan
- * (Rage decision, Section 7), the solo v2 balance is the source of truth
- * for the C1–C6 slice; a v3 with 50% mechanical + 25% Rage lands only
- * after Raheem approves this data.
+ * Party balance baseline. Records win rate + rounds via console.info; gating
+ * is deliberately loose — the assertion is that every run terminates. Two
+ * suites:
  *
- * If this test starts failing you probably broke the reducer, not the
- * balance — the assertion is only that every run terminates.
+ *   1. vs Ember Wraith v2 (the harness's hardcoded FIRE_ELEMENTAL_PHASES,
+ *      solo-tuned). Historical baseline recorded 100% / avg 5 rounds — proof
+ *      the plan's Section-7 warning was real.
+ *
+ *   2. vs Ember Wraith v3 (the seed BossVersion published 2026-07-19 with
+ *      50% mechanical + 25% Rage). Party-tuned; target win rate ~45–65%.
  */
 
 function statsFor(atk: number, def: number, mana: number): CardStats {
@@ -47,13 +50,15 @@ function heroFor(id: string, stats: CardStats) {
   });
 }
 
-describe('C9 party balance baseline — 3 heroes vs shipped Ember Wraith', () => {
+const PARTY = () => [
+  heroFor('Vanguard', statsFor(70, 55, 60)),
+  heroFor('Warden', statsFor(50, 70, 55)),
+  heroFor('Reaver', statsFor(65, 45, 65)),
+];
+
+describe('C9 party balance baseline — vs Ember Wraith v2 (harness hardcoded)', () => {
   it('records win rate + avg rounds across 300 seeds (non-gating)', () => {
-    const heroes = [
-      heroFor('Vanguard', statsFor(70, 55, 60)),
-      heroFor('Warden', statsFor(50, 70, 55)),
-      heroFor('Reaver', statsFor(65, 45, 65)),
-    ];
+    const heroes = PARTY();
     const stats = runBatch(
       (seed) => buildBattleSnapshot({ seed, heroes }),
       baselineHeroPolicy,
@@ -61,12 +66,33 @@ describe('C9 party balance baseline — 3 heroes vs shipped Ember Wraith', () =>
     );
     // eslint-disable-next-line no-console
     console.info(
-      `[C9 party baseline] 3-hero Forged party vs Ember Wraith v2 — ` +
+      `[party vs v2] 3-hero Forged party vs Ember Wraith v2 — ` +
         `winRate=${stats.winRate.toFixed(3)} avgRounds=${stats.avgRounds.toFixed(1)} ` +
         `wins=${stats.wins} losses=${stats.losses} timeouts=${stats.timeouts}`,
     );
-    // Termination check only — party balance is not gated until Raheem
-    // approves numbers alongside the Rage decision (plan §7).
+    expect(stats.wins + stats.losses + stats.timeouts).toBe(300);
+  }, 30_000);
+});
+
+describe('party balance — vs Ember Wraith v3 (seed BossVersion)', () => {
+  it('records win rate + avg rounds across 300 seeds (non-gating)', () => {
+    const heroes = PARTY();
+    const emberSeed = SEED_BOSSES.find(
+      (b) => b.definition.id === 'boss_fire_elemental_v0',
+    );
+    if (!emberSeed) throw new Error('Emberborn Wraith seed missing');
+    const bossSnap = snapshotFromBossVersion(emberSeed.definition, emberSeed.version);
+    const stats = runBatch(
+      (seed) => buildBattleSnapshot({ seed, heroes, boss: bossSnap }),
+      baselineHeroPolicy,
+      300,
+    );
+    // eslint-disable-next-line no-console
+    console.info(
+      `[party vs v3] 3-hero Forged party vs Ember Wraith v3 — ` +
+        `winRate=${stats.winRate.toFixed(3)} avgRounds=${stats.avgRounds.toFixed(1)} ` +
+        `wins=${stats.wins} losses=${stats.losses} timeouts=${stats.timeouts}`,
+    );
     expect(stats.wins + stats.losses + stats.timeouts).toBe(300);
   }, 30_000);
 });

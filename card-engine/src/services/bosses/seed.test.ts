@@ -33,10 +33,13 @@ describe('snapshotFromBossVersion', () => {
     expect(snap.bossId).toBe(emberborn.definition.id);
     expect(snap.versionId).toBe(emberborn.version.id);
     expect(snap.name).toBe('Emberborn Wraith');
-    expect(snap.maxHp).toBe(340);
-    expect(snap.phases.length).toBe(2);
+    // v3 (2026-07-19) bumped maxHp for a 3-hero party and added a rage phase.
+    expect(snap.maxHp).toBe(1100);
+    expect(snap.phases.length).toBe(3);
     expect(snap.phases[0].actions.length).toBe(2);
-    expect(snap.phases[1].actions.some((a) => a.intentType === 'execute')).toBe(true);
+    // Phase 3 = rage; its Rage Pyre keeps the execute intent from v2.
+    expect(snap.phases[2].actions.some((a) => a.intentType === 'execute')).toBe(true);
+    expect(snap.phases[2].id).toBe('phase_fe_rage');
   });
 });
 
