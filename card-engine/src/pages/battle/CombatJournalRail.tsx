@@ -11,9 +11,11 @@ interface Props {
 }
 
 /**
- * Right-side Combat Journal rail. Fantasy framing (gold-trim header, dark
- * parchment body). Three visual bands: current round marker, active event
- * (emphasized card), and history (dim scrolling list).
+ * Right-side Combat Journal rail. Fantasy framing (double gold trim, dark
+ * parchment gradient) that shares its border language with the Boss HUD +
+ * bottom shelf so the whole combat UI reads as one game interface. Round
+ * dividers separate history; the Active event is emphasized in its own
+ * pinned band.
  */
 export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -37,43 +39,48 @@ export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: 
     <aside
       className="flex flex-col h-full relative"
       style={{
-        background:
-          'linear-gradient(180deg, rgba(20,10,14,0.95) 0%, rgba(8,4,10,0.95) 100%)',
-        borderLeft: '1px solid rgba(184,134,11,0.35)',
-        boxShadow: 'inset 1px 0 0 rgba(0,0,0,0.6)',
+        background: 'linear-gradient(180deg, rgba(20,10,14,0.95) 0%, rgba(8,4,10,0.98) 100%)',
+        borderLeft: '1px solid rgba(184,134,11,0.55)',
+        boxShadow: 'inset 1px 0 0 rgba(0,0,0,0.85), inset 2px 0 0 rgba(184,134,11,0.15)',
       }}
       aria-label="Combat Journal"
     >
-      {/* Header — round marker + skip */}
+      {/* Header */}
       <div
-        className="px-3 py-2 flex items-center justify-between border-b"
+        className="px-3 py-2 flex items-center justify-between relative"
         style={{
-          borderColor: 'rgba(184,134,11,0.45)',
-          background:
-            'linear-gradient(180deg, rgba(30,18,12,0.9) 0%, rgba(15,8,10,0.9) 100%)',
+          borderBottom: '1px solid rgba(184,134,11,0.45)',
+          background: 'linear-gradient(180deg, rgba(38,22,14,0.9) 0%, rgba(18,10,12,0.9) 100%)',
+          boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.6)',
         }}
       >
+        <CornerFlourish pos="tl" />
+        <CornerFlourish pos="tr" />
         <div className="flex items-baseline gap-2">
           <span className="font-fantasy text-xs text-gold uppercase tracking-widest">
-            Journal
-          </span>
-          <span className="text-[10px] text-bone/50 tabular-nums">
-            Round {currentRound || '—'}
+            Combat Log
           </span>
         </div>
-        {isPlaying && (
-          <button
-            type="button"
-            onClick={onSkip}
-            className="text-[10px] uppercase tracking-widest text-bone/60 hover:text-gold underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
-            aria-label={`Skip ${pendingCount} pending combat beats`}
-          >
-            Skip · {pendingCount}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {currentRound > 0 && (
+            <span className="text-[10px] text-bone/50 tabular-nums font-fantasy">
+              Rd {currentRound}
+            </span>
+          )}
+          {isPlaying && (
+            <button
+              type="button"
+              onClick={onSkip}
+              className="text-[10px] uppercase tracking-widest text-bone/60 hover:text-gold underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
+              aria-label={`Skip ${pendingCount} pending combat beats`}
+            >
+              Skip · {pendingCount}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* History (scrolls) */}
+      {/* History */}
       <div
         ref={scrollRef}
         className="flex-1 min-h-0 overflow-y-auto px-2 py-2 space-y-0.5"
@@ -84,17 +91,19 @@ export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: 
         ))}
       </div>
 
-      {/* Active event — pinned card at bottom, emphasized */}
+      {/* Active */}
       {active && (
         <div
-          className="px-2 py-2 border-t"
+          className="px-2 py-2 relative"
           style={{
-            borderColor: 'rgba(184,134,11,0.35)',
-            background:
-              'linear-gradient(180deg, rgba(45,28,10,0.55) 0%, rgba(20,10,14,0.75) 100%)',
+            borderTop: '1px solid rgba(184,134,11,0.45)',
+            background: 'linear-gradient(180deg, rgba(45,28,10,0.6) 0%, rgba(20,10,14,0.8) 100%)',
+            boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.7)',
           }}
         >
-          <div className="text-[9px] uppercase tracking-widest text-gold/80 mb-1 px-1">
+          <CornerFlourish pos="bl" />
+          <CornerFlourish pos="br" />
+          <div className="text-[9px] uppercase tracking-widest text-gold/80 mb-1 px-1 font-fantasy">
             Active
           </div>
           <JournalRow beat={active} tone="active" />
@@ -108,15 +117,14 @@ function JournalRow({ beat, tone }: { beat: AnimationBeat; tone: 'history' | 'ac
   const icon = iconFor(beat.event, beat.cue);
   const isRound = beat.event.kind === 'round_started';
   if (isRound && tone === 'history') {
-    // Render round starts as thin dividers in history
     const round = (beat.event as Extract<BattleEvent, { kind: 'round_started' }>).round;
     return (
-      <div className="flex items-center gap-2 my-1 px-1">
-        <div className="flex-1 h-px bg-gold/20" />
-        <span className="text-[9px] uppercase tracking-widest text-gold/60">
+      <div className="flex items-center gap-2 my-1.5 px-1">
+        <div className="flex-1 h-px bg-gold/25" />
+        <span className="text-[9px] uppercase tracking-widest text-gold/60 font-fantasy">
           Round {round}
         </span>
-        <div className="flex-1 h-px bg-gold/20" />
+        <div className="flex-1 h-px bg-gold/25" />
       </div>
     );
   }
@@ -124,15 +132,53 @@ function JournalRow({ beat, tone }: { beat: AnimationBeat; tone: 'history' | 'ac
     <div
       className={`flex items-start gap-2 rounded px-1.5 py-1 text-[11px] leading-snug ${
         tone === 'active'
-          ? 'bg-gold/10 border border-gold/40 text-bone shadow-[inset_0_0_8px_rgba(212,175,55,0.15)]'
+          ? 'text-bone shadow-[inset_0_0_10px_rgba(212,175,55,0.18)]'
           : 'text-bone/55'
       }`}
+      style={
+        tone === 'active'
+          ? {
+              background: 'rgba(45,28,10,0.55)',
+              border: '1px solid rgba(212,175,55,0.4)',
+              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.6)',
+            }
+          : undefined
+      }
     >
-      <span className="text-sm shrink-0 leading-none pt-0.5" aria-hidden>
+      <span
+        className="shrink-0 flex items-center justify-center rounded"
+        style={{
+          width: 20,
+          height: 20,
+          background: tone === 'active' ? 'rgba(30,15,12,0.85)' : 'rgba(20,12,16,0.6)',
+          border: '1px solid rgba(184,134,11,0.4)',
+          fontSize: 12,
+        }}
+        aria-hidden
+      >
         {icon}
       </span>
-      <span className="font-mono truncate">{formatEvent(beat.event)}</span>
+      <span className="font-mono truncate pt-0.5">{formatEvent(beat.event)}</span>
     </div>
+  );
+}
+
+function CornerFlourish({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
+  const posStyle: React.CSSProperties = {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    color: 'rgba(212,175,55,0.6)',
+    pointerEvents: 'none',
+  };
+  if (pos === 'tl') Object.assign(posStyle, { top: 2, left: 2 });
+  if (pos === 'tr') Object.assign(posStyle, { top: 2, right: 2, transform: 'scaleX(-1)' });
+  if (pos === 'bl') Object.assign(posStyle, { bottom: 2, left: 2, transform: 'scaleY(-1)' });
+  if (pos === 'br') Object.assign(posStyle, { bottom: 2, right: 2, transform: 'scale(-1,-1)' });
+  return (
+    <svg viewBox="0 0 8 8" style={posStyle} aria-hidden fill="none">
+      <path d="M0 0 L5 0 M0 0 L0 5" stroke="currentColor" strokeWidth="1" />
+    </svg>
   );
 }
 

@@ -48,8 +48,8 @@ export function BossStage({ boss, currentBeat }: Props) {
         key={shakeKey}
         className={`boss-stage-sprite relative ${isWindingUp ? 'boss-stage-windup' : ''}`}
         style={{
-          width: 'clamp(240px, 26vw, 340px)',
-          height: 'clamp(300px, 34vh, 420px)',
+          width: 'clamp(320px, 34vw, 460px)',
+          height: 'clamp(380px, 44vh, 560px)',
         }}
         aria-label={boss.snapshot.name}
       >
@@ -78,12 +78,12 @@ export function BossStage({ boss, currentBeat }: Props) {
       {/* Ground shadow — sits directly beneath the boss's feet */}
       <div
         aria-hidden
-        className="rounded-full mt-[-22px]"
+        className="rounded-full mt-[-30px]"
         style={{
-          width: 'clamp(200px, 22vw, 280px)',
-          height: 'clamp(28px, 4vh, 42px)',
+          width: 'clamp(260px, 28vw, 360px)',
+          height: 'clamp(36px, 5vh, 54px)',
           background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0) 78%)',
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,0) 78%)',
         }}
       />
 

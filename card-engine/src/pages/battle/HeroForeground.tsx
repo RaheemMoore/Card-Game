@@ -16,12 +16,15 @@ interface Props {
 }
 
 /**
- * Bottom-anchored hero foreground. Three fixed lanes. Cards are the visual
- * (via live CardRenderer at full size); sprites peek subtly above each card
- * top as living avatars. Selected/acting card rises; idle cards lower.
+ * Bottom-anchored hero foreground. Three INDEPENDENT lanes rendered via
+ * CSS grid (1fr/1fr/1fr) so each lane sits at a stable horizontal anchor
+ * regardless of card size or selection state — cards do not compress into
+ * one centered cluster.
  *
- * No visible lane panels; no floating "YOUR" label. Selected hero is
- * communicated by vertical rise + gold outline glow on its card frame.
+ * Each lane hangs from the top of the command shelf: idle cards drop a bit
+ * (so their bottom edge tucks slightly into the shelf), the selected card
+ * rises and scales up for clear focus contrast. Sprite + card + strip move
+ * as one coordinated unit.
  */
 export function HeroForeground({
   heroes,
@@ -32,12 +35,17 @@ export function HeroForeground({
 }: Props) {
   return (
     <div
-      className="absolute left-0 right-0 flex justify-center items-end gap-4 sm:gap-8 px-6 pointer-events-none"
-      style={{ zIndex: 20, bottom: '10.5rem' }}
+      className="absolute left-0 right-0 grid items-end px-6 sm:px-10 lg:px-16 pointer-events-none"
+      style={{
+        zIndex: 20,
+        bottom: '10rem',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+        gap: 0,
+      }}
     >
       {heroes.map((combatant, i) => {
         const card = partyCards[i];
-        if (!card) return null;
+        if (!card) return <div key={combatant.actorId} />;
         return (
           <HeroLaneCard
             key={combatant.actorId}
@@ -85,27 +93,34 @@ function HeroLaneCard({
   const spriteAsset = getHeroSprite(combatant.snapshot.archetype);
   const spriteUrl = spriteAsset ? resolveCombatAssetUrl(spriteAsset) : null;
 
-  // Idle cards lowered slightly; selected rises. Sprite + card move as one.
-  const liftClass = isActing ? '-translate-y-4' : 'translate-y-4';
-  const scaleClass = isActing ? 'scale-100' : 'scale-[0.94]';
-  const opacityClass = isDefeated ? 'opacity-40 grayscale' : 'opacity-100';
+  // Selection contrast: acting card rises + scales up + brightens; idle
+  // cards drop lower and dim so the eye lands on the selected lane.
+  const laneTransform = isActing
+    ? 'translate-y-0 scale-100'
+    : 'translate-y-8 scale-[0.88]';
+  const laneOpacity = isDefeated
+    ? 'opacity-40 grayscale'
+    : isActing
+    ? 'opacity-100'
+    : 'opacity-80';
 
   return (
     <div
-      className={`hero-lane relative flex flex-col items-center transition-transform duration-300 ease-out pointer-events-auto ${liftClass} ${scaleClass} ${opacityClass}`}
+      className={`hero-lane relative flex flex-col items-center justify-end transition-all duration-300 ease-out pointer-events-auto ${laneTransform} ${laneOpacity}`}
       aria-label={`${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP`}
-      style={{ width: 'clamp(140px, 15vw, 210px)' }}
     >
-      {/* Hero sprite — peeks BEHIND the card top; small, dim, decorative */}
+      {/* Hero sprite — subordinate: peeks behind card top */}
       {spriteUrl && !isDefeated && (
         <div
           className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
           style={{
             bottom: 'calc(100% - 28px)',
-            width: 'clamp(56px, 6vw, 84px)',
-            height: 'clamp(72px, 8vw, 108px)',
-            filter: 'drop-shadow(0 6px 4px rgba(0,0,0,0.7)) brightness(0.85) saturate(0.85)',
-            opacity: isActing ? 0.85 : 0.65,
+            width: 'clamp(52px, 5.5vw, 80px)',
+            height: 'clamp(68px, 7vw, 104px)',
+            filter: `drop-shadow(0 6px 4px rgba(0,0,0,0.7)) brightness(${
+              isActing ? '0.95' : '0.75'
+            }) saturate(${isActing ? '1' : '0.75'})`,
+            opacity: isActing ? 0.9 : 0.55,
             zIndex: -1,
           }}
         >
@@ -119,14 +134,15 @@ function HeroLaneCard({
         </div>
       )}
 
-      {/* Card frame with subtle drop shadow + selected glow */}
+      {/* Card frame */}
       <div
         key={shakeKey}
         className="relative hero-lane-shake"
         style={{
           filter: isActing
-            ? 'drop-shadow(0 12px 22px rgba(0,0,0,0.85)) drop-shadow(0 0 22px rgba(212,175,55,0.45))'
-            : 'drop-shadow(0 12px 18px rgba(0,0,0,0.75))',
+            ? 'drop-shadow(0 14px 26px rgba(0,0,0,0.9)) drop-shadow(0 0 26px rgba(212,175,55,0.55))'
+            : 'drop-shadow(0 10px 14px rgba(0,0,0,0.7))',
+          maxWidth: 'clamp(160px, 15vw, 220px)',
         }}
       >
         <CardRenderer card={card} size="full" />
@@ -140,7 +156,7 @@ function HeroLaneCard({
         <FloatingDamage currentBeat={currentBeat} actorId={combatant.actorId} />
       </div>
 
-      {/* Compact HP / resource / ult strip — hangs from the card bottom */}
+      {/* Compact stat strip — hangs from the card bottom */}
       <div className="mt-1 w-full max-w-[190px] text-[9px] leading-tight px-1">
         <StripBar label="HP" value={combatant.hp} pct={hpPct} color="from-emerald-400 to-emerald-600" />
         <StripBar
@@ -149,7 +165,10 @@ function HeroLaneCard({
           pct={rPct}
           color="from-sky-400 to-sky-600"
         />
-        <div className="flex items-center justify-center gap-0.5 mt-0.5" aria-label={`Ultimate charge ${Math.round(uPct * 100)}%`}>
+        <div
+          className="flex items-center justify-center gap-0.5 mt-0.5"
+          aria-label={`Ultimate charge ${Math.round(uPct * 100)}%`}
+        >
           {[0.25, 0.5, 0.75, 1.0].map((threshold, idx) => (
             <span
               key={idx}

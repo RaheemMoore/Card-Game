@@ -8,6 +8,7 @@ import { BossStage } from './BossStage';
 import { HeroForeground } from './HeroForeground';
 import { AbilityCommandBar } from './AbilityCommandBar';
 import { BattleControls } from './BattleControls';
+import { FantasyPanel } from './FantasyPanel';
 
 interface Props {
   state: BattleState;
@@ -66,7 +67,10 @@ export function CombatScene({
       />
 
       {/* Layer 3 — Boss HUD (upper-left overlay) */}
-      <BossHUDOverlay boss={boss} intent={boss.currentIntent} currentBeat={currentBeat} />
+      <BossHUDOverlay boss={boss} intent={boss.currentIntent} currentBeat={currentBeat} state={state} />
+
+      {/* Turn pill — upper-right, matches HUD frame language */}
+      <TurnPill round={state.round} />
 
       {/* Layer 4 — Boss stage (center-upper of arena) */}
       <BossStage boss={boss} currentBeat={currentBeat} />
@@ -102,13 +106,24 @@ export function CombatScene({
         onSubmit={onSubmit}
       />
 
-      {/* Layer 7 — Battle controls (Leave / Round / auxiliary + END TURN) */}
-      <BattleControls
-        round={state.round}
-        onExit={onExit}
-        onSubmit={onSubmit}
-        canAct={canAct}
-      />
+      {/* Layer 7 — Battle controls (Leave / auxiliary + END TURN) */}
+      <BattleControls onExit={onExit} onSubmit={onSubmit} canAct={canAct} />
+    </div>
+  );
+}
+
+function TurnPill({ round }: { round: number }) {
+  return (
+    <div className="absolute top-3 right-3 z-30">
+      <FantasyPanel ornaments={false} className="rounded-md">
+        <div className="px-3 py-1.5 flex items-center gap-2">
+          <span className="text-[9px] uppercase tracking-widest text-bone/60 font-fantasy">
+            Turn
+          </span>
+          <span className="text-sm font-fantasy text-gold tabular-nums">{round}</span>
+          <span aria-hidden className="text-orange-400 text-xs">🜂</span>
+        </div>
+      </FantasyPanel>
     </div>
   );
 }

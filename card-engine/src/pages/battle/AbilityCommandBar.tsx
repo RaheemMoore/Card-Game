@@ -52,9 +52,12 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Pro
 
   return (
     <div
-      className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3"
+      className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 transition-opacity duration-200 ${
+        disabled ? 'opacity-45' : 'opacity-100'
+      }`}
       style={{ bottom: '3.5rem', zIndex: 25 }}
       aria-label="Ability command bar"
+      aria-hidden={disabled}
     >
       {slots.map(({ slot, ability }) => (
         <AbilitySlot
