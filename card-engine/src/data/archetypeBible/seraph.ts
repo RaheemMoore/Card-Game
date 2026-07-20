@@ -5,8 +5,9 @@ import type { ArchetypeBibleChapter } from '../../types/bible';
  */
 export const SERAPH_BIBLE: ArchetypeBibleChapter = {
   archetype: 'Seraph',
-  identityThrough: 'Conviction',
-  coreFantasy: 'Carry hope and sacred responsibility into darkness',
+  identityThrough: 'Contested Conviction',
+  coreFantasy:
+    "Bear a contested divine spark, and become — across the ranks — the world's hope, its ruin, or the razor's edge between.",
 
   selectionScreen: {
     tagline: 'Divine guardians who carry hope into the darkest corners of the world.',
@@ -17,8 +18,16 @@ export const SERAPH_BIBLE: ArchetypeBibleChapter = {
 
   coreFantasyPromise: {
     promise:
-      'To carry hope into darkness, even when doing so demands great personal sacrifice.',
-    emotionalPillars: ['Faith', 'Hope', 'Duty', 'Conviction', 'Compassion'],
+      'To answer a divine summons whose alignment is not yet decided, and to shape — through burden, choice, and sacrifice — whether that summons redeems the world, damns it, or refuses to close.',
+    emotionalPillars: [
+      'Contested Conviction',
+      'Devotion',
+      'Burden',
+      'Sacrifice',
+      'Choice',
+      'Hope or Wrath',
+      'Mercy or Ruin',
+    ],
   },
 
   origins:
@@ -60,7 +69,7 @@ export const SERAPH_BIBLE: ArchetypeBibleChapter = {
     recognitionCues:
       'Story-Pillar-specific symbols, service-worn clothing, evidence of healing or guardianship, meaningful celestial features, and the visible burden of conviction.',
     avoid:
-      'White-and-gold armor, symmetrical wings, universal halos, beautiful young angels, floating poses, and divinity equated with youth, whiteness, thinness, or beauty.',
+      'White-and-gold armor (Good path only, Forged onward — never on Foundation or the Fallen/Balanced paths), symmetrical wings, universal halos, beautiful young angels, floating poses, and divinity equated with youth, whiteness, thinness, or beauty.',
   },
 
   symbolAndMaterial: {
@@ -71,12 +80,14 @@ export const SERAPH_BIBLE: ArchetypeBibleChapter = {
   },
 
   rankEvolution: {
-    Foundation: 'Carries an oath or truth but has not yet borne its full cost.',
-    Forged: 'Has protected hope through failure, sacrifice, or moral uncertainty.',
+    Foundation:
+      'Wears the plain habit of a seed unfulfilled — unbleached linen or a monastic robe. No armor, no halo, no horns, no aura, no wings visibly deployed. Carries an oath or truth but has not yet borne its cost, and alignment has not yet declared: the divine spark could turn either way.',
+    Forged:
+      'Alignment has begun to declare itself, but the Seraph is still primarily robed. Exactly one piece of ceremonial gear sits over the cloth base: gilded ceremonial armor or a gold-veined implement (Good); a blackened obsidian piece or a soot-veined weapon (Fallen); a single grey-lacquered piece (Balanced).',
     Ascendant:
-      'Becomes a living source of courage whose authority comes from service rather than spectacle.',
+      'The Seraph has fully committed. Good — full radiant regalia in gold and white. Fallen — full obsidian regalia with Infernal-wreathed weapons (Infernal is Fallen-Seraph-exclusive), radiance replaced by molten black light and a broken or inverted halo. Balanced — asymmetric split-crown regalia, half gold and half obsidian, mismatched wings. All three paths remain organized by the six Orders, which are independent of the alignment axis.',
     continuityNote:
-      'Progression should deepen burden, witness, and earned sacred authority — not simply add wings, halos, armor, or radiance.',
+      'Progression should deepen burden, witness, and earned authority — sacred, forsaken, or contested — never merely add radiance, halos, horns, wings, or armor. The Foundation Seraph carries no visible divinity of either kind; those signs are earned across ranks.',
   },
 
   futureDesignSpace:
@@ -92,12 +103,19 @@ export const SERAPH_BIBLE: ArchetypeBibleChapter = {
       'Meaningful celestial symbols',
     ],
     avoid: [
-      'White-and-gold perfection',
+      'White-and-gold perfection (Good path only, Forged onward)',
       'Young beautiful angel default',
       'Paladin shorthand',
       'Radiance erasing detail',
       'Judgment without context',
       'Wings as entire identity',
+      'Foundation Seraph rendered with any armor, halo, wings, horns, or aura',
+      'Generic devil / horned-red-imp shorthand for Fallen',
+      'Pentagram or inverted-cross cliché',
+      'Sexy demoness or edgelord-goth shorthand',
+      'Cartoonish evil signaling',
+      'Fire-orange palette for Infernal — Infernal is molten obsidian and black light',
+      'Collapsing the six Orders into good vs evil',
     ],
     recognitionChecklist: [
       'Can the guiding truth be inferred?',
@@ -109,5 +127,13 @@ export const SERAPH_BIBLE: ArchetypeBibleChapter = {
     ],
   },
 
-  approvedPrestigeRoles: ['High Oathbearer', 'Order Prime', 'Living Witness'],
+  approvedPrestigeRoles: [
+    'High Oathbearer',
+    'Order Prime',
+    'Living Witness',
+    'Anathema',
+    'Broken Oathbearer',
+    'Ashen Witness',
+    'Threshold Warden',
+  ],
 };
