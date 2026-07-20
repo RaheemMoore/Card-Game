@@ -1,0 +1,31 @@
+name: build
+
+# Runs the exact command Vercel runs (tsc -b && vite build) on every PR and
+# push to main, plus lint. This catches the recurring failure class where
+# `tsc --noEmit` passes locally (it no-ops under TS project references and
+# ignores noUnusedLocals) but Vercel's production build fails — so broken
+# builds fail this check BEFORE merge instead of failing a Vercel deploy.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: card-engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: card-engine/package-lock.json
+      - run: npm ci
+      - name: Lint (oxlint)
+        run: npm run lint
+      - name: Production build (tsc -b && vite build)
+        run: npm run build

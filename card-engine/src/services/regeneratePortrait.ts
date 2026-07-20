@@ -4,6 +4,8 @@ import { generateCardTextWithRetry } from './claudeApi';
 import { getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 import { saveCard } from './storage';
 import { emptyHiddenFate } from './hiddenFate';
+import { resolveCurrentElement } from './elementResolver';
+import { SERAPH_ALIGNMENT } from '../data/narrativeAxes';
 
 /**
  * Regenerates ONLY the portrait for a card at its current rank. Preserves
@@ -20,13 +22,22 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
     );
   }
 
+  // P6 — art pipeline consumes the resolved element (a Fallen Seraph's
+  // transmuted Infernal, otherwise the origin element).
+  const resolvedElement = resolveCurrentElement(card) ?? card.elementSelection.element;
+  const narrativeAxis =
+    card.narrativeAxis && SERAPH_ALIGNMENT.appliesToArchetypes.includes(card.archetype)
+      ? { path: card.narrativeAxis.path }
+      : undefined;
+
   const text = await generateCardTextWithRetry({
     archetype: card.archetype,
     stats: card.stats,
     answers: card.storyPillars,
-    element: card.elementSelection,
+    element: { ...card.elementSelection, element: resolvedElement },
     existingName: card.cardName,
     existingHiddenFate: card.hiddenFate ?? emptyHiddenFate(),
+    narrativeAxis,
   });
 
   const initImage =

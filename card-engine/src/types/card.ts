@@ -86,6 +86,27 @@ export interface CharacterIdentity {
   distinctiveFeatures: string;   // e.g. "small scar over left brow, chipped canine"
 }
 
+// ---------- Narrative axes (Seraph corruption arc, P4) ----------
+
+export type NarrativeAxisId = 'seraph_alignment';
+
+/**
+ * Persisted state of a card's narrative axis (currently only Seraph
+ * alignment). Score is the sum of alignmentWeight tags on the player's
+ * Story Pillar answers, recomputed at tier-up. Path is the band id at
+ * last recompute: 'good' | 'fallen' | 'balanced'.
+ */
+export interface NarrativeAxisState {
+  axisId: NarrativeAxisId;
+  /** Clamped to the axis definition's scoreRange. */
+  score: number;
+  /** Band id at last recompute: 'good' | 'fallen' | 'balanced'. */
+  path: string;
+  resolvedAtRank: Rank;
+  /** Audit only — set when the player paid to Resist the Fall. */
+  resistedFall?: boolean;
+}
+
 export interface Card {
   cardId: string;
   archetype: ArchetypeName;
@@ -127,6 +148,16 @@ export interface Card {
   modifierLineage?: Partial<Record<Rank, ModifierStack>>;
   /** Lycanthrope only. See LycanthropeIdentity. */
   lycanIdentity?: LycanthropeIdentity;
+  /**
+   * Seraph corruption arc (P4). Populated lazily at the next tier-up for
+   * archetypes covered by a narrative axis definition; legacy cards read
+   * as neutral until then. No SQL migration needed (jsonb blob).
+   */
+  narrativeAxis?: NarrativeAxisState;
+  /** What the art/prompt pipeline consumes. Set only by transmutation (e.g. Fallen Seraph Light → Infernal). */
+  currentElement?: import('./bible').ElementName;
+  /** Set ONLY once, at first transmutation — records the pre-transmute element. */
+  originalElement?: import('./bible').ElementName;
   evolutionHistory: EvolutionHistory;
   /**
    * Per-rank snapshot of the card's CardAbilityReference rows. Ability refs

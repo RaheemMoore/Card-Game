@@ -56,6 +56,23 @@ import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/p
  * no automatic disability erasure, no automatic beauty escalation.
  */
 
+/**
+ * P6 Seraph corruption arc — compact per-path visual anchors. Injected into
+ * the generation prompt only when the card is a Seraph whose narrative axis
+ * has resolved to a path. Kept short (prompt is near its char budget) and
+ * always deferred to rank: Foundation stays plain robes regardless of path;
+ * the path signs are earned Forged onward. Mirrors rankEvolution in
+ * data/archetypeBible/seraph.ts.
+ */
+const SERAPH_PATH_ANCHORS: Record<string, string> = {
+  good:
+    'GOOD PATH — gilded and white ceremonial regalia, radiant gold-and-white light, an intact halo; sacred authority earned through service.',
+  fallen:
+    'FALLEN PATH — blackened obsidian regalia, radiance replaced by molten black light (Infernal is molten obsidian + black light, NEVER fire-orange), a broken or inverted halo; forsaken authority. NO horned-red-imp, pentagram, or sexy-demoness cliché.',
+  balanced:
+    "BALANCED PATH — asymmetric split-crown regalia, half gold and half obsidian, mismatched wings; contested authority held on the razor's edge.",
+};
+
 const RANK_MEANINGS: Record<Rank, string> = {
   Foundation:
     'The beginning of their story arc — the character carries their identity into their first depicted battle. This is not a "novice" — they ALREADY command their power at high visible intensity, mid-signature-move. Their story continues from here.',
@@ -212,6 +229,13 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a floating fish swimming through the air',
     'a door standing alone in the background with nothing behind it',
     'a music-box lid open playing a silent tune',
+  ],
+  // Fallen-Seraph exclusive (P4). Kept sparse and tonally restrained —
+  // Infernal reads as damnation, not comedy.
+  Infernal: [
+    'a snuffed votive candle still smoking at their feet',
+    'a cracked oath-seal hanging from a chain on their belt',
+    'a single white feather charring at the edges as it falls',
   ],
 };
 
@@ -617,6 +641,8 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
   Ash: ', open flames replacing cold ash, active fire instead of aftermath, element changed from Ash',
   // Fire itself drifts toward generic orange blobs, not other elements.
   Fire: ', blue magic glow replacing fire, ice palette, element changed from Fire',
+  // Fallen-Seraph exclusive (P4). Infernal is molten obsidian + black light.
+  Infernal: ', generic orange fire replacing black-dominant infernal palette, campfire flames, holy radiance, white halo, element changed from Infernal',
 };
 
 /** Look up the drift-ban string for an element; empty string if none. */
@@ -749,9 +775,17 @@ function buildPrompt(input: {
   requiredPose?: string;
   elementQuirk?: string | null;
   retryAttempt?: number;
+  /** P6 Seraph corruption arc — resolved narrative-axis path (good/fallen/balanced). */
+  narrativeAxis?: { path: string };
 }): string {
   const { archetype, stats, answers, element, overallRank, existingName, existingHiddenFate, abilitySlotToFill, existingAbilityRefs } = input;
   const c = getBibleChapter(archetype);
+  // P6 — Seraph path anchor block. Only fires for a Seraph whose axis has
+  // resolved; other archetypes / legacy cards get an empty string.
+  const seraphPathBlock =
+    archetype === 'Seraph' && input.narrativeAxis?.path && SERAPH_PATH_ANCHORS[input.narrativeAxis.path]
+      ? `\n=== SERAPH ALIGNMENT PATH (${input.narrativeAxis.path}) ===\n${SERAPH_PATH_ANCHORS[input.narrativeAxis.path]}\nRANK GOVERNS VISIBILITY: Foundation stays plain unbleached robes with NO armor/halo/wings/horns/aura regardless of path; the path signs above are earned Forged onward. The six Orders are independent of this alignment axis.\n`
+      : '';
   const isEvolution = Boolean(existingName);
   const rankProgression = c.rankEvolution[overallRank];
   const continuityNote = c.rankEvolution.continuityNote ?? '';
@@ -900,7 +934,7 @@ Overall rank: ${overallRank}
 ${RANK_MEANINGS[overallRank]}
 Rank progression for this archetype: ${rankProgression}
 ${continuityNote ? `Continuity note: ${continuityNote}` : ''}
-
+${seraphPathBlock}
 === STATS ===
 ${formatStats(stats, archetype)}
 Dominant stat: ${getDominantStat(stats) ?? 'None (tied)'}
@@ -1105,6 +1139,12 @@ export interface GenerateCardTextInput {
    * by generateCardTextWithRetry; callers should NOT set this.
    */
   retryAttempt?: number;
+  /**
+   * P6/P7 Seraph corruption arc — the card's resolved narrative-axis state.
+   * When the archetype is Seraph and a path is present, the prompt injects a
+   * compact per-path visual anchor block. Ignored for other archetypes.
+   */
+  narrativeAxis?: { path: string };
 }
 
 export async function generateCardText(input: GenerateCardTextInput): Promise<GeneratedText> {
@@ -1130,6 +1170,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     requiredPose,
     elementQuirk,
     retryAttempt: input.retryAttempt,
+    narrativeAxis: input.narrativeAxis,
   });
 
   // M4.9 — Haiku for every forge (Foundation, Forged, Ascendant, regen).
