@@ -40,19 +40,21 @@ export interface LayerSnapshot {
 }
 
 /**
- * Card lineage the proposal references — the character being critiqued,
- * plus its Foundation/Forged/Ascendant art snapshots (whichever are
- * present in evolutionHistory) so a reviewer can see exactly what was
- * generated.
+ * Card lineage the proposal references — the character being critiqued.
+ * We ONLY store cardId + textual metadata (nameAndTitle, lore) per tier,
+ * NEVER the portraitUrl. Portraits are looked up on-demand from the cards
+ * table when a reviewer expands a proposal row. This keeps proposal
+ * payloads small (was 1.25MB+ per row with inline data URLs, now ~4KB).
+ * Non-existent tiers are simply missing from the map.
  */
 export interface CardLineageRef {
   cardId: string;
   cardName: string;
   archetype: ArchetypeName;
   tiers: {
-    Foundation?: { portraitUrl: string; nameAndTitle: string; lore: string };
-    Forged?: { portraitUrl: string; nameAndTitle: string; lore: string };
-    Ascendant?: { portraitUrl: string; nameAndTitle: string; lore: string };
+    Foundation?: { nameAndTitle: string; lore: string };
+    Forged?: { nameAndTitle: string; lore: string };
+    Ascendant?: { nameAndTitle: string; lore: string };
   };
 }
 
