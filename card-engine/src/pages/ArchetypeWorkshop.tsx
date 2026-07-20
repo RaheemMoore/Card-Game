@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { getSupabaseClient, fetchMyRole, type SessionRole } from '../services/persistence/supabaseClient';
 import {
   createArchetypeProposal,
   listArchetypeProposals,
   getArchetypeProposalPayload,
+  sendProposalForApproval,
+  approveProposal,
+  rejectProposal,
 } from '../services/persistence/adminService';
 import type {
   ArchetypeProposal,
@@ -70,6 +73,29 @@ export function ArchetypeWorkshop() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [proposals, setProposals] = useState<ArchetypeProposal[] | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [viewerRole, setViewerRole] = useState<SessionRole>('user');
+  const [pending, setPending] = useState<ArchetypeProposal[] | null>(null);
+
+  useEffect(() => {
+    void fetchMyRole().then(setViewerRole);
+  }, []);
+
+  // Cross-archetype queue of proposals awaiting Raheem's final call.
+  // Loaded for every director so Tori can see what's parked, but only
+  // admins get the approve/reject controls.
+  useEffect(() => {
+    let cancelled = false;
+    listArchetypeProposals({ status: 'awaiting_approval', limit: 50 })
+      .then((rows) => {
+        if (!cancelled) setPending(rows);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn('Failed to load pending approvals', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshTick]);
 
   // Pull all cards of the selected archetype visible to this admin (RLS
   // widens SELECT for admins). Big single query — fine at studio scale.
@@ -150,6 +176,14 @@ export function ArchetypeWorkshop() {
         </div>
       )}
 
+      <div className="p-4 pb-0">
+        <PendingApprovalPanel
+          pending={pending}
+          viewerRole={viewerRole}
+          onDecided={() => setRefreshTick((t) => t + 1)}
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4 p-4">
         {/* LEFT column: card picker + tiers + layer state */}
         <div className="space-y-4">
@@ -173,7 +207,12 @@ export function ArchetypeWorkshop() {
       </div>
 
       <div className="p-4">
-        <ProposalsList proposals={proposals} archetype={archetype} />
+        <ProposalsList
+          proposals={proposals}
+          archetype={archetype}
+          viewerRole={viewerRole}
+          onChanged={() => setRefreshTick((t) => t + 1)}
+        />
       </div>
     </div>
   );
@@ -978,12 +1017,218 @@ function FormField({
 
 // ─── Proposals list ──────────────────────────────────────────────────
 
+// ─── Pending approval queue (Raheem's console gate) ──────────────────
+
+function PendingApprovalPanel({
+  pending,
+  viewerRole,
+  onDecided,
+}: {
+  pending: ArchetypeProposal[] | null;
+  viewerRole: SessionRole;
+  onDecided: () => void;
+}) {
+  const isAdmin = viewerRole === 'admin';
+  const count = pending?.length ?? 0;
+
+  // Nothing parked + a non-admin director → hide entirely to keep the
+  // workbench clean. Admins always see the panel so the gate is obvious.
+  if (!isAdmin && count === 0) return null;
+
+  return (
+    <section
+      className="rounded-lg p-3"
+      style={{
+        background: WB.panelHi,
+        border: `1px solid ${count > 0 ? '#c6a358' : WB.border}`,
+      }}
+    >
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-widest font-bold" style={{ color: '#f0dca0' }}>
+          Awaiting your approval
+        </h2>
+        <span className="text-[10px]" style={{ color: WB.textMuted }}>
+          {pending === null ? 'loading…' : `${count} pending`}
+        </span>
+      </div>
+
+      {!isAdmin && (
+        <div className="text-[11px] mb-2" style={{ color: WB.textDim }}>
+          These are parked for Raheem's final call. You'll see them clear once he approves or sends them back.
+        </div>
+      )}
+
+      {count === 0 ? (
+        <div className="text-sm italic" style={{ color: WB.textMuted }}>
+          Nothing waiting. Worked proposals show up here for the final call.
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {pending!.map((p) => (
+            <PendingRow key={p.id} proposal={p} isAdmin={isAdmin} onDecided={onDecided} />
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function PendingRow({
+  proposal: p,
+  isAdmin,
+  onDecided,
+}: {
+  proposal: ArchetypeProposal;
+  isAdmin: boolean;
+  onDecided: () => void;
+}) {
+  const [payload, setPayload] = useState<ArchetypeProposalPayload | null | undefined>(undefined);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const layer = ARCHETYPE_LAYERS[p.layer];
+  const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && payload === undefined) {
+      getArchetypeProposalPayload(p.id)
+        .then(setPayload)
+        .catch(() => setPayload(null));
+    }
+  }
+
+  async function approve() {
+    setBusy(true);
+    setError(null);
+    try {
+      await approveProposal(p.id);
+      onDecided();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reject() {
+    if (!reason.trim()) {
+      setError('A reason is required to send this back.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await rejectProposal(p.id, reason.trim());
+      onDecided();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="rounded" style={{ background: WB.bg, border: `1px solid ${WB.border}` }}>
+      <button onClick={toggle} className="w-full text-left flex items-center gap-2 px-3 py-2">
+        <span
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
+          style={{ background: layer.color, color: '#111' }}
+        >
+          {p.layer}
+        </span>
+        <span className="text-xs font-bold shrink-0" style={{ color: WB.text }}>
+          {p.archetype}
+        </span>
+        <span className="text-xs truncate flex-1" style={{ color: WB.textDim }}>
+          {failure?.label ?? p.failureType}
+        </span>
+        <span className="text-[10px] shrink-0" style={{ color: WB.textMuted }}>
+          {new Date(p.updatedAt).toLocaleDateString()}
+        </span>
+      </button>
+
+      {open && (
+        <div className="px-3 pb-3 space-y-2 text-xs" style={{ color: WB.textDim, borderTop: `1px solid ${WB.border}` }}>
+          {payload === undefined ? (
+            <div style={{ color: WB.textMuted }}>Loading…</div>
+          ) : payload === null ? (
+            <div style={{ color: WB.textMuted }}>Payload not found.</div>
+          ) : (
+            <ExpandedPayload payload={payload} />
+          )}
+
+          {error && <div style={{ color: '#f9d0d4' }}>{error}</div>}
+
+          {isAdmin && !rejecting && (
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={approve}
+                disabled={busy}
+                className="px-3 py-1.5 rounded text-xs font-fantasy font-bold"
+                style={{ background: '#2f7d4f', color: '#eafff1', opacity: busy ? 0.6 : 1 }}
+              >
+                {busy ? 'Working…' : 'Approve — ship it'}
+              </button>
+              <button
+                onClick={() => setRejecting(true)}
+                disabled={busy}
+                className="px-3 py-1.5 rounded text-xs font-fantasy"
+                style={{ color: '#f9d0d4', border: '1px solid rgba(220,38,38,0.4)' }}
+              >
+                Send back
+              </button>
+            </div>
+          )}
+
+          {isAdmin && rejecting && (
+            <div className="space-y-2 pt-1">
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Reason to send back (required)…"
+                className="w-full px-2 py-1 rounded text-xs"
+                style={{ background: WB.panel, color: WB.text, border: `1px solid ${WB.borderHi}` }}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={reject}
+                  disabled={busy}
+                  className="px-3 py-1.5 rounded text-xs font-fantasy font-bold"
+                  style={{ background: '#8a1c1c', color: '#faeaca', opacity: busy ? 0.6 : 1 }}
+                >
+                  Confirm send back
+                </button>
+                <button
+                  onClick={() => { setRejecting(false); setReason(''); setError(null); }}
+                  className="px-3 py-1.5 rounded text-xs font-fantasy"
+                  style={{ color: WB.textDim, border: `1px solid ${WB.border}` }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
 function ProposalsList({
   proposals,
   archetype,
+  viewerRole,
+  onChanged,
 }: {
   proposals: ArchetypeProposal[] | null;
   archetype: ArchetypeName;
+  viewerRole: SessionRole;
+  onChanged: () => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   // Payloads are omitted from the list (P1: kept the list rows cheap).
@@ -1076,6 +1321,7 @@ function ProposalsList({
                     ) : (
                       <ExpandedPayload payload={payloads[p.id]!} />
                     )}
+                    <SendForApproval proposal={p} viewerRole={viewerRole} onChanged={onChanged} />
                   </div>
                 )}
               </li>
@@ -1084,6 +1330,62 @@ function ProposalsList({
         </ul>
       )}
     </section>
+  );
+}
+
+// A worked proposal that isn't yet parked, shipped, or rejected can be
+// handed up to Raheem. Shown to any director; the resulting state is the
+// admin's gate — a director still can't ship.
+function SendForApproval({
+  proposal: p,
+  viewerRole,
+  onChanged,
+}: {
+  proposal: ArchetypeProposal;
+  viewerRole: SessionRole;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const canSend = p.status === 'draft' || p.status === 'submitted' || p.status === 'awaiting_claude';
+  const isDirector = viewerRole === 'admin' || viewerRole === 'lore_director';
+
+  if (p.status === 'awaiting_approval') {
+    return <div className="text-[11px] pt-1" style={{ color: '#f0dca0' }}>Parked for Raheem's approval.</div>;
+  }
+  if (p.status === 'shipped') {
+    return <div className="text-[11px] pt-1" style={{ color: '#8fe3a8' }}>Shipped{p.decidedReason ? ` — ${p.decidedReason}` : ''}.</div>;
+  }
+  if (p.status === 'rejected') {
+    return <div className="text-[11px] pt-1" style={{ color: '#f0a0a0' }}>Sent back{p.decidedReason ? ` — ${p.decidedReason}` : ''}.</div>;
+  }
+  if (!isDirector || !canSend) return null;
+
+  async function send() {
+    setBusy(true);
+    setError(null);
+    try {
+      await sendProposalForApproval(p.id);
+      onChanged();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="pt-1">
+      <button
+        onClick={send}
+        disabled={busy}
+        className="px-3 py-1.5 rounded text-xs font-fantasy font-bold"
+        style={{ background: '#c6a358', color: '#1a1206', opacity: busy ? 0.6 : 1 }}
+      >
+        {busy ? 'Sending…' : 'Send for Raheem’s approval'}
+      </button>
+      {error && <div className="text-[11px] mt-1" style={{ color: '#f9d0d4' }}>{error}</div>}
+    </div>
   );
 }
 

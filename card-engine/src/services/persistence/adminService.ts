@@ -326,6 +326,36 @@ export async function createArchetypeProposal(input: {
   return rowToProposal(data as ProposalRow);
 }
 
+/**
+ * Director action: hand a worked proposal to Raheem for the final call.
+ * Moves it to `awaiting_approval`. Allowed for any lore director via RLS.
+ */
+export async function sendProposalForApproval(id: string): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, { status: 'awaiting_approval' });
+}
+
+/**
+ * Admin-only (enforced by RLS `status <> 'shipped'` on non-admins):
+ * approve a proposal, marking it shipped and stamping decided_at.
+ */
+export async function approveProposal(
+  id: string,
+  opts?: { commitSha?: string; reason?: string },
+): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, {
+    status: 'shipped',
+    commitSha: opts?.commitSha,
+    decidedReason: opts?.reason,
+  });
+}
+
+/**
+ * Reject a proposal with a required reason. Bounces to `rejected`.
+ */
+export async function rejectProposal(id: string, reason: string): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, { status: 'rejected', decidedReason: reason });
+}
+
 export async function updateArchetypeProposalStatus(
   id: string,
   patch: { status: ProposalStatus; commitSha?: string; decidedReason?: string },

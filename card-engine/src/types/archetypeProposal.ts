@@ -22,6 +22,7 @@ export type ProposalStatus =
   | 'draft'
   | 'submitted'
   | 'awaiting_claude'
+  | 'awaiting_approval'
   | 'shipped'
   | 'rejected';
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Navigate, Outlet } from 'react-router-dom';
-import { fetchIsAdmin } from '../../services/persistence/supabaseClient';
+import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { fetchMyRole, type SessionRole } from '../../services/persistence/supabaseClient';
 
 // Phase 1 admin shell. Every /admin/* page renders inside this layout.
 // Two responsibilities:
@@ -10,12 +10,14 @@ import { fetchIsAdmin } from '../../services/persistence/supabaseClient';
 //      admin, but puts an opaque content surface behind admin work so
 //      dense operational text stays legible over the fantasy background.
 
-type GuardState = 'checking' | 'allowed' | 'denied';
+type GuardState = 'checking' | 'admin' | 'lore_director' | 'denied';
 
 interface NavItem {
   label: string;
   to: string;
   end?: boolean;
+  // Lore directors only reach the Workshop; every other tab is admin-only.
+  directorOk?: boolean;
 }
 
 const NAV: readonly NavItem[] = [
@@ -24,21 +26,27 @@ const NAV: readonly NavItem[] = [
   { label: 'Cards',       to: '/admin/cards' },
   { label: 'Abilities',   to: '/admin/abilities' },
   { label: 'Prompt Lab',  to: '/admin/prompt-lab' },
-  { label: 'Workshop',    to: '/admin/workshop' },
+  { label: 'Workshop',    to: '/admin/workshop', directorOk: true },
   { label: 'Costs',       to: '/admin/costs' },
   { label: 'Diagnostics', to: '/admin/diagnostics' },
 ];
 
 export function AdminShell() {
   const [guard, setGuard] = useState<GuardState>('checking');
+  const location = useLocation();
 
   useEffect(() => {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev_admin') === '1') {
-      setGuard('allowed');
+      setGuard('admin');
       return;
     }
-    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
+    void fetchMyRole().then((role: SessionRole) => {
+      setGuard(role === 'admin' ? 'admin' : role === 'lore_director' ? 'lore_director' : 'denied');
+    });
   }, []);
+
+  const isAdmin = guard === 'admin';
+  const nav = isAdmin ? NAV : NAV.filter((n) => n.directorOk);
 
   if (guard === 'checking') {
     return (
@@ -48,6 +56,10 @@ export function AdminShell() {
     );
   }
   if (guard === 'denied') return <Navigate to="/" replace />;
+  // Lore directors are Workshop-only; any other admin path bounces there.
+  if (!isAdmin && location.pathname !== '/admin/workshop') {
+    return <Navigate to="/admin/workshop" replace />;
+  }
 
   return (
     // Full-viewport admin canvas. M1 gives it an opaque background so no
@@ -61,7 +73,7 @@ export function AdminShell() {
         </div>
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 overflow-x-auto">
           <ul className="flex gap-1 sm:gap-2 whitespace-nowrap pb-2">
-            {NAV.map((item) => (
+            {nav.map((item) => (
               <li key={item.to}>
                 <NavLink
                   to={item.to}
