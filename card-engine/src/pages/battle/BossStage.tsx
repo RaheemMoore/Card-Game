@@ -30,12 +30,6 @@ export function BossStage({ boss, currentBeat }: Props) {
   const sprite = getBossSprite(boss.snapshot.bossId, 'idle');
   const spriteUrl = sprite ? resolveCombatAssetUrl(sprite) : null;
 
-  const isWindingUp =
-    currentBeat?.event.kind === 'boss_intent_declared' &&
-    ['heavy_attack', 'area_attack', 'ultimate', 'execute'].includes(
-      currentBeat.event.intent.intentType,
-    );
-
   return (
     <div
       className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
