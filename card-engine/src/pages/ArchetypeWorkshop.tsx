@@ -16,7 +16,9 @@ import type {
 import type { ArchetypeName, Card, Rank, StatName } from '../types/card';
 import { ARCHETYPE_NAMES } from '../types/card';
 import { ARCHETYPES } from '../data/archetypes';
-import { CLASS_SIGNATURE_POOLS } from '../data/modifierPools';
+import { ARCHETYPE_BIBLE } from '../data/archetypeBible';
+import { getQuestionsForArchetype, getOptionsForQuestion } from '../data/storyPillars';
+import { ELEMENT_COMPATIBILITY, elementsAvailableToArchetype } from '../data/elements';
 import {
   ARCHETYPE_LAYERS,
   FAILURE_TYPES,
@@ -445,6 +447,7 @@ function LayerStatePanels({
   card: Card | null;
 }) {
   const arch = ARCHETYPES[archetype];
+  const bible = ARCHETYPE_BIBLE[archetype];
   const dominant = card ? getDominantStat(card.stats) : null;
   const rank = card ? getOverallRank(card.stats) : 'Foundation';
   const ranks = card ? deriveStatRanks(card.stats) : {};
@@ -456,7 +459,9 @@ function LayerStatePanels({
     dominant && card
       ? getSpecializationSuffix(archetype, dominant, dominantRank)
       : null;
-  const classPool = CLASS_SIGNATURE_POOLS[archetype] ?? [];
+  const pillarQuestions = getQuestionsForArchetype(archetype);
+  const elements = elementsAvailableToArchetype(archetype);
+  const buckets = ELEMENT_COMPATIBILITY[archetype];
   const metaBlock = getMetaPromptBlock(archetype);
 
   return (
@@ -469,19 +474,31 @@ function LayerStatePanels({
       </h2>
       <div className="space-y-2">
         <LayerPanel layer="A">
-          <div className="space-y-1 text-xs" style={{ color: WB.textDim }}>
+          <div className="space-y-2 text-xs" style={{ color: WB.textDim }}>
             <div>
-              <span style={{ color: WB.textMuted }}>Identity:</span> {arch.identity}
+              <span style={{ color: WB.textMuted }}>Identity through:</span>{' '}
+              {bible.identityThrough}
             </div>
             <div>
-              <span style={{ color: WB.textMuted }}>Motifs:</span> {arch.motifs}
+              <span style={{ color: WB.textMuted }}>Core fantasy:</span>{' '}
+              {bible.coreFantasy}
             </div>
-            {RANK_ORDER.map((r) => (
-              <div key={r}>
-                <span style={{ color: WB.textMuted }}>{r}:</span>{' '}
-                {arch.rankProgression[r]}
-              </div>
-            ))}
+            <div>
+              <span style={{ color: WB.textMuted }}>Selection tagline:</span>{' '}
+              {bible.selectionScreen.tagline}
+            </div>
+            <div className="pt-1" style={{ borderTop: `1px dashed ${WB.border}` }}>
+              <span style={{ color: WB.textMuted }}>Visual rank progression (legacy summary):</span>
+              {RANK_ORDER.map((r) => (
+                <div key={r} className="pl-2">
+                  <span style={{ color: WB.textMuted }}>{r}:</span>{' '}
+                  {arch.rankProgression[r]}
+                </div>
+              ))}
+            </div>
+            <div className="italic pt-1" style={{ color: WB.textMuted }}>
+              Full canon: [Bible chapter §1–§14 for {archetype}] in data/archetypeBible/{archetype.toLowerCase().replace(' ', '')}.ts
+            </div>
           </div>
         </LayerPanel>
         <LayerPanel layer="B">
@@ -518,30 +535,46 @@ function LayerStatePanels({
           </div>
         </LayerPanel>
         <LayerPanel layer="C">
-          <div className="text-xs" style={{ color: WB.textDim }}>
-            <div className="mb-1">
-              <span style={{ color: WB.textMuted }}>
-                Class-trait pool ({classPool.length} entries):
-              </span>
-            </div>
-            {classPool.length === 0 ? (
-              <div className="italic" style={{ color: WB.textMuted }}>
-                No dedicated class pool for {archetype}.
-              </div>
-            ) : (
-              <ul className="list-disc pl-4 space-y-0.5 max-h-40 overflow-y-auto">
-                {classPool.map((e) => (
-                  <li key={e.text}>
-                    {e.text}
-                    {e.rarity && (
-                      <span className="ml-1 text-[9px] uppercase" style={{ color: WB.textMuted }}>
-                        {e.rarity}
+          <div className="text-xs space-y-2" style={{ color: WB.textDim }}>
+            <div>
+              <span style={{ color: WB.textMuted }}>Story Pillar questions ({pillarQuestions.length}):</span>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                {pillarQuestions.slice(0, 6).map((q) => {
+                  const opts = getOptionsForQuestion(archetype, q.id);
+                  return (
+                    <li key={q.id}>
+                      {q.prompt}{' '}
+                      <span className="text-[10px]" style={{ color: WB.textMuted }}>
+                        ({opts.length} seed options)
                       </span>
-                    )}
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
-            )}
+            </div>
+            <div className="pt-1" style={{ borderTop: `1px dashed ${WB.border}` }}>
+              <span style={{ color: WB.textMuted }}>Elements available ({elements.length} of 26):</span>
+              <div className="mt-1 space-y-0.5">
+                <div>
+                  <span style={{ color: WB.textMuted }}>Naturally compatible:</span>{' '}
+                  {buckets.naturally_compatible.join(', ') || '—'}
+                </div>
+                <div>
+                  <span style={{ color: WB.textMuted }}>Through reinterpretation:</span>{' '}
+                  {buckets.compatible_through_reinterpretation.join(', ') || '—'}
+                </div>
+                <div>
+                  <span style={{ color: WB.textMuted }}>Rare (narrative-gated):</span>{' '}
+                  {buckets.rare.join(', ') || '—'}
+                </div>
+                {buckets.not_available && buckets.not_available.length > 0 && (
+                  <div>
+                    <span style={{ color: WB.textMuted }}>Not available:</span>{' '}
+                    {buckets.not_available.join(', ')}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </LayerPanel>
         <LayerPanel layer="D">
@@ -643,10 +676,12 @@ function TriageForm({
     setBusy(true);
     try {
       const arch = ARCHETYPES[archetype];
-      const classPool = CLASS_SIGNATURE_POOLS[archetype] ?? [];
+      const bible = ARCHETYPE_BIBLE[archetype];
+      const questions = getQuestionsForArchetype(archetype);
+      const buckets = ELEMENT_COMPATIBILITY[archetype];
       const metaBlock = getMetaPromptBlock(archetype);
       const snapshot: LayerSnapshot = {
-        canonIdentity: arch.identity,
+        canonIdentity: `${bible.identityThrough} — ${bible.coreFantasy}`,
         canonMotifs: arch.motifs,
         canonRankProgression: arch.rankProgression,
         statVisualsForCard: selectedCard
@@ -656,7 +691,14 @@ function TriageForm({
               return dom && r ? getVisualMotif(dom, r) : undefined;
             })()
           : undefined,
-        classSignaturePoolSample: classPool.slice(0, 10).map((e) => e.text),
+        classSignaturePoolSample: [
+          `Story Pillar questions (${questions.length}): ${questions
+            .slice(0, 4)
+            .map((q) => q.prompt)
+            .join(' | ')}`,
+          `Naturally compatible elements: ${buckets.naturally_compatible.join(', ') || '—'}`,
+          `Rare elements: ${buckets.rare.join(', ') || '—'}`,
+        ],
         metaPromptBlock: metaBlock ?? '(none — archetype has no escalation block)',
       };
       let cardLineage: CardLineageRef | undefined;
