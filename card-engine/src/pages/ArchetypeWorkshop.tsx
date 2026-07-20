@@ -8,6 +8,7 @@ import {
   sendProposalForApproval,
   approveProposal,
   rejectProposal,
+  shipProposal,
   getCardForAdmin,
   checkApprovalReadiness,
 } from '../services/persistence/adminService';
@@ -56,6 +57,7 @@ const RANK_ORDER: Rank[] = ['Foundation', 'Forged', 'Ascendant'];
 const STAT_ORDER: StatName[] = ['Atk', 'Def', 'Mana', 'Tech'];
 
 const GITHUB_COMMIT_BASE = 'https://github.com/RaheemMoore/Card-Game/commit/';
+const GITHUB_PR_BASE = 'https://github.com/RaheemMoore/Card-Game/pull/';
 
 // Placeholder gradient for cards/tiers with no portrait yet.
 const PORTRAIT_PLACEHOLDER = 'linear-gradient(135deg, var(--admin-surface-strong), var(--admin-canvas))';
@@ -102,16 +104,26 @@ export function ArchetypeWorkshop() {
     void fetchMyRole().then(setViewerRole);
   }, []);
 
-  // Cross-archetype queue of proposals awaiting Raheem's final call.
-  // Loaded for every director; only admins get approve/reject controls.
+  // Cross-archetype queue of proposals in Raheem's hands: awaiting_approval
+  // (needs Approve/Send-back) + approved (needs the guarded Merge & ship).
+  // Loaded for every director; only admins get the action controls.
   useEffect(() => {
     let cancelled = false;
-    listArchetypeProposals({ status: 'awaiting_approval', limit: 50 })
-      .then((rows) => {
-        if (!cancelled) setPending(rows);
+    Promise.all([
+      listArchetypeProposals({ status: 'awaiting_approval', limit: 50 }),
+      listArchetypeProposals({ status: 'approved', limit: 50 }),
+    ])
+      .then(([awaiting, approved]) => {
+        if (!cancelled) {
+          setPending(
+            [...awaiting, ...approved].sort(
+              (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+            ),
+          );
+        }
       })
       .catch((err) => {
-        if (!cancelled) console.warn('Failed to load pending approvals', err);
+        if (!cancelled) console.warn('Failed to load approval queue', err);
       });
     return () => {
       cancelled = true;
@@ -343,9 +355,15 @@ function PendingRow({
         <span className="text-xs truncate flex-1" style={{ color: 'var(--admin-text-muted)' }}>
           {failure?.label ?? p.failureType}
         </span>
-        <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
-          awaiting approval
-        </AdminStatusBadge>
+        {p.status === 'approved' ? (
+          <AdminStatusBadge tone="success" className="shrink-0 uppercase tracking-widest">
+            approved · ready to ship
+          </AdminStatusBadge>
+        ) : (
+          <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
+            awaiting approval
+          </AdminStatusBadge>
+        )}
         <span className="text-[10px] shrink-0" style={{ color: 'var(--admin-text-muted)' }}>
           {relativeAge(p.updatedAt)}
         </span>
@@ -374,28 +392,67 @@ function PendingRow({
               </details>
             </div>
           )}
-          {p.commitSha && (
-            <a
-              href={`${GITHUB_COMMIT_BASE}${p.commitSha}`}
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-              style={{ color: 'var(--admin-accent)' }}
-            >
-              View commit {p.commitSha.slice(0, 7)}
-            </a>
-          )}
+          <div className="flex items-center gap-3">
+            {payload && payload.prNumber && (
+              <a
+                href={`${GITHUB_PR_BASE}${payload.prNumber}/files`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+                style={{ color: 'var(--admin-accent)' }}
+              >
+                View diff (PR #{payload.prNumber})
+              </a>
+            )}
+            {p.commitSha && (
+              <a
+                href={`${GITHUB_COMMIT_BASE}${p.commitSha}`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+                style={{ color: 'var(--admin-accent)' }}
+              >
+                View commit {p.commitSha.slice(0, 7)}
+              </a>
+            )}
+          </div>
 
           {error && <AdminAlert tone="danger">{error}</AdminAlert>}
 
-          {isAdmin && !rejecting && (
+          {isAdmin && !rejecting && p.status === 'awaiting_approval' && (
             <div className="flex gap-2 pt-1">
               <AdminButton variant="primary" size="sm" disabled={busy} onClick={() => run(() => approveProposal(p.id))}>
-                {busy ? 'Working…' : 'Approve — ship it'}
+                {busy ? 'Working…' : 'Approve'}
               </AdminButton>
               <AdminButton variant="danger" size="sm" disabled={busy} onClick={() => setRejecting(true)}>
                 Send back
               </AdminButton>
+            </div>
+          )}
+
+          {isAdmin && !rejecting && p.status === 'approved' && (
+            <div className="space-y-1 pt-1">
+              <div className="text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+                Approved. Eyeball the diff, then ship — this merges the PR into main and deploys.
+              </div>
+              <div className="flex gap-2">
+                <AdminButton
+                  variant="primary"
+                  size="sm"
+                  disabled={busy || !payload?.prNumber}
+                  onClick={() => run(() => shipProposal(p.id))}
+                >
+                  {busy ? 'Merging…' : 'Merge & ship'}
+                </AdminButton>
+                <AdminButton variant="danger" size="sm" disabled={busy} onClick={() => setRejecting(true)}>
+                  Send back
+                </AdminButton>
+              </div>
+              {!payload?.prNumber && (
+                <div className="text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+                  No linked PR — merge manually, then this row can be marked shipped.
+                </div>
+              )}
             </div>
           )}
 
@@ -1423,6 +1480,13 @@ function OutcomeChip({ proposal }: { proposal: ArchetypeProposal }) {
     return (
       <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
         awaiting approval · {relativeAge(proposal.updatedAt)}
+      </AdminStatusBadge>
+    );
+  }
+  if (proposal.status === 'approved') {
+    return (
+      <AdminStatusBadge tone="success" className="shrink-0 uppercase tracking-widest">
+        approved · ready to ship
       </AdminStatusBadge>
     );
   }

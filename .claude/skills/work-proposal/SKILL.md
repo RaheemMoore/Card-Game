@@ -80,18 +80,20 @@ that still goes through the normal branch → PR → console-approval path.
      lore-only proposals** — it wastes credits and isn't required.
 
 7. **Park it — do NOT ship.**
-   - Push the branch and open a **draft** PR. Put the commit SHA and a
-     short "what changed / what Tori accepted or overrode / what the
-     specialist advised" summary in the PR body.
+   - Push the branch and open a **draft** PR. Put a short "what changed / what
+     Tori accepted or overrode / what the specialist advised" summary in the
+     PR body.
+   - Record the PR reference on the proposal payload (`prNumber`, `branch`) so
+     Raheem's guarded "Merge & ship" can merge exactly that PR. Also record the
+     branch commit SHA on the payload if useful for review.
    - Set the proposal to `awaiting_approval` (`sendProposalForApproval`).
-     If the gate throws, step 6 isn't complete — finish the verify + summary
-     first. RLS will also reject a non-admin `shipped`.
-   - Record the commit SHA on the proposal row (`commit_sha`) so Raheem's
-     console shows exactly what he's approving.
+     If the gate throws, step 6 isn't complete — finish the summary (and the
+     verify, for image changes) first.
 
 8. **Hand off.** Tell Tori it's parked for Raheem and summarize. Then stop.
-   Do not merge, deploy, run `vercel`, or flip status to `shipped` — even
-   if asked. Point at the console gate instead.
+   Do not merge, deploy, run `vercel`, or set status to `approved`/`shipped` —
+   even if asked. Approve and the guarded Merge & ship are Raheem's console
+   actions only. Point at the console gate instead.
 
 ## Raheem's approval (for reference — NOT part of this skill's actions)
 

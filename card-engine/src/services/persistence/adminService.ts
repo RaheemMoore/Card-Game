@@ -448,17 +448,38 @@ export async function sendProposalForApproval(
   return updateArchetypeProposalStatus(id, { status: 'awaiting_approval' });
 }
 
-// Admin-only (RLS blocks a non-admin write landing on 'shipped'):
-// approve a proposal, stamping decided_at + optional commit_sha.
+// Admin-only (RLS blocks a non-admin from setting 'approved'): record Raheem's
+// decision. This does NOT ship — it moves the proposal to `approved`, unlocking
+// the guarded "Merge & ship" step. Stamps decided_at + optional reason.
 export async function approveProposal(
   id: string,
-  opts?: { commitSha?: string; reason?: string },
+  opts?: { reason?: string },
 ): Promise<ArchetypeProposal> {
   return updateArchetypeProposalStatus(id, {
-    status: 'shipped',
-    commitSha: opts?.commitSha,
+    status: 'approved',
     decidedReason: opts?.reason,
   });
+}
+
+// Admin-only: the guarded merge. Calls the server endpoint, which merges the
+// proposal's PR into main and marks it shipped with the real commit SHA. The
+// client never merges directly — the endpoint holds the GitHub token and does
+// the authoritative DB write.
+export async function shipProposal(
+  id: string,
+): Promise<{ shipped: true; prNumber: number; commitSha: string }> {
+  const supabase = client();
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('No Supabase session.');
+  const r = await fetch('/api/admin-ship-proposal', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    body: JSON.stringify({ proposalId: id }),
+  });
+  const body = (await r.json().catch(() => ({}))) as { error?: string; prNumber?: number; commitSha?: string };
+  if (!r.ok) throw new Error(body.error ?? `Ship failed (${r.status}).`);
+  return { shipped: true, prNumber: body.prNumber!, commitSha: body.commitSha! };
 }
 
 // Send a proposal back to the director with a required reason.

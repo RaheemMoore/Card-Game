@@ -23,6 +23,7 @@ export type ProposalStatus =
   | 'submitted'
   | 'awaiting_claude'
   | 'awaiting_approval'
+  | 'approved'
   | 'shipped'
   | 'rejected';
 
@@ -101,6 +102,13 @@ export interface ArchetypeProposalPayload {
    * that actually touch the image (one generation per verify run).
    */
   affectsImage?: boolean;
+  /**
+   * The GitHub PR the /work-proposal flow opened for this change. `prNumber`
+   * lets the guarded "Merge & ship" endpoint merge exactly that PR after Raheem
+   * approves; `branch` is informational. Absent until a PR is opened.
+   */
+  prNumber?: number;
+  branch?: string;
 }
 
 export interface LayerChange {
