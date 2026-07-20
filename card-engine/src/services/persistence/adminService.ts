@@ -13,10 +13,12 @@ import { getSupabaseClient } from './supabaseClient';
 // All admin RPCs are guarded by is_admin() server-side. Non-admin
 // sessions get empty results or exceptions from Supabase directly.
 
+export type UserRole = 'user' | 'admin' | 'lore_director';
+
 export interface AdminUserRow {
   user_id: string;
   email: string | null;
-  role: 'user' | 'admin';
+  role: UserRole;
   is_anonymous: boolean;
   card_count: number;
   txn_count: number;
@@ -361,6 +363,42 @@ export interface PromptTestRunRow {
     answers?: unknown;
   } | null;
   claude_response: Record<string, unknown> | null;
+}
+
+export async function setUserRole(
+  userId: string,
+  role: UserRole,
+): Promise<{ user_id: string; old_role: UserRole; new_role: UserRole }> {
+  const { data, error } = await client().rpc('set_user_role', {
+    target_user_id: userId,
+    new_role: role,
+  });
+  if (error) throw error;
+  return data as { user_id: string; old_role: UserRole; new_role: UserRole };
+}
+
+// Director action: hand a worked proposal to Raheem. Moves it to
+// awaiting_approval. Allowed for any lore director via RLS.
+export async function sendProposalForApproval(id: string): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, { status: 'awaiting_approval' });
+}
+
+// Admin-only (RLS blocks a non-admin write landing on 'shipped'):
+// approve a proposal, stamping decided_at + optional commit_sha.
+export async function approveProposal(
+  id: string,
+  opts?: { commitSha?: string; reason?: string },
+): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, {
+    status: 'shipped',
+    commitSha: opts?.commitSha,
+    decidedReason: opts?.reason,
+  });
+}
+
+// Send a proposal back to the director with a required reason.
+export async function rejectProposal(id: string, reason: string): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, { status: 'rejected', decidedReason: reason });
 }
 
 export async function updateArchetypeProposalStatus(

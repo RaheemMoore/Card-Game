@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { getSupabaseClient, fetchMyRole, type SessionRole } from '../services/persistence/supabaseClient';
 import {
   createArchetypeProposal,
   listArchetypeProposals,
   getArchetypeProposalPayload,
+  sendProposalForApproval,
+  approveProposal,
+  rejectProposal,
 } from '../services/persistence/adminService';
 import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
 import { runRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
@@ -90,6 +93,28 @@ export function ArchetypeWorkshop() {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [proposals, setProposals] = useState<ArchetypeProposal[] | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [viewerRole, setViewerRole] = useState<SessionRole>('user');
+  const [pending, setPending] = useState<ArchetypeProposal[] | null>(null);
+
+  useEffect(() => {
+    void fetchMyRole().then(setViewerRole);
+  }, []);
+
+  // Cross-archetype queue of proposals awaiting Raheem's final call.
+  // Loaded for every director; only admins get approve/reject controls.
+  useEffect(() => {
+    let cancelled = false;
+    listArchetypeProposals({ status: 'awaiting_approval', limit: 50 })
+      .then((rows) => {
+        if (!cancelled) setPending(rows);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn('Failed to load pending approvals', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshTick]);
 
   // Pull all cards of the selected archetype visible to this admin (RLS
   // widens SELECT for admins). Big single query — fine at studio scale.
@@ -175,6 +200,12 @@ export function ArchetypeWorkshop() {
         </AdminAlert>
       )}
 
+      <PendingApprovalPanel
+        pending={pending}
+        viewerRole={viewerRole}
+        onDecided={() => setRefreshTick((t) => t + 1)}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4">
         {/* LEFT column: card picker + tiers + layer state */}
         <div className="space-y-4">
@@ -199,9 +230,193 @@ export function ArchetypeWorkshop() {
       </div>
 
       <div className="mt-4">
-        <ProposalsList proposals={proposals} archetype={archetype} />
+        <ProposalsList
+          proposals={proposals}
+          archetype={archetype}
+          viewerRole={viewerRole}
+          onChanged={() => setRefreshTick((t) => t + 1)}
+        />
       </div>
     </AdminPage>
+  );
+}
+
+// ─── Pending approval queue (Raheem's console gate) ──────────────────
+
+function PendingApprovalPanel({
+  pending,
+  viewerRole,
+  onDecided,
+}: {
+  pending: ArchetypeProposal[] | null;
+  viewerRole: SessionRole;
+  onDecided: () => void;
+}) {
+  const isAdmin = viewerRole === 'admin';
+  const count = pending?.length ?? 0;
+
+  // A non-admin director with nothing parked → hide to keep the surface
+  // clean. Admins always see the gate so it's obvious what's waiting.
+  if (!isAdmin && count === 0) return null;
+
+  return (
+    <AdminSection
+      title="Awaiting your approval"
+      subtitle={pending === null ? 'loading…' : `${count} pending`}
+      className="mb-4"
+    >
+      <AdminCard>
+        {!isAdmin && (
+          <AdminAlert tone="info" className="mb-2">
+            These are parked for Raheem's final call. They clear once he approves or sends them back.
+          </AdminAlert>
+        )}
+        {count === 0 ? (
+          <div className="text-sm italic" style={{ color: 'var(--admin-text-muted)' }}>
+            Nothing waiting. Worked proposals show up here for the final call.
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {pending!.map((p) => (
+              <PendingRow key={p.id} proposal={p} isAdmin={isAdmin} onDecided={onDecided} />
+            ))}
+          </ul>
+        )}
+      </AdminCard>
+    </AdminSection>
+  );
+}
+
+function PendingRow({
+  proposal: p,
+  isAdmin,
+  onDecided,
+}: {
+  proposal: ArchetypeProposal;
+  isAdmin: boolean;
+  onDecided: () => void;
+}) {
+  const [payload, setPayload] = useState<ArchetypeProposalPayload | null | undefined>(undefined);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const layer = ARCHETYPE_LAYERS[p.layer];
+  const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && payload === undefined) {
+      getArchetypeProposalPayload(p.id).then(setPayload).catch(() => setPayload(null));
+    }
+  }
+
+  async function run(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      onDecided();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="rounded" style={{ background: 'var(--admin-canvas)', border: '1px solid var(--admin-border)' }}>
+      <button onClick={toggle} className="w-full text-left flex items-center gap-2 px-3 py-2">
+        <span
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
+          style={{ background: layer.color, color: '#111' }}
+        >
+          {p.layer}
+        </span>
+        <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--admin-text)' }}>
+          {p.archetype}
+        </span>
+        <span className="text-xs truncate flex-1" style={{ color: 'var(--admin-text-muted)' }}>
+          {failure?.label ?? p.failureType}
+        </span>
+        <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
+          awaiting approval
+        </AdminStatusBadge>
+        <span className="text-[10px] shrink-0" style={{ color: 'var(--admin-text-muted)' }}>
+          {relativeAge(p.updatedAt)}
+        </span>
+      </button>
+
+      {open && (
+        <div className="px-3 pb-3 space-y-2 text-xs" style={{ color: 'var(--admin-text-muted)', borderTop: '1px solid var(--admin-border)' }}>
+          {payload === undefined ? (
+            <div className="pt-2">Loading…</div>
+          ) : payload === null ? (
+            <div className="pt-2">Payload not found.</div>
+          ) : (
+            <div className="pt-2 space-y-2">
+              <ProposalField label="Keep" value={payload.keep} />
+              <ProposalField label="Change" value={payload.change} />
+              <ProposalField label="Reject if" value={payload.rejectIf} />
+              {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
+            </div>
+          )}
+          {p.commitSha && (
+            <a
+              href={`${GITHUB_COMMIT_BASE}${p.commitSha}`}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+              style={{ color: 'var(--admin-accent)' }}
+            >
+              View commit {p.commitSha.slice(0, 7)}
+            </a>
+          )}
+
+          {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+
+          {isAdmin && !rejecting && (
+            <div className="flex gap-2 pt-1">
+              <AdminButton variant="primary" size="sm" disabled={busy} onClick={() => run(() => approveProposal(p.id))}>
+                {busy ? 'Working…' : 'Approve — ship it'}
+              </AdminButton>
+              <AdminButton variant="danger" size="sm" disabled={busy} onClick={() => setRejecting(true)}>
+                Send back
+              </AdminButton>
+            </div>
+          )}
+
+          {isAdmin && rejecting && (
+            <div className="space-y-2 pt-1">
+              <AdminTextArea
+                rows={2}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Reason to send back (required)…"
+              />
+              <div className="flex gap-2">
+                <AdminButton
+                  variant="danger"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!reason.trim()) { setError('A reason is required to send this back.'); return; }
+                    void run(() => rejectProposal(p.id, reason.trim()));
+                  }}
+                >
+                  Confirm send back
+                </AdminButton>
+                <AdminButton variant="ghost" size="sm" onClick={() => { setRejecting(false); setReason(''); setError(null); }}>
+                  Cancel
+                </AdminButton>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 
@@ -913,9 +1128,13 @@ function TriageForm({
 function ProposalsList({
   proposals,
   archetype,
+  viewerRole,
+  onChanged,
 }: {
   proposals: ArchetypeProposal[] | null;
   archetype: ArchetypeName;
+  viewerRole: SessionRole;
+  onChanged: () => void;
 }) {
   const [searchParams] = useSearchParams();
   const deepLinkId = searchParams.get('proposal');
@@ -1006,6 +1225,7 @@ function ProposalsList({
                         payload={payloads[p.id]}
                         payloadError={payloadErrors[p.id]}
                       />
+                      <SendForApproval proposal={p} viewerRole={viewerRole} onChanged={onChanged} />
                     </div>
                   )}
                 </li>
@@ -1015,6 +1235,55 @@ function ProposalsList({
         )}
       </AdminCard>
     </AdminSection>
+  );
+}
+
+// A worked proposal that isn't yet parked, shipped, or rejected can be
+// handed up to Raheem. Shown to any director; approval itself stays admin-
+// only (RLS enforces it), so a director sending it up gains no ship power.
+function SendForApproval({
+  proposal: p,
+  viewerRole,
+  onChanged,
+}: {
+  proposal: ArchetypeProposal;
+  viewerRole: SessionRole;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isDirector = viewerRole === 'admin' || viewerRole === 'lore_director';
+  const canSend = p.status === 'draft' || p.status === 'submitted' || p.status === 'awaiting_claude';
+
+  if (p.status === 'awaiting_approval') {
+    return (
+      <div className="pt-2 text-[11px]" style={{ color: 'var(--admin-warning)' }}>
+        Parked for Raheem's approval.
+      </div>
+    );
+  }
+  if (!isDirector || !canSend) return null;
+
+  async function send() {
+    setBusy(true);
+    setError(null);
+    try {
+      await sendProposalForApproval(p.id);
+      onChanged();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="pt-2">
+      <AdminButton variant="primary" size="sm" disabled={busy} onClick={send}>
+        {busy ? 'Sending…' : 'Send for Raheem’s approval'}
+      </AdminButton>
+      {error && <AdminAlert tone="danger" className="mt-1">{error}</AdminAlert>}
+    </div>
   );
 }
 
@@ -1034,6 +1303,13 @@ function OutcomeChip({ proposal }: { proposal: ArchetypeProposal }) {
     return (
       <AdminStatusBadge tone="danger" className="shrink-0 uppercase tracking-widest">
         rejected
+      </AdminStatusBadge>
+    );
+  }
+  if (proposal.status === 'awaiting_approval') {
+    return (
+      <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
+        awaiting approval · {relativeAge(proposal.updatedAt)}
       </AdminStatusBadge>
     );
   }

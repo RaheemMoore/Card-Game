@@ -7,6 +7,7 @@ let client: SupabaseClient | null = null;
 let cachedUserId: string | null = null;
 let cachedUser: User | null = null;
 let cachedIsAdmin: boolean | null = null;
+let cachedRole: SessionRole | null = null;
 const authListeners = new Set<() => void>();
 
 function notifyAuthChange(): void {
@@ -124,13 +125,17 @@ export function getCurrentUser(): User | null {
 // Fetch profile.role once per session. Returns null on network error
 // or when there's no session. Cached; call clearRoleCache() on
 // sign-in/sign-out.
-export async function fetchIsAdmin(): Promise<boolean> {
-  if (cachedIsAdmin !== null) return cachedIsAdmin;
+export type SessionRole = 'user' | 'admin' | 'lore_director';
+
+// Fetch profile.role once per session. Returns 'user' on network error or
+// when there's no session. Cached; cleared on sign-in/sign-out.
+export async function fetchMyRole(): Promise<SessionRole> {
+  if (cachedRole !== null) return cachedRole;
   const c = getSupabaseClient();
   const uid = cachedUserId;
   if (!c || !uid) {
-    cachedIsAdmin = false;
-    return false;
+    cachedRole = 'user';
+    return cachedRole;
   }
   const { data, error } = await c
     .from('profiles')
@@ -138,15 +143,22 @@ export async function fetchIsAdmin(): Promise<boolean> {
     .eq('user_id', uid)
     .maybeSingle();
   if (error || !data) {
-    cachedIsAdmin = false;
-    return false;
+    cachedRole = 'user';
+    return cachedRole;
   }
-  cachedIsAdmin = data.role === 'admin';
-  return cachedIsAdmin;
+  cachedRole = (data.role as SessionRole) ?? 'user';
+  cachedIsAdmin = cachedRole === 'admin';
+  return cachedRole;
+}
+
+export async function fetchIsAdmin(): Promise<boolean> {
+  if (cachedIsAdmin !== null) return cachedIsAdmin;
+  return (await fetchMyRole()) === 'admin';
 }
 
 function clearRoleCache(): void {
   cachedIsAdmin = null;
+  cachedRole = null;
 }
 
 // Sign-up / sign-in / sign-out --------------------------------------
