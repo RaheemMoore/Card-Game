@@ -40,8 +40,9 @@ that still goes through the normal branch → PR → console-approval path.
 2. **Consult the right specialist by layer** (advisory, per the charters):
    - Layer A (Canon) → `lore-fantasy-director`
    - Layer B (Rank & Stat Visuals) → `art-prompt-director`
-   - Layer C (Modifier Pools) / Layer D (Meta-Prompt & Escalation) →
-     `art-prompt-director` (these are art direction, not implementation)
+   - Layer C (Story Pillars & Elements) → `lore-fantasy-director`
+   - Layer D (Meta-Prompt & Escalation) → `art-prompt-director`
+     (Layer D is art direction, not implementation)
    - Any balance/number knob → `game-systems-designer`
    Use the `consult-specialist` skill's six-field template.
 
@@ -59,16 +60,33 @@ that still goes through the normal branch → PR → console-approval path.
 5. **Verify** per `.claude/verify/card-engine.sh` if the change has a
    runtime surface (portrait/prompt/renderer).
 
-6. **Park it — do NOT ship.**
+6. **Prove the change worked (the approval gate).** A proposal CANNOT be
+   parked for approval without both of these — the console's "Send for
+   approval" button is disabled and the database RLS rejects the status
+   change otherwise:
+   - **Before/after image.** Run regen verify from the Workshop "Verified"
+     step (Lab-sourced proposals reproduce the Lab run; card-sourced
+     proposals compare the card's current portrait against a fresh regen).
+     Confirm the after genuinely improves on the before and mark the
+     verdict **pass**. If it doesn't improve, the change isn't done —
+     iterate on the actual fix; do not force a pass.
+   - **Per-layer change summary.** Write a short bulleted summary of what
+     changed in each touched layer (A Canon / B Rank & Stat Visuals /
+     C Story Pillars & Elements / D Meta-Prompt & Escalation) via
+     `attachProposalChangeSummary(id, layerChanges)`. One entry per layer
+     you actually changed; leave untouched layers out.
+
+7. **Park it — do NOT ship.**
    - Push the branch and open a **draft** PR. Put the commit SHA and a
      short "what changed / what Tori accepted or overrode / what the
      specialist advised" summary in the PR body.
-   - Set the proposal to `awaiting_approval` (`sendProposalForApproval`,
-     or an `execute_sql` UPDATE — RLS will reject a non-admin `shipped`).
+   - Set the proposal to `awaiting_approval` (`sendProposalForApproval`).
+     If the gate throws, step 6 isn't complete — finish the verify + summary
+     first. RLS will also reject a non-admin `shipped`.
    - Record the commit SHA on the proposal row (`commit_sha`) so Raheem's
      console shows exactly what he's approving.
 
-7. **Hand off.** Tell Tori it's parked for Raheem and summarize. Then stop.
+8. **Hand off.** Tell Tori it's parked for Raheem and summarize. Then stop.
    Do not merge, deploy, run `vercel`, or flip status to `shipped` — even
    if asked. Point at the console gate instead.
 

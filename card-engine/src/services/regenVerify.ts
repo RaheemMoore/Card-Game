@@ -1,10 +1,11 @@
-import type { ArchetypeName, CardStats, Rank } from '../types/card';
+import type { ArchetypeName, Card, CardStats, Rank } from '../types/card';
 import type { StoryPillarAnswers, ElementSelection } from '../types/bible';
 import type { VerifyEvidence } from '../types/archetypeProposal';
 import { generateCardTextWithRetry } from './claudeApi';
 import { generatePortraitStrict } from './leonardoApi';
 import { getPromptTestRun, attachProposalVerifyEvidence } from './persistence/adminService';
 import { getSupabaseClient } from './persistence/supabaseClient';
+import { getOverallRank } from '../data/powerSystem';
 
 // Regen-verify — closes the Lab → Workshop → fix → verify loop.
 //
@@ -105,6 +106,110 @@ export async function runRegenVerify(opts: {
   ]);
 
   return { evidence, beforeUrl, afterUrl };
+}
+
+/**
+ * Card-sourced verify — for proposals filed against an existing card rather
+ * than a Prompt Lab run. "Before" is the card's CURRENT portrait; "after" is a
+ * fresh regen through the current pipeline using the card's own generation
+ * inputs (storyPillars + element + stats). Both are persisted as prompt_test_run
+ * rows so they display through the same signed-url path as the Lab flow. Spends
+ * Leonardo credits — gate behind a confirmation. Throws if the card lacks the
+ * Bible-era inputs needed to reproduce it.
+ */
+export async function runCardRegenVerify(opts: {
+  proposalId: string;
+  card: Card;
+  onStep?: (step: string) => void;
+}): Promise<RegenVerifyResult> {
+  const { proposalId, card, onStep } = opts;
+
+  const archetype = card.archetype;
+  const stats = card.stats;
+  const answers = card.storyPillars;
+  const element = card.elementSelection;
+  if (!answers || !element) {
+    throw new Error(
+      'This card predates the Bible pipeline (no story pillars / element) — card-sourced verify needs those to reproduce it. File the proposal from a Prompt Lab run instead.',
+    );
+  }
+  if (!card.portraitAsset) {
+    throw new Error('This card has no portrait to use as the "before" image.');
+  }
+  const tier = getOverallRank(stats);
+
+  // "Before" — record the card's existing portrait so it has an object path in
+  // the artifacts bucket, matching the "after" for uniform display.
+  onStep?.('Capturing current portrait…');
+  const beforeDataUrl = await toDataUrl(card.portraitAsset);
+  const before = await recordRegenRun({
+    archetype,
+    tier,
+    inputSnapshot: { archetype, element, answers, stats, cardBeforeOf: card.cardId },
+    claudeResponse: { note: 'existing card portrait (before)' },
+    leonardoPrompt: '(existing card portrait — before)',
+    leonardoNegativePrompt: '',
+    imageDataUrl: beforeDataUrl,
+    durationMs: 0,
+  });
+
+  onStep?.('Generating Claude text (current pipeline)…');
+  const startedAt = Date.now();
+  const claudeResult = await generateCardTextWithRetry({ archetype, stats, answers, element });
+
+  onStep?.('Generating Leonardo portrait…');
+  const { dataUrl } = await generatePortraitStrict(
+    claudeResult.portraitPrompt,
+    claudeResult.negativePrompt ?? '',
+  );
+  const durationMs = Date.now() - startedAt;
+
+  onStep?.('Persisting verify run…');
+  const after = await recordRegenRun({
+    archetype,
+    tier,
+    inputSnapshot: { archetype, element, answers, stats, cardRegenVerifyOf: card.cardId },
+    claudeResponse: claudeResult as unknown as Record<string, unknown>,
+    leonardoPrompt: claudeResult.portraitPrompt,
+    leonardoNegativePrompt: claudeResult.negativePrompt ?? '',
+    imageDataUrl: dataUrl,
+    durationMs,
+  });
+
+  const evidence: VerifyEvidence = {
+    ranAt: new Date().toISOString(),
+    archetype,
+    tier: tier as VerifyEvidence['tier'],
+    source: 'card',
+    beforeRunId: before.runId,
+    beforeObjectPath: before.outputObjectPath,
+    afterRunId: after.runId,
+    afterObjectPath: after.outputObjectPath,
+  };
+
+  onStep?.('Saving evidence to proposal…');
+  await attachProposalVerifyEvidence(proposalId, evidence);
+
+  const [beforeUrl, afterUrl] = await Promise.all([
+    before.outputObjectPath ? signedUrl(before.outputObjectPath) : Promise.resolve(null),
+    after.outputObjectPath ? signedUrl(after.outputObjectPath) : Promise.resolve(null),
+  ]);
+
+  return { evidence, beforeUrl, afterUrl };
+}
+
+/** Fetches an image reference (data URL or http URL) into a data URL. */
+async function toDataUrl(src: string): Promise<string> {
+  if (src.startsWith('data:')) return src;
+  const resp = await fetch(src);
+  if (!resp.ok) throw new Error(`Could not load the card's portrait (${resp.status}).`);
+  const blob = await resp.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Failed to read portrait image.'));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /** Persists an existing verdict/note edit without re-running generation. */

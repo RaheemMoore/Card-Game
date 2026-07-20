@@ -3,6 +3,7 @@ import type { CurrencyId, EconomyTransaction } from '../../types/economy';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
+  LayerChange,
   ProposalFailureType,
   ProposalLayer,
   ProposalStatus,
@@ -377,9 +378,68 @@ export async function setUserRole(
   return data as { user_id: string; old_role: UserRole; new_role: UserRole };
 }
 
+/**
+ * Merges a Claude-authored per-layer change summary into a proposal's payload
+ * (read-modify-write, mirroring attachProposalVerifyEvidence). Written during
+ * the /work-proposal flow so the approval console can render "what changed" per
+ * layer. Empty entries are dropped.
+ */
+export async function attachProposalChangeSummary(
+  id: string,
+  layerChanges: LayerChange[],
+): Promise<void> {
+  const payload = await getArchetypeProposalPayload(id);
+  if (!payload) throw new Error('Proposal payload not found');
+  const cleaned = layerChanges.filter((c) => c.summary.trim().length > 0);
+  const next: ArchetypeProposalPayload = { ...payload, layerChanges: cleaned };
+  const { error } = await client()
+    .from('archetype_proposals')
+    .update({ payload: next })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// The quality gate: a proposal cannot be sent for approval unless it carries a
+// passing before/after verify AND a per-layer change summary. Mirrors the RLS
+// gate (migration 20260720_workshop_approval_conditions) so the client fails
+// fast with a readable message instead of a raw PostgREST RLS rejection.
+// Admins can still park anything (the RLS gate exempts is_admin()).
+export interface ApprovalGateFailure {
+  ok: false;
+  reason: string;
+}
+export function checkApprovalReadiness(
+  payload: ArchetypeProposalPayload | null | undefined,
+): { ok: true } | ApprovalGateFailure {
+  if (!payload) return { ok: false, reason: 'Proposal payload could not be loaded.' };
+  if (payload.verify?.verdict !== 'pass') {
+    return {
+      ok: false,
+      reason: 'Run regen verify and mark the before/after "pass" before sending for approval.',
+    };
+  }
+  if (!payload.layerChanges || payload.layerChanges.length === 0) {
+    return {
+      ok: false,
+      reason: 'Add a per-layer change summary before sending for approval.',
+    };
+  }
+  return { ok: true };
+}
+
 // Director action: hand a worked proposal to Raheem. Moves it to
-// awaiting_approval. Allowed for any lore director via RLS.
-export async function sendProposalForApproval(id: string): Promise<ArchetypeProposal> {
+// awaiting_approval. Gated client-side (checkApprovalReadiness) and server-side
+// (RLS). `bypassGate` mirrors the RLS is_admin() exemption — admins may park
+// anything; directors must satisfy the gate.
+export async function sendProposalForApproval(
+  id: string,
+  opts?: { bypassGate?: boolean },
+): Promise<ArchetypeProposal> {
+  if (!opts?.bypassGate) {
+    const payload = await getArchetypeProposalPayload(id);
+    const gate = checkApprovalReadiness(payload);
+    if (!gate.ok) throw new Error(gate.reason);
+  }
   return updateArchetypeProposalStatus(id, { status: 'awaiting_approval' });
 }
 

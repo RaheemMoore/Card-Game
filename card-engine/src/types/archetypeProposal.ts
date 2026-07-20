@@ -83,20 +83,43 @@ export interface ArchetypeProposalPayload {
    * blobs), keeping the payload small per the P1 shrink.
    */
   verify?: VerifyEvidence;
+  /**
+   * Claude-authored, per-layer summary of what a WORKED proposal actually
+   * changed — written during the /work-proposal flow before the proposal is
+   * parked for approval. One entry per touched layer (A/B/C/D); untouched
+   * layers are simply absent. This is the "what changed" the approval console
+   * renders as bullets against the 4 layers, distinct from the free-text
+   * `change` (the original request) and `layerSnapshot` (the pre-change state).
+   */
+  layerChanges?: LayerChange[];
+}
+
+export interface LayerChange {
+  layer: ProposalLayer;
+  /** Short bulleted summary (may contain newlines) of what changed in this layer. */
+  summary: string;
 }
 
 /**
- * Result of a regen-verify run. `before` is the original Lab generation the
- * proposal was filed against; `after` is a fresh generation with the shipped
- * pipeline. Both images live in the prompt-lab storage bucket and are signed
- * on demand from their object paths. `verdict`/`note` are set by the reviewer
- * after eyeballing the two portraits.
+ * Result of a regen-verify run. `before` is either the original Lab generation
+ * the proposal was filed against (source 'lab') or the referenced card's
+ * current portrait (source 'card'); `after` is a fresh generation with the
+ * current pipeline. Both images live in the prompt-lab storage bucket and are
+ * signed on demand from their object paths. `verdict`/`note` are set by the
+ * reviewer after eyeballing the two portraits.
  */
 export interface VerifyEvidence {
   ranAt: string;
   archetype: ArchetypeName;
   tier: 'Foundation' | 'Forged' | 'Ascendant';
-  /** Original Lab run the proposal referenced (payload.labRunId). */
+  /**
+   * Where the "before" image came from:
+   *  - 'lab'  → the original Lab run referenced by payload.labRunId
+   *  - 'card' → the referenced card's current portrait at verify time
+   * Older rows predate this field and are treated as 'lab'.
+   */
+  source?: 'lab' | 'card';
+  /** Original Lab run the proposal referenced (payload.labRunId), or a before-run id for card-sourced. */
   beforeRunId: string;
   beforeObjectPath: string | null;
   /** New Lab run created by the regen-verify pass. */

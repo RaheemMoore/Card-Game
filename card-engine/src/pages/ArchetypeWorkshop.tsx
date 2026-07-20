@@ -8,9 +8,11 @@ import {
   sendProposalForApproval,
   approveProposal,
   rejectProposal,
+  getCardForAdmin,
+  checkApprovalReadiness,
 } from '../services/persistence/adminService';
 import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
-import { runRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
+import { runRegenVerify, runCardRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
@@ -356,11 +358,20 @@ function PendingRow({
           ) : payload === null ? (
             <div className="pt-2">Payload not found.</div>
           ) : (
-            <div className="pt-2 space-y-2">
-              <ProposalField label="Keep" value={payload.keep} />
-              <ProposalField label="Change" value={payload.change} />
-              <ProposalField label="Reject if" value={payload.rejectIf} />
-              {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
+            <div className="pt-2 space-y-3">
+              <VerifyReview evidence={payload.verify} />
+              <LayerChangeSummary changes={payload.layerChanges} />
+              <details>
+                <summary className="cursor-pointer text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+                  Original request
+                </summary>
+                <div className="space-y-2 mt-2">
+                  <ProposalField label="Keep" value={payload.keep} />
+                  <ProposalField label="Change" value={payload.change} />
+                  <ProposalField label="Reject if" value={payload.rejectIf} />
+                  {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
+                </div>
+              </details>
             </div>
           )}
           {p.commitSha && (
@@ -417,6 +428,93 @@ function PendingRow({
         </div>
       )}
     </li>
+  );
+}
+
+// Read-only before/after + verdict for the approval console. Resolves signed
+// URLs on mount; reuses the same VerifyThumb the working-phase step uses.
+function VerifyReview({ evidence }: { evidence?: VerifyEvidence }) {
+  const [urls, setUrls] = useState<{ before: string | null; after: string | null }>({ before: null, after: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!evidence) return;
+    void (async () => {
+      const [before, after] = await Promise.all([
+        evidence.beforeObjectPath ? signedUrl(evidence.beforeObjectPath) : Promise.resolve(null),
+        evidence.afterObjectPath ? signedUrl(evidence.afterObjectPath) : Promise.resolve(null),
+      ]);
+      if (!cancelled) setUrls({ before, after });
+    })();
+    return () => { cancelled = true; };
+  }, [evidence]);
+
+  if (!evidence) {
+    return (
+      <div className="italic text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+        No before/after on file for this proposal.
+      </div>
+    );
+  }
+  const verdictTone = evidence.verdict === 'pass' ? 'success' : evidence.verdict === 'fail' ? 'danger' : 'warning';
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+          Before / after
+        </span>
+        <AdminStatusBadge tone={verdictTone} className="uppercase tracking-widest">
+          {evidence.verdict ?? 'unrated'}
+        </AdminStatusBadge>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <VerifyThumb label={evidence.source === 'card' ? 'Before (current card)' : 'Before (filed)'} url={urls.before} />
+        <VerifyThumb label="After (regen)" url={urls.after} />
+      </div>
+    </div>
+  );
+}
+
+// The per-layer change summary — the 4 primary areas of the character, each
+// with what actually changed. Untouched layers are shown as "no change".
+function LayerChangeSummary({ changes }: { changes?: { layer: ProposalLayer; summary: string }[] }) {
+  const byLayer = new Map((changes ?? []).map((c) => [c.layer, c.summary]));
+  return (
+    <div className="space-y-1">
+      <div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+        What changed (by layer)
+      </div>
+      <ul className="space-y-1">
+        {LAYER_ORDER.map((id) => {
+          const copy = ARCHETYPE_LAYERS[id];
+          const summary = byLayer.get(id);
+          return (
+            <li key={id} className="flex gap-2">
+              <span
+                className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold shrink-0 mt-0.5"
+                style={{ background: copy.color, color: '#111' }}
+              >
+                {id}
+              </span>
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold" style={{ color: 'var(--admin-text)' }}>
+                  {copy.name}
+                </div>
+                {summary ? (
+                  <div className="text-[11px] whitespace-pre-wrap" style={{ color: 'var(--admin-text-muted)' }}>
+                    {summary}
+                  </div>
+                ) : (
+                  <div className="text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+                    no change
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -1225,7 +1323,7 @@ function ProposalsList({
                         payload={payloads[p.id]}
                         payloadError={payloadErrors[p.id]}
                       />
-                      <SendForApproval proposal={p} viewerRole={viewerRole} onChanged={onChanged} />
+                      <SendForApproval proposal={p} payload={payloads[p.id]} viewerRole={viewerRole} onChanged={onChanged} />
                     </div>
                   )}
                 </li>
@@ -1243,16 +1341,19 @@ function ProposalsList({
 // only (RLS enforces it), so a director sending it up gains no ship power.
 function SendForApproval({
   proposal: p,
+  payload,
   viewerRole,
   onChanged,
 }: {
   proposal: ArchetypeProposal;
+  payload: ArchetypeProposalPayload | null | undefined;
   viewerRole: SessionRole;
   onChanged: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const isDirector = viewerRole === 'admin' || viewerRole === 'lore_director';
+  const isAdmin = viewerRole === 'admin';
+  const isDirector = isAdmin || viewerRole === 'lore_director';
   const canSend = p.status === 'draft' || p.status === 'submitted' || p.status === 'awaiting_claude';
 
   if (p.status === 'awaiting_approval') {
@@ -1264,11 +1365,16 @@ function SendForApproval({
   }
   if (!isDirector || !canSend) return null;
 
+  // The gate: directors need a passing verify + a per-layer summary. Admins can
+  // park anything (parity with the RLS is_admin() bypass).
+  const gate = checkApprovalReadiness(payload);
+  const blocked = !isAdmin && !gate.ok;
+
   async function send() {
     setBusy(true);
     setError(null);
     try {
-      await sendProposalForApproval(p.id);
+      await sendProposalForApproval(p.id, { bypassGate: isAdmin });
       onChanged();
     } catch (err) {
       setError((err as { message?: string })?.message ?? String(err));
@@ -1279,9 +1385,14 @@ function SendForApproval({
 
   return (
     <div className="pt-2">
-      <AdminButton variant="primary" size="sm" disabled={busy} onClick={send}>
+      <AdminButton variant="primary" size="sm" disabled={busy || blocked} onClick={send}>
         {busy ? 'Sending…' : 'Send for Raheem’s approval'}
       </AdminButton>
+      {blocked && !gate.ok && (
+        <div className="mt-1 text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+          {gate.reason}
+        </div>
+      )}
       {error && <AdminAlert tone="danger" className="mt-1">{error}</AdminAlert>}
     </div>
   );
@@ -1500,17 +1611,32 @@ function VerifyStep({
     };
   }, [evidence]);
 
+  // Lab-sourced proposals reproduce the referenced Lab run; card-sourced
+  // proposals compare the card's current portrait against a fresh regen.
   async function doRun() {
-    if (!payload?.labRunId) return;
     setConfirming(false);
     setError(null);
     setRunning('Starting…');
     try {
-      const result = await runRegenVerify({
-        proposalId: proposal.id,
-        beforeRunId: payload.labRunId,
-        onStep: (s) => setRunning(s),
-      });
+      let result;
+      if (payload?.labRunId) {
+        result = await runRegenVerify({
+          proposalId: proposal.id,
+          beforeRunId: payload.labRunId,
+          onStep: (s) => setRunning(s),
+        });
+      } else if (proposal.cardId) {
+        setRunning('Loading card…');
+        const card = await getCardForAdmin(proposal.cardId);
+        if (!card) throw new Error('Referenced card not found — cannot verify.');
+        result = await runCardRegenVerify({
+          proposalId: proposal.id,
+          card,
+          onStep: (s) => setRunning(s),
+        });
+      } else {
+        throw new Error('This proposal has no Lab run or card to verify against.');
+      }
       setEvidence(result.evidence);
       setUrls({ before: result.beforeUrl, after: result.afterUrl });
     } catch (err) {
@@ -1541,8 +1667,8 @@ function VerifyStep({
           Regenerated {new Date(evidence.ranAt).toLocaleString()} · {evidence.archetype} · {evidence.tier}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <VerifyThumb label="Before (filed)" url={urls.before} />
-          <VerifyThumb label="After (shipped fix)" url={urls.after} />
+          <VerifyThumb label={evidence.source === 'card' ? 'Before (current card)' : 'Before (filed)'} url={urls.before} />
+          <VerifyThumb label="After (regen)" url={urls.after} />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
@@ -1581,29 +1707,25 @@ function VerifyStep({
     );
   }
 
-  // No evidence yet.
-  if (proposal.status !== 'shipped') {
-    return (
-      <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-        Available once the proposal ships.
-      </div>
-    );
-  }
+  // No evidence yet. Verify can run any time during the working phase — it is
+  // the precondition for sending a proposal for approval, not a post-ship step.
   if (!payload) {
     return <div style={{ color: 'var(--admin-text-muted)' }}>Loading…</div>;
   }
-  if (!payload.labRunId) {
+  const canVerify = Boolean(payload.labRunId) || Boolean(proposal.cardId);
+  if (!canVerify) {
     return (
       <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-        No Lab run linked — regen verify is only available for proposals sent from the Prompt Lab.
+        No Lab run or card linked — regen verify needs one to produce a before/after.
       </div>
     );
   }
   return (
     <div className="mt-1 space-y-2">
       <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-        Re-run the linked Lab generation ({payload.labRunId.slice(0, 8)}…) through the current
-        pipeline to confirm the fix changed the output.
+        {payload.labRunId
+          ? `Re-run the linked Lab generation (${payload.labRunId.slice(0, 8)}…) through the current pipeline to confirm the change moved the output.`
+          : "Regenerate this card's portrait through the current pipeline and compare it against the card's existing art."}
       </div>
       {!confirming && !running && (
         <AdminButton variant="secondary" onClick={() => setConfirming(true)}>
