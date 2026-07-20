@@ -10,7 +10,7 @@ import { AdminCosts } from './pages/AdminCosts';
 import { AdminAbilities } from './pages/AdminAbilities';
 import { AdminDiagnostics } from './pages/AdminDiagnostics';
 import { AdminPromptLab } from './pages/AdminPromptLab';
-import { AdminChangeProposals } from './pages/AdminChangeProposals';
+import { ArchetypeWorkshop } from './pages/ArchetypeWorkshop';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { CodexFamily } from './pages/CodexFamily';
@@ -58,7 +58,7 @@ export default function App() {
                   <Route path="abilities" element={<AdminAbilities />} />
                   <Route path="diagnostics" element={<AdminDiagnostics />} />
                   <Route path="prompt-lab" element={<AdminPromptLab />} />
-                  <Route path="proposals" element={<AdminChangeProposals />} />
+                  <Route path="workshop" element={<ArchetypeWorkshop />} />
                 </Route>
                 <Route path="/dev/abilities" element={<DevAbilities />} />
                 <Route path="/dev/seed-battle" element={<DevSeedBattle />} />
