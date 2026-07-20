@@ -30,15 +30,15 @@ export const ARCHETYPE_LAYERS: Record<ProposalLayer, LayerCopy> = {
     accentBg: 'rgba(212, 169, 74, 0.10)',
     accentBorder: 'rgba(212, 169, 74, 0.55)',
     controls:
-      "What makes a Necromancer a Necromancer and not a Vampire. Core identity, defining visual motifs, and how the archetype looks at each tier.",
+      "What makes a Necromancer a Necromancer and not a Vampire. The Bible chapter (14 sections: identity, core fantasy, origins, culture, virtues/taboos, symbols, etc.). This is the source of truth for who the archetype IS.",
     affects:
-      "Every future card of this archetype. Existing cards keep their old canon; new forges get the new one.",
+      "Every future card of this archetype. Existing cards keep their old canon; new forges get the new one. The Lore & Fantasy Director agent is the standing authority for interpretive questions.",
     changeWhen:
       "The archetype concept itself is wrong. Lycanthrope going from 'cursed monster' to 'blessed by the Moon Goddess' was a Layer A change.",
     whereItLives:
-      "archetypes.ts + card-engine-archetype-prompt-library.md",
+      "data/archetypeBible/<archetype>.ts (14 sections per chapter) + Character_Generation_Bible_Canonical_v1.md",
     example: (a) =>
-      `Rewriting ${a}'s identity, motifs, or rankProgression strings — the DNA every ${a} card is built from.`,
+      `Rewriting ${a}'s Bible chapter — identityThrough, coreFantasy, selection-screen lore, virtues/taboos/fears, symbol language. The DNA every ${a} card is built from.`,
   },
   B: {
     id: 'B',
@@ -60,21 +60,21 @@ export const ARCHETYPE_LAYERS: Record<ProposalLayer, LayerCopy> = {
   },
   C: {
     id: 'C',
-    name: 'Modifier Pools',
-    tagline: 'The random flavor rolls',
+    name: 'Story Pillars & Elements',
+    tagline: 'The player-authored generation facts',
     color: '#6ea36e',
     accentBg: 'rgba(110, 163, 110, 0.10)',
     accentBorder: 'rgba(110, 163, 110, 0.55)',
     controls:
-      "The rolled surface variety per card. Setting, lighting, physique, lineage, demeanor, signature detail, and the archetype's class-trait pool.",
+      "The Guided Narrative Chain questions the player answers at forge time, and which of the 26 elements are available in which bucket (native/compatible/uncommon/rare). Player answers become IMMUTABLE generation facts.",
     affects:
-      "Only NEW cards. Existing cards keep what they rolled. Adding 'Silver moon-sigil branded into shoulder' to the Lycanthrope class-trait pool means future Lycans can (rarely) roll it.",
+      "Only NEW cards. Existing cards keep the answers they were forged with. Adding a Story Pillar option, changing an element bucket, or tightening the narrative-eligibility gate for a Rare element shows up in the next forge.",
     changeWhen:
-      "The archetype needs more or better variety. Not enough distinctive class traits. Too many crypts in the setting pool. A specific evocative detail is missing.",
+      "The archetype needs more or better narrative variety. Options feel same-y. An element that should be native is stuck in Rare. A pillar question doesn't land for this archetype.",
     whereItLives:
-      "modifierPools.ts",
+      "data/storyPillars.ts (questions + tagged seed options) + data/elements.ts (buckets + bonds)",
     example: (a) =>
-      `Adding, removing, or rarity-adjusting entries in the ${a} class-trait pool, or in the shared setting / demeanor / lighting pools.`,
+      `Adding a Story Pillar option for ${a}, moving an element between buckets, or adjusting the Rare narrative-eligibility tags.`,
   },
   D: {
     id: 'D',
