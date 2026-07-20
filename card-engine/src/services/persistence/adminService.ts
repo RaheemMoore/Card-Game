@@ -12,10 +12,12 @@ import { getSupabaseClient } from './supabaseClient';
 // All admin RPCs are guarded by is_admin() server-side. Non-admin
 // sessions get empty results or exceptions from Supabase directly.
 
+export type UserRole = 'user' | 'admin' | 'lore_director';
+
 export interface AdminUserRow {
   user_id: string;
   email: string | null;
-  role: 'user' | 'admin';
+  role: UserRole;
   is_anonymous: boolean;
   card_count: number;
   txn_count: number;
@@ -85,6 +87,18 @@ export async function grantAdminAdjustment(input: {
   });
   if (error) throw error;
   return data as { transaction_id: string; balance_after: number; sequence: number };
+}
+
+export async function setUserRole(
+  userId: string,
+  role: UserRole,
+): Promise<{ user_id: string; old_role: UserRole; new_role: UserRole }> {
+  const { data, error } = await client().rpc('set_user_role', {
+    target_user_id: userId,
+    new_role: role,
+  });
+  if (error) throw error;
+  return data as { user_id: string; old_role: UserRole; new_role: UserRole };
 }
 
 // The three below rely on the widened RLS policies (owner OR admin)

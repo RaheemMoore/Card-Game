@@ -6,8 +6,10 @@ import {
   listUserCards,
   listUserLedger,
   deleteUserCard,
+  setUserRole,
   type AdminUserRow,
   type SystemStats,
+  type UserRole,
 } from '../services/persistence/adminService';
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
@@ -122,14 +124,7 @@ export function AdminUsers() {
                   {u.user_id.slice(0, 12)}… {u.is_anonymous && '· guest'}
                 </div>
               </div>
-              {u.role === 'admin' && (
-                <span
-                  className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold"
-                  style={{ background: 'rgba(155,182,179,0.2)', color: '#d6f2ec' }}
-                >
-                  ADMIN
-                </span>
-              )}
+              <RoleBadge role={u.role} />
             </div>
             <div className="grid grid-cols-4 gap-1 text-[10px] text-bone/70">
               <MobileStat label="Cards" value={u.card_count} />
@@ -176,11 +171,7 @@ export function AdminUsers() {
                   <div>{u.email ?? <span className="text-bone/50 italic">no email</span>}</div>
                   <div className="text-[10px] text-bone/40 font-mono">{u.user_id.slice(0, 8)}… {u.is_anonymous && '· guest'}</div>
                 </td>
-                <td className="px-3 py-2">
-                  {u.role === 'admin' && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(155,182,179,0.2)', color: '#d6f2ec' }}>ADMIN</span>
-                  )}
-                </td>
+                <td className="px-3 py-2"><RoleBadge role={u.role} /></td>
                 <td className="px-3 py-2 text-right">{u.card_count}</td>
                 <td className="px-3 py-2 text-right">{u.txn_count}</td>
                 <td className="px-3 py-2 text-right">{u.premium_balance}</td>
@@ -205,6 +196,25 @@ export function AdminUsers() {
   );
 }
 
+const ROLE_LABELS: Record<UserRole, string> = {
+  admin: 'ADMIN',
+  lore_director: 'LORE',
+  user: '',
+};
+
+function RoleBadge({ role }: { role: UserRole }) {
+  if (role === 'user') return null;
+  const style =
+    role === 'admin'
+      ? { background: 'rgba(155,182,179,0.2)', color: '#d6f2ec' }
+      : { background: 'rgba(198,163,88,0.22)', color: '#f0dca0' };
+  return (
+    <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold" style={style}>
+      {ROLE_LABELS[role]}
+    </span>
+  );
+}
+
 function MobileStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded bg-void/40 px-1.5 py-1 text-center">
@@ -214,7 +224,7 @@ function MobileStat({ label, value }: { label: string; value: number }) {
   );
 }
 
-type DrawerTab = 'currency' | 'cards' | 'ledger';
+type DrawerTab = 'currency' | 'role' | 'cards' | 'ledger';
 
 function UserDrawer({
   user,
@@ -243,18 +253,25 @@ function UserDrawer({
         </div>
 
         <div className="flex gap-1 border-b border-bone/15 mb-4">
-          {(['currency', 'cards', 'ledger'] as const).map((t) => (
+          {(['currency', 'role', 'cards', 'ledger'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-3 py-2 font-fantasy text-sm ${tab === t ? 'border-b-2 border-power font-bold' : 'opacity-60'}`}
             >
-              {t === 'currency' ? 'Currency' : t === 'cards' ? `Cards (${user.card_count})` : `Ledger (${user.txn_count})`}
+              {t === 'currency'
+                ? 'Currency'
+                : t === 'role'
+                  ? 'Role'
+                  : t === 'cards'
+                    ? `Cards (${user.card_count})`
+                    : `Ledger (${user.txn_count})`}
             </button>
           ))}
         </div>
 
         {tab === 'currency' && <CurrencyTab user={user} onGranted={onMutated} />}
+        {tab === 'role' && <RoleTab user={user} onChanged={onMutated} />}
         {tab === 'cards' && <CardsTab userId={user.user_id} onDeleted={onMutated} />}
         {tab === 'ledger' && <LedgerTab userId={user.user_id} />}
       </div>
@@ -355,6 +372,79 @@ function CurrencyTab({ user, onGranted }: { user: AdminUserRow; onGranted: () =>
           {busy ? 'Applying…' : 'Apply adjustment'}
         </button>
       </div>
+    </div>
+  );
+}
+
+const ROLE_OPTIONS: { value: UserRole; label: string; blurb: string }[] = [
+  { value: 'user', label: 'User', blurb: 'Standard player. No admin or workshop authority.' },
+  {
+    value: 'lore_director',
+    label: 'Lore Director',
+    blurb: 'Can file and work Archetype Workshop proposals, but cannot ship them or reach any admin action. Ship stays admin-only.',
+  },
+  { value: 'admin', label: 'Admin', blurb: 'Full access — ships proposals, grants currency, assigns roles.' },
+];
+
+function RoleTab({ user, onChanged }: { user: AdminUserRow; onChanged: () => void }) {
+  const [role, setRole] = useState<UserRole>(user.role);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const dirty = role !== user.role;
+
+  async function submit() {
+    setError(null);
+    setSuccess(null);
+    setBusy(true);
+    try {
+      const result = await setUserRole(user.user_id, role);
+      setSuccess(`Role changed: ${result.old_role} → ${result.new_role}.`);
+      onChanged();
+    } catch (err) {
+      const e = err as { message?: string };
+      setError(e.message ?? String(err));
+      setRole(user.role);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="text-xs text-bone/60">
+        Current role: <span className="font-bold text-bone">{user.role}</span>
+      </div>
+      <div className="space-y-2">
+        {ROLE_OPTIONS.map((opt) => (
+          <label
+            key={opt.value}
+            className="flex gap-2 items-start rounded border border-bone/15 p-2 cursor-pointer hover:bg-bone/5"
+          >
+            <input
+              type="radio"
+              className="mt-1"
+              checked={role === opt.value}
+              onChange={() => setRole(opt.value)}
+            />
+            <span>
+              <span className="font-fantasy font-bold">{opt.label}</span>
+              <span className="block text-xs text-bone/60">{opt.blurb}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {error && <div className="text-xs" style={{ color: '#f9c9c9' }}>{error}</div>}
+      {success && <div className="text-xs" style={{ color: '#c9f9d9' }}>{success}</div>}
+      <button
+        onClick={submit}
+        disabled={busy || !dirty}
+        className="px-4 py-2 rounded font-fantasy font-bold text-sm"
+        style={{ background: '#8a1c1c', color: '#faeaca', opacity: busy || !dirty ? 0.5 : 1 }}
+      >
+        {busy ? 'Saving…' : 'Save role'}
+      </button>
     </div>
   );
 }
