@@ -581,6 +581,50 @@ const BASE_NEGATIVE = [
 ].join(', ');
 
 /**
+ * P3 — Per-element drift bans, appended to the negative prompt on TIER-UPS
+ * only. Fresh forges let Claude/Phoenix explore; tier-ups must render the
+ * element locked at Foundation. Each entry names the elements Phoenix most
+ * commonly drifts toward from that source element (observed failure:
+ * Taji, Light Seraph, drifted to fire visuals at Ascendant — proposal
+ * 842d1b10). Kept to 3-4 bans per element so the negative prompt stays
+ * under its 400-char budget after truncation.
+ */
+const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
+  Light: ', fire palette replacing light, orange flames instead of white-gold radiance, shadow-dominant palette, element changed from Light',
+  Holy: ', hellfire palette, demonic red glow, shadow corruption of holy light, element changed from Holy',
+  Water: ', fire replacing water, steam-explosion palette, element changed from Water',
+  Ice: ', melted into fire, warm palette replacing ice-blue, element changed from Ice',
+  Wind: ', fire replacing wind, red-orange gusts, element changed from Wind',
+  Storm: ', fire replacing lightning, orange storm clouds, element changed from Storm',
+  Lightning: ', fire replacing lightning, ember bolts, element changed from Lightning',
+  Nature: ', burning forest palette, fire replacing growth, element changed from Nature',
+  Shadow: ', bright radiant palette replacing shadow, holy glow, element changed from Shadow',
+  Void: ', warm colors in void, fire in the void, radiant light replacing void-black, element changed from Void',
+  Spirit: ', fire replacing spirit-glow, orange souls, element changed from Spirit',
+  Moon: ', sun-gold replacing moonlight, fire palette, element changed from Moon',
+  Blood: ', generic fire replacing blood-crimson, orange flames, element changed from Blood',
+  Poison: ', fire replacing toxin-green, ember palette, element changed from Poison',
+  Sound: ', fire replacing sound-waves, flame rings, element changed from Sound',
+  Time: ', fire replacing temporal gold-silver, ember clock imagery, element changed from Time',
+  Cosmic: ', fire replacing star-field, orange nebula, element changed from Cosmic',
+  Psychic: ', fire replacing psychic violet, ember mind-energy, element changed from Psychic',
+  Tech: ', fire replacing tech-glow, ember circuitry, element changed from Tech',
+  Dream: ', fire replacing dream-pastels, ember haze, element changed from Dream',
+  Metal: ', fire replacing cold metal sheen, forge-fire dominance, element changed from Metal',
+  Earth: ', lava replacing earth-brown, fire palette, element changed from Earth',
+  Stone: ', lava replacing stone-gray, fire cracks, element changed from Stone',
+  Beast: ', fire replacing beast-natural palette, flaming animal, element changed from Beast',
+  Ash: ', open flames replacing cold ash, active fire instead of aftermath, element changed from Ash',
+  // Fire itself drifts toward generic orange blobs, not other elements.
+  Fire: ', blue magic glow replacing fire, ice palette, element changed from Fire',
+};
+
+/** Look up the drift-ban string for an element; empty string if none. */
+function buildElementDriftBans(element: ElementName): string {
+  return ELEMENT_DRIFT_BANS[element] ?? '';
+}
+
+/**
  * Style anchor — MUST open every portraitPrompt verbatim. M3.7 rewrite
  * (2026-07-19): dropped the Magic-the-Gathering / Hearthstone reference
  * that primed Phoenix toward posed cover-girl portraits, replaced with
@@ -968,7 +1012,7 @@ Return ONLY a JSON object with these fields:
   "cardName": ${existingName ? `MUST be exactly "${existingName}" — do not change.` : `the character BASE NAME per the FANTASY CHARACTER NAMING BIBLE block above — original, culturally coherent with the character ancestry + archetype + story, NOT a sample from the block, NOT a banned trope. Usually 1-2 words. Foundation-rank characters may have JUST a personal name.`},
   "nameAndTitle": "the character DISPLAY NAME per the Bible §5 name structures. Foundation = usually just the base name or personal+family/clan/order. Forged/Ascendant = MAY include an epithet if earned by story pillar answers. Do NOT default to \\"X, Keeper of Y\\" or \\"X, the Warden\\" or \\"X, of the Vigil\\" — those are banned tropes. If no epithet is earned by lore, just repeat the base name here. Structure examples per archetype are in the Bible block above.",
   "lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the mood WITHOUT quoting them literally. Reflect the emotional throughline you identified. ${isEvolution ? `Reference the character's growth into ${overallRank} — same person, deepened by trials.` : ''}",
-  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Construct it in this ORDER:\\n  1. STYLE_ANCHOR verbatim — open with: \\"${STYLE_ANCHOR}\\"\\n  2. IDENTITY BLOCK — MUST open with the literal phrase 'SAME PERSON RULE:' then verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from the Hidden Fate you inferred'}.${existingHiddenFate?.fashion || existingHiddenFate?.hairDetail ? ` THEN — because this is a tier-up — append the LOCKED WARDROBE + HAIR clause verbatim: 'wearing ${existingHiddenFate?.fashion?.primaryGarment ?? ''}${existingHiddenFate?.fashion?.armor ? `, armored in ${existingHiddenFate.fashion.armor}` : ''}${existingHiddenFate?.fashion?.outerLayer ? `, ${existingHiddenFate.fashion.outerLayer} over the shoulders` : ''}${existingHiddenFate?.hairDetail ? `, ${existingHiddenFate.hairDetail.texture} ${existingHiddenFate.hairDetail.color} hair ${existingHiddenFate.hairDetail.style}` : ''} — locked from Foundation verbatim, do NOT invent new armor, do NOT change the role, do NOT bake element color into the wardrobe description (element palette comes from the ELEMENT VISUAL LANGUAGE block ONLY). Add ember/warm-glow ONLY if the element is Fire/Blood/Ash/Holy.'.` : ''} Then append verbatim: 'this body is preserved as written, do NOT substitute a slim young hero body, do NOT remove or reduce clothing, do NOT slim or muscle-up or de-age this character, action does NOT mean shirtless or bodybuilder anatomy'. Encode the diversity guardrail above.\\n  3. REQUIRED POSE — write the character mid-EXACTLY-THIS-POSE from the REQUIRED POSE block above. Do NOT paraphrase into a T-pose. Do NOT put a glowing orb in each fist. Do NOT mirror the arms symmetrically.\\n  4. ELEMENT VISUAL LOCKDOWN — pull COLORS, TEXTURE, BODY TELL, ENVIRONMENT, and ANTI-CONTAMINATION verbatim from the ELEMENT VISUAL LOCKDOWN block above; the element manifests through those exact colors and texture on the body and in the environment. Do NOT drift to Phoenix default red-flame + gold-rim palette regardless of element. ${elementQuirk ? `Also weave the FANTASY QUIRK from that block subtly into the frame as a small background detail (not the focal point).` : ''}\\n  5. RANK SPECTACLE — apply the ${overallRank} scaling from the RANK ELEMENT SPECTACLE block above (Foundation erupts already, Forged escalates + environment cracks + non-human features may begin, Ascendant world crumbles + character evolves beyond mortal form with wings/tails/beast features per archetype).\\n  6. Ability spectacle — visual signature of the character's abilities per the EXISTING ABILITIES block, woven into pose or effects.\\n  7. Story-Pillar-derived materials, symbols, and specific objects the answers named.\\n  8. Weather + lighting + environmentDetails from Hidden Fate — should carry elemental echo (fire user in burning environment, void user in cracking reality, etc.).\\n  9. Composition closer — MUST END with: 'entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered'.\\n${overallRank === 'Ascendant' ? "This is a CATACLYSMIC Ascendant portrait — reality crumbles around them, the world reacts to their ultimate, non-human features (wings, tails, beast features, spectral silhouettes, constellation-lit skin, demonic marks) manifest per archetype and element. BUT the same skinTone/bodyType/ancestry/age/scars/disability from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled, ancestry stays ancestry. What EXPANDS is the power display on top of that identity. Bible §Visual quality rule: remove the power effects and the character is still recognizable through silhouette + body + materials + face." : ''} Do NOT contradict any locked identity above.",
+  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Construct it in this ORDER:\\n  1. STYLE_ANCHOR verbatim — open with: \\"${STYLE_ANCHOR}\\"\\n  2. IDENTITY BLOCK — MUST open with the literal phrase 'SAME PERSON RULE:' then verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from the Hidden Fate you inferred'}.${existingHiddenFate?.fashion || existingHiddenFate?.hairDetail ? ` THEN — because this is a tier-up — append the LOCKED WARDROBE + HAIR clause verbatim: 'wearing ${existingHiddenFate?.fashion?.primaryGarment ?? ''}${existingHiddenFate?.fashion?.armor ? `, armored in ${existingHiddenFate.fashion.armor}` : ''}${existingHiddenFate?.fashion?.outerLayer ? `, ${existingHiddenFate.fashion.outerLayer} over the shoulders` : ''}${existingHiddenFate?.hairDetail ? `, ${existingHiddenFate.hairDetail.texture} ${existingHiddenFate.hairDetail.color} hair ${existingHiddenFate.hairDetail.style}` : ''} — locked from Foundation verbatim, do NOT invent new armor, do NOT change the role, do NOT bake element color into the wardrobe description (element palette comes from the ELEMENT VISUAL LANGUAGE block ONLY). Add ember/warm-glow ONLY if the element is Fire/Blood/Ash/Holy.'.` : ''} Then append verbatim: 'this body is preserved as written, do NOT substitute a slim young hero body, do NOT remove or reduce clothing, do NOT slim or muscle-up or de-age this character, action does NOT mean shirtless or bodybuilder anatomy'. Encode the diversity guardrail above.${existingHiddenFate ? ` Then append verbatim as a distinct clause: 'IDENTITY IMPERATIVE — same character as the previous rank: same skin tone (do NOT lighten, do NOT darken, do NOT shift undertone), same hair color and texture (do NOT restyle to a different color, may show age-silvering only), same ethnicity and ancestry cues, same facial structure and eye color. This is a portrait of the SAME PERSON aged and hardened, not a similar-looking one.'. Leonardo weights early clauses heavier — this identity lock must survive the rank-spectacle and element clauses that follow.` : ''}\\n  3. REQUIRED POSE — write the character mid-EXACTLY-THIS-POSE from the REQUIRED POSE block above. Do NOT paraphrase into a T-pose. Do NOT put a glowing orb in each fist. Do NOT mirror the arms symmetrically.\\n  4. ELEMENT VISUAL LOCKDOWN — pull COLORS, TEXTURE, BODY TELL, ENVIRONMENT, and ANTI-CONTAMINATION verbatim from the ELEMENT VISUAL LOCKDOWN block above; the element manifests through those exact colors and texture on the body and in the environment. Do NOT drift to Phoenix default red-flame + gold-rim palette regardless of element. ${elementQuirk ? `Also weave the FANTASY QUIRK from that block subtly into the frame as a small background detail (not the focal point).` : ''}\\n  5. RANK SPECTACLE — apply the ${overallRank} scaling from the RANK ELEMENT SPECTACLE block above (Foundation erupts already, Forged escalates + environment cracks + non-human features may begin, Ascendant world crumbles + character evolves beyond mortal form with wings/tails/beast features per archetype).\\n  6. Ability spectacle — visual signature of the character's abilities per the EXISTING ABILITIES block, woven into pose or effects.\\n  7. Story-Pillar-derived materials, symbols, and specific objects the answers named.\\n  8. Weather + lighting + environmentDetails from Hidden Fate — should carry elemental echo (fire user in burning environment, void user in cracking reality, etc.).\\n  9. Composition closer — MUST END with: 'entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered'.\\n${overallRank === 'Ascendant' ? "This is a CATACLYSMIC Ascendant portrait — reality crumbles around them, the world reacts to their ultimate, non-human features (wings, tails, beast features, spectral silhouettes, constellation-lit skin, demonic marks) manifest per archetype and element. BUT the same skinTone/bodyType/ancestry/age/scars/disability from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled, ancestry stays ancestry. What EXPANDS is the power display on top of that identity. Bible §Visual quality rule: remove the power effects and the character is still recognizable through silhouette + body + materials + face." : ''} Do NOT contradict any locked identity above.",
   "negativePrompt": "starts with \\"${BASE_NEGATIVE}\\" then add archetype-specific §14 Avoid items and any anti-continuity terms that fit this specific character. Comma-separated, under ${NEGATIVE_PROMPT_MAX} characters.",
   "hiddenFate": {
     "age": "e.g. 'early 60s' — inferred from the answers, LOCKED after this call",
@@ -1223,8 +1267,29 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     const isFireFamily = fireFamilyElements.includes(input.element.element);
     const warmGlowNegatives = isFireFamily ? '' :
       ', ember-red glow, warm ember lighting, orange rim light, fire aura, warm orange highlights, burning ember effect, glowing coals, molten glow, heat shimmer, flame-lit surface, ember-red inner glow, warm ember on armor';
-    const rawNegative = (parsed.negativePrompt ?? BASE_NEGATIVE) + warmGlowNegatives;
-    const negativePrompt = truncateToLimit(rawNegative, NEGATIVE_PROMPT_MAX);
+    // P3 — Element-drift bans on tier-up. Fresh forges let Claude explore;
+    // tier-ups must stay locked to the element chosen at Foundation. Each
+    // ban names the drift targets Phoenix most commonly reaches for from
+    // that source element (observed: Light Seraph → fire visuals). Only
+    // fires when existingHiddenFate is present (tier-up, not fresh forge).
+    //
+    // The appended tails (warm-glow + drift bans) MUST survive the 400-char
+    // cap — they're the targeted fixes — so the parsed negative is truncated
+    // first to reserve room for them, rather than truncating the whole
+    // string tail-first (which would silently delete the bans).
+    const elementDriftBans = existingHiddenFate
+      ? buildElementDriftBans(input.element.element as ElementName)
+      : '';
+    // Drift bans lead the tail: they're the most targeted fix and must
+    // survive even when the combined tails exceed the budget (the warm-glow
+    // list is belt+suspenders that BASE_NEGATIVE's M4.2 block already
+    // partially covers, so it's the safe one to lose to truncation).
+    const appendedTails = elementDriftBans + warmGlowNegatives;
+    const parsedNegative = truncateToLimit(
+      parsed.negativePrompt ?? BASE_NEGATIVE,
+      Math.max(NEGATIVE_PROMPT_MAX - appendedTails.length, 120),
+    );
+    const negativePrompt = truncateToLimit(parsedNegative + appendedTails, NEGATIVE_PROMPT_MAX);
 
     // M4.4 debug — log axis + pose + element + prompt head so we can verify
     // enforcement. Element is always logged even on tier-up so we can spot
