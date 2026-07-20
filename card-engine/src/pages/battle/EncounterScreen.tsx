@@ -14,13 +14,22 @@ import { ResultModal } from './ResultModal';
 interface Props {
   state: BattleState | null;
   events: readonly BattleEvent[];
+  actingActorId: string | null;
   error: string | null;
   onSubmit: (action: PlayerAction) => void;
   onRestart: () => void;
   onExit: () => void;
 }
 
-export function EncounterScreen({ state, events, error, onSubmit, onRestart, onExit }: Props) {
+export function EncounterScreen({
+  state,
+  events,
+  actingActorId,
+  error,
+  onSubmit,
+  onRestart,
+  onExit,
+}: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
 
   useEffect(() => {
@@ -58,10 +67,16 @@ export function EncounterScreen({ state, events, error, onSubmit, onRestart, onE
     );
   }
 
-  const hero = state.heroes[0];
+  const actingHero =
+    (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
+    state.heroes.find((h) => !h.defeated) ??
+    state.heroes[0];
   const boss = state.boss;
   const isOver = state.phase === 'battle_over';
   const canAct = state.phase === 'awaiting_player_action';
+  const livingCount = state.heroes.filter((h) => !h.defeated).length;
+  const showPartyIndicator = state.heroes.length > 1;
+  const actingIndex = state.heroes.findIndex((h) => h.actorId === actingHero.actorId);
 
   return (
     <div className="max-w-4xl mx-auto px-3 py-4">
@@ -79,8 +94,21 @@ export function EncounterScreen({ state, events, error, onSubmit, onRestart, onE
         intentText={boss.currentIntent?.telegraphText ?? null}
         lastEvent={state.log[state.log.length - 1]}
       />
-      <HeroPanel hero={hero} />
-      <AbilityRail hero={hero} bossActorId={boss.actorId} disabled={!canAct} onSubmit={onSubmit} />
+      {showPartyIndicator && (
+        <div className="mb-2 text-[11px] uppercase tracking-widest text-bone/60 text-center">
+          Party {livingCount} of {state.heroes.length}
+          {canAct && actingIndex >= 0 && (
+            <>
+              {' · '}
+              <span className="text-gold">
+                Lane {actingIndex + 1}: {actingHero.snapshot.displayName}
+              </span>
+            </>
+          )}
+        </div>
+      )}
+      <HeroPanel hero={actingHero} />
+      <AbilityRail hero={actingHero} bossActorId={boss.actorId} disabled={!canAct} onSubmit={onSubmit} />
       <UtilityRail onSubmit={onSubmit} disabled={!canAct} />
       <CombatJournal rawEvents={events} />
 

@@ -5,35 +5,31 @@ import { Picker } from './Picker';
 import { EncounterScreen } from './EncounterScreen';
 
 /**
- * Boss battle page — B4 vertical slice, Gate 7A visual pass.
+ * Boss battle page.
  *
  * Two stages:
- *   1. Picker (Picker.tsx) — pick a battle-ready hero card + an active boss.
+ *   1. Picker (Picker.tsx) — pick 1..3 battle-ready hero cards + an active boss.
  *   2. EncounterScreen (EncounterScreen.tsx) — Boss panel, Hero panel,
- *      Ability Command Strip rail with select-then-confirm, utility rail,
- *      event log, result modal.
+ *      Ability rail, utility rail, Combat Journal, result modal.
  *
- * Combat reducer / useBattle / battleRewardService are untouched.
+ * Combat reducer / useBattle / battleRewardService are the sources of truth.
  */
 export function Battle() {
-  const [heroCard, setHeroCard] = useState<Card | null>(null);
+  const [party, setParty] = useState<Card[] | null>(null);
   const [bossId, setBossId] = useState<string | null>(null);
   const [seed, setSeed] = useState<number>(() => Math.floor(Math.random() * 1e9));
 
   const active = useMemo(
-    () =>
-      heroCard && bossId
-        ? { heroCardId: heroCard.cardId, heroCard, bossId, seed }
-        : null,
-    [heroCard, bossId, seed],
+    () => (party && bossId ? { heroCards: party, bossId, seed } : null),
+    [party, bossId, seed],
   );
   const battle = useBattle(active);
 
-  if (!heroCard || !bossId) {
+  if (!party || !bossId) {
     return (
       <Picker
-        onPick={(card, boss) => {
-          setHeroCard(card);
+        onPick={(cards, boss) => {
+          setParty(cards);
           setBossId(boss);
         }}
       />
@@ -44,6 +40,7 @@ export function Battle() {
     <EncounterScreen
       state={battle.state}
       events={battle.events}
+      actingActorId={battle.actingActorId}
       error={battle.error}
       onSubmit={battle.submit}
       onRestart={() => {
@@ -51,7 +48,7 @@ export function Battle() {
         battle.restart();
       }}
       onExit={() => {
-        setHeroCard(null);
+        setParty(null);
         setBossId(null);
       }}
     />

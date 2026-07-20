@@ -92,6 +92,7 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     heroes,
     boss,
     phase: 'start_of_round',
+    pendingActorIds: [],
     log: [
       { kind: 'battle_started', at: snapshot.createdAt, snapshotId: snapshot.battleId },
     ],
@@ -127,6 +128,11 @@ export function advance(state: BattleState): StepResult {
       return transition(state, [], 'resolving_reactions');
     case 'resolving_reactions':
       // Reactions handled inline with the trigger that caused them at B2.
+      // Party mode: if more heroes are still pending, cycle back for another
+      // command; otherwise it's the boss's turn.
+      if (state.pendingActorIds.length > 0) {
+        return transition(state, [], 'awaiting_player_action');
+      }
       return transition(state, [], 'resolving_boss');
     case 'resolving_boss':
       return doResolveBoss(state);
@@ -143,9 +149,12 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
   if (state.phase !== 'awaiting_player_action') {
     return { state, events: [] };
   }
-  const hero = state.heroes.find((h) => !h.defeated);
+  const actingActorId = state.pendingActorIds[0];
+  const hero = actingActorId
+    ? state.heroes.find((h) => h.actorId === actingActorId && !h.defeated)
+    : state.heroes.find((h) => !h.defeated);
   if (!hero) {
-    return transition(state, [], 'checking_victory');
+    return transition({ ...state, pendingActorIds: [] }, [], 'checking_victory');
   }
 
   const events: BattleEvent[] = [
@@ -234,7 +243,8 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
     }
   }
 
-  return transition(next, events, 'resolving_reactions');
+  const remaining = next.pendingActorIds.filter((id) => id !== hero.actorId);
+  return transition({ ...next, pendingActorIds: remaining }, events, 'resolving_reactions');
 }
 
 /* ------------------------------------------------------------------ */
@@ -277,8 +287,12 @@ function doBossIntentReveal(state: BattleState): StepResult {
     { kind: 'boss_intent_declared', round: state.round, intent },
   ];
 
+  const pendingActorIds = state.heroes
+    .filter((h) => !h.defeated)
+    .map((h) => h.actorId);
+
   return transition(
-    { ...state, boss: { ...state.boss, currentIntent: intent } },
+    { ...state, boss: { ...state.boss, currentIntent: intent }, pendingActorIds },
     events,
     'awaiting_player_action',
   );
@@ -781,5 +795,37 @@ function tickBossStatuses(boss: BossCombatant, events: BattleEvent[]): BossComba
  * to their UI. Used by the harness policy layer and by the encounter screen.
  */
 export function pickActingHero(state: BattleState): HeroCombatant | null {
+  const actingId = state.pendingActorIds[0];
+  if (actingId) {
+    return state.heroes.find((h) => h.actorId === actingId && !h.defeated) ?? null;
+  }
   return state.heroes.find((h) => !h.defeated) ?? null;
+}
+
+/**
+ * Submit a batch of party commands in lane order. Convenience wrapper for
+ * tests and scripted play. The reducer processes each command with a fresh
+ * `submitPlayerAction` call; between calls we keep phase == awaiting_player_action
+ * by re-advancing through resolving_reactions when necessary.
+ */
+export function submitPartyCommands(
+  start: BattleState,
+  actions: readonly PlayerAction[],
+): StepResult {
+  let state = start;
+  const events: BattleEvent[] = [];
+  for (const action of actions) {
+    if (state.phase !== 'awaiting_player_action') break;
+    const step = submitPlayerAction(state, action);
+    state = step.state;
+    events.push(...step.events);
+    // Fast-forward through resolving_reactions so the next iteration lands
+    // back in awaiting_player_action for the next hero, if any.
+    while (state.phase === 'resolving_reactions') {
+      const adv = advance(state);
+      state = adv.state;
+      events.push(...adv.events);
+    }
+  }
+  return { state, events };
 }

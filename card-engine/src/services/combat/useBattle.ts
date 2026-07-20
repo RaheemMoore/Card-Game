@@ -26,8 +26,8 @@ import { getOverallRank } from '../../data/powerSystem';
  */
 
 export interface UseBattleInput {
-  heroCardId: string;
-  heroCard: Card;
+  /** Ordered party — lane 1 → lane N. Must be 1..3 cards. */
+  heroCards: Card[];
   bossId: string;
   seed: number;
 }
@@ -36,6 +36,8 @@ export interface UseBattleApi {
   state: BattleState | null;
   /** Every event emitted by the reducer since battle start. Fed to useCombatPresentation. */
   events: BattleEvent[];
+  /** actorId of the hero currently being asked for input, or null if not awaiting. */
+  actingActorId: string | null;
   submit(action: PlayerAction): void;
   restart(): void;
   error: string | null;
@@ -71,6 +73,7 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
   const [events, setEvents] = useState<BattleEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [restartCount, setRestartCount] = useState(0);
+  const partyKey = input?.heroCards.map((c) => c.cardId).join('|') ?? null;
 
   useEffect(() => {
     if (!input) {
@@ -87,35 +90,43 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
         throw new Error(`Boss "${input.bossId}" not found. Sign in as admin or reload.`);
       }
       const bossSnap = snapshotFromBossVersion(bossDef, bossVersion);
-      const refs = abilityStore.getReferencesForCard(input.heroCardId);
-      const abilitySnaps = refs
-        .map((ref) => {
-          const def = abilityStore.getDefinition(ref.abilityId);
-          const version = ref.abilityVersionId
-            ? abilityStore.getVersion(ref.abilityVersionId)
-            : def
-            ? abilityStore.getCurrentVersion(def.id)
-            : undefined;
-          if (!def || !version) return null;
-          return buildAbilitySnapshot(def, version);
-        })
-        .filter((s): s is NonNullable<typeof s> => s !== null);
-      if (abilitySnaps.length === 0) {
-        throw new Error('This card has no abilities yet — forge or tier it up first.');
+      if (input.heroCards.length === 0 || input.heroCards.length > 3) {
+        throw new Error('Party must have 1..3 heroes.');
       }
-      const hero = buildHeroSnapshot({
-        cardId: input.heroCard.cardId,
-        archetype: input.heroCard.archetype,
-        displayName: input.heroCard.cardName,
-        stats: input.heroCard.stats,
-        rank: getOverallRank(input.heroCard.stats),
-        abilities: abilitySnaps,
+      const heroes = input.heroCards.map((card) => {
+        const refs = abilityStore.getReferencesForCard(card.cardId);
+        const abilitySnaps = refs
+          .map((ref) => {
+            const def = abilityStore.getDefinition(ref.abilityId);
+            const version = ref.abilityVersionId
+              ? abilityStore.getVersion(ref.abilityVersionId)
+              : def
+              ? abilityStore.getCurrentVersion(def.id)
+              : undefined;
+            if (!def || !version) return null;
+            return buildAbilitySnapshot(def, version);
+          })
+          .filter((s): s is NonNullable<typeof s> => s !== null);
+        if (abilitySnaps.length === 0) {
+          throw new Error(
+            `Card "${card.cardName}" has no abilities yet — forge or tier it up first.`,
+          );
+        }
+        return buildHeroSnapshot({
+          cardId: card.cardId,
+          archetype: card.archetype,
+          displayName: card.cardName,
+          stats: card.stats,
+          rank: getOverallRank(card.stats),
+          abilities: abilitySnaps,
+        });
       });
+      const partyId = input.heroCards.map((c) => c.cardId).join('_');
       const snap = buildBattleSnapshot({
         seed: input.seed,
-        hero,
+        heroes,
         boss: bossSnap,
-        battleId: `battle_${input.heroCardId}_${input.seed}`,
+        battleId: `battle_${partyId}_${input.seed}`,
         createdAt: new Date().toISOString(),
       });
       const initial = initializeBattle(snap);
@@ -129,7 +140,7 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
     }
     // We DELIBERATELY key on the primitive inputs — never on the object refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input?.heroCardId, input?.bossId, input?.seed, restartCount]);
+  }, [partyKey, input?.bossId, input?.seed, restartCount]);
 
   const submit = useCallback((action: PlayerAction) => {
     setState((prev) => {
@@ -146,8 +157,13 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
     setRestartCount((n) => n + 1);
   }, []);
 
+  const actingActorId =
+    state && state.phase === 'awaiting_player_action'
+      ? state.pendingActorIds[0] ?? null
+      : null;
+
   return useMemo(
-    () => ({ state, events, submit, restart, error }),
-    [state, events, submit, restart, error],
+    () => ({ state, events, actingActorId, submit, restart, error }),
+    [state, events, actingActorId, submit, restart, error],
   );
 }
