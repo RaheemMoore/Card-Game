@@ -6,6 +6,7 @@ import type {
   ProposalFailureType,
   ProposalLayer,
   ProposalStatus,
+  VerifyEvidence,
 } from '../../types/archetypeProposal';
 import { getSupabaseClient } from './supabaseClient';
 
@@ -310,6 +311,56 @@ export async function createArchetypeProposal(input: {
     .single();
   if (error) throw error;
   return rowToProposal(data as ProposalRow);
+}
+
+/**
+ * Merges regen-verify evidence into a proposal's payload. Reads the current
+ * payload, sets `verify`, writes it back. Used by the Workshop "Run regen
+ * verify" flow and its reviewer verdict buttons. Kept as read-modify-write
+ * (not a jsonb patch) so the whole payload shape stays validated in one place.
+ */
+export async function attachProposalVerifyEvidence(
+  id: string,
+  verify: VerifyEvidence,
+): Promise<void> {
+  const payload = await getArchetypeProposalPayload(id);
+  if (!payload) throw new Error('Proposal payload not found');
+  const next: ArchetypeProposalPayload = { ...payload, verify };
+  const { error } = await client()
+    .from('archetype_proposals')
+    .update({ payload: next })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Fetches a single prompt_test_runs row (the original Lab generation a
+ * proposal was filed against) so regen-verify can reproduce its inputs and
+ * reference its "before" image. Guarded by the same admin RLS as the Lab.
+ */
+export async function getPromptTestRun(runId: string): Promise<PromptTestRunRow | null> {
+  const { data, error } = await client()
+    .from('prompt_test_runs')
+    .select('id, archetype, tier, status, output_object_path, input_snapshot, claude_response')
+    .eq('id', runId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as PromptTestRunRow | null) ?? null;
+}
+
+export interface PromptTestRunRow {
+  id: string;
+  archetype: ArchetypeName;
+  tier: 'Foundation' | 'Forged' | 'Ascendant';
+  status: string;
+  output_object_path: string | null;
+  input_snapshot: {
+    archetype?: ArchetypeName;
+    stats?: unknown;
+    element?: unknown;
+    answers?: unknown;
+  } | null;
+  claude_response: Record<string, unknown> | null;
 }
 
 export async function updateArchetypeProposalStatus(

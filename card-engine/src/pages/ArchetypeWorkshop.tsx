@@ -7,6 +7,7 @@ import {
   getArchetypeProposalPayload,
 } from '../services/persistence/adminService';
 import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
+import { runRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
@@ -14,6 +15,7 @@ import type {
   LayerSnapshot,
   ProposalFailureType,
   ProposalLayer,
+  VerifyEvidence,
 } from '../types/archetypeProposal';
 import type { ArchetypeName, Card, Rank, StatName } from '../types/card';
 import { ARCHETYPE_NAMES } from '../types/card';
@@ -1170,12 +1172,224 @@ function LifecycleTimeline({
         )}
       </TimelineStep>
 
-      <TimelineStep label="Verified" done={false} last>
-        <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-          pending — no regen evidence attached
-        </div>
+      <TimelineStep label="Verified" done={!!payload?.verify} last>
+        <VerifyStep proposal={proposal} payload={payload} />
       </TimelineStep>
     </ol>
+  );
+}
+
+// Verified lifecycle step. For a shipped proposal that carries a Lab runId,
+// offers a "Run regen verify" action: re-runs that exact Lab generation with
+// the current (post-fix) pipeline and shows before/after. Spending Leonardo
+// credits, so gated behind an inline confirm. Once evidence exists, shows the
+// two portraits and a reviewer pass/fail verdict.
+function VerifyStep({
+  proposal,
+  payload,
+}: {
+  proposal: ArchetypeProposal;
+  payload: ArchetypeProposalPayload | null | undefined;
+}) {
+  const [evidence, setEvidence] = useState<VerifyEvidence | undefined>(payload?.verify);
+  const [confirming, setConfirming] = useState(false);
+  const [running, setRunning] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [urls, setUrls] = useState<{ before: string | null; after: string | null }>({
+    before: null,
+    after: null,
+  });
+  const [savingVerdict, setSavingVerdict] = useState(false);
+
+  useEffect(() => {
+    setEvidence(payload?.verify);
+  }, [payload?.verify]);
+
+  // Resolve signed before/after URLs when evidence is present.
+  useEffect(() => {
+    let cancelled = false;
+    if (!evidence) {
+      setUrls({ before: null, after: null });
+      return;
+    }
+    void (async () => {
+      const [before, after] = await Promise.all([
+        evidence.beforeObjectPath ? signedUrl(evidence.beforeObjectPath) : Promise.resolve(null),
+        evidence.afterObjectPath ? signedUrl(evidence.afterObjectPath) : Promise.resolve(null),
+      ]);
+      if (!cancelled) setUrls({ before, after });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [evidence]);
+
+  async function doRun() {
+    if (!payload?.labRunId) return;
+    setConfirming(false);
+    setError(null);
+    setRunning('Starting…');
+    try {
+      const result = await runRegenVerify({
+        proposalId: proposal.id,
+        beforeRunId: payload.labRunId,
+        onStep: (s) => setRunning(s),
+      });
+      setEvidence(result.evidence);
+      setUrls({ before: result.beforeUrl, after: result.afterUrl });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRunning(null);
+    }
+  }
+
+  async function setVerdict(verdict: NonNullable<VerifyEvidence['verdict']>) {
+    if (!evidence) return;
+    setSavingVerdict(true);
+    try {
+      const next = await saveVerifyVerdict(proposal.id, evidence, { verdict });
+      setEvidence(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSavingVerdict(false);
+    }
+  }
+
+  // Evidence already attached — show before/after + verdict.
+  if (evidence) {
+    return (
+      <div className="mt-1 space-y-2">
+        <div className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
+          Regenerated {new Date(evidence.ranAt).toLocaleString()} · {evidence.archetype} · {evidence.tier}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <VerifyThumb label="Before (filed)" url={urls.before} />
+          <VerifyThumb label="After (shipped fix)" url={urls.after} />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+            Verdict:
+          </span>
+          {(['pass', 'fail', 'unsure'] as const).map((v) => {
+            const active = evidence.verdict === v;
+            return (
+              <button
+                key={v}
+                disabled={savingVerdict}
+                onClick={() => void setVerdict(v)}
+                className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded border"
+                style={{
+                  borderColor: active ? 'var(--admin-accent)' : 'var(--admin-border)',
+                  background: active ? 'var(--admin-active-wash)' : 'transparent',
+                  color: active ? 'var(--admin-text)' : 'var(--admin-text-muted)',
+                }}
+              >
+                {v}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => setConfirming(true)}
+          className="text-[10px] uppercase tracking-widest underline"
+          style={{ color: 'var(--admin-accent)' }}
+        >
+          Re-run verify
+        </button>
+        {confirming && <ConfirmRun onConfirm={doRun} onCancel={() => setConfirming(false)} />}
+        {running && <RunningNote step={running} />}
+        {error && <div style={{ color: 'var(--admin-danger)' }}>{error}</div>}
+      </div>
+    );
+  }
+
+  // No evidence yet.
+  if (proposal.status !== 'shipped') {
+    return (
+      <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
+        Available once the proposal ships.
+      </div>
+    );
+  }
+  if (!payload) {
+    return <div style={{ color: 'var(--admin-text-muted)' }}>Loading…</div>;
+  }
+  if (!payload.labRunId) {
+    return (
+      <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
+        No Lab run linked — regen verify is only available for proposals sent from the Prompt Lab.
+      </div>
+    );
+  }
+  return (
+    <div className="mt-1 space-y-2">
+      <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
+        Re-run the linked Lab generation ({payload.labRunId.slice(0, 8)}…) through the current
+        pipeline to confirm the fix changed the output.
+      </div>
+      {!confirming && !running && (
+        <AdminButton variant="secondary" onClick={() => setConfirming(true)}>
+          Run regen verify
+        </AdminButton>
+      )}
+      {confirming && <ConfirmRun onConfirm={doRun} onCancel={() => setConfirming(false)} />}
+      {running && <RunningNote step={running} />}
+      {error && <div style={{ color: 'var(--admin-danger)' }}>{error}</div>}
+    </div>
+  );
+}
+
+function ConfirmRun({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div
+      className="p-2 rounded space-y-2"
+      style={{ background: 'var(--admin-active-wash)', border: '1px solid var(--admin-border)' }}
+    >
+      <div style={{ color: 'var(--admin-text)' }}>
+        This spends Leonardo credits (one portrait generation). Continue?
+      </div>
+      <div className="flex gap-2">
+        <AdminButton variant="primary" onClick={onConfirm}>
+          Yes, run it
+        </AdminButton>
+        <AdminButton variant="secondary" onClick={onCancel}>
+          Cancel
+        </AdminButton>
+      </div>
+    </div>
+  );
+}
+
+function RunningNote({ step }: { step: string }) {
+  return (
+    <div className="flex items-center gap-2" style={{ color: 'var(--admin-text-muted)' }}>
+      <span className="inline-block w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--admin-accent)' }} />
+      {step}
+    </div>
+  );
+}
+
+function VerifyThumb({ label, url }: { label: string; url: string | null }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+        {label}
+      </div>
+      <div
+        className="w-full rounded overflow-hidden"
+        style={{ aspectRatio: '3 / 4', background: PORTRAIT_PLACEHOLDER, border: '1px solid var(--admin-border)' }}
+      >
+        {url ? (
+          <img src={url} alt={label} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
+            image expired
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
