@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
-import { AdminPageDescription } from '../components/admin/AdminPageDescription';
+import {
+  AdminPage, AdminSection, AdminCard, AdminButton, AdminStatusBadge, AdminAlert,
+} from '../components/admin/ui';
 
 // Phase-0 spike display for the provider diagnostic endpoints. Guard +
 // header live on AdminShell now — this page just renders the two Run
@@ -85,38 +87,42 @@ export function AdminDiagnostics() {
   };
 
   return (
-    <div className="space-y-6">
-      <AdminPageDescription
-        title="Diagnostics — provider probes + one-shot migrations"
-        body={
-          'Tools that don\'t fit anywhere else. Each card fires an admin-only server endpoint and prints the raw JSON so we can inspect provider behavior or run a housekeeping migration without leaving the browser.\n\n' +
-          'Probes are safe to run any time. Migrations are one-shot — read the description on each before firing.'
-        }
-      />
+    <AdminPage
+      title="Diagnostics"
+      description="Tools that don't fit anywhere else. Each card fires an admin-only server endpoint and prints the raw JSON so you can inspect provider behavior or run a housekeeping migration without leaving the browser. Probes are safe to run any time; migrations are one-shot — read the description before firing."
+    >
+      <AdminSection title="Provider probes" subtitle="Read-only — safe to run any time">
+        <div className="space-y-3">
+          <ProbeCard
+            title="Anthropic Admin API"
+            endpoint="/api/anthropic-admin-usage"
+            slot={anthropic}
+            onRun={() => run('/api/anthropic-admin-usage', setAnthropic)}
+          />
+          <ProbeCard
+            title="Leonardo Account"
+            endpoint="/api/leonardo-account"
+            slot={leonardo}
+            onRun={() => run('/api/leonardo-account', setLeonardo)}
+          />
+        </div>
+      </AdminSection>
 
-      <ProbeCard
-        title="Anthropic Admin API"
-        endpoint="/api/anthropic-admin-usage"
-        slot={anthropic}
-        onRun={() => run('/api/anthropic-admin-usage', setAnthropic)}
-      />
-      <ProbeCard
-        title="Leonardo Account"
-        endpoint="/api/leonardo-account"
-        slot={leonardo}
-        onRun={() => run('/api/leonardo-account', setLeonardo)}
-      />
-      <ProbeCard
-        title="Migrate ability art (data URL → bucket)"
-        endpoint="/api/admin-migrate-ability-art"
-        description={
-          'One-shot housekeeping. Walks canonical_art_assets, finds rows where asset_url still starts with data: (image bytes stored inline in the DB, ~200KB per row), uploads those bytes into the private ability-art Supabase Storage bucket, and rewrites asset_url + the crops inside the row\'s data jsonb to the new public bucket URL. Idempotent — rows already pointing at https URLs are skipped. Run once after Phase 4 landed; no need to run again unless new data-URL rows appear.'
-        }
-        slot={migrateArt}
-        onRun={migrate}
-        actionLabel="Run migration"
-      />
-    </div>
+      <AdminSection title="One-shot migrations" subtitle="Destructive / irreversible — confirm before firing">
+        <ProbeCard
+          title="Migrate ability art (data URL → bucket)"
+          endpoint="/api/admin-migrate-ability-art"
+          description={
+            'One-shot housekeeping. Walks canonical_art_assets, finds rows where asset_url still starts with data: (image bytes stored inline in the DB, ~200KB per row), uploads those bytes into the private ability-art Supabase Storage bucket, and rewrites asset_url + the crops inside the row\'s data jsonb to the new public bucket URL. Idempotent — rows already pointing at https URLs are skipped. Run once after Phase 4 landed; no need to run again unless new data-URL rows appear.'
+          }
+          slot={migrateArt}
+          onRun={migrate}
+          actionLabel="Run migration"
+          danger
+          confirmMessage="Run the ability-art migration? This rewrites canonical_art_assets rows in place. It's idempotent but not trivially reversible."
+        />
+      </AdminSection>
+    </AdminPage>
   );
 }
 
@@ -127,39 +133,57 @@ function ProbeCard(props: {
   slot: ProbeSlot;
   onRun: () => void;
   actionLabel?: string;
+  danger?: boolean;
+  confirmMessage?: string;
 }) {
-  const { title, endpoint, description, slot, onRun, actionLabel } = props;
+  const { title, endpoint, description, slot, onRun, actionLabel, danger, confirmMessage } = props;
   const disabled = slot.state === 'running';
+
+  const handleRun = () => {
+    if (danger && confirmMessage && !confirm(confirmMessage)) return;
+    onRun();
+  };
+
   return (
-    <section className="border border-bone/20 rounded-lg p-4 bg-void/60">
-      <div className="flex items-center justify-between mb-3 gap-3">
+    <AdminCard surface="strong">
+      <div className="flex items-start justify-between mb-3 gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="font-fantasy text-lg font-bold text-bone">{title}</h2>
-          <code className="text-xs text-bone/50">{endpoint}</code>
-          {description && (
-            <p className="text-xs text-bone/70 mt-2">{description}</p>
-          )}
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-bold" style={{ color: 'var(--admin-text)' }}>{title}</h3>
+            {danger && <AdminStatusBadge tone="danger">destructive</AdminStatusBadge>}
+          </div>
+          <code className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>{endpoint}</code>
+          {description && <p className="text-xs mt-2" style={{ color: 'var(--admin-text-muted)' }}>{description}</p>}
         </div>
-        <button
+        <AdminButton
           type="button"
-          onClick={onRun}
+          size="sm"
+          variant={danger ? 'danger' : 'primary'}
+          onClick={handleRun}
           disabled={disabled}
-          className="shrink-0 px-3 py-1.5 rounded font-fantasy font-bold text-xs bg-gold/80 text-void hover:bg-gold disabled:opacity-50"
+          className="shrink-0"
         >
           {slot.state === 'running' ? 'Running…' : actionLabel ?? 'Run probe'}
-        </button>
+        </AdminButton>
       </div>
-      {slot.state === 'error' && (
-        <div className="text-sm text-red-400 font-mono">{slot.error}</div>
-      )}
+
+      {slot.state === 'error' && <AdminAlert tone="danger">{slot.error}</AdminAlert>}
+
       {slot.state === 'done' && (
         <>
-          <div className="text-xs text-bone/60 mb-2">HTTP {slot.status}</div>
-          <pre className="text-xs text-bone/80 bg-black/40 p-3 rounded overflow-x-auto max-h-[60vh] whitespace-pre-wrap">
+          <div className="text-xs mb-2 flex items-center gap-2">
+            <AdminStatusBadge tone={slot.status && slot.status >= 200 && slot.status < 300 ? 'success' : 'danger'}>
+              HTTP {slot.status}
+            </AdminStatusBadge>
+          </div>
+          <pre
+            className="text-xs p-3 rounded overflow-x-auto max-h-[60vh] whitespace-pre-wrap font-mono"
+            style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--admin-text)', border: '1px solid var(--admin-border)' }}
+          >
             {JSON.stringify(slot.body, null, 2)}
           </pre>
         </>
       )}
-    </section>
+    </AdminCard>
   );
 }
