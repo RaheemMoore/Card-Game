@@ -6,8 +6,10 @@ import {
   listUserCards,
   listUserLedger,
   deleteUserCard,
+  setUserRole,
   type AdminUserRow,
   type SystemStats,
+  type UserRole,
 } from '../services/persistence/adminService';
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
@@ -79,7 +81,14 @@ export function AdminUsers() {
     {
       key: 'role',
       header: 'Role',
-      render: (u) => (u.role === 'admin' ? <AdminStatusBadge tone="accent">admin</AdminStatusBadge> : <span style={{ color: 'var(--admin-text-muted)' }}>—</span>),
+      render: (u) =>
+        u.role === 'admin' ? (
+          <AdminStatusBadge tone="accent">admin</AdminStatusBadge>
+        ) : u.role === 'lore_director' ? (
+          <AdminStatusBadge tone="warning">lore director</AdminStatusBadge>
+        ) : (
+          <span style={{ color: 'var(--admin-text-muted)' }}>—</span>
+        ),
     },
     { key: 'cards', header: 'Cards', align: 'right', render: (u) => u.card_count },
     { key: 'txns', header: 'Txns', align: 'right', secondary: true, render: (u) => u.txn_count },
@@ -138,15 +147,21 @@ export function AdminUsers() {
   );
 }
 
-type DrawerTab = 'currency' | 'cards' | 'ledger';
+type DrawerTab = 'currency' | 'role' | 'cards' | 'ledger';
 
 function UserDrawerBody({ user, onMutated }: { user: AdminUserRow; onMutated: () => void }) {
   const [tab, setTab] = useState<DrawerTab>('currency');
 
+  const tabLabel = (t: DrawerTab) =>
+    t === 'currency' ? 'Currency'
+      : t === 'role' ? 'Role'
+      : t === 'cards' ? `Cards (${user.card_count})`
+      : `Ledger (${user.txn_count})`;
+
   return (
     <div>
       <div className="flex gap-1 mb-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
-        {(['currency', 'cards', 'ledger'] as const).map((t) => (
+        {(['currency', 'role', 'cards', 'ledger'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -157,14 +172,82 @@ function UserDrawerBody({ user, onMutated }: { user: AdminUserRow; onMutated: ()
               fontWeight: tab === t ? 600 : 400,
             }}
           >
-            {t === 'currency' ? 'Currency' : t === 'cards' ? `Cards (${user.card_count})` : `Ledger (${user.txn_count})`}
+            {tabLabel(t)}
           </button>
         ))}
       </div>
 
       {tab === 'currency' && <CurrencyTab user={user} onGranted={onMutated} />}
+      {tab === 'role' && <RoleTab user={user} onChanged={onMutated} />}
       {tab === 'cards' && <CardsTab userId={user.user_id} onDeleted={onMutated} />}
       {tab === 'ledger' && <LedgerTab userId={user.user_id} />}
+    </div>
+  );
+}
+
+const ROLE_OPTIONS: { value: UserRole; label: string; blurb: string }[] = [
+  { value: 'user', label: 'User', blurb: 'Standard player. No admin or workshop authority.' },
+  {
+    value: 'lore_director',
+    label: 'Lore Director',
+    blurb: 'Can file and work Archetype Workshop proposals, but cannot ship them or reach any other admin surface. Shipping stays admin-only.',
+  },
+  { value: 'admin', label: 'Admin', blurb: 'Full access — ships proposals, grants currency, assigns roles.' },
+];
+
+function RoleTab({ user, onChanged }: { user: AdminUserRow; onChanged: () => void }) {
+  const [role, setRole] = useState<UserRole>(user.role);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const dirty = role !== user.role;
+
+  async function submit() {
+    setError(null);
+    setSuccess(null);
+    setBusy(true);
+    try {
+      const result = await setUserRole(user.user_id, role);
+      setSuccess(`Role changed: ${result.old_role} → ${result.new_role}.`);
+      onChanged();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+      setRole(user.role);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+        Current role: <span style={{ color: 'var(--admin-text)', fontWeight: 600 }}>{user.role}</span>
+      </div>
+      <div className="space-y-2">
+        {ROLE_OPTIONS.map((opt) => (
+          <label
+            key={opt.value}
+            className="flex gap-2 items-start rounded p-2 cursor-pointer"
+            style={{ border: '1px solid var(--admin-border)' }}
+          >
+            <input
+              type="radio"
+              className="mt-1"
+              checked={role === opt.value}
+              onChange={() => setRole(opt.value)}
+            />
+            <span>
+              <span style={{ color: 'var(--admin-text)', fontWeight: 600 }}>{opt.label}</span>
+              <span className="block text-xs" style={{ color: 'var(--admin-text-muted)' }}>{opt.blurb}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+      {success && <AdminAlert tone="success">{success}</AdminAlert>}
+      <AdminButton variant="primary" disabled={busy || !dirty} onClick={submit}>
+        {busy ? 'Saving…' : 'Save role'}
+      </AdminButton>
     </div>
   );
 }

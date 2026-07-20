@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { getSupabaseClient, fetchMyRole, type SessionRole } from '../services/persistence/supabaseClient';
 import {
   createArchetypeProposal,
   listArchetypeProposals,
   getArchetypeProposalPayload,
+  sendProposalForApproval,
+  approveProposal,
+  rejectProposal,
+  shipProposal,
+  getCardForAdmin,
+  checkApprovalReadiness,
 } from '../services/persistence/adminService';
 import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
-import { runRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
+import { runRegenVerify, runCardRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
@@ -51,6 +57,7 @@ const RANK_ORDER: Rank[] = ['Foundation', 'Forged', 'Ascendant'];
 const STAT_ORDER: StatName[] = ['Atk', 'Def', 'Mana', 'Tech'];
 
 const GITHUB_COMMIT_BASE = 'https://github.com/RaheemMoore/Card-Game/commit/';
+const GITHUB_PR_BASE = 'https://github.com/RaheemMoore/Card-Game/pull/';
 
 // Placeholder gradient for cards/tiers with no portrait yet.
 const PORTRAIT_PLACEHOLDER = 'linear-gradient(135deg, var(--admin-surface-strong), var(--admin-canvas))';
@@ -85,11 +92,48 @@ export function ArchetypeWorkshop() {
     searchParams.get('from') === 'lab' ? readLabHandoff() : null,
   );
   const [archetype, setArchetype] = useState<ArchetypeName>(labHandoff?.archetype ?? initialArchetype);
+  // Which sent tier the reviewer is critiquing (drives labRunId). Defaults to
+  // the primary (highest) tier the Lab batch sent over.
+  const [selectedLabRunId, setSelectedLabRunId] = useState<string | null>(
+    labHandoff?.primaryRunId ?? labHandoff?.runId ?? null,
+  );
   const [cards, setCards] = useState<Card[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [proposals, setProposals] = useState<ArchetypeProposal[] | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [viewerRole, setViewerRole] = useState<SessionRole>('user');
+  const [pending, setPending] = useState<ArchetypeProposal[] | null>(null);
+
+  useEffect(() => {
+    void fetchMyRole().then(setViewerRole);
+  }, []);
+
+  // Cross-archetype queue of proposals in Raheem's hands: awaiting_approval
+  // (needs Approve/Send-back) + approved (needs the guarded Merge & ship).
+  // Loaded for every director; only admins get the action controls.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      listArchetypeProposals({ status: 'awaiting_approval', limit: 50 }),
+      listArchetypeProposals({ status: 'approved', limit: 50 }),
+    ])
+      .then(([awaiting, approved]) => {
+        if (!cancelled) {
+          setPending(
+            [...awaiting, ...approved].sort(
+              (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+            ),
+          );
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn('Failed to load approval queue', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshTick]);
 
   // Pull all cards of the selected archetype visible to this admin (RLS
   // widens SELECT for admins). Big single query — fine at studio scale.
@@ -175,9 +219,22 @@ export function ArchetypeWorkshop() {
         </AdminAlert>
       )}
 
+      <PendingApprovalPanel
+        pending={pending}
+        viewerRole={viewerRole}
+        onDecided={() => setRefreshTick((t) => t + 1)}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-4">
-        {/* LEFT column: card picker + tiers + layer state */}
+        {/* LEFT column: lab subject (if from Lab) / card picker + tiers + layer state */}
         <div className="space-y-4">
+          {labHandoff && !selectedCardId && (
+            <LabSubjectPanel
+              handoff={labHandoff}
+              selectedRunId={selectedLabRunId}
+              onSelect={setSelectedLabRunId}
+            />
+          )}
           <CardPickerRail
             cards={cards}
             selectedCardId={selectedCardId}
@@ -193,15 +250,418 @@ export function ArchetypeWorkshop() {
             archetype={archetype}
             selectedCard={selectedCard}
             labHandoff={selectedCardId ? null : labHandoff}
+            selectedLabRunId={selectedCardId ? null : selectedLabRunId}
             onSubmitted={() => setRefreshTick((t) => t + 1)}
           />
         </div>
       </div>
 
       <div className="mt-4">
-        <ProposalsList proposals={proposals} archetype={archetype} />
+        <ProposalsList
+          proposals={proposals}
+          archetype={archetype}
+          viewerRole={viewerRole}
+          onChanged={() => setRefreshTick((t) => t + 1)}
+        />
       </div>
     </AdminPage>
+  );
+}
+
+// ─── Pending approval queue (Raheem's console gate) ──────────────────
+
+function PendingApprovalPanel({
+  pending,
+  viewerRole,
+  onDecided,
+}: {
+  pending: ArchetypeProposal[] | null;
+  viewerRole: SessionRole;
+  onDecided: () => void;
+}) {
+  const isAdmin = viewerRole === 'admin';
+  const count = pending?.length ?? 0;
+
+  // A non-admin director with nothing parked → hide to keep the surface
+  // clean. Admins always see the gate so it's obvious what's waiting.
+  if (!isAdmin && count === 0) return null;
+
+  return (
+    <AdminSection
+      title="Awaiting your approval"
+      subtitle={pending === null ? 'loading…' : `${count} pending`}
+      className="mb-4"
+    >
+      <AdminCard>
+        {!isAdmin && (
+          <AdminAlert tone="info" className="mb-2">
+            These are parked for Raheem's final call. They clear once he approves or sends them back.
+          </AdminAlert>
+        )}
+        {count === 0 ? (
+          <div className="text-sm italic" style={{ color: 'var(--admin-text-muted)' }}>
+            Nothing waiting. Worked proposals show up here for the final call.
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {pending!.map((p) => (
+              <PendingRow key={p.id} proposal={p} isAdmin={isAdmin} onDecided={onDecided} />
+            ))}
+          </ul>
+        )}
+      </AdminCard>
+    </AdminSection>
+  );
+}
+
+function PendingRow({
+  proposal: p,
+  isAdmin,
+  onDecided,
+}: {
+  proposal: ArchetypeProposal;
+  isAdmin: boolean;
+  onDecided: () => void;
+}) {
+  const [payload, setPayload] = useState<ArchetypeProposalPayload | null | undefined>(undefined);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const layer = ARCHETYPE_LAYERS[p.layer];
+  const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && payload === undefined) {
+      getArchetypeProposalPayload(p.id).then(setPayload).catch(() => setPayload(null));
+    }
+  }
+
+  async function run(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      onDecided();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <li className="rounded" style={{ background: 'var(--admin-canvas)', border: '1px solid var(--admin-border)' }}>
+      <button onClick={toggle} className="w-full text-left flex items-center gap-2 px-3 py-2">
+        <span
+          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
+          style={{ background: layer.color, color: '#111' }}
+        >
+          {p.layer}
+        </span>
+        <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--admin-text)' }}>
+          {p.archetype}
+        </span>
+        <span className="text-xs truncate flex-1" style={{ color: 'var(--admin-text-muted)' }}>
+          {failure?.label ?? p.failureType}
+        </span>
+        {p.status === 'approved' ? (
+          <AdminStatusBadge tone="success" className="shrink-0 uppercase tracking-widest">
+            approved · ready to ship
+          </AdminStatusBadge>
+        ) : (
+          <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
+            awaiting approval
+          </AdminStatusBadge>
+        )}
+        <span className="text-[10px] shrink-0" style={{ color: 'var(--admin-text-muted)' }}>
+          {relativeAge(p.updatedAt)}
+        </span>
+      </button>
+
+      {open && (
+        <div className="px-3 pb-3 space-y-2 text-xs" style={{ color: 'var(--admin-text-muted)', borderTop: '1px solid var(--admin-border)' }}>
+          {payload === undefined ? (
+            <div className="pt-2">Loading…</div>
+          ) : payload === null ? (
+            <div className="pt-2">Payload not found.</div>
+          ) : (
+            <div className="pt-2 space-y-3">
+              <VerifyReview evidence={payload.verify} affectsImage={payload.affectsImage} />
+              <LayerChangeSummary changes={payload.layerChanges} />
+              <details>
+                <summary className="cursor-pointer text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+                  Original request
+                </summary>
+                <div className="space-y-2 mt-2">
+                  <ProposalField label="Keep" value={payload.keep} />
+                  <ProposalField label="Change" value={payload.change} />
+                  <ProposalField label="Reject if" value={payload.rejectIf} />
+                  {payload.notes && <ProposalField label="Notes" value={payload.notes} />}
+                </div>
+              </details>
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            {payload && payload.prNumber && (
+              <a
+                href={`${GITHUB_PR_BASE}${payload.prNumber}/files`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+                style={{ color: 'var(--admin-accent)' }}
+              >
+                View diff (PR #{payload.prNumber})
+              </a>
+            )}
+            {p.commitSha && (
+              <a
+                href={`${GITHUB_COMMIT_BASE}${p.commitSha}`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline"
+                style={{ color: 'var(--admin-accent)' }}
+              >
+                View commit {p.commitSha.slice(0, 7)}
+              </a>
+            )}
+          </div>
+
+          {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+
+          {isAdmin && !rejecting && p.status === 'awaiting_approval' && (
+            <div className="flex gap-2 pt-1">
+              <AdminButton variant="primary" size="sm" disabled={busy} onClick={() => run(() => approveProposal(p.id))}>
+                {busy ? 'Working…' : 'Approve'}
+              </AdminButton>
+              <AdminButton variant="danger" size="sm" disabled={busy} onClick={() => setRejecting(true)}>
+                Send back
+              </AdminButton>
+            </div>
+          )}
+
+          {isAdmin && !rejecting && p.status === 'approved' && (
+            <div className="space-y-1 pt-1">
+              <div className="text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+                Approved. Eyeball the diff, then ship — this merges the PR into main and deploys.
+              </div>
+              <div className="flex gap-2">
+                <AdminButton
+                  variant="primary"
+                  size="sm"
+                  disabled={busy || !payload?.prNumber}
+                  onClick={() => run(() => shipProposal(p.id))}
+                >
+                  {busy ? 'Merging…' : 'Merge & ship'}
+                </AdminButton>
+                <AdminButton variant="danger" size="sm" disabled={busy} onClick={() => setRejecting(true)}>
+                  Send back
+                </AdminButton>
+              </div>
+              {!payload?.prNumber && (
+                <div className="text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+                  No linked PR — merge manually, then this row can be marked shipped.
+                </div>
+              )}
+            </div>
+          )}
+
+          {isAdmin && rejecting && (
+            <div className="space-y-2 pt-1">
+              <AdminTextArea
+                rows={2}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Reason to send back (required)…"
+              />
+              <div className="flex gap-2">
+                <AdminButton
+                  variant="danger"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!reason.trim()) { setError('A reason is required to send this back.'); return; }
+                    void run(() => rejectProposal(p.id, reason.trim()));
+                  }}
+                >
+                  Confirm send back
+                </AdminButton>
+                <AdminButton variant="ghost" size="sm" onClick={() => { setRejecting(false); setReason(''); setError(null); }}>
+                  Cancel
+                </AdminButton>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+// Read-only before/after + verdict for the approval console. Resolves signed
+// URLs on mount; reuses the same VerifyThumb the working-phase step uses.
+function VerifyReview({ evidence, affectsImage }: { evidence?: VerifyEvidence; affectsImage?: boolean }) {
+  const [urls, setUrls] = useState<{ before: string | null; after: string | null }>({ before: null, after: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!evidence) return;
+    void (async () => {
+      const [before, after] = await Promise.all([
+        evidence.beforeObjectPath ? signedUrl(evidence.beforeObjectPath) : Promise.resolve(null),
+        evidence.afterObjectPath ? signedUrl(evidence.afterObjectPath) : Promise.resolve(null),
+      ]);
+      if (!cancelled) setUrls({ before, after });
+    })();
+    return () => { cancelled = true; };
+  }, [evidence]);
+
+  if (!evidence) {
+    return (
+      <div className="italic text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+        {affectsImage
+          ? 'No before/after on file for this proposal.'
+          : 'Lore-only change — no image comparison needed.'}
+      </div>
+    );
+  }
+  const verdictTone = evidence.verdict === 'pass' ? 'success' : evidence.verdict === 'fail' ? 'danger' : 'warning';
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+          Before / after
+        </span>
+        <AdminStatusBadge tone={verdictTone} className="uppercase tracking-widest">
+          {evidence.verdict ?? 'unrated'}
+        </AdminStatusBadge>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <VerifyThumb label={evidence.source === 'card' ? 'Before (current card)' : 'Before (filed)'} url={urls.before} />
+        <VerifyThumb label="After (regen)" url={urls.after} />
+      </div>
+    </div>
+  );
+}
+
+// The per-layer change summary — the 4 primary areas of the character, each
+// with what actually changed. Untouched layers are shown as "no change".
+function LayerChangeSummary({ changes }: { changes?: { layer: ProposalLayer; summary: string }[] }) {
+  const byLayer = new Map((changes ?? []).map((c) => [c.layer, c.summary]));
+  return (
+    <div className="space-y-1">
+      <div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+        What changed (by layer)
+      </div>
+      <ul className="space-y-1">
+        {LAYER_ORDER.map((id) => {
+          const copy = ARCHETYPE_LAYERS[id];
+          const summary = byLayer.get(id);
+          return (
+            <li key={id} className="flex gap-2">
+              <span
+                className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold shrink-0 mt-0.5"
+                style={{ background: copy.color, color: '#111' }}
+              >
+                {id}
+              </span>
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold" style={{ color: 'var(--admin-text)' }}>
+                  {copy.name}
+                </div>
+                {summary ? (
+                  <div className="text-[11px] whitespace-pre-wrap" style={{ color: 'var(--admin-text-muted)' }}>
+                    {summary}
+                  </div>
+                ) : (
+                  <div className="text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+                    no change
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+// ─── Lab subject panel (Prompt Lab → Workshop) ───────────────────────
+// Shows the actual images sent from the Prompt Lab so the reviewer critiques
+// the picture, not an empty card list. Clicking a tier makes it the subject.
+function LabSubjectPanel({
+  handoff,
+  selectedRunId,
+  onSelect,
+}: {
+  handoff: LabHandoff;
+  selectedRunId: string | null;
+  onSelect: (runId: string) => void;
+}) {
+  const tiers = handoff.tiers ?? [];
+  const [urls, setUrls] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const entries = await Promise.all(
+        tiers.map(async (t) => [t.runId, t.objectPath ? await signedUrl(t.objectPath) : null] as const),
+      );
+      if (!cancelled) setUrls(Object.fromEntries(entries));
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoff.primaryRunId]);
+
+  return (
+    <AdminCard>
+      <div className="flex items-baseline justify-between mb-2">
+        <h2 className="text-xs uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+          Prompt Lab test — {handoff.archetype}
+        </h2>
+        <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
+          {tiers.length} {tiers.length === 1 ? 'image' : 'images'}
+        </span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {tiers.map((t) => {
+          const active = t.runId === selectedRunId;
+          const url = urls[t.runId];
+          return (
+            <button
+              key={t.runId}
+              onClick={() => onSelect(t.runId)}
+              className="rounded overflow-hidden text-left"
+              style={{ border: `2px solid ${active ? 'var(--admin-accent)' : 'var(--admin-border)'}` }}
+              title={`Critique ${t.tier}`}
+            >
+              <div className="aspect-[3/4] grid place-items-center" style={{ background: 'var(--admin-canvas)' }}>
+                {url ? (
+                  <img src={url} alt={t.tier} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] italic px-1 text-center" style={{ color: 'var(--admin-text-muted)' }}>
+                    image expired
+                  </span>
+                )}
+              </div>
+              <div
+                className="px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wide"
+                style={{ color: active ? 'var(--admin-text)' : 'var(--admin-text-muted)' }}
+              >
+                {t.tier}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <div className="text-[11px] mt-2" style={{ color: 'var(--admin-text-muted)' }}>
+        Pick the tier to critique, then file the proposal on the right.
+      </div>
+    </AdminCard>
   );
 }
 
@@ -611,13 +1071,29 @@ function TriageForm({
   archetype,
   selectedCard,
   labHandoff,
+  selectedLabRunId,
   onSubmitted,
 }: {
   archetype: ArchetypeName;
   selectedCard: Card | null;
   labHandoff: LabHandoff | null;
+  selectedLabRunId: string | null;
   onSubmitted: () => void;
 }) {
+  // Resolve the tier the reviewer picked in the subject panel (falls back to
+  // the handoff's primary/flat fields for older stashes).
+  const labTier =
+    labHandoff?.tiers?.find((t) => t.runId === selectedLabRunId) ??
+    (labHandoff
+      ? {
+          tier: labHandoff.tier,
+          runId: labHandoff.runId,
+          objectPath: null,
+          cardName: labHandoff.cardName,
+          nameAndTitle: labHandoff.nameAndTitle,
+          lore: labHandoff.lore,
+        }
+      : null);
   const [failureType, setFailureType] = useState<ProposalFailureType>('lore_portrait_misaligned');
   const [layer, setLayer] = useState<ProposalLayer>('D');
   const [keep, setKeep] = useState('');
@@ -674,15 +1150,15 @@ function TriageForm({
       let cardLineage: CardLineageRef | undefined;
       // Lab handoff wins as the subject when no real player card is picked:
       // the critique is about the Prompt Lab test the director just generated.
-      if (!selectedCard && labHandoff) {
+      if (!selectedCard && labHandoff && labTier) {
         cardLineage = {
-          cardId: `lab:${labHandoff.runId}`,
-          cardName: labHandoff.cardName ?? `Lab test (${labHandoff.tier})`,
+          cardId: `lab:${labTier.runId}`,
+          cardName: labTier.cardName ?? `Lab test (${labTier.tier})`,
           archetype: labHandoff.archetype,
           tiers: {
-            [labHandoff.tier]: {
-              nameAndTitle: labHandoff.nameAndTitle ?? '',
-              lore: labHandoff.lore ?? '',
+            [labTier.tier]: {
+              nameAndTitle: labTier.nameAndTitle ?? '',
+              lore: labTier.lore ?? '',
             },
           } as CardLineageRef['tiers'],
         };
@@ -720,7 +1196,8 @@ function TriageForm({
         referenceImageUrl: referenceImageUrl.trim() || undefined,
         layerSnapshot: snapshot,
         cardLineage,
-        labRunId: !selectedCard && labHandoff ? labHandoff.runId : undefined,
+        labRunId: !selectedCard && labTier ? labTier.runId : undefined,
+        affectsImage: !selectedCard && labTier ? true : undefined,
       };
       await createArchetypeProposal({
         archetype,
@@ -751,11 +1228,12 @@ function TriageForm({
 
   return (
     <AdminCard className="space-y-4">
-      {labHandoff && !selectedCard && (
+      {labHandoff && !selectedCard && labTier && (
         <AdminAlert tone="info">
-          Critiquing a Prompt Lab test — <strong>{labHandoff.archetype} · {labHandoff.tier}</strong>
-          {labHandoff.cardName ? ` · ${labHandoff.cardName}` : ''}. This proposal will reference the test run
-          so the fix can be regenerated against it. (Pick a card above to critique a real card instead.)
+          Critiquing a Prompt Lab test — <strong>{labHandoff.archetype} · {labTier.tier}</strong>
+          {labTier.cardName ? ` · ${labTier.cardName}` : ''}. This proposal references that test run so the
+          fix can be regenerated against it. Pick a different tier in the subject panel, or a card above to
+          critique a real card instead.
         </AdminAlert>
       )}
       <div>
@@ -913,9 +1391,13 @@ function TriageForm({
 function ProposalsList({
   proposals,
   archetype,
+  viewerRole,
+  onChanged,
 }: {
   proposals: ArchetypeProposal[] | null;
   archetype: ArchetypeName;
+  viewerRole: SessionRole;
+  onChanged: () => void;
 }) {
   const [searchParams] = useSearchParams();
   const deepLinkId = searchParams.get('proposal');
@@ -1006,6 +1488,7 @@ function ProposalsList({
                         payload={payloads[p.id]}
                         payloadError={payloadErrors[p.id]}
                       />
+                      <SendForApproval proposal={p} payload={payloads[p.id]} viewerRole={viewerRole} onChanged={onChanged} />
                     </div>
                   )}
                 </li>
@@ -1015,6 +1498,68 @@ function ProposalsList({
         )}
       </AdminCard>
     </AdminSection>
+  );
+}
+
+// A worked proposal that isn't yet parked, shipped, or rejected can be
+// handed up to Raheem. Shown to any director; approval itself stays admin-
+// only (RLS enforces it), so a director sending it up gains no ship power.
+function SendForApproval({
+  proposal: p,
+  payload,
+  viewerRole,
+  onChanged,
+}: {
+  proposal: ArchetypeProposal;
+  payload: ArchetypeProposalPayload | null | undefined;
+  viewerRole: SessionRole;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isAdmin = viewerRole === 'admin';
+  const isDirector = isAdmin || viewerRole === 'lore_director';
+  const canSend = p.status === 'draft' || p.status === 'submitted' || p.status === 'awaiting_claude';
+
+  if (p.status === 'awaiting_approval') {
+    return (
+      <div className="pt-2 text-[11px]" style={{ color: 'var(--admin-warning)' }}>
+        Parked for Raheem's approval.
+      </div>
+    );
+  }
+  if (!isDirector || !canSend) return null;
+
+  // The gate: directors need a passing verify + a per-layer summary. Admins can
+  // park anything (parity with the RLS is_admin() bypass).
+  const gate = checkApprovalReadiness(payload);
+  const blocked = !isAdmin && !gate.ok;
+
+  async function send() {
+    setBusy(true);
+    setError(null);
+    try {
+      await sendProposalForApproval(p.id, { bypassGate: isAdmin });
+      onChanged();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="pt-2">
+      <AdminButton variant="primary" size="sm" disabled={busy || blocked} onClick={send}>
+        {busy ? 'Sending…' : 'Send for Raheem’s approval'}
+      </AdminButton>
+      {blocked && !gate.ok && (
+        <div className="mt-1 text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+          {gate.reason}
+        </div>
+      )}
+      {error && <AdminAlert tone="danger" className="mt-1">{error}</AdminAlert>}
+    </div>
   );
 }
 
@@ -1034,6 +1579,20 @@ function OutcomeChip({ proposal }: { proposal: ArchetypeProposal }) {
     return (
       <AdminStatusBadge tone="danger" className="shrink-0 uppercase tracking-widest">
         rejected
+      </AdminStatusBadge>
+    );
+  }
+  if (proposal.status === 'awaiting_approval') {
+    return (
+      <AdminStatusBadge tone="warning" className="shrink-0 uppercase tracking-widest">
+        awaiting approval · {relativeAge(proposal.updatedAt)}
+      </AdminStatusBadge>
+    );
+  }
+  if (proposal.status === 'approved') {
+    return (
+      <AdminStatusBadge tone="success" className="shrink-0 uppercase tracking-widest">
+        approved · ready to ship
       </AdminStatusBadge>
     );
   }
@@ -1224,17 +1783,32 @@ function VerifyStep({
     };
   }, [evidence]);
 
+  // Lab-sourced proposals reproduce the referenced Lab run; card-sourced
+  // proposals compare the card's current portrait against a fresh regen.
   async function doRun() {
-    if (!payload?.labRunId) return;
     setConfirming(false);
     setError(null);
     setRunning('Starting…');
     try {
-      const result = await runRegenVerify({
-        proposalId: proposal.id,
-        beforeRunId: payload.labRunId,
-        onStep: (s) => setRunning(s),
-      });
+      let result;
+      if (payload?.labRunId) {
+        result = await runRegenVerify({
+          proposalId: proposal.id,
+          beforeRunId: payload.labRunId,
+          onStep: (s) => setRunning(s),
+        });
+      } else if (proposal.cardId) {
+        setRunning('Loading card…');
+        const card = await getCardForAdmin(proposal.cardId);
+        if (!card) throw new Error('Referenced card not found — cannot verify.');
+        result = await runCardRegenVerify({
+          proposalId: proposal.id,
+          card,
+          onStep: (s) => setRunning(s),
+        });
+      } else {
+        throw new Error('This proposal has no Lab run or card to verify against.');
+      }
       setEvidence(result.evidence);
       setUrls({ before: result.beforeUrl, after: result.afterUrl });
     } catch (err) {
@@ -1265,8 +1839,8 @@ function VerifyStep({
           Regenerated {new Date(evidence.ranAt).toLocaleString()} · {evidence.archetype} · {evidence.tier}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <VerifyThumb label="Before (filed)" url={urls.before} />
-          <VerifyThumb label="After (shipped fix)" url={urls.after} />
+          <VerifyThumb label={evidence.source === 'card' ? 'Before (current card)' : 'Before (filed)'} url={urls.before} />
+          <VerifyThumb label="After (regen)" url={urls.after} />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
@@ -1305,29 +1879,25 @@ function VerifyStep({
     );
   }
 
-  // No evidence yet.
-  if (proposal.status !== 'shipped') {
-    return (
-      <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-        Available once the proposal ships.
-      </div>
-    );
-  }
+  // No evidence yet. Verify can run any time during the working phase — it is
+  // the precondition for sending a proposal for approval, not a post-ship step.
   if (!payload) {
     return <div style={{ color: 'var(--admin-text-muted)' }}>Loading…</div>;
   }
-  if (!payload.labRunId) {
+  const canVerify = Boolean(payload.labRunId) || Boolean(proposal.cardId);
+  if (!canVerify) {
     return (
       <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-        No Lab run linked — regen verify is only available for proposals sent from the Prompt Lab.
+        No Lab run or card linked — regen verify needs one to produce a before/after.
       </div>
     );
   }
   return (
     <div className="mt-1 space-y-2">
       <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-        Re-run the linked Lab generation ({payload.labRunId.slice(0, 8)}…) through the current
-        pipeline to confirm the fix changed the output.
+        {payload.labRunId
+          ? `Re-run the linked Lab generation (${payload.labRunId.slice(0, 8)}…) through the current pipeline to confirm the change moved the output.`
+          : "Regenerate this card's portrait through the current pipeline and compare it against the card's existing art."}
       </div>
       {!confirming && !running && (
         <AdminButton variant="secondary" onClick={() => setConfirming(true)}>
@@ -1348,7 +1918,8 @@ function ConfirmRun({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: 
       style={{ background: 'var(--admin-active-wash)', border: '1px solid var(--admin-border)' }}
     >
       <div style={{ color: 'var(--admin-text)' }}>
-        This spends Leonardo credits (one portrait generation). Continue?
+        Spends one Leonardo image (a single "after" portrait at this tier — the
+        "before" reuses existing art, no extra credit). Continue?
       </div>
       <div className="flex gap-2">
         <AdminButton variant="primary" onClick={onConfirm}>

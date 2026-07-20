@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { fetchIsAdmin, getCurrentUser, signOut } from '../../services/persistence/supabaseClient';
+import { fetchMyRole, getCurrentUser, signOut } from '../../services/persistence/supabaseClient';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminWorkspaceHeader } from './AdminWorkspaceHeader';
 
@@ -9,7 +9,7 @@ import { AdminWorkspaceHeader } from './AdminWorkspaceHeader';
 // tablet overlay drawer, and the slim workspace header. Player chrome never
 // renders here — /admin/* mounts this outside PlayerShell (see App.tsx).
 
-type GuardState = 'checking' | 'allowed' | 'denied';
+type GuardState = 'checking' | 'admin' | 'lore_director' | 'denied';
 
 const COMPACT_KEY = 'admin-sidebar-compact';
 
@@ -34,10 +34,12 @@ export function AdminShell() {
 
   useEffect(() => {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev_admin') === '1') {
-      setGuard('allowed');
+      setGuard('admin');
       return;
     }
-    void fetchIsAdmin().then((ok) => setGuard(ok ? 'allowed' : 'denied'));
+    void fetchMyRole().then((role) => {
+      setGuard(role === 'admin' ? 'admin' : role === 'lore_director' ? 'lore_director' : 'denied');
+    });
   }, []);
 
   // Close the tablet drawer on route change.
@@ -59,6 +61,11 @@ export function AdminShell() {
     );
   }
   if (guard === 'denied') return <Navigate to="/" replace />;
+  const isAdmin = guard === 'admin';
+  // Lore directors are Workshop-only; any other admin path bounces there.
+  if (!isAdmin && location.pathname !== '/admin/workshop') {
+    return <Navigate to="/admin/workshop" replace />;
+  }
 
   const title = TITLE_BY_PATH[location.pathname] ?? 'Admin';
   const userEmail = getCurrentUser()?.email ?? null;
@@ -69,7 +76,7 @@ export function AdminShell() {
       {/* Desktop / laptop: fixed sidebar */}
       <div className="hidden lg:block shrink-0">
         <div className="sticky top-0 h-dvh">
-          <AdminSidebar compact={compact} onToggleCompact={toggleCompact} userEmail={userEmail} onSignOut={handleSignOut} />
+          <AdminSidebar compact={compact} onToggleCompact={toggleCompact} userEmail={userEmail} onSignOut={handleSignOut} isAdmin={isAdmin} />
         </div>
       </div>
 
@@ -84,6 +91,7 @@ export function AdminShell() {
               userEmail={userEmail}
               onSignOut={handleSignOut}
               onNavigate={() => setDrawerOpen(false)}
+              isAdmin={isAdmin}
             />
           </div>
         </div>
