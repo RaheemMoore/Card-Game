@@ -3,6 +3,7 @@ import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot } from '../../t
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
+import { CombatFrame } from './CombatFrame';
 
 interface Props {
   hero: HeroCombatant;
@@ -19,11 +20,13 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
 };
 
 /**
- * Compact three-slot horizontal command bar docked at the lower Arena.
- * Slots are always present in a fixed order (Core / Signature / Ultimate),
- * even when the hero doesn't have that slot filled — empty slots stay
- * greyed. The three-slot rhythm anchors the eye instead of morphing per
- * hero.
+ * Ability Command Bar — three fixed slots sourced from Figma
+ * CombatFrame/AbilitySlot (22:180) and CommandShelf Ability Strip Zone
+ * (18:52/56/60). Slot dimensions preserved exactly: 170×72 with icon at
+ * left rotated 45°, name + meta text on the right.
+ *
+ * Selected slot swaps preset from `abilitySlot` → `abilitySlotSelected`
+ * (Figma 18:56 tokens: #160f06 bg, #c27826 1.5px border).
  */
 export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -43,19 +46,21 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Pro
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const slots = useMemo(() => {
-    return SLOT_ORDER.map((slot) => {
-      const ability = hero.snapshot.abilities.find((a) => a.slot === slot);
-      return { slot, ability };
-    });
-  }, [hero]);
+  const slots = useMemo(
+    () =>
+      SLOT_ORDER.map((slot) => ({
+        slot,
+        ability: hero.snapshot.abilities.find((a) => a.slot === slot),
+      })),
+    [hero],
+  );
 
   return (
     <div
-      className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 transition-opacity duration-200 ${
+      className={`absolute left-1/2 -translate-x-1/2 flex items-center transition-opacity duration-200 ${
         disabled ? 'opacity-45' : 'opacity-100'
       }`}
-      style={{ bottom: '3.5rem', zIndex: 25 }}
+      style={{ bottom: '5.75rem', zIndex: 25, gap: 15 }}
       aria-label="Ability command bar"
       aria-hidden={disabled}
     >
@@ -67,6 +72,7 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Pro
           hero={hero}
           disabled={disabled}
           pending={ability ? pendingId === ability.definitionId : false}
+          artUrl={ability ? artUrl(store, ability) : null}
           onClick={() => {
             if (!ability) return;
             if (isDenied(hero, ability, disabled)) return;
@@ -74,7 +80,6 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Pro
               setPendingId(ability.definitionId);
               return;
             }
-            // Second click = commit
             onSubmit({
               kind: 'ability',
               abilityDefinitionId: ability.definitionId,
@@ -82,13 +87,17 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Pro
             });
             setPendingId(null);
           }}
-          artUrl={ability ? artUrl(store, ability) : null}
         />
       ))}
     </div>
   );
 }
 
+/**
+ * A single ability slot — 170×72 per Figma (CommandShelf spec). The 220×82
+ * standalone spec from CombatFrame/AbilitySlot is the "detail" variant used
+ * for the palette board; the in-shelf variant is more compact.
+ */
 function AbilitySlot({
   slot,
   ability,
@@ -112,113 +121,139 @@ function AbilitySlot({
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
+  const preset = pending ? 'abilitySlotSelected' : 'abilitySlot';
 
-  const slotAccent =
-    slot === 'ultimate'
-      ? 'from-amber-500/80 to-amber-800/60'
-      : slot === 'signature'
-      ? 'from-violet-500/70 to-violet-800/50'
-      : 'from-slate-400/60 to-slate-700/40';
+  const nameColor = pending ? '#ebd9b2' : '#e8d6b2';
+  const metaColor = pending ? '#f09c33' : '#948266';
 
-  const stateBorder = pending
-    ? 'border-gold shadow-[0_0_18px_rgba(212,175,55,0.55)]'
-    : onCd || notCharged
-    ? 'border-bone/25 opacity-70'
+  const statusText = empty
+    ? 'EMPTY'
+    : onCd
+    ? 'COOLDOWN'
     : short
-    ? 'border-crimson/40 opacity-70'
-    : empty
-    ? 'border-bone/25 border-dashed opacity-70'
-    : 'border-bone/50 hover:border-gold/60';
+    ? 'NO RESOURCE'
+    : notCharged
+    ? 'LOCKED'
+    : 'READY';
+  const statusColor =
+    statusText === 'READY' ? '#8ab87d' : statusText === 'LOCKED' ? '#c88a45' : '#b06062';
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={denied}
-      className={`relative w-24 h-24 rounded-lg border-2 overflow-hidden transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${stateBorder} ${
-        pending ? '-translate-y-1' : ''
-      }`}
-      style={{ background: 'rgba(10,6,14,0.85)' }}
+      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      style={{ background: 'transparent', border: 'none', padding: 0, cursor: denied ? 'not-allowed' : 'pointer' }}
       aria-label={
         empty
           ? `${SLOT_LABEL[slot]} slot — empty`
-          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${
-              pending ? ' — click again to confirm' : ''
-            }`
+          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — click again to confirm' : ''}`
       }
     >
-      {/* Slot color accent bar top */}
-      <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${slotAccent}`} />
-
-      {artUrl ? (
-        <img
-          src={artUrl}
-          alt=""
+      <CombatFrame
+        preset={preset}
+        style={{
+          width: 170,
+          height: 72,
+          transform: pending ? 'translateY(-3px)' : 'translateY(0)',
+          transition: 'transform 200ms',
+        }}
+      >
+        {/* Diamond icon slot — rotated 45° container, Figma 18:53 pattern */}
+        <div
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover opacity-90"
-          draggable={false}
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-bone/25 font-fantasy text-[10px] uppercase tracking-widest">
-            {SLOT_LABEL[slot]}
-          </span>
-        </div>
-      )}
-
-      {/* Bottom overlay: name + cost */}
-      {ability && (
-        <>
+          style={{
+            position: 'absolute',
+            left: 12,
+            top: -4,
+            width: 45,
+            height: 45,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <div
-            className="absolute inset-x-0 bottom-0 pt-3 pb-1 px-1.5"
             style={{
-              background: 'linear-gradient(to top, rgba(6,4,10,0.95) 30%, transparent 100%)',
+              transform: 'rotate(-45deg)',
+              width: 32,
+              height: 32,
+              overflow: 'hidden',
+              borderRadius: 4,
+              background: '#1a1210',
+              border: '1px solid #573b1f',
             }}
           >
-            <div className="text-[9px] uppercase tracking-widest text-gold/90 leading-none">
-              {SLOT_LABEL[slot]}
-            </div>
-            <div className="text-[10px] text-bone font-fantasy leading-tight truncate">
-              {ability.displayName}
-            </div>
+            {artUrl ? (
+              <img
+                src={artUrl}
+                alt=""
+                draggable={false}
+                aria-hidden
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: 'rotate(45deg) scale(1.4)',
+                }}
+              />
+            ) : (
+              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)' }} />
+            )}
           </div>
-          {/* Resource cost pip top-right */}
-          {ability.resourceCost > 0 && (
-            <span
-              className="absolute top-2 right-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-void"
-              style={{
-                background:
-                  ability.resourceType === 'tech'
-                    ? 'linear-gradient(180deg, #fbbf24, #d97706)'
-                    : 'linear-gradient(180deg, #93c5fd, #1e40af)',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.7)',
-              }}
-              aria-label={`Costs ${ability.resourceCost} ${ability.resourceType}`}
-            >
-              {ability.resourceCost}
-            </span>
-          )}
-          {/* Denial overlay */}
-          {(onCd || short || notCharged) && (
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ background: 'rgba(6,4,10,0.55)' }}
-            >
-              <span className="text-[9px] uppercase tracking-widest text-bone/85 bg-void/80 px-1.5 py-0.5 rounded">
-                {onCd ? 'Cooldown' : notCharged ? 'Locked' : 'No resource'}
-              </span>
-            </div>
-          )}
-          {/* Pending confirm hint */}
-          {pending && (
-            <div className="absolute inset-0 flex items-end justify-center pb-8 pointer-events-none">
-              <span className="text-[9px] uppercase tracking-widest text-gold bg-void/90 px-1.5 py-0.5 rounded animate-pulse">
-                Tap to confirm
-              </span>
-            </div>
-          )}
-        </>
-      )}
+        </div>
+
+        {/* Ability name — Figma 18:54: Inter Semi-Bold 12px #e8d6b2 at (57,15) */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 57,
+            top: 15,
+            color: nameColor,
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: 108,
+          }}
+        >
+          {ability?.displayName ?? '—'}
+        </div>
+
+        {/* Meta line: SLOT • COST N — Figma 18:55: Inter Regular 9px */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 57,
+            top: 38,
+            color: metaColor,
+            fontSize: 9,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            whiteSpace: 'pre',
+          }}
+        >
+          {`${SLOT_LABEL[slot]}${ability && ability.resourceCost > 0 ? `  •  COST ${ability.resourceCost}` : ''}`}
+        </div>
+
+        {/* Status line: READY / COOLDOWN / etc */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 57,
+            top: 54,
+            color: statusColor,
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: 0.6,
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+        >
+          {pending ? 'CONFIRM →' : statusText}
+        </div>
+      </CombatFrame>
     </button>
   );
 }

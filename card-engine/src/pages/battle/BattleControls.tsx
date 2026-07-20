@@ -1,5 +1,5 @@
 import type { PlayerAction } from '../../types/combat';
-import { FantasyPanel } from './FantasyPanel';
+import { CombatFrame } from './CombatFrame';
 
 interface Props {
   canAct: boolean;
@@ -8,65 +8,29 @@ interface Props {
 }
 
 /**
- * Bottom command cluster docked into the shelf. Round + turn counter live
- * separately in the top-right TurnPill; this row is just the interactive
- * command controls.
+ * Bottom battle controls, sourced from Figma nodes:
+ *   - CombatFrame/UtilityTray (22:90 / 20:36) — 226×72 tray with 58×48 chips
+ *   - CommandShelf End Turn Zone (18:64) — 230×96 with gradient End Turn button
  *
- *   Left:  Leave  +  small icon-buttons (settings/journal/auto)
- *   Center: END TURN (pill button)
- *   Right: Focus  Inspect
+ * The Command Shelf backdrop itself is rendered separately in CombatScene
+ * (a full-width shelf frame using preset="commandShelf"). This component
+ * places the utility tray on the left and the End Turn on the right.
  */
 export function BattleControls({ canAct, onExit, onSubmit }: Props) {
   return (
     <div
-      className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-4 py-3"
-      style={{ zIndex: 30 }}
+      className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-6"
+      style={{ zIndex: 30, height: '5rem' }}
     >
-      {/* Left — leave + auxiliary icon cluster */}
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onExit}
-          className="text-[10px] uppercase tracking-widest text-bone/60 hover:text-gold underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded px-1 py-0.5"
-          aria-label="Leave battle"
-        >
-          ← Leave
-        </button>
-        <IconChip label="⚙" aria="Settings (coming soon)" />
-        <IconChip label="📖" aria="Full history (coming soon)" />
-        <IconChip label="⟳ AUTO" aria="Auto-battle (coming soon)" wide />
-      </div>
+      {/* Utility tray — Settings / Guide / Leave */}
+      <CombatFrame preset="utilityTray" style={{ width: 226, height: 72 }}>
+        <UtilityChip x={12.5} label="⚙" caption="SETTINGS" onClick={undefined} />
+        <UtilityChip x={80.5} label="📖" caption="GUIDE" onClick={undefined} />
+        <UtilityChip x={148.5} label="✕" caption="LEAVE" onClick={onExit} />
+      </CombatFrame>
 
-      {/* Center — END TURN pill */}
-      <FantasyPanel
-        ornaments={false}
-        className="rounded-md"
-        accent={canAct ? 'rgba(212,175,55,0.85)' : 'rgba(184,26,26,0.35)'}
-        glow={canAct ? 'rgba(212,175,55,0.35)' : undefined}
-        style={{
-          background: canAct
-            ? 'linear-gradient(180deg, #6a1010 0%, #2d0a0a 100%)'
-            : 'linear-gradient(180deg, rgba(30,15,10,0.85) 0%, rgba(15,8,10,0.9) 100%)',
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => canAct && onSubmit({ kind: 'guard' })}
-          disabled={!canAct}
-          className="font-fantasy text-sm font-bold px-8 py-2 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          style={{
-            color: '#faeaca',
-            minWidth: '160px',
-            letterSpacing: '0.16em',
-          }}
-          aria-label="End turn (guards remaining heroes)"
-        >
-          END TURN
-        </button>
-      </FantasyPanel>
-
-      {/* Right — Focus + Inspect */}
-      <div className="flex items-center gap-2">
+      {/* Center: focus + inspect quick actions */}
+      <div className="flex gap-2">
         <QuickButton
           label="Focus"
           onClick={() => canAct && onSubmit({ kind: 'focus' })}
@@ -78,37 +42,127 @@ export function BattleControls({ canAct, onExit, onSubmit }: Props) {
           disabled={!canAct}
         />
       </div>
+
+      {/* End Turn button — Figma 18:65: gradient border 2px #eb962e, 190×58 */}
+      <button
+        type="button"
+        onClick={() => canAct && onSubmit({ kind: 'guard' })}
+        disabled={!canAct}
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
+        style={{
+          width: 190,
+          height: 58,
+          borderRadius: 6,
+          border: '2px solid #eb962e',
+          background: canAct
+            ? 'linear-gradient(to right, #592b09, #1a1412)'
+            : 'linear-gradient(to right, #2a1608, #150c0e)',
+          color: '#ffdb94',
+          fontSize: 18,
+          fontWeight: 600,
+          letterSpacing: 1.8,
+          fontFamily: 'Inter, system-ui, sans-serif',
+          cursor: canAct ? 'pointer' : 'not-allowed',
+          boxShadow: canAct ? '0 0 22px rgba(235,150,46,0.35)' : 'none',
+          transition: 'box-shadow 200ms, opacity 200ms',
+        }}
+        aria-label="End turn"
+      >
+        END TURN
+      </button>
     </div>
   );
 }
 
-function IconChip({ label, aria, wide = false }: { label: string; aria: string; wide?: boolean }) {
+/**
+ * Chip inside the Utility Tray — matches Figma 20:38/41/44: 58×48 tile,
+ * #0f0e0f bg, #573b1f border, 5px radius, glyph icon + 7px caption.
+ */
+function UtilityChip({
+  x,
+  label,
+  caption,
+  onClick,
+}: {
+  x: number;
+  label: string;
+  caption: string;
+  onClick?: () => void;
+}) {
+  const clickable = typeof onClick === 'function';
   return (
-    <FantasyPanel ornaments={false} className="rounded-md">
-      <button
-        type="button"
-        disabled
-        aria-label={aria}
-        title={aria}
-        className={`${wide ? 'px-2.5' : 'px-2'} py-1 text-[10px] uppercase tracking-widest text-bone/50 focus:outline-none`}
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!clickable}
+      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      style={{
+        position: 'absolute',
+        left: x,
+        top: 10.5,
+        width: 58,
+        height: 48,
+        background: '#0f0e0f',
+        border: '1px solid #573b1f',
+        borderRadius: 5,
+        overflow: 'hidden',
+        color: '#b8a68a',
+        cursor: clickable ? 'pointer' : 'default',
+        opacity: clickable ? 1 : 0.75,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+      }}
+      aria-label={caption}
+      title={clickable ? caption : `${caption} (coming soon)`}
+    >
+      <span style={{ fontSize: 16, lineHeight: 1 }}>{label}</span>
+      <span
+        style={{
+          fontSize: 7,
+          fontWeight: 600,
+          letterSpacing: 1,
+          fontFamily: 'Inter, system-ui, sans-serif',
+        }}
       >
-        {label}
-      </button>
-    </FantasyPanel>
+        {caption}
+      </span>
+    </button>
   );
 }
 
-function QuickButton({ label, onClick, disabled }: { label: string; onClick: () => void; disabled: boolean }) {
+function QuickButton({
+  label,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled: boolean;
+}) {
   return (
-    <FantasyPanel ornaments={false} className="rounded-md">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        className="px-2.5 py-1.5 text-[10px] uppercase tracking-widest text-bone/80 hover:text-bone disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-      >
-        {label}
-      </button>
-    </FantasyPanel>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-40"
+      style={{
+        padding: '8px 14px',
+        borderRadius: 5,
+        border: '1px solid #573b1f',
+        background: '#0f0e0f',
+        color: '#d6c7a8',
+        fontSize: 10,
+        fontWeight: 600,
+        letterSpacing: 1.4,
+        textTransform: 'uppercase',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {label}
+    </button>
   );
 }

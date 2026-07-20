@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { AnimationBeat, BeatCue } from '../../services/combat/presentation/types';
 import type { BattleEvent } from '../../types/combat';
 import { formatEvent } from './formatEvent';
+import { CombatFrame } from './CombatFrame';
 
 interface Props {
   journal: readonly AnimationBeat[];
@@ -11,11 +12,14 @@ interface Props {
 }
 
 /**
- * Right-side Combat Journal rail. Fantasy framing (double gold trim, dark
- * parchment gradient) that shares its border language with the Boss HUD +
- * bottom shelf so the whole combat UI reads as one game interface. Round
- * dividers separate history; the Active event is emphasized in its own
- * pinned band.
+ * Right-rail Combat Journal, sourced verbatim from Figma node 17:18
+ * (CombatFrame/Journal, 330×760).
+ *
+ * Layout:
+ *   - Journal Header  — dark strip, gold hairline, uppercase title, round pill
+ *   - Ornament Divider — a short scrollwork rule + diamond
+ *   - Event cards     — 282×76, 5px radius; boss-intent variant has warm orange border
+ *   - Active Event    — 282×92, 6px radius, orange border, gold ACTIVE label
  */
 export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -36,171 +40,353 @@ export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: 
   }, [journal]);
 
   return (
-    <aside
-      className="flex flex-col h-full relative"
-      style={{
-        background: 'linear-gradient(180deg, rgba(20,10,14,0.95) 0%, rgba(8,4,10,0.98) 100%)',
-        borderLeft: '1px solid rgba(184,134,11,0.55)',
-        boxShadow: 'inset 1px 0 0 rgba(0,0,0,0.85), inset 2px 0 0 rgba(184,134,11,0.15)',
-      }}
-      aria-label="Combat Journal"
+    <CombatFrame
+      preset="journal"
+      className="h-full"
+      style={{ borderRadius: 0, borderTop: 0, borderBottom: 0, borderRight: 0 }}
+      ariaLabel="Combat Journal"
     >
-      {/* Header */}
-      <div
-        className="px-3 py-2 flex items-center justify-between relative"
-        style={{
-          borderBottom: '1px solid rgba(184,134,11,0.45)',
-          background: 'linear-gradient(180deg, rgba(38,22,14,0.9) 0%, rgba(18,10,12,0.9) 100%)',
-          boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.6)',
-        }}
-      >
-        <CornerFlourish pos="tl" />
-        <CornerFlourish pos="tr" />
-        <div className="flex items-baseline gap-2">
-          <span className="font-fantasy text-xs text-gold uppercase tracking-widest">
-            Combat Log
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {currentRound > 0 && (
-            <span className="text-[10px] text-bone/50 tabular-nums font-fantasy">
-              Rd {currentRound}
-            </span>
-          )}
+      <div className="flex flex-col h-full" style={{ padding: '2px 8px 8px 8px' }}>
+        {/* Header — Figma: dark strip with gold hairline, 64px tall */}
+        <div
+          className="relative"
+          style={{
+            height: 56,
+            background: '#0e0c0b',
+            marginLeft: -8,
+            marginRight: -8,
+            marginTop: -2,
+            paddingLeft: 24,
+            paddingRight: 24,
+            paddingTop: 20,
+            borderBottom: '1px solid rgba(51,31,15,0.9)',
+          }}
+        >
+          {/* Gold top hairline inside header */}
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: 8,
+              left: 18,
+              right: 18,
+              height: 2,
+              background: '#f0a840',
+              opacity: 0.6,
+              borderRadius: 1,
+            }}
+          />
+          <div
+            style={{
+              color: '#ebd1a3',
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: 1.5,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            COMBAT JOURNAL
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              right: 24,
+              top: 24,
+              color: '#a88c63',
+              fontSize: 10,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {currentRound > 0 ? `ROUND ${currentRound}` : ''}
+          </div>
           {isPlaying && (
             <button
               type="button"
               onClick={onSkip}
-              className="text-[10px] uppercase tracking-widest text-bone/60 hover:text-gold underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded"
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              style={{
+                position: 'absolute',
+                right: 24,
+                bottom: 6,
+                color: 'rgba(230,220,180,0.65)',
+                fontSize: 10,
+                textTransform: 'uppercase',
+                letterSpacing: 1.5,
+                textDecoration: 'underline',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
               aria-label={`Skip ${pendingCount} pending combat beats`}
             >
               Skip · {pendingCount}
             </button>
           )}
         </div>
-      </div>
 
-      {/* History */}
-      <div
-        ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto px-2 py-2 space-y-0.5"
-        aria-live="polite"
-      >
-        {history.map((beat) => (
-          <JournalRow key={beat.id} beat={beat} tone="history" />
-        ))}
-      </div>
+        {/* Ornament divider (short scrollwork rule + diamond) */}
+        <OrnamentDivider />
 
-      {/* Active */}
-      {active && (
+        {/* History (scrolls) */}
         <div
-          className="px-2 py-2 relative"
-          style={{
-            borderTop: '1px solid rgba(184,134,11,0.45)',
-            background: 'linear-gradient(180deg, rgba(45,28,10,0.6) 0%, rgba(20,10,14,0.8) 100%)',
-            boxShadow: 'inset 0 1px 0 rgba(0,0,0,0.7)',
-          }}
+          ref={scrollRef}
+          className="flex-1 min-h-0 overflow-y-auto"
+          style={{ paddingTop: 4, paddingBottom: 4 }}
+          aria-live="polite"
         >
-          <CornerFlourish pos="bl" />
-          <CornerFlourish pos="br" />
-          <div className="text-[9px] uppercase tracking-widest text-gold/80 mb-1 px-1 font-fantasy">
-            Active
-          </div>
-          <JournalRow beat={active} tone="active" />
+          {history.map((beat) => (
+            <JournalEventCard key={beat.id} beat={beat} tone="history" />
+          ))}
         </div>
-      )}
-    </aside>
+
+        {/* Active event card — 282×92, orange border */}
+        {active && (
+          <div style={{ marginTop: 8 }}>
+            <JournalEventCard beat={active} tone="active" />
+          </div>
+        )}
+      </div>
+    </CombatFrame>
   );
 }
 
-function JournalRow({ beat, tone }: { beat: AnimationBeat; tone: 'history' | 'active' }) {
-  const icon = iconFor(beat.event, beat.cue);
-  const isRound = beat.event.kind === 'round_started';
-  if (isRound && tone === 'history') {
-    const round = (beat.event as Extract<BattleEvent, { kind: 'round_started' }>).round;
-    return (
-      <div className="flex items-center gap-2 my-1.5 px-1">
-        <div className="flex-1 h-px bg-gold/25" />
-        <span className="text-[9px] uppercase tracking-widest text-gold/60 font-fantasy">
-          Round {round}
-        </span>
-        <div className="flex-1 h-px bg-gold/25" />
-      </div>
-    );
-  }
+/**
+ * Ornament divider — Figma node 14:42: 420×20 rule with centered rotated
+ * diamond gem. Scaled to fit the 282-ish inner width.
+ */
+function OrnamentDivider() {
   return (
     <div
-      className={`flex items-start gap-2 rounded px-1.5 py-1 text-[11px] leading-snug ${
-        tone === 'active'
-          ? 'text-bone shadow-[inset_0_0_10px_rgba(212,175,55,0.18)]'
-          : 'text-bone/55'
-      }`}
-      style={
-        tone === 'active'
-          ? {
-              background: 'rgba(45,28,10,0.55)',
-              border: '1px solid rgba(212,175,55,0.4)',
-              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.6)',
-            }
-          : undefined
-      }
+      className="relative"
+      style={{ height: 20, marginTop: 12, marginBottom: 4 }}
+      aria-hidden
     >
-      <span
-        className="shrink-0 flex items-center justify-center rounded"
+      <div
         style={{
-          width: 20,
-          height: 20,
-          background: tone === 'active' ? 'rgba(30,15,12,0.85)' : 'rgba(20,12,16,0.6)',
-          border: '1px solid rgba(184,134,11,0.4)',
-          fontSize: 12,
+          position: 'absolute',
+          left: 12,
+          right: 12,
+          top: 9,
+          height: 2,
+          background: '#57381c',
         }}
-        aria-hidden
+      />
+      <div
+        style={{
+          position: 'absolute',
+          left: 'calc(50% - 8px)',
+          top: 2,
+          width: 16,
+          height: 16,
+        }}
       >
-        {icon}
-      </span>
-      <span className="font-mono truncate pt-0.5">{formatEvent(beat.event)}</span>
+        <svg viewBox="0 0 16 16" fill="none" style={{ width: '100%', height: '100%' }}>
+          <path
+            d="M15 8L8 15L1 8L8 1L15 8Z"
+            fill="#a86a2a"
+            stroke="#d99340"
+            strokeWidth="1"
+          />
+        </svg>
+      </div>
     </div>
   );
 }
 
-function CornerFlourish({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
-  const posStyle: React.CSSProperties = {
-    position: 'absolute',
-    width: 8,
-    height: 8,
-    color: 'rgba(212,175,55,0.6)',
-    pointerEvents: 'none',
-  };
-  if (pos === 'tl') Object.assign(posStyle, { top: 2, left: 2 });
-  if (pos === 'tr') Object.assign(posStyle, { top: 2, right: 2, transform: 'scaleX(-1)' });
-  if (pos === 'bl') Object.assign(posStyle, { bottom: 2, left: 2, transform: 'scaleY(-1)' });
-  if (pos === 'br') Object.assign(posStyle, { bottom: 2, right: 2, transform: 'scale(-1,-1)' });
+/**
+ * Journal event card matching Figma nodes 17:27–17:46. Three visual variants:
+ *   - active (17:47): 92px, `#160d07` bg, `#ba6e21` 1.5px border, orange ACTIVE label
+ *   - highlight (17:27): 76px, `#130d08` bg, `#874f1a` border, orange category text
+ *   - default (17:31/35/39/43): 76px, `#09090a` bg, `#241c14` border
+ */
+function JournalEventCard({
+  beat,
+  tone,
+}: {
+  beat: AnimationBeat;
+  tone: 'active' | 'history';
+}) {
+  const e = beat.event;
+  // Round-start renders as a slim scrollwork divider instead of a full card.
+  if (e.kind === 'round_started' && tone === 'history') {
+    return (
+      <div
+        className="flex items-center gap-2"
+        style={{ margin: '6px 12px', height: 12 }}
+        aria-hidden
+      >
+        <div style={{ flex: 1, height: 1, background: 'rgba(212,175,55,0.25)' }} />
+        <span
+          style={{
+            color: 'rgba(212,175,55,0.6)',
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: 1.5,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Round {(e as Extract<BattleEvent, { kind: 'round_started' }>).round}
+        </span>
+        <div style={{ flex: 1, height: 1, background: 'rgba(212,175,55,0.25)' }} />
+      </div>
+    );
+  }
+
+  const category = categoryOf(e);
+  const isBossIntent = e.kind === 'boss_intent_declared';
+  const isDamage = e.kind === 'damage_dealt';
+  const isHighlighted = tone === 'active' || isBossIntent || (isDamage && e.amount >= 50);
+
+  const bg = tone === 'active'
+    ? '#160d07'
+    : isHighlighted
+    ? '#130d08'
+    : '#09090a';
+  const border = tone === 'active'
+    ? '1.5px solid #ba6e21'
+    : isHighlighted
+    ? '1px solid #874f1a'
+    : '1px solid #241c14';
+  const categoryColor = tone === 'active'
+    ? '#f59c30'
+    : isHighlighted
+    ? '#f0942e'
+    : '#a38763';
+  const height = tone === 'active' ? 92 : 76;
+
   return (
-    <svg viewBox="0 0 8 8" style={posStyle} aria-hidden fill="none">
-      <path d="M0 0 L5 0 M0 0 L0 5" stroke="currentColor" strokeWidth="1" />
+    <div
+      className="relative"
+      style={{
+        margin: '4px 4px',
+        height,
+        background: bg,
+        border,
+        borderRadius: tone === 'active' ? 6 : 5,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Category label */}
+      <div
+        style={{
+          position: 'absolute',
+          left: tone === 'active' ? 12.5 : 51,
+          top: tone === 'active' ? 10 : 12,
+          color: categoryColor,
+          fontSize: 9,
+          fontWeight: 600,
+          letterSpacing: 1.1,
+          fontFamily: 'Inter, system-ui, sans-serif',
+          textTransform: 'uppercase',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {tone === 'active' ? 'ACTIVE' : category}
+      </div>
+
+      {/* Icon gem — only on non-active cards; matches Figma 17:28 22px diamond at left */}
+      {tone !== 'active' && (
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            left: 13,
+            top: 22,
+            width: 22,
+            height: 22,
+          }}
+        >
+          <IconGem cue={beat.cue} highlighted={isHighlighted} />
+        </div>
+      )}
+
+      {/* Body text */}
+      <div
+        style={{
+          position: 'absolute',
+          left: tone === 'active' ? 12.5 : 51,
+          top: tone === 'active' ? 32 : 30,
+          right: 12,
+          color: tone === 'active' ? '#ebd9b2' : '#d6c7a8',
+          fontSize: tone === 'active' ? 12 : 11,
+          fontWeight: tone === 'active' ? 600 : 400,
+          fontFamily: 'Inter, system-ui, sans-serif',
+          lineHeight: 1.35,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+        }}
+      >
+        {formatEvent(e)}
+      </div>
+    </div>
+  );
+}
+
+function IconGem({ cue, highlighted }: { cue: BeatCue; highlighted: boolean }) {
+  const fill = highlighted ? '#e69c38' : '#4a3a22';
+  const stroke = highlighted ? '#ffcc63' : '#7a5a30';
+  return (
+    <svg viewBox="0 0 22 22" fill="none" style={{ width: '100%', height: '100%' }}>
+      <path
+        d="M20 11L11 20L2 11L11 2L20 11Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth="1"
+      />
+      <text
+        x="11"
+        y="14"
+        textAnchor="middle"
+        fontSize="10"
+        fill={highlighted ? '#1a0f05' : '#d6c7a8'}
+        style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+      >
+        {glyphFor(cue)}
+      </text>
     </svg>
   );
 }
 
-function iconFor(event: BattleEvent, cue: BeatCue): string {
-  switch (event.kind) {
-    case 'battle_started': return '⚔';
-    case 'round_started': return '⏱';
-    case 'boss_intent_declared': return '👁';
-    case 'player_action_selected': return '✋';
-    case 'damage_dealt': return '💥';
-    case 'healing_applied': return '➕';
-    case 'shield_gained': return '🛡';
-    case 'status_applied': return '✳';
-    case 'status_removed': return '·';
-    case 'resource_changed': return '◆';
-    case 'ultimate_charge_changed': return '★';
-    case 'cooldown_started': return '⧗';
-    case 'cooldown_ticked': return '·';
-    case 'actor_defeated': return '☠';
-    case 'phase_transition': return '⚡';
-    case 'action_denied': return '⛔';
-    case 'battle_ended': return event.result.outcome === 'victory' ? '🏆' : '☠';
-    default: return cue === 'phase' ? '⚡' : '·';
+function categoryOf(e: BattleEvent): string {
+  switch (e.kind) {
+    case 'battle_started': return 'BATTLE';
+    case 'round_started': return 'TURN';
+    case 'boss_intent_declared': return 'BOSS INTENT';
+    case 'player_action_selected': return 'HERO ACTION';
+    case 'damage_dealt': return 'DAMAGE';
+    case 'healing_applied': return 'HEAL';
+    case 'shield_gained': return 'SHIELD';
+    case 'status_applied':
+    case 'status_removed':
+      return 'STATUS';
+    case 'resource_changed':
+    case 'ultimate_charge_changed':
+    case 'cooldown_started':
+    case 'cooldown_ticked':
+      return 'TICK';
+    case 'actor_defeated': return 'DEFEATED';
+    case 'phase_transition': return 'PHASE';
+    case 'action_denied': return 'DENIED';
+    case 'battle_ended': return 'ENDED';
+    default: return 'EVENT';
+  }
+}
+
+function glyphFor(cue: BeatCue): string {
+  switch (cue) {
+    case 'intent': return '👁';
+    case 'impact': return '⚔';
+    case 'floating': return '+';
+    case 'wind_up': return '↑';
+    case 'phase': return '⚡';
+    case 'handoff': return '»';
+    case 'ultimate': return '★';
+    default: return '·';
   }
 }
