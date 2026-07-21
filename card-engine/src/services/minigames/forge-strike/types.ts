@@ -81,13 +81,40 @@ export interface DifficultyRamp {
   minPerfectHalfWidth: number;
 }
 
+/**
+ * Forge Score model (Raheem v2, 2026-07-20): each strike adds points scaled
+ * by a combo multiplier that grows on consecutive successes and resets on a
+ * Miss. The run is "successful" when the total reaches runGoal, and earns a
+ * rating tier that decides how much the persistent Temper Gauge fills.
+ */
+export interface ScoringWeights {
+  perfect: number;
+  good: number;
+  miss: number;
+}
+
+export interface ComboConfig {
+  /** Multiplier added per extra strike in the streak (streak 1 = ×1). */
+  step: number;
+  /** Hard ceiling on the multiplier. */
+  max: number;
+}
+
+export type RunRating = 'fail' | 'bronze' | 'silver' | 'gold';
+
 export interface ForgeStrikeConfig {
   configVersion: number;
   strikeCount: number;
-  /** Successful strikes (good or perfect) required to win the run. */
-  winThreshold: number;
   zones: GradeZones;
   ramp: DifficultyRamp;
+  scoring: ScoringWeights;
+  combo: ComboConfig;
+  /** Score needed for a successful run (also the Bronze threshold). */
+  runGoal: number;
+  /** Score thresholds for the higher rating tiers. */
+  ratingScores: { silver: number; gold: number };
+  /** Fraction of the Temper Gauge a run pours in, per rating tier. */
+  temperFill: { bronze: number; silver: number; gold: number };
   /** One pattern per scored strike, index-aligned. Length === strikeCount. */
   patterns: StrikePattern[];
   /** Pattern used for the guided, non-scored practice strike. */
@@ -101,6 +128,10 @@ export interface StrikeResult {
   /** Normalized marker position at the accepted input. */
   markerPos: number;
   grade: StrikeGrade;
+  /** Points this strike contributed (base × combo multiplier). */
+  points: number;
+  /** Combo multiplier in effect for this strike. */
+  multiplier: number;
 }
 
 export interface RunState {
@@ -109,6 +140,10 @@ export interface RunState {
   /** Index of the next strike awaiting input; equals strikes.length. */
   nextStrikeIndex: number;
   strikes: StrikeResult[];
+  /** Running Forge Score for the run. */
+  score: number;
+  /** Current combo streak of consecutive successes (0 after a Miss). */
+  streak: number;
   /** Presentation-only forge heat, clamped 0..1. Derived from grades. */
   heat: number;
   /** Set when phase === 'complete'. */

@@ -3,12 +3,15 @@ import { FORGE_STRIKE_CONFIG_V1 as CFG } from './config';
 import {
   applyStrike,
   clamp01,
+  comboMultiplier,
   countSuccesses,
   createRun,
   effectivePerfectHalfWidth,
   gradeStrike,
   markerSpeedFactor,
   positionAt,
+  runRating,
+  strikePoints,
 } from './engine';
 import type { RunState } from './types';
 
@@ -139,22 +142,37 @@ describe('success ramp — Perfect zone shrink + marker speed-up', () => {
   });
 });
 
-describe('run progression and outcome', () => {
-  it('five strikes complete the run; 3+ successes win', () => {
+describe('run progression, score, and outcome', () => {
+  it('five strikes complete the run', () => {
     const state = runWithGrades([PERFECT, GOOD, MISS, GOOD, MISS]);
     expect(state.phase).toBe('complete');
-    expect(countSuccesses(state)).toBe(3);
+    expect(state.strikes).toHaveLength(5);
+  });
+
+  it('a flawless run scores 150 and rates Gold (win)', () => {
+    const state = runWithGrades([PERFECT, PERFECT, PERFECT, PERFECT, PERFECT]);
+    expect(state.score).toBe(150); // 20+25+30+35+40 with the combo ramp
+    expect(state.outcome).toBe('win');
+    expect(runRating(CFG, state.score)).toBe('gold');
+  });
+
+  it('an all-Good run clears the goal (win)', () => {
+    const state = runWithGrades([GOOD, GOOD, GOOD, GOOD, GOOD]);
+    expect(state.score).toBe(76); // 10+13+15+18+20
     expect(state.outcome).toBe('win');
   });
 
-  it('fewer than 3 successes lose', () => {
-    const state = runWithGrades([MISS, MISS, GOOD, MISS, PERFECT]);
+  it('a weak run falls short of the goal (loss)', () => {
+    const state = runWithGrades([PERFECT, GOOD, MISS, GOOD, MISS]);
+    expect(state.score).toBe(43); // 20 + 13 + 0 + 10 + 0
     expect(state.outcome).toBe('loss');
   });
 
-  it('exactly winThreshold successes is a win (boundary)', () => {
-    const state = runWithGrades([GOOD, GOOD, GOOD, MISS, MISS]);
-    expect(state.outcome).toBe('win');
+  it('all misses score zero and lose', () => {
+    const state = runWithGrades([MISS, MISS, MISS, MISS, MISS]);
+    expect(state.score).toBe(0);
+    expect(countSuccesses(state)).toBe(0);
+    expect(state.outcome).toBe('loss');
   });
 
   it('records patternId and markerPos per strike', () => {
@@ -170,6 +188,47 @@ describe('run progression and outcome', () => {
     state = out.state;
     expect(state.phase).toBe('armed');
     expect(state.nextStrikeIndex).toBe(1);
+  });
+});
+
+describe('combo scoring', () => {
+  it('the multiplier grows per consecutive success and is capped', () => {
+    expect(comboMultiplier(CFG, 0)).toBe(0);
+    expect(comboMultiplier(CFG, 1)).toBe(1);
+    expect(comboMultiplier(CFG, 2)).toBeCloseTo(1.25, 10);
+    expect(comboMultiplier(CFG, 3)).toBeCloseTo(1.5, 10);
+    expect(comboMultiplier(CFG, 100)).toBe(CFG.combo.max);
+  });
+
+  it('strike points = base × multiplier, rounded; miss scores 0', () => {
+    expect(strikePoints(CFG, 'perfect', 1)).toBe(20);
+    expect(strikePoints(CFG, 'good', 2)).toBe(13); // 10 × 1.25 = 12.5 → 13
+    expect(strikePoints(CFG, 'miss', 5)).toBe(0);
+  });
+
+  it('a Miss resets the streak so the next success restarts at ×1', () => {
+    let state = createRun(CFG);
+    for (const [i, pos] of [PERFECT, PERFECT].entries()) {
+      const o = applyStrike(CFG, state, { strikeIndex: i, markerPos: pos });
+      if (!o.accepted) throw new Error('rejected');
+      state = o.state;
+    }
+    expect(state.streak).toBe(2);
+    const miss = applyStrike(CFG, state, { strikeIndex: 2, markerPos: MISS });
+    if (!miss.accepted) throw new Error('rejected');
+    expect(miss.state.streak).toBe(0);
+    const after = applyStrike(CFG, miss.state, { strikeIndex: 3, markerPos: GOOD });
+    if (!after.accepted) throw new Error('rejected');
+    expect(after.result.multiplier).toBe(1);
+    expect(after.result.points).toBe(10);
+  });
+
+  it('runRating maps score to tiers', () => {
+    expect(runRating(CFG, 0)).toBe('fail');
+    expect(runRating(CFG, CFG.runGoal - 1)).toBe('fail');
+    expect(runRating(CFG, CFG.runGoal)).toBe('bronze');
+    expect(runRating(CFG, CFG.ratingScores.silver)).toBe('silver');
+    expect(runRating(CFG, CFG.ratingScores.gold)).toBe('gold');
   });
 });
 

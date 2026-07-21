@@ -1,6 +1,7 @@
 import type {
   ApplyStrikeResult,
   ForgeStrikeConfig,
+  RunRating,
   RunState,
   StrikeGrade,
   StrikeInput,
@@ -105,12 +106,38 @@ export function createRun(config: ForgeStrikeConfig): RunState {
     phase: 'armed',
     nextStrikeIndex: 0,
     strikes: [],
+    score: 0,
+    streak: 0,
     heat: 0,
   };
 }
 
 export function countSuccesses(state: RunState): number {
   return state.strikes.filter((s) => s.grade !== 'miss').length;
+}
+
+/**
+ * Combo multiplier for a strike landed at `streak` (the streak length
+ * INCLUDING this strike; a Miss has streak 0). Grows by combo.step per extra
+ * consecutive success, capped at combo.max.
+ */
+export function comboMultiplier(config: ForgeStrikeConfig, streak: number): number {
+  if (streak <= 0) return 0;
+  return Math.min(config.combo.max, 1 + config.combo.step * (streak - 1));
+}
+
+/** Points a strike contributes = base × combo multiplier, rounded. */
+export function strikePoints(config: ForgeStrikeConfig, grade: StrikeGrade, streak: number): number {
+  if (grade === 'miss') return 0;
+  return Math.round(config.scoring[grade] * comboMultiplier(config, streak));
+}
+
+/** Rating tier for a final run score (drives Temper Gauge fill). */
+export function runRating(config: ForgeStrikeConfig, score: number): RunRating {
+  if (score >= config.ratingScores.gold) return 'gold';
+  if (score >= config.ratingScores.silver) return 'silver';
+  if (score >= config.runGoal) return 'bronze';
+  return 'fail';
 }
 
 /**
@@ -137,11 +164,21 @@ export function applyStrike(
   const successCount = countSuccesses(state);
   const pattern = config.patterns[input.strikeIndex];
   const grade = gradeStrike(config, input.markerPos, successCount, pattern.perfectMul ?? 1);
+
+  // Combo: a success extends the streak, a Miss breaks it. Points scale with
+  // the streak-including-this-strike so a hot streak surges the score.
+  const streak = grade === 'miss' ? 0 : state.streak + 1;
+  const multiplier = comboMultiplier(config, streak);
+  const points = strikePoints(config, grade, streak);
+  const score = state.score + points;
+
   const result: StrikeResult = {
     strikeIndex: input.strikeIndex,
     patternId: pattern.id,
     markerPos: input.markerPos,
     grade,
+    points,
+    multiplier,
   };
 
   const strikes = [...state.strikes, result];
@@ -153,12 +190,10 @@ export function applyStrike(
     phase: isFinal ? 'complete' : 'armed',
     nextStrikeIndex: strikes.length,
     strikes,
+    score,
+    streak,
     heat,
-    outcome: isFinal
-      ? strikes.filter((s) => s.grade !== 'miss').length >= config.winThreshold
-        ? 'win'
-        : 'loss'
-      : undefined,
+    outcome: isFinal ? (score >= config.runGoal ? 'win' : 'loss') : undefined,
   };
 
   return { accepted: true, state: next, result };

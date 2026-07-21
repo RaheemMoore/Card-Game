@@ -4,7 +4,7 @@ import type { ForgeStrikeConfig, StrikePattern } from './types';
  * Forge Strike v1 tuning — playtest values, NOT approved balance.
  *
  * Every number here is a Gate-1 instrument-and-adjust candidate (plan §7.3,
- * §7.4). Changing strikeCount or winThreshold is a reviewed tuning change.
+ * §7.4). Changing strikeCount or runGoal is a reviewed tuning change.
  * Grade zones are normalized rail space centered on 0.5.
  *
  * Speed is no longer baked per strike-index. Per Raheem (Gate 1, 2026-07-20)
@@ -49,9 +49,8 @@ function reversalSweep(id: string, sweepMs: number): StrikePattern {
 }
 
 export const FORGE_STRIKE_CONFIG_V1: ForgeStrikeConfig = {
-  configVersion: 1,
+  configVersion: 2,
   strikeCount: 5,
-  winThreshold: 3,
   zones: {
     perfectHalfWidth: 0.07,
     goodHalfWidth: 0.2,
@@ -63,6 +62,13 @@ export const FORGE_STRIKE_CONFIG_V1: ForgeStrikeConfig = {
     perfectShrinkPerSuccess: 0.82,
     minPerfectHalfWidth: 0.025,
   },
+  // Forge Score (v2). All instrument-and-adjust. Max score for 5 flawless
+  // Perfects with the combo ramp ≈ 150 (20×[1+1.25+1.5+1.75+2]).
+  scoring: { perfect: 20, good: 10, miss: 0 },
+  combo: { step: 0.25, max: 2.5 },
+  runGoal: 70, // Bronze / "successful run" threshold
+  ratingScores: { silver: 100, gold: 130 },
+  temperFill: { bronze: 0.15, silver: 0.25, gold: 0.4 },
   patterns: [
     sweep('s1', BASE_SWEEP_MS),
     sweep('s2', BASE_SWEEP_MS),
