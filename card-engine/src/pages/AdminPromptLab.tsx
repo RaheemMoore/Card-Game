@@ -7,25 +7,24 @@ import type {
   ElementName,
   ElementSelection,
   HiddenFate,
-  StoryPillarAnswers,
 } from '../types/bible';
 import { ELEMENT_BONDS } from '../types/bible';
-import { getQuestionsForArchetype, getOptionsForQuestion, sampleOptions } from '../data/storyPillars';
+import { getQuestionsForArchetype, getOptionsForQuestion } from '../data/storyPillars';
 import {
   bucketFor,
   elementIsNarrativelyEligible,
   elementsAvailableToArchetype,
-  buildSelection,
 } from '../data/elements';
 import { rollElement } from '../services/elementRoller';
-import { generateCardTextWithRetry } from '../services/claudeApi';
-import { generatePortraitStrict } from '../services/leonardoApi';
 import { buildCardShell } from '../services/cardGenerator';
 import { getSupabaseClient } from '../services/persistence/supabaseClient';
 import { API_COST_CATALOG } from '../data/economy/apiCostCatalog';
 import { CardRenderer } from '../components/CardRenderer';
 import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
 import { AdminPageDescription } from '../components/admin/AdminPageDescription';
+import * as lab from '../services/forge/promptLabController';
+import { usePromptLabChain } from '../services/forge/usePromptLabChain';
+import type { TierResult, TierSlot } from '../services/forge/promptLabController';
 
 // Prompt Lab — realistic tier chain tester.
 //
@@ -45,8 +44,6 @@ import { AdminPageDescription } from '../components/admin/AdminPageDescription';
 //     CardRenderers, prompt provenance, and continue/mark complete/cancel.
 //   - "Show archived" toggles complete/cancelled visibility.
 
-type GeneratedText = Awaited<ReturnType<typeof generateCardTextWithRetry>>;
-
 const TIERS: readonly Rank[] = ['Foundation', 'Forged', 'Ascendant'];
 
 const BUCKET_LABEL: Record<ElementCompatibility, string> = {
@@ -65,26 +62,6 @@ const DISPOSITIONS = [
   { value: 'reject_unusable', label: 'Reject as unusable' },
 ] as const;
 type Disposition = typeof DISPOSITIONS[number]['value'];
-
-interface TierResult {
-  runId: string;
-  imageDataUrl: string;
-  cardName?: string;
-  nameAndTitle?: string;
-  portraitPrompt: string;
-  negativePrompt: string;
-  lore?: string;
-  hiddenFate?: HiddenFate;
-  stats: CardStats;
-  raw: GeneratedText;
-}
-
-type TierSlot =
-  | { phase: 'idle' }
-  | { phase: 'confirming' }
-  | { phase: 'running'; step: string }
-  | { phase: 'error'; message: string }
-  | { phase: 'done'; result: TierResult };
 
 // ---- Session grid data model ------------------------------------------
 
@@ -132,23 +109,16 @@ const ACTIONABLE_DISPOSITIONS = [
 // ---- Component --------------------------------------------------------
 
 export function AdminPromptLab() {
-  const [archetype, setArchetype] = useState<ArchetypeName>(ARCHETYPE_NAMES[0]);
-  const [answers, setAnswers] = useState<StoryPillarAnswers>(() => defaultAnswers(ARCHETYPE_NAMES[0]));
-  const [element, setElement] = useState<ElementName>(() => {
-    const seedAnswers = defaultAnswers(ARCHETYPE_NAMES[0]);
-    return firstEligible(ARCHETYPE_NAMES[0], seedAnswers);
-  });
-  const [bond, setBond] = useState<ElementBond>(ELEMENT_BONDS[0]);
-  const [intent, setIntent] = useState('');
-
-  const [batchId, setBatchId] = useState<string | null>(null);
-  const [foundation, setFoundation] = useState<TierSlot>({ phase: 'idle' });
-  const [forged, setForged] = useState<TierSlot>({ phase: 'idle' });
-  const [ascendant, setAscendant] = useState<TierSlot>({ phase: 'idle' });
+  // The whole tier chain (form inputs + tier slots) lives in the persisted
+  // promptLabController so navigating away — or reloading — no longer throws
+  // away an in-flight test. This page is a view over that store.
+  const chain = usePromptLabChain();
+  const { archetype, answers, element, bond, intent, foundation, forged, ascendant } = chain;
 
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [zoomCard, setZoomCard] = useState<Card | null>(null);
 
   // ---- Element eligibility (derived) -------------------------------------
 
@@ -170,33 +140,9 @@ export function AdminPromptLab() {
     return buckets;
   }, [eligibleElements, archetype]);
 
-  // When archetype changes, refresh answers + element to a valid combo.
-  const onArchetypeChange = (next: ArchetypeName) => {
-    if (chainStarted) return; // locked once tests started
-    setArchetype(next);
-    const nextAnswers = defaultAnswers(next);
-    setAnswers(nextAnswers);
-    setElement(firstEligible(next, nextAnswers));
-  };
-
-  // Editing an answer may drop the current element out of the eligible set.
-  const onAnswerChange = (questionId: string, optionId: string) => {
-    const nextOption = getOptionsForQuestion(archetype, questionId).find((o) => o.id === optionId);
-    if (!nextOption) return;
-    const nextAnswers: StoryPillarAnswers = {
-      answers: answers.answers.map((a) =>
-        a.questionId === questionId ? { questionId, optionId, answer: nextOption.text } : a,
-      ),
-    };
-    setAnswers(nextAnswers);
-    const stillEligible = elementIsNarrativelyEligible(archetype, element, nextAnswers.answers);
-    if (!stillEligible) setElement(firstEligible(archetype, nextAnswers));
-  };
-
-  const rollLikeAPlayer = () => {
-    const rolled = rollElement(archetype, answers);
-    setElement(rolled);
-  };
+  const onArchetypeChange = (next: ArchetypeName) => lab.setArchetype(next);
+  const onAnswerChange = (questionId: string, optionId: string) => lab.setAnswer(questionId, optionId);
+  const rollLikeAPlayer = () => lab.setElement(rollElement(archetype, answers));
 
   // ---- Session grid load ------------------------------------------------
 
@@ -259,100 +205,19 @@ export function AdminPromptLab() {
 
   const estimated = API_COST_CATALOG.forge_card.estimatedDirectCostUsd;
 
-  const chainStarted = foundation.phase !== 'idle' || batchId !== null;
+  const chainStarted = lab.chainStarted();
+  const resetChain = () => lab.resetChain();
 
-  const resetChain = () => {
-    setBatchId(null);
-    setFoundation({ phase: 'idle' });
-    setForged({ phase: 'idle' });
-    setAscendant({ phase: 'idle' });
-  };
+  // ---- Tier run (executes in the controller so it survives navigation) ----
 
-  // ---- Tier run -------------------------------------------------------
-
-  async function runTier(
-    tier: Rank,
-    setter: (s: TierSlot) => void,
-    priorTier?: TierResult,
-    priorRunId?: string,
-  ) {
-    try {
-      setter({ phase: 'running', step: 'Generating Claude text…' });
-      const stats = makeTierStats(archetype, tier);
-      const elementSelection = buildSelection(archetype, element, bond);
-      const startedAt = Date.now();
-
-      const claudeResult = await generateCardTextWithRetry({
-        archetype,
-        stats,
-        answers,
-        element: elementSelection,
-        existingName: priorTier?.cardName,
-        existingHiddenFate: priorTier?.hiddenFate,
-      });
-
-      setter({ phase: 'running', step: 'Generating Leonardo portrait…' });
-      const { dataUrl } = await generatePortraitStrict(
-        claudeResult.portraitPrompt,
-        claudeResult.negativePrompt ?? '',
-      );
-      const durationMs = Date.now() - startedAt;
-
-      setter({ phase: 'running', step: 'Persisting run…' });
-      const persisted = await postRecord({
-        batchId,
-        archetype,
-        tier,
-        status: 'success',
-        parentRunId: priorRunId ?? null,
-        inputSnapshot: {
-          archetype,
-          element: elementSelection,
-          answers,
-          stats,
-          intent: intent || null,
-          priorTierName: priorTier?.cardName ?? null,
-        },
-        claudeModel: 'claude-haiku-4-5-20251001',
-        claudePrompt: '(reconstructed inline; see claude_response for output shape)',
-        claudeResponse: claudeResult as unknown as Record<string, unknown>,
-        leonardoPrompt: claudeResult.portraitPrompt,
-        leonardoNegativePrompt: claudeResult.negativePrompt ?? '',
-        imageDataUrl: dataUrl,
-        durationMs,
-        ensureBatch: intent ? { intent } : undefined,
-      });
-      if (!batchId) setBatchId(persisted.batchId);
-
-      setter({
-        phase: 'done',
-        result: {
-          runId: persisted.runId,
-          imageDataUrl: dataUrl,
-          cardName: claudeResult.cardName,
-          nameAndTitle: claudeResult.nameAndTitle,
-          portraitPrompt: claudeResult.portraitPrompt,
-          negativePrompt: claudeResult.negativePrompt ?? '',
-          lore: claudeResult.lore,
-          hiddenFate: claudeResult.hiddenFate,
-          stats,
-          raw: claudeResult,
-        },
-      });
-      void refreshSessions();
-    } catch (err) {
-      setter({ phase: 'error', message: err instanceof Error ? err.message : String(err) });
-    }
-  }
-
-  const runFoundation = () => void runTier('Foundation', setFoundation);
+  const runFoundation = () => void lab.runTier('Foundation', undefined, undefined, refreshSessions);
   const runForged = () => {
     if (foundation.phase !== 'done') return;
-    void runTier('Forged', setForged, foundation.result, foundation.result.runId);
+    void lab.runTier('Forged', foundation.result, foundation.result.runId, refreshSessions);
   };
   const runAscendant = () => {
     if (forged.phase !== 'done') return;
-    void runTier('Ascendant', setAscendant, forged.result, forged.result.runId);
+    void lab.runTier('Ascendant', forged.result, forged.result.runId, refreshSessions);
   };
 
   // ---- Session panel state --------------------------------------------
@@ -405,7 +270,7 @@ export function AdminPromptLab() {
               type="text"
               disabled={chainStarted}
               value={intent}
-              onChange={(e) => setIntent(e.target.value)}
+              onChange={(e) => lab.setIntent(e.target.value)}
               placeholder="e.g. ember-leak regression"
               className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
             />
@@ -446,7 +311,7 @@ export function AdminPromptLab() {
               <select
                 disabled={chainStarted}
                 value={element}
-                onChange={(e) => setElement(e.target.value as ElementName)}
+                onChange={(e) => lab.setElement(e.target.value as ElementName)}
                 className="flex-1 px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
               >
                 {(['naturally_compatible', 'compatible_through_reinterpretation', 'rare'] as const).map((b) =>
@@ -477,7 +342,7 @@ export function AdminPromptLab() {
             <select
               disabled={chainStarted}
               value={bond}
-              onChange={(e) => setBond(e.target.value as ElementBond)}
+              onChange={(e) => lab.setBond(e.target.value as ElementBond)}
               className="w-full px-2 py-1 rounded border bg-void/60 border-bone/20 text-bone text-sm disabled:opacity-50"
             >
               {ELEMENT_BONDS.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -503,7 +368,8 @@ export function AdminPromptLab() {
           archetype={archetype}
           slot={foundation}
           onRun={runFoundation}
-          setSlot={setFoundation}
+          setSlot={(s) => lab.setTierSlot('Foundation', s)}
+          onZoom={setZoomCard}
           estimatedCostUsd={estimated}
           available
         />
@@ -512,7 +378,8 @@ export function AdminPromptLab() {
           archetype={archetype}
           slot={forged}
           onRun={runForged}
-          setSlot={setForged}
+          setSlot={(s) => lab.setTierSlot('Forged', s)}
+          onZoom={setZoomCard}
           estimatedCostUsd={estimated}
           available={foundation.phase === 'done'}
         />
@@ -521,7 +388,8 @@ export function AdminPromptLab() {
           archetype={archetype}
           slot={ascendant}
           onRun={runAscendant}
-          setSlot={setAscendant}
+          setSlot={(s) => lab.setTierSlot('Ascendant', s)}
+          onZoom={setZoomCard}
           estimatedCostUsd={estimated}
           available={forged.phase === 'done'}
         />
@@ -570,6 +438,36 @@ export function AdminPromptLab() {
         onMarkComplete={() => selectedSession && setBatchStatus(selectedSession.id, 'complete')}
         onCancel={() => selectedSession && setBatchStatus(selectedSession.id, 'cancelled')}
       />
+
+      {zoomCard && <CardZoom card={zoomCard} onClose={() => setZoomCard(null)} />}
+    </div>
+  );
+}
+
+// ---- Card zoom lightbox ------------------------------------------------
+
+function CardZoom({ card, onClose }: { card: Card; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="max-h-full overflow-y-auto flex flex-col items-center gap-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ transform: 'scale(1.4)', transformOrigin: 'top center' }} className="my-16">
+          <CardRenderer card={card} />
+        </div>
+        <button
+          onClick={onClose}
+          className="fixed top-4 right-4 px-3 py-1.5 rounded font-fantasy text-xs font-bold bg-gold/80 text-void"
+        >
+          Close ✕
+        </button>
+      </div>
     </div>
   );
 }
@@ -582,12 +480,13 @@ function TierColumn(props: {
   slot: TierSlot;
   setSlot: (s: TierSlot) => void;
   onRun: () => void;
+  onZoom: (card: Card) => void;
   estimatedCostUsd: number;
   available: boolean;
 }) {
-  const { tier, archetype, slot, setSlot, onRun, estimatedCostUsd, available } = props;
+  const { tier, archetype, slot, setSlot, onRun, onZoom, estimatedCostUsd, available } = props;
   return (
-    <div className="rounded-lg border border-bone/15 bg-void/40 p-4 min-h-[520px] flex flex-col">
+    <div className="rounded-lg border border-bone/15 bg-void/40 p-4 min-h-[600px] flex flex-col">
       <div className="flex items-baseline justify-between mb-2">
         <h3 className="font-fantasy text-sm text-bone">{tier}</h3>
         <StatusBadge slot={slot} />
@@ -639,9 +538,12 @@ function TierColumn(props: {
         <div className="flex-1 space-y-2">
           <div className="flex justify-center">
             <CardRenderer
-              size="thumbnail"
               card={synthesizeCard(archetype, slot.result)}
+              onClick={() => onZoom(synthesizeCard(archetype, slot.result))}
             />
+          </div>
+          <div className="text-[10px] text-center text-bone/40">
+            {slot.result.imageStripped ? 'Portrait not restored after reload — open Sessions for the image.' : 'Click the card to zoom.'}
           </div>
           <div className="text-xs text-center">
             <div className="font-fantasy font-bold text-bone">{slot.result.cardName ?? '(no name)'}</div>
@@ -1053,58 +955,6 @@ function RatingField({ label, value, onChange }: { label: string; value: number 
 
 // ---- Server calls -----------------------------------------------------
 
-interface PostPayload {
-  batchId: string | null;
-  archetype: ArchetypeName;
-  tier: Rank;
-  status: 'success';
-  parentRunId: string | null;
-  inputSnapshot: Record<string, unknown>;
-  claudeModel: string;
-  claudePrompt: string;
-  claudeResponse: Record<string, unknown>;
-  leonardoPrompt: string;
-  leonardoNegativePrompt: string;
-  imageDataUrl: string;
-  durationMs: number;
-  ensureBatch?: { intent?: string };
-}
-
-async function postRecord(payload: PostPayload): Promise<{ batchId: string; runId: string }> {
-  const supabase = getSupabaseClient();
-  if (!supabase) throw new Error('Supabase not configured');
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error('No Supabase session');
-  const r = await fetch('/api/prompt-lab-record', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      run: {
-        batchId: payload.batchId ?? undefined,
-        parentRunId: payload.parentRunId ?? undefined,
-        archetype: payload.archetype,
-        tier: payload.tier,
-        status: payload.status,
-        inputSnapshot: payload.inputSnapshot,
-        claudeModel: payload.claudeModel,
-        claudePrompt: payload.claudePrompt,
-        claudeResponse: payload.claudeResponse,
-        leonardoPrompt: payload.leonardoPrompt,
-        leonardoNegativePrompt: payload.leonardoNegativePrompt,
-        imageDataUrl: payload.imageDataUrl,
-        durationMs: payload.durationMs,
-      },
-      ensureBatch: payload.ensureBatch,
-    }),
-  });
-  if (!r.ok) {
-    const txt = await r.text();
-    throw new Error(`Record failed (${r.status}): ${txt}`);
-  }
-  return (await r.json()) as { batchId: string; runId: string };
-}
-
 async function signedUrl(path: string): Promise<string | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
@@ -1152,41 +1002,3 @@ function synthesizeCardFromRun(run: RunSummary, portraitUrl: string | null): Car
   };
 }
 
-// ---- Player-flow helpers ----------------------------------------------
-
-function defaultAnswers(archetype: ArchetypeName): StoryPillarAnswers {
-  const qs = getQuestionsForArchetype(archetype);
-  return {
-    answers: qs.map((q) => {
-      const opts = sampleOptions(archetype, q.id, 1);
-      const chosen = opts[0];
-      return {
-        questionId: q.id,
-        optionId: chosen?.id ?? `${q.id}_seed`,
-        answer: chosen?.text ?? '(no seed available)',
-      };
-    }),
-  };
-}
-
-function firstEligible(archetype: ArchetypeName, answers: StoryPillarAnswers): ElementName {
-  const eligible = elementsAvailableToArchetype(archetype)
-    .filter((e) => elementIsNarrativelyEligible(archetype, e, answers.answers));
-  if (eligible.length > 0) return eligible[0];
-  // Fallback — shouldn't happen since Naturally Compatible has no narrative gate.
-  return elementsAvailableToArchetype(archetype)[0];
-}
-
-function makeTierStats(archetype: ArchetypeName, tier: Rank): CardStats {
-  const bumps: Record<Rank, number> = { Foundation: 0, Forged: 16, Ascendant: 30 };
-  const bump = bumps[tier];
-  const isTech = archetype === 'Mech Pilot' || archetype === 'Android';
-  const resource = isTech
-    ? { Tech: { value: 55 + bump, bias: 'Mid' as const, hardCap: 85 } }
-    : { Mana: { value: 55 + bump, bias: 'Mid' as const, hardCap: 85 } };
-  return {
-    Atk: { value: 60 + bump, bias: 'Mid-High' as const, hardCap: 90 },
-    Def: { value: 45 + bump, bias: 'Mid' as const, hardCap: 85 },
-    ...resource,
-  };
-}

@@ -17,6 +17,7 @@ import {
 } from '../services/abilities/canonicalArtPipeline';
 import * as ledger from '../services/economy/transactionLedger';
 import { initialize as initializeWallet, auditBalance } from '../services/economy/walletService';
+import { resumeIfPending as resumeForgeIfPending, sweepOrphanedReservations } from '../services/forge/forgeController';
 import { runMigrationIfNeeded, clearLegacyLocalStorage } from '../services/persistence/migration';
 import { drain as drainSyncQueue } from '../services/persistence/SyncQueue';
 
@@ -97,6 +98,24 @@ async function seedBossesLocal(): Promise<void> {
   }
 }
 
+// Forge job reconciliation. Runs after the wallet is initialized so the ledger
+// is populated. Resumes a recently-interrupted forge (reusing its reservation)
+// and refunds any pending forge reservation orphaned by a closed tab — healing
+// money silently lost before the forge controller existed.
+function reconcileForgeJobs(): void {
+  try {
+    resumeForgeIfPending();
+    const reclaimed = sweepOrphanedReservations();
+    if (reclaimed > 0) {
+      // eslint-disable-next-line no-console
+      console.warn(`[forge] reclaimed ${reclaimed} orphaned forge reservation(s) on startup`);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[forge] reconciliation failed:', err);
+  }
+}
+
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
@@ -137,6 +156,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       // pre-Phase-2. Fires and renders immediately.
       if (!isSupabaseConfigured()) {
         initializeWallet();
+        reconcileForgeJobs();
         await seedAndBackfillAbilitiesLocal();
         await seedBossesLocal();
         installDevArtTools();
@@ -153,6 +173,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
           // Fall back to legacy path so the app still works when the
           // project hasn't enabled anonymous sign-ins yet.
           initializeWallet();
+          reconcileForgeJobs();
           await seedAndBackfillAbilitiesLocal();
           installDevArtTools();
           if (!cancelled) {
@@ -306,6 +327,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       // Idempotent — no-op if the migration or hydrate already populated
       // transactions.
       initializeWallet();
+      reconcileForgeJobs();
       // Kick a drain in case initializeWallet's seed enqueued anything.
       void drainSyncQueue();
 
