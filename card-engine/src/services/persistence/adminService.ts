@@ -3,19 +3,23 @@ import type { CurrencyId, EconomyTransaction } from '../../types/economy';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
+  LayerChange,
   ProposalFailureType,
   ProposalLayer,
   ProposalStatus,
+  VerifyEvidence,
 } from '../../types/archetypeProposal';
 import { getSupabaseClient } from './supabaseClient';
 
 // All admin RPCs are guarded by is_admin() server-side. Non-admin
 // sessions get empty results or exceptions from Supabase directly.
 
+export type UserRole = 'user' | 'admin' | 'lore_director';
+
 export interface AdminUserRow {
   user_id: string;
   email: string | null;
-  role: 'user' | 'admin';
+  role: UserRole;
   is_anonymous: boolean;
   card_count: number;
   txn_count: number;
@@ -310,6 +314,177 @@ export async function createArchetypeProposal(input: {
     .single();
   if (error) throw error;
   return rowToProposal(data as ProposalRow);
+}
+
+/**
+ * Merges regen-verify evidence into a proposal's payload. Reads the current
+ * payload, sets `verify`, writes it back. Used by the Workshop "Run regen
+ * verify" flow and its reviewer verdict buttons. Kept as read-modify-write
+ * (not a jsonb patch) so the whole payload shape stays validated in one place.
+ */
+export async function attachProposalVerifyEvidence(
+  id: string,
+  verify: VerifyEvidence,
+): Promise<void> {
+  const payload = await getArchetypeProposalPayload(id);
+  if (!payload) throw new Error('Proposal payload not found');
+  const next: ArchetypeProposalPayload = { ...payload, verify };
+  const { error } = await client()
+    .from('archetype_proposals')
+    .update({ payload: next })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Fetches a single prompt_test_runs row (the original Lab generation a
+ * proposal was filed against) so regen-verify can reproduce its inputs and
+ * reference its "before" image. Guarded by the same admin RLS as the Lab.
+ */
+export async function getPromptTestRun(runId: string): Promise<PromptTestRunRow | null> {
+  const { data, error } = await client()
+    .from('prompt_test_runs')
+    .select('id, archetype, tier, status, output_object_path, input_snapshot, claude_response')
+    .eq('id', runId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as PromptTestRunRow | null) ?? null;
+}
+
+export interface PromptTestRunRow {
+  id: string;
+  archetype: ArchetypeName;
+  tier: 'Foundation' | 'Forged' | 'Ascendant';
+  status: string;
+  output_object_path: string | null;
+  input_snapshot: {
+    archetype?: ArchetypeName;
+    stats?: unknown;
+    element?: unknown;
+    answers?: unknown;
+  } | null;
+  claude_response: Record<string, unknown> | null;
+}
+
+export async function setUserRole(
+  userId: string,
+  role: UserRole,
+): Promise<{ user_id: string; old_role: UserRole; new_role: UserRole }> {
+  const { data, error } = await client().rpc('set_user_role', {
+    target_user_id: userId,
+    new_role: role,
+  });
+  if (error) throw error;
+  return data as { user_id: string; old_role: UserRole; new_role: UserRole };
+}
+
+/**
+ * Merges a Claude-authored per-layer change summary into a proposal's payload
+ * (read-modify-write, mirroring attachProposalVerifyEvidence). Written during
+ * the /work-proposal flow so the approval console can render "what changed" per
+ * layer. Empty entries are dropped.
+ */
+export async function attachProposalChangeSummary(
+  id: string,
+  layerChanges: LayerChange[],
+  opts?: { affectsImage?: boolean },
+): Promise<void> {
+  const payload = await getArchetypeProposalPayload(id);
+  if (!payload) throw new Error('Proposal payload not found');
+  const cleaned = layerChanges.filter((c) => c.summary.trim().length > 0);
+  const next: ArchetypeProposalPayload = { ...payload, layerChanges: cleaned };
+  if (opts?.affectsImage !== undefined) next.affectsImage = opts.affectsImage;
+  const { error } = await client()
+    .from('archetype_proposals')
+    .update({ payload: next })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// The quality gate: a proposal cannot be sent for approval unless it carries a
+// passing before/after verify AND a per-layer change summary. Mirrors the RLS
+// gate (migration 20260720_workshop_approval_conditions) so the client fails
+// fast with a readable message instead of a raw PostgREST RLS rejection.
+// Admins can still park anything (the RLS gate exempts is_admin()).
+export interface ApprovalGateFailure {
+  ok: false;
+  reason: string;
+}
+export function checkApprovalReadiness(
+  payload: ArchetypeProposalPayload | null | undefined,
+): { ok: true } | ApprovalGateFailure {
+  if (!payload) return { ok: false, reason: 'Proposal payload could not be loaded.' };
+  // Always: a per-layer summary of what changed (cheap, no credits).
+  if (!payload.layerChanges || payload.layerChanges.length === 0) {
+    return {
+      ok: false,
+      reason: 'Add a per-layer change summary before sending for approval.',
+    };
+  }
+  // Image proof is required ONLY when the proposal changes the portrait.
+  // Lore-only proposals (affectsImage falsy) skip it — no Leonardo spend.
+  if (payload.affectsImage && payload.verify?.verdict !== 'pass') {
+    return {
+      ok: false,
+      reason: 'This proposal changes the portrait — run regen verify and mark the before/after "pass" first.',
+    };
+  }
+  return { ok: true };
+}
+
+// Director action: hand a worked proposal to Raheem. Moves it to
+// awaiting_approval. Gated client-side (checkApprovalReadiness) and server-side
+// (RLS). `bypassGate` mirrors the RLS is_admin() exemption — admins may park
+// anything; directors must satisfy the gate.
+export async function sendProposalForApproval(
+  id: string,
+  opts?: { bypassGate?: boolean },
+): Promise<ArchetypeProposal> {
+  if (!opts?.bypassGate) {
+    const payload = await getArchetypeProposalPayload(id);
+    const gate = checkApprovalReadiness(payload);
+    if (!gate.ok) throw new Error(gate.reason);
+  }
+  return updateArchetypeProposalStatus(id, { status: 'awaiting_approval' });
+}
+
+// Admin-only (RLS blocks a non-admin from setting 'approved'): record Raheem's
+// decision. This does NOT ship — it moves the proposal to `approved`, unlocking
+// the guarded "Merge & ship" step. Stamps decided_at + optional reason.
+export async function approveProposal(
+  id: string,
+  opts?: { reason?: string },
+): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, {
+    status: 'approved',
+    decidedReason: opts?.reason,
+  });
+}
+
+// Admin-only: the guarded merge. Calls the server endpoint, which merges the
+// proposal's PR into main and marks it shipped with the real commit SHA. The
+// client never merges directly — the endpoint holds the GitHub token and does
+// the authoritative DB write.
+export async function shipProposal(
+  id: string,
+): Promise<{ shipped: true; prNumber: number; commitSha: string }> {
+  const supabase = client();
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('No Supabase session.');
+  const r = await fetch('/api/admin-ship-proposal', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    body: JSON.stringify({ proposalId: id }),
+  });
+  const body = (await r.json().catch(() => ({}))) as { error?: string; prNumber?: number; commitSha?: string };
+  if (!r.ok) throw new Error(body.error ?? `Ship failed (${r.status}).`);
+  return { shipped: true, prNumber: body.prNumber!, commitSha: body.commitSha! };
+}
+
+// Send a proposal back to the director with a required reason.
+export async function rejectProposal(id: string, reason: string): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, { status: 'rejected', decidedReason: reason });
 }
 
 export async function updateArchetypeProposalStatus(

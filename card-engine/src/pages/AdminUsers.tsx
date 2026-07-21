@@ -6,16 +6,28 @@ import {
   listUserCards,
   listUserLedger,
   deleteUserCard,
+  setUserRole,
   type AdminUserRow,
   type SystemStats,
+  type UserRole,
 } from '../services/persistence/adminService';
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
 import { CardRenderer } from '../components/CardRenderer';
-import { AdminPageDescription } from '../components/admin/AdminPageDescription';
+import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
+import {
+  AdminPage, AdminFilterBar, AdminField, AdminSelect, AdminButton,
+  AdminDataTable, AdminStatusBadge, AdminAlert, AdminCard, AdminEmptyState,
+  type AdminColumn,
+} from '../components/admin/ui';
 
 // Users destination. Shell (guard, sub-nav, header) is provided by
 // AdminShell — this page renders inside its Outlet.
+
+function fmtActivity(iso: string | null): string {
+  if (!iso || iso === '-infinity') return '—';
+  return new Date(iso).toLocaleString();
+}
 
 export function AdminUsers() {
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
@@ -51,213 +63,191 @@ export function AdminUsers() {
   const guestCount = users?.filter((u) => u.is_anonymous).length ?? 0;
   const selected = users?.find((u) => u.user_id === selectedUid) ?? null;
 
-  return (
-    <div>
-      <AdminPageDescription
-        title="Users — accounts + per-user drawer"
-        body={
-          'Every signed-in account (Supabase profiles row) plus the Google/email guest anonymous ones. ' +
-          'Guests hidden by default — flip "Show guests" to include them. Click a row to open a drawer with three tabs:\n\n' +
-          '• Currency — grant or deduct premium/gameplay balance with a required reason. Every adjustment writes an admin_adjustment row into economy_transactions and shows up in the ledger tab.\n' +
-          '• Cards — that user\'s active cards, with a per-card delete button (immediate + irreversible; a proper audit flow is in the plan).\n' +
-          '• Ledger — full economy_transactions history for that user.\n\n' +
-          'Aggregate totals shown next to the search bar. All admin-facing user reads go through the list_users_for_admin SECURITY DEFINER RPC.'
-        }
-      />
-      {loadError && (
-        <div className="mb-4 p-3 rounded text-sm" style={{ background: 'rgba(220,38,38,0.15)', color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.4)' }}>
-          {loadError}
+  const columns: AdminColumn<AdminUserRow>[] = [
+    {
+      key: 'email',
+      header: 'Email / UID',
+      render: (u) => (
+        <div className="min-w-0">
+          <div className="truncate" style={{ color: 'var(--admin-text)' }}>
+            {u.email ?? <span className="italic" style={{ color: 'var(--admin-text-muted)' }}>no email</span>}
+          </div>
+          <div className="text-[11px] font-mono truncate" style={{ color: 'var(--admin-text-muted)' }}>
+            {u.user_id.slice(0, 8)}… {u.is_anonymous && '· guest'}
+          </div>
         </div>
-      )}
+      ),
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      render: (u) =>
+        u.role === 'admin' ? (
+          <AdminStatusBadge tone="accent">admin</AdminStatusBadge>
+        ) : u.role === 'lore_director' ? (
+          <AdminStatusBadge tone="warning">lore director</AdminStatusBadge>
+        ) : (
+          <span style={{ color: 'var(--admin-text-muted)' }}>—</span>
+        ),
+    },
+    { key: 'cards', header: 'Cards', align: 'right', render: (u) => u.card_count },
+    { key: 'txns', header: 'Txns', align: 'right', secondary: true, render: (u) => u.txn_count },
+    { key: 'premium', header: 'Premium', align: 'right', render: (u) => u.premium_balance },
+    { key: 'gameplay', header: 'Gameplay', align: 'right', render: (u) => u.gameplay_balance },
+    { key: 'last', header: 'Last activity', secondary: true, render: (u) => <span style={{ color: 'var(--admin-text-muted)' }}>{fmtActivity(u.last_activity)}</span> },
+  ];
 
-      <div className="flex flex-wrap items-center gap-3 mb-3">
-        <input
-          type="search"
-          placeholder="Search email or uid…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 min-w-[12rem] max-w-sm px-3 py-2 rounded border text-sm bg-void/40 text-bone border-bone/20"
-        />
-        <label className="flex items-center gap-2 text-xs text-bone/70 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showGuests}
-            onChange={(e) => setShowGuests(e.target.checked)}
+  return (
+    <AdminPage
+      title="Users"
+      description="Every signed-in account plus Google/email guest anonymous sessions. Guests are hidden by default. Click a row to grant currency (required reason → admin_adjustment), review cards, or read the ledger."
+      actions={<AdminButton size="sm" onClick={refresh}>Refresh</AdminButton>}
+    >
+      {loadError && <AdminAlert tone="danger" className="mb-4">{loadError}</AdminAlert>}
+
+      <AdminFilterBar className="mb-3">
+        <div className="flex-1 min-w-[12rem] max-w-sm">
+          <AdminField
+            type="search"
+            placeholder="Search email or uid…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
+        </div>
+        <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--admin-text-muted)' }}>
+          <input type="checkbox" checked={showGuests} onChange={(e) => setShowGuests(e.target.checked)} />
           Show guests ({guestCount})
         </label>
-        <button
-          onClick={refresh}
-          className="text-xs px-3 py-1.5 rounded font-fantasy border border-bone/20 text-bone/80 hover:text-bone hover:border-bone/40"
-        >
-          Refresh
-        </button>
         {stats && (
-          <span className="text-xs text-bone/50">
+          <span className="text-xs ml-auto" style={{ color: 'var(--admin-text-muted)' }}>
             {stats.total_users} total · {stats.total_admins} admin
           </span>
         )}
-      </div>
+      </AdminFilterBar>
 
-      {/* Mobile: stacked cards. Desktop: table. */}
-      <div className="sm:hidden space-y-2">
-        {filtered === null && (
-          <div className="rounded border border-bone/15 p-4 text-center text-bone/60 text-sm">Loading…</div>
-        )}
-        {filtered && filtered.length === 0 && (
-          <div className="rounded border border-bone/15 p-4 text-center text-bone/60 text-sm">No users match.</div>
-        )}
-        {filtered?.map((u) => (
+      <AdminDataTable
+        columns={columns}
+        rows={filtered}
+        rowKey={(u) => u.user_id}
+        onRowClick={(u) => setSelectedUid(u.user_id)}
+        selectedKey={selectedUid ?? undefined}
+        emptyTitle="No users match"
+        emptyDescription="Adjust your search or toggle guests to see more."
+      />
+
+      <AdminPreviewPanel
+        open={Boolean(selected)}
+        onClose={() => setSelectedUid(null)}
+        title={selected?.email ?? 'Guest user'}
+        subtitle={selected?.user_id}
+      >
+        {selected && <UserDrawerBody user={selected} onMutated={refresh} />}
+      </AdminPreviewPanel>
+    </AdminPage>
+  );
+}
+
+type DrawerTab = 'currency' | 'role' | 'cards' | 'ledger';
+
+function UserDrawerBody({ user, onMutated }: { user: AdminUserRow; onMutated: () => void }) {
+  const [tab, setTab] = useState<DrawerTab>('currency');
+
+  const tabLabel = (t: DrawerTab) =>
+    t === 'currency' ? 'Currency'
+      : t === 'role' ? 'Role'
+      : t === 'cards' ? `Cards (${user.card_count})`
+      : `Ledger (${user.txn_count})`;
+
+  return (
+    <div>
+      <div className="flex gap-1 mb-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+        {(['currency', 'role', 'cards', 'ledger'] as const).map((t) => (
           <button
-            key={u.user_id}
-            onClick={() => setSelectedUid(u.user_id)}
-            className="w-full text-left rounded-lg border border-bone/15 bg-void/40 p-3 space-y-2 hover:bg-bone/5 transition-colors"
+            key={t}
+            onClick={() => setTab(t)}
+            className="px-3 py-2 text-sm -mb-px"
+            style={{
+              color: tab === t ? 'var(--admin-text)' : 'var(--admin-text-muted)',
+              borderBottom: tab === t ? '2px solid var(--admin-accent)' : '2px solid transparent',
+              fontWeight: tab === t ? 600 : 400,
+            }}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-bone">
-                  {u.email ?? <span className="text-bone/50 italic">no email</span>}
-                </div>
-                <div className="text-[10px] text-bone/40 font-mono truncate">
-                  {u.user_id.slice(0, 12)}… {u.is_anonymous && '· guest'}
-                </div>
-              </div>
-              {u.role === 'admin' && (
-                <span
-                  className="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold"
-                  style={{ background: 'rgba(155,182,179,0.2)', color: '#d6f2ec' }}
-                >
-                  ADMIN
-                </span>
-              )}
-            </div>
-            <div className="grid grid-cols-4 gap-1 text-[10px] text-bone/70">
-              <MobileStat label="Cards" value={u.card_count} />
-              <MobileStat label="Txns" value={u.txn_count} />
-              <MobileStat label="Prem" value={u.premium_balance} />
-              <MobileStat label="Gold" value={u.gameplay_balance} />
-            </div>
-            {u.last_activity && u.last_activity !== '-infinity' && (
-              <div className="text-[10px] text-bone/50">
-                Last: {new Date(u.last_activity).toLocaleString()}
-              </div>
-            )}
+            {tabLabel(t)}
           </button>
         ))}
       </div>
 
-      <div className="hidden sm:block overflow-x-auto rounded border border-bone/15">
-        <table className="w-full text-sm text-bone/90">
-          <thead className="bg-void/60 text-xs uppercase tracking-wider">
-            <tr>
-              <th className="text-left px-3 py-2">Email / UID</th>
-              <th className="text-left px-3 py-2">Role</th>
-              <th className="text-right px-3 py-2">Cards</th>
-              <th className="text-right px-3 py-2">Txns</th>
-              <th className="text-right px-3 py-2">Premium</th>
-              <th className="text-right px-3 py-2">Gameplay</th>
-              <th className="text-left px-3 py-2">Last activity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered === null && (
-              <tr><td colSpan={7} className="p-4 text-center text-bone/60">Loading…</td></tr>
-            )}
-            {filtered && filtered.length === 0 && (
-              <tr><td colSpan={7} className="p-4 text-center text-bone/60">No users match.</td></tr>
-            )}
-            {filtered?.map((u) => (
-              <tr
-                key={u.user_id}
-                className="border-t border-bone/10 hover:bg-bone/5 cursor-pointer"
-                onClick={() => setSelectedUid(u.user_id)}
-              >
-                <td className="px-3 py-2">
-                  <div>{u.email ?? <span className="text-bone/50 italic">no email</span>}</div>
-                  <div className="text-[10px] text-bone/40 font-mono">{u.user_id.slice(0, 8)}… {u.is_anonymous && '· guest'}</div>
-                </td>
-                <td className="px-3 py-2">
-                  {u.role === 'admin' && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold" style={{ background: 'rgba(155,182,179,0.2)', color: '#d6f2ec' }}>ADMIN</span>
-                  )}
-                </td>
-                <td className="px-3 py-2 text-right">{u.card_count}</td>
-                <td className="px-3 py-2 text-right">{u.txn_count}</td>
-                <td className="px-3 py-2 text-right">{u.premium_balance}</td>
-                <td className="px-3 py-2 text-right">{u.gameplay_balance}</td>
-                <td className="px-3 py-2 text-bone/60 text-xs">
-                  {u.last_activity && u.last_activity !== '-infinity' ? new Date(u.last_activity).toLocaleString() : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {selected && (
-        <UserDrawer
-          user={selected}
-          onClose={() => setSelectedUid(null)}
-          onMutated={refresh}
-        />
-      )}
+      {tab === 'currency' && <CurrencyTab user={user} onGranted={onMutated} />}
+      {tab === 'role' && <RoleTab user={user} onChanged={onMutated} />}
+      {tab === 'cards' && <CardsTab userId={user.user_id} onDeleted={onMutated} />}
+      {tab === 'ledger' && <LedgerTab userId={user.user_id} />}
     </div>
   );
 }
 
-function MobileStat({ label, value }: { label: string; value: number }) {
+const ROLE_OPTIONS: { value: UserRole; label: string; blurb: string }[] = [
+  { value: 'user', label: 'User', blurb: 'Standard player. No admin or workshop authority.' },
+  {
+    value: 'lore_director',
+    label: 'Lore Director',
+    blurb: 'Can file and work Archetype Workshop proposals, but cannot ship them or reach any other admin surface. Shipping stays admin-only.',
+  },
+  { value: 'admin', label: 'Admin', blurb: 'Full access — ships proposals, grants currency, assigns roles.' },
+];
+
+function RoleTab({ user, onChanged }: { user: AdminUserRow; onChanged: () => void }) {
+  const [role, setRole] = useState<UserRole>(user.role);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const dirty = role !== user.role;
+
+  async function submit() {
+    setError(null);
+    setSuccess(null);
+    setBusy(true);
+    try {
+      const result = await setUserRole(user.user_id, role);
+      setSuccess(`Role changed: ${result.old_role} → ${result.new_role}.`);
+      onChanged();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+      setRole(user.role);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="rounded bg-void/40 px-1.5 py-1 text-center">
-      <div className="uppercase tracking-wider text-bone/50">{label}</div>
-      <div className="font-fantasy text-sm font-bold text-bone">{value}</div>
-    </div>
-  );
-}
-
-type DrawerTab = 'currency' | 'cards' | 'ledger';
-
-function UserDrawer({
-  user,
-  onClose,
-  onMutated,
-}: {
-  user: AdminUserRow;
-  onClose: () => void;
-  onMutated: () => void;
-}) {
-  const [tab, setTab] = useState<DrawerTab>('currency');
-
-  return (
-    <div className="fixed inset-0 z-[80] flex justify-end" style={{ background: 'rgba(0,0,0,0.6)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-2xl h-full overflow-y-auto p-6"
-        style={{ background: '#1c1a17', color: '#f6ecd8', borderLeft: '1px solid rgba(246,236,216,0.15)' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <h2 className="font-fantasy text-lg font-bold">{user.email ?? <span className="italic text-bone/60">Guest user</span>}</h2>
-            <div className="text-[10px] font-mono text-bone/50">{user.user_id}</div>
-          </div>
-          <button onClick={onClose} className="text-bone/70 text-2xl leading-none" aria-label="Close">×</button>
-        </div>
-
-        <div className="flex gap-1 border-b border-bone/15 mb-4">
-          {(['currency', 'cards', 'ledger'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-3 py-2 font-fantasy text-sm ${tab === t ? 'border-b-2 border-power font-bold' : 'opacity-60'}`}
-            >
-              {t === 'currency' ? 'Currency' : t === 'cards' ? `Cards (${user.card_count})` : `Ledger (${user.txn_count})`}
-            </button>
-          ))}
-        </div>
-
-        {tab === 'currency' && <CurrencyTab user={user} onGranted={onMutated} />}
-        {tab === 'cards' && <CardsTab userId={user.user_id} onDeleted={onMutated} />}
-        {tab === 'ledger' && <LedgerTab userId={user.user_id} />}
+    <div className="space-y-3 text-sm">
+      <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+        Current role: <span style={{ color: 'var(--admin-text)', fontWeight: 600 }}>{user.role}</span>
       </div>
+      <div className="space-y-2">
+        {ROLE_OPTIONS.map((opt) => (
+          <label
+            key={opt.value}
+            className="flex gap-2 items-start rounded p-2 cursor-pointer"
+            style={{ border: '1px solid var(--admin-border)' }}
+          >
+            <input
+              type="radio"
+              className="mt-1"
+              checked={role === opt.value}
+              onChange={() => setRole(opt.value)}
+            />
+            <span>
+              <span style={{ color: 'var(--admin-text)', fontWeight: 600 }}>{opt.label}</span>
+              <span className="block text-xs" style={{ color: 'var(--admin-text-muted)' }}>{opt.blurb}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+      {success && <AdminAlert tone="success">{success}</AdminAlert>}
+      <AdminButton variant="primary" disabled={busy || !dirty} onClick={submit}>
+        {busy ? 'Saving…' : 'Save role'}
+      </AdminButton>
     </div>
   );
 }
@@ -303,57 +293,47 @@ function CurrencyTab({ user, onGranted }: { user: AdminUserRow; onGranted: () =>
   }
 
   return (
-    <div className="space-y-3 text-sm">
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded p-2 border border-bone/15">
-          <div className="text-bone/60 uppercase tracking-wider">Premium</div>
-          <div className="font-fantasy text-lg font-bold">{user.premium_balance}</div>
-        </div>
-        <div className="rounded p-2 border border-bone/15">
-          <div className="text-bone/60 uppercase tracking-wider">Gameplay</div>
-          <div className="font-fantasy text-lg font-bold">{user.gameplay_balance}</div>
-        </div>
+    <div className="space-y-4 text-sm">
+      <div className="grid grid-cols-2 gap-2">
+        <AdminCard surface="subtle">
+          <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>Premium</div>
+          <div className="text-lg font-bold" style={{ color: 'var(--admin-text)', fontVariantNumeric: 'tabular-nums' }}>{user.premium_balance}</div>
+        </AdminCard>
+        <AdminCard surface="subtle">
+          <div className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>Gameplay</div>
+          <div className="text-lg font-bold" style={{ color: 'var(--admin-text)', fontVariantNumeric: 'tabular-nums' }}>{user.gameplay_balance}</div>
+        </AdminCard>
       </div>
 
-      <div className="pt-2">
-        <div className="flex gap-2 mb-2">
-          <label className="flex items-center gap-1">
-            <input type="radio" checked={currency === 'premium'} onChange={() => setCurrency('premium')} />
-            <span>Premium</span>
-          </label>
-          <label className="flex items-center gap-1">
-            <input type="radio" checked={currency === 'gameplay'} onChange={() => setCurrency('gameplay')} />
-            <span>Gameplay</span>
-          </label>
-        </div>
-        <label className="block mb-2">
-          <span className="block text-xs uppercase tracking-wider text-bone/60 mb-1">Amount (negative to deduct)</span>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-2 py-1 rounded border bg-void/40 border-bone/20 text-bone"
-          />
-        </label>
-        <label className="block mb-2">
-          <span className="block text-xs uppercase tracking-wider text-bone/60 mb-1">Reason (required)</span>
-          <input
-            type="text"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="w-full px-2 py-1 rounded border bg-void/40 border-bone/20 text-bone"
-          />
-        </label>
-        {error && <div className="text-xs mb-2" style={{ color: '#f9c9c9' }}>{error}</div>}
-        {success && <div className="text-xs mb-2" style={{ color: '#c9f9d9' }}>{success}</div>}
-        <button
-          onClick={submit}
-          disabled={busy}
-          className="px-4 py-2 rounded font-fantasy font-bold text-sm"
-          style={{ background: '#8a1c1c', color: '#faeaca', opacity: busy ? 0.6 : 1 }}
+      <div className="space-y-3">
+        <AdminSelect
+          label="Currency"
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value as CurrencyId)}
         >
+          <option value="premium">Premium</option>
+          <option value="gameplay">Gameplay</option>
+        </AdminSelect>
+        <AdminField
+          label="Amount"
+          hint="Negative to deduct"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <AdminField
+          label="Reason"
+          required
+          hint="Written to the admin_adjustment ledger row"
+          type="text"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+        {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+        {success && <AdminAlert tone="success">{success}</AdminAlert>}
+        <AdminButton variant="primary" onClick={submit} disabled={busy}>
           {busy ? 'Applying…' : 'Apply adjustment'}
-        </button>
+        </AdminButton>
       </div>
     </div>
   );
@@ -371,9 +351,9 @@ function CardsTab({ userId, onDeleted }: { userId: string; onDeleted: () => void
   };
   useEffect(load, [userId]);
 
-  if (error) return <div className="text-sm" style={{ color: '#f9c9c9' }}>{error}</div>;
-  if (cards === null) return <div className="text-sm text-bone/60">Loading…</div>;
-  if (cards.length === 0) return <div className="text-sm text-bone/60">No cards.</div>;
+  if (error) return <AdminAlert tone="danger">{error}</AdminAlert>;
+  if (cards === null) return <div className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>Loading…</div>;
+  if (cards.length === 0) return <AdminEmptyState title="No cards" description="This user has no active cards." />;
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -382,7 +362,9 @@ function CardsTab({ userId, onDeleted }: { userId: string; onDeleted: () => void
           <div style={{ transform: 'scale(0.5)', transformOrigin: 'top center', height: 235 }}>
             <CardRenderer card={card} />
           </div>
-          <button
+          <AdminButton
+            variant="danger"
+            size="sm"
             onClick={async () => {
               if (!confirm(`Delete "${card.cardName}"? This is permanent.`)) return;
               try {
@@ -394,11 +376,9 @@ function CardsTab({ userId, onDeleted }: { userId: string; onDeleted: () => void
                 setError(e.message ?? String(err));
               }
             }}
-            className="text-xs px-2 py-1 rounded font-fantasy"
-            style={{ color: '#f9c9c9', border: '1px solid rgba(220,38,38,0.3)' }}
           >
             Delete
-          </button>
+          </AdminButton>
         </div>
       ))}
     </div>
@@ -416,42 +396,24 @@ function LedgerTab({ userId }: { userId: string }) {
       .catch((err) => setError(err?.message ?? String(err)));
   }, [userId]);
 
-  if (error) return <div className="text-sm" style={{ color: '#f9c9c9' }}>{error}</div>;
-  if (txns === null) return <div className="text-sm text-bone/60">Loading…</div>;
-  if (txns.length === 0) return <div className="text-sm text-bone/60">No transactions.</div>;
+  const columns: AdminColumn<EconomyTransaction>[] = [
+    { key: 'seq', header: 'Seq', render: (t) => <span className="font-mono">{t.sequence}</span> },
+    { key: 'type', header: 'Type', render: (t) => t.type },
+    { key: 'status', header: 'Status', secondary: true, render: (t) => t.status },
+    { key: 'currency', header: 'Currency', secondary: true, render: (t) => t.currency },
+    { key: 'amount', header: 'Amount', align: 'right', render: (t) => t.amount },
+    { key: 'balance', header: 'Balance', align: 'right', render: (t) => t.balanceAfter },
+    { key: 'when', header: 'When', secondary: true, render: (t) => <span style={{ color: 'var(--admin-text-muted)' }}>{new Date(t.createdAt).toLocaleString()}</span> },
+    { key: 'note', header: 'Note', secondary: true, render: (t) => <span style={{ color: 'var(--admin-text-muted)' }}>{t.metadata?.reason ?? t.metadata?.refundReason ?? t.actionId ?? t.rewardId ?? ''}</span> },
+  ];
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs text-bone/90">
-        <thead className="text-bone/60 uppercase tracking-wider">
-          <tr>
-            <th className="text-left px-2 py-1">Seq</th>
-            <th className="text-left px-2 py-1">Type</th>
-            <th className="text-left px-2 py-1">Status</th>
-            <th className="text-left px-2 py-1">Currency</th>
-            <th className="text-right px-2 py-1">Amount</th>
-            <th className="text-right px-2 py-1">Balance</th>
-            <th className="text-left px-2 py-1">When</th>
-            <th className="text-left px-2 py-1">Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {txns.map((t) => (
-            <tr key={t.transactionId} className="border-t border-bone/10">
-              <td className="px-2 py-1 font-mono">{t.sequence}</td>
-              <td className="px-2 py-1">{t.type}</td>
-              <td className="px-2 py-1">{t.status}</td>
-              <td className="px-2 py-1">{t.currency}</td>
-              <td className="px-2 py-1 text-right">{t.amount}</td>
-              <td className="px-2 py-1 text-right">{t.balanceAfter}</td>
-              <td className="px-2 py-1 text-bone/60">{new Date(t.createdAt).toLocaleString()}</td>
-              <td className="px-2 py-1 text-bone/70">
-                {t.metadata?.reason ?? t.metadata?.refundReason ?? t.actionId ?? t.rewardId ?? ''}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <AdminDataTable
+      columns={columns}
+      rows={txns}
+      rowKey={(t) => t.transactionId}
+      error={error}
+      emptyTitle="No transactions"
+    />
   );
 }

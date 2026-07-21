@@ -56,6 +56,23 @@ import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/p
  * no automatic disability erasure, no automatic beauty escalation.
  */
 
+/**
+ * P6 Seraph corruption arc — compact per-path visual anchors. Injected into
+ * the generation prompt only when the card is a Seraph whose narrative axis
+ * has resolved to a path. Kept short (prompt is near its char budget) and
+ * always deferred to rank: Foundation stays plain robes regardless of path;
+ * the path signs are earned Forged onward. Mirrors rankEvolution in
+ * data/archetypeBible/seraph.ts.
+ */
+const SERAPH_PATH_ANCHORS: Record<string, string> = {
+  good:
+    'GOOD PATH — gilded and white ceremonial regalia, radiant gold-and-white light, an intact halo; sacred authority earned through service.',
+  fallen:
+    'FALLEN PATH — blackened obsidian regalia, radiance replaced by molten black light (Infernal is molten obsidian + black light, NEVER fire-orange), a broken or inverted halo; forsaken authority. NO horned-red-imp, pentagram, or sexy-demoness cliché.',
+  balanced:
+    "BALANCED PATH — asymmetric split-crown regalia, half gold and half obsidian, mismatched wings; contested authority held on the razor's edge.",
+};
+
 const RANK_MEANINGS: Record<Rank, string> = {
   Foundation:
     'The beginning of their story arc — the character carries their identity into their first depicted battle. This is not a "novice" — they ALREADY command their power at high visible intensity, mid-signature-move. Their story continues from here.',
@@ -212,6 +229,13 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a floating fish swimming through the air',
     'a door standing alone in the background with nothing behind it',
     'a music-box lid open playing a silent tune',
+  ],
+  // Fallen-Seraph exclusive (P4). Kept sparse and tonally restrained —
+  // Infernal reads as damnation, not comedy.
+  Infernal: [
+    'a snuffed votive candle still smoking at their feet',
+    'a cracked oath-seal hanging from a chain on their belt',
+    'a single white feather charring at the edges as it falls',
   ],
 };
 
@@ -439,12 +463,49 @@ const ARCHETYPE_NON_HUMAN_FORMS: Record<ArchetypeName, string | null> = {
   Vampire:
     'the Vampire has stopped pretending to be human — true bat-features (elongated ears, wrinkled nose, exposed fangs), leathery wing-membranes from arms to torso, cloven or clawed feet, mid-mist-transformation. BODY-TYPE PRESERVED: heavyset = barrel-chested bat-lord with heavy wing-membrane and thick torso; gaunt = spectral bat-mist form with wispy limbs; muscular = massive bat-lord with heavy shoulders and powerful wing muscles; elderly = ancient vampire-lord with weathered skin and bone-thin gauntness; the underlying body class is kept',
   Lycanthrope:
-    'RANK PROGRESSION IS KEY for Lycans — the character starts mostly human and ENDS as a giant savage wolf. Foundation = MOSTLY HUMAN with only SUBTLE wolfish tells (yellow-gold eyes, slightly elongated canines showing when they smile or snarl, faintly pointed ears, prominent knuckles and jaw structure, hair color that hints at future fur color — NOTHING more transformed than that). Forged = beast features escalate visibly — fur along the forearms and jaw, elongated HANDS AND FEET with claws, digitigrade calves beginning, feral posture, wilder eyes; the hands and feet are where the transformation shows most; background acknowledges the beast (forest, moon, torn earth). Ascendant = giant savage wolf-form with digitigrade wolf-legs, thick fur covering the torso and face (fur color = the character\'s hair color exactly), elongated snout with fangs bared, savage claws, tail lashing — the human silhouette barely present. ABSOLUTELY NEVER WINGS at any rank. ABSOLUTELY NEVER HORNS at any rank — wolves do not have horns, and lycans NEVER have horns. NEVER antlers. NEVER angelic radiance. NEVER pretty or peaceful. BODY-TYPE PRESERVED: heavyset = dire-bear-wolf hybrid with massive shoulders; gaunt = lean sinewy wolf-form; muscular = alpha-wolf massive muscle build; elderly = grizzled silver-fur pack-elder; the underlying body class is kept',
+    'RANK PROGRESSION IS KEY for Lycans — the character starts mostly human and ENDS as a giant savage wolf. Foundation = MOSTLY HUMAN with only SUBTLE wolfish tells (yellow-gold eyes, slightly elongated canines showing when they smile or snarl, faintly pointed ears, prominent knuckles and jaw structure, hair color that hints at future fur color — NOTHING more transformed than that). Forged = beast features escalate visibly — fur along the forearms and jaw, elongated HANDS AND FEET with claws, digitigrade calves beginning, feral posture, wilder eyes; the hands and feet are where the transformation shows most; background acknowledges the beast (forest, moon, torn earth). Ascendant = a giant savage wolf standing squarely ON ALL FOUR legs with four paws planted firmly on the ground (exactly four legs — never three legs, never a missing, extra, or fused leg), the size of a horse, thick fur covering the whole body (fur color = the character\'s hair color exactly), elongated snout with fangs bared, savage claws, tail lashing — the human silhouette barely present. ABSOLUTELY NEVER WINGS at any rank. ABSOLUTELY NEVER HORNS at any rank — wolves do not have horns, and lycans NEVER have horns. NEVER antlers. NEVER angelic radiance. NEVER pretty or peaceful. BODY-TYPE PRESERVED: heavyset = dire-bear-wolf hybrid with massive shoulders; gaunt = lean sinewy wolf-form; muscular = alpha-wolf massive muscle build; elderly = grizzled silver-fur pack-elder; the underlying body class is kept',
   Android:
     'MOSTLY still humanoid with RETAINED HUMAN TOUCHPOINTS — the humanity is what keeps them sane. Visible anchors REQUIRED: a preserved human face, one still-human eye behind an optic, a remembered scar they refuse to remove, one intact human hand, a heirloom keepsake held tight, human tears, human breath-fog. At Foundation and Forged they should read MORE human than machine. Only at ASCENDANT does the humanoid form fully transcend — chrome-monstrosity, insectoid, multi-cored being, distributed-nanite mist, alien geometry. MACHINE-IDENTITY PRESERVATION (CRITICAL for tier-up): the CHASSIS SILHOUETTE, PLATE PATTERN, OPTIC COLOR, and RETAINED HUMAN TOUCHPOINTS (specific scar, preserved eye behind an optic, kept human hand, engraved maker\'s mark) are all identity anchors — they MUST be echoed VERBATIM across Foundation → Forged → Ascendant, the same way an organic character\'s face and hair are echoed. For Android and other machine archetypes, these anchors live inside hiddenFate.facialStructure (chassis silhouette + plate pattern), hiddenFate.hair (synthetic fiber crop / no hair / etc — WITH the exact color and cropping), hiddenFate.disabilityOrCondition (missing plate / damaged joint / etc), and hiddenFate.scars (dent locations / engraved marks / etc). Those fields are LOCKED across tier-up per Bible §Rank continuity — treat them as machine-identity locks. BODY-TYPE PRESERVED across all ranks: heavyset = tank-form; gaunt = spindle-form; muscular = juggernaut; elderly = weathered veteran-model; the underlying body class is kept',
   Seraph:
     'the winged celestial form — four to six massive feathered wings unfurled (baseline at any rank), a burning halo of gold or fire, extra eyes on the wings or the halo, skin glowing gold from within, feet that do not touch the ground, robes replaced by living light. BODY-TYPE PRESERVED: heavyset = massive winged guardian-angel with substantial body and heavy wing-mass; gaunt = ascetic ascension-form with thin body and delicate wings; muscular = warrior-angel with heavy wings and powerful frame; elderly = ancient watcher with weathered face beneath the halo; the underlying body class is kept',
 };
+
+/**
+ * Ascendant Lycanthrope pack backdrop (Tori, lore director, 2026-07-20 —
+ * proposal f67e3513, parked for Raheem). Only a pack-facing role shows the
+ * pack, so the wolves read as EARNED by the character's story rather than
+ * decorating every Ascendant card. Kept distant, silhouetted, and out of
+ * focus so it never fractures the single-subject framing or duplicates the
+ * protagonist. Gated by optionId (stable), not by answer text.
+ */
+const LYCAN_PACK_ADULT_ROLES = new Set<string>([
+  'lyc_p3_q1_a1', // Watcher
+  'lyc_p3_q1_a2', // Healer
+  'lyc_p3_q1_a5', // Warden
+  'lyc_p3_q1_a13', // Beta
+]);
+const LYCAN_PACK_PUP_ROLES = new Set<string>([
+  'lyc_p3_q1_a7', // Caretaker — raises the young as elders age out
+]);
+function lycanAscendantPackClause(
+  archetype: ArchetypeName,
+  overallRank: Rank,
+  answers: StoryPillarAnswers,
+): string {
+  if (archetype !== 'Lycanthrope' || overallRank !== 'Ascendant') return '';
+  const packRole = answers.answers.find((a) => a.questionId === 'lyc_p3_q1');
+  if (!packRole) return '';
+  const backdrop = (subject: string) =>
+    ` FAR BEHIND in the misty moonlit distance, ${subject}, silhouetted, small and out of focus — background scenery only, never a second main character, none sharing her exact fur color. `;
+  if (LYCAN_PACK_ADULT_ROLES.has(packRole.optionId)) {
+    return backdrop('a pack of ordinary darker wolves stands');
+  }
+  if (LYCAN_PACK_PUP_ROLES.has(packRole.optionId)) {
+    return backdrop('a few wolf pups and young wolves shelter and watch');
+  }
+  return '';
+}
+
 const DIVERSITY_CURSOR_KEY = 'card-engine-diversity-cursor';
 
 function pickDiversityAxis(archetype: ArchetypeName): string {
@@ -617,6 +678,8 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
   Ash: ', open flames replacing cold ash, active fire instead of aftermath, element changed from Ash',
   // Fire itself drifts toward generic orange blobs, not other elements.
   Fire: ', blue magic glow replacing fire, ice palette, element changed from Fire',
+  // Fallen-Seraph exclusive (P4). Infernal is molten obsidian + black light.
+  Infernal: ', generic orange fire replacing black-dominant infernal palette, campfire flames, holy radiance, white halo, element changed from Infernal',
 };
 
 /** Look up the drift-ban string for an element; empty string if none. */
@@ -749,9 +812,17 @@ function buildPrompt(input: {
   requiredPose?: string;
   elementQuirk?: string | null;
   retryAttempt?: number;
+  /** P6 Seraph corruption arc — resolved narrative-axis path (good/fallen/balanced). */
+  narrativeAxis?: { path: string };
 }): string {
   const { archetype, stats, answers, element, overallRank, existingName, existingHiddenFate, abilitySlotToFill, existingAbilityRefs } = input;
   const c = getBibleChapter(archetype);
+  // P6 — Seraph path anchor block. Only fires for a Seraph whose axis has
+  // resolved; other archetypes / legacy cards get an empty string.
+  const seraphPathBlock =
+    archetype === 'Seraph' && input.narrativeAxis?.path && SERAPH_PATH_ANCHORS[input.narrativeAxis.path]
+      ? `\n=== SERAPH ALIGNMENT PATH (${input.narrativeAxis.path}) ===\n${SERAPH_PATH_ANCHORS[input.narrativeAxis.path]}\nRANK GOVERNS VISIBILITY: Foundation stays plain unbleached robes with NO armor/halo/wings/horns/aura regardless of path; the path signs above are earned Forged onward. The six Orders are independent of this alignment axis.\n`
+      : '';
   const isEvolution = Boolean(existingName);
   const rankProgression = c.rankEvolution[overallRank];
   const continuityNote = c.rankEvolution.continuityNote ?? '';
@@ -900,7 +971,7 @@ Overall rank: ${overallRank}
 ${RANK_MEANINGS[overallRank]}
 Rank progression for this archetype: ${rankProgression}
 ${continuityNote ? `Continuity note: ${continuityNote}` : ''}
-
+${seraphPathBlock}
 === STATS ===
 ${formatStats(stats, archetype)}
 Dominant stat: ${getDominantStat(stats) ?? 'None (tied)'}
@@ -1105,6 +1176,12 @@ export interface GenerateCardTextInput {
    * by generateCardTextWithRetry; callers should NOT set this.
    */
   retryAttempt?: number;
+  /**
+   * P6/P7 Seraph corruption arc — the card's resolved narrative-axis state.
+   * When the archetype is Seraph and a path is present, the prompt injects a
+   * compact per-path visual anchor block. Ignored for other archetypes.
+   */
+  narrativeAxis?: { path: string };
 }
 
 export async function generateCardText(input: GenerateCardTextInput): Promise<GeneratedText> {
@@ -1130,6 +1207,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     requiredPose,
     elementQuirk,
     retryAttempt: input.retryAttempt,
+    narrativeAxis: input.narrativeAxis,
   });
 
   // M4.9 — Haiku for every forge (Foundation, Forged, Ascendant, regen).
@@ -1257,7 +1335,8 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       : '';
     // M4.9 — parsed.portraitPrompt is guaranteed present (M4.8 parse-guard
     // above throws if missing) so no fallback needed. Same for negativePrompt.
-    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${posePrefix}${elementPrefix}${parsed.portraitPrompt}`;
+    const packPrefix = lycanAscendantPackClause(input.archetype, overallRank, input.answers);
+    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${packPrefix}${posePrefix}${elementPrefix}${parsed.portraitPrompt}`;
     const portraitPrompt = truncateToLimit(rawPortraitPrompt, PORTRAIT_PROMPT_MAX);
     // M5.2 — belt+suspenders anti-warm-glow. If the element is NOT in the
     // fire family, aggressively strip any ember/warm-glow/fire language
@@ -1280,11 +1359,21 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     const elementDriftBans = input.existingHiddenFate
       ? buildElementDriftBans(input.element.element as ElementName)
       : '';
+    // Lycanthrope forced negative tail (Tori, proposal f67e3513). The live
+    // negative is Claude-authored and hard-truncated to NEGATIVE_PROMPT_MAX,
+    // so terms already in BASE_NEGATIVE (text, extra limbs) can silently fall
+    // off — which is how Tawhiri's Forged wolf shipped with three legs and
+    // baked-in lettering. Forcing a scoped tail guarantees the leg-count and
+    // anti-text bans reach Phoenix. Diffusion can't PROMISE zero baked text —
+    // the "no words" reject-if stays a human review gate at approval.
+    const lycanNegativeTail = input.archetype === 'Lycanthrope'
+      ? ', three-legged, missing leg, extra leg, fused legs, malformed hind leg, incorrect number of legs, letters, words, typography, caption'
+      : '';
     // Drift bans lead the tail: they're the most targeted fix and must
     // survive even when the combined tails exceed the budget (the warm-glow
     // list is belt+suspenders that BASE_NEGATIVE's M4.2 block already
     // partially covers, so it's the safe one to lose to truncation).
-    const appendedTails = elementDriftBans + warmGlowNegatives;
+    const appendedTails = elementDriftBans + lycanNegativeTail + warmGlowNegatives;
     const parsedNegative = truncateToLimit(
       parsed.negativePrompt ?? BASE_NEGATIVE,
       Math.max(NEGATIVE_PROMPT_MAX - appendedTails.length, 120),

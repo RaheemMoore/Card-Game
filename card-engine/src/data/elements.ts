@@ -50,6 +50,12 @@ type ArchetypeElementBuckets = {
 /**
  * Per Bible §Step 12 per archetype. Every element in ELEMENT_NAMES that is
  * not listed for a given archetype defaults to `not_available`.
+ *
+ * NOTE (P4 Seraph corruption arc): 'Infernal' is INTENTIONALLY absent from
+ * every archetype's buckets, including Seraph. It is the Fallen-Seraph-
+ * exclusive element and is only ever assigned by alignment transmutation at
+ * tier-up (Light → Infernal — see data/narrativeAxes/seraphAlignment.ts and
+ * services/tierUp.ts). It must NOT appear in the normal forge picker.
  */
 export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBuckets> = {
   Barbarian: {
@@ -84,9 +90,12 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     rare: ['Time', 'Void', 'Cosmic', 'Holy', 'Tech', 'Nature', 'Beast', 'Dream'],
   },
   Lycanthrope: {
-    naturally_compatible: ['Beast', 'Blood', 'Spirit', 'Wind', 'Earth', 'Nature', 'Moon'],
-    compatible_through_reinterpretation: ['Ice', 'Shadow', 'Water', 'Sound', 'Poison', 'Light'],
-    rare: ['Fire', 'Lightning', 'Metal', 'Time', 'Void', 'Cosmic', 'Holy', 'Tech', 'Psychic', 'Dream'],
+    // Layer-A canon re-gate (Tori, lore director, 2026-07-20 — parked for
+    // Raheem via proposal f67e3513). Lycan elements are either a natural fit
+    // (lunar/pack/wild) or Rare — there is deliberately NO middle tier.
+    naturally_compatible: ['Beast', 'Blood', 'Spirit', 'Moon', 'Earth'],
+    compatible_through_reinterpretation: [],
+    rare: ['Shadow', 'Poison', 'Ice', 'Dream'],
   },
   'Mech Pilot': {
     naturally_compatible: ['Tech', 'Lightning', 'Metal', 'Sound'],
@@ -173,6 +182,26 @@ const RARE_ELEMENT_TAG_HINTS: Partial<Record<ElementName, string[]>> = {
 };
 
 /**
+ * Per-archetype override of the global Rare-element tag hints. Use this when
+ * an element must be narratively gated for ONE archetype without changing its
+ * gating everywhere else. An entry here fully replaces the global hints for
+ * that (archetype, element) pair.
+ *
+ * Lycanthrope → Poison (Tori, lore director, 2026-07-20 — proposal f67e3513):
+ * the "Cook" pack-role answer earns Poison ("...the ones that heal and the
+ * ones that poison"). Poison has NO global hint entry, so gating it globally
+ * would also gate it for Mech Pilot / Android / Seraph / Human, where it is
+ * currently open. Scoping the hint here keeps those four untouched.
+ */
+const ARCHETYPE_RARE_TAG_HINTS: Partial<
+  Record<ArchetypeName, Partial<Record<ElementName, string[]>>>
+> = {
+  Lycanthrope: {
+    Poison: ['poison'],
+  },
+};
+
+/**
  * True when the player's Story Pillar answers narratively support this
  * Rare element per Bible §Element rarity gate A.
  *
@@ -188,7 +217,8 @@ export function elementIsNarrativelyEligible(
   if (bucket === 'not_available') return false;
   if (bucket !== 'rare') return true;
 
-  const hints = RARE_ELEMENT_TAG_HINTS[element];
+  const hints =
+    ARCHETYPE_RARE_TAG_HINTS[archetype]?.[element] ?? RARE_ELEMENT_TAG_HINTS[element];
   if (!hints || hints.length === 0) {
     // No mapped tags yet — err on the side of eligibility so future Bible
     // additions don't silently exclude an element. The weighted-discovery

@@ -44,6 +44,15 @@ function opt(
   return { id, questionId, text, tags };
 }
 
+/**
+ * P5 Seraph corruption arc — attach a narrative-axis alignment weight to an
+ * option. Weight is separate from thematic tags: +1 leans Good, -1 leans
+ * Fallen, 0 is Balanced-leaning. See services/narrativeAxisService.ts.
+ */
+function weigh(option: StoryPillarOption, alignmentWeight: number): StoryPillarOption {
+  return { ...option, alignmentWeight };
+}
+
 // ============================================================================
 // BARBARIAN
 // ============================================================================
@@ -438,17 +447,23 @@ const LYCANTHROPE_OPTIONS: StoryPillarOption[] = [
   opt('lyc_p2_q1_a8', 'lyc_p2_q1', 'A moon phase stitched into the hem of every garment I wear.', 'lunar', 'discipline'),
   opt('lyc_p2_q1_a9', 'lyc_p2_q1', 'A small mirror carried at the belt, catching moonlight when the sky is right.', 'lunar', 'sacred'),
   opt('lyc_p2_q1_a10', 'lyc_p2_q1', 'A ceremonial dagger my pack elder placed in my hand at fifteen.', 'lunar', 'inheritance'),
-  // P3Q1
+  // P3Q1 — pack roles. Layer-A rewrite (Tori, lore director, 2026-07-20 —
+  // proposal f67e3513, parked for Raheem). Some roles carry a Rare-element
+  // trigger word in their TEXT (the eligibility gate scans answer text):
+  //   Cook → 'poison' (Lycan-scoped, elements.ts ARCHETYPE_RARE_TAG_HINTS)
+  //   Tracker / Spy → 'secret' (global Shadow hint)
+  //   Caretaker → 'memory' (global Dream hint)
+  // Ascendant portrait pack-visibility is gated by optionId in claudeApi.ts
+  // (adults: a1/a2/a5/a13 · pups: a7 · none: a6/a9/a11/a12).
   opt('lyc_p3_q1_a1', 'lyc_p3_q1', 'Watcher — I stand awake through the long hours.', 'pack', 'protective'),
   opt('lyc_p3_q1_a2', 'lyc_p3_q1', 'Healer — the pack turns to me when the smaller wounds accumulate.', 'service', 'craft'),
-  opt('lyc_p3_q1_a3', 'lyc_p3_q1', 'Storyteller — I remember the pack out loud.', 'memory', 'legacy'),
-  opt('lyc_p3_q1_a4', 'lyc_p3_q1', 'Guide — I break the trail so the young can follow.', 'travel', 'stewardship'),
   opt('lyc_p3_q1_a5', 'lyc_p3_q1', 'Warden — I keep the boundary and its accounts.', 'guardian', 'boundary'),
-  opt('lyc_p3_q1_a6', 'lyc_p3_q1', 'Cook — everyone eats, whatever the day was.', 'service', 'kinship'),
-  opt('lyc_p3_q1_a7', 'lyc_p3_q1', 'Caretaker — the elders are mine when their pack ages out from under them.', 'kinship', 'service'),
-  opt('lyc_p3_q1_a8', 'lyc_p3_q1', 'Speaker — I am the mouth the pack sends to strangers.', 'service', 'confrontation'),
-  opt('lyc_p3_q1_a9', 'lyc_p3_q1', 'Scout — I go first and I come back.', 'travel', 'protective'),
-  opt('lyc_p3_q1_a10', 'lyc_p3_q1', 'Sitter of the fire — I hold the space where we come home.', 'kinship', 'stewardship'),
+  opt('lyc_p3_q1_a6', 'lyc_p3_q1', 'Cook — I know every root in the pot, the ones that heal and the ones that poison.', 'kinship', 'poison'),
+  opt('lyc_p3_q1_a7', 'lyc_p3_q1', 'Caretaker — the elders are mine when their pack ages out from under them; I keep their memory when they fade.', 'kinship', 'memory'),
+  opt('lyc_p3_q1_a9', 'lyc_p3_q1', 'Tracker — I follow the scent through every shadow, and keep what I find secret.', 'protective', 'secret'),
+  opt('lyc_p3_q1_a11', 'lyc_p3_q1', 'Spy — I walk other territories wearing another face, and keep my secrets close.', 'secret', 'confrontation'),
+  opt('lyc_p3_q1_a12', 'lyc_p3_q1', 'Rogue — none. No pack claims me; I run alone.', 'solitude', 'freedom'),
+  opt('lyc_p3_q1_a13', 'lyc_p3_q1', 'Beta — I answer to the one who leads, and the pack answers to me in turn.', 'pack', 'service'),
   // P3Q2
   opt('lyc_p3_q2_a1', 'lyc_p3_q2', 'I do not lie to them. Ever. About anything.', 'oath', 'trust'),
   opt('lyc_p3_q2_a2', 'lyc_p3_q2', 'They watched me refuse a promotion the day I earned it.', 'humility', 'trust'),
@@ -584,56 +599,68 @@ const ANDROID_OPTIONS: StoryPillarOption[] = [
 
 const SERAPH_QUESTIONS: StoryPillarQuestion[] = [
   { id: 'ser_p1_q1', pillarIndex: 1, prompt: 'What truth guides your soul?' },
-  { id: 'ser_p2_q1', pillarIndex: 2, prompt: 'Who has your oath been sworn to?' },
+  { id: 'ser_p2_q1', pillarIndex: 2, prompt: 'How do you hold your oath?' },
   { id: 'ser_p3_q1', pillarIndex: 3, prompt: 'What darkness do you stand against?' },
   { id: 'ser_p3_q2', pillarIndex: 3, prompt: 'Why is this burden yours to carry?', followUp: true, parentId: 'ser_p3_q1' },
 ];
 
 const SERAPH_OPTIONS: StoryPillarOption[] = [
-  // P1Q1
-  opt('ser_p1_q1_a1', 'ser_p1_q1', 'Mercy without spectacle. Quietly, in a room, with time.', 'faith', 'service'),
-  opt('ser_p1_q1_a2', 'ser_p1_q1', 'Justice heard from every side, then rendered.', 'oath', 'service'),
-  opt('ser_p1_q1_a3', 'ser_p1_q1', 'A promise that hope belongs to the powerless first.', 'hope', 'service'),
-  opt('ser_p1_q1_a4', 'ser_p1_q1', 'The vow: I will not become a weapon.', 'oath', 'restraint'),
-  opt('ser_p1_q1_a5', 'ser_p1_q1', 'Light offered, not imposed.', 'sacred', 'service'),
-  opt('ser_p1_q1_a6', 'ser_p1_q1', 'A single guiding truth passed to me by my order.', 'inheritance', 'oath'),
-  opt('ser_p1_q1_a7', 'ser_p1_q1', 'A discipline of witness — I will not look away.', 'oath', 'service'),
-  opt('ser_p1_q1_a8', 'ser_p1_q1', 'Compassion for the specific person, not the abstract cause.', 'service', 'kinship'),
-  opt('ser_p1_q1_a9', 'ser_p1_q1', 'A refusal to convert. I bring water, not a doctrine.', 'restraint', 'service'),
-  opt('ser_p1_q1_a10', 'ser_p1_q1', 'The truth that I am not the light, only its carrier.', 'humility', 'sacred'),
-  // P2Q1
-  opt('ser_p2_q1_a1', 'ser_p2_q1', 'An order older than any nation, and to no one within it.', 'oath', 'sacred'),
-  opt('ser_p2_q1_a2', 'ser_p2_q1', 'A specific mortal who once did what I could not.', 'kinship', 'oath'),
-  opt('ser_p2_q1_a3', 'ser_p2_q1', 'A hospital I no longer serve at, but still carry.', 'service', 'grief'),
-  opt('ser_p2_q1_a4', 'ser_p2_q1', 'The dead of a war that has no other witnesses left.', 'memory', 'oath'),
-  opt('ser_p2_q1_a5', 'ser_p2_q1', 'A community that shelters me now, without knowing why.', 'kinship', 'oath'),
-  opt('ser_p2_q1_a6', 'ser_p2_q1', 'A student I taught who chose the harder path because of me.', 'service', 'oath'),
-  opt('ser_p2_q1_a7', 'ser_p2_q1', 'A family I have never met, protected by a promise I inherited.', 'inheritance', 'oath'),
-  opt('ser_p2_q1_a8', 'ser_p2_q1', 'The version of me I was, before the oath.', 'oath', 'memory'),
-  opt('ser_p2_q1_a9', 'ser_p2_q1', 'A prisoner I refused to judge without hearing them.', 'oath', 'confrontation'),
-  opt('ser_p2_q1_a10', 'ser_p2_q1', 'No one — the oath speaks for itself.', 'oath', 'restraint'),
-  // P3Q1
-  opt('ser_p3_q1_a1', 'ser_p3_q1', 'The despair that follows a plague nobody names.', 'grief', 'confrontation'),
-  opt('ser_p3_q1_a2', 'ser_p3_q1', 'The injustice built into how our courts are run.', 'confrontation', 'oath'),
-  opt('ser_p3_q1_a3', 'ser_p3_q1', 'A doctrine that has stopped listening to the people it was made for.', 'confrontation', 'faith'),
-  opt('ser_p3_q1_a4', 'ser_p3_q1', 'A war I refused to sanctify.', 'confrontation', 'restraint'),
-  opt('ser_p3_q1_a5', 'ser_p3_q1', 'The corruption inside my own order.', 'confrontation', 'humility'),
-  opt('ser_p3_q1_a6', 'ser_p3_q1', 'A specific person whose power has outgrown any check.', 'confrontation', 'restraint'),
-  opt('ser_p3_q1_a7', 'ser_p3_q1', 'The forgetting — communities losing the memory of their dead.', 'memory', 'grief'),
-  opt('ser_p3_q1_a8', 'ser_p3_q1', 'A hunger for spectacle that has replaced patience for repair.', 'confrontation', 'restraint'),
-  opt('ser_p3_q1_a9', 'ser_p3_q1', 'The temptation, in myself, to accept easy authority.', 'restraint', 'humility'),
-  opt('ser_p3_q1_a10', 'ser_p3_q1', 'A silence in the towns nearest to where I was born.', 'grief', 'silence'),
-  // P3Q2
-  opt('ser_p3_q2_a1', 'ser_p3_q2', 'I was the person nearest when the burden fell.', 'oath', 'burden'),
-  opt('ser_p3_q2_a2', 'ser_p3_q2', 'It was my teacher\'s, before it was mine.', 'inheritance', 'oath'),
-  opt('ser_p3_q2_a3', 'ser_p3_q2', 'No one else was willing. Someone had to be.', 'burden', 'service'),
-  opt('ser_p3_q2_a4', 'ser_p3_q2', 'I made a promise once. I do not intend to break it.', 'oath', 'restraint'),
-  opt('ser_p3_q2_a5', 'ser_p3_q2', 'I owe it to a specific person who trusted me.', 'kinship', 'oath'),
-  opt('ser_p3_q2_a6', 'ser_p3_q2', 'It is the shape my order gave me. Refusing it would refuse them.', 'inheritance', 'oath'),
-  opt('ser_p3_q2_a7', 'ser_p3_q2', 'I have failed at it before, and I do not intend to fail the same way twice.', 'humility', 'oath'),
-  opt('ser_p3_q2_a8', 'ser_p3_q2', 'It is the only weight I can carry without becoming something else.', 'restraint', 'oath'),
-  opt('ser_p3_q2_a9', 'ser_p3_q2', 'A dream told me. My order does not doubt those, and neither do I.', 'sacred', 'inheritance'),
-  opt('ser_p3_q2_a10', 'ser_p3_q2', 'I do not know. I keep carrying it anyway.', 'humility', 'burden'),
+  // P1Q1 — 'What truth guides your soul?' (P5-tagged for narrative-axis alignment)
+  weigh(opt('ser_p1_q1_a1', 'ser_p1_q1', 'Mercy without spectacle. Quietly, in a room, with time.', 'faith', 'service'), 1),
+  weigh(opt('ser_p1_q1_a2', 'ser_p1_q1', 'Justice heard from every side, then rendered.', 'oath', 'service'), 0),
+  weigh(opt('ser_p1_q1_a3', 'ser_p1_q1', 'A promise that hope belongs to the powerless first.', 'hope', 'service'), 1),
+  weigh(opt('ser_p1_q1_a4', 'ser_p1_q1', 'The vow: I will not become a weapon.', 'oath', 'restraint'), 1),
+  weigh(opt('ser_p1_q1_a5', 'ser_p1_q1', 'Light offered, not imposed.', 'sacred', 'service'), 1),
+  weigh(opt('ser_p1_q1_a6', 'ser_p1_q1', 'A single guiding truth passed to me by my order.', 'inheritance', 'oath'), 1),
+  weigh(opt('ser_p1_q1_a7', 'ser_p1_q1', 'A discipline of witness — I will not look away.', 'oath', 'service'), 1),
+  weigh(opt('ser_p1_q1_a8', 'ser_p1_q1', 'Compassion for the specific person, not the abstract cause.', 'service', 'kinship'), 1),
+  weigh(opt('ser_p1_q1_a9', 'ser_p1_q1', 'A refusal to convert. I bring water, not a doctrine.', 'restraint', 'service'), 0),
+  weigh(opt('ser_p1_q1_a10', 'ser_p1_q1', 'The truth that I am not the light, only its carrier.', 'humility', 'sacred'), 1),
+  weigh(opt('ser_p1_q1_a11', 'ser_p1_q1', 'Judgment delayed is judgment denied. I no longer wait.', 'confrontation', 'oath'), -1),
+  weigh(opt('ser_p1_q1_a12', 'ser_p1_q1', 'Order must be imposed before it can be offered.', 'confrontation', 'oath'), -1),
+  weigh(opt('ser_p1_q1_a13', 'ser_p1_q1', 'The wicked forfeit mercy the moment they choose to be wicked.', 'confrontation', 'restraint'), -1),
+  weigh(opt('ser_p1_q1_a14', 'ser_p1_q1', 'Fear teaches faster than hope. I have made peace with that.', 'confrontation', 'burden'), -1),
+  weigh(opt('ser_p1_q1_a15', 'ser_p1_q1', 'Mercy and judgment are the same act, seen from different sides.', 'faith', 'restraint'), 0),
+  weigh(opt('ser_p1_q1_a16', 'ser_p1_q1', 'I hold the scale, not either pan.', 'restraint', 'humility'), 0),
+  // P2Q1 — 'How do you hold your oath?' (P5 — prompt + options replaced)
+  weigh(opt('ser_p2_q1_a1', 'ser_p2_q1', 'Gently — it serves people, never the reverse.', 'service', 'humility'), 1),
+  weigh(opt('ser_p2_q1_a2', 'ser_p2_q1', 'As a shelter I build around whoever needs it.', 'service', 'protective'), 1),
+  weigh(opt('ser_p2_q1_a3', 'ser_p2_q1', 'Quietly — for a hospital I no longer serve at, but still carry.', 'service', 'grief'), 1),
+  weigh(opt('ser_p2_q1_a4', 'ser_p2_q1', 'As the last witness for a war\'s dead — I will not look away.', 'memory', 'oath'), 1),
+  weigh(opt('ser_p2_q1_a5', 'ser_p2_q1', 'Like a debt to the person I was before it.', 'oath', 'memory'), 0),
+  weigh(opt('ser_p2_q1_a6', 'ser_p2_q1', 'Loosely enough to question it, tightly enough to keep it.', 'restraint', 'humility'), 0),
+  weigh(opt('ser_p2_q1_a7', 'ser_p2_q1', 'As a blade — an oath unused is an oath betrayed.', 'confrontation', 'oath'), -1),
+  weigh(opt('ser_p2_q1_a8', 'ser_p2_q1', 'Absolutely. Those who break theirs will answer to mine.', 'confrontation', 'oath'), -1),
+  weigh(opt('ser_p2_q1_a9', 'ser_p2_q1', 'As the only law that survived my faith.', 'confrontation', 'grief'), -1),
+  weigh(opt('ser_p2_q1_a10', 'ser_p2_q1', 'It holds me. I stopped being the one holding long ago.', 'burden', 'grief'), -1),
+  // P3Q1 — 'What darkness do you stand against?'
+  weigh(opt('ser_p3_q1_a1', 'ser_p3_q1', 'The despair that follows a plague nobody names.', 'grief', 'confrontation'), 1),
+  weigh(opt('ser_p3_q1_a2', 'ser_p3_q1', 'The injustice built into how our courts are run.', 'confrontation', 'oath'), 1),
+  weigh(opt('ser_p3_q1_a3', 'ser_p3_q1', 'A doctrine that has stopped listening to the people it was made for.', 'confrontation', 'faith'), 1),
+  weigh(opt('ser_p3_q1_a4', 'ser_p3_q1', 'A war I refused to sanctify.', 'confrontation', 'restraint'), 1),
+  weigh(opt('ser_p3_q1_a5', 'ser_p3_q1', 'The corruption inside my own order.', 'confrontation', 'humility'), 1),
+  weigh(opt('ser_p3_q1_a6', 'ser_p3_q1', 'A specific person whose power has outgrown any check.', 'confrontation', 'restraint'), 1),
+  weigh(opt('ser_p3_q1_a7', 'ser_p3_q1', 'The forgetting — communities losing the memory of their dead.', 'memory', 'grief'), 1),
+  weigh(opt('ser_p3_q1_a8', 'ser_p3_q1', 'A hunger for spectacle that has replaced patience for repair.', 'confrontation', 'restraint'), 1),
+  weigh(opt('ser_p3_q1_a9', 'ser_p3_q1', 'The temptation, in myself, to accept easy authority.', 'restraint', 'humility'), 0),
+  weigh(opt('ser_p3_q1_a10', 'ser_p3_q1', 'A silence in the towns nearest to where I was born.', 'grief', 'silence'), 1),
+  weigh(opt('ser_p3_q1_a11', 'ser_p3_q1', 'The corruption inside my own order — and I have started to see its logic.', 'confrontation', 'burden'), -1),
+  weigh(opt('ser_p3_q1_a12', 'ser_p3_q1', 'A tyrant whose methods I condemn and whose results I envy.', 'confrontation', 'burden'), -1),
+  weigh(opt('ser_p3_q1_a13', 'ser_p3_q1', 'Whatever darkness stands nearest. I stopped ranking them.', 'confrontation', 'restraint'), 0),
+  weigh(opt('ser_p3_q1_a14', 'ser_p3_q1', 'The despair of the powerless — though I have begun to wonder if some earn it.', 'grief', 'confrontation'), -1),
+  // P3Q2 — 'Why is this burden yours to carry?' (follow-up)
+  weigh(opt('ser_p3_q2_a1', 'ser_p3_q2', 'I was the person nearest when the burden fell.', 'oath', 'burden'), 0),
+  weigh(opt('ser_p3_q2_a2', 'ser_p3_q2', 'It was my teacher\'s, before it was mine.', 'inheritance', 'oath'), 0),
+  weigh(opt('ser_p3_q2_a3', 'ser_p3_q2', 'No one else was willing. Someone had to be.', 'burden', 'service'), 1),
+  weigh(opt('ser_p3_q2_a4', 'ser_p3_q2', 'I made a promise once. I do not intend to break it.', 'oath', 'restraint'), 0),
+  weigh(opt('ser_p3_q2_a5', 'ser_p3_q2', 'I owe it to a specific person who trusted me.', 'kinship', 'oath'), 1),
+  weigh(opt('ser_p3_q2_a6', 'ser_p3_q2', 'It is the shape my order gave me. Refusing it would refuse them.', 'inheritance', 'oath'), 0),
+  weigh(opt('ser_p3_q2_a7', 'ser_p3_q2', 'I have failed at it before, and I do not intend to fail the same way twice.', 'humility', 'oath'), 0),
+  weigh(opt('ser_p3_q2_a8', 'ser_p3_q2', 'It is the only weight I can carry without becoming something else.', 'restraint', 'oath'), 0),
+  weigh(opt('ser_p3_q2_a9', 'ser_p3_q2', 'A dream told me. My order does not doubt those, and neither do I.', 'sacred', 'inheritance'), 0),
+  weigh(opt('ser_p3_q2_a10', 'ser_p3_q2', 'I do not know. I keep carrying it anyway.', 'humility', 'burden'), 0),
+  weigh(opt('ser_p3_q2_a11', 'ser_p3_q2', 'Because I was denied justice once, and I will not be denied again.', 'confrontation', 'burden'), -1),
+  weigh(opt('ser_p3_q2_a12', 'ser_p3_q2', 'Because whoever carries it decides what it becomes.', 'confrontation', 'oath'), -1),
 ];
 
 // ============================================================================
