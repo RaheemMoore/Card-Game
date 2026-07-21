@@ -487,6 +487,28 @@ export async function rejectProposal(id: string, reason: string): Promise<Archet
   return updateArchetypeProposalStatus(id, { status: 'rejected', decidedReason: reason });
 }
 
+// Admin-only: resolve a proposal whose change already landed out-of-band (no PR
+// merge through the app). Reuses the terminal `shipped` status so the row leaves
+// every alert surface (Overview inbox, Workshop pending panel) and appears in the
+// Resolved strip. RLS lets an admin set `shipped` freely (is_admin bypass).
+export async function markProposalImplemented(
+  id: string,
+  reason?: string,
+): Promise<ArchetypeProposal> {
+  return updateArchetypeProposalStatus(id, {
+    status: 'shipped',
+    decidedReason: reason ?? 'Marked as already implemented (outside the PR flow).',
+  });
+}
+
+// Admin-only hard delete — for test/junk rows. The admin-only DELETE RLS policy
+// on archetype_proposals (is_admin()) already permits this; no server endpoint
+// is needed.
+export async function deleteArchetypeProposal(id: string): Promise<void> {
+  const { error } = await client().from('archetype_proposals').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export async function updateArchetypeProposalStatus(
   id: string,
   patch: { status: ProposalStatus; commitSha?: string; decidedReason?: string },

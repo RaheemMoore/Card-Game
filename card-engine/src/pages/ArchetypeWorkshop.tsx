@@ -9,6 +9,8 @@ import {
   approveProposal,
   rejectProposal,
   shipProposal,
+  markProposalImplemented,
+  deleteArchetypeProposal,
   getCardForAdmin,
   checkApprovalReadiness,
 } from '../services/persistence/adminService';
@@ -495,9 +497,90 @@ function PendingRow({
               </div>
             </div>
           )}
+
+          {isAdmin && !rejecting && <ProposalAdminActions proposal={p} onChanged={onDecided} />}
         </div>
       )}
     </li>
+  );
+}
+
+// Admin-only cleanup controls for a proposal. "Mark implemented" resolves a
+// proposal whose change already landed out-of-band (no PR merge through the app)
+// by moving it to the terminal `shipped` state, so it leaves every alert surface
+// and lands in the Resolved strip. "Delete" hard-removes a test/junk row (two-
+// step confirm). Rendered in both the pending-approval queue and the recent-
+// proposals list so a stuck proposal can be cleared wherever it surfaces.
+function ProposalAdminActions({
+  proposal: p,
+  onChanged,
+}: {
+  proposal: ArchetypeProposal;
+  onChanged: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isTerminal = p.status === 'shipped' || p.status === 'rejected';
+
+  async function run(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      onChanged();
+    } catch (err) {
+      setError((err as { message?: string })?.message ?? String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="pt-2 mt-2 space-y-2" style={{ borderTop: '1px solid var(--admin-border)' }}>
+      <div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+        Admin cleanup
+      </div>
+      {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+      {!confirmingDelete ? (
+        <div className="flex flex-wrap gap-2">
+          {!isTerminal && (
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              disabled={busy}
+              onClick={() => run(() => markProposalImplemented(p.id))}
+              title="Resolve a proposal whose change already landed. Moves it to shipped and out of the alert lists."
+            >
+              {busy ? 'Working…' : 'Mark implemented'}
+            </AdminButton>
+          )}
+          <AdminButton variant="danger" size="sm" disabled={busy} onClick={() => setConfirmingDelete(true)}>
+            Delete
+          </AdminButton>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <div className="text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+            Permanently delete this proposal? This can’t be undone.
+          </div>
+          <div className="flex gap-2">
+            <AdminButton
+              variant="danger"
+              size="sm"
+              disabled={busy}
+              onClick={() => run(() => deleteArchetypeProposal(p.id))}
+            >
+              {busy ? 'Deleting…' : 'Confirm delete'}
+            </AdminButton>
+            <AdminButton variant="ghost" size="sm" disabled={busy} onClick={() => setConfirmingDelete(false)}>
+              Cancel
+            </AdminButton>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1489,6 +1572,7 @@ function ProposalsList({
                         payloadError={payloadErrors[p.id]}
                       />
                       <SendForApproval proposal={p} payload={payloads[p.id]} viewerRole={viewerRole} onChanged={onChanged} />
+                      {viewerRole === 'admin' && <ProposalAdminActions proposal={p} onChanged={onChanged} />}
                     </div>
                   )}
                 </li>
