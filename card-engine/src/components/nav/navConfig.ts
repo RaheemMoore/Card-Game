@@ -10,6 +10,7 @@ export const primaryNav: NavItem[] = [
   { to: '/collection', label: 'Collection', icon: '🂠' },
   { to: '/codex', label: 'Codex', icon: '📖' },
   { to: '/battle', label: 'Battle', icon: '⚔' },
+  { to: '/minigames/forge-strike', label: 'Strike', icon: '🔥' },
 ];
 
 export const adminNav: NavItem = { to: '/admin', label: 'Admin', icon: '🛡', adminOnly: true };
