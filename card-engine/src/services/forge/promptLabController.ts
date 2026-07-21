@@ -97,6 +97,12 @@ function freshState(): LabChainState {
 
 let state: LabChainState = hydrate();
 
+// Bumped whenever the chain is cleared. An in-flight runTier() captures the
+// epoch at start and refuses to write its result back once the epoch has moved
+// on, so resetting mid-run (or starting a fresh chain) can't be undone by a
+// zombie generation resolving late. See runTier().
+let epoch = 0;
+
 export function getState(): LabChainState {
   return state;
 }
@@ -203,6 +209,8 @@ export function setTierSlot(tier: Rank, slot: TierSlot): void {
 }
 
 export function resetChain(): void {
+  // Invalidate any in-flight run so its late result can't repopulate the chain.
+  epoch += 1;
   setState({
     batchId: null,
     foundation: { phase: 'idle' },
@@ -225,9 +233,17 @@ export async function runTier(
   priorRunId: string | undefined,
   onPersisted?: () => void,
 ): Promise<void> {
+  const myEpoch = epoch;
+  const stale = () => myEpoch !== epoch;
+  // Only mutate the chain while this run still owns it; a resetChain() (or a
+  // fresh chain) mid-flight bumps the epoch and turns these writes into no-ops.
+  const setSlot = (slot: TierSlot) => {
+    if (!stale()) setTierSlot(tier, slot);
+  };
+
   const { archetype, answers, element, bond, intent, batchId } = state;
   try {
-    setTierSlot(tier, { phase: 'running', step: 'Generating Claude text…' });
+    setSlot({ phase: 'running', step: 'Generating Claude text…' });
     const stats = makeTierStats(archetype, tier);
     const elementSelection = buildSelection(archetype, element, bond);
     const startedAt = Date.now();
@@ -241,14 +257,14 @@ export async function runTier(
       existingHiddenFate: priorTier?.hiddenFate,
     });
 
-    setTierSlot(tier, { phase: 'running', step: 'Generating Leonardo portrait…' });
+    setSlot({ phase: 'running', step: 'Generating Leonardo portrait…' });
     const { dataUrl } = await generatePortraitStrict(
       claudeResult.portraitPrompt,
       claudeResult.negativePrompt ?? '',
     );
     const durationMs = Date.now() - startedAt;
 
-    setTierSlot(tier, { phase: 'running', step: 'Persisting run…' });
+    setSlot({ phase: 'running', step: 'Persisting run…' });
     const persisted = await postRecord({
       batchId,
       archetype,
@@ -269,9 +285,17 @@ export async function runTier(
       durationMs,
       ensureBatch: intent ? { intent } : undefined,
     });
+    // The run's paid record is saved regardless — refresh the Sessions grid so
+    // the evidence card is visible even if the chain was cleared mid-run. But
+    // don't restore batchId or the tier slot into a chain that's moved on.
+    if (stale()) {
+      onPersisted?.();
+      return;
+    }
+
     if (!state.batchId) setState({ batchId: persisted.batchId });
 
-    setTierSlot(tier, {
+    setSlot({
       phase: 'done',
       result: {
         runId: persisted.runId,
@@ -288,7 +312,7 @@ export async function runTier(
     });
     onPersisted?.();
   } catch (err) {
-    setTierSlot(tier, { phase: 'error', message: err instanceof Error ? err.message : String(err) });
+    setSlot({ phase: 'error', message: err instanceof Error ? err.message : String(err) });
   }
 }
 
