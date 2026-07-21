@@ -38,11 +38,11 @@ export function EnergySurge({ seq, grade, streak, color }: EnergySurgeProps) {
   if (!seq || (grade !== 'good' && grade !== 'perfect')) return null;
 
   const I = intensityOf(grade, streak);
-  const rise = 150 + I * 150;
-  const coreW = (grade === 'perfect' ? 9 : 6) + I * 13;
+  const rise = 130 + I * 120;
+  const coreW = (grade === 'perfect' ? 8 : 5) + I * 10;
   const beamCount = 1 + Math.round(I * 4); // 1..5
   const moteCount = Math.min(MAX_MOTES, Math.round(8 + I * 14));
-  const glow = 8 + I * 18;
+  const glow = 5 + I * 10;
 
   const beams = Array.from({ length: beamCount }, (_, k) => {
     if (k === 0) {
@@ -78,14 +78,15 @@ export function EnergySurge({ seq, grade, streak, color }: EnergySurgeProps) {
       style={{ width: 220, height: rise }}
       aria-hidden="true"
     >
-      {/* Base flare — the eruption point */}
+      {/* Base flare — the eruption point. Stat-colored, no white core, so it
+          reads as forge light instead of washing out the backdrop. */}
       <div
         className="fs-baseflare absolute bottom-0 rounded-full"
         style={{
           left: '50%',
-          width: 56 + I * 90,
-          height: 26 + I * 44,
-          background: `radial-gradient(ellipse at center, #fff 0%, ${color} 35%, transparent 72%)`,
+          width: 44 + I * 66,
+          height: 20 + I * 32,
+          background: `radial-gradient(ellipse at center, ${color}ee 0%, ${color}66 40%, transparent 70%)`,
           filter: 'blur(3px)',
         }}
       />
@@ -99,9 +100,9 @@ export function EnergySurge({ seq, grade, streak, color }: EnergySurgeProps) {
             left: C + b.offset - b.width / 2,
             width: b.width,
             height: rise,
-            background: `linear-gradient(to top, #ffffff 0%, ${color} ${b.core ? 22 : 30}%, ${color}00 100%)`,
+            background: `linear-gradient(to top, ${color}f0 0%, ${color} ${b.core ? 22 : 30}%, ${color}00 100%)`,
             boxShadow: `0 0 ${glow}px ${color}`,
-            opacity: b.core ? 1 : 0.8,
+            opacity: b.core ? 0.95 : 0.7,
             ['--rise' as string]: `${rise}px`,
             ['--dur' as string]: `${b.dur}ms`,
             animationDelay: `${b.delay}ms`,
@@ -118,8 +119,9 @@ export function EnergySurge({ seq, grade, streak, color }: EnergySurgeProps) {
             left: m.left,
             width: m.size,
             height: m.size,
-            background: m.white ? '#fff' : color,
+            background: color,
             boxShadow: `0 0 6px ${color}`,
+            opacity: m.white ? 0.95 : 0.8,
             ['--mrise' as string]: `${m.mrise}px`,
             ['--mdx' as string]: `${m.dx}px`,
             ['--dur' as string]: `${m.dur}ms`,

@@ -246,7 +246,9 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
         className="absolute inset-0 pointer-events-none transition-all duration-700"
         aria-hidden="true"
         style={{
-          background: `radial-gradient(ellipse 60% 45% at 50% 74%, ${glow}${Math.round((0.18 + run.heat * 0.4) * 255).toString(16).padStart(2, '0')} 0%, transparent 60%)`,
+          background: `radial-gradient(ellipse 48% 36% at 50% 74%, ${glow}${Math.round((0.12 + run.heat * 0.22) * 255)
+            .toString(16)
+            .padStart(2, '0')} 0%, transparent 58%)`,
         }}
       />
 
@@ -380,11 +382,11 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
                 key={`bloom-${strikeSeq}`}
                 className="fs-cardbloom absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                 style={{
-                  width: 280 + run.streak * 40,
-                  height: 380 + run.streak * 40,
+                  width: 240 + run.streak * 26,
+                  height: 340 + run.streak * 26,
                   borderRadius: '9999px',
-                  background: `radial-gradient(ellipse at center, ${statColor}cc 0%, ${statColor}44 38%, transparent 68%)`,
-                  ['--bloom' as string]: `${Math.min(0.85, 0.35 + run.streak * 0.12)}`,
+                  background: `radial-gradient(ellipse at center, ${statColor}88 0%, ${statColor}2e 38%, transparent 62%)`,
+                  ['--bloom' as string]: `${Math.min(0.55, 0.25 + run.streak * 0.08)}`,
                 }}
               />
             )}
