@@ -152,7 +152,7 @@ export function Collection() {
                 setDeleteConfirm(card.cardId);
               }}
               className="absolute top-1 right-1 w-6 h-6 rounded-full bg-abyss/80 text-ash
-                hover:bg-power hover:text-ivory text-xs opacity-0 group-hover:opacity-100
+                hover:bg-power hover:text-ivory text-xs opacity-100 sm:opacity-0 sm:group-hover:opacity-100
                 transition-opacity flex items-center justify-center"
               title="Delete card"
             >

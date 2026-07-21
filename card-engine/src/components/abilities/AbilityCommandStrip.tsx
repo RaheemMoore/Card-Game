@@ -101,7 +101,8 @@ export function AbilityCommandStrip({
         className ?? ''
       }`}
       style={{
-        width: 360,
+        width: '100%',
+        maxWidth: 360,
         height: 92,
         padding: 10,
         gap: 10,
@@ -133,10 +134,10 @@ export function AbilityCommandStrip({
         </div>
       </div>
 
-      {/* Content column — 208×64 */}
+      {/* Content column — flexes to fill; caps at 208 within the 360 strip */}
       <div
         className="flex flex-col overflow-hidden"
-        style={{ width: 208, height: 64, gap: 2 }}
+        style={{ flex: 1, minWidth: 0, height: 64, gap: 2 }}
       >
         <div
           style={{

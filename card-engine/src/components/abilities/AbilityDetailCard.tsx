@@ -60,8 +60,8 @@ export function AbilityDetailCard({
     <div
       className={`relative flex flex-col overflow-hidden ${className ?? ''}`}
       style={{
-        width: 396,
-        height: 580,
+        width: '100%',
+        maxWidth: 396,
         padding: '14px 16px 12px',
         gap: 12,
         borderRadius: 18,
@@ -119,7 +119,7 @@ export function AbilityDetailCard({
       {/* Artwork 364×280 */}
       <div
         className="relative shrink-0 overflow-hidden"
-        style={{ width: '100%', height: 280, borderRadius: 12 }}
+        style={{ width: '100%', aspectRatio: '364 / 280', borderRadius: 12 }}
       >
         <img
           src={artworkUrl}
@@ -133,7 +133,7 @@ export function AbilityDetailCard({
       <div
         className="shrink-0 overflow-hidden"
         style={{
-          height: 120,
+          minHeight: 120,
           padding: '12px 14px',
           borderRadius: 12,
           background: 'var(--color-parchment-100, #e8d7b0)',

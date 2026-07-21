@@ -30,6 +30,7 @@ import {
 import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
 import type { BadgeResource, RelicMoment } from '../components/abilities';
 import { getQuestionsForArchetype } from '../data/storyPillars';
+import { getElementVisual, elementGlowShadow } from '../data/elementVisuals';
 
 const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
 const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
@@ -71,6 +72,8 @@ export function CardDetail() {
   const premiumBalance = useBalance('premium');
   const goldBalance = useBalance('gameplay');
   const [isResisting, setIsResisting] = useState(false);
+  const [loreExpanded, setLoreExpanded] = useState(false);
+  const [storyExpanded, setStoryExpanded] = useState(false);
   // Ascendant tier-up reservation must be held across the modal — the wallet
   // is charged when the user clicks Tier Up, but the actual generation waits
   // for the path pick. Kept in a ref so re-renders don't lose the txn ID.
@@ -453,7 +456,19 @@ export function CardDetail() {
 
           {displayCard.lore && (
             <div className="border-l-2 pl-4" style={{ borderColor: `${borderColor.primary}44` }}>
-              <p className="text-bone/80 italic leading-relaxed">"{displayCard.lore}"</p>
+              <p
+                className={`text-bone/80 italic leading-relaxed ${
+                  loreExpanded ? '' : 'line-clamp-3'
+                }`}
+              >
+                "{displayCard.lore}"
+              </p>
+              <button
+                onClick={() => setLoreExpanded((v) => !v)}
+                className="mt-1 text-xs font-fantasy uppercase tracking-widest text-gold/70 hover:text-gold transition-colors"
+              >
+                {loreExpanded ? 'Show less' : 'Read more'}
+              </button>
             </div>
           )}
 
@@ -476,7 +491,7 @@ export function CardDetail() {
                 return (
                   <div
                     key={name}
-                    className="rounded-lg p-3 border transition-colors"
+                    className="rounded-lg p-2 sm:p-3 border transition-colors"
                     style={{
                       background: colors.bg,
                       borderColor: isDominant ? colors.border : `${colors.border}33`,
@@ -493,7 +508,7 @@ export function CardDetail() {
                         {rank}
                       </span>
                     </div>
-                    <span className="text-2xl font-bold tabular-nums" style={{ color: colors.text }}>
+                    <span className="text-xl sm:text-2xl font-bold tabular-nums" style={{ color: colors.text }}>
                       {entry.value}
                     </span>
                     <div className="mt-1">
@@ -579,22 +594,56 @@ export function CardDetail() {
 
           {card.storyPillars && card.storyPillars.answers.length > 0 && (
             <div>
-              <h3 className="font-fantasy text-sm font-bold text-ivory mb-2">Their Story</h3>
-              <StoryPillarSummary card={card} />
+              <button
+                onClick={() => setStoryExpanded((v) => !v)}
+                aria-expanded={storyExpanded}
+                className="flex items-center gap-2 w-full text-left group"
+              >
+                <h3 className="font-fantasy text-sm font-bold text-ivory">Their Story</h3>
+                <span
+                  className={`text-gold/60 text-xs transition-transform group-hover:text-gold ${
+                    storyExpanded ? 'rotate-90' : ''
+                  }`}
+                >
+                  ▸
+                </span>
+                {!storyExpanded && (
+                  <span className="text-[10px] uppercase tracking-widest text-ash/50 ml-auto">
+                    Reveal
+                  </span>
+                )}
+              </button>
+              {storyExpanded && (
+                <div className="mt-2">
+                  <StoryPillarSummary card={card} />
+                </div>
+              )}
             </div>
           )}
 
-          {card.elementSelection && (
-            <div>
-              <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Elemental Bond</h3>
-              <div className="text-[11px] text-ash">
-                <span className="font-fantasy text-gold">{card.elementSelection.element}</span>
-                <span className="text-bone/60"> — </span>
-                <span className="italic">"{card.elementSelection.bond}"</span>
-                <span className="text-bone/50 ml-2">({card.elementSelection.compatibility.replace(/_/g, ' ')})</span>
+          {card.elementSelection && (() => {
+            const visual = getElementVisual(card.elementSelection.element);
+            return (
+              <div>
+                <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Element</h3>
+                <span
+                  className="font-fantasy text-lg"
+                  style={{
+                    color: visual.color,
+                    textShadow: elementGlowShadow(card.elementSelection.element, overallRank),
+                  }}
+                >
+                  {card.elementSelection.element}
+                </span>
+                <div className="text-[11px] text-ash mt-1">
+                  <span className="italic">"{card.elementSelection.bond}"</span>
+                  <span className="text-bone/50 ml-2">
+                    ({card.elementSelection.compatibility.replace(/_/g, ' ')})
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {card.prestige && (
             <div className="rounded-lg border border-gold/40 bg-gold/5 p-3">
