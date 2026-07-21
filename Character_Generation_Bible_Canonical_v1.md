@@ -176,7 +176,7 @@ Claude should be able to remove elemental effects, rank glow, particles, and car
 | Beastmaster | Relationship | Earn a companion's trust and act as partners |
 | Druid | Stewardship | Protect the cycles that allow life to endure |
 | Necromancer | Death | Seek truth and memory beyond mortality |
-| Vampire | Hunger | Preserve identity through restraint |
+| Vampire | Hunger | Rise from feral hunger into a self you author — without losing the person underneath |
 | Lycanthrope | Duality | Join instinct, pack duty, and lunar faith |
 | Mech Pilot | Machine partnership | Carry responsibility through a chosen machine |
 | Android | Purpose | Question programming and choose loyalty |
@@ -987,7 +987,7 @@ Houses may center Memory, Discipline, Dominion, Preservation, Redemption, Shadow
 
 Recognition comes from preserved objects across eras, controlled presentation, subtle hunger, personal relics, restraint rituals, and evidence of time.
 
-Avoid aristocracy as default, pale-skin requirements, seductive posing, red-and-black-only palettes, capes, castles, and universal youth or beauty.
+Avoid pale-skin defaults or any narrowing of ancestry/skin-tone diversity; universal youth or beauty as a rank reward; seductive or bare-skin posing (M5.7 modesty); daylight, direct sun, or noon settings; and blood as sole personality. Capes, high collars, castle halls, blood-red/black palettes, and aristocratic sovereignty are PERMITTED at Forged/Ascendant when the narrative earns them.
 
 ## Step 8 - Symbol and Material Language
 
@@ -997,11 +997,11 @@ Symbols include sealed mouths, interrupted bloodlines, closed circles, thorns, h
 
 ## Step 9 - Rank Evolution
 
-- **Foundation:** newly understands the hunger and relies on external restraint.
-- **Forged:** has built rituals, relationships, or convictions strong enough to survive temptation.
-- **Ascendant:** defines immortality on their own terms and becomes a stabilizing or terrifying force without losing narrative complexity.
+- **Foundation:** newly turned and closest to the beast — the hunger is loudest here. Roughly a third begin as a feral, half-sentient predator (a hunched bat-form or worse); the rest still pass for the mortal they were, barely holding the self together.
+- **Forged:** the self has returned and steadied — a composed, humanoid vampire who has built rituals, relationships, or convictions strong enough to command the hunger instead of being commanded by it.
+- **Ascendant:** a sentient blood-sovereign who defines immortality on their own terms — at once the most powerful AND the most self-possessed they have ever been, a stabilizing or terrifying force without losing narrative complexity.
 
-Progression must not automatically increase beauty, wealth, aristocratic styling, or predatory display.
+**Sanctioned rank-continuity exception (Lycanthrope-class).** The Vampire *form* escalates across ranks — feral beast → humanoid → blood-sovereign — but the person underneath is preserved. Sex, ancestry and skin tone, body type, disability or physical condition, and defining scars carry across every form and must NOT drift. Progression must not make the character younger, thinner, healthier, or more conventionally beautiful as a reward; power and sovereignty are earned by the narrative, not handed out by rank.
 
 ## Step 10 - Guided Narrative Chains
 
@@ -1024,17 +1024,19 @@ Claude must never override a selected answer to make generation easier.
 
 ## Step 12 - Element Compatibility and Rarity
 
+Vampires draw only on **Blood, Shadow, and Void** — the hunger itself, the dark they hunt in, and the erased self. No other element is available to the archetype.
+
 ### Naturally Compatible
 
-Blood, Shadow, Spirit, Psychic, Poison
+Blood
 
 ### Compatible Through Reinterpretation
 
-Fire, Ice, Water, Wind, Earth, Light, Sound, Metal
+Shadow, Void
 
 ### Rare
 
-Time, Void, Cosmic, Holy, Tech, Nature, Beast, Dream
+(none — with no Rare elements, the narrative-eligibility gate does not apply to Vampire)
 
 ## Step 13 - Future Design Space
 
@@ -1054,10 +1056,10 @@ New content must deepen the archetype's approved identity rather than return to 
 
 ### Avoid
 
-- Aristocrat default
+- Aristocracy as a default for EVERY card (must be earned by Forged/Ascendant)
 - Pale skin requirement
 - Sexualization
-- Capes and castles
+- Daylight or sunlit settings
 - Blood as sole personality
 - Beauty equated with rank
 

@@ -297,6 +297,10 @@ const ARCHETYPE_POSE_POOLS: Record<ArchetypeName, readonly string[]> = {
     'clawed hand raised commanding blood-mist to rise from the ground toward the palm',
     'mid-blur-of-speed motion trail, body half-erased into the streak of movement, one foot planting',
     'kneeling ritual, drinking from a chalice held in both hands, blood-mist rising around them',
+    // Fresh-forge (Foundation) poses — the pool never fires on tier-up, so
+    // keep these newly-turned-appropriate: power present but not sovereign.
+    'high-collar-coat vampire on a fog-choked gothic street at night, red eyes glowing, crimson blood-ribbons coiling from one raised hand',
+    'commanding stance with both hands weaving thin crimson blood-ribbons into an arc, cloak flaring, bats scattering behind',
   ],
   Lycanthrope: [
     // Foundation-appropriate: mostly human, subtle tells only.
@@ -437,7 +441,13 @@ const ARCHETYPE_NON_HUMAN_FORMS: Record<ArchetypeName, string | null> = {
   Necromancer:
     'the Necromancer has SACRIFICED THEIR FLESH for greater power — flesh has been TRADED for BONE because bone is stronger. Not always fully human-shaped: half the body may be skeletal, the jaw may be bone-only, the ribs exposed with soul-light bleeding through, hollow eye sockets glowing with soul-light, spinal column exposed. Soul-light escapes through DIFFERENT SHAPES per card — a glowing hole through the chest, a glowing crack down the sternum, a glowing slash across the ribs, a jaw split open with light spilling out. The Necromancer STRAINS to maintain their post-life state — this exertion should be visible in the pose. IDENTITY PRESERVATION (CRITICAL for tier-up so the character does not become a stranger): the SKULL still carries the CHARACTER\'S EXACT HAIR — same texture, same color, same style, same adornment — the hair grows through and around the bone. Where flesh has been sacrificed, SHADOWY PURPLE ETHEREAL MUSCLE-SUBSTITUTE (soft violet mist with the texture of muscle-fiber) wraps the exposed skeleton in the character\'s ORIGINAL body-mass silhouette; a heavyset Necromancer has THICK purple-shadow torso wrapping a broad rib-cage; a gaunt Necromancer has thin purple wisps between the bones; a muscular Necromancer has heavy purple-shadow limbs. Body type is preserved through this shadow-muscle even when the flesh is gone. Element visual (Void starless-black, Nature deep-green, Storm steel-gray-and-electric-blue, etc.) carries through by tinting the shadow-muscle and the soul-light bleeding from the wounds — the element color is IN the substance filling the skeleton. BODY-TYPE PRESERVED (CRITICAL): heavyset = THICK BONE-PLATE WARLORD with barrel-chest skeletal frame + heavy purple-shadow flesh-substitute + dense bone armor (NOT a gaunt warlock); gaunt = wispy spectral skeleton with translucent skin and jutting bones; muscular = huge bone-armored bruiser skeleton with heavy purple-shadow muscle; elderly = ancient death-elder with worn bones. The underlying body class from the identity block is kept — bone transformation LAYERS OVER the body type, does not replace it.',
   Vampire:
-    'the Vampire has stopped pretending to be human — true bat-features (elongated ears, wrinkled nose, exposed fangs), leathery wing-membranes from arms to torso, cloven or clawed feet, mid-mist-transformation. BODY-TYPE PRESERVED: heavyset = barrel-chested bat-lord with heavy wing-membrane and thick torso; gaunt = spectral bat-mist form with wispy limbs; muscular = massive bat-lord with heavy shoulders and powerful wing muscles; elderly = ancient vampire-lord with weathered skin and bone-thin gauntness; the underlying body class is kept',
+    // Bible §Vampire §9 sanctioned exception — the FORM escalates feral →
+    // humanoid → sovereign. This string is the Forged/Ascendant END of that
+    // arc (the generic machinery injects it at those ranks); the WEAK feral
+    // Foundation form is handled separately by the Vampire Layer-D prefix.
+    // Wings are ON-BRAND and permitted — the feral↔sovereign distinction is
+    // bearing + sentience + anatomy quality, NOT wing presence.
+    'a sentient, humanoid BLOOD-SOVEREIGN — regal and upright, NOT a crouching beast. Dark ornate spiked regalia, a high collar and a red-lined cloak, crimson power radiating from within, fangs and crimson eyes. Grand leathery BAT-WINGS may spread wide behind them (regal and deliberate — the apex predator in command), with mist and bats swirling AROUND them as accessories. This is the most HUMAN-LOOKING and most POWERFUL the vampire has ever been — NEVER a reversion to feral crouching beast anatomy. BODY-TYPE PRESERVED beneath the regalia: the established body type, ancestry/skin tone, age, disability, and scars carry through unchanged — power is worn on top of the same person',
   Lycanthrope:
     'RANK PROGRESSION IS KEY for Lycans — the character starts mostly human and ENDS as a giant savage wolf. Foundation = MOSTLY HUMAN with only SUBTLE wolfish tells (yellow-gold eyes, slightly elongated canines showing when they smile or snarl, faintly pointed ears, prominent knuckles and jaw structure, hair color that hints at future fur color — NOTHING more transformed than that). Forged = beast features escalate visibly — fur along the forearms and jaw, elongated HANDS AND FEET with claws, digitigrade calves beginning, feral posture, wilder eyes; the hands and feet are where the transformation shows most; background acknowledges the beast (forest, moon, torn earth). Ascendant = giant savage wolf-form with digitigrade wolf-legs, thick fur covering the torso and face (fur color = the character\'s hair color exactly), elongated snout with fangs bared, savage claws, tail lashing — the human silhouette barely present. ABSOLUTELY NEVER WINGS at any rank. ABSOLUTELY NEVER HORNS at any rank — wolves do not have horns, and lycans NEVER have horns. NEVER antlers. NEVER angelic radiance. NEVER pretty or peaceful. BODY-TYPE PRESERVED: heavyset = dire-bear-wolf hybrid with massive shoulders; gaunt = lean sinewy wolf-form; muscular = alpha-wolf massive muscle build; elderly = grizzled silver-fur pack-elder; the underlying body class is kept',
   Android:
@@ -445,6 +455,59 @@ const ARCHETYPE_NON_HUMAN_FORMS: Record<ArchetypeName, string | null> = {
   Seraph:
     'the winged celestial form — four to six massive feathered wings unfurled (baseline at any rank), a burning halo of gold or fire, extra eyes on the wings or the halo, skin glowing gold from within, feet that do not touch the ground, robes replaced by living light. BODY-TYPE PRESERVED: heavyset = massive winged guardian-angel with substantial body and heavy wing-mass; gaunt = ascetic ascension-form with thin body and delicate wings; muscular = warrior-angel with heavy wings and powerful frame; elderly = ancient watcher with weathered face beneath the halo; the underlying body class is kept',
 };
+/**
+ * Vampire Layer-D escalation — Bible §Vampire §9 sanctioned exception
+ * (proposal 759007cb + Raheem direction 2026-07-20). Vampires run the arc
+ * BACKWARD from Lycanthrope: they begin closest to the beast and END most
+ * human. Foundation = feral, half-sentient predator (~1/3 of fresh forges,
+ * gated below) or a barely-holding-on mortal-passing turn; Forged = composed
+ * humanoid vampire; Ascendant = sentient blood-sovereign (see
+ * ARCHETYPE_NON_HUMAN_FORMS.Vampire). Wings are permitted at every form —
+ * the feral↔sovereign contrast is bearing + sentience, not wing presence.
+ */
+const VAMPIRE_FERAL_FOUNDATION_FORM =
+  'FERAL FOUNDATION VAMPIRE — this newly-turned vampire is still the BEAST: a hunched, ' +
+  'feral bat-creature crouched low on a rock ledge or broken masonry, elongated ears, ' +
+  'wrinkled bat-snout, bared needle fangs, leathery membrane wings half-furled from arm to ' +
+  'flank, clawed hands and feet, glowing hungry eyes, animal posture — half-sentient, ' +
+  'driven by hunger, NOT a lord, NOT regal, NO fine clothing, NO regalia. This is the WEAK ' +
+  'newborn state the vampire will one day rise out of. BODY-TYPE, ancestry/skin tone, age ' +
+  'markers, disability, and scars still read through the beast form';
+
+/** ~1/3 of fresh Vampire Foundation forges manifest the feral beast form. */
+const VAMPIRE_FERAL_CHANCE = 1 / 3;
+
+/**
+ * Gothic-night setting directive, per rank. Vampires exist at night and in
+ * sinister places — NEVER daylight (Bible §Vampire §14 avoid). This is the
+ * first archetype-scoped background directive; if it proves out, the pattern
+ * generalizes (Raheem plans per-archetype specifics for the full cast).
+ */
+const VAMPIRE_SETTING_BY_RANK: Record<Rank, string> = {
+  Foundation:
+    'SETTING (MANDATORY — night only): a moonlit crypt, fog-choked alley, or gothic rooftop at night — cold moonlight, deep shadow, NO daylight, NO sun',
+  Forged:
+    'SETTING (MANDATORY — night only): a gothic cathedral street at night — glowing gothic windows, fog rolling between buildings, a distant castle silhouette, cold night palette, NO daylight, NO sun',
+  Ascendant:
+    'SETTING (MANDATORY — night only): a BLOOD-MOON dominating the sky over a gothic castle courtyard — red sky, swarming bats crossing the moon, torn banners, fog over broken stone, NO daylight, NO sun',
+};
+
+/**
+ * Blood-element spectacle staging for Vampires — crimson must PERSIST and
+ * GROW across ranks (the core ask of proposal 759007cb). Positive language
+ * keeps blood reading as WET LIQUID, never fire: Blood is in the fire-family
+ * allowlist so the anti-warm-glow negatives do NOT fire for it, and Phoenix
+ * will drift crimson → orange flame without this steer.
+ */
+const VAMPIRE_BLOOD_SPECTACLE_BY_RANK: Record<Rank, string> = {
+  Foundation:
+    'BLOOD MANIFESTATION (subtle, controlled): a thin crimson under-glow beneath the skin, a few suspended droplets of dark liquid blood, faint red mist curling at the feet — wet arterial deep-red, glossy liquid, NOT flame, NOT ember',
+  Forged:
+    'BLOOD MANIFESTATION (loose, commanding): ribbons of liquid crimson blood coiling around the hands and forearms, a blood-forged blade or chalice, veins glowing faint red, red mist to the knees — wet arterial deep-red, glossy flowing liquid, NOT flame, NOT ember',
+  Ascendant:
+    'BLOOD MANIFESTATION (cataclysmic storm): a full storm of liquid crimson ribbons and arcs radiating outward from the body, arterial tendrils lashing the air, a blood-forged weapon fully formed, the ground pooled and rippling crimson — wet arterial deep-red, glossy liquid in motion, NOT flame, NOT ember, NO orange',
+};
+
 const DIVERSITY_CURSOR_KEY = 'card-engine-diversity-cursor';
 
 function pickDiversityAxis(archetype: ArchetypeName): string {
@@ -452,12 +515,15 @@ function pickDiversityAxis(archetype: ArchetypeName): string {
   const raw = window.localStorage.getItem(DIVERSITY_CURSOR_KEY);
   let cursor = raw ? (parseInt(raw, 10) || 0) : 0;
   // Skip NON-HUMAN FORM axis when the archetype has no non-human form.
+  // Vampire is ALSO excluded: its non-human form string is the Ascendant
+  // blood-sovereign (apex), which must never fire on a Foundation forge —
+  // the dedicated ~1/3 feral-Foundation gate covers Vampire instead.
   // Advance cursor until we land on an eligible axis. Cap at pool length
   // to avoid infinite loop if somehow every axis were ineligible.
   for (let i = 0; i < DIVERSITY_AXES.length; i++) {
     const candidate = DIVERSITY_AXES[cursor % DIVERSITY_AXES.length];
     const isNonHuman = candidate.startsWith('NON-HUMAN FORM');
-    if (!isNonHuman || ARCHETYPE_NON_HUMAN_FORMS[archetype]) break;
+    if (!isNonHuman || (ARCHETYPE_NON_HUMAN_FORMS[archetype] && archetype !== 'Vampire')) break;
     cursor = (cursor + 1) % DIVERSITY_AXES.length;
   }
   let axis = DIVERSITY_AXES[cursor % DIVERSITY_AXES.length];
@@ -477,8 +543,12 @@ const BASE_NEGATIVE = [
   'extra limbs', 'extra fingers', 'disfigured', 'bad anatomy',
   'bad proportions', 'duplicate', 'multiple characters', 'split frame',
   'comic panels', 'UI elements', 'border', 'frame', 'card border',
-  'gore', 'graphic violence', 'severed body parts', 'exposed wounds',
-  'blood spatter', 'nudity', 'suggestive',
+  // Blood/gore softened per Raheem 2026-07-20: stylized crimson blood-magic
+  // (Blood element, Vampire spectacle) must be expressible. Kept the true
+  // disturbing floor ('graphic violence', 'severed body parts') and all
+  // modesty negatives; dropped 'gore', 'exposed wounds', 'blood spatter'.
+  'graphic violence', 'severed body parts',
+  'nudity', 'suggestive',
   // Composition — head-in-frame anchor negatives.
   'head cropped', 'face cropped', 'face cut off', 'forehead cropped',
   'eyes cropped', 'top of head cropped', 'headless', 'decapitated',
@@ -602,7 +672,7 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
   Void: ', warm colors in void, fire in the void, radiant light replacing void-black, element changed from Void',
   Spirit: ', fire replacing spirit-glow, orange souls, element changed from Spirit',
   Moon: ', sun-gold replacing moonlight, fire palette, element changed from Moon',
-  Blood: ', generic fire replacing blood-crimson, orange flames, element changed from Blood',
+  Blood: ', generic fire replacing blood-crimson, orange flames, dry embers, flame tongues, heat-shimmer, orange rim light, blood rendered as fire, element changed from Blood',
   Poison: ', fire replacing toxin-green, ember palette, element changed from Poison',
   Sound: ', fire replacing sound-waves, flame rings, element changed from Sound',
   Time: ', fire replacing temporal gold-silver, ember clock imagery, element changed from Time',
@@ -1113,7 +1183,21 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
   // prepend them to the raw Leonardo prompt Phoenix sees. Tier-up/regen
   // keep locked identity + pose family — skipped.
   const diversityAxis = input.existingHiddenFate ? '' : pickDiversityAxis(input.archetype);
-  const requiredPose = input.existingHiddenFate ? '' : pickPoseForArchetype(input.archetype);
+  // Vampire feral-Foundation gate (Bible §Vampire §9 exception): ~1/3 of
+  // FRESH Vampire Foundation forges manifest as the feral, half-sentient
+  // beast the vampire will grow out of. Fires only at Foundation on a fresh
+  // forge — tier-ups and Forged/Ascendant are always humanoid, so the gate
+  // never needs persisting (Forged inherits identity, not the beast form).
+  const vampireFeralFires =
+    input.archetype === 'Vampire' &&
+    !input.existingHiddenFate &&
+    overallRank === 'Foundation' &&
+    Math.random() < VAMPIRE_FERAL_CHANCE;
+  const requiredPose = input.existingHiddenFate
+    ? ''
+    : vampireFeralFires
+      ? 'crouched low on broken masonry in feral bat-beast form, membrane wings half-furled, clawed hands gripping the stone, fangs bared toward the viewer, hungry glowing eyes'
+      : pickPoseForArchetype(input.archetype);
   const elementQuirk = input.existingHiddenFate ? null : pickElementQuirk(input.element.element as ElementName);
 
   const prompt = buildPrompt({
@@ -1237,6 +1321,16 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       ? `RANK CONTINUITY: this character's element visual at Foundation was ${input.element.element} with LOCKED palette, materials, and lighting per the Element Visual Language Bible. At ${overallRank} the SAME palette + SAME materials + SAME lighting persist — do NOT drift toward Phoenix defaults, warm ember, or fire-orange. Same Storm colors from Foundation, same Void colors from Foundation, same Nature colors from Foundation — just at escalated scale. ${nonFireCatchAll}`
       : nonFireCatchAll;
     const elementPrefix = `REQUIRED ELEMENT (${input.element.element}): ${assembleElementLockdown(input.element.element as ElementName)}. ${elementContinuityClause}`;
+    // Vampire Layer-D prefix — feral-Foundation form (when the ~1/3 gate
+    // fired), gothic-night setting (every rank, every element — Vampires
+    // never see daylight), and Blood spectacle staging (Blood element only;
+    // keeps crimson reading as wet liquid, not fire). Leads the vampire
+    // clauses so Phoenix reads form + setting before the element block.
+    const vampirePrefix = input.archetype === 'Vampire'
+      ? `${vampireFeralFires ? `${VAMPIRE_FERAL_FOUNDATION_FORM}. ` : ''}${VAMPIRE_SETTING_BY_RANK[overallRank]}. ${
+          input.element.element === 'Blood' ? `${VAMPIRE_BLOOD_SPECTACLE_BY_RANK[overallRank]}. ` : ''
+        }`
+      : '';
     // M4.8 — Ascendant cataclysm prepend. Bible §Ascendant demands "world
     // crumbles + character evolves beyond mortal form + non-human features"
     // but tier-up was rendering as Forged-with-slight-variation. Force
@@ -1257,7 +1351,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       : '';
     // M4.9 — parsed.portraitPrompt is guaranteed present (M4.8 parse-guard
     // above throws if missing) so no fallback needed. Same for negativePrompt.
-    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${posePrefix}${elementPrefix}${parsed.portraitPrompt}`;
+    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${posePrefix}${vampirePrefix}${elementPrefix}${parsed.portraitPrompt}`;
     const portraitPrompt = truncateToLimit(rawPortraitPrompt, PORTRAIT_PROMPT_MAX);
     // M5.2 — belt+suspenders anti-warm-glow. If the element is NOT in the
     // fire family, aggressively strip any ember/warm-glow/fire language
@@ -1284,7 +1378,11 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     // survive even when the combined tails exceed the budget (the warm-glow
     // list is belt+suspenders that BASE_NEGATIVE's M4.2 block already
     // partially covers, so it's the safe one to lose to truncation).
-    const appendedTails = elementDriftBans + warmGlowNegatives;
+    // Vampire — hard daylight ban at every rank (Bible §Vampire §14 avoid).
+    const vampireNightNegatives = input.archetype === 'Vampire'
+      ? ', daylight, sunlight, daytime sky, bright noon, sunny meadow, blue midday sky'
+      : '';
+    const appendedTails = elementDriftBans + warmGlowNegatives + vampireNightNegatives;
     const parsedNegative = truncateToLimit(
       parsed.negativePrompt ?? BASE_NEGATIVE,
       Math.max(NEGATIVE_PROMPT_MAX - appendedTails.length, 120),

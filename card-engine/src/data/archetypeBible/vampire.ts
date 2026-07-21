@@ -6,7 +6,7 @@ import type { ArchetypeBibleChapter } from '../../types/bible';
 export const VAMPIRE_BIBLE: ArchetypeBibleChapter = {
   archetype: 'Vampire',
   identityThrough: 'Hunger',
-  coreFantasy: 'Preserve identity through restraint',
+  coreFantasy: 'Rise from feral hunger into a self you author — without losing the person underneath',
 
   selectionScreen: {
     tagline:
@@ -67,7 +67,7 @@ export const VAMPIRE_BIBLE: ArchetypeBibleChapter = {
     recognitionCues:
       'Preserved objects across eras, controlled presentation, subtle hunger, personal relics, restraint rituals, and evidence of time.',
     avoid:
-      'Aristocracy as default, pale-skin requirements, seductive posing, red-and-black-only palettes, capes, castles, universal youth or beauty.',
+      'Pale-skin defaults or any narrowing of ancestry/skin-tone diversity; universal youth or beauty as a rank reward; seductive or bare-skin posing (M5.7 modesty); daylight, direct sun, or noon settings; blood as sole personality. Capes, high collars, castle halls, blood-red/black palettes, and aristocratic sovereignty are PERMITTED at Forged/Ascendant when the narrative earns them.',
   },
 
   symbolAndMaterial: {
@@ -78,13 +78,14 @@ export const VAMPIRE_BIBLE: ArchetypeBibleChapter = {
   },
 
   rankEvolution: {
-    Foundation: 'Newly understands the hunger and relies on external restraint.',
+    Foundation:
+      'Newly turned and closest to the beast — the hunger is loudest here. Roughly a third begin as a feral, half-sentient predator (a hunched bat-form or worse); the rest still pass for the mortal they were, barely holding the self together.',
     Forged:
-      'Has built rituals, relationships, or convictions strong enough to survive temptation.',
+      'The self has returned and steadied — a composed, humanoid vampire who has built rituals, relationships, or convictions strong enough to command the hunger instead of being commanded by it.',
     Ascendant:
-      'Defines immortality on their own terms and becomes a stabilizing or terrifying force without losing narrative complexity.',
+      'A sentient blood-sovereign who defines immortality on their own terms — at once the most powerful AND the most self-possessed they have ever been, a stabilizing or terrifying force without losing narrative complexity.',
     continuityNote:
-      'Progression must not automatically increase beauty, wealth, aristocratic styling, or predatory display.',
+      'SANCTIONED RANK-CONTINUITY EXCEPTION (Bible §Rank continuity, Lycanthrope-class): the Vampire FORM escalates across ranks — feral beast → humanoid → blood-sovereign — but the person underneath is preserved. Sex, ancestry and skin tone, body type, disability or physical condition, and defining scars carry across every form and must NOT drift. Progression must not make the character younger, thinner, healthier, or more conventionally beautiful as a reward; power and sovereignty are earned by the narrative, not handed out by rank.',
   },
 
   futureDesignSpace:
@@ -100,10 +101,10 @@ export const VAMPIRE_BIBLE: ArchetypeBibleChapter = {
       'Identity beyond predation',
     ],
     avoid: [
-      'Aristocrat default',
+      'Aristocracy as a default for EVERY card (must be earned by Forged/Ascendant)',
       'Pale skin requirement',
       'Sexualization',
-      'Capes and castles',
+      'Daylight or sunlit settings',
       'Blood as sole personality',
       'Beauty equated with rank',
     ],
