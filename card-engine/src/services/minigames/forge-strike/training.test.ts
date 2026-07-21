@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, BiasTier, StatEntry, StatName } from '../../../types/card';
-import { applyTrainingOutcome, VERY_LOW_WINS_PER_POINT } from './training';
+import { applyTestingStatOutcome, applyTrainingOutcome, VERY_LOW_WINS_PER_POINT } from './training';
 
 function entry(value: number, bias: BiasTier, hardCap: number): StatEntry {
   return { value, bias, hardCap };
@@ -134,5 +134,39 @@ describe('rank-sum cap (7) — trade required, win not consumed', () => {
     const r = applyTrainingOutcome(card, 'Atk', 'win');
     expect(r.kind).toBe('applied');
     if (r.kind === 'applied') expect(r.card.stats.Atk.value).toBe(66);
+  });
+});
+
+describe('applyTestingStatOutcome — simple +1/−1 for testing', () => {
+  it('win adds 1, loss subtracts 1', () => {
+    const win = applyTestingStatOutcome(makeCard({ Atk: entry(55, 'High', 100) }), 'Atk', 'win');
+    expect(win.delta).toBe(1);
+    expect(win.to).toBe(56);
+    const loss = applyTestingStatOutcome(makeCard({ Atk: entry(55, 'High', 100) }), 'Atk', 'loss');
+    expect(loss.delta).toBe(-1);
+    expect(loss.to).toBe(54);
+  });
+
+  it('clamps at the hard cap (win) and the floor (loss)', () => {
+    const capped = applyTestingStatOutcome(makeCard({ Atk: entry(100, 'High', 100) }), 'Atk', 'win');
+    expect(capped.delta).toBe(0);
+    expect(capped.to).toBe(100);
+    const floored = applyTestingStatOutcome(makeCard({ Atk: entry(1, 'High', 100) }), 'Atk', 'loss');
+    expect(floored.delta).toBe(0);
+    expect(floored.to).toBe(1);
+  });
+
+  it('ignores the Very Low grind — a Very Low win is a plain +1 here', () => {
+    const r = applyTestingStatOutcome(makeCard({ Mana: entry(20, 'Very Low', 55) }), 'Mana', 'win');
+    expect(r.delta).toBe(1);
+    expect(r.card.stats.Mana!.value).toBe(21);
+    expect(r.card.trainingProgress).toBeUndefined(); // no accumulator touched
+  });
+
+  it('never mutates the input card', () => {
+    const card = makeCard({ Atk: entry(55, 'High', 100) });
+    const before = JSON.stringify(card);
+    applyTestingStatOutcome(card, 'Atk', 'win');
+    expect(JSON.stringify(card)).toBe(before);
   });
 });

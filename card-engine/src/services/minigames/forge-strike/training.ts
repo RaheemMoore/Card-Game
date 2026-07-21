@@ -27,6 +27,46 @@ const STAT_FLOOR = 1;
 
 export type TrainingOutcome = 'win' | 'loss';
 
+/**
+ * TESTING stat write (Raheem 2026-07-20): the simplest possible rule so the
+ * forge can visibly change a card while the real economy is dialed in — win
+ * → +1, loss → −1, clamped to [floor, hard cap]. The Very Low grind and the
+ * rank-sum-cap demotion trade are intentionally SKIPPED here; those "lock in
+ * last" via applyTrainingOutcome once their rules and UI are approved.
+ *
+ * Returns a fresh card + the actual delta applied (0 if clamped). Pure.
+ */
+export interface TestingStatResult {
+  card: Card;
+  stat: StatName;
+  delta: 1 | -1 | 0;
+  from: number;
+  to: number;
+}
+
+export function applyTestingStatOutcome(
+  card: Card,
+  stat: StatName,
+  outcome: TrainingOutcome,
+): TestingStatResult {
+  const entry = card.stats[stat];
+  if (!entry) return { card, stat, delta: 0, from: 0, to: 0 };
+  const from = entry.value;
+  const to =
+    outcome === 'win'
+      ? Math.min(entry.hardCap, from + 1)
+      : Math.max(STAT_FLOOR, from - 1);
+  const delta = (to - from) as 1 | -1 | 0;
+  if (delta === 0) return { card, stat, delta, from, to };
+  return {
+    card: { ...card, stats: { ...card.stats, [stat]: { ...entry, value: to } } },
+    stat,
+    delta,
+    from,
+    to,
+  };
+}
+
 export interface TrainingOptions {
   /**
    * OPEN DECISION (spec is silent): should a loss on a Very Low stat wipe the

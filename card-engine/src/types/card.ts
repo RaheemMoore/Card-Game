@@ -119,6 +119,18 @@ export interface TrainingProgress {
   veryLowWins?: Partial<Record<StatName, number>>;
 }
 
+/**
+ * Forge Strike "Temper Gauge" — a persistent, per-card meter that fills a
+ * little each successful run and BURSTS when full (a tempering milestone).
+ * Additive and jsonb-safe. See services/minigames/forge-strike/temper.ts.
+ */
+export interface TemperProgress {
+  /** Current fill, 0..1 (carries the remainder after a burst). */
+  fill: number;
+  /** How many times the gauge has burst over this card's lifetime. */
+  bursts: number;
+}
+
 export interface Card {
   cardId: string;
   archetype: ArchetypeName;
@@ -168,6 +180,8 @@ export interface Card {
   narrativeAxis?: NarrativeAxisState;
   /** Forge Strike training accumulator (Very Low grind). See TrainingProgress. */
   trainingProgress?: TrainingProgress;
+  /** Forge Strike persistent Temper Gauge (fills across runs, bursts). */
+  temperProgress?: TemperProgress;
   /** What the art/prompt pipeline consumes. Set only by transmutation (e.g. Fallen Seraph Light → Infernal). */
   currentElement?: import('./bible').ElementName;
   /** Set ONLY once, at first transmutation — records the pre-transmute element. */
