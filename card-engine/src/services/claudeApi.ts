@@ -562,7 +562,11 @@ const VAMPIRE_SETTING_BY_RANK: Record<Rank, string> = {
   Forged:
     'SETTING (MANDATORY — night only): a gothic cathedral street at night — glowing gothic windows, fog rolling between buildings, a distant castle silhouette, cold night palette, NO daylight, NO sun',
   Ascendant:
-    'SETTING (MANDATORY — night only): a BLOOD-MOON dominating the sky over a gothic castle courtyard — red sky, swarming bats crossing the moon, torn banners, fog over broken stone, NO daylight, NO sun',
+    // Element-neutral: the sky/moon color is set by the per-element spectacle
+    // block below (crimson moon for Blood, pale-swallowed moon for Shadow, torn
+    // starless sky for Void) so a red "blood-moon" no longer contaminates the
+    // cold Shadow/Void palettes.
+    'SETTING (MANDATORY — night only): a great moon over a gothic castle courtyard, swarming bats, torn banners, fog over broken stone, deep night, NO daylight, NO sun',
 };
 
 /**
@@ -589,7 +593,7 @@ const VAMPIRE_SPECTACLE_BY_ELEMENT_BY_RANK: Record<'Blood' | 'Shadow' | 'Void', 
     Forged:
       'BLOOD SPECTACLE (wave / drain): the vampire DRAINS a curling WAVE of liquid crimson — ribbons of blood coiling up the forearms, a blood-forged blade or chalice, wet glossy arterial red in motion',
     Ascendant:
-      'BLOOD SPECTACLE (tide / extraction): the sovereign commands a full crimson TIDE — arcs and tendrils of wet liquid blood radiating outward, the ground pooled and rippling red, a blood-forged weapon fully formed, glossy arterial liquid, held with composed authority',
+      'BLOOD SPECTACLE FLOODS THE FRAME (tide / extraction): the sovereign commands a full crimson TIDE — arcs and tendrils of wet liquid blood radiating outward, the ground pooled and rippling red, a blood-forged weapon fully formed, under a deep CRIMSON blood-red moon (never orange, never yellow), glossy arterial liquid, held with composed authority',
   },
   Shadow: {
     Foundation:
@@ -597,7 +601,7 @@ const VAMPIRE_SPECTACLE_BY_ELEMENT_BY_RANK: Record<'Blood' | 'Shadow' | 'Void', 
     Forged:
       'SHADOW SPECTACLE (shroud / smother): a SHROUD of living darkness coils around the body, tendrils lashing outward, the light around them SMOTHERED, deep blacks and cold violet edge-light',
     Ascendant:
-      'SHADOW SPECTACLE (eclipse / devour): an ECLIPSE of absolute darkness spreads from the sovereign, shadow-tendrils DEVOURING the surrounding light, the environment swallowed to silhouette, cold void-violet rim, composed authority',
+      'SHADOW SPECTACLE FLOODS THE FRAME (eclipse / devour): an ECLIPSE of absolute darkness erupts from the sovereign, thick shadow-tendrils DEVOURING the surrounding light, the courtyard swallowed to silhouette under a cold pale moon nearly smothered by the dark, cold void-violet rim only, composed authority',
   },
   Void: {
     Foundation:
@@ -605,7 +609,7 @@ const VAMPIRE_SPECTACLE_BY_ELEMENT_BY_RANK: Record<'Blood' | 'Shadow' | 'Void', 
     Forged:
       'VOID SPECTACLE (rift / unravel): a RIFT of starless void tears open behind the vampire, matter UNRAVELING at the edges into black particulate, deep indigo-black with cold pinpoint light',
     Ascendant:
-      'VOID SPECTACLE (collapse / erase): reality COLLAPSES inward around the sovereign, the frame ERASED to starless black at the margins, a devouring void-rift fully open, cold indigo-black, no warm color anywhere, composed authority',
+      'VOID SPECTACLE FLOODS THE FRAME (collapse / erase): reality COLLAPSES inward around the sovereign, a devouring void-rift torn wide open behind them into starless black, the sky itself erased and cracking at the frame edges, light eaten, cold indigo-black, no warm color anywhere, composed authority',
   },
 };
 
@@ -700,6 +704,12 @@ export const BASE_NEGATIVE = [
   'hero anatomy override', 'young slim default overriding identity',
   'Monk shirtless', 'robes removed', 'clothing stripped for action',
   'muscular young man default', 'muscular young woman default',
+  // M6.0 — plain-language anti-shirtless. A hard action pose kept tempting
+  // Phoenix into a bare-chested muscular hero (observed on a Blood Vampire that
+  // should have been a robed elder). The M3.8 terms above are phrased as
+  // "…default"/"when robed archetype" and slip; these unconditional terms bite.
+  'shirtless', 'bare chest', 'bare-chested', 'bare torso', 'exposed abs',
+  'open-chest armor', 'chest exposed under cloak', 'no shirt', 'topless',
   // M4.6 — Body & Skin Representation Bible §13 exclusions.
   ...BODY_SKIN_NEGATIVES,
   // M4.7 — Hair, Fashion, Clothing Bible §22 exclusions.
