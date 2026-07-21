@@ -14,6 +14,7 @@ import { applyTestingStatOutcome } from '../../../services/minigames/forge-strik
 import { saveCard } from '../../../services/storage';
 import { useForgeStrike, hasCompletedPractice } from './useForgeStrike';
 import { StrikeEffects } from './effects/StrikeEffects';
+import { EnergySurge } from './effects/EnergySurge';
 import { CrystalGem, PipMedallion, OrnatePanel } from './components/ForgeFrames';
 import { TemperGauge } from './components/TemperGauge';
 import { isMuted, toggleMuted, unlock, playCue } from './audio/forgeStrikeAudio';
@@ -372,26 +373,32 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
           {/* Exact card — the visual anchor. Shrunk on mobile so the side
               Temper Gauge has a clear lane; full size on tablet/desktop. */}
           <div className="flex-1 min-h-0 flex items-center justify-center pointer-events-none px-4 relative">
+            {/* Radial bloom behind the card as the energy arrives — brighter
+                with combo. */}
+            {success && (
+              <div
+                key={`bloom-${strikeSeq}`}
+                className="fs-cardbloom absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{
+                  width: 280 + run.streak * 40,
+                  height: 380 + run.streak * 40,
+                  borderRadius: '9999px',
+                  background: `radial-gradient(ellipse at center, ${statColor}cc 0%, ${statColor}44 38%, transparent 68%)`,
+                  ['--bloom' as string]: `${Math.min(0.85, 0.35 + run.streak * 0.12)}`,
+                }}
+              />
+            )}
             <div
-              className="scale-[0.8] sm:scale-100 origin-center"
+              className="scale-[0.8] sm:scale-100 origin-center relative z-[1]"
               style={{ filter: `drop-shadow(0 0 ${10 + run.heat * 20}px ${glow}99)`, maxHeight: '100%' }}
             >
               <CardRenderer card={liveCard} size="full" />
             </div>
-            {/* Stat-colored energy pulse rising into the card on a success */}
-            {success && (
-              <span
-                key={`energy-${strikeSeq}`}
-                className="fs-energy absolute left-1/2 -translate-x-1/2 bottom-0"
-                style={{
-                  width: displayGrade === 'perfect' ? 10 : 6,
-                  height: 120,
-                  borderRadius: 9999,
-                  background: `linear-gradient(to top, ${statColor} 0%, ${statColor}00 100%)`,
-                  boxShadow: `0 0 16px ${statColor}`,
-                }}
-              />
-            )}
+            {/* Rising energy surge — layered beams + motes + base flare,
+                scaling up with the combo streak. */}
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 z-[2]">
+              <EnergySurge seq={strikeSeq} grade={displayGrade} streak={run.streak} color={statColor} />
+            </div>
           </div>
 
           {/* Impact effects, anchored over the painted anvil in the backdrop
