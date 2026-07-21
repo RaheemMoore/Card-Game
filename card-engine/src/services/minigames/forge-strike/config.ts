@@ -67,8 +67,10 @@ export const FORGE_STRIKE_CONFIG_V1: ForgeStrikeConfig = {
     sweep('s1', BASE_SWEEP_MS),
     sweep('s2', BASE_SWEEP_MS),
     reversalSweep('s3_reversal', BASE_SWEEP_MS),
-    sweep('s4', BASE_SWEEP_MS),
-    sweep('s5', BASE_SWEEP_MS),
+    // Final two bite harder regardless of streak — faster marker + tighter
+    // Perfect window, stacked on top of the success ramp (Raheem 2026-07-20).
+    { ...sweep('s4', BASE_SWEEP_MS), speedMul: 1.3, perfectMul: 0.8 },
+    { ...sweep('s5', BASE_SWEEP_MS), speedMul: 1.6, perfectMul: 0.6 },
   ],
   practicePattern: sweep('practice', 1600),
   heat: {

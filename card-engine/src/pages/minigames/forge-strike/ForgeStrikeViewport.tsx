@@ -67,10 +67,12 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
   const displayGrade = inPractice ? practiceGrade : lastGrade;
   const strikeNumber = Math.min(run.nextStrikeIndex + 1, config.strikeCount);
   const glow = heatColor(run.heat);
-  // Red (Perfect) zone tightens with each landed strike; practice stays base.
+  // Red (Perfect) zone tightens with each landed strike, plus the armed
+  // strike's own perfectMul (the final two are tighter). Practice stays base.
+  const armedPattern = config.patterns[Math.min(run.nextStrikeIndex, config.patterns.length - 1)];
   const perfectHalfWidth = inPractice
     ? config.zones.perfectHalfWidth
-    : effectivePerfectHalfWidth(config, countSuccesses(run));
+    : effectivePerfectHalfWidth(config, countSuccesses(run), armedPattern.perfectMul ?? 1);
 
   const body = (
     <div

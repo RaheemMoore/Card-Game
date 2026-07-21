@@ -85,6 +85,36 @@ describe('success ramp — Perfect zone shrink + marker speed-up', () => {
     expect(gradeStrike(CFG, pos, 4)).toBe('good');
   });
 
+  it('per-strike perfectMul tightens the Perfect zone on top of the ramp', () => {
+    // With no successes, strike 5 (perfectMul 0.6) is tighter than base.
+    const base = effectivePerfectHalfWidth(CFG, 0, 1);
+    const s5 = effectivePerfectHalfWidth(CFG, 0, 0.6);
+    expect(s5).toBeCloseTo(base * 0.6, 10);
+    expect(s5).toBeLessThan(base);
+  });
+
+  it('the final two strikes carry harder modifiers than the opener', () => {
+    const [s4, s5] = [CFG.patterns[3], CFG.patterns[4]];
+    expect(s4.speedMul).toBeGreaterThan(1);
+    expect(s5.speedMul).toBeGreaterThan(s4.speedMul!);
+    expect(s4.perfectMul).toBeLessThan(1);
+    expect(s5.perfectMul).toBeLessThan(s4.perfectMul!);
+    expect(CFG.patterns[0].speedMul ?? 1).toBe(1);
+  });
+
+  it('applyStrike honors the strike-index perfectMul when grading', () => {
+    // A position that would be Perfect on strike 1 (base) can miss the
+    // tighter Perfect zone on strike 5, landing Good instead — at equal
+    // success counts, so the difference is purely the per-strike modifier.
+    const pos = 0.5 + CFG.zones.perfectHalfWidth * 0.8; // inside base, outside 0.6×
+    const fresh = createRun(CFG);
+    const onS1 = applyStrike(CFG, fresh, { strikeIndex: 0, markerPos: pos });
+    if (!onS1.accepted) throw new Error('rejected');
+    expect(onS1.result.grade).toBe('perfect');
+    // Grade strike 5's zone directly at the same zero-success difficulty.
+    expect(gradeStrike(CFG, pos, 0, CFG.patterns[4].perfectMul)).toBe('good');
+  });
+
   it('the Good zone is unaffected by the ramp (red zone only)', () => {
     const edge = 0.5 + goodHalfWidth;
     expect(gradeStrike(CFG, edge, 0)).toBe('good');

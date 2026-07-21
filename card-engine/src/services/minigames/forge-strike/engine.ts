@@ -58,9 +58,15 @@ export function positionAt(pattern: StrikePattern, elapsedMs: number): number {
  * prior successes. Shrinks geometrically per success, floored so it never
  * collapses. The Good window is unaffected (Raheem: red zone only).
  */
-export function effectivePerfectHalfWidth(config: ForgeStrikeConfig, successCount: number): number {
+export function effectivePerfectHalfWidth(
+  config: ForgeStrikeConfig,
+  successCount: number,
+  perfectMul = 1,
+): number {
   const shrunk =
-    config.zones.perfectHalfWidth * config.ramp.perfectShrinkPerSuccess ** successCount;
+    config.zones.perfectHalfWidth *
+    config.ramp.perfectShrinkPerSuccess ** successCount *
+    perfectMul;
   return Math.max(config.ramp.minPerfectHalfWidth, shrunk);
 }
 
@@ -84,9 +90,11 @@ export function gradeStrike(
   config: ForgeStrikeConfig,
   markerPos: number,
   successCount: number,
+  perfectMul = 1,
 ): StrikeGrade {
   const distance = Math.abs(markerPos - RAIL_CENTER);
-  if (distance <= effectivePerfectHalfWidth(config, successCount) + ZONE_EPSILON) return 'perfect';
+  if (distance <= effectivePerfectHalfWidth(config, successCount, perfectMul) + ZONE_EPSILON)
+    return 'perfect';
   if (distance <= config.zones.goodHalfWidth + ZONE_EPSILON) return 'good';
   return 'miss';
 }
@@ -124,12 +132,14 @@ export function applyStrike(
   }
 
   // Ramp keys off successes landed BEFORE this strike, so the difficulty a
-  // player faces on strike N reflects their run so far.
+  // player faces on strike N reflects their run so far. Per-strike perfectMul
+  // (e.g. the tighter final two) stacks on top.
   const successCount = countSuccesses(state);
-  const grade = gradeStrike(config, input.markerPos, successCount);
+  const pattern = config.patterns[input.strikeIndex];
+  const grade = gradeStrike(config, input.markerPos, successCount, pattern.perfectMul ?? 1);
   const result: StrikeResult = {
     strikeIndex: input.strikeIndex,
-    patternId: config.patterns[input.strikeIndex].id,
+    patternId: pattern.id,
     markerPos: input.markerPos,
     grade,
   };

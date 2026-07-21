@@ -118,8 +118,9 @@ export function useForgeStrike(
     const tick = (now: number) => {
       if (armedRef.current && phaseRef.current !== 'complete') {
         const pattern = activePattern();
-        // Success-ramp quickens the marker: compress elapsed time.
-        const speed = markerSpeedFactor(config, currentSuccessCount());
+        // Success-ramp quickens the marker, and per-strike speedMul stacks on
+        // top (the final two are faster). Both compress elapsed time.
+        const speed = markerSpeedFactor(config, currentSuccessCount()) * (pattern.speedMul ?? 1);
         const elapsed = (now - patternStart.current) * speed;
         setMarkerPos(positionAt(pattern, elapsed));
         if (pattern.telegraphAtMs !== undefined) {
@@ -155,7 +156,7 @@ export function useForgeStrike(
     // dropped here (disarmed) AND in the engine (index check).
     if (!armedRef.current || phaseRef.current === 'complete') return;
     const pattern = activePattern();
-    const speed = markerSpeedFactor(config, currentSuccessCount());
+    const speed = markerSpeedFactor(config, currentSuccessCount()) * (pattern.speedMul ?? 1);
     const pos = positionAt(pattern, (performance.now() - patternStart.current) * speed);
 
     if (phaseRef.current === 'practice') {

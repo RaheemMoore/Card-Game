@@ -37,6 +37,17 @@ export interface StrikePattern {
    * many ms before the direction flip. Never read by scoring.
    */
   telegraphAtMs?: number;
+  /**
+   * Per-strike marker time-scale multiplier (>1 = faster), stacked ON TOP of
+   * the success ramp. Used to make specific strikes (e.g. the final two)
+   * harder regardless of streak. Defaults to 1.
+   */
+  speedMul?: number;
+  /**
+   * Per-strike Perfect half-width multiplier (<1 = tighter), stacked on top
+   * of the success ramp, floored by ramp.minPerfectHalfWidth. Defaults to 1.
+   */
+  perfectMul?: number;
 }
 
 export interface GradeZones {
