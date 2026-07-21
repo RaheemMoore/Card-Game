@@ -1,8 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { primaryNav, adminNav } from './navConfig';
+import { primaryNav, adminNav, workshopNav } from './navConfig';
 
-export function BottomNav({ isAdmin }: { isAdmin: boolean }) {
-  const items = isAdmin ? [...primaryNav, adminNav] : primaryNav;
+export function BottomNav({ isAdmin, isLoreDirector }: { isAdmin: boolean; isLoreDirector: boolean }) {
+  const items = isAdmin
+    ? [...primaryNav, adminNav]
+    : isLoreDirector
+      ? [...primaryNav, workshopNav]
+      : primaryNav;
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 text-[10px] font-fantasy tracking-wide transition-colors ${

@@ -11,7 +11,8 @@ import {
   isCurrentUserAnonymous,
   signOut,
   subscribeToAuth,
-  fetchIsAdmin,
+  fetchMyRole,
+  type SessionRole,
 } from '../services/persistence/supabaseClient';
 
 type AuthModalMode = 'sign_up' | 'change_password' | null;
@@ -20,16 +21,19 @@ export function NavBar() {
   const [showDevPanel, setShowDevPanel] = useState(false);
   const [authModal, setAuthModal] = useState<AuthModalMode>(null);
   const [, setAuthTick] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<SessionRole>('user');
   const isDev = import.meta.env.DEV;
 
   useEffect(() => {
-    void fetchIsAdmin().then(setIsAdmin);
+    void fetchMyRole().then(setRole);
     return subscribeToAuth(() => {
       setAuthTick((n) => n + 1);
-      void fetchIsAdmin().then(setIsAdmin);
+      void fetchMyRole().then(setRole);
     });
   }, []);
+
+  const isAdmin = role === 'admin';
+  const isLoreDirector = role === 'lore_director';
 
   const user = getCurrentUser();
   const isAnon = isCurrentUserAnonymous();
@@ -138,8 +142,8 @@ export function NavBar() {
         </div>
       </nav>
 
-      <SideNav isAdmin={isAdmin} />
-      <BottomNav isAdmin={isAdmin} />
+      <SideNav isAdmin={isAdmin} isLoreDirector={isLoreDirector} />
+      <BottomNav isAdmin={isAdmin} isLoreDirector={isLoreDirector} />
 
       {showDevPanel && <WalletDevPanel onClose={() => setShowDevPanel(false)} />}
       {authModal && (
