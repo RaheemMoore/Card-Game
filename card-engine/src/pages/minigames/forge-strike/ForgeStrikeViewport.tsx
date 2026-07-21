@@ -3,14 +3,19 @@ import { createPortal } from 'react-dom';
 import type { Card, StatName } from '../../../types/card';
 import { CardRenderer } from '../../../components/CardRenderer';
 import {
+  comboMultiplier,
   countSuccesses,
   effectivePerfectHalfWidth,
+  runRating,
 } from '../../../services/minigames/forge-strike/engine';
-import type { StrikeGrade } from '../../../services/minigames/forge-strike/types';
+import type { RunRating, StrikeGrade } from '../../../services/minigames/forge-strike/types';
+import { applyRunToTemper, getTemper } from '../../../services/minigames/forge-strike/temper';
+import { applyTestingStatOutcome } from '../../../services/minigames/forge-strike/training';
+import { saveCard } from '../../../services/storage';
 import { useForgeStrike, hasCompletedPractice } from './useForgeStrike';
-import { ForgeAnvil } from './components/ForgeAnvil';
 import { StrikeEffects } from './effects/StrikeEffects';
 import { CrystalGem, PipMedallion, OrnatePanel } from './components/ForgeFrames';
+import { TemperGauge } from './components/TemperGauge';
 import { isMuted, toggleMuted, unlock, playCue } from './audio/forgeStrikeAudio';
 
 /**
@@ -63,6 +68,23 @@ const GRADE_LABEL: Record<StrikeGrade, { glyph: string; word: string; color: str
   miss: { glyph: '✕', word: 'MISS', color: '#9ca3af' },
 };
 
+const RATING_LABEL: Record<RunRating, { word: string; color: string }> = {
+  gold: { word: 'GOLD TEMPER', color: '#fbbf24' },
+  silver: { word: 'SILVER TEMPER', color: '#d4d4d8' },
+  bronze: { word: 'BRONZE TEMPER', color: '#d08a4e' },
+  fail: { word: 'UNTEMPERED', color: '#9ca3af' },
+};
+
+interface RunSummary {
+  score: number;
+  rating: RunRating;
+  statFrom: number;
+  statTo: number;
+  statDelta: number;
+  gained: number;
+  burst: boolean;
+}
+
 /** Bounded ember set — fixed count, staggered via CSS (no unbounded DOM). */
 const EMBERS = Array.from({ length: 14 }, (_, i) => ({
   id: i,
@@ -79,6 +101,13 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
   const surfaceRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [muted, setMuted] = useState(isMuted());
+
+  // Live card copy — the forge writes the trained stat + Temper Gauge to it on
+  // run completion, then persists. Rendered so changes show immediately.
+  const [liveCard, setLiveCard] = useState(card);
+  const [runSummary, setRunSummary] = useState<RunSummary | null>(null);
+  const [justBurst, setJustBurst] = useState(false);
+  const temper = getTemper(liveCard);
 
   // Body scroll lock + initial focus + focus restore on exit (plan §17).
   useEffect(() => {
@@ -116,6 +145,41 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
   useEffect(() => {
     if (showResults) playCue(run.outcome === 'win' ? 'win' : 'lose');
   }, [showResults, run.outcome]);
+
+  // Run completion — apply the TESTING stat write (win +1 / loss −1) and pour
+  // the run's rating into the persistent Temper Gauge, then save. Fires once
+  // per run: run.phase flips to 'complete' on the final strike and the run
+  // object identity is stable until the next reset (new createRun object).
+  const appliedRunRef = useRef<typeof run | null>(null);
+  useEffect(() => {
+    if (run.phase !== 'complete') return;
+    if (appliedRunRef.current === run) return;
+    appliedRunRef.current = run;
+
+    const rating = runRating(config, run.score);
+    const statOutcome = run.outcome === 'win' ? 'win' : 'loss';
+    const statResult = applyTestingStatOutcome(liveCard, stat, statOutcome);
+    const temperResult = applyRunToTemper(config, statResult.card, rating);
+
+    saveCard(temperResult.card);
+    setLiveCard(temperResult.card);
+    setRunSummary({
+      score: run.score,
+      rating,
+      statFrom: statResult.from,
+      statTo: statResult.to,
+      statDelta: statResult.delta,
+      gained: temperResult.gained,
+      burst: temperResult.burst,
+    });
+    if (temperResult.burst) {
+      setJustBurst(true);
+      setTimeout(() => setJustBurst(false), 900);
+    }
+    // liveCard is intentionally omitted — we read the freshest copy at apply
+    // time and the ref guard prevents re-application.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [run, config, stat]);
 
   const handleMute = () => setMuted(toggleMuted());
 
@@ -252,6 +316,36 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
         </div>
       </header>
 
+      {/* Live Forge Score HUD — score building toward the goal + combo */}
+      {!inPractice && (
+        <div className="relative z-10 flex items-center justify-center gap-3 pb-1 pointer-events-none">
+          <OrnatePanel className="px-4 py-1 flex items-center gap-3">
+            <span className="flex items-baseline gap-1.5">
+              <span className="text-[10px] tracking-widest text-amber-100/60">SCORE</span>
+              <span className="font-fantasy text-xl font-bold tabular-nums" style={{ color: statColor }}>
+                {run.score}
+              </span>
+              <span className="text-[10px] tracking-widest text-white/40">/ {config.runGoal}</span>
+            </span>
+            {run.streak > 1 && (
+              <span
+                className="font-fantasy text-sm font-bold tabular-nums"
+                style={{ color: '#fbbf24', textShadow: '0 0 8px rgba(251,191,36,0.5)' }}
+              >
+                COMBO ×{comboMultiplier(config, run.streak).toFixed(2)}
+              </span>
+            )}
+          </OrnatePanel>
+        </div>
+      )}
+
+      {/* Persistent Temper Gauge — side-mounted, fills across runs */}
+      {!inPractice && (
+        <div className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+          <TemperGauge fill={temper.fill} bursts={temper.bursts} accent={statColor} justBurst={justBurst} />
+        </div>
+      )}
+
       {/* Tap-anywhere active surface — one real button, keyboard-activatable */}
       <button
         ref={surfaceRef}
@@ -278,7 +372,7 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
           {/* Exact card — the visual anchor */}
           <div className="flex-1 min-h-0 flex items-center justify-center pointer-events-none px-4 relative">
             <div style={{ filter: `drop-shadow(0 0 ${10 + run.heat * 20}px ${glow}99)`, maxHeight: '100%' }}>
-              <CardRenderer card={card} size="full" />
+              <CardRenderer card={liveCard} size="full" />
             </div>
             {/* Stat-colored energy pulse rising into the card on a success */}
             {success && (
@@ -296,9 +390,9 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
             )}
           </div>
 
-          {/* Anvil + hammer + impact effects */}
-          <div className="relative pointer-events-none flex items-end justify-center" style={{ height: 160 }}>
-            <ForgeAnvil swingSeq={strikeSeq} heat={run.heat} glow={glow} lastGrade={displayGrade} />
+          {/* Impact effects, anchored over the painted anvil in the backdrop
+              (the moving SVG anvil was removed per Raheem). */}
+          <div className="relative pointer-events-none flex items-end justify-center w-full" style={{ height: 120 }}>
             <StrikeEffects strikeSeq={strikeSeq} grade={displayGrade} color={statColor} />
           </div>
         </div>
@@ -403,7 +497,7 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
           <OrnatePanel corners accent={statColor} className="p-6 max-w-xs text-center flex flex-col gap-4" style={{ animation: 'fadeIn 240ms ease-out both' }}>
             <p className="text-sm text-white/80">
               Practice strike: {practiceGrade ? GRADE_LABEL[practiceGrade].word : ''}. The real run is five
-              strikes — three Good or better wins. Practice mode grants no rewards.
+              strikes — score {config.runGoal}+ to temper your card. Perfects and combos score big.
             </p>
             <button
               autoFocus
@@ -434,17 +528,53 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
             >
               {run.outcome === 'win' ? 'THE FORGE ANSWERS' : 'THE METAL RESISTS'}
             </h2>
-            <p className="text-sm text-white/70">
-              {countSuccesses(run)} of {config.strikeCount} strikes landed · {stat.toUpperCase()} training ·
-              practice mode, no rewards granted
-            </p>
+
+            {/* Final score + rating */}
+            <div className="flex flex-col items-center gap-1">
+              <span className="font-fantasy text-4xl font-bold tabular-nums" style={{ color: statColor }}>
+                {run.score}
+              </span>
+              {runSummary && (
+                <span className="text-xs font-bold tracking-widest" style={{ color: RATING_LABEL[runSummary.rating].color }}>
+                  {RATING_LABEL[runSummary.rating].word}
+                </span>
+              )}
+            </div>
+
             <div className="flex justify-center gap-2.5" aria-label="Final strike grades">
               {run.strikes.map((s) => (
-                <span key={s.strikeIndex} title={GRADE_LABEL[s.grade].word}>
+                <span key={s.strikeIndex} title={`${GRADE_LABEL[s.grade].word} · +${s.points}`}>
                   <PipMedallion glyph={GRADE_LABEL[s.grade].glyph} gemColor={GRADE_LABEL[s.grade].color} rimColor={GRADE_LABEL[s.grade].color} />
                 </span>
               ))}
             </div>
+
+            {/* Stat change + temper gain (testing) */}
+            {runSummary && (
+              <div className="flex flex-col gap-1 text-sm">
+                <span className="text-white/80">
+                  {stat.toUpperCase()}{' '}
+                  <span className="tabular-nums text-white/50">{runSummary.statFrom}</span>
+                  {' → '}
+                  <span
+                    className="tabular-nums font-bold"
+                    style={{ color: runSummary.statDelta > 0 ? '#86efac' : runSummary.statDelta < 0 ? '#f87171' : '#9ca3af' }}
+                  >
+                    {runSummary.statTo}
+                  </span>
+                  {runSummary.statDelta !== 0 && (
+                    <span className="text-xs text-white/40"> ({runSummary.statDelta > 0 ? '+1' : '−1'}, testing)</span>
+                  )}
+                </span>
+                <span className="text-white/60 text-xs">
+                  {runSummary.burst
+                    ? '⚒ TEMPER GAUGE BURST!'
+                    : runSummary.gained > 0
+                      ? `Temper +${Math.round(runSummary.gained * 100)}%`
+                      : 'No temper gained'}
+                </span>
+              </div>
+            )}
             <div className="flex flex-col gap-2">
               <button
                 autoFocus
