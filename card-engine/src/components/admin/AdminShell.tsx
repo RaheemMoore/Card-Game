@@ -61,11 +61,10 @@ export function AdminShell() {
     );
   }
   if (guard === 'denied') return <Navigate to="/" replace />;
-  const isAdmin = guard === 'admin';
-  // Lore directors are Workshop-only; any other admin path bounces there.
-  if (!isAdmin && location.pathname !== '/admin/workshop') {
-    return <Navigate to="/admin/workshop" replace />;
-  }
+  // Both admins and lore directors reach every admin page + menu. The two
+  // admin-only capabilities (changing roles, approving/merging proposals) are
+  // gated inside their own surfaces (AdminUsers role tab, Workshop approve/
+  // merge) and enforced server-side by is_admin() — not by hiding pages here.
 
   const title = TITLE_BY_PATH[location.pathname] ?? 'Admin';
   const userEmail = getCurrentUser()?.email ?? null;
@@ -76,7 +75,7 @@ export function AdminShell() {
       {/* Desktop / laptop: fixed sidebar */}
       <div className="hidden lg:block shrink-0">
         <div className="sticky top-0 h-dvh">
-          <AdminSidebar compact={compact} onToggleCompact={toggleCompact} userEmail={userEmail} onSignOut={handleSignOut} isAdmin={isAdmin} />
+          <AdminSidebar compact={compact} onToggleCompact={toggleCompact} userEmail={userEmail} onSignOut={handleSignOut} isAdmin />
         </div>
       </div>
 
@@ -91,7 +90,7 @@ export function AdminShell() {
               userEmail={userEmail}
               onSignOut={handleSignOut}
               onNavigate={() => setDrawerOpen(false)}
-              isAdmin={isAdmin}
+              isAdmin
             />
           </div>
         </div>

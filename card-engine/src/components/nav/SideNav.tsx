@@ -1,12 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { primaryNav, adminNav, workshopNav } from './navConfig';
+import { primaryNav, adminNav } from './navConfig';
 
 export function SideNav({ isAdmin, isLoreDirector }: { isAdmin: boolean; isLoreDirector: boolean }) {
-  const items = isAdmin
-    ? [...primaryNav, adminNav]
-    : isLoreDirector
-      ? [...primaryNav, workshopNav]
-      : primaryNav;
+  // Admins and lore directors both reach the full admin dashboard.
+  const items = isAdmin || isLoreDirector ? [...primaryNav, adminNav] : primaryNav;
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-fantasy font-medium tracking-wide transition-all ${

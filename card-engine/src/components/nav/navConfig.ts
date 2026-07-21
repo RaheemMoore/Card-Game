@@ -13,7 +13,3 @@ export const primaryNav: NavItem[] = [
 ];
 
 export const adminNav: NavItem = { to: '/admin', label: 'Admin', icon: '🛡', adminOnly: true };
-
-// Lore directors are Workshop-only. This points straight at /admin/workshop
-// (the only admin surface they're allowed) so they have a visible way in.
-export const workshopNav: NavItem = { to: '/admin/workshop', label: 'Workshop', icon: '📜' };
