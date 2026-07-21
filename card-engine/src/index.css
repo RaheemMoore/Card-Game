@@ -202,3 +202,122 @@ html {
   animation: shimmer 3s ease-in-out infinite;
   pointer-events: none;
 }
+
+/* ============================================================
+   Forge Strike (minigame-local, do NOT reuse globally)
+   ============================================================ */
+
+/* Hammer swing from a fixed pivot: raised → impact → settle. */
+@keyframes fs-hammer-swing {
+  0%   { transform: rotate(-52deg); }
+  32%  { transform: rotate(18deg); }
+  46%  { transform: rotate(10deg); }
+  100% { transform: rotate(-52deg); }
+}
+
+/* Anvil recoil on contact. */
+@keyframes fs-anvil-recoil {
+  0%, 100% { transform: translateY(0); }
+  18%      { transform: translateY(5px); }
+  40%      { transform: translateY(0); }
+}
+
+/* A single spark flung outward; per-particle --dx/--dy set inline. */
+@keyframes fs-spark-fly {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+}
+
+/* Expanding rune ring on a Perfect strike. */
+@keyframes fs-rune-expand {
+  0%   { opacity: 0.9; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+/* Quick impact flash. */
+@keyframes fs-flash {
+  0%   { opacity: 0; }
+  12%  { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+/* Stat-colored energy pulse rising from the anvil into the card. */
+@keyframes fs-energy-rise {
+  0%   { opacity: 0; transform: translateY(0) scaleY(0.4); }
+  25%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-46vh) scaleY(1.2); }
+}
+
+/* Slow-drifting embers. */
+@keyframes fs-ember-rise {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: var(--ember-peak, 0.7); }
+  100% { opacity: 0; transform: translateY(-70px) translateX(var(--ember-drift, 8px)); }
+}
+
+/* Small screen response on the strongest impacts. */
+@keyframes fs-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, -1px); }
+  80% { transform: translate(2px, 1px); }
+}
+
+/* Energy surge — a rising column of light channeled into the card on a hit.
+   Intensity (beam count/width/height/brightness) scales with the combo. */
+@keyframes fs-beam {
+  0%   { opacity: 0; transform: translateY(0) scaleY(0.25); }
+  18%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(calc(-1 * var(--rise, 200px))) scaleY(1.15); }
+}
+/* A glowing mote riding the column upward; per-particle drift/rise inline. */
+@keyframes fs-mote {
+  0%   { opacity: 0; transform: translate(0, 0) scale(1); }
+  14%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--mdx, 0), var(--mrise, -220px)) scale(0.35); }
+}
+/* Bright flare where the energy erupts from the anvil. */
+@keyframes fs-baseflare {
+  0%   { opacity: 0.95; transform: translateX(-50%) scale(0.4); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1.9); }
+}
+/* Radial bloom behind the card as the energy arrives. */
+@keyframes fs-cardbloom {
+  0%   { opacity: 0; transform: scale(0.85); }
+  28%  { opacity: var(--bloom, 0.6); transform: scale(1.02); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+.fs-hammer      { animation: fs-hammer-swing 620ms cubic-bezier(0.5, 0, 0.3, 1) both; transform-origin: 82% 18%; }
+.fs-anvil-recoil{ animation: fs-anvil-recoil 420ms ease-out both; }
+.fs-spark       { animation: fs-spark-fly var(--dur, 520ms) ease-out both; }
+.fs-rune        { animation: fs-rune-expand 700ms ease-out both; }
+.fs-flash       { animation: fs-flash 480ms ease-out both; }
+.fs-energy      { animation: fs-energy-rise 720ms ease-in both; }
+.fs-beam        { animation: fs-beam var(--dur, 700ms) cubic-bezier(0.2, 0.6, 0.2, 1) both; transform-origin: bottom center; }
+.fs-mote        { animation: fs-mote var(--dur, 800ms) ease-out both; }
+.fs-baseflare   { animation: fs-baseflare 520ms ease-out both; }
+.fs-cardbloom   { animation: fs-cardbloom 640ms ease-out both; }
+.fs-ember       { animation: fs-ember-rise var(--dur, 3200ms) linear infinite; }
+.fs-shake       { animation: fs-shake 320ms ease-in-out both; }
+
+/* Reduced motion: drop travel/shake/scale; keep opacity flashes + state so
+   grades stay fully legible (plan §17). The surge collapses to a bright, still
+   bloom so the payoff still reads without vertical motion. */
+@media (prefers-reduced-motion: reduce) {
+  .fs-hammer,
+  .fs-anvil-recoil,
+  .fs-spark,
+  .fs-rune,
+  .fs-energy,
+  .fs-beam,
+  .fs-mote,
+  .fs-baseflare,
+  .fs-ember,
+  .fs-shake {
+    animation: none !important;
+  }
+  .fs-flash,
+  .fs-cardbloom { animation: fs-flash 360ms ease-out both; }
+}

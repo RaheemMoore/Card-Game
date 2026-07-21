@@ -107,6 +107,30 @@ export interface NarrativeAxisState {
   resistedFall?: boolean;
 }
 
+/**
+ * Forge Strike training progress. Additive and jsonb-safe (no SQL migration),
+ * exactly like narrativeAxis — legacy cards read as "no progress" until first
+ * write. Only the Very Low per-stat win accumulator needs to persist; ordinary
+ * +1/−1 outcomes write straight to the stat value. See
+ * services/minigames/forge-strike/training.ts.
+ */
+export interface TrainingProgress {
+  /** Wins banked toward the next +1 on a Very Low stat (0..threshold−1). */
+  veryLowWins?: Partial<Record<StatName, number>>;
+}
+
+/**
+ * Forge Strike "Temper Gauge" — a persistent, per-card meter that fills a
+ * little each successful run and BURSTS when full (a tempering milestone).
+ * Additive and jsonb-safe. See services/minigames/forge-strike/temper.ts.
+ */
+export interface TemperProgress {
+  /** Current fill, 0..1 (carries the remainder after a burst). */
+  fill: number;
+  /** How many times the gauge has burst over this card's lifetime. */
+  bursts: number;
+}
+
 export interface Card {
   cardId: string;
   archetype: ArchetypeName;
@@ -154,6 +178,10 @@ export interface Card {
    * as neutral until then. No SQL migration needed (jsonb blob).
    */
   narrativeAxis?: NarrativeAxisState;
+  /** Forge Strike training accumulator (Very Low grind). See TrainingProgress. */
+  trainingProgress?: TrainingProgress;
+  /** Forge Strike persistent Temper Gauge (fills across runs, bursts). */
+  temperProgress?: TemperProgress;
   /** What the art/prompt pipeline consumes. Set only by transmutation (e.g. Fallen Seraph Light → Infernal). */
   currentElement?: import('./bible').ElementName;
   /** Set ONLY once, at first transmutation — records the pre-transmute element. */
