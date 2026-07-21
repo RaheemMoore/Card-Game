@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CardRenderer } from '../../../components/CardRenderer';
+import { CardBench } from '../CardBench';
 import { getAllCards } from '../../../services/storage';
 import { getStatNames } from '../../../data/powerSystem';
 import type { Card, StatName } from '../../../types/card';
@@ -60,25 +60,19 @@ export function ForgeStrike() {
         <>
           <section>
             <h2 className="font-fantasy text-lg text-white/80 mb-3">1 · Choose your card</h2>
-            <div className="flex flex-wrap gap-4 justify-center">
-              {cards.map((card) => (
-                <div
-                  key={card.cardId}
-                  className={`rounded-xl transition-shadow ${
-                    selectedCard?.cardId === card.cardId ? 'ring-2 ring-amber-400 shadow-lg' : ''
-                  }`}
-                >
-                  <CardRenderer
-                    card={card}
-                    size="thumbnail"
-                    onClick={() => {
-                      setSelectedCard(card);
-                      setSelectedStat(null);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
+            <CardBench
+              eligibleCards={cards}
+              laneCount={1}
+              selectedIds={selectedCard ? [selectedCard.cardId] : []}
+              onToggle={(cardId) => {
+                setSelectedCard((prev) => {
+                  const next = prev?.cardId === cardId ? null : cards.find((c) => c.cardId === cardId) ?? null;
+                  return next;
+                });
+                setSelectedStat(null);
+              }}
+              laneLabel={() => 'Champion'}
+            />
           </section>
 
           {selectedCard && (

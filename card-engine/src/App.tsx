@@ -14,6 +14,7 @@ import { ArchetypeWorkshop } from './pages/ArchetypeWorkshop';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
+import { MiniGamesHub } from './pages/minigames/MiniGamesHub';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
 import { DevAbilities } from './pages/DevAbilities';
@@ -56,6 +57,7 @@ export default function App() {
             <Route path="/codex/family/:familyId" element={<CodexFamily />} />
             <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
             <Route path="/battle" element={<Battle />} />
+            <Route path="/minigames" element={<MiniGamesHub />} />
             <Route path="/minigames/forge-strike" element={<ForgeStrike />} />
             <Route path="/dev/abilities" element={<DevAbilities />} />
             <Route path="/dev/seed-battle" element={<DevSeedBattle />} />
