@@ -85,9 +85,13 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     rare: ['Fire', 'Wind', 'Nature', 'Beast', 'Light', 'Holy', 'Lightning', 'Metal', 'Time', 'Void', 'Cosmic', 'Tech', 'Dream'],
   },
   Vampire: {
-    naturally_compatible: ['Blood', 'Shadow', 'Spirit', 'Psychic', 'Poison'],
-    compatible_through_reinterpretation: ['Fire', 'Ice', 'Water', 'Wind', 'Earth', 'Light', 'Sound', 'Metal'],
-    rare: ['Time', 'Void', 'Cosmic', 'Holy', 'Tech', 'Nature', 'Beast', 'Dream'],
+    // Bible §Vampire: Vampires draw only on Blood, Shadow, and Void — the
+    // hunger itself, the dark they hunt in, and the erased self. Blood is the
+    // native spine; Shadow and Void are the two reinterpretations. Rare is empty
+    // so the narrative-eligibility gate no longer restricts any Vampire element.
+    naturally_compatible: ['Blood'],
+    compatible_through_reinterpretation: ['Shadow', 'Void'],
+    rare: [],
   },
   Lycanthrope: {
     // Layer-A canon re-gate (Tori, lore director, 2026-07-20 — parked for

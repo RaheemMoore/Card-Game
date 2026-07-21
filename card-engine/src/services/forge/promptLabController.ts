@@ -368,15 +368,28 @@ function firstEligible(archetype: ArchetypeName, answers: StoryPillarAnswers): E
 }
 
 function makeTierStats(archetype: ArchetypeName, tier: Rank): CardStats {
-  const bumps: Record<Rank, number> = { Foundation: 0, Forged: 16, Ascendant: 30 };
-  const bump = bumps[tier];
+  // Explicit per-tier values chosen so getOverallRank derives to EXACTLY the
+  // intended rank. The old flat additive bump overshot: a "Forged" Mid-High Atk
+  // (60 + 16 = 76) landed exactly on the Mid-High Ascendant floor, so the Forged
+  // run derived to Ascendant and produced a byte-identical Ascendant prompt (the
+  // "Ascendant == Forged" bug). These values keep Foundation below every forged
+  // floor, Forged inside the forged band with NO stat at an ascendant floor, and
+  // Ascendant at/above the ascendant floors. Biases: Atk Mid-High (forged 61,
+  // ascendant 76), Def + resource Mid (forged 51, ascendant 71). Atk stays
+  // dominant at every tier so the border/identity is continuous.
+  const byTier: Record<Rank, { atk: number; def: number; resource: number }> = {
+    Foundation: { atk: 58, def: 44, resource: 48 }, // all below forged floors
+    Forged: { atk: 70, def: 58, resource: 62 }, //     forged band, none at asc floor
+    Ascendant: { atk: 86, def: 78, resource: 80 }, //  all at/above asc floors
+  };
+  const v = byTier[tier];
   const isTech = archetype === 'Mech Pilot' || archetype === 'Android';
   const resource = isTech
-    ? { Tech: { value: 55 + bump, bias: 'Mid' as const, hardCap: 85 } }
-    : { Mana: { value: 55 + bump, bias: 'Mid' as const, hardCap: 85 } };
+    ? { Tech: { value: v.resource, bias: 'Mid' as const, hardCap: 85 } }
+    : { Mana: { value: v.resource, bias: 'Mid' as const, hardCap: 85 } };
   return {
-    Atk: { value: 60 + bump, bias: 'Mid-High' as const, hardCap: 90 },
-    Def: { value: 45 + bump, bias: 'Mid' as const, hardCap: 85 },
+    Atk: { value: v.atk, bias: 'Mid-High' as const, hardCap: 90 },
+    Def: { value: v.def, bias: 'Mid' as const, hardCap: 85 },
     ...resource,
   };
 }

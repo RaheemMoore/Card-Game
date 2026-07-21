@@ -393,7 +393,7 @@ const VAMPIRE_OPTIONS: StoryPillarOption[] = [
   opt('vam_p2_q1_a1', 'vam_p2_q1', 'The kind of Vampire who cannot remember their mortal name.', 'memory', 'restraint'),
   opt('vam_p2_q1_a2', 'vam_p2_q1', 'A predator who no longer regrets anything.', 'restraint', 'burden'),
   opt('vam_p2_q1_a3', 'vam_p2_q1', 'A person who is unwilling to be told they are wrong.', 'humility', 'restraint'),
-  opt('vam_p2_q1_a4', 'vam_p2_q1', 'The aristocrat my maker was, and thought I would become.', 'confrontation', 'inheritance'),
+  opt('vam_p2_q1_a4', 'vam_p2_q1', 'The heartless tyrant my maker was, who ruled by fear and thought I would too.', 'confrontation', 'inheritance'),
   opt('vam_p2_q1_a5', 'vam_p2_q1', 'Somebody whose century has replaced their conscience.', 'restraint', 'memory'),
   opt('vam_p2_q1_a6', 'vam_p2_q1', 'A dynasty. I refuse to found one.', 'restraint', 'oath'),
   opt('vam_p2_q1_a7', 'vam_p2_q1', 'A person who has forgotten what it was like to be afraid.', 'humility', 'kinship'),
