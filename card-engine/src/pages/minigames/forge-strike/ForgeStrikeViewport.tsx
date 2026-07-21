@@ -10,6 +10,7 @@ import type { StrikeGrade } from '../../../services/minigames/forge-strike/types
 import { useForgeStrike, hasCompletedPractice } from './useForgeStrike';
 import { ForgeAnvil } from './components/ForgeAnvil';
 import { StrikeEffects } from './effects/StrikeEffects';
+import { CrystalGem, PipMedallion, OrnatePanel } from './components/ForgeFrames';
 import { isMuted, toggleMuted, unlock, playCue } from './audio/forgeStrikeAudio';
 
 /**
@@ -226,8 +227,13 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
         <span className="font-fantasy tracking-[0.28em] text-sm text-amber-100/75">FORGE STRIKE</span>
         <div className="flex items-center gap-2">
           <span
-            className="px-2 py-0.5 rounded text-[11px] font-bold tracking-wide"
-            style={{ background: `${statColor}22`, color: statColor, border: `1px solid ${statColor}66` }}
+            className="px-2.5 py-0.5 rounded text-[11px] font-bold tracking-wide"
+            style={{
+              background: 'linear-gradient(to bottom, #3a3128, #1c1712)',
+              color: statColor,
+              border: '1px solid #0d0a07',
+              boxShadow: `inset 0 0 0 1px ${statColor}55, inset 0 1px 0 rgba(230,199,140,0.25)`,
+            }}
           >
             {stat.toUpperCase()} TRAINING
           </span>
@@ -315,18 +321,20 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
           )}
         </div>
 
-        {/* Timing rail — forged-metal frame; zones mirror engine config exactly */}
-        <div className="w-[86%] max-w-xl pointer-events-none pb-1" aria-hidden="true">
+        {/* Timing rail — ornate forged-metal frame with crystal end-caps */}
+        <div className="w-[90%] max-w-xl pointer-events-none pb-1 flex items-center gap-1" aria-hidden="true">
+          <CrystalGem color={statColor} size={18} />
           <div
-            className="relative h-9 rounded-md p-[3px]"
+            className="relative h-9 flex-1 rounded-md p-[3px]"
             style={{
-              background: 'linear-gradient(to bottom, #4a4038, #211b15)',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(214,180,120,0.25)',
+              background: 'linear-gradient(to bottom, #5a4c3c, #241c14)',
+              boxShadow:
+                '0 2px 6px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(201,162,110,0.5), inset 0 1px 0 rgba(230,199,140,0.35)',
             }}
           >
             <div
               className="relative h-full w-full rounded-[4px] overflow-hidden"
-              style={{ background: '#17130f', border: '1px solid rgba(201,162,110,0.35)' }}
+              style={{ background: '#17130f', border: '1px solid rgba(201,162,110,0.5)' }}
             >
               {/* Good zone */}
               <div
@@ -364,28 +372,25 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
               />
             </div>
           </div>
+          <CrystalGem color={statColor} size={18} />
         </div>
 
-        {/* Five result pips — distinct shapes per grade, not just color */}
+        {/* Five result pips — ornate forged medallions, distinct per grade */}
         {!inPractice && (
-          <div className="flex gap-3 pointer-events-none" aria-label="Strike results">
+          <div className="flex gap-2.5 pointer-events-none" aria-label="Strike results">
             {Array.from({ length: config.strikeCount }, (_, i) => {
               const s = run.strikes[i];
               const label = s ? GRADE_LABEL[s.grade] : null;
               const isNext = i === run.nextStrikeIndex && !showResults;
               return (
-                <span
+                <PipMedallion
                   key={i}
-                  className="w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition-all"
-                  style={{
-                    borderColor: label ? label.color : isNext ? `${statColor}aa` : '#3f3f46',
-                    color: label ? label.color : '#52525b',
-                    background: label ? `${label.color}1a` : 'transparent',
-                    boxShadow: isNext ? `0 0 8px ${statColor}66` : 'none',
-                  }}
-                >
-                  {label ? label.glyph : i + 1}
-                </span>
+                  glyph={label ? label.glyph : i + 1}
+                  gemColor={label ? label.color : isNext ? statColor : '#3a332a'}
+                  rimColor={label ? label.color : isNext ? statColor : undefined}
+                  active={isNext}
+                  dim={!label && !isNext}
+                />
               );
             })}
           </div>
@@ -394,8 +399,8 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
 
       {/* Practice-complete interstitial */}
       {phase === 'practice_done' && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70">
-          <div className="rounded-xl border border-amber-800/60 bg-[#171310] p-6 max-w-xs text-center flex flex-col gap-4" style={{ animation: 'fadeIn 240ms ease-out both' }}>
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 p-4">
+          <OrnatePanel corners accent={statColor} className="p-6 max-w-xs text-center flex flex-col gap-4" style={{ animation: 'fadeIn 240ms ease-out both' }}>
             <p className="text-sm text-white/80">
               Practice strike: {practiceGrade ? GRADE_LABEL[practiceGrade].word : ''}. The real run is five
               strikes — three Good or better wins. Practice mode grants no rewards.
@@ -415,14 +420,14 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
             <button onClick={game.replayPractice} className="text-xs text-white/50 underline">
               Practice again
             </button>
-          </div>
+          </OrnatePanel>
         </div>
       )}
 
       {/* Results */}
       {showResults && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/75 p-4">
-          <div className="rounded-xl border border-amber-800/60 bg-[#171310] p-6 max-w-sm w-full text-center flex flex-col gap-4" style={{ animation: 'fadeIn 260ms ease-out both' }}>
+          <OrnatePanel corners accent={run.outcome === 'win' ? statColor : '#9ca3af'} className="p-6 max-w-sm w-full text-center flex flex-col gap-4" style={{ animation: 'fadeIn 260ms ease-out both' }}>
             <h2
               className="font-fantasy text-3xl font-bold tracking-widest"
               style={{ color: run.outcome === 'win' ? statColor : '#9ca3af' }}
@@ -433,15 +438,10 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
               {countSuccesses(run)} of {config.strikeCount} strikes landed · {stat.toUpperCase()} training ·
               practice mode, no rewards granted
             </p>
-            <div className="flex justify-center gap-3" aria-label="Final strike grades">
+            <div className="flex justify-center gap-2.5" aria-label="Final strike grades">
               {run.strikes.map((s) => (
-                <span
-                  key={s.strikeIndex}
-                  className="w-8 h-8 rounded-full border flex items-center justify-center font-bold"
-                  style={{ borderColor: GRADE_LABEL[s.grade].color, color: GRADE_LABEL[s.grade].color }}
-                  title={GRADE_LABEL[s.grade].word}
-                >
-                  {GRADE_LABEL[s.grade].glyph}
+                <span key={s.strikeIndex} title={GRADE_LABEL[s.grade].word}>
+                  <PipMedallion glyph={GRADE_LABEL[s.grade].glyph} gemColor={GRADE_LABEL[s.grade].color} rimColor={GRADE_LABEL[s.grade].color} />
                 </span>
               ))}
             </div>
@@ -465,7 +465,7 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
                 Leave the forge
               </button>
             </div>
-          </div>
+          </OrnatePanel>
         </div>
       )}
     </div>
