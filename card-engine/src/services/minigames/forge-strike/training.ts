@@ -1,4 +1,4 @@
-import type { Card, StatName, TrainingProgress } from '../../../types/card';
+import type { Card, StatName } from '../../../types/card';
 import { BIAS_RANGES, computeRankSum, deriveRank, getStatNames } from '../../../data/powerSystem';
 
 /**
@@ -46,10 +46,11 @@ export type TrainingResult =
   | { kind: 'no_change'; card: Card; stat: StatName; reason: 'hard_cap' | 'floor' }
   /**
    * The +1 would raise the stat a rank and push rank-sum over the cap. The
-   * win is NOT consumed; the caller must resolve a demotion trade and re-apply,
-   * or discard (spec §4: refusing the trade voids the win, doesn't consume it).
+   * win is NOT consumed and `card` is returned unchanged; the caller must
+   * resolve a demotion trade and re-apply, or discard (spec §4: refusing the
+   * trade voids the win, doesn't consume it).
    */
-  | { kind: 'trade_required'; stat: StatName; demoteOptions: StatName[] };
+  | { kind: 'trade_required'; card: Card; stat: StatName; demoteOptions: StatName[] };
 
 function cloneWithStat(card: Card, stat: StatName, value: number): Card {
   const entry = card.stats[stat]!;
@@ -97,7 +98,7 @@ function applyPlusOne(card: Card, stat: StatName): TrainingResult {
   }
   const newValue = Math.min(entry.hardCap, entry.value + 1);
   if (crossesRankSumCap(card, stat, newValue)) {
-    return { kind: 'trade_required', stat, demoteOptions: demoteOptions(card, stat) };
+    return { kind: 'trade_required', card, stat, demoteOptions: demoteOptions(card, stat) };
   }
   return { kind: 'applied', card: cloneWithStat(card, stat, newValue), stat, delta: 1 };
 }
