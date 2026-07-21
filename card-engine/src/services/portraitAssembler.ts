@@ -124,11 +124,9 @@ function buildCataclysmPrefix(sheet: CharacterSheet): string {
     );
   }
   return (
-    `ASCENDANT CATACLYSM (Bible §Ascendant — MANDATORY) for ${sheet.archetype}: the world ` +
-    'CRUMBLES around them, reality tears open, the environment collapses toward the element. ' +
-    `The archetype-specific transformation FULLY MANIFESTS per: ${compactForm(form)}. ` +
-    'Same face + body class + skin + hair as Forged (Bible §Rank continuity); the power ' +
-    'display expands catastrophically. NOT a Forged card with slight variation. '
+    `ASCENDANT CATACLYSM (Bible §Ascendant): the world CRUMBLES around them as the ${sheet.archetype} ` +
+    `transformation FULLY MANIFESTS per: ${compactForm(form, 150)}. Same person as Forged — the ` +
+    'power display expands, the identity does not. '
   );
 }
 
@@ -140,9 +138,12 @@ function buildPosePrefix(sheet: CharacterSheet): string {
   const isRootedMortal = form === null;
   let action: string;
   if (sheet.rank === 'Ascendant') {
+    // The transformation detail lives in the Ascendant cataclysm prefix above —
+    // do NOT repeat the (compacted, still ~240-char) form here, or the doubled
+    // text truncates the identity block. Keep the pose action short.
     action = isRootedMortal
       ? 'mid-ULTIMATE cataclysmic action — character stays HUMAN, power erupts through weapons, armor, and ancestral relics — the world CRUMBLES around them'
-      : `mid-ULTIMATE cataclysmic action — the archetype-specific transformation fully manifests per: ${compactForm(form!)} — the world CRUMBLES around them`;
+      : 'mid-ULTIMATE cataclysmic action — the archetype transformation from the cataclysm directive above fully manifests — the world CRUMBLES around them';
   } else if (sheet.rank === 'Forged') {
     action = isRootedMortal
       ? 'mid-signature-power-move at legendary scale — character stays HUMAN, no wings/tails/bat-mist — power manifests through their weapons (element crackling along the edge), armor (glowing runes), and ancestral relics (heirloom pieces radiating power) — environment loud in reaction'
@@ -187,15 +188,18 @@ function buildElementPrefix(sheet: CharacterSheet): string {
  */
 function buildIdentityBlock(sheet: CharacterSheet): string {
   const f = sheet.hiddenFate;
+  // Order matters under truncation: the Bible §Rank-continuity "never remove"
+  // fields (disability, scars) come BEFORE facial/hair so they survive a tight
+  // Ascendant budget — "disability removed" / "scars erased" are hard rejects.
   const identityParts = [
     f.age,
     f.sex,
     f.bodyType,
     f.skinTone,
-    f.facialStructure,
-    f.hair,
     f.disabilityOrCondition,
     f.scars,
+    f.facialStructure,
+    f.hair,
   ].filter((s) => s && s.trim().length > 0);
   let block = `SAME PERSON RULE: ${identityParts.join(', ')}. ${BODY_PRESERVATION_CLAUSE}`;
   if (sheet.isEvolution) block += `. ${IDENTITY_IMPERATIVE_CLAUSE}`;

@@ -156,6 +156,20 @@ describe('assemblePortraitPrompt — pose + rank', () => {
     expect(portraitPrompt).toContain('ASCENDANT CATACLYSM');
     expect(portraitPrompt).toContain('SACRIFICED THEIR FLESH');
   });
+
+  it('keeps the Bible-locked disability + scars in the Ascendant identity block despite the tight budget', () => {
+    // Regression: the transformation form was once inlined in BOTH the
+    // cataclysm prefix AND the pose action, doubling ~240 chars and truncating
+    // disability/scars off the identity block — a §Rank-continuity hard reject.
+    const { portraitPrompt } = assemblePortraitPrompt(
+      makeSheet({ rank: 'Ascendant', isEvolution: true, pose: '', diversityAxis: '' }),
+    );
+    expect(portraitPrompt).toContain('prosthetic left leg of carved bone');
+    expect(portraitPrompt).toContain('ritual scarification across both forearms');
+    expect(portraitPrompt).toContain('deep umber brown');
+    // And the negatives still forbid removing them, as a second backstop.
+    // (kept in buildNegativePrompt via BASE_NEGATIVE)
+  });
 });
 
 describe('assemblePortraitPrompt — story motifs + budget', () => {
