@@ -32,6 +32,18 @@ import {
 } from '../data/powerSystem';
 import { parseHiddenFate, preserveIdentityAcrossRanks } from './hiddenFate';
 import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/promptFragment';
+import type { CharacterSheet } from '../types/characterSheet';
+import { assemblePortraitPrompt } from './portraitAssembler';
+
+/**
+ * Image/lore decoupling (2026-07-21). Archetypes listed here have their
+ * Leonardo prompt built by the deterministic Image Engine
+ * (services/portraitAssembler.ts) from a CharacterSheet, instead of by Claude.
+ * For these, the Lore Engine returns storyMotifs (resolved visual tokens) and
+ * NO portraitPrompt/negativePrompt. Prototype: Necromancer only; the other 10
+ * archetypes keep the legacy inline path until the full-cast pass.
+ */
+const LOCAL_PORTRAIT_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set(['Necromancer']);
 
 /**
  * Bible-driven card text + portrait prompt generator.
@@ -865,6 +877,12 @@ interface GeneratedText {
    * is provided. Undefined when Claude omits or malforms the field.
    */
   abilityCandidate?: AbilityCandidate;
+  /**
+   * Image/lore decoupling — resolved visual tokens from the Story Pillar
+   * answers, returned instead of a portraitPrompt for LOCAL_PORTRAIT_ARCHETYPES
+   * and consumed by the deterministic assembler. Undefined for the legacy path.
+   */
+  storyMotifs?: string[];
 }
 
 // ============================================================================
@@ -1225,8 +1243,8 @@ Return ONLY a JSON object with these fields:
   "cardName": ${existingName ? `MUST be exactly "${existingName}" — do not change.` : `the character BASE NAME per the FANTASY CHARACTER NAMING BIBLE block above — original, culturally coherent with the character ancestry + archetype + story, NOT a sample from the block, NOT a banned trope. Usually 1-2 words. Foundation-rank characters may have JUST a personal name.`},
   "nameAndTitle": "the character DISPLAY NAME per the Bible §5 name structures. Foundation = usually just the base name or personal+family/clan/order. Forged/Ascendant = MAY include an epithet if earned by story pillar answers. Do NOT default to \\"X, Keeper of Y\\" or \\"X, the Warden\\" or \\"X, of the Vigil\\" — those are banned tropes. If no epithet is earned by lore, just repeat the base name here. Structure examples per archetype are in the Bible block above.",
   "lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the mood WITHOUT quoting them literally. Reflect the emotional throughline you identified. ${isEvolution ? `Reference the character's growth into ${overallRank} — same person, deepened by trials.` : ''}",
-  "portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Construct it in this ORDER:\\n  1. STYLE_ANCHOR verbatim — open with: \\"${STYLE_ANCHOR}\\"\\n  2. IDENTITY BLOCK — MUST open with the literal phrase 'SAME PERSON RULE:' then verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from the Hidden Fate you inferred'}.${existingHiddenFate?.fashion || existingHiddenFate?.hairDetail ? ` THEN — because this is a tier-up — append the LOCKED WARDROBE + HAIR clause verbatim: 'wearing ${existingHiddenFate?.fashion?.primaryGarment ?? ''}${existingHiddenFate?.fashion?.armor ? `, armored in ${existingHiddenFate.fashion.armor}` : ''}${existingHiddenFate?.fashion?.outerLayer ? `, ${existingHiddenFate.fashion.outerLayer} over the shoulders` : ''}${existingHiddenFate?.hairDetail ? `, ${existingHiddenFate.hairDetail.texture} ${existingHiddenFate.hairDetail.color} hair ${existingHiddenFate.hairDetail.style}` : ''} — locked from Foundation verbatim, do NOT invent new armor, do NOT change the role, do NOT bake element color into the wardrobe description (element palette comes from the ELEMENT VISUAL LANGUAGE block ONLY). Add ember/warm-glow ONLY if the element is Fire/Blood/Ash/Holy.'.` : ''} Then append verbatim: 'this body is preserved as written, do NOT substitute a slim young hero body, do NOT remove or reduce clothing, do NOT slim or muscle-up or de-age this character, action does NOT mean shirtless or bodybuilder anatomy'. Encode the diversity guardrail above.${existingHiddenFate ? ` Then append verbatim as a distinct clause: 'IDENTITY IMPERATIVE — same character as the previous rank: same skin tone (do NOT lighten, do NOT darken, do NOT shift undertone), same hair color and texture (do NOT restyle to a different color, may show age-silvering only), same ethnicity and ancestry cues, same facial structure and eye color. This is a portrait of the SAME PERSON aged and hardened, not a similar-looking one.'. Leonardo weights early clauses heavier — this identity lock must survive the rank-spectacle and element clauses that follow.` : ''}\\n  3. REQUIRED POSE — write the character mid-EXACTLY-THIS-POSE from the REQUIRED POSE block above. Do NOT paraphrase into a T-pose. Do NOT put a glowing orb in each fist. Do NOT mirror the arms symmetrically.\\n  4. ELEMENT VISUAL LOCKDOWN — pull COLORS, TEXTURE, BODY TELL, ENVIRONMENT, and ANTI-CONTAMINATION verbatim from the ELEMENT VISUAL LOCKDOWN block above; the element manifests through those exact colors and texture on the body and in the environment. Do NOT drift to Phoenix default red-flame + gold-rim palette regardless of element. ${elementQuirk ? `Also weave the FANTASY QUIRK from that block subtly into the frame as a small background detail (not the focal point).` : ''}\\n  5. RANK SPECTACLE — apply the ${overallRank} scaling from the RANK ELEMENT SPECTACLE block above (${input.archetype === 'Vampire' ? 'Foundation: element already manifesting; Forged: element spectacle escalates + bearing grows more commanding; Ascendant: the element manifests at MAXIMUM around a composed blood-sovereign in absolute command — spectacle is in the ELEMENT and PRESENCE, NOT world-destruction and NOT forced beast morphology' : 'Foundation erupts already, Forged escalates + environment cracks + non-human features may begin, Ascendant world crumbles + character evolves beyond mortal form with wings/tails/beast features per archetype'}).\\n  6. Ability spectacle — visual signature of the character's abilities per the EXISTING ABILITIES block, woven into pose or effects.\\n  7. Story-Pillar-derived materials, symbols, and specific objects the answers named.\\n  8. Weather + lighting + environmentDetails from Hidden Fate — should carry elemental echo (fire user in burning environment, void user in cracking reality, etc.).\\n  9. Composition closer — MUST END with: 'entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered'.\\n${overallRank === 'Ascendant' ? (input.archetype === 'Vampire' ? "This is a MAXIMAL-SPECTACLE Ascendant portrait — a composed blood-sovereign in absolute command, their element manifesting at full scale around them (NOT world-destruction, NOT a feral crouching beast). The same skinTone/bodyType/ancestry/age/scars/disability from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled, ancestry stays ancestry. What EXPANDS is the element spectacle and their authority/presence, worn on top of the same person. Bible §Visual quality rule: remove the power effects and the character is still recognizable through silhouette + body + materials + face." : "This is a CATACLYSMIC Ascendant portrait — reality crumbles around them, the world reacts to their ultimate, non-human features (wings, tails, beast features, spectral silhouettes, constellation-lit skin, demonic marks) manifest per archetype and element. BUT the same skinTone/bodyType/ancestry/age/scars/disability from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled, ancestry stays ancestry. What EXPANDS is the power display on top of that identity. Bible §Visual quality rule: remove the power effects and the character is still recognizable through silhouette + body + materials + face.") : ''} Do NOT contradict any locked identity above.",
-  "negativePrompt": "starts with \\"${BASE_NEGATIVE}\\" then add archetype-specific §14 Avoid items and any anti-continuity terms that fit this specific character. Comma-separated, under ${NEGATIVE_PROMPT_MAX} characters.",
+  ${LOCAL_PORTRAIT_ARCHETYPES.has(archetype) ? `"storyMotifs": ["array of 4-8 SHORT concrete visual objects, materials, and symbols the Story Pillar answers imply — e.g. 'a bone-handled ritual dagger', 'a shroud embroidered with the names of the dead', 'a censer trailing violet smoke'. Each under 60 chars, no full sentences. The portrait itself is assembled deterministically in code from your hiddenFate + these motifs — do NOT write a portraitPrompt or negativePrompt, they are not read for this archetype."],` : `"portraitPrompt": "single dense comma-separated Leonardo prompt under ${PORTRAIT_PROMPT_MAX} characters. Construct it in this ORDER:\\n  1. STYLE_ANCHOR verbatim — open with: \\"${STYLE_ANCHOR}\\"\\n  2. IDENTITY BLOCK — MUST open with the literal phrase 'SAME PERSON RULE:' then verbatim age/sex/bodyType/skinTone/facialStructure/hair/disabilityOrCondition/scars ${existingHiddenFate ? 'from LOCKED HIDDEN FATE above (verbatim)' : 'from the Hidden Fate you inferred'}.${existingHiddenFate?.fashion || existingHiddenFate?.hairDetail ? ` THEN — because this is a tier-up — append the LOCKED WARDROBE + HAIR clause verbatim: 'wearing ${existingHiddenFate?.fashion?.primaryGarment ?? ''}${existingHiddenFate?.fashion?.armor ? `, armored in ${existingHiddenFate.fashion.armor}` : ''}${existingHiddenFate?.fashion?.outerLayer ? `, ${existingHiddenFate.fashion.outerLayer} over the shoulders` : ''}${existingHiddenFate?.hairDetail ? `, ${existingHiddenFate.hairDetail.texture} ${existingHiddenFate.hairDetail.color} hair ${existingHiddenFate.hairDetail.style}` : ''} — locked from Foundation verbatim, do NOT invent new armor, do NOT change the role, do NOT bake element color into the wardrobe description (element palette comes from the ELEMENT VISUAL LANGUAGE block ONLY). Add ember/warm-glow ONLY if the element is Fire/Blood/Ash/Holy.'.` : ''} Then append verbatim: 'this body is preserved as written, do NOT substitute a slim young hero body, do NOT remove or reduce clothing, do NOT slim or muscle-up or de-age this character, action does NOT mean shirtless or bodybuilder anatomy'. Encode the diversity guardrail above.${existingHiddenFate ? ` Then append verbatim as a distinct clause: 'IDENTITY IMPERATIVE — same character as the previous rank: same skin tone (do NOT lighten, do NOT darken, do NOT shift undertone), same hair color and texture (do NOT restyle to a different color, may show age-silvering only), same ethnicity and ancestry cues, same facial structure and eye color. This is a portrait of the SAME PERSON aged and hardened, not a similar-looking one.'. Leonardo weights early clauses heavier — this identity lock must survive the rank-spectacle and element clauses that follow.` : ''}\\n  3. REQUIRED POSE — write the character mid-EXACTLY-THIS-POSE from the REQUIRED POSE block above. Do NOT paraphrase into a T-pose. Do NOT put a glowing orb in each fist. Do NOT mirror the arms symmetrically.\\n  4. ELEMENT VISUAL LOCKDOWN — pull COLORS, TEXTURE, BODY TELL, ENVIRONMENT, and ANTI-CONTAMINATION verbatim from the ELEMENT VISUAL LOCKDOWN block above; the element manifests through those exact colors and texture on the body and in the environment. Do NOT drift to Phoenix default red-flame + gold-rim palette regardless of element. ${elementQuirk ? `Also weave the FANTASY QUIRK from that block subtly into the frame as a small background detail (not the focal point).` : ''}\\n  5. RANK SPECTACLE — apply the ${overallRank} scaling from the RANK ELEMENT SPECTACLE block above (${input.archetype === 'Vampire' ? 'Foundation: element already manifesting; Forged: element spectacle escalates + bearing grows more commanding; Ascendant: the element manifests at MAXIMUM around a composed blood-sovereign in absolute command — spectacle is in the ELEMENT and PRESENCE, NOT world-destruction and NOT forced beast morphology' : 'Foundation erupts already, Forged escalates + environment cracks + non-human features may begin, Ascendant world crumbles + character evolves beyond mortal form with wings/tails/beast features per archetype'}).\\n  6. Ability spectacle — visual signature of the character's abilities per the EXISTING ABILITIES block, woven into pose or effects.\\n  7. Story-Pillar-derived materials, symbols, and specific objects the answers named.\\n  8. Weather + lighting + environmentDetails from Hidden Fate — should carry elemental echo (fire user in burning environment, void user in cracking reality, etc.).\\n  9. Composition closer — MUST END with: 'entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered'.\\n${overallRank === 'Ascendant' ? (input.archetype === 'Vampire' ? "This is a MAXIMAL-SPECTACLE Ascendant portrait — a composed blood-sovereign in absolute command, their element manifesting at full scale around them (NOT world-destruction, NOT a feral crouching beast). The same skinTone/bodyType/ancestry/age/scars/disability from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled, ancestry stays ancestry. What EXPANDS is the element spectacle and their authority/presence, worn on top of the same person. Bible §Visual quality rule: remove the power effects and the character is still recognizable through silhouette + body + materials + face." : "This is a CATACLYSMIC Ascendant portrait — reality crumbles around them, the world reacts to their ultimate, non-human features (wings, tails, beast features, spectral silhouettes, constellation-lit skin, demonic marks) manifest per archetype and element. BUT the same skinTone/bodyType/ancestry/age/scars/disability from LOCKED HIDDEN FATE are preserved — heavyset stays heavyset, elderly stays elderly, disabled stays disabled, ancestry stays ancestry. What EXPANDS is the power display on top of that identity. Bible §Visual quality rule: remove the power effects and the character is still recognizable through silhouette + body + materials + face.") : ''} Do NOT contradict any locked identity above.",
+  "negativePrompt": "starts with \\"${BASE_NEGATIVE}\\" then add archetype-specific §14 Avoid items and any anti-continuity terms that fit this specific character. Comma-separated, under ${NEGATIVE_PROMPT_MAX} characters.",`}
   "hiddenFate": {
     "age": "e.g. 'early 60s' — inferred from the answers, LOCKED after this call",
     "sex": "male / female / nonbinary / androgynous — respect the answers where relevant",
@@ -1328,6 +1346,10 @@ export interface GenerateCardTextInput {
 
 export async function generateCardText(input: GenerateCardTextInput): Promise<GeneratedText> {
   const overallRank = getOverallRank(input.stats);
+  // Image/lore decoupling — when true, the Leonardo prompt is built by the
+  // deterministic assembler from a CharacterSheet, and Claude returns
+  // storyMotifs instead of a portraitPrompt.
+  const assemblesPortraitLocally = LOCAL_PORTRAIT_ARCHETYPES.has(input.archetype);
   // M4.0 — pick diversity axis + pose OUTSIDE buildPrompt so we can also
   // prepend them to the raw Leonardo prompt Phoenix sees. Tier-up/regen
   // keep locked identity + pose family — skipped.
@@ -1402,7 +1424,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     // used the OLD M3.7 STYLE_ANCHOR with fire-priming language. Enforce
     // portraitPrompt presence so we throw + retry instead of dropping to
     // a stale fallback anchor.
-    if (typeof parsed.portraitPrompt !== 'string' || parsed.portraitPrompt.length < 100) {
+    if (!assemblesPortraitLocally && (typeof parsed.portraitPrompt !== 'string' || parsed.portraitPrompt.length < 100)) {
       throw new Error('Incomplete response — missing or truncated portraitPrompt field');
     }
 
@@ -1523,7 +1545,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     // M4.9 — parsed.portraitPrompt is guaranteed present (M4.8 parse-guard
     // above throws if missing) so no fallback needed. Same for negativePrompt.
     const packPrefix = lycanAscendantPackClause(input.archetype, overallRank, input.answers);
-    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${presencePrefix}${packPrefix}${posePrefix}${vampirePrefix}${elementPrefix}${parsed.portraitPrompt}`;
+    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${presencePrefix}${packPrefix}${posePrefix}${vampirePrefix}${elementPrefix}${parsed.portraitPrompt ?? ''}`;
     const portraitPrompt = truncateToLimit(rawPortraitPrompt, PORTRAIT_PROMPT_MAX);
     // M5.2 — belt+suspenders anti-warm-glow. If the element is NOT in the
     // fire family, aggressively strip any ember/warm-glow/fire language
@@ -1589,6 +1611,36 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       hiddenFate = preserveIdentityAcrossRanks(input.existingHiddenFate, hiddenFate);
     }
 
+    // Image/lore decoupling — for LOCAL_PORTRAIT_ARCHETYPES the Leonardo prompt
+    // is (re)built deterministically by the Image Engine from a CharacterSheet.
+    // The legacy prefix-stack output above is discarded for these archetypes.
+    // hiddenFate is finalised (locked anchors merged) BEFORE the sheet is built,
+    // so continuity is enforced in TypeScript, not by Claude honoring prose.
+    let finalPortraitPrompt = portraitPrompt;
+    let finalNegativePrompt = negativePrompt;
+    if (assemblesPortraitLocally) {
+      const rawMotifs = (parsed as { storyMotifs?: unknown }).storyMotifs;
+      const storyMotifs = Array.isArray(rawMotifs)
+        ? rawMotifs.filter((m): m is string => typeof m === 'string' && m.trim().length > 0)
+        : [];
+      const sheet: CharacterSheet = {
+        hiddenFate,
+        storyMotifs,
+        archetype: input.archetype,
+        rank: overallRank,
+        resolvedElement: input.element.element,
+        elementBond: input.element.bond,
+        pose: requiredPose,
+        diversityAxis,
+        isEvolution: Boolean(input.existingHiddenFate),
+        narrativeAxisPath: input.narrativeAxis?.path,
+        abilityRefs: input.existingAbilityRefs ?? [],
+      };
+      const assembled = assemblePortraitPrompt(sheet);
+      finalPortraitPrompt = assembled.portraitPrompt;
+      finalNegativePrompt = assembled.negativePrompt;
+    }
+
     const abilityCandidate = input.abilitySlotToFill
       ? parseAbilityCandidate((parsed as unknown as { abilityCandidate?: unknown }).abilityCandidate)
       : undefined;
@@ -1626,8 +1678,8 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       cardName,
       nameAndTitle,
       lore: parsed.lore,
-      portraitPrompt,
-      negativePrompt,
+      portraitPrompt: finalPortraitPrompt,
+      negativePrompt: finalNegativePrompt,
       hiddenFate,
       abilityCandidate,
     };
