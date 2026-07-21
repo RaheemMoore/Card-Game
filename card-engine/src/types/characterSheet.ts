@@ -69,6 +69,15 @@ export interface CharacterSheet {
   pose: string;
 
   /**
+   * The character's weapon — rolled from the archetype's curated weapon pool
+   * (Archetype_Weapon_and_Companion_Reference.md) at Foundation and LOCKED
+   * across ranks per §4.2 (ornamentation evolves, the weapon identity does
+   * not). A short visual descriptor, e.g. "a Grave Scythe — a curved
+   * bone-and-iron polearm". Empty string if the archetype/render has none.
+   */
+  weapon?: string;
+
+  /**
    * The forced diversity axis for a fresh forge. Empty string on tier-up /
    * regen (identity is locked, so no new axis is rolled).
    */
@@ -83,6 +92,14 @@ export interface CharacterSheet {
 
   /** P6 Seraph corruption arc — resolved narrative-axis path when present. */
   narrativeAxisPath?: string;
+
+  /**
+   * Rank-scaled companion/servant phrase for the background (from
+   * data/archetypeCompanions.ts companionPresence()). Empty when the archetype
+   * has no companion system, or at a rank where none appear yet (e.g. a
+   * Necromancer at Foundation). The assembler renders it subordinate/background.
+   */
+  companion?: string;
 
   /**
    * The character's current ability refs, so the assembler can weave each

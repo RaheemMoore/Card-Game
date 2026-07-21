@@ -1,13 +1,11 @@
 import type { CharacterSheet } from '../types/characterSheet';
-import type { ElementName, HiddenFate } from '../types/bible';
+import type { ElementName } from '../types/bible';
 import type { CardAbilityReference } from '../types/abilities';
 import { ELEMENT_VISUAL_LANGUAGE } from '../data/elementVisualLanguage';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
   BASE_NEGATIVE,
   PORTRAIT_PROMPT_MAX,
-  NEGATIVE_PROMPT_MAX,
-  ELEMENT_SPECTACLE_BY_RANK,
   ARCHETYPE_NON_HUMAN_FORMS,
   buildElementDriftBans,
   truncateToLimit,
@@ -38,12 +36,27 @@ import {
 const FIRE_FAMILY_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood', 'Ash', 'Holy'] as const;
 
 /**
+ * Bare-chest gate (Raheem 2026-07-21): a bare male chest may render ONLY at the
+ * Ascendant peak. Foundation must read "super modest," Forged stays covered, and
+ * women stay covered at EVERY rank including Ascendant. The gate is deliberately
+ * `rank === Ascendant AND sex === male` (never OR) — the covered case is the
+ * default and every other combination falls under it.
+ */
+function allowsBareChest(sheet: CharacterSheet): boolean {
+  return sheet.rank === 'Ascendant' && sheet.hiddenFate.sex === 'male';
+}
+
+/**
  * Bible §Rank-continuity guardrail — appended after the identity block. Kept
  * compact (the long-form version is redundant with BASE_NEGATIVE's anti-slim /
  * anti-shirtless list) so the identity block fits the tight Leonardo budget.
+ * The "reduce clothing" ban is dropped in the bare-chest-allowed branch so it
+ * doesn't fight the open-robe cue.
  */
 const BODY_PRESERVATION_CLAUSE =
   'preserve this exact body — do NOT slim, muscle-up, de-age, or reduce clothing';
+const BODY_PRESERVATION_CLAUSE_BARE =
+  'preserve this exact body — do NOT slim, muscle-up, or de-age';
 
 /** Tier-up only — Leonardo weights early clauses heavier, so this re-locks identity. */
 const IDENTITY_IMPERATIVE_CLAUSE =
@@ -76,12 +89,20 @@ const COMPOSITION_CLOSER =
  * (also hard-enforced by BASE_NEGATIVE). Kept short so identity + element +
  * composition all survive the budget.
  */
-const COMPACT_STYLE_OPENER =
-  'painterly fantasy action card illustration, semi-realistic, character mid-signature ' +
-  'power move with the element channelling through their own body (not physique display), ' +
-  'kinetic pose with cloth and hair in motion, the world reacting in the element\'s materials, ' +
+const COMPACT_STYLE_LEAD =
+  'painterly fantasy action card art, mid-action pose (never a static portrait), cloth and hair ' +
+  'in motion, cinematic lighting';
+
+const MODESTY_STYLE_TAIL =
   'MODEST powerful presentation — real armor / robes / coats / regalia, fully-opaque garments ' +
   'that do not cling to or emphasize chest or groin, camera at eye level, dignified composed ' +
+  'expression (never sultry or seductive)';
+
+// Ascendant-male bare-chest variant: chest may be bared, but groin stays covered
+// and the expression is still dignified (never sexualized).
+const MODESTY_STYLE_TAIL_BARE =
+  'MODEST powerful presentation — real armor / robes / coats / regalia, lower body and groin ' +
+  'fully covered and never emphasized, camera at eye level, dignified composed heroic ' +
   'expression (never sultry or seductive)';
 
 // ---------------------------------------------------------------------------
@@ -89,45 +110,25 @@ const COMPACT_STYLE_OPENER =
 // assembly, but sourced from the sheet instead of Claude's JSON.
 // ---------------------------------------------------------------------------
 
+/** First comma-clause of a verbose hiddenFate field, capped — keeps the
+ *  identity lead tight so element + background + pose all fit the budget. */
+function firstClause(s: string | undefined, max = 52): string {
+  if (!s) return '';
+  const c = s.split(',')[0].trim();
+  return c.slice(0, max);
+}
+
 function buildSexPrefix(sex: string): string {
   if (!sex) return '';
   const detail =
     sex === 'female'
-      ? 'Visible breasts, hip line, feminine facial features, feminine musculature. Do NOT default to a masculine warrior body.'
+      ? 'clearly female, feminine face and build'
       : sex === 'male'
-        ? 'Visible masculine features, jawline, shoulders, chest.'
+        ? 'clearly male, masculine face and build'
         : sex === 'nonbinary' || sex === 'androgynous'
-          ? 'Androgynous features, ambiguous silhouette, defying easy male/female read.'
-          : 'Respect the sex written above; do not substitute.';
-  return `REQUIRED SEX: ${sex}. Render clear ${sex} presentation. ${detail} `;
-}
-
-function buildAxisPrefix(diversityAxis: string): string {
-  return diversityAxis
-    ? `REQUIRED CHARACTER: ${diversityAxis}. This body type IS the character; do not substitute. `
-    : '';
-}
-
-function buildCataclysmPrefix(sheet: CharacterSheet): string {
-  if (sheet.rank !== 'Ascendant') return '';
-  const form = ARCHETYPE_NON_HUMAN_FORMS[sheet.archetype];
-  if (form === null) {
-    return (
-      'ASCENDANT CATACLYSM (Bible §Ascendant — MANDATORY): the world CRUMBLES around ' +
-      'them, reality tears open, the sky shatters, the environment collapses toward the ' +
-      'element. The character stays HUMAN — no wings, no tails, no bat-mist, no bone-form ' +
-      '— but their POWER DISPLAY expands catastrophically THROUGH THEIR GEAR: signature ' +
-      'weapons blaze with element-energy, armor reveals hidden power (runes ignited, plates ' +
-      'radiating element-color from within), ancestral relics erupt with lineage-power. ' +
-      'Same face + body class + skin + hair as Forged. This is cosmic transcendence ' +
-      'expressed through their tools of power. '
-    );
-  }
-  return (
-    `ASCENDANT CATACLYSM (Bible §Ascendant): the world CRUMBLES around them as the ${sheet.archetype} ` +
-    `transformation FULLY MANIFESTS per: ${compactForm(form, 150)}. Same person as Forged — the ` +
-    'power display expands, the identity does not. '
-  );
+          ? 'androgynous, ambiguous male/female read'
+          : 'as written';
+  return `${sex} character (${detail})`;
 }
 
 function buildPosePrefix(sheet: CharacterSheet): string {
@@ -136,20 +137,24 @@ function buildPosePrefix(sheet: CharacterSheet): string {
   }
   const form = ARCHETYPE_NON_HUMAN_FORMS[sheet.archetype];
   const isRootedMortal = form === null;
+  // Weapon-forward on tier-up: the locked weapon VANISHED at Forged/Ascended
+  // because the fallback action was transformation-only. Lead every tier-up
+  // action with using the weapon so it always renders (the weapon clause below
+  // carries the exact silhouette).
+  const weaponLead = sheet.weapon ? 'clearly WIELDING their weapon mid-strike, ' : '';
   let action: string;
   if (sheet.rank === 'Ascendant') {
-    // The transformation detail lives in the Ascendant cataclysm prefix above —
-    // do NOT repeat the (compacted, still ~240-char) form here, or the doubled
-    // text truncates the identity block. Keep the pose action short.
+    // Ascendant escalation WITHOUT "world crumbles" (cataclysm removed — it drove
+    // Leonardo off-path). Peak power = the transformation + element at maximum.
     action = isRootedMortal
-      ? 'mid-ULTIMATE cataclysmic action — character stays HUMAN, power erupts through weapons, armor, and ancestral relics — the world CRUMBLES around them'
-      : 'mid-ULTIMATE cataclysmic action — the archetype transformation from the cataclysm directive above fully manifests — the world CRUMBLES around them';
+      ? `${weaponLead}mid-ULTIMATE signature attack at absolute peak power — character stays HUMAN, power erupting through their weapon, armor, and ancestral relics at maximum scale`
+      : `${weaponLead}mid-ULTIMATE signature attack at absolute peak power — the archetype transformation fully manifests per: ${compactForm(form!)}`;
   } else if (sheet.rank === 'Forged') {
     action = isRootedMortal
-      ? 'mid-signature-power-move at legendary scale — character stays HUMAN, no wings/tails/bat-mist — power manifests through their weapons (element crackling along the edge), armor (glowing runes), and ancestral relics (heirloom pieces radiating power) — environment loud in reaction'
-      : `mid-signature-power-move at legendary scale — the archetype-specific transformation begins to manifest per: ${compactForm(form!)} — aura extending far beyond the body`;
+      ? `${weaponLead}mid-signature-power-move at legendary scale — character stays HUMAN, no wings/tails/bat-mist — power manifests through their weapons (element crackling along the edge), armor (glowing runes), and ancestral relics (heirloom pieces radiating power) — environment loud in reaction`
+      : `${weaponLead}mid-signature-power-move at legendary scale — the archetype-specific transformation begins to manifest per: ${compactForm(form!)} — aura extending far beyond the body`;
   } else {
-    action = 'mid-signature-move with element already erupting';
+    action = `${weaponLead}mid-signature-move with element already erupting`;
   }
   return `RANK-SCALED ACTION: ${action}. Absolutely NO T-pose, NO orb-per-fist, NO symmetrical arms — the same person from Foundation but the action escalates with rank. `;
 }
@@ -158,21 +163,22 @@ function buildElementPrefix(sheet: CharacterSheet): string {
   const element = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[element];
   const isFireFamily = FIRE_FAMILY_ELEMENTS.includes(element);
-  // Colors FIRST — the full assembleElementLockdown puts COLORS near the end,
-  // where budget truncation deletes them. This compact, colors-first clause
-  // guarantees the element palette (the single most important element cue)
-  // always survives, then adds materials + motion.
-  const compactLockdown =
-    `colors ${v.primaryColors}, ${v.secondaryColors}; materials ${v.materials}; motion ${v.motion}`;
-  // Anti-fire lock LEADS the element clause (not trails it) so it survives
-  // truncation — Void/Shadow/etc. Necromancers must never render fire.
-  const nonFire = !isFireFamily
-    ? `ZERO connection to fire — NO warm ember, NO orange, everything in the ${element} palette. `
-    : '';
-  const continuity = sheet.isEvolution
-    ? `RANK CONTINUITY: same ${element} palette, materials, and lighting as Foundation — do NOT drift to warm ember or fire-orange. `
-    : '';
-  return `REQUIRED ELEMENT (${element}): ${nonFire}${compactLockdown}. ${continuity}`;
+  // Manifestation-forward AND rank-scaled: the element must DOMINATE the frame
+  // at every tier, growing with rank. At Forged/Ascendant the element was
+  // vanishing entirely (the tier-up prompt let it get out-competed), so it now
+  // scales up and carries its OWN lighting so the scene can't drift to daylight.
+  const scale =
+    sheet.rank === 'Ascendant'
+      ? 'at CATACLYSMIC MAXIMUM, the whole scene collapsing into the element'
+      : sheet.rank === 'Forged'
+        ? 'escalating dramatically, extending far beyond the body'
+        : 'erupting';
+  const nonFire = !isFireFamily ? ` ZERO fire, NO warm ember/orange.` : '';
+  return (
+    `ELEMENT SPECTACLE — ${element} power VISIBLY ${scale} from the character; the environment REACTS ` +
+    `(this element MUST DOMINATE the frame): ${firstClause(v.motion, 80)}; lighting ` +
+    `${firstClause(v.lighting, 64)}; only in ${element} colors ${v.primaryColors}.${nonFire}`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -188,38 +194,51 @@ function buildElementPrefix(sheet: CharacterSheet): string {
  */
 function buildIdentityBlock(sheet: CharacterSheet): string {
   const f = sheet.hiddenFate;
-  // Order matters under truncation: the Bible §Rank-continuity "never remove"
-  // fields (disability, scars) come BEFORE facial/hair so they survive a tight
-  // Ascendant budget — "disability removed" / "scars erased" are hard rejects.
-  const identityParts = [
+  // COMPACT identity lead — first-clause of each field so the whole subject
+  // description stays ~150 chars, leaving budget for element + background +
+  // pose. Ancestry (skin) + body mass + age lead; the "never remove" fields
+  // (disability, scars) come before facial/hair so they survive truncation.
+  const parts = [
+    firstClause(f.skinTone), // ancestry first — the anti-white-default anchor
+    firstClause(f.bodyType),
     f.age,
-    f.sex,
-    f.bodyType,
-    f.skinTone,
-    f.disabilityOrCondition,
-    f.scars,
-    f.facialStructure,
-    f.hair,
+    firstClause(f.disabilityOrCondition),
+    firstClause(f.scars),
+    firstClause(f.facialStructure),
+    firstClause(f.hair),
   ].filter((s) => s && s.trim().length > 0);
-  let block = `SAME PERSON RULE: ${identityParts.join(', ')}. ${BODY_PRESERVATION_CLAUSE}`;
-  if (sheet.isEvolution) block += `. ${IDENTITY_IMPERATIVE_CLAUSE}`;
-  return block;
+  // Note: the tier-up IDENTITY_IMPERATIVE re-lock is a SEPARATE low-priority
+  // segment (not appended here) so the core anchors + weapon survive a tight
+  // Ascendant budget; continuity is also carried by the init-image on tier-up.
+  const preservation = allowsBareChest(sheet) ? BODY_PRESERVATION_CLAUSE_BARE : BODY_PRESERVATION_CLAUSE;
+  return `SUBJECT (hold this exact person): ${parts.join(', ')}. ${preservation}`;
 }
 
-function buildWardrobeClause(f: HiddenFate): string {
-  const fashion = f.fashion;
+function buildWardrobeClause(sheet: CharacterSheet): string {
+  const fashion = sheet.hiddenFate.fashion;
   if (!fashion) return '';
+  // Ascendant-male bare-chest branch: the outer layer is worn OPEN over a bare
+  // chest, so we describe the parted outer layer + armor/regalia (never a closed
+  // chest garment) — the open-robe positive cue in the segment stack does the
+  // rest. Groin/lower body stays covered via MODESTY_STYLE_TAIL_BARE.
+  if (allowsBareChest(sheet)) {
+    const pieces: string[] = [];
+    if (fashion.outerLayer) pieces.push(`a ${fashion.outerLayer} worn open over the shoulders`);
+    else if (fashion.primaryGarment) pieces.push(`a ${fashion.primaryGarment} worn open`);
+    if (fashion.armor) pieces.push(`shoulder and forearm pieces of ${fashion.armor}`);
+    if (pieces.length === 0) return '';
+    return `wearing ${pieces.join(', ')}, chest bared beneath the open layer`;
+  }
+  // Covered case — only the coverage-critical layers (footwear/accessory/hair
+  // are dropped so the specific BACKGROUND still fits after this on a
+  // maximally-detailed character). Leads with a hard coverage cue (the model
+  // strips fit torsos otherwise, negatives notwithstanding).
   const pieces: string[] = [];
   if (fashion.primaryGarment) pieces.push(`wearing ${fashion.primaryGarment}`);
   if (fashion.armor) pieces.push(`armored in ${fashion.armor}`);
   if (fashion.outerLayer) pieces.push(`${fashion.outerLayer} over the shoulders`);
-  if (fashion.footwear) pieces.push(fashion.footwear);
-  if (fashion.signatureAccessory) pieces.push(fashion.signatureAccessory);
-  const hair = f.hairDetail;
-  if (hair && (hair.texture || hair.color || hair.style)) {
-    pieces.push(`${hair.texture} ${hair.color} hair ${hair.style}`.replace(/\s+/g, ' ').trim());
-  }
-  return pieces.join(', ');
+  if (pieces.length === 0) return '';
+  return `dressed in ${pieces.join(', ')}`;
 }
 
 function buildAbilitySpectacle(refs: readonly CardAbilityReference[]): string {
@@ -236,29 +255,157 @@ function buildAbilitySpectacle(refs: readonly CardAbilityReference[]): string {
   return `the character's abilities manifest visibly in the pose and effects: ${signatures.join('; ')}`;
 }
 
-function buildEnvironmentClause(f: HiddenFate): string {
-  const parts = [f.weather, f.lighting, f.environmentDetails].filter((s) => s && s.trim().length > 0);
-  return parts.join(', ');
+/**
+ * ELEMENT SCENE PALETTE — placed FIRST so it survives truncation and sets the
+ * whole scene's colour + power level. It is RANK-SCALED with a deliberately
+ * WIDE spread (Raheem 2026-07-21): Foundation is intentionally restrained/local
+ * so Forged and Ascended have real room to grow — the three tiers were reading
+ * as copies because Foundation was already maxed out. The element is ALWAYS
+ * present (never absent), but its DOMINANCE climbs with rank. Aligns with the
+ * reference docs (Tier I functional/restrained → Tier II proven → Tier III
+ * mythic). Skin tone is explicitly protected from the element tint.
+ */
+function buildElementScenePalette(sheet: CharacterSheet): string {
+  const v = ELEMENT_VISUAL_LANGUAGE[sheet.resolvedElement];
+  const el = sheet.resolvedElement;
+  // When companions are present the overwhelming element must radiate from the
+  // character rather than CONSUME the whole frame, or the background legion has
+  // no room to render (observed: Ascendant vortex crowded the legion out).
+  const hasCompanions = Boolean(sheet.companion && sheet.companion.trim());
+  const power =
+    sheet.rank === 'Ascendant'
+      ? hasCompanions
+        ? `OVERWHELMING POWER — ${el} radiating from and around the character at mythic scale (the background stays readable behind them)`
+        : `OVERWHELMING POWER — the whole scene consumed by ${el} at mythic cataclysmic scale`
+      : sheet.rank === 'Forged'
+        ? `ESCALATING POWER — ${el} strong around the character, spreading and more violent`
+        : `EARLY RESTRAINED POWER — ${el} clearly present but CONTAINED, an intimate local scene`;
+  return (
+    `SCENE — ${power}; rendered in ${el} colours ${v.primaryColors}; ${firstClause(v.atmosphere, 50)}; ` +
+    `NO neutral/washed-out background; the character's skin stays its TRUE colour, never greyed or desaturated`
+  );
+}
+
+function buildCompanionClause(sheet: CharacterSheet): string {
+  if (!sheet.companion || !sheet.companion.trim()) return '';
+  // Subordinate + background per env doc §2.1 — companions must never compete
+  // with the hero silhouette. Rank-scaling (none → few → legion) is already
+  // baked into the phrase by companionPresence() at the caller.
+  return `BACKGROUND COMPANIONS (behind and smaller than the character, out of focus, subordinate — NEVER a second main figure): ${sheet.companion}`;
+}
+
+function buildWeaponClause(sheet: CharacterSheet): string {
+  if (!sheet.weapon || !sheet.weapon.trim()) return '';
+  // The weapon is a defining silhouette — placed with the pose so the action
+  // reads as USING it. §4.4: never "the same sword with a different glow". The
+  // weapon is wreathed in the element so it CARRIES the element instead of
+  // competing with it for the frame.
+  return `WEAPON (held and in use, defining silhouette): ${sheet.weapon}, wreathed in visible ${sheet.resolvedElement} energy`;
+}
+
+function buildBackgroundClause(sheet: CharacterSheet): string {
+  const f = sheet.hiddenFate;
+  const parts = [f.environmentDetails, f.weather].filter((s) => s && s.trim().length > 0);
+  const setting = parts.length > 0 ? parts.join(', ') : 'an atmospheric painterly environment';
+  // Element mood + colour already come from the scene-palette lead — here we only
+  // add the SPECIFIC setting + a rank-scaled drama beat (env reference §2.3), kept
+  // compact so pose + weapon still fit ahead of it. (No atmosphere dup.)
+  const rankMood =
+    sheet.rank === 'Ascendant'
+      ? ', at its most dramatic and consequential'
+      : sheet.rank === 'Forged'
+        ? ', heavier and more consequential'
+        : '';
+  return `BACKGROUND (required, never blank/studio, never bright daylight): ${setting}${rankMood}, painterly environmental depth`;
 }
 
 // ---------------------------------------------------------------------------
 // Negative prompt — mirrors the deterministic negative assembly in claudeApi.
 // ---------------------------------------------------------------------------
 
+/**
+ * The non-negotiable negatives, kept SHORT and placed FIRST so they always
+ * survive the 400-char cap. Root cause of the topless-render bug (2026-07-21):
+ * the modesty terms live ~640 chars into BASE_NEGATIVE, which is ~1500 chars;
+ * truncating to 400 dropped them entirely. These lead now so nudity /
+ * sexualization can never be truncated off, whatever the element tails add.
+ */
+// Explicit/sexualized content only (Raheem 2026-07-21: a bare muscular male
+// chest is allowed — it looks great — so anti-shirtless terms were removed).
+// These still catch female toplessness (bare breasts / exposed nipples), crop
+// tops / bare midriff, cleavage, crotch emphasis, and underwear-as-costume.
+const CRITICAL_NEGATIVES =
+  'nudity, topless woman, exposed nipples, visible nipples, bare breasts, cleavage, deep neckline, ' +
+  'underboob, sideboob, bare midriff, exposed belly, crop top, crotch bulge, bulge emphasis, ' +
+  'underwear as clothing, lingerie, bikini armor, chainmail bikini, sexualized, pin-up, suggestive';
+
+/**
+ * Anti-shirtless block, injected into the reserved negative lead for EVERY
+ * combination except Ascendant + male (allowsBareChest). Keeps Foundation
+ * "super modest," Forged covered, and women covered at all ranks. Placed ahead
+ * of CRITICAL_NEGATIVES so it can never truncate. (Raheem 2026-07-21.)
+ */
+const COVERED_CHEST_NEGATIVES =
+  'shirtless, bare chest, bare-chested, bare torso, exposed chest, naked torso, ' +
+  'open robe exposing chest, open-chest armor, no shirt, exposed pecs, exposed abs';
+
+/**
+ * In the bare-chest-allowed branch, strip any coverage tokens BASE_NEGATIVE
+ * would otherwise contribute so they can't silently re-ban a bared chest if the
+ * lead shrinks or the cap grows later. Today they truncate off anyway, but this
+ * makes the intent explicit rather than incidental.
+ */
+const COVERAGE_TOKENS_TO_STRIP: readonly string[] = [
+  'shirtless hero', 'shirtless', 'bare-chested', 'bare chest', 'bare torso',
+  'exposed abs', 'exposed pecs', 'exposed chest', 'open-chest armor', 'no shirt', 'topless',
+];
+function stripCoverageTokens(negative: string): string {
+  let out = negative;
+  for (const token of COVERAGE_TOKENS_TO_STRIP) {
+    // Remove the token as a comma-delimited list item (with optional surrounding
+    // spaces), collapsing the separators it leaves behind.
+    out = out.replace(new RegExp(`\\s*,?\\s*${token.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s*(?=,|$)`, 'gi'), '');
+  }
+  return out.replace(/,\s*,/g, ',').replace(/^\s*,\s*/, '').trim();
+}
+
+/**
+ * Anti-"lame render" negatives — also reserved (right after modesty) so they
+ * survive the cap. These target the three failures Raheem flagged: a static
+ * mannequin pose, a blank/studio background, and no visible element.
+ */
+const SPECTACLE_NEGATIVES =
+  'static portrait pose, standing still, hands at sides, stiff mannequin, ' +
+  'plain background, blank background, studio backdrop, white background, empty backdrop, ' +
+  'no elemental effect, no visible power, no magic, ' +
+  'washed-out, desaturated, neutral tan background, beige scene, sepia tone, muted flat palette, grey daylight scene';
+
+/**
+ * Leonardo accepts far more than the self-imposed 400 the legacy path uses.
+ * The assembler uses a roomier cap so the modesty + spectacle reserves AND a
+ * healthy slice of BASE_NEGATIVE all survive.
+ */
+const ASSEMBLER_NEGATIVE_MAX = 1000;
+
 function buildNegativePrompt(sheet: CharacterSheet): string {
   const element = sheet.resolvedElement;
   const isFireFamily = FIRE_FAMILY_ELEMENTS.includes(element);
   const warmGlowNegatives = isFireFamily
     ? ''
-    : ', ember-red glow, warm ember lighting, orange rim light, fire aura, warm orange highlights, burning ember effect, glowing coals, molten glow, heat shimmer, flame-lit surface, ember-red inner glow, warm ember on armor';
+    : ', ember-red glow, warm ember lighting, orange rim light, fire aura, warm orange highlights, burning ember effect, glowing coals, molten glow, heat shimmer, flame-lit surface, ember-red inner glow, warm ember on armor, bright daylight, harsh sunlight, clear blue sky, sunny daytime, midday sun';
   const elementDriftBans = sheet.isEvolution ? buildElementDriftBans(element) : '';
-  // Drift bans lead — the most targeted fix — so they survive truncation.
-  const appendedTails = elementDriftBans + warmGlowNegatives;
-  const base = truncateToLimit(
-    BASE_NEGATIVE,
-    Math.max(NEGATIVE_PROMPT_MAX - appendedTails.length, 120),
-  );
-  return truncateToLimit(base + appendedTails, NEGATIVE_PROMPT_MAX);
+  const bareChest = allowsBareChest(sheet);
+  // Reserved lead (never truncated): anti-shirtless (covered case only) →
+  // modesty → anti-lame → element drift bans. Then fill with as much of
+  // BASE_NEGATIVE as fits, then the warm-glow tail. In the bare-chest-allowed
+  // case the anti-shirtless block is dropped AND the coverage tokens are
+  // stripped from the base fill so nothing fights the open-robe cue.
+  const chestLead = bareChest ? '' : `${COVERED_CHEST_NEGATIVES}, `;
+  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${SPECTACLE_NEGATIVES}${elementDriftBans}`;
+  const remaining = Math.max(ASSEMBLER_NEGATIVE_MAX - lead.length - warmGlowNegatives.length, 60);
+  const baseSource = bareChest ? stripCoverageTokens(BASE_NEGATIVE) : BASE_NEGATIVE;
+  const base = truncateToLimit(baseSource, remaining);
+  return truncateToLimit(`${lead}, ${base}${warmGlowNegatives}`, ASSEMBLER_NEGATIVE_MAX);
 }
 
 // ---------------------------------------------------------------------------
@@ -282,28 +429,54 @@ export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait
   // AHEAD of the verbose element lockdown so Bible §Rank-continuity anchors
   // always survive; the element's redundant AVOID tail (also covered by the
   // negatives) is what gets cut for long-lockdown elements, not the person.
+  // Priority order — every non-negotiable (dynamic style, the person's
+  // ancestry/body, a dynamic pose, the element ERUPTING, and a real
+  // background) sits ahead of the optional fill so all five always survive
+  // the budget. The earlier failure rendered a static, element-less mannequin
+  // on a blank backdrop because element/background/style were in the truncated
+  // tail — this ordering fixes that.
+  const bareChest = allowsBareChest(sheet);
+  // High-priority chest cue — negatives alone don't hold on Phoenix, so the
+  // covered case gets an explicit coverage cue and the allowed (Ascendant male)
+  // case gets an explicit open-robe / bare-chest cue. Placed right after the sex
+  // prefix so it survives the 1450 budget.
+  const chestCue = bareChest
+    ? 'open outer robe/coat parted to reveal a bare muscular chest, no shirt beneath the open layer'
+    : 'chest and torso FULLY COVERED, high closed neckline, opaque garment closed at the chest';
   const segments = [
-    buildSexPrefix(sheet.hiddenFate.sex), // M5.0 — sex first, highest weight
-    buildAxisPrefix(sheet.diversityAxis),
-    buildCataclysmPrefix(sheet),
-    buildPosePrefix(sheet),
-    buildIdentityBlock(sheet), // anchors — must survive
-    buildElementPrefix(sheet), // element accuracy (anti-fire + colors first)
-    buildWardrobeClause(sheet.hiddenFate), // locked garb — after anchors + colors
-    // Story-specific detail is prioritised over the generic style/spectacle
-    // fill — it is the lore→image handoff the decoupling exists to carry.
+    buildElementScenePalette(sheet), // element colors the WHOLE image — highest priority
+    COMPACT_STYLE_LEAD, // dynamic action framing
+    buildSexPrefix(sheet.hiddenFate.sex),
+    chestCue, // rank+sex-gated chest coverage (covered by default, bared only at Ascendant male)
+    // (diversity axis + separate element "hook" omitted — the scene palette,
+    // the element-wreathed weapon, and the closer already bookend the element.)
+    buildIdentityBlock(sheet), // compact ancestry/body/age anchors
+    buildPosePrefix(sheet), // dynamic action pose (distinct per tier)
+    buildWeaponClause(sheet), // curated weapon (evolves per rank), element-wreathed — MUST render
+    buildCompanionClause(sheet), // rank-scaled servants/units — high enough to survive + render
+    buildWardrobeClause(sheet), // garments (modesty is in the negatives)
+    buildBackgroundClause(sheet), // the SPECIFIC setting (element mood comes from the palette lead)
+    bareChest ? MODESTY_STYLE_TAIL_BARE : MODESTY_STYLE_TAIL,
+    // Lower-priority tail — truncates harmlessly. The tier-up identity re-lock is
+    // redundant with the anchors above + the init-image; the element clause is
+    // redundant with the scene-palette lead + closer. Cataclysm removed
+    // (2026-07-21) — "world CRUMBLES" drove Leonardo off-path.
+    sheet.isEvolution ? IDENTITY_IMPERATIVE_CLAUSE : '',
+    buildElementPrefix(sheet),
     sheet.storyMotifs.length > 0
       ? `story details woven into the frame: ${sheet.storyMotifs.join(', ')}`
       : '',
-    ELEMENT_SPECTACLE_BY_RANK[sheet.rank],
     buildAbilitySpectacle(sheet.abilityRefs),
-    buildEnvironmentClause(sheet.hiddenFate),
-    COMPACT_STYLE_OPENER,
   ].filter((s) => s && s.trim().length > 0);
 
-  // Reserve the composition closer so the head-in-frame anchor ALWAYS lands,
-  // no matter how verbose the element/identity ahead of it.
-  const reserved = `, ${COMPOSITION_CLOSER}`;
+  // Reserve the composition closer so the head-in-frame anchor ALWAYS lands.
+  // The element is REPEATED here (bookends the prompt). When companions are
+  // present the framing PULLS BACK so the legion behind is actually visible —
+  // the default tight waist-up shot left no room for them to render.
+  const framing = sheet.companion && sheet.companion.trim()
+    ? 'the character large in the foreground with the companions clearly visible behind them, entire head in frame, 3/4 body, wide background with depth'
+    : COMPOSITION_CLOSER;
+  const reserved = `, ${framing}, ${sheet.resolvedElement} power filling the frame`;
   const body = truncateToLimit(segments.join(', '), PORTRAIT_PROMPT_MAX - reserved.length);
 
   return {
