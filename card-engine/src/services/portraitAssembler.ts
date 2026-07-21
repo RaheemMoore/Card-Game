@@ -1,10 +1,9 @@
 import type { CharacterSheet } from '../types/characterSheet';
 import type { ElementName, HiddenFate } from '../types/bible';
 import type { CardAbilityReference } from '../types/abilities';
-import { assembleElementLockdown } from '../data/elementVisualLanguage';
+import { ELEMENT_VISUAL_LANGUAGE } from '../data/elementVisualLanguage';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
-  STYLE_ANCHOR,
   BASE_NEGATIVE,
   PORTRAIT_PROMPT_MAX,
   NEGATIVE_PROMPT_MAX,
@@ -38,22 +37,52 @@ import {
 
 const FIRE_FAMILY_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood', 'Ash', 'Holy'] as const;
 
-/** Bible §Rank-continuity guardrail — appended verbatim after the identity block. */
+/**
+ * Bible §Rank-continuity guardrail — appended after the identity block. Kept
+ * compact (the long-form version is redundant with BASE_NEGATIVE's anti-slim /
+ * anti-shirtless list) so the identity block fits the tight Leonardo budget.
+ */
 const BODY_PRESERVATION_CLAUSE =
-  'this body is preserved as written, do NOT substitute a slim young hero body, ' +
-  'do NOT remove or reduce clothing, do NOT slim or muscle-up or de-age this ' +
-  'character, action does NOT mean shirtless or bodybuilder anatomy';
+  'preserve this exact body — do NOT slim, muscle-up, de-age, or reduce clothing';
 
 /** Tier-up only — Leonardo weights early clauses heavier, so this re-locks identity. */
 const IDENTITY_IMPERATIVE_CLAUSE =
-  'IDENTITY IMPERATIVE — same character as the previous rank: same skin tone ' +
-  '(do NOT lighten, do NOT darken, do NOT shift undertone), same hair color and ' +
-  'texture (do NOT restyle to a different color, may show age-silvering only), ' +
-  'same ethnicity and ancestry cues, same facial structure and eye color. This ' +
-  'is a portrait of the SAME PERSON aged and hardened, not a similar-looking one';
+  'IDENTITY IMPERATIVE — the SAME person as the previous rank: same skin tone, ' +
+  'hair color and texture, ancestry, and facial structure, aged and hardened, not a look-alike';
+
+/**
+ * Archetype non-human-form strings run ~1500 chars — far too large to inline
+ * into a pose/cataclysm clause within the 1450 budget. This keeps the
+ * load-bearing lead (e.g. Necromancer's "SACRIFICED THEIR FLESH … TRADED for
+ * BONE") and drops the rest, which the pose pool + negatives already carry.
+ */
+function compactForm(form: string, maxLen = 240): string {
+  if (form.length <= maxLen) return form;
+  const cut = form.slice(0, maxLen);
+  const lastPunct = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('; '), cut.lastIndexOf(', '));
+  return `${lastPunct > maxLen * 0.5 ? cut.slice(0, lastPunct) : cut}…`;
+}
 
 const COMPOSITION_CLOSER =
   'entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered';
+
+/**
+ * Compact style opener. The full STYLE_ANCHOR in claudeApi.ts is 1922 chars —
+ * larger than the whole 1450-char Leonardo budget — because it was written as
+ * guidance for Haiku to compress, not as a literal prefix. The deterministic
+ * assembler can't paste that, so this distils its load-bearing essence:
+ * painterly fantasy action, power channelling through the body (not physique
+ * display), waist-up framing, and the modesty / anti-sexualization stance
+ * (also hard-enforced by BASE_NEGATIVE). Kept short so identity + element +
+ * composition all survive the budget.
+ */
+const COMPACT_STYLE_OPENER =
+  'painterly fantasy action card illustration, semi-realistic, character mid-signature ' +
+  'power move with the element channelling through their own body (not physique display), ' +
+  'kinetic pose with cloth and hair in motion, the world reacting in the element\'s materials, ' +
+  'MODEST powerful presentation — real armor / robes / coats / regalia, fully-opaque garments ' +
+  'that do not cling to or emphasize chest or groin, camera at eye level, dignified composed ' +
+  'expression (never sultry or seductive)';
 
 // ---------------------------------------------------------------------------
 // Prefix builders — mirror services/claudeApi.ts generateCardText post-parse
@@ -96,11 +125,10 @@ function buildCataclysmPrefix(sheet: CharacterSheet): string {
   }
   return (
     `ASCENDANT CATACLYSM (Bible §Ascendant — MANDATORY) for ${sheet.archetype}: the world ` +
-    'CRUMBLES around them, reality tears open, the sky shatters, the environment collapses ' +
-    `toward the element. The archetype-specific transformation FULLY MANIFESTS per: ${form}. ` +
-    'Same face + body class + skin + hair as Forged (Bible §Rank continuity) but the ' +
-    'transformation is complete and the power display expands catastrophically. This is NOT a ' +
-    "Forged card with slight variation — this is the archetype's canonical cosmic transcendence. "
+    'CRUMBLES around them, reality tears open, the environment collapses toward the element. ' +
+    `The archetype-specific transformation FULLY MANIFESTS per: ${compactForm(form)}. ` +
+    'Same face + body class + skin + hair as Forged (Bible §Rank continuity); the power ' +
+    'display expands catastrophically. NOT a Forged card with slight variation. '
   );
 }
 
@@ -114,11 +142,11 @@ function buildPosePrefix(sheet: CharacterSheet): string {
   if (sheet.rank === 'Ascendant') {
     action = isRootedMortal
       ? 'mid-ULTIMATE cataclysmic action — character stays HUMAN, power erupts through weapons, armor, and ancestral relics — the world CRUMBLES around them'
-      : `mid-ULTIMATE cataclysmic action — the archetype-specific transformation fully manifests per: ${form} — the world CRUMBLES around them — reality tearing open — Bible §Ascendant CATACLYSM`;
+      : `mid-ULTIMATE cataclysmic action — the archetype-specific transformation fully manifests per: ${compactForm(form!)} — the world CRUMBLES around them`;
   } else if (sheet.rank === 'Forged') {
     action = isRootedMortal
       ? 'mid-signature-power-move at legendary scale — character stays HUMAN, no wings/tails/bat-mist — power manifests through their weapons (element crackling along the edge), armor (glowing runes), and ancestral relics (heirloom pieces radiating power) — environment loud in reaction'
-      : `mid-signature-power-move at legendary scale — the archetype-specific transformation begins to manifest per: ${form} — aura extending far beyond the body — environment loud in reaction`;
+      : `mid-signature-power-move at legendary scale — the archetype-specific transformation begins to manifest per: ${compactForm(form!)} — aura extending far beyond the body`;
   } else {
     action = 'mid-signature-move with element already erupting';
   }
@@ -127,20 +155,36 @@ function buildPosePrefix(sheet: CharacterSheet): string {
 
 function buildElementPrefix(sheet: CharacterSheet): string {
   const element = sheet.resolvedElement;
+  const v = ELEMENT_VISUAL_LANGUAGE[element];
   const isFireFamily = FIRE_FAMILY_ELEMENTS.includes(element);
-  const nonFireCatchAll = !isFireFamily
-    ? `This character has ZERO connection to fire. NO warm-glow armor. NO ember on the plates. NO orange highlights on the gear. NO fire-lit skin. Everything is ${element} palette — see the element lockdown above. If you see fire anywhere in the frame, you have failed this Bible. `
+  // Colors FIRST — the full assembleElementLockdown puts COLORS near the end,
+  // where budget truncation deletes them. This compact, colors-first clause
+  // guarantees the element palette (the single most important element cue)
+  // always survives, then adds materials + motion.
+  const compactLockdown =
+    `colors ${v.primaryColors}, ${v.secondaryColors}; materials ${v.materials}; motion ${v.motion}`;
+  // Anti-fire lock LEADS the element clause (not trails it) so it survives
+  // truncation — Void/Shadow/etc. Necromancers must never render fire.
+  const nonFire = !isFireFamily
+    ? `ZERO connection to fire — NO warm ember, NO orange, everything in the ${element} palette. `
     : '';
   const continuity = sheet.isEvolution
-    ? `RANK CONTINUITY: this character's element visual at Foundation was ${element} with LOCKED palette, materials, and lighting per the Element Visual Language Bible. At ${sheet.rank} the SAME palette + SAME materials + SAME lighting persist — do NOT drift toward Phoenix defaults, warm ember, or fire-orange. ${nonFireCatchAll}`
-    : nonFireCatchAll;
-  return `REQUIRED ELEMENT (${element}): ${assembleElementLockdown(element)}. ${continuity}`;
+    ? `RANK CONTINUITY: same ${element} palette, materials, and lighting as Foundation — do NOT drift to warm ember or fire-orange. `
+    : '';
+  return `REQUIRED ELEMENT (${element}): ${nonFire}${compactLockdown}. ${continuity}`;
 }
 
 // ---------------------------------------------------------------------------
 // Tail builders — replace the Claude-authored portraitPrompt with a template.
 // ---------------------------------------------------------------------------
 
+/**
+ * The identity ANCHORS only — the eight Bible §Rank-continuity locked fields
+ * plus the preservation guardrail (and, on tier-up, the imperative re-lock).
+ * Wardrobe is a SEPARATE, lower-priority segment (buildWardrobeClause) so that
+ * for a maximally-detailed character the body/skin/scars anchors and the
+ * element colors always survive the budget ahead of exact garment names.
+ */
 function buildIdentityBlock(sheet: CharacterSheet): string {
   const f = sheet.hiddenFate;
   const identityParts = [
@@ -153,12 +197,7 @@ function buildIdentityBlock(sheet: CharacterSheet): string {
     f.disabilityOrCondition,
     f.scars,
   ].filter((s) => s && s.trim().length > 0);
-  let block = `SAME PERSON RULE: ${identityParts.join(', ')}`;
-
-  const wardrobe = buildWardrobeClause(f);
-  if (wardrobe) block += `, ${wardrobe}`;
-
-  block += `. ${BODY_PRESERVATION_CLAUSE}`;
+  let block = `SAME PERSON RULE: ${identityParts.join(', ')}. ${BODY_PRESERVATION_CLAUSE}`;
   if (sheet.isEvolution) block += `. ${IDENTITY_IMPERATIVE_CLAUSE}`;
   return block;
 }
@@ -234,29 +273,37 @@ export interface AssembledPortrait {
  * the caller). Same sheet in ⇒ same prompt out, every time.
  */
 export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait {
-  const sexPrefix = buildSexPrefix(sheet.hiddenFate.sex);
-  const axisPrefix = buildAxisPrefix(sheet.diversityAxis);
-  const cataclysmPrefix = buildCataclysmPrefix(sheet);
-  const posePrefix = buildPosePrefix(sheet);
-  const elementPrefix = buildElementPrefix(sheet);
-
-  const tail = [
-    STYLE_ANCHOR,
-    buildIdentityBlock(sheet),
-    ELEMENT_SPECTACLE_BY_RANK[sheet.rank],
-    buildAbilitySpectacle(sheet.abilityRefs),
+  // Segments in PRIORITY order. Leonardo weights early tokens heavier and
+  // truncation drops from the end, so order == importance. Identity sits
+  // AHEAD of the verbose element lockdown so Bible §Rank-continuity anchors
+  // always survive; the element's redundant AVOID tail (also covered by the
+  // negatives) is what gets cut for long-lockdown elements, not the person.
+  const segments = [
+    buildSexPrefix(sheet.hiddenFate.sex), // M5.0 — sex first, highest weight
+    buildAxisPrefix(sheet.diversityAxis),
+    buildCataclysmPrefix(sheet),
+    buildPosePrefix(sheet),
+    buildIdentityBlock(sheet), // anchors — must survive
+    buildElementPrefix(sheet), // element accuracy (anti-fire + colors first)
+    buildWardrobeClause(sheet.hiddenFate), // locked garb — after anchors + colors
+    // Story-specific detail is prioritised over the generic style/spectacle
+    // fill — it is the lore→image handoff the decoupling exists to carry.
     sheet.storyMotifs.length > 0
       ? `story details woven into the frame: ${sheet.storyMotifs.join(', ')}`
       : '',
+    ELEMENT_SPECTACLE_BY_RANK[sheet.rank],
+    buildAbilitySpectacle(sheet.abilityRefs),
     buildEnvironmentClause(sheet.hiddenFate),
-    COMPOSITION_CLOSER,
-  ]
-    .filter((s) => s && s.trim().length > 0)
-    .join(', ');
+    COMPACT_STYLE_OPENER,
+  ].filter((s) => s && s.trim().length > 0);
 
-  const raw = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${posePrefix}${elementPrefix}${tail}`;
+  // Reserve the composition closer so the head-in-frame anchor ALWAYS lands,
+  // no matter how verbose the element/identity ahead of it.
+  const reserved = `, ${COMPOSITION_CLOSER}`;
+  const body = truncateToLimit(segments.join(', '), PORTRAIT_PROMPT_MAX - reserved.length);
+
   return {
-    portraitPrompt: truncateToLimit(raw, PORTRAIT_PROMPT_MAX),
+    portraitPrompt: `${body}${reserved}`,
     negativePrompt: buildNegativePrompt(sheet),
   };
 }
