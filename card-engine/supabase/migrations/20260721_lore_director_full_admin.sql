@@ -183,3 +183,9 @@ drop trigger if exists trg_enforce_role_change on public.profiles;
 create trigger trg_enforce_role_change
   before update of role on public.profiles
   for each row execute function public.enforce_role_change_admin_only();
+
+-- Trigger functions are never meant to be called directly. Keep it off the
+-- exposed REST API surface.
+revoke execute on function public.enforce_role_change_admin_only() from public;
+revoke execute on function public.enforce_role_change_admin_only() from anon;
+revoke execute on function public.enforce_role_change_admin_only() from authenticated;
