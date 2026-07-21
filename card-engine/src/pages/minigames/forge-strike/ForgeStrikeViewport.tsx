@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Card, StatName } from '../../../types/card';
 import { CardRenderer } from '../../../components/CardRenderer';
@@ -10,6 +10,7 @@ import type { StrikeGrade } from '../../../services/minigames/forge-strike/types
 import { useForgeStrike, hasCompletedPractice } from './useForgeStrike';
 import { ForgeAnvil } from './components/ForgeAnvil';
 import { StrikeEffects } from './effects/StrikeEffects';
+import { isMuted, toggleMuted, unlock, playCue } from './audio/forgeStrikeAudio';
 
 /**
  * Full-screen Forge Strike surface. Escapes the app shell via a portal to
@@ -75,13 +76,18 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
   const game = useForgeStrike(undefined, hasCompletedPractice());
   const statColor = STAT_COLORS[stat];
   const surfaceRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [muted, setMuted] = useState(isMuted());
 
+  // Body scroll lock + initial focus + focus restore on exit (plan §17).
   useEffect(() => {
     const prev = document.body.style.overflow;
+    const prevFocus = document.activeElement as HTMLElement | null;
     document.body.style.overflow = 'hidden';
     surfaceRef.current?.focus();
     return () => {
       document.body.style.overflow = prev;
+      prevFocus?.focus?.();
     };
   }, []);
 
@@ -97,6 +103,44 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
   const strikeSeq = inPractice ? (practiceGrade ? run.nextStrikeIndex + 1 : 0) : run.strikes.length;
   const success = displayGrade === 'good' || displayGrade === 'perfect';
 
+  // Audio cues follow the engine's grade (presentation only). Placeholder
+  // synth — see audio/forgeStrikeAudio.ts.
+  const lastCuedSeq = useRef(0);
+  useEffect(() => {
+    if (strikeSeq === 0 || strikeSeq === lastCuedSeq.current || !displayGrade) return;
+    lastCuedSeq.current = strikeSeq;
+    playCue(displayGrade);
+  }, [strikeSeq, displayGrade]);
+
+  useEffect(() => {
+    if (showResults) playCue(run.outcome === 'win' ? 'win' : 'lose');
+  }, [showResults, run.outcome]);
+
+  const handleMute = () => setMuted(toggleMuted());
+
+  const strikeWithAudio = () => {
+    unlock();
+    game.strike();
+  };
+
+  // Focus trap: keep Tab within the dialog while it owns the screen.
+  const onContainerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab' || !containerRef.current) return;
+    const focusables = containerRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   const armedPattern = config.patterns[Math.min(run.nextStrikeIndex, config.patterns.length - 1)];
   const perfectHalfWidth = inPractice
     ? config.zones.perfectHalfWidth
@@ -104,6 +148,8 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
 
   const body = (
     <div
+      ref={containerRef}
+      onKeyDown={onContainerKeyDown}
       className="fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden text-bone flex flex-col"
       style={{ background: 'radial-gradient(ellipse at 50% 120%, #1a1210 0%, #0b0709 55%, #060405 100%)', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       role="dialog"
@@ -175,6 +221,15 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
           <span className="text-xs text-white/60 tabular-nums" aria-label={`Strike ${strikeNumber} of ${config.strikeCount}`}>
             {inPractice ? 'PRACTICE' : `${strikeNumber} / ${config.strikeCount}`}
           </span>
+          <button
+            onClick={handleMute}
+            className="w-8 h-8 rounded-full border border-amber-200/25 text-amber-100/80 hover:text-white hover:border-amber-200/60 transition-colors text-sm"
+            aria-label={muted ? 'Unmute forge (placeholder audio)' : 'Mute forge (placeholder audio)'}
+            aria-pressed={muted}
+            title={muted ? 'Sound off — placeholder audio' : 'Sound on — placeholder audio'}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
         </div>
       </header>
 
@@ -184,12 +239,12 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
         onPointerDown={(e) => {
           e.preventDefault();
           if (phase === 'practice_done') return;
-          if (!showResults) game.strike();
+          if (!showResults) strikeWithAudio();
         }}
         onKeyDown={(e) => {
           if ((e.key === ' ' || e.key === 'Enter') && !showResults && phase !== 'practice_done') {
             e.preventDefault();
-            game.strike();
+            strikeWithAudio();
           }
         }}
         className="relative z-10 flex-1 flex flex-col items-center justify-between min-h-0 py-2 outline-none cursor-pointer"
@@ -334,7 +389,11 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
             </p>
             <button
               autoFocus
-              onClick={game.startRun}
+              onClick={() => {
+                unlock();
+                playCue('ready');
+                game.startRun();
+              }}
               className="px-4 py-2 rounded font-fantasy font-bold tracking-wider"
               style={{ background: statColor, color: '#0b0709' }}
             >
@@ -376,7 +435,11 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
             <div className="flex flex-col gap-2">
               <button
                 autoFocus
-                onClick={game.reset}
+                onClick={() => {
+                  unlock();
+                  playCue('ready');
+                  game.reset();
+                }}
                 className="px-4 py-2 rounded font-fantasy font-bold tracking-wider"
                 style={{ background: statColor, color: '#0b0709' }}
               >
