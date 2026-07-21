@@ -93,7 +93,7 @@ export function CodexAbility() {
       <div className="mt-4 flex flex-wrap gap-6 items-start">
         {/* Detail card on the left. */}
         {crops && (
-          <div className="shrink-0">
+          <div className="w-full max-w-[396px]">
             <AbilityDetailCard
               tier={tier}
               abilityName={def.displayName.toUpperCase()}

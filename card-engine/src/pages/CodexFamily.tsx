@@ -120,7 +120,7 @@ function DiscoveredStrip({ def, family }: { def: AbilityDefinition; family: Abil
   return (
     <Link
       to={`/codex/ability/${def.id}`}
-      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-[10px]"
+      className="block w-full max-w-[360px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-[10px]"
     >
       <AbilityCommandStrip
         tier={tier}
@@ -156,8 +156,8 @@ function UndiscoveredStrip({ def }: { def: AbilityDefinition }) {
   return (
     <div
       aria-label={`Undiscovered ${def.rarity} ability`}
-      className="relative"
-      style={{ width: 360, height: 92 }}
+      className="relative w-full"
+      style={{ maxWidth: 360, height: 92 }}
     >
       <AbilityCommandStrip
         tier="core"
