@@ -408,7 +408,7 @@ function pickPoseForArchetype(archetype: ArchetypeName): string {
 // of the actual element. Rank scaling is now color/element-agnostic — the
 // element-specific manifestation comes from the ELEMENT VISUAL LANGUAGE
 // block per Element_Visual_Language_Bible.md.
-const ELEMENT_SPECTACLE_BY_RANK: Record<Rank, string> = {
+export const ELEMENT_SPECTACLE_BY_RANK: Record<Rank, string> = {
   Foundation:
     'The element MANIFESTS visibly through the character (using the exact colors, lighting, materials, textures, and motion from the ELEMENT VISUAL LANGUAGE block — do NOT default to fire even if the archetype feels fiery). The character is mid-signature-move — a martial strike, a spell mid-cast, a weapon being drawn with the element already in play. Presence is bold, legible, and reaches beyond the body. This is a person who ALREADY commands their power at high visible intensity. Air and ground around them show the first signs of reacting — reaction shaped by the element (Wind = swept debris; Water = ripples; Void = tearing space; Sound = shock rings; etc.).',
   Forged:
@@ -420,8 +420,8 @@ const ELEMENT_SPECTACLE_BY_RANK: Record<Rank, string> = {
 // M4.4 — Leonardo's hard cap is 1500 chars. We leave a 50-char safety
 // margin under that. Was 1300 which forced the ELEMENT VISUAL LANGUAGE
 // block to be truncated (M4.3 root-cause).
-const PORTRAIT_PROMPT_MAX = 1450;
-const NEGATIVE_PROMPT_MAX = 400;
+export const PORTRAIT_PROMPT_MAX = 1450;
+export const NEGATIVE_PROMPT_MAX = 400;
 
 /**
  * M3.9 — forced diversity axis. Cycles per-forge via localStorage so a
@@ -452,7 +452,7 @@ const DIVERSITY_AXES: readonly string[] = [
  * Mech Pilot) are inherently mortal — for them, NON-HUMAN FORM axis falls
  * through to the next axis. Direction from Raheem 2026-07-19.
  */
-const ARCHETYPE_NON_HUMAN_FORMS: Record<ArchetypeName, string | null> = {
+export const ARCHETYPE_NON_HUMAN_FORMS: Record<ArchetypeName, string | null> = {
   Barbarian: null, // rooted mortal — human is the point
   Monk: null, // rooted mortal — human is the point
   Human: null, // "Human" is literally the archetype
@@ -654,7 +654,7 @@ function pickDiversityAxis(archetype: ArchetypeName): string {
   return axis;
 }
 
-const BASE_NEGATIVE = [
+export const BASE_NEGATIVE = [
   'text', 'watermark', 'logo', 'signature', 'blurry', 'deformed',
   'extra limbs', 'extra fingers', 'disfigured', 'bad anatomy',
   'bad proportions', 'duplicate', 'multiple characters', 'split frame',
@@ -823,7 +823,7 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
 };
 
 /** Look up the drift-ban string for an element; empty string if none. */
-function buildElementDriftBans(element: ElementName): string {
+export function buildElementDriftBans(element: ElementName): string {
   return ELEMENT_DRIFT_BANS[element] ?? '';
 }
 
@@ -848,7 +848,7 @@ function buildElementDriftBans(element: ElementName): string {
 // with orange fire aura). The element's specific colors, lighting, and
 // materials now come from the ELEMENT VISUAL LANGUAGE block (prepended
 // separately) — this anchor is intentionally element-agnostic.
-const STYLE_ANCHOR =
+export const STYLE_ANCHOR =
   'fantasy action card illustration, painterly digital art with visible brush texture and semi-realistic rendering, character mid-action performing a signature power move appropriate to their archetype, the character\'s OWN body is the source of the power display per the ELEMENT VISUAL LANGUAGE block (colors, lighting, materials, textures, motion all defined there — do NOT default to warm ember or fire palette), the world REACTS to the character in the element\'s own materials and atmosphere (element-specific — see the ELEMENT VISUAL LANGUAGE block), dynamic cinematic pose with kinetic motion, cloth and hair swept by their own power, particles and debris appropriate to the element in the air around them, waist-up 3/4 body composition, single character centered occupying 55 to 70 percent of frame, entire head fully visible, cinematic rim-light in the element\'s locked color (from the ELEMENT VISUAL LANGUAGE block — NOT a default warm rim), high contrast, painterly-blurred environmental background carrying narrative meaning and element-specific atmosphere, action means MOTION and POWER CHANNELING not physique display, the character wears their canonical garb (Monk in robes, Necromancer robed, Vampire cloaked, elderly wizard fully dressed, heavyset ranger in leathers) even mid-power-move, body type age weight and clothing come from the identity block and OVERRIDE any hero-anatomy default, MODEST POWERFUL PRESENTATION — real armor / real robes / real battle-suit / trench-coat / cape / regalia appropriate to culture; NEVER bras / panties / underwear / lingerie / bikini-armor / chainmail-bikini / cleavage-cutout / hip-cutout / bare-midriff / leotard-armor; the strong do not reveal themselves that way; fully-opaque garments that drape loosely and do NOT cling to or emphasize chest or groin, camera at eye level (never angled up at hips or chest), dignified composed expression (never sultry or seductive)';
 
 interface GeneratedText {
@@ -1683,7 +1683,7 @@ export async function generateCardTextWithRetry(
 // Helpers
 // ============================================================================
 
-function truncateToLimit(text: string, limit: number): string {
+export function truncateToLimit(text: string, limit: number): string {
   if (text.length <= limit) return text;
   const window = text.slice(0, limit);
   const lastComma = window.lastIndexOf(',');
