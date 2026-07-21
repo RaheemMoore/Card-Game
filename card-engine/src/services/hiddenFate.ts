@@ -63,6 +63,13 @@ export const LOCKED_HIDDEN_FATE_FIELDS: readonly (keyof HiddenFate)[] = [
   'hair',
   'disabilityOrCondition',
   'scars',
+  // Image-Engine locked selections — the weapon/companion/environment identity
+  // is rolled at Foundation and must survive tier-up verbatim, same as the
+  // body/skin anchors. These are string ids; companionPresent (boolean) is
+  // carried explicitly below because the truthy loop would drop a locked-false.
+  'weaponId',
+  'companionId',
+  'environmentId',
 ] as const;
 
 /**
@@ -92,6 +99,10 @@ export function preserveIdentityAcrossRanks(
   // updates on top, but the anchors survive.
   if (previous.hairDetail) merged.hairDetail = previous.hairDetail;
   if (previous.fashion) merged.fashion = previous.fashion;
+  // Image-Engine companion roll — a boolean, so it can be a locked `false`
+  // (this character has no retinue). The string-id loop above skips falsy
+  // values, so carry the boolean (and its paired id) explicitly.
+  if (previous.companionPresent !== undefined) merged.companionPresent = previous.companionPresent;
   return merged;
 }
 

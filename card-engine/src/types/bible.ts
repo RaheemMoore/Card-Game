@@ -166,6 +166,21 @@ export interface HiddenFate {
   minorAccessories: string;
   environmentDetails: string;
   /**
+   * Image-Engine locked selections (Archetype_Weapon_and_Companion_Reference +
+   * Archetype_Environment_and_Background_Reference). Rolled ONCE at Foundation
+   * by services/portrait/characterSheetFactory.resolveLockedSelections and
+   * LOCKED across ranks (weaponId via LOCKED_HIDDEN_FATE_FIELDS; companion +
+   * environment preserved explicitly in preserveIdentityAcrossRanks). Optional
+   * so legacy cards (undefined) keep working — the factory fills any absent id
+   * on the next forge/tier-up. Persisted inside the card's `data jsonb`; no SQL
+   * migration. `companionPresent` is a boolean (a 50/50 per-card roll) so it is
+   * carried explicitly, never via the string-truthy lock loop.
+   */
+  weaponId?: string;
+  companionId?: string;
+  companionPresent?: boolean;
+  environmentId?: string;
+  /**
    * M4.6 — Body & Skin Representation Bible structured decomposition.
    * Optional; new cards fill both these and the freeform bodyType/skinTone
    * strings above. Existing cards keep working (fields are undefined and

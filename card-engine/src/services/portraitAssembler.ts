@@ -2,6 +2,8 @@ import type { CharacterSheet } from '../types/characterSheet';
 import type { ElementName } from '../types/bible';
 import type { CardAbilityReference } from '../types/abilities';
 import { ELEMENT_VISUAL_LANGUAGE } from '../data/elementVisualLanguage';
+import { getEnvironmentDescriptor } from '../data/archetypeEnvironments';
+import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
   BASE_NEGATIVE,
@@ -305,8 +307,17 @@ function buildWeaponClause(sheet: CharacterSheet): string {
 
 function buildBackgroundClause(sheet: CharacterSheet): string {
   const f = sheet.hiddenFate;
-  const parts = [f.environmentDetails, f.weather].filter((s) => s && s.trim().length > 0);
-  const setting = parts.length > 0 ? parts.join(', ') : 'an atmospheric painterly environment';
+  // Prefer the curated per-archetype environment family (locked at Foundation,
+  // rank-scaled) when one is set; fall back to the Claude-authored scene fields
+  // for legacy cards / archetypes without an environment pool.
+  const curated = f.environmentId
+    ? getEnvironmentDescriptor(sheet.archetype, f.environmentId, sheet.rank)
+    : '';
+  const parts = curated
+    ? [curated, f.weather]
+    : [f.environmentDetails, f.weather];
+  const kept = parts.filter((s) => s && s.trim().length > 0);
+  const setting = kept.length > 0 ? kept.join(', ') : 'an atmospheric painterly environment';
   // Element mood + colour already come from the scene-palette lead — here we only
   // add the SPECIFIC setting + a rank-scaled drama beat (env reference §2.3), kept
   // compact so pose + weapon still fit ahead of it. (No atmosphere dup.)
@@ -451,7 +462,10 @@ export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait
     // (diversity axis + separate element "hook" omitted — the scene palette,
     // the element-wreathed weapon, and the closer already bookend the element.)
     buildIdentityBlock(sheet), // compact ancestry/body/age anchors
-    buildPosePrefix(sheet), // dynamic action pose (distinct per tier)
+    hookNarrativeAnchor(sheet), // per-archetype narrative axis (Seraph path) — none by default
+    hookMandatorySegment(sheet), // per-archetype must-render segment (Mech mech) — none by default
+    // dynamic action pose — an archetype hook may override the generic prefix
+    hookPosePrefix(sheet) ?? buildPosePrefix(sheet),
     buildWeaponClause(sheet), // curated weapon (evolves per rank), element-wreathed — MUST render
     buildCompanionClause(sheet), // rank-scaled servants/units — high enough to survive + render
     buildWardrobeClause(sheet), // garments (modesty is in the negatives)

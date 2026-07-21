@@ -103,6 +103,30 @@ describe('assemblePortraitPrompt — modesty is impossible to truncate off', () 
   }
 });
 
+describe('assemblePortraitPrompt — curated environment', () => {
+  // Lean identity so the low-priority BACKGROUND segment survives the budget
+  // (hardFate() is maximally detailed and truncates the background off).
+  const leanFate = (extra: Partial<HiddenFate>): HiddenFate => ({
+    ...emptyHiddenFate(), sex: 'male', bodyType: 'lean', skinTone: 'fair', ...extra,
+  });
+
+  it('renders the locked environment family descriptor when environmentId is set', () => {
+    const { portraitPrompt } = assemblePortraitPrompt(makeSheet({
+      hiddenFate: leanFate({ environmentId: 'cemetery_district' }),
+      rank: 'Ascendant', isEvolution: true,
+    }));
+    // Ascendant descriptor of the cemetery_district family (from archetypeEnvironments.ts).
+    expect(portraitPrompt).toContain('necropolis-city');
+  });
+
+  it('falls back to hiddenFate.environmentDetails when no environmentId (legacy card)', () => {
+    const { portraitPrompt } = assemblePortraitPrompt(makeSheet({
+      hiddenFate: leanFate({ environmentDetails: 'a fog-choked graveyard of leaning headstones' }),
+    }));
+    expect(portraitPrompt).toContain('fog-choked graveyard');
+  });
+});
+
 describe('assemblePortraitPrompt — identity + modesty + weapon', () => {
   it('holds the Bible-locked disability + scars even at the tight Ascendant budget', () => {
     const { portraitPrompt } = assemblePortraitPrompt(makeSheet({ rank: 'Ascendant', isEvolution: true }));
