@@ -53,12 +53,30 @@ export interface HeatWeights {
   miss: number;
 }
 
+/**
+ * Skill-escalation ramp (Gate-1 direction, Raheem 2026-07-20): every
+ * successful strike so far tightens the Perfect window and quickens the
+ * marker for the NEXT strike. This supersedes the plan §7.4 fixed
+ * per-strike speed schedule — patterns now carry shape only, and the ramp
+ * owns speed. A player who keeps missing stays at base difficulty (the
+ * ramp keys off successes, not strike index).
+ */
+export interface DifficultyRamp {
+  /** Marker time-scale multiplier per prior success (>1 = faster). */
+  speedGainPerSuccess: number;
+  /** Perfect half-width multiplier per prior success (<1 = shrinks). */
+  perfectShrinkPerSuccess: number;
+  /** Floor so the Perfect window never collapses to nothing. */
+  minPerfectHalfWidth: number;
+}
+
 export interface ForgeStrikeConfig {
   configVersion: number;
   strikeCount: number;
   /** Successful strikes (good or perfect) required to win the run. */
   winThreshold: number;
   zones: GradeZones;
+  ramp: DifficultyRamp;
   /** One pattern per scored strike, index-aligned. Length === strikeCount. */
   patterns: StrikePattern[];
   /** Pattern used for the guided, non-scored practice strike. */

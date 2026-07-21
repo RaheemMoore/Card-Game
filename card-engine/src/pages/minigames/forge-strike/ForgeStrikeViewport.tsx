@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { Card, StatName } from '../../../types/card';
 import { CardRenderer } from '../../../components/CardRenderer';
-import { countSuccesses } from '../../../services/minigames/forge-strike/engine';
+import {
+  countSuccesses,
+  effectivePerfectHalfWidth,
+} from '../../../services/minigames/forge-strike/engine';
 import type { StrikeGrade } from '../../../services/minigames/forge-strike/types';
 import { useForgeStrike, hasCompletedPractice } from './useForgeStrike';
 
@@ -64,6 +67,10 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
   const displayGrade = inPractice ? practiceGrade : lastGrade;
   const strikeNumber = Math.min(run.nextStrikeIndex + 1, config.strikeCount);
   const glow = heatColor(run.heat);
+  // Red (Perfect) zone tightens with each landed strike; practice stays base.
+  const perfectHalfWidth = inPractice
+    ? config.zones.perfectHalfWidth
+    : effectivePerfectHalfWidth(config, countSuccesses(run));
 
   const body = (
     <div
@@ -175,12 +182,12 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
                   background: 'rgba(74, 92, 58, 0.55)',
                 }}
               />
-              {/* Perfect zone */}
+              {/* Perfect zone — shrinks per landed strike (transition = visible) */}
               <div
-                className="absolute inset-y-0"
+                className="absolute inset-y-0 transition-[left,width] duration-500"
                 style={{
-                  left: `${(0.5 - config.zones.perfectHalfWidth) * 100}%`,
-                  width: `${config.zones.perfectHalfWidth * 2 * 100}%`,
+                  left: `${(0.5 - perfectHalfWidth) * 100}%`,
+                  width: `${perfectHalfWidth * 2 * 100}%`,
                   background: `${statColor}88`,
                 }}
               />

@@ -7,11 +7,15 @@ import type { ForgeStrikeConfig, StrikePattern } from './types';
  * §7.4). Changing strikeCount or winThreshold is a reviewed tuning change.
  * Grade zones are normalized rail space centered on 0.5.
  *
- * Pattern schedule (approved direction, Stage 0):
- *   1 normal → 2 slightly faster → 3 telegraphed direction reversal →
- *   4 faster but predictable → 5 fastest.
+ * Speed is no longer baked per strike-index. Per Raheem (Gate 1, 2026-07-20)
+ * the marker quickens and the Perfect window tightens with every successful
+ * strike (see ramp below), so patterns now carry SHAPE only at a uniform
+ * base sweep. Strike 3 keeps its telegraphed direction reversal for variety.
  * No teleports, hidden switches, or unfair fake-outs (§7.4).
  */
+
+/** Uniform base sweep — the success-ramp, not the schedule, drives speed. */
+const BASE_SWEEP_MS = 1300;
 
 function sweep(id: string, sweepMs: number): StrikePattern {
   return {
@@ -52,12 +56,19 @@ export const FORGE_STRIKE_CONFIG_V1: ForgeStrikeConfig = {
     perfectHalfWidth: 0.07,
     goodHalfWidth: 0.2,
   },
+  ramp: {
+    // Each landed strike makes the marker ~15% faster and the red zone
+    // ~18% narrower for the next one. Instrumented playtest values.
+    speedGainPerSuccess: 1.15,
+    perfectShrinkPerSuccess: 0.82,
+    minPerfectHalfWidth: 0.025,
+  },
   patterns: [
-    sweep('s1_normal', 1400),
-    sweep('s2_quicker', 1200),
-    reversalSweep('s3_reversal', 1300),
-    sweep('s4_fast', 1000),
-    sweep('s5_fastest', 820),
+    sweep('s1', BASE_SWEEP_MS),
+    sweep('s2', BASE_SWEEP_MS),
+    reversalSweep('s3_reversal', BASE_SWEEP_MS),
+    sweep('s4', BASE_SWEEP_MS),
+    sweep('s5', BASE_SWEEP_MS),
   ],
   practicePattern: sweep('practice', 1600),
   heat: {

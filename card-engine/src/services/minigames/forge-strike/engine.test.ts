@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { FORGE_STRIKE_CONFIG_V1 as CFG } from './config';
-import { applyStrike, clamp01, countSuccesses, createRun, gradeStrike, positionAt } from './engine';
+import {
+  applyStrike,
+  clamp01,
+  countSuccesses,
+  createRun,
+  effectivePerfectHalfWidth,
+  gradeStrike,
+  markerSpeedFactor,
+  positionAt,
+} from './engine';
 import type { RunState } from './types';
 
 const { perfectHalfWidth, goodHalfWidth } = CFG.zones;
@@ -22,27 +31,81 @@ const MISS = 0.95;
 
 describe('gradeStrike boundaries', () => {
   it('center is perfect', () => {
-    expect(gradeStrike(CFG, 0.5)).toBe('perfect');
+    expect(gradeStrike(CFG, 0.5, 0)).toBe('perfect');
   });
 
   it('exactly on the perfect boundary is perfect (inclusive), both sides', () => {
-    expect(gradeStrike(CFG, 0.5 + perfectHalfWidth)).toBe('perfect');
-    expect(gradeStrike(CFG, 0.5 - perfectHalfWidth)).toBe('perfect');
+    expect(gradeStrike(CFG, 0.5 + perfectHalfWidth, 0)).toBe('perfect');
+    expect(gradeStrike(CFG, 0.5 - perfectHalfWidth, 0)).toBe('perfect');
   });
 
   it('just outside the perfect boundary is good', () => {
-    expect(gradeStrike(CFG, 0.5 + perfectHalfWidth + 1e-6)).toBe('good');
+    expect(gradeStrike(CFG, 0.5 + perfectHalfWidth + 1e-6, 0)).toBe('good');
   });
 
   it('exactly on the good boundary is good (inclusive), both sides', () => {
-    expect(gradeStrike(CFG, 0.5 + goodHalfWidth)).toBe('good');
-    expect(gradeStrike(CFG, 0.5 - goodHalfWidth)).toBe('good');
+    expect(gradeStrike(CFG, 0.5 + goodHalfWidth, 0)).toBe('good');
+    expect(gradeStrike(CFG, 0.5 - goodHalfWidth, 0)).toBe('good');
   });
 
   it('just outside the good boundary is miss', () => {
-    expect(gradeStrike(CFG, 0.5 + goodHalfWidth + 1e-6)).toBe('miss');
-    expect(gradeStrike(CFG, 0)).toBe('miss');
-    expect(gradeStrike(CFG, 1)).toBe('miss');
+    expect(gradeStrike(CFG, 0.5 + goodHalfWidth + 1e-6, 0)).toBe('miss');
+    expect(gradeStrike(CFG, 0, 0)).toBe('miss');
+    expect(gradeStrike(CFG, 1, 0)).toBe('miss');
+  });
+});
+
+describe('success ramp — Perfect zone shrink + marker speed-up', () => {
+  it('perfect half-width shrinks geometrically per success', () => {
+    const base = effectivePerfectHalfWidth(CFG, 0);
+    expect(base).toBe(CFG.zones.perfectHalfWidth);
+    const one = effectivePerfectHalfWidth(CFG, 1);
+    expect(one).toBeCloseTo(CFG.zones.perfectHalfWidth * CFG.ramp.perfectShrinkPerSuccess, 10);
+    expect(one).toBeLessThan(base);
+    expect(effectivePerfectHalfWidth(CFG, 2)).toBeLessThan(one);
+  });
+
+  it('perfect half-width never falls below the configured floor', () => {
+    const deep = effectivePerfectHalfWidth(CFG, 50);
+    expect(deep).toBe(CFG.ramp.minPerfectHalfWidth);
+  });
+
+  it('marker speed factor grows with successes and is 1 at zero', () => {
+    expect(markerSpeedFactor(CFG, 0)).toBe(1);
+    expect(markerSpeedFactor(CFG, 1)).toBeCloseTo(CFG.ramp.speedGainPerSuccess, 10);
+    expect(markerSpeedFactor(CFG, 3)).toBeGreaterThan(markerSpeedFactor(CFG, 2));
+  });
+
+  it('a position that is Perfect early becomes Good once the zone tightens', () => {
+    // A hair inside the base Perfect edge...
+    const pos = 0.5 + CFG.zones.perfectHalfWidth - 1e-4;
+    expect(gradeStrike(CFG, pos, 0)).toBe('perfect');
+    // ...falls outside the shrunken Perfect zone after several successes,
+    // but is still within the (unchanged) Good zone.
+    expect(gradeStrike(CFG, pos, 4)).toBe('good');
+  });
+
+  it('the Good zone is unaffected by the ramp (red zone only)', () => {
+    const edge = 0.5 + goodHalfWidth;
+    expect(gradeStrike(CFG, edge, 0)).toBe('good');
+    expect(gradeStrike(CFG, edge, 5)).toBe('good');
+    expect(gradeStrike(CFG, edge + 1e-3, 5)).toBe('miss');
+  });
+
+  it('applyStrike tightens Perfect as successes accumulate in a live run', () => {
+    // Fix the marker just inside the base Perfect edge every strike; early
+    // strikes read Perfect, later ones downgrade to Good as the zone shrinks.
+    const pos = 0.5 + CFG.zones.perfectHalfWidth - 1e-4;
+    let state = createRun(CFG);
+    const grades: string[] = [];
+    for (let i = 0; i < CFG.strikeCount; i++) {
+      const out = applyStrike(CFG, state, { strikeIndex: i, markerPos: pos });
+      if (!out.accepted) throw new Error('rejected');
+      grades.push(out.result.grade);
+      state = out.state;
+    }
+    expect(grades[0]).toBe('perfect');
+    expect(grades[grades.length - 1]).toBe('good');
   });
 });
 
@@ -158,21 +221,23 @@ describe('heat derivation (presentation-only)', () => {
 });
 
 describe('positionAt pattern sampling', () => {
-  const p1 = CFG.patterns[0]; // simple 1400ms sweep
+  const p1 = CFG.patterns[0]; // simple sweep at BASE_SWEEP_MS
+  const sweepMs = p1.waypoints[1].t; // peak time = one sweep
+  const loopMs = p1.waypoints[p1.waypoints.length - 1].t; // 2× sweep
 
   it('starts at 0, peaks at 1 mid-loop, returns to 0 at loop end', () => {
     expect(positionAt(p1, 0)).toBe(0);
-    expect(positionAt(p1, 1400)).toBe(1);
-    expect(positionAt(p1, 2800)).toBe(0);
+    expect(positionAt(p1, sweepMs)).toBe(1);
+    expect(positionAt(p1, loopMs)).toBe(0);
   });
 
   it('interpolates linearly between waypoints', () => {
-    expect(positionAt(p1, 700)).toBeCloseTo(0.5, 10);
-    expect(positionAt(p1, 2100)).toBeCloseTo(0.5, 10);
+    expect(positionAt(p1, sweepMs / 2)).toBeCloseTo(0.5, 10);
+    expect(positionAt(p1, sweepMs * 1.5)).toBeCloseTo(0.5, 10);
   });
 
   it('loops past the final waypoint', () => {
-    expect(positionAt(p1, 2800 + 700)).toBeCloseTo(0.5, 10);
+    expect(positionAt(p1, loopMs + sweepMs / 2)).toBeCloseTo(0.5, 10);
   });
 
   it('reversal pattern doubles back mid-return then comes home', () => {
@@ -191,7 +256,7 @@ describe('positionAt pattern sampling', () => {
     // Scoring has no code path that reads motion settings — assert the
     // grade for a fixed position is stable regardless of any pattern.
     for (const _pattern of CFG.patterns) {
-      expect(gradeStrike(CFG, 0.5)).toBe('perfect');
+      expect(gradeStrike(CFG, 0.5, 0)).toBe('perfect');
     }
   });
 });

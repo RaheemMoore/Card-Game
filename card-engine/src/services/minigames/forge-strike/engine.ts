@@ -54,13 +54,39 @@ export function positionAt(pattern: StrikePattern, elapsedMs: number): number {
 }
 
 /**
- * Grade a strike from the normalized marker position. Zone edges are
- * inclusive: a marker exactly on the Perfect boundary is Perfect, exactly
- * on the Good boundary is Good.
+ * Effective Perfect half-width for a strike attempted after `successCount`
+ * prior successes. Shrinks geometrically per success, floored so it never
+ * collapses. The Good window is unaffected (Raheem: red zone only).
  */
-export function gradeStrike(config: ForgeStrikeConfig, markerPos: number): StrikeGrade {
+export function effectivePerfectHalfWidth(config: ForgeStrikeConfig, successCount: number): number {
+  const shrunk =
+    config.zones.perfectHalfWidth * config.ramp.perfectShrinkPerSuccess ** successCount;
+  return Math.max(config.ramp.minPerfectHalfWidth, shrunk);
+}
+
+/**
+ * Marker time-scale multiplier for a strike attempted after `successCount`
+ * prior successes. >1 compresses elapsed time, so the marker sweeps faster.
+ * Presentation timing only — never affects grading.
+ */
+export function markerSpeedFactor(config: ForgeStrikeConfig, successCount: number): number {
+  return config.ramp.speedGainPerSuccess ** successCount;
+}
+
+/**
+ * Grade a strike from the normalized marker position. `successCount` is the
+ * number of successful strikes already landed this run; it tightens the
+ * Perfect window (see effectivePerfectHalfWidth). Zone edges are inclusive:
+ * a marker exactly on the Perfect boundary is Perfect, exactly on the Good
+ * boundary is Good.
+ */
+export function gradeStrike(
+  config: ForgeStrikeConfig,
+  markerPos: number,
+  successCount: number,
+): StrikeGrade {
   const distance = Math.abs(markerPos - RAIL_CENTER);
-  if (distance <= config.zones.perfectHalfWidth + ZONE_EPSILON) return 'perfect';
+  if (distance <= effectivePerfectHalfWidth(config, successCount) + ZONE_EPSILON) return 'perfect';
   if (distance <= config.zones.goodHalfWidth + ZONE_EPSILON) return 'good';
   return 'miss';
 }
@@ -97,7 +123,10 @@ export function applyStrike(
     return { accepted: false, state, reason: 'out_of_order' };
   }
 
-  const grade = gradeStrike(config, input.markerPos);
+  // Ramp keys off successes landed BEFORE this strike, so the difficulty a
+  // player faces on strike N reflects their run so far.
+  const successCount = countSuccesses(state);
+  const grade = gradeStrike(config, input.markerPos, successCount);
   const result: StrikeResult = {
     strikeIndex: input.strikeIndex,
     patternId: config.patterns[input.strikeIndex].id,

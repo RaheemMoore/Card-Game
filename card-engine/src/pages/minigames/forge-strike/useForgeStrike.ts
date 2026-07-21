@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   applyStrike,
+  countSuccesses,
   createRun,
   gradeStrike,
+  markerSpeedFactor,
   positionAt,
 } from '../../../services/minigames/forge-strike/engine';
 import { FORGE_STRIKE_CONFIG_V1 } from '../../../services/minigames/forge-strike/config';
@@ -104,12 +106,21 @@ export function useForgeStrike(
     return config.patterns[idx];
   }, [config]);
 
+  // Successes landed so far — the ramp input for the armed strike. Practice
+  // is always base difficulty (never ramps).
+  const currentSuccessCount = useCallback((): number => {
+    if (phaseRef.current === 'practice' || phaseRef.current === 'practice_done') return 0;
+    return countSuccesses(runRef.current);
+  }, []);
+
   // Single rAF loop for the whole session; samples the marker while armed.
   useEffect(() => {
     const tick = (now: number) => {
       if (armedRef.current && phaseRef.current !== 'complete') {
         const pattern = activePattern();
-        const elapsed = now - patternStart.current;
+        // Success-ramp quickens the marker: compress elapsed time.
+        const speed = markerSpeedFactor(config, currentSuccessCount());
+        const elapsed = (now - patternStart.current) * speed;
         setMarkerPos(positionAt(pattern, elapsed));
         if (pattern.telegraphAtMs !== undefined) {
           const loopMs = pattern.waypoints[pattern.waypoints.length - 1].t;
@@ -123,7 +134,7 @@ export function useForgeStrike(
     };
     rafId.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId.current);
-  }, [activePattern]);
+  }, [activePattern, config, currentSuccessCount]);
 
   // Clear any pending resolve timer on unmount so nothing fires after exit.
   useEffect(
@@ -144,10 +155,11 @@ export function useForgeStrike(
     // dropped here (disarmed) AND in the engine (index check).
     if (!armedRef.current || phaseRef.current === 'complete') return;
     const pattern = activePattern();
-    const pos = positionAt(pattern, performance.now() - patternStart.current);
+    const speed = markerSpeedFactor(config, currentSuccessCount());
+    const pos = positionAt(pattern, (performance.now() - patternStart.current) * speed);
 
     if (phaseRef.current === 'practice') {
-      const grade = gradeStrike(config, pos);
+      const grade = gradeStrike(config, pos, 0);
       setArmed(false);
       setMarkerPos(pos);
       setPracticeGrade(grade);
@@ -172,7 +184,7 @@ export function useForgeStrike(
     } else {
       resolveTimer.current = setTimeout(armNext, RESOLVE_PAUSE_MS);
     }
-  }, [activePattern, armNext, config]);
+  }, [activePattern, armNext, config, currentSuccessCount]);
 
   const startRun = useCallback(() => {
     setPhase('run');
