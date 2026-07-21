@@ -181,6 +181,14 @@ export interface HiddenFate {
   companionPresent?: boolean;
   environmentId?: string;
   /**
+   * A locked ~20% roll (Raheem 2026-07-21) deciding whether this character MAY
+   * render bare-chested at the Ascendant peak. Only ever consulted for
+   * Ascendant + male; rolled once at Foundation and preserved across ranks so a
+   * regen does not flip the look. Boolean, so carried explicitly (not via the
+   * string-truthy lock loop).
+   */
+  bareChestRoll?: boolean;
+  /**
    * M4.6 — Body & Skin Representation Bible structured decomposition.
    * Optional; new cards fill both these and the freeform bodyType/skinTone
    * strings above. Existing cards keep working (fields are undefined and

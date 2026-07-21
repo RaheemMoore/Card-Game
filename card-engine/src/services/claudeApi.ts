@@ -43,7 +43,13 @@ import { resolveLockedSelections, buildCharacterSheet } from './portrait/charact
  * NO portraitPrompt/negativePrompt. Prototype: Necromancer only; the other 10
  * archetypes keep the legacy inline path until the full-cast pass.
  */
-const LOCAL_PORTRAIT_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set(['Necromancer']);
+// Every archetype now renders through the deterministic Image Engine
+// (services/portraitAssembler.ts). The legacy Claude-authored portraitPrompt
+// path is retained but unreachable — its removal is the Step-4 cleanup.
+const LOCAL_PORTRAIT_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set<ArchetypeName>([
+  'Barbarian', 'Monk', 'Human', 'Mech Pilot', 'Beastmaster', 'Druid',
+  'Vampire', 'Seraph', 'Lycanthrope', 'Android', 'Necromancer',
+]);
 
 /**
  * Bible-driven card text + portrait prompt generator.

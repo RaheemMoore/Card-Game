@@ -59,6 +59,13 @@ export function resolveLockedSelections(
     if (pool.length > 0) out.environmentId = pick(pool, rng).id;
   }
 
+  // ~20% locked roll: may this character bare its chest at the Ascendant peak?
+  // (Only consulted for Ascendant + male by the assembler.) Rolled once here so
+  // it is stable across tier-up / regen.
+  if (out.bareChestRoll === undefined) {
+    out.bareChestRoll = rng() < 0.2;
+  }
+
   // companionPresent is the 50/50 gate (Beastmaster always true; empty-pool
   // archetypes always false). Rolled once and locked; the id is only set when
   // the character actually has a retinue.

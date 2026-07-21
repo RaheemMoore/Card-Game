@@ -103,6 +103,9 @@ export function preserveIdentityAcrossRanks(
   // (this character has no retinue). The string-id loop above skips falsy
   // values, so carry the boolean (and its paired id) explicitly.
   if (previous.companionPresent !== undefined) merged.companionPresent = previous.companionPresent;
+  // Locked ~20% bare-chest roll — a boolean, preserved explicitly so the
+  // Ascendant look is stable across a tier-up / regen.
+  if (previous.bareChestRoll !== undefined) merged.bareChestRoll = previous.bareChestRoll;
   return merged;
 }
 

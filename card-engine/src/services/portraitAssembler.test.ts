@@ -156,8 +156,10 @@ describe('assemblePortraitPrompt — identity + modesty + weapon', () => {
 });
 
 describe('assemblePortraitPrompt — bare chest is gated to Ascendant + male ONLY', () => {
+  // bareChestRoll: true → this male ROLLED into the ~20% bare-chest-eligible
+  // bucket; the rank/sex gate still decides when it actually fires.
   const male = (rank: 'Foundation' | 'Forged' | 'Ascendant') =>
-    makeSheet({ rank, isEvolution: rank !== 'Foundation', hiddenFate: { ...hardFate(), sex: 'male' } });
+    makeSheet({ rank, isEvolution: rank !== 'Foundation', hiddenFate: { ...hardFate(), sex: 'male', bareChestRoll: true } });
   const female = (rank: 'Foundation' | 'Forged' | 'Ascendant') =>
     makeSheet({ rank, isEvolution: rank !== 'Foundation', hiddenFate: { ...hardFate(), sex: 'female' } });
 
