@@ -151,15 +151,28 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
       ref={containerRef}
       onKeyDown={onContainerKeyDown}
       className="fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden text-bone flex flex-col"
-      style={{ background: 'radial-gradient(ellipse at 50% 120%, #1a1210 0%, #0b0709 55%, #060405 100%)', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      style={{ background: '#060405', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
       role="dialog"
       aria-modal="true"
       aria-label="Forge Strike"
     >
-      {/* Forge chamber walls — subtle stone pilasters at the edges */}
+      {/* Painted forge chamber (Leonardo Phoenix asset) — the real backdrop */}
+      <div
+        className="absolute inset-0 pointer-events-none bg-cover bg-center"
+        aria-hidden="true"
+        style={{ backgroundImage: "url('/assets/backgrounds/forge-strike-chamber.jpg')" }}
+      />
+      {/* Readability scrim — dark behind the card (top) + rail/pips (bottom),
+          lighter through the mid so the hearth glow reads. Keeps the painted
+          anvil subdued so the interactive SVG anvil stays the focal one. */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true" style={{
         background:
-          'linear-gradient(90deg, rgba(0,0,0,0.55) 0%, transparent 16%, transparent 84%, rgba(0,0,0,0.55) 100%)',
+          'linear-gradient(to bottom, rgba(6,4,5,0.84) 0%, rgba(6,4,5,0.5) 26%, rgba(6,4,5,0.42) 58%, rgba(6,4,5,0.82) 100%)',
+      }} />
+      {/* Edge darkening for stone-pilaster depth */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true" style={{
+        background:
+          'linear-gradient(90deg, rgba(0,0,0,0.6) 0%, transparent 18%, transparent 82%, rgba(0,0,0,0.6) 100%)',
       }} />
 
       {/* Central forge light — intensifies with heat */}
