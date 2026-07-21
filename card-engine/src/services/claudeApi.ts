@@ -554,19 +554,58 @@ const VAMPIRE_SETTING_BY_RANK: Record<Rank, string> = {
 };
 
 /**
- * Blood-element spectacle staging for Vampires — crimson must PERSIST and
- * GROW across ranks (the core ask of proposal 759007cb). Positive language
- * keeps blood reading as WET LIQUID, never fire: Blood is in the fire-family
- * allowlist so the anti-warm-glow negatives do NOT fire for it, and Phoenix
- * will drift crimson → orange flame without this steer.
+ * Per-element spectacle staging for Vampires (proposal 759007cb + the
+ * 2026-07-21 image/lore-decoupling direction). Every Vampire card flaunts a
+ * MAXIMAL spectacle of its SPECIFIC element (Blood, Shadow, or Void), and the
+ * spectacle GROWS per rank via an escalating power lexicon — a growing VERB
+ * (motion) + growing NOUN (mass):
+ *   Blood:  splash→wave→tide      / leach→drain→extraction
+ *   Shadow: seep→shroud→eclipse   / dim→smother→devour
+ *   Void:   fracture→rift→collapse / flicker→unravel→erase
+ * This is IMAGE-only — it must never touch lore/name/title. It replaces the
+ * generic "cataclysm" reframe for Vampire (a code invention, not Bible canon)
+ * which was fighting the composed-sovereign lore AND truncating the element
+ * block off the prompt. One element-accuracy anchor per tier holds Blood as
+ * wet liquid (never fire — Blood is in the fire-family allowlist, so the
+ * anti-warm-glow negatives do NOT fire for it) and Shadow/Void as cold
+ * (never warm), replacing the old repetitive "NOT ember NOT orange" spam.
  */
-const VAMPIRE_BLOOD_SPECTACLE_BY_RANK: Record<Rank, string> = {
-  Foundation:
-    'BLOOD MANIFESTATION (subtle, controlled): a thin crimson under-glow beneath the skin, a few suspended droplets of dark liquid blood, faint red mist curling at the feet — wet arterial deep-red, glossy liquid, NOT flame, NOT ember',
-  Forged:
-    'BLOOD MANIFESTATION (loose, commanding): ribbons of liquid crimson blood coiling around the hands and forearms, a blood-forged blade or chalice, veins glowing faint red, red mist to the knees — wet arterial deep-red, glossy flowing liquid, NOT flame, NOT ember',
-  Ascendant:
-    'BLOOD MANIFESTATION (cataclysmic storm): a full storm of liquid crimson ribbons and arcs radiating outward from the body, arterial tendrils lashing the air, a blood-forged weapon fully formed, the ground pooled and rippling crimson — wet arterial deep-red, glossy liquid in motion, NOT flame, NOT ember, NO orange',
+const VAMPIRE_SPECTACLE_BY_ELEMENT_BY_RANK: Record<'Blood' | 'Shadow' | 'Void', Record<Rank, string>> = {
+  Blood: {
+    Foundation:
+      'BLOOD SPECTACLE (splash / leach): the vampire LEACHES a thin crimson splash — suspended droplets of wet arterial blood drawn toward the hands, a low red under-glow beneath the skin, glossy dark-red liquid',
+    Forged:
+      'BLOOD SPECTACLE (wave / drain): the vampire DRAINS a curling WAVE of liquid crimson — ribbons of blood coiling up the forearms, a blood-forged blade or chalice, wet glossy arterial red in motion',
+    Ascendant:
+      'BLOOD SPECTACLE (tide / extraction): the sovereign commands a full crimson TIDE — arcs and tendrils of wet liquid blood radiating outward, the ground pooled and rippling red, a blood-forged weapon fully formed, glossy arterial liquid, held with composed authority',
+  },
+  Shadow: {
+    Foundation:
+      'SHADOW SPECTACLE (seep / dim): darkness SEEPS from the vampire — thin tendrils of living shadow, edges dissolving into soft black smoke, cold desaturated palette',
+    Forged:
+      'SHADOW SPECTACLE (shroud / smother): a SHROUD of living darkness coils around the body, tendrils lashing outward, the light around them SMOTHERED, deep blacks and cold violet edge-light',
+    Ascendant:
+      'SHADOW SPECTACLE (eclipse / devour): an ECLIPSE of absolute darkness spreads from the sovereign, shadow-tendrils DEVOURING the surrounding light, the environment swallowed to silhouette, cold void-violet rim, composed authority',
+  },
+  Void: {
+    Foundation:
+      'VOID SPECTACLE (fracture / flicker): hairline FRACTURES of starless black open around the hands, space FLICKERING at the edges, cold indigo-black nothingness, faint constellation grain — never warm',
+    Forged:
+      'VOID SPECTACLE (rift / unravel): a RIFT of starless void tears open behind the vampire, matter UNRAVELING at the edges into black particulate, deep indigo-black with cold pinpoint light',
+    Ascendant:
+      'VOID SPECTACLE (collapse / erase): reality COLLAPSES inward around the sovereign, the frame ERASED to starless black at the margins, a devouring void-rift fully open, cold indigo-black, no warm color anywhere, composed authority',
+  },
+};
+
+/**
+ * Presence-growth clause (2026-07-21). Bearing, scale, and command grow with
+ * rank as part of the power flaunt — but identity is RE-LOCKED here so the
+ * escalation lands in AUTHORITY, never in de-aging/beautifying the person.
+ */
+const VAMPIRE_PRESENCE_BY_RANK: Record<Rank, string> = {
+  Foundation: 'composed and watchful, contained power',
+  Forged: 'a commanding stance, aura filling the frame, the space bending toward them',
+  Ascendant: 'absolute sovereign command, presence dominating the frame, the world deferring to them',
 };
 
 const DIVERSITY_CURSOR_KEY = 'card-engine-diversity-cursor';
@@ -682,6 +721,21 @@ const BASE_NEGATIVE = [
   'skin-tight bodysuit revealing anatomical detail', 'chainmail bikini',
   'hip-cutout costume', 'pelvic V-cutout', 'high-cut leotard',
   'bare thighs with only lingerie beneath', 'sexualized costume', 'pin-up styling',
+  // M6.0 — HARD anti-sexualization (2026-07-21). The M5.7 block above bans
+  // EXPOSURE but Phoenix kept sexualizing through EMPHASIS, framing, and
+  // expression (fabric clinging to anatomy, chest/crotch-focused camera,
+  // come-hither faces) — Raheem: current results are "disgusting." These
+  // concrete anatomical + framing negatives are what actually bite; the word
+  // "modest" does not. Female AND male.
+  'breast emphasis', 'accentuated breasts', 'pushed-up breasts',
+  'cleavage', 'deep neckline', 'chest window', 'wet clinging fabric',
+  'nipple outline through fabric', 'nipples showing through cloth',
+  'crotch emphasis', 'bulge emphasis', 'accentuated crotch',
+  'codpiece emphasis', 'tight fabric across groin',
+  'buttocks emphasis', 'camera angle on chest', 'camera angle on hips',
+  'low-angle crotch shot', 'sultry expression', 'parted lips seductive',
+  'bedroom eyes', 'come-hither pose', 'boudoir lighting', 'arched back presenting chest',
+  'fanservice', 'ecchi', 'booty pose',
   // M5.6 — per-archetype anti-patterns.
   // Lycanthrope: absolutely no wings, no angelic aesthetics, NO HORNS EVER.
   'wings on a Lycanthrope', 'winged wolf-person', 'angelic Lycanthrope',
@@ -779,7 +833,7 @@ function buildElementDriftBans(element: ElementName): string {
 // materials now come from the ELEMENT VISUAL LANGUAGE block (prepended
 // separately) — this anchor is intentionally element-agnostic.
 const STYLE_ANCHOR =
-  'fantasy action card illustration, painterly digital art with visible brush texture and semi-realistic rendering, character mid-action performing a signature power move appropriate to their archetype, the character\'s OWN body is the source of the power display per the ELEMENT VISUAL LANGUAGE block (colors, lighting, materials, textures, motion all defined there — do NOT default to warm ember or fire palette), the world REACTS to the character in the element\'s own materials and atmosphere (element-specific — see the ELEMENT VISUAL LANGUAGE block), dynamic cinematic pose with kinetic motion, cloth and hair swept by their own power, particles and debris appropriate to the element in the air around them, waist-up 3/4 body composition, single character centered occupying 55 to 70 percent of frame, entire head fully visible, cinematic rim-light in the element\'s locked color (from the ELEMENT VISUAL LANGUAGE block — NOT a default warm rim), high contrast, painterly-blurred environmental background carrying narrative meaning and element-specific atmosphere, action means MOTION and POWER CHANNELING not physique display, the character wears their canonical garb (Monk in robes, Necromancer robed, Vampire cloaked, elderly wizard fully dressed, heavyset ranger in leathers) even mid-power-move, body type age weight and clothing come from the identity block and OVERRIDE any hero-anatomy default, MODEST POWERFUL PRESENTATION — real armor / real robes / real battle-suit / trench-coat / cape / regalia appropriate to culture; NEVER bras / panties / underwear / lingerie / bikini-armor / chainmail-bikini / cleavage-cutout / hip-cutout / bare-midriff / leotard-armor; the strong do not reveal themselves that way';
+  'fantasy action card illustration, painterly digital art with visible brush texture and semi-realistic rendering, character mid-action performing a signature power move appropriate to their archetype, the character\'s OWN body is the source of the power display per the ELEMENT VISUAL LANGUAGE block (colors, lighting, materials, textures, motion all defined there — do NOT default to warm ember or fire palette), the world REACTS to the character in the element\'s own materials and atmosphere (element-specific — see the ELEMENT VISUAL LANGUAGE block), dynamic cinematic pose with kinetic motion, cloth and hair swept by their own power, particles and debris appropriate to the element in the air around them, waist-up 3/4 body composition, single character centered occupying 55 to 70 percent of frame, entire head fully visible, cinematic rim-light in the element\'s locked color (from the ELEMENT VISUAL LANGUAGE block — NOT a default warm rim), high contrast, painterly-blurred environmental background carrying narrative meaning and element-specific atmosphere, action means MOTION and POWER CHANNELING not physique display, the character wears their canonical garb (Monk in robes, Necromancer robed, Vampire cloaked, elderly wizard fully dressed, heavyset ranger in leathers) even mid-power-move, body type age weight and clothing come from the identity block and OVERRIDE any hero-anatomy default, MODEST POWERFUL PRESENTATION — real armor / real robes / real battle-suit / trench-coat / cape / regalia appropriate to culture; NEVER bras / panties / underwear / lingerie / bikini-armor / chainmail-bikini / cleavage-cutout / hip-cutout / bare-midriff / leotard-armor; the strong do not reveal themselves that way; fully-opaque garments that drape loosely and do NOT cling to or emphasize chest or groin, camera at eye level (never angled up at hips or chest), dignified composed expression (never sultry or seductive)';
 
 interface GeneratedText {
   cardName: string;
@@ -1399,15 +1453,27 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       ? `RANK CONTINUITY: this character's element visual at Foundation was ${input.element.element} with LOCKED palette, materials, and lighting per the Element Visual Language Bible. At ${overallRank} the SAME palette + SAME materials + SAME lighting persist — do NOT drift toward Phoenix defaults, warm ember, or fire-orange. Same Storm colors from Foundation, same Void colors from Foundation, same Nature colors from Foundation — just at escalated scale. ${nonFireCatchAll}`
       : nonFireCatchAll;
     const elementPrefix = `REQUIRED ELEMENT (${input.element.element}): ${assembleElementLockdown(input.element.element as ElementName)}. ${elementContinuityClause}`;
-    // Vampire Layer-D prefix — feral-Foundation form (when the ~1/3 gate
-    // fired), gothic-night setting (every rank, every element — Vampires
-    // never see daylight), and Blood spectacle staging (Blood element only;
-    // keeps crimson reading as wet liquid, not fire). Leads the vampire
-    // clauses so Phoenix reads form + setting before the element block.
+    // Vampire prefix — feral-Foundation form (when the ~1/3 gate fired),
+    // gothic-night setting (every rank, every element — Vampires never see
+    // daylight), and the per-element MAXIMAL spectacle staging (Blood /
+    // Shadow / Void) that escalates per rank via the growing power lexicon.
+    // Leads the vampire clauses so Phoenix reads form + setting before the
+    // spectacle + element blocks. Replaces the old Blood-only staging AND the
+    // generic cataclysm block (deleted for Vampire below) per the 2026-07-21
+    // image/lore-decoupling direction.
+    const vampireSpectacle =
+      VAMPIRE_SPECTACLE_BY_ELEMENT_BY_RANK[input.element.element as 'Blood' | 'Shadow' | 'Void']?.[overallRank];
     const vampirePrefix = input.archetype === 'Vampire'
       ? `${vampireFeralFires ? `${VAMPIRE_FERAL_FOUNDATION_FORM}. ` : ''}${VAMPIRE_SETTING_BY_RANK[overallRank]}. ${
-          input.element.element === 'Blood' ? `${VAMPIRE_BLOOD_SPECTACLE_BY_RANK[overallRank]}. ` : ''
+          vampireSpectacle ? `${vampireSpectacle}. ` : ''
         }`
+      : '';
+    // Presence-growth (Vampire) — bearing/scale/command escalate with rank as
+    // part of the power flaunt, while identity is RE-LOCKED so the escalation
+    // never lands in de-aging or beautifying the person. Replaces the generic
+    // cataclysm block's "transformation FULLY MANIFESTS" spectacle for Vampire.
+    const presencePrefix = input.archetype === 'Vampire'
+      ? `PRESENCE (grows with rank, identity LOCKED): the SAME person — same age, body, ancestry, scars, disability, and face as Foundation — but their BEARING escalates to ${VAMPIRE_PRESENCE_BY_RANK[overallRank]}. What grows is AUTHORITY, SCALE, and the power display — NOT youth, beauty, muscle, or health. `
       : '';
     // M4.8 — Ascendant cataclysm prepend. Bible §Ascendant demands "world
     // crumbles + character evolves beyond mortal form + non-human features"
@@ -1422,7 +1488,11 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     // per-archetype transformation from ARCHETYPE_NON_HUMAN_FORMS so Phoenix
     // never sees a generic wings/tails/cosmic-skin menu that leaks across
     // archetypes.
-    const cataclysmPrefix = overallRank === 'Ascendant'
+    // Vampire is EXCLUDED — it routes through presencePrefix + the per-element
+    // spectacle map instead of the generic cataclysm block (image/lore
+    // decoupling, 2026-07-21). The cataclysm reframe was a code invention, not
+    // Bible canon, and it fought the Vampire's composed-sovereign lore.
+    const cataclysmPrefix = overallRank === 'Ascendant' && input.archetype !== 'Vampire'
       ? (isRootedMortalArchetype
           ? `ASCENDANT CATACLYSM (Bible §Ascendant — MANDATORY): the world CRUMBLES around them, reality tears open, the sky shatters, the environment collapses toward the element. The character stays HUMAN — no wings, no tails, no bat-mist, no bone-form — but their POWER DISPLAY expands catastrophically THROUGH THEIR GEAR: signature weapons blaze with element-energy, armor reveals hidden power (runes ignited, plates radiating element-color from within), ancestral relics erupt with lineage-power. Same face + body class + skin + hair as Forged. This is cosmic transcendence expressed through their tools of power. `
           : `ASCENDANT CATACLYSM (Bible §Ascendant — MANDATORY) for ${input.archetype}: the world CRUMBLES around them, reality tears open, the sky shatters, the environment collapses toward the element. The archetype-specific transformation FULLY MANIFESTS per: ${archetypeForm}. Same face + body class + skin + hair as Forged (Bible §Rank continuity) but the transformation is complete and the power display expands catastrophically. This is NOT a Forged card with slight variation — this is the archetype's canonical cosmic transcendence. `)
@@ -1430,7 +1500,7 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     // M4.9 — parsed.portraitPrompt is guaranteed present (M4.8 parse-guard
     // above throws if missing) so no fallback needed. Same for negativePrompt.
     const packPrefix = lycanAscendantPackClause(input.archetype, overallRank, input.answers);
-    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${packPrefix}${posePrefix}${vampirePrefix}${elementPrefix}${parsed.portraitPrompt}`;
+    const rawPortraitPrompt = `${sexPrefix}${axisPrefix}${cataclysmPrefix}${presencePrefix}${packPrefix}${posePrefix}${vampirePrefix}${elementPrefix}${parsed.portraitPrompt}`;
     const portraitPrompt = truncateToLimit(rawPortraitPrompt, PORTRAIT_PROMPT_MAX);
     // M5.2 — belt+suspenders anti-warm-glow. If the element is NOT in the
     // fire family, aggressively strip any ember/warm-glow/fire language
