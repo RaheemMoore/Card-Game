@@ -341,7 +341,7 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
 
       {/* Persistent Temper Gauge — side-mounted, fills across runs */}
       {!inPractice && (
-        <div className="absolute right-2 sm:right-5 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+        <div className="absolute right-1 sm:right-5 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
           <TemperGauge fill={temper.fill} bursts={temper.bursts} accent={statColor} justBurst={justBurst} />
         </div>
       )}
@@ -369,9 +369,13 @@ export function ForgeStrikeViewport({ card, stat, onExit, onChangeStat }: ForgeS
           key={`stage-${strikeSeq}-${displayGrade}`}
           className={`flex-1 min-h-0 flex flex-col items-center justify-between w-full ${displayGrade === 'perfect' ? 'fs-shake' : ''}`}
         >
-          {/* Exact card — the visual anchor */}
+          {/* Exact card — the visual anchor. Shrunk on mobile so the side
+              Temper Gauge has a clear lane; full size on tablet/desktop. */}
           <div className="flex-1 min-h-0 flex items-center justify-center pointer-events-none px-4 relative">
-            <div style={{ filter: `drop-shadow(0 0 ${10 + run.heat * 20}px ${glow}99)`, maxHeight: '100%' }}>
+            <div
+              className="scale-[0.8] sm:scale-100 origin-center"
+              style={{ filter: `drop-shadow(0 0 ${10 + run.heat * 20}px ${glow}99)`, maxHeight: '100%' }}
+            >
               <CardRenderer card={liveCard} size="full" />
             </div>
             {/* Stat-colored energy pulse rising into the card on a success */}
