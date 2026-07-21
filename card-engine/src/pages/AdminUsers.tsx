@@ -11,6 +11,7 @@ import {
   type SystemStats,
   type UserRole,
 } from '../services/persistence/adminService';
+import { fetchMyRole } from '../services/persistence/supabaseClient';
 import type { Card } from '../types/card';
 import type { CurrencyId, EconomyTransaction } from '../types/economy';
 import { CardRenderer } from '../components/CardRenderer';
@@ -36,6 +37,13 @@ export function AdminUsers() {
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [showGuests, setShowGuests] = useState(false);
+  // Only true admins may change roles; lore directors see every other tab.
+  // Server-side set_user_role() enforces this too — this just hides the UI.
+  const [canManageRoles, setCanManageRoles] = useState(false);
+
+  useEffect(() => {
+    void fetchMyRole().then((r) => setCanManageRoles(r === 'admin'));
+  }, []);
 
   const refresh = () => {
     setLoadError(null);
@@ -141,7 +149,7 @@ export function AdminUsers() {
         title={selected?.email ?? 'Guest user'}
         subtitle={selected?.user_id}
       >
-        {selected && <UserDrawerBody user={selected} onMutated={refresh} />}
+        {selected && <UserDrawerBody user={selected} onMutated={refresh} canManageRoles={canManageRoles} />}
       </AdminPreviewPanel>
     </AdminPage>
   );
@@ -149,8 +157,13 @@ export function AdminUsers() {
 
 type DrawerTab = 'currency' | 'role' | 'cards' | 'ledger';
 
-function UserDrawerBody({ user, onMutated }: { user: AdminUserRow; onMutated: () => void }) {
+function UserDrawerBody({ user, onMutated, canManageRoles }: { user: AdminUserRow; onMutated: () => void; canManageRoles: boolean }) {
   const [tab, setTab] = useState<DrawerTab>('currency');
+
+  // Role tab is admin-only; lore directors don't see it.
+  const tabs: DrawerTab[] = canManageRoles
+    ? ['currency', 'role', 'cards', 'ledger']
+    : ['currency', 'cards', 'ledger'];
 
   const tabLabel = (t: DrawerTab) =>
     t === 'currency' ? 'Currency'
@@ -161,7 +174,7 @@ function UserDrawerBody({ user, onMutated }: { user: AdminUserRow; onMutated: ()
   return (
     <div>
       <div className="flex gap-1 mb-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
-        {(['currency', 'role', 'cards', 'ledger'] as const).map((t) => (
+        {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -190,9 +203,9 @@ const ROLE_OPTIONS: { value: UserRole; label: string; blurb: string }[] = [
   {
     value: 'lore_director',
     label: 'Lore Director',
-    blurb: 'Can file and work Archetype Workshop proposals, but cannot ship them or reach any other admin surface. Shipping stays admin-only.',
+    blurb: 'Full admin dashboard access, EXCEPT changing user roles and approving/merging proposals — those stay admin-only.',
   },
-  { value: 'admin', label: 'Admin', blurb: 'Full access — ships proposals, grants currency, assigns roles.' },
+  { value: 'admin', label: 'Admin', blurb: 'Full access — approves/ships proposals, grants currency, assigns roles.' },
 ];
 
 function RoleTab({ user, onChanged }: { user: AdminUserRow; onChanged: () => void }) {
