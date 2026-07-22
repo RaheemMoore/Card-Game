@@ -1,7 +1,10 @@
 import type { CharacterSheet } from '../types/characterSheet';
+import type { ArchetypeName } from '../types/card';
 import type { ElementName } from '../types/bible';
 import type { CardAbilityReference } from '../types/abilities';
 import { ELEMENT_VISUAL_LANGUAGE } from '../data/elementVisualLanguage';
+import { getEnvironmentDescriptor } from '../data/archetypeEnvironments';
+import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
   BASE_NEGATIVE,
@@ -36,14 +39,18 @@ import {
 const FIRE_FAMILY_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood', 'Ash', 'Holy'] as const;
 
 /**
- * Bare-chest gate (Raheem 2026-07-21): a bare male chest may render ONLY at the
- * Ascendant peak. Foundation must read "super modest," Forged stays covered, and
- * women stay covered at EVERY rank including Ascendant. The gate is deliberately
- * `rank === Ascendant AND sex === male` (never OR) — the covered case is the
- * default and every other combination falls under it.
+ * Bare-chest gate (Raheem 2026-07-21, refined): a bare male chest may render
+ * ONLY at the Ascendant peak, and even then only ~20% of the time — "it's cool
+ * sometimes," not a default. Women stay covered at every rank. The 20% is rolled
+ * ONCE and LOCKED onto hiddenFate (bareChestRoll) at Foundation so a regen does
+ * not flip-flop the render. This gate simply reads that locked roll.
  */
 function allowsBareChest(sheet: CharacterSheet): boolean {
-  return sheet.rank === 'Ascendant' && sheet.hiddenFate.sex === 'male';
+  return (
+    sheet.rank === 'Ascendant' &&
+    sheet.hiddenFate.sex === 'male' &&
+    sheet.hiddenFate.bareChestRoll === true
+  );
 }
 
 /**
@@ -92,6 +99,21 @@ const COMPOSITION_CLOSER =
 const COMPACT_STYLE_LEAD =
   'painterly fantasy action card art, mid-action pose (never a static portrait), cloth and hair ' +
   'in motion, cinematic lighting';
+
+// Per-archetype style override. Druid alone renders PHOTOREAL (Raheem
+// 2026-07-21: "real skin textures unlike the painted fantasy feel of the other
+// cards"). Applied at EVERY rank (not just Foundation) so Character Reference
+// skin-rendering stays coherent across a tier-up.
+// Kept close to COMPACT_STYLE_LEAD's length (~122) so the weapon + environment
+// still fit the 1450 budget — the load-bearing signal is "photoreal skin", not
+// a verbose material list (materials are covered by the render + wardrobe).
+const DRUID_STYLE_LEAD =
+  'PHOTOREALISTIC render, real skin texture with visible pores and subsurface detail, ' +
+  'naturalistic forest lighting, lifelike materials, mid-action pose (never static), hair in motion';
+
+function styleLeadFor(archetype: ArchetypeName): string {
+  return archetype === 'Druid' ? DRUID_STYLE_LEAD : COMPACT_STYLE_LEAD;
+}
 
 const MODESTY_STYLE_TAIL =
   'MODEST powerful presentation — real armor / robes / coats / regalia, fully-opaque garments ' +
@@ -305,8 +327,17 @@ function buildWeaponClause(sheet: CharacterSheet): string {
 
 function buildBackgroundClause(sheet: CharacterSheet): string {
   const f = sheet.hiddenFate;
-  const parts = [f.environmentDetails, f.weather].filter((s) => s && s.trim().length > 0);
-  const setting = parts.length > 0 ? parts.join(', ') : 'an atmospheric painterly environment';
+  // Prefer the curated per-archetype environment family (locked at Foundation,
+  // rank-scaled) when one is set; fall back to the Claude-authored scene fields
+  // for legacy cards / archetypes without an environment pool.
+  const curated = f.environmentId
+    ? getEnvironmentDescriptor(sheet.archetype, f.environmentId, sheet.rank)
+    : '';
+  const parts = curated
+    ? [curated, f.weather]
+    : [f.environmentDetails, f.weather];
+  const kept = parts.filter((s) => s && s.trim().length > 0);
+  const setting = kept.length > 0 ? kept.join(', ') : 'an atmospheric painterly environment';
   // Element mood + colour already come from the scene-palette lead — here we only
   // add the SPECIFIC setting + a rank-scaled drama beat (env reference §2.3), kept
   // compact so pose + weapon still fit ahead of it. (No atmosphere dup.)
@@ -359,15 +390,30 @@ const COVERAGE_TOKENS_TO_STRIP: readonly string[] = [
   'shirtless hero', 'shirtless', 'bare-chested', 'bare chest', 'bare torso',
   'exposed abs', 'exposed pecs', 'exposed chest', 'open-chest armor', 'no shirt', 'topless',
 ];
-function stripCoverageTokens(negative: string): string {
+function stripListTokens(negative: string, tokens: readonly string[]): string {
   let out = negative;
-  for (const token of COVERAGE_TOKENS_TO_STRIP) {
+  for (const token of tokens) {
     // Remove the token as a comma-delimited list item (with optional surrounding
     // spaces), collapsing the separators it leaves behind.
     out = out.replace(new RegExp(`\\s*,?\\s*${token.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\s*(?=,|$)`, 'gi'), '');
   }
   return out.replace(/,\s*,/g, ',').replace(/^\s*,\s*/, '').trim();
 }
+
+function stripCoverageTokens(negative: string): string {
+  return stripListTokens(negative, COVERAGE_TOKENS_TO_STRIP);
+}
+
+/**
+ * Druid-only negative SUBTRACTION (Raheem 2026-07-21). Phoenix reads moss-skin,
+ * lichen, fungal caps, bark-plating, and antler-growths as "deformed / bad
+ * anatomy" and sands them off, fighting the close-to-nature look. Dropping
+ * these four for Druid ONLY frees that growth. All modesty + count tokens
+ * (extra fingers/limbs, duplicate) are kept — only these growth-suppressors go.
+ */
+const DRUID_GROWTH_SUPPRESSORS: readonly string[] = [
+  'deformed', 'disfigured', 'bad anatomy', 'bad proportions',
+];
 
 /**
  * Anti-"lame render" negatives — also reserved (right after modesty) so they
@@ -394,6 +440,11 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
     ? ''
     : ', ember-red glow, warm ember lighting, orange rim light, fire aura, warm orange highlights, burning ember effect, glowing coals, molten glow, heat shimmer, flame-lit surface, ember-red inner glow, warm ember on armor, bright daylight, harsh sunlight, clear blue sky, sunny daytime, midday sun';
   const elementDriftBans = sheet.isEvolution ? buildElementDriftBans(element) : '';
+  // Vampire — hard daylight ban at every rank (Bible §Vampire §14 avoid). Kept
+  // in the reserved lead so it can never truncate off.
+  const archetypeBans = sheet.archetype === 'Vampire'
+    ? ', daylight, sunlight, daytime sky, bright noon, sunny meadow, blue midday sky'
+    : '';
   const bareChest = allowsBareChest(sheet);
   // Reserved lead (never truncated): anti-shirtless (covered case only) →
   // modesty → anti-lame → element drift bans. Then fill with as much of
@@ -401,9 +452,10 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
   // case the anti-shirtless block is dropped AND the coverage tokens are
   // stripped from the base fill so nothing fights the open-robe cue.
   const chestLead = bareChest ? '' : `${COVERED_CHEST_NEGATIVES}, `;
-  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${SPECTACLE_NEGATIVES}${elementDriftBans}`;
+  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${SPECTACLE_NEGATIVES}${elementDriftBans}${archetypeBans}`;
   const remaining = Math.max(ASSEMBLER_NEGATIVE_MAX - lead.length - warmGlowNegatives.length, 60);
-  const baseSource = bareChest ? stripCoverageTokens(BASE_NEGATIVE) : BASE_NEGATIVE;
+  let baseSource = bareChest ? stripCoverageTokens(BASE_NEGATIVE) : BASE_NEGATIVE;
+  if (sheet.archetype === 'Druid') baseSource = stripListTokens(baseSource, DRUID_GROWTH_SUPPRESSORS);
   const base = truncateToLimit(baseSource, remaining);
   return truncateToLimit(`${lead}, ${base}${warmGlowNegatives}`, ASSEMBLER_NEGATIVE_MAX);
 }
@@ -445,13 +497,16 @@ export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait
     : 'chest and torso FULLY COVERED, high closed neckline, opaque garment closed at the chest';
   const segments = [
     buildElementScenePalette(sheet), // element colors the WHOLE image — highest priority
-    COMPACT_STYLE_LEAD, // dynamic action framing
+    styleLeadFor(sheet.archetype), // dynamic action framing (Druid = photoreal)
     buildSexPrefix(sheet.hiddenFate.sex),
     chestCue, // rank+sex-gated chest coverage (covered by default, bared only at Ascendant male)
     // (diversity axis + separate element "hook" omitted — the scene palette,
     // the element-wreathed weapon, and the closer already bookend the element.)
     buildIdentityBlock(sheet), // compact ancestry/body/age anchors
-    buildPosePrefix(sheet), // dynamic action pose (distinct per tier)
+    hookNarrativeAnchor(sheet), // per-archetype narrative axis (Seraph path) — none by default
+    hookMandatorySegment(sheet), // per-archetype must-render segment (Mech mech) — none by default
+    // dynamic action pose — an archetype hook may override the generic prefix
+    hookPosePrefix(sheet) ?? buildPosePrefix(sheet),
     buildWeaponClause(sheet), // curated weapon (evolves per rank), element-wreathed — MUST render
     buildCompanionClause(sheet), // rank-scaled servants/units — high enough to survive + render
     buildWardrobeClause(sheet), // garments (modesty is in the negatives)

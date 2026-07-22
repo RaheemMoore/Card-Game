@@ -32,8 +32,8 @@ import {
 } from '../data/powerSystem';
 import { parseHiddenFate, preserveIdentityAcrossRanks } from './hiddenFate';
 import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/promptFragment';
-import type { CharacterSheet } from '../types/characterSheet';
 import { assemblePortraitPrompt } from './portraitAssembler';
+import { resolveLockedSelections, buildCharacterSheet } from './portrait/characterSheetFactory';
 
 /**
  * Image/lore decoupling (2026-07-21). Archetypes listed here have their
@@ -43,7 +43,13 @@ import { assemblePortraitPrompt } from './portraitAssembler';
  * NO portraitPrompt/negativePrompt. Prototype: Necromancer only; the other 10
  * archetypes keep the legacy inline path until the full-cast pass.
  */
-const LOCAL_PORTRAIT_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set(['Necromancer']);
+// Every archetype now renders through the deterministic Image Engine
+// (services/portraitAssembler.ts). The legacy Claude-authored portraitPrompt
+// path is retained but unreachable — its removal is the Step-4 cleanup.
+const LOCAL_PORTRAIT_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set<ArchetypeName>([
+  'Barbarian', 'Monk', 'Human', 'Mech Pilot', 'Beastmaster', 'Druid',
+  'Vampire', 'Seraph', 'Lycanthrope', 'Android', 'Necromancer',
+]);
 
 /**
  * Bible-driven card text + portrait prompt generator.
@@ -1633,19 +1639,21 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       const storyMotifs = Array.isArray(rawMotifs)
         ? rawMotifs.filter((m): m is string => typeof m === 'string' && m.trim().length > 0)
         : [];
-      const sheet: CharacterSheet = {
-        hiddenFate,
-        storyMotifs,
+      // Roll + lock the weapon/companion/environment ids onto hiddenFate (fill-
+      // if-absent; tier-up reads the ids preserveIdentityAcrossRanks carried in).
+      // Reassigned so the returned hiddenFate persists the ids with the card.
+      hiddenFate = resolveLockedSelections(hiddenFate, input.archetype);
+      const sheet = buildCharacterSheet(hiddenFate, {
         archetype: input.archetype,
         rank: overallRank,
         resolvedElement: input.element.element,
         elementBond: input.element.bond,
-        pose: requiredPose,
         diversityAxis,
         isEvolution: Boolean(input.existingHiddenFate),
         narrativeAxisPath: input.narrativeAxis?.path,
         abilityRefs: input.existingAbilityRefs ?? [],
-      };
+        storyMotifs,
+      });
       const assembled = assemblePortraitPrompt(sheet);
       finalPortraitPrompt = assembled.portraitPrompt;
       finalNegativePrompt = assembled.negativePrompt;
