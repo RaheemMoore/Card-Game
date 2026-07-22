@@ -46,11 +46,18 @@ import {
 } from '../data/archetypeLayers';
 import { buildImageEngineSnapshot } from '../services/portraitAssembler';
 import { getMetaPromptBlock } from '../data/metaPromptBlocks';
+import { getEnvironmentPool } from '../data/archetypeEnvironments';
+import {
+  getPortraitHooks,
+  hookMandatorySegment,
+  hookNarrativeAnchor,
+} from '../services/portrait/archetypeHooks';
+import { STYLE_ANCHOR, BASE_NEGATIVE } from '../services/claudeApi';
+import type { CharacterSheet } from '../types/characterSheet';
 import {
   getDominantStat,
   getOverallRank,
   getVisualMotif,
-  getSpecializationSuffix,
   deriveStatRanks,
 } from '../data/powerSystem';
 import {
@@ -986,33 +993,130 @@ function LayerStatePanels({
   archetype: ArchetypeName;
   card: Card | null;
 }) {
-  const arch = ARCHETYPES[archetype];
   const bible = ARCHETYPE_BIBLE[archetype];
-  const dominant = card ? getDominantStat(card.stats) : null;
-  const rank = card ? getOverallRank(card.stats) : 'Foundation';
-  const ranks = card ? deriveStatRanks(card.stats) : {};
-  const dominantRank = dominant ? ranks[dominant] ?? rank : rank;
-
-  const statVisual =
-    dominant && card ? getVisualMotif(dominant, dominantRank) : null;
-  const specialization =
-    dominant && card
-      ? getSpecializationSuffix(archetype, dominant, dominantRank)
-      : null;
   const pillarQuestions = getQuestionsForArchetype(archetype);
   const elements = elementsAvailableToArchetype(archetype);
   const buckets = ELEMENT_COMPATIBILITY[archetype];
-  const metaBlock = getMetaPromptBlock(archetype);
+
+  // ── Image engine surfaces (live, deterministic) ──────────────────────
+  // The image is assembled in services/portraitAssembler.ts from these
+  // surfaces + the card's hiddenFate/story-motifs. We sample them here for
+  // the selected card's rank (or Ascendant, the fullest form, when none is
+  // picked) so the reference reflects what Leonardo actually receives.
+  const previewRank = card ? getOverallRank(card.stats) : 'Ascendant';
+  const hooks = getPortraitHooks(archetype);
+  // Hook fns only read rank/archetype/narrativeAxisPath/isEvolution — a cast
+  // preview sheet is enough to surface the deterministic mandatory/narrative
+  // segments without forging a full CharacterSheet.
+  const previewSheet = {
+    archetype,
+    rank: previewRank,
+    isEvolution: false,
+    narrativeAxisPath: (card as { narrativeAxis?: { path?: string } } | null)
+      ?.narrativeAxis?.path,
+    hiddenFate: card?.hiddenFate ?? {},
+  } as unknown as CharacterSheet;
+  const mandatorySegment = hookMandatorySegment(previewSheet);
+  const narrativeAnchor = hookNarrativeAnchor(previewSheet);
+  const hasPoseOverride = Boolean(hooks?.posePrefix);
+  const environmentPool = getEnvironmentPool(archetype);
+  // BASE_NEGATIVE is a comma-joined string; sample the leading terms.
+  const negativeTermCount = BASE_NEGATIVE.split(',').length;
+  const negativeSample = BASE_NEGATIVE.slice(0, 260);
 
   const dashBorder = '1px dashed var(--admin-border)';
 
   return (
     <AdminCard>
       <h2 className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
-        Current layer state for {archetype}
+        Live engine surfaces for {archetype}
       </h2>
+      <p className="text-[11px] mb-2" style={{ color: 'var(--admin-text-muted)' }}>
+        What the deterministic Image Engine and the Lore Engine actually read
+        today. Read-only reference — file changes through the form.
+      </p>
       <div className="space-y-2">
-        <LayerPanel layer="A">
+        <EnginePanel
+          label="Image"
+          name="Image Engine"
+          tagline="Deterministic portrait assembly"
+          color="#7db3c9"
+          accentBg="rgba(125, 179, 201, 0.10)"
+          accentBorder="rgba(125, 179, 201, 0.55)"
+          defaultOpen
+        >
+          <div className="space-y-2 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+            <div>
+              <span style={{ color: 'var(--admin-text-muted)' }}>Style lead (STYLE_ANCHOR):</span>
+              <div className="mt-1 leading-snug" style={{ color: 'var(--admin-text)' }}>
+                {STYLE_ANCHOR.slice(0, 320)}…
+              </div>
+            </div>
+            <div className="pt-1" style={{ borderTop: dashBorder }}>
+              <span style={{ color: 'var(--admin-text-muted)' }}>
+                Archetype hooks (sampled at {previewRank}):
+              </span>
+              {!hooks && (
+                <div className="italic mt-1" style={{ color: 'var(--admin-text-muted)' }}>
+                  Generic — no archetype-specific hooks; uses the shared pose,
+                  segments, and anchors.
+                </div>
+              )}
+              {hasPoseOverride && (
+                <div className="mt-1">
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Pose override:</span>{' '}
+                  <span style={{ color: 'var(--admin-text)' }}>
+                    active — replaces the generic pose prefix (roll/rank-driven).
+                  </span>
+                </div>
+              )}
+              {mandatorySegment && (
+                <div className="mt-1">
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Mandatory segment:</span>{' '}
+                  <span style={{ color: 'var(--admin-text)' }}>{mandatorySegment}</span>
+                </div>
+              )}
+              {narrativeAnchor && (
+                <div className="mt-1">
+                  <span style={{ color: 'var(--admin-text-muted)' }}>Narrative anchor:</span>{' '}
+                  <span style={{ color: 'var(--admin-text)' }}>{narrativeAnchor}</span>
+                </div>
+              )}
+            </div>
+            <div className="pt-1" style={{ borderTop: dashBorder }}>
+              <span style={{ color: 'var(--admin-text-muted)' }}>
+                Environment pool ({environmentPool.length} families):
+              </span>
+              <ul className="list-disc pl-4 mt-1 space-y-0.5" style={{ color: 'var(--admin-text)' }}>
+                {environmentPool.map((env) => (
+                  <li key={env.id}>
+                    {env.name}{' '}
+                    <span className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
+                      — {env.byRank[previewRank]}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="pt-1" style={{ borderTop: dashBorder }}>
+              <span style={{ color: 'var(--admin-text-muted)' }}>
+                Global rules — negative floor ({negativeTermCount} terms, modesty enforced):
+              </span>
+              <div className="mt-1 leading-snug" style={{ color: 'var(--admin-text)' }}>
+                {negativeSample}…
+              </div>
+            </div>
+          </div>
+        </EnginePanel>
+        <EnginePanel
+          label="Lore"
+          name="Lore Engine"
+          tagline="Canon, story pillars, elements"
+          color="#d4a94a"
+          accentBg="rgba(212, 169, 74, 0.10)"
+          accentBorder="rgba(212, 169, 74, 0.55)"
+          defaultOpen
+        >
           <div className="space-y-2 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
             <div>
               <span style={{ color: 'var(--admin-text-muted)' }}>Identity through:</span>{' '}
@@ -1026,56 +1130,10 @@ function LayerStatePanels({
               <span style={{ color: 'var(--admin-text-muted)' }}>Selection tagline:</span>{' '}
               <span style={{ color: 'var(--admin-text)' }}>{bible.selectionScreen.tagline}</span>
             </div>
-            <div className="pt-1" style={{ borderTop: dashBorder }}>
-              <span style={{ color: 'var(--admin-text-muted)' }}>Visual rank progression (legacy summary):</span>
-              {RANK_ORDER.map((r) => (
-                <div key={r} className="pl-2">
-                  <span style={{ color: 'var(--admin-text-muted)' }}>{r}:</span>{' '}
-                  <span style={{ color: 'var(--admin-text)' }}>{arch.rankProgression[r]}</span>
-                </div>
-              ))}
-            </div>
-            <div className="italic pt-1" style={{ color: 'var(--admin-text-muted)' }}>
+            <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
               Full canon: [Bible chapter §1–§14 for {archetype}] in data/archetypeBible/{archetype.toLowerCase().replace(' ', '')}.ts
             </div>
-          </div>
-        </LayerPanel>
-        <LayerPanel layer="B">
-          <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-            {card ? (
-              <>
-                <div>
-                  <span style={{ color: 'var(--admin-text-muted)' }}>Dominant stat:</span>{' '}
-                  <span style={{ color: 'var(--admin-text)' }}>{dominant ?? 'tied — no dominant'}</span>
-                </div>
-                {statVisual && (
-                  <div className="mt-1">
-                    <span style={{ color: 'var(--admin-text-muted)' }}>Visual motif ({dominantRank}):</span>{' '}
-                    <span style={{ color: 'var(--admin-text)' }}>{statVisual}</span>
-                  </div>
-                )}
-                {specialization && (
-                  <div className="mt-1">
-                    <span style={{ color: 'var(--admin-text-muted)' }}>Specialization suffix:</span>{' '}
-                    <span style={{ color: 'var(--admin-text)' }}>{specialization}</span>
-                  </div>
-                )}
-                {!statVisual && !specialization && (
-                  <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-                    No stat-specific visuals apply — this card has no dominant stat.
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-                Select a card to see its stat-driven visuals.
-              </div>
-            )}
-          </div>
-        </LayerPanel>
-        <LayerPanel layer="C">
-          <div className="text-xs space-y-2" style={{ color: 'var(--admin-text-muted)' }}>
-            <div>
+            <div className="pt-1" style={{ borderTop: dashBorder }}>
               <span style={{ color: 'var(--admin-text-muted)' }}>Story Pillar questions ({pillarQuestions.length}):</span>
               <ul className="list-disc pl-4 mt-1 space-y-0.5" style={{ color: 'var(--admin-text)' }}>
                 {pillarQuestions.slice(0, 6).map((q) => {
@@ -1115,40 +1173,38 @@ function LayerStatePanels({
               </div>
             </div>
           </div>
-        </LayerPanel>
-        <LayerPanel layer="D">
-          <div className="text-xs whitespace-pre-wrap" style={{ color: 'var(--admin-text)' }}>
-            {metaBlock ? (
-              metaBlock
-            ) : (
-              <span className="italic" style={{ color: 'var(--admin-text-muted)' }}>
-                No archetype-specific escalation block. This archetype relies on the
-                generic prompt template for Forged/Ascendant — which is why the art
-                often drifts. Adding a block here is the plan for step B.
-              </span>
-            )}
-          </div>
-        </LayerPanel>
+        </EnginePanel>
       </div>
     </AdminCard>
   );
 }
 
-function LayerPanel({
-  layer,
+function EnginePanel({
+  label,
+  name,
+  tagline,
+  color,
+  accentBg,
+  accentBorder,
+  defaultOpen,
   children,
 }: {
-  layer: ProposalLayer;
+  label: string;
+  name: string;
+  tagline: string;
+  color: string;
+  accentBg: string;
+  accentBorder: string;
+  defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(layer === 'A' || layer === 'D');
-  const copy = ARCHETYPE_LAYERS[layer];
+  const [open, setOpen] = useState(Boolean(defaultOpen));
   return (
     <div
       className="rounded"
       style={{
-        background: copy.accentBg,
-        border: `1px solid ${copy.accentBorder}`,
+        background: accentBg,
+        border: `1px solid ${accentBorder}`,
       }}
     >
       <button
@@ -1156,16 +1212,16 @@ function LayerPanel({
         className="w-full flex items-center gap-2 px-3 py-2 text-left"
       >
         <span
-          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
-          style={{ background: copy.color, color: '#111' }}
+          className="inline-flex items-center justify-center px-2 h-5 rounded-full text-[10px] font-bold"
+          style={{ background: color, color: '#111' }}
         >
-          {layer}
+          {label}
         </span>
         <span className="font-bold text-sm" style={{ color: 'var(--admin-text)' }}>
-          {copy.name}
+          {name}
         </span>
         <span className="text-[10px] italic" style={{ color: 'var(--admin-text-muted)' }}>
-          {copy.tagline}
+          {tagline}
         </span>
         <span className="ml-auto text-xs" style={{ color: 'var(--admin-text-muted)' }}>
           {open ? '▾' : '▸'}
