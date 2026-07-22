@@ -25,8 +25,10 @@ that still goes through the normal branch → PR → console-approval path.
 
 ## Inputs
 
-- **Proposal reference** — an id, or enough detail (archetype + layer +
-  what's wrong) to find it. Ask which proposal if ambiguous.
+- **Proposal reference** — a ticket number (`IMG#####` for an Image-engine
+  proposal, `LOR#####` for a Lore-engine one), an id, or enough detail
+  (archetype + engine + what's wrong) to find it. The ticket number is the
+  durable handle — prefer it. Ask which proposal if ambiguous.
 
 ## Steps
 
@@ -37,13 +39,19 @@ that still goes through the normal branch → PR → console-approval path.
    snapshot is the canon as it was when filed; the live canon may have
    moved, so diff the two.
 
-2. **Consult the right specialist by layer** (advisory, per the charters):
-   - Layer A (Canon) → `lore-fantasy-director`
-   - Layer B (Rank & Stat Visuals) → `art-prompt-director`
-   - Layer C (Story Pillars & Elements) → `lore-fantasy-director`
-   - Layer D (Meta-Prompt & Escalation) → `art-prompt-director`
-     (Layer D is art direction, not implementation)
-   - Any balance/number knob → `game-systems-designer`
+2. **Consult the right specialist by engine + area** (advisory, per the
+   charters). Proposals are engine-first — the ticket prefix tells you which:
+   - **Lore engine** (`LOR#####`) → `lore-fantasy-director`. Areas: Canon
+     (the Bible chapter), Story Pillars & Elements, Lore writing
+     (name/title/lore tone + `hiddenFate`/`storyMotifs` inference in
+     `claudeApi.ts`).
+   - **Image engine** (`IMG#####`) → `art-prompt-director` (art direction,
+     not implementation). Areas: Look & escalation (`portrait/archetypeHooks.ts`
+     + the assembler's generic pose/element ladders), Props (weapon/environment/
+     pose/companion pools), Element visuals (`elementVisualLanguage.ts`), Global
+     image rules (`portraitAssembler.ts` — segment order, style leads, modesty
+     tail, negatives, bare-chest gate).
+   - Any balance/number knob → `game-systems-designer`.
    Use the `consult-specialist` skill's six-field template.
 
 3. **Work the change with Tori** until she's satisfied. Honor
@@ -63,14 +71,18 @@ that still goes through the normal branch → PR → console-approval path.
 6. **Prove the change worked (the approval gate).** Two requirements, one
    always and one conditional. The console's "Send for approval" button is
    disabled and the database RLS rejects the status change until they're met.
-   - **Per-layer change summary (ALWAYS).** Write a short bulleted summary of
-     what changed in each touched layer (A Canon / B Rank & Stat Visuals /
-     C Story Pillars & Elements / D Meta-Prompt & Escalation) and record it
-     with `attachProposalChangeSummary(id, layerChanges, { affectsImage })`.
-     One entry per layer you actually changed; leave untouched layers out.
-   - **Set `affectsImage` honestly.** True only if the change touches the
-     PORTRAIT (art prompt, modifiers, meta-prompt / escalation, or any Layer
-     B/D visual). A pure lore change (canon text, story pillars) is `false`.
+   - **Per-area change summary (ALWAYS).** Write a short bulleted summary of
+     what changed in each touched area and record it with
+     `attachProposalChangeSummary(id, layerChanges, { affectsImage })`. The
+     areas follow the proposal's engine — Image: Look & escalation / Props /
+     Element visuals / Global image rules; Lore: Canon / Story Pillars &
+     Elements / Lore writing. (`layerChanges` still keys on the internal
+     A/B/C/D tag under the hood — map each area to its layer.) One entry per
+     area you actually changed; leave untouched ones out.
+   - **`affectsImage` follows the engine.** An **Image-engine** proposal
+     (`IMG#####`) is always `true` and requires the before/after regen below.
+     A **Lore-engine** proposal (`LOR#####` — canon text, story pillars, lore
+     writing) is always `false` and needs no image.
    - **Before/after image (ONLY if `affectsImage`).** For image changes, run
      regen verify from the Workshop "Verified" step — it spends ONE Leonardo
      image (a single "after" at the card's current tier; the "before" reuses

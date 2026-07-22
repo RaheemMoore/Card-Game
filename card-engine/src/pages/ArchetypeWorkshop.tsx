@@ -21,6 +21,8 @@ import type {
   ArchetypeProposalPayload,
   CardLineageRef,
   LayerSnapshot,
+  ProposalArea,
+  ProposalEngine,
   ProposalFailureType,
   ProposalLayer,
   VerifyEvidence,
@@ -35,7 +37,14 @@ import {
   ARCHETYPE_LAYERS,
   FAILURE_TYPES,
   LAYER_ORDER,
+  ENGINES,
+  AREAS,
+  AREAS_BY_ENGINE,
+  areaToLayer,
+  failureTypesForEngine,
+  engineFromLayer,
 } from '../data/archetypeLayers';
+import { buildImageEngineSnapshot } from '../services/portraitAssembler';
 import { getMetaPromptBlock } from '../data/metaPromptBlocks';
 import {
   getDominantStat,
@@ -316,6 +325,31 @@ function PendingApprovalPanel({
   );
 }
 
+/**
+ * The ticket handle for a proposal row: the server-assigned IMG#####/LOR#####
+ * number (monospace, tinted by engine), or a neutral "legacy" chip for rows
+ * filed before ticketing landed. Engine falls back to being derived from the
+ * coarse layer for legacy rows that predate the engine column.
+ */
+function TicketChip({ proposal: p }: { proposal: ArchetypeProposal }) {
+  const engine = p.engine ?? engineFromLayer(p.layer);
+  const color = ENGINES[engine].color;
+  const legacy = !p.ticketNumber;
+  return (
+    <span
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-bold shrink-0"
+      title={legacy ? `Legacy proposal (no ticket) · ${ENGINES[engine].name} engine` : `${ENGINES[engine].name} engine`}
+      style={{
+        background: legacy ? 'var(--admin-canvas)' : color,
+        color: legacy ? 'var(--admin-text-muted)' : '#111',
+        border: `1px solid ${color}`,
+      }}
+    >
+      {p.ticketNumber ?? 'legacy'}
+    </span>
+  );
+}
+
 function PendingRow({
   proposal: p,
   isAdmin,
@@ -331,7 +365,6 @@ function PendingRow({
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const layer = ARCHETYPE_LAYERS[p.layer];
   const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
 
   function toggle() {
@@ -358,12 +391,7 @@ function PendingRow({
   return (
     <li className="rounded" style={{ background: 'var(--admin-canvas)', border: '1px solid var(--admin-border)' }}>
       <button onClick={toggle} className="w-full text-left flex items-center gap-2 px-3 py-2">
-        <span
-          className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
-          style={{ background: layer.color, color: '#111' }}
-        >
-          {p.layer}
-        </span>
+        <TicketChip proposal={p} />
         <span className="text-xs font-semibold shrink-0" style={{ color: 'var(--admin-text)' }}>
           {p.archetype}
         </span>
@@ -1177,8 +1205,11 @@ function TriageForm({
           lore: labHandoff.lore,
         }
       : null);
+  // Engine-first: pick Image or Lore, then a plain-language area. A Lab handoff
+  // is always an image critique, so default to Image there.
+  const [engine, setEngine] = useState<ProposalEngine>('image');
   const [failureType, setFailureType] = useState<ProposalFailureType>('lore_portrait_misaligned');
-  const [layer, setLayer] = useState<ProposalLayer>('D');
+  const [area, setArea] = useState<ProposalArea>('props');
   const [keep, setKeep] = useState('');
   const [change, setChange] = useState('');
   const [rejectIf, setRejectIf] = useState('');
@@ -1188,11 +1219,20 @@ function TriageForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Auto-align layer to whatever the failure hint suggests, but let the
-  // user override — the hint doesn't lock the picker.
+  // Switching engine resets the failure type + area to that engine's first
+  // options, so the form never sits in a mixed state.
+  function switchEngine(next: ProposalEngine) {
+    setEngine(next);
+    const firstFailure = failureTypesForEngine(next)[0];
+    setFailureType(firstFailure.id);
+    setArea(firstFailure.hintArea);
+  }
+
+  // Auto-align area to whatever the failure hint suggests, but let the user
+  // override — the hint doesn't lock the area picker.
   useEffect(() => {
-    const hint = FAILURE_TYPES.find((f) => f.id === failureType)?.hintLayer;
-    if (hint) setLayer(hint);
+    const hint = FAILURE_TYPES.find((f) => f.id === failureType)?.hintArea;
+    if (hint) setArea(hint);
   }, [failureType]);
 
   async function submit() {
@@ -1208,18 +1248,10 @@ function TriageForm({
       const bible = ARCHETYPE_BIBLE[archetype];
       const questions = getQuestionsForArchetype(archetype);
       const buckets = ELEMENT_COMPATIBILITY[archetype];
-      const metaBlock = getMetaPromptBlock(archetype);
       const snapshot: LayerSnapshot = {
         canonIdentity: `${bible.identityThrough} — ${bible.coreFantasy}`,
         canonMotifs: arch.motifs,
         canonRankProgression: arch.rankProgression,
-        statVisualsForCard: selectedCard
-          ? (() => {
-              const dom = getDominantStat(selectedCard.stats);
-              const r = dom ? deriveStatRanks(selectedCard.stats)[dom] : undefined;
-              return dom && r ? getVisualMotif(dom, r) : undefined;
-            })()
-          : undefined,
         classSignaturePoolSample: [
           `Story Pillar questions (${questions.length}): ${questions
             .slice(0, 4)
@@ -1228,7 +1260,15 @@ function TriageForm({
           `Naturally compatible elements: ${buckets.naturally_compatible.join(', ') || '—'}`,
           `Rare elements: ${buckets.rare.join(', ') || '—'}`,
         ],
-        metaPromptBlock: metaBlock ?? '(none — archetype has no escalation block)',
+        // Image-engine proposals snapshot the LIVE assembler surfaces (replaces
+        // the retired getVisualMotif/getMetaPromptBlock capture). Scoped to the
+        // critiqued card's element when a card is picked. Lore proposals omit it.
+        imageSurfaces:
+          engine === 'image'
+            ? buildImageEngineSnapshot(archetype, {
+                element: selectedCard?.elementSelection?.element,
+              })
+            : undefined,
       };
       let cardLineage: CardLineageRef | undefined;
       // Lab handoff wins as the subject when no real player card is picked:
@@ -1275,16 +1315,20 @@ function TriageForm({
         keep: keep.trim(),
         change: change.trim(),
         rejectIf: rejectIf.trim(),
+        area,
         notes: notes.trim() || undefined,
         referenceImageUrl: referenceImageUrl.trim() || undefined,
         layerSnapshot: snapshot,
         cardLineage,
         labRunId: !selectedCard && labTier ? labTier.runId : undefined,
-        affectsImage: !selectedCard && labTier ? true : undefined,
+        // affectsImage now follows the engine: image proposals always need a
+        // before/after regen; lore proposals never do.
+        affectsImage: engine === 'image' ? true : undefined,
       };
-      await createArchetypeProposal({
+      const created = await createArchetypeProposal({
         archetype,
-        layer,
+        engine,
+        layer: areaToLayer(area),
         failureType,
         cardId: selectedCard?.cardId ?? null,
         payload,
@@ -1292,8 +1336,9 @@ function TriageForm({
       // The handoff is consumed — clear it so a later plain visit to the
       // Workshop doesn't resurrect this test as the subject.
       if (labHandoff) clearLabHandoff();
+      const ticket = created.ticketNumber ?? 'the latest proposal';
       setSuccess(
-        `Proposal filed. Tell Claude "look at the latest ${archetype} proposal" in your next session.`,
+        `Filed ${ticket}. Tell Claude "look at ${ticket}" in your next session.`,
       );
       setKeep('');
       setChange('');
@@ -1321,10 +1366,42 @@ function TriageForm({
       )}
       <div>
         <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
-          3. What's the failure?
+          3. Which engine?
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {(['image', 'lore'] as ProposalEngine[]).map((id) => {
+            const copy = ENGINES[id];
+            const active = engine === id;
+            return (
+              <button
+                key={id}
+                onClick={() => switchEngine(id)}
+                className="text-left rounded p-2.5 transition-all"
+                style={{
+                  background: active ? copy.color : 'var(--admin-canvas)',
+                  border: `2px solid ${active ? copy.color : 'var(--admin-border)'}`,
+                  color: active ? '#111' : 'var(--admin-text)',
+                }}
+              >
+                <div className="font-bold text-sm">{copy.name}</div>
+                <div className="text-[10px] italic mb-1" style={{ opacity: 0.85 }}>
+                  {copy.tagline}
+                </div>
+                <div className="text-[10px] leading-snug" style={{ opacity: active ? 0.9 : 0.7 }}>
+                  {copy.blurb}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
+          4. What's the failure?
         </div>
         <div className="space-y-1">
-          {FAILURE_TYPES.map((f) => {
+          {failureTypesForEngine(engine).map((f) => {
             const active = failureType === f.id;
             return (
               <label
@@ -1357,54 +1434,38 @@ function TriageForm({
 
       <div>
         <div className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--admin-text-muted)' }}>
-          4. Which layer to change?
+          5. Which part?
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {LAYER_ORDER.map((id) => {
-            const copy = ARCHETYPE_LAYERS[id];
-            const active = id === layer;
+        <div className="grid grid-cols-1 gap-2">
+          {AREAS_BY_ENGINE[engine].map((id) => {
+            const copy = AREAS[id];
+            const engineColor = ENGINES[engine].color;
+            const active = id === area;
             return (
               <button
                 key={id}
-                onClick={() => setLayer(id)}
+                onClick={() => setArea(id)}
                 className="text-left rounded p-2 transition-all"
                 style={{
-                  background: active ? copy.accentBg : 'var(--admin-canvas)',
-                  border: `2px solid ${active ? copy.color : 'var(--admin-border)'}`,
+                  background: active ? 'var(--admin-active-wash)' : 'var(--admin-canvas)',
+                  border: `2px solid ${active ? engineColor : 'var(--admin-border)'}`,
                 }}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold"
-                    style={{ background: copy.color, color: '#111' }}
-                  >
-                    {id}
-                  </span>
-                  <span className="font-bold text-sm" style={{ color: 'var(--admin-text)' }}>
-                    {copy.name}
-                  </span>
-                </div>
-                <div className="text-[10px] italic mb-1" style={{ color: 'var(--admin-text-muted)' }}>
-                  {copy.tagline}
+                <div className="font-bold text-sm mb-1" style={{ color: 'var(--admin-text)' }}>
+                  {copy.name}
                 </div>
                 <div className="text-[10px] leading-snug" style={{ color: 'var(--admin-text-muted)' }}>
-                  <span style={{ color: 'var(--admin-text-muted)' }}>Controls:</span> {copy.controls}
+                  {copy.controls}
                 </div>
                 {active && (
                   <div
                     className="text-[10px] leading-snug mt-1 pt-1"
                     style={{
                       color: 'var(--admin-text-muted)',
-                      borderTop: `1px dashed ${copy.accentBorder}`,
+                      borderTop: `1px dashed ${engineColor}`,
                     }}
                   >
-                    <div>
-                      <span style={{ color: 'var(--admin-text-muted)' }}>Affects:</span> {copy.affects}
-                    </div>
-                    <div className="mt-1">
-                      <span style={{ color: 'var(--admin-text-muted)' }}>Change when:</span> {copy.changeWhen}
-                    </div>
-                    <div className="mt-1 italic">{copy.example(archetype)}</div>
+                    <div className="italic">{copy.example(archetype)}</div>
                     <div className="mt-1" style={{ color: 'var(--admin-text-muted)' }}>
                       Lives in: {copy.whereItLives}
                     </div>
@@ -1418,22 +1479,34 @@ function TriageForm({
 
       <div className="space-y-3">
         <AdminTextArea
-          label="5. Keep — the one thing that must survive"
-          placeholder="e.g. The lycanthrope's identity token carrying across all three tiers."
+          label={engine === 'image'
+            ? '6. Keep — what the portrait must keep showing'
+            : '6. Keep — the wording/facts that must survive'}
+          placeholder={engine === 'image'
+            ? "e.g. The lycanthrope's identity token visible across all three tiers."
+            : "e.g. The Necromancer's scholar-not-ghoul framing in the lore."}
           value={keep}
           rows={2}
           onChange={(e) => setKeep(e.target.value)}
         />
         <AdminTextArea
-          label="6. Change — what you want different"
-          placeholder="e.g. Add a Seraph-specific Forged/Ascendant block that scales wing count and halo intensity."
+          label={engine === 'image'
+            ? '7. Change — what the portrait should show differently'
+            : '7. Change — what the words should say differently'}
+          placeholder={engine === 'image'
+            ? 'e.g. Scale wing count and halo intensity across Forged/Ascendant.'
+            : 'e.g. Warm the lore tone; stop reaching for "cursed" language.'}
           value={change}
           rows={2}
           onChange={(e) => setChange(e.target.value)}
         />
         <AdminTextArea
-          label="7. Reject if — how we know we failed"
-          placeholder="e.g. If the Ascendant Seraph still shows the same wing count as the Foundation."
+          label={engine === 'image'
+            ? '8. Reject if — how we know the portrait still failed'
+            : '8. Reject if — how we know the words still failed'}
+          placeholder={engine === 'image'
+            ? 'e.g. If the Ascendant still shows the same wing count as Foundation.'
+            : 'e.g. If the lore still calls the Seraph "fallen" on the Good path.'}
           value={rejectIf}
           rows={2}
           onChange={(e) => setRejectIf(e.target.value)}
@@ -1532,7 +1605,6 @@ function ProposalsList({
           <ul className="space-y-1">
             {proposals.map((p) => {
               const isOpen = expandedId === p.id;
-              const layer = ARCHETYPE_LAYERS[p.layer];
               const failure = FAILURE_TYPES.find((f) => f.id === p.failureType);
               return (
                 <li
@@ -1547,12 +1619,7 @@ function ProposalsList({
                     onClick={() => togglePayload(p.id)}
                     className="w-full text-left flex items-center gap-2 px-3 py-2"
                   >
-                    <span
-                      className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0"
-                      style={{ background: layer.color, color: '#111' }}
-                    >
-                      {p.layer}
-                    </span>
+                    <TicketChip proposal={p} />
                     <span className="text-xs truncate flex-1" style={{ color: 'var(--admin-text)' }}>
                       {failure?.label ?? p.failureType}
                     </span>

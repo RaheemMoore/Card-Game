@@ -30,7 +30,7 @@ Never abstract ("we've noticed drift"). Always concrete.
 
 ## Scope
 - Archetype: <name or "cross-cutting">
-- Archetype Workshop layer: A (Canon) / B (Rank & Stat Visuals) / C (Modifier Pools) / D (Meta-Prompt & Escalation) / N/A
+- Archetype Workshop engine + area: Image (Look & escalation / Props / Element visuals / Global image rules) / Lore (Canon / Story Pillars & Elements / Lore writing) / N/A
 - Commit range: <sha..sha or "no code yet">
 - Files the specialist should read first: <paths>
 
@@ -51,7 +51,7 @@ Never abstract ("we've noticed drift"). Always concrete.
 
 1. If you cannot fill "Failure evidence" with a concrete artifact, ask yourself whether the consult is premature. Consults on abstract worries usually get abstract answers.
 2. If "Prior decisions already settled this session" is empty, the specialist will spend budget re-deriving what you already know. Populate it.
-3. If "Scope" is missing the Archetype Workshop layer, add it — the tuned agents rank recommendations differently by layer.
+3. If "Scope" is missing the Archetype Workshop engine + area, add it — the tuned agents rank recommendations differently by engine (Image → art-prompt-director; Lore → lore-fantasy-director).
 4. Word budget: 400 for narrow questions, 600 for cross-domain rulings (lore-fantasy-director), 800 max for a full new archetype draft. Never leave the budget unspecified.
 5. Do not delegate synthesis. The specialist gives advice; you decide. Never write "based on the specialist's response, implement the change" — that is your job.
 
@@ -78,7 +78,7 @@ Should the Seraph corruption arc introduce a Fallen path via a generic
 
 ## Scope
 - Archetype: Seraph
-- Archetype Workshop layer: A (Canon) — amends Bible §Seraph identityThrough
+- Archetype Workshop engine + area: Lore (Canon) — amends Bible §Seraph identityThrough
 - Commit range: no code yet
 - Files the specialist should read first:
   - Character_Generation_Bible_Canonical_v1.md §Seraph
@@ -120,7 +120,7 @@ Why this is bad:
 - The decision you are about to make.
 - Which specialist owns the primary call (see the specialist description lines).
 - The concrete artifact (card id, proposal quote, bug output).
-- The Archetype Workshop layer, if relevant.
+- The Archetype Workshop engine + area, if relevant.
 
 ## Expected output
 
