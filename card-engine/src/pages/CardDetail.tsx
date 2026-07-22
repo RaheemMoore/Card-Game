@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCard, deleteCard, saveCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
@@ -10,12 +10,19 @@ import {
   computeRankSum,
   getStatNames,
 } from '../data/powerSystem';
-import { canTierUp, tierUpCard, applySeraphTransmutation } from '../services/tierUp';
+import { canTierUp, applySeraphTransmutation } from '../services/tierUp';
 import { resistFall } from '../services/narrativeAxisService';
 import { SERAPH_ALIGNMENT } from '../data/narrativeAxes';
 import { resistFallActionId, resistFallCost } from '../services/economy/resistFall';
-import { regeneratePortrait } from '../services/regeneratePortrait';
-import { generateAscendantPaths, type AscendantPath } from '../services/ascendantPaths';
+import {
+  startReforge,
+  startTierUp,
+  choosePath,
+  cancelPath,
+  acknowledge as acknowledgeCardJob,
+  readResultCard,
+} from '../services/forge/cardJobController';
+import { useCardJob } from '../services/forge/useCardJob';
 import * as wallet from '../services/economy/walletService';
 import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
 import { CurrencyCost } from '../components/economy/CurrencyCost';
@@ -53,8 +60,6 @@ export function CardDetail() {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [card, setCard] = useState<Card | null>(() => cardId ? getCard(cardId) : null);
-  const [isTieringUp, setIsTieringUp] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
   const [viewingTierIdx, setViewingTierIdx] = useState(-1); // -1 = current
   const [tierUpWarning, setTierUpWarning] = useState<string | null>(null);
   // Gate 7A: newly-discovered ability on this tier-up → Relic modal. Moment
@@ -62,9 +67,17 @@ export function CardDetail() {
   const [relicDiscovery, setRelicDiscovery] = useState<
     { abilityId: string; moment: RelicMoment; resource?: BadgeResource } | null
   >(null);
-  // Ascendant Whisper Fusion: null = not open, [] = loading, [p1, p2] = ready
-  const [ascendantPaths, setAscendantPaths] = useState<AscendantPath[] | null>(null);
-  const [isLoadingPaths, setIsLoadingPaths] = useState(false);
+  // Reforge + tier-up run in the global cardJobController so leaving this page
+  // mid-generation doesn't lose the work (a floating indicator tracks it and
+  // brings the player back). Derive all the busy/awaiting state from the job.
+  const job = useCardJob();
+  const myJob = job && job.cardId === cardId ? job : null;
+  const isRegenerating = myJob?.kind === 'reforge' && myJob.status === 'running';
+  const isTieringUp = myJob?.kind === 'tierup' && myJob.status === 'running';
+  const isAwaitingPath = myJob?.kind === 'tierup' && myJob.status === 'awaiting-path';
+  const ascendantPaths = isAwaitingPath ? myJob!.ascendantPaths ?? null : null;
+  // Any job in flight (this card or another) blocks starting a new one.
+  const jobBusy = !!job && job.status !== 'succeeded' && job.status !== 'failed';
   const [insufficientFor, setInsufficientFor] = useState<
     | null
     | { currency: 'premium'; required: number; actionLabel: string }
@@ -74,10 +87,27 @@ export function CardDetail() {
   const [isResisting, setIsResisting] = useState(false);
   const [loreExpanded, setLoreExpanded] = useState(false);
   const [storyExpanded, setStoryExpanded] = useState(false);
-  // Ascendant tier-up reservation must be held across the modal — the wallet
-  // is charged when the user clicks Tier Up, but the actual generation waits
-  // for the path pick. Kept in a ref so re-renders don't lose the txn ID.
-  const pendingTierUpTxnId = useRef<string | null>(null);
+
+  // Consume a finished job for THIS card: refresh the card, surface any relic
+  // discovery / failure warning, then clear the job so the indicator retires.
+  useEffect(() => {
+    if (!job || job.cardId !== cardId) return;
+    if (job.status === 'succeeded') {
+      const updated = readResultCard(job);
+      if (updated) setCard(updated);
+      if (job.kind === 'tierup' && job.newAbilityDiscovery) {
+        setRelicDiscovery({
+          abilityId: job.newAbilityDiscovery.abilityId,
+          moment: job.newAbilityDiscovery.slotType === 'ultimate' ? 'ultimate' : 'evolution',
+          resource: job.newAbilityDiscovery.resource,
+        });
+      }
+      acknowledgeCardJob();
+    } else if (job.status === 'failed') {
+      if (job.error) setTierUpWarning(job.error);
+      acknowledgeCardJob();
+    }
+  }, [job, cardId]);
 
   // Hoisted above the early return so rules-of-hooks isn't violated when the
   // card lookup fails. All null-card branches return safe defaults; the real
@@ -126,17 +156,11 @@ export function CardDetail() {
     navigate('/collection');
   }
 
-  async function handleRegeneratePortrait() {
-    if (!card || isRegenerating) return;
-
-    let reservation;
+  function handleRegeneratePortrait() {
+    if (!card || jobBusy) return;
+    setTierUpWarning(null);
     try {
-      reservation = wallet.reserve({
-        currency: 'premium',
-        amount: REGEN_PRICE,
-        actionId: 'regenerate_portrait',
-        cardId: card.cardId,
-      });
+      startReforge(card);
     } catch (err) {
       if (err instanceof wallet.InsufficientFundsError) {
         setInsufficientFor({
@@ -148,43 +172,15 @@ export function CardDetail() {
       }
       throw err;
     }
-
-    setIsRegenerating(true);
-    setTierUpWarning(null);
-    try {
-      const updated = await regeneratePortrait(card);
-      wallet.commit(reservation.transactionId);
-      setCard(updated);
-    } catch (err) {
-      wallet.refund(
-        reservation.transactionId,
-        err instanceof Error ? err.message : String(err),
-      );
-      console.error('Portrait regeneration failed:', err);
-      setTierUpWarning(
-        `Portrait regeneration failed: ${err instanceof Error ? err.message : String(err)}. ` +
-          `Your ${REGEN_PRICE} was refunded. Try again — Leonardo's content moderator sometimes blocks a specific roll but passes the next.`,
-      );
-    } finally {
-      setIsRegenerating(false);
-    }
   }
 
-  async function handleTierUp() {
-    if (!card || isTieringUp || isLoadingPaths) return;
+  function handleTierUp() {
+    if (!card || jobBusy) return;
     setTierUpWarning(null);
-
-    // Reserve once. The Ascendant path (Forged→Ascendant) makes an extra
-    // Claude call for path options; per plan Section 4.2 this cost is bundled
-    // into evolve_card_art so we do NOT reserve twice.
-    let reservation;
     try {
-      reservation = wallet.reserve({
-        currency: 'premium',
-        amount: EVOLVE_PRICE,
-        actionId: 'evolve_card_art',
-        cardId: card.cardId,
-      });
+      // The controller reserves once, then runs Foundation→Forged straight
+      // through or pauses Forged→Ascendant at 'awaiting-path' for the modal.
+      startTierUp(card);
     } catch (err) {
       if (err instanceof wallet.InsufficientFundsError) {
         setInsufficientFor({
@@ -196,96 +192,17 @@ export function CardDetail() {
       }
       throw err;
     }
-    pendingTierUpTxnId.current = reservation.transactionId;
-
-    const currentRank = getOverallRank(card.stats);
-    if (currentRank === 'Forged') {
-      setIsLoadingPaths(true);
-      try {
-        const paths = await generateAscendantPaths(card);
-        setAscendantPaths(paths);
-      } catch (err) {
-        console.error('Ascendant paths generation failed:', err);
-        setTierUpWarning(`Couldn't generate Ascendant paths: ${err instanceof Error ? err.message : String(err)}. Proceeding without fusion.`);
-        await runTierUp(undefined);
-      } finally {
-        setIsLoadingPaths(false);
-      }
-      return;
-    }
-
-    // Foundation → Forged: no fusion, straight through.
-    await runTierUp(undefined);
   }
 
-  async function runTierUp(ascendantNarrative: string | undefined) {
-    if (!card) return;
-    const txnId = pendingTierUpTxnId.current;
-    setIsTieringUp(true);
-    setTierUpWarning(null);
-    try {
-      // ascendantNarrative was folded into the Bible-driven Ascendant Paths
-      // per Bible §Rank Evolution — the paths themselves carry the story.
-      void ascendantNarrative;
-      const result = await tierUpCard(card);
-      // tierUpCard uses generatePortraitStrict internally BUT it catches the
-      // error and returns portraitRegenerated=false, keeping the old portrait.
-      // For a paid action that's a "text-only evolution" and per Section 7.3
-      // we refund — the player didn't get the promised new artwork.
-      if (!result.portraitRegenerated) {
-        if (txnId) {
-          wallet.refund(
-            txnId,
-            `portrait_failed: ${result.portraitError ?? 'unknown'}`,
-          );
-        }
-        // Don't save the partially-evolved card — the plan requires preserving
-        // the original card on portrait failure.
-        setTierUpWarning(
-          `New portrait couldn't be generated (${result.portraitError ?? 'unknown error'}). ` +
-            `Your ${EVOLVE_PRICE} was refunded. Card is unchanged. Retry Tier Up when ready.`,
-        );
-        return;
-      }
-      if (txnId) wallet.commit(txnId);
-      setCard(result.card);
-      if (result.newAbilityDiscovery) {
-        setRelicDiscovery({
-          abilityId: result.newAbilityDiscovery.abilityId,
-          moment: result.newAbilityDiscovery.slotType === 'ultimate' ? 'ultimate' : 'evolution',
-          resource: result.newAbilityDiscovery.resource,
-        });
-      }
-    } catch (err) {
-      if (txnId) {
-        wallet.refund(
-          txnId,
-          err instanceof Error ? err.message : String(err),
-        );
-      }
-      console.error('Tier up failed:', err);
-      setTierUpWarning(
-        `Tier up failed: ${err instanceof Error ? err.message : String(err)}. Your ${EVOLVE_PRICE} was refunded.`,
-      );
-    } finally {
-      setIsTieringUp(false);
-      pendingTierUpTxnId.current = null;
-    }
-  }
-
-  async function handleChoosePath(path: AscendantPath) {
-    setAscendantPaths(null);
-    await runTierUp(path.narrative);
+  function handleChoosePath() {
+    // The narrative is folded into the Bible-driven Ascendant Paths; picking
+    // just advances the job to its portrait phase (still the same reservation).
+    choosePath();
   }
 
   function handleCancelAscendantModal() {
-    setAscendantPaths(null);
-    // User backed out AFTER we already paid for the ascendant paths lookup.
-    // Refund the reservation — no portrait was minted.
-    if (pendingTierUpTxnId.current) {
-      wallet.refund(pendingTierUpTxnId.current, 'user_cancelled_ascendant_modal');
-      pendingTierUpTxnId.current = null;
-    }
+    // Backed out after paying for the paths lookup — controller refunds.
+    cancelPath();
   }
 
   // P8 — "Resist the Fall". Gold-only sink that nudges a Fallen Seraph's
@@ -689,7 +606,7 @@ export function CardDetail() {
               </div>
               <button
                 onClick={handleRegeneratePortrait}
-                disabled={isRegenerating || isTieringUp}
+                disabled={jobBusy}
                 className={`shrink-0 px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
                   text-ivory
                   disabled:opacity-50 disabled:cursor-not-allowed
@@ -776,7 +693,7 @@ export function CardDetail() {
                 </div>
                 <button
                   onClick={handleTierUp}
-                  disabled={isTieringUp || isLoadingPaths}
+                  disabled={jobBusy}
                   className="px-4 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
                     bg-gradient-to-r from-gold/80 to-amber-600/80 text-obsidian
                     hover:shadow-[0_0_12px_rgba(234,179,8,0.3)]
@@ -784,7 +701,9 @@ export function CardDetail() {
                     flex items-center gap-2"
                 >
                   <span>
-                    {isTieringUp ? 'Evolving...' : isLoadingPaths ? 'Divining fate...' : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
+                    {isTieringUp
+                      ? (myJob!.step === 'Divining fate…' ? 'Divining fate...' : 'Evolving...')
+                      : `Tier Up → ${overallRank === 'Foundation' ? 'Forged' : 'Ascendant'}`}
                   </span>
                   <span className="px-1.5 py-0.5 rounded bg-black/30">
                     <CurrencyCost
@@ -795,11 +714,11 @@ export function CardDetail() {
                   </span>
                 </button>
               </div>
-              {(isTieringUp || isLoadingPaths) && (
+              {isTieringUp && (
                 <div className="mt-2 flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
                   <span className="text-[10px] text-gold/60 animate-pulse">
-                    {isLoadingPaths ? 'Weaving Ascendant paths...' : 'Forging new form...'}
+                    {myJob!.step === 'Divining fate…' ? 'Weaving Ascendant paths...' : 'Forging new form...'}
                   </span>
                 </div>
               )}
@@ -907,7 +826,7 @@ export function CardDetail() {
               {ascendantPaths.map((path, i) => (
                 <button
                   key={i}
-                  onClick={() => handleChoosePath(path)}
+                  onClick={handleChoosePath}
                   disabled={isTieringUp}
                   className="w-full text-left p-4 rounded-lg border-2 border-slate-dark
                     bg-slate-dark/40 hover:border-gold/60 hover:bg-gold/5

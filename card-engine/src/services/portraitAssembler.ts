@@ -1,9 +1,13 @@
 import type { CharacterSheet } from '../types/characterSheet';
-import type { ArchetypeName } from '../types/card';
-import type { ElementName } from '../types/bible';
+import type { ArchetypeName, Rank } from '../types/card';
+import type { ElementName, HiddenFate } from '../types/bible';
 import type { CardAbilityReference } from '../types/abilities';
+import type { ImageEngineSnapshot } from '../types/archetypeProposal';
 import { ELEMENT_VISUAL_LANGUAGE } from '../data/elementVisualLanguage';
-import { getEnvironmentDescriptor } from '../data/archetypeEnvironments';
+import { getEnvironmentDescriptor, getEnvironmentPool } from '../data/archetypeEnvironments';
+import { getWeaponPool } from '../data/archetypeWeapons';
+import { getPosePool } from '../data/archetypePoses';
+import { getCompanionPool } from '../data/archetypeCompanions';
 import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
@@ -537,5 +541,91 @@ export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait
   return {
     portraitPrompt: `${body}${reserved}`,
     negativePrompt: buildNegativePrompt(sheet),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Workshop snapshot — capture the LIVE Image-Engine surfaces for a proposal
+// ---------------------------------------------------------------------------
+
+/**
+ * Bump when the assembler's segment PRIORITY ORDER changes, so a proposal's
+ * snapshot records which composition rules were in force when it was filed.
+ */
+const SEGMENT_ORDER_VERSION = '2026-07-21';
+
+const ALL_RANKS: readonly Rank[] = ['Foundation', 'Forged', 'Ascendant'];
+
+/** Minimal synthetic sheet used only to sample the archetype hooks for the
+ *  snapshot — never rendered. Fresh forge (isEvolution: false), male, default
+ *  narrative path so Seraph resolves to its Good/default anchor. */
+function probeSheet(archetype: ArchetypeName, rank: Rank): CharacterSheet {
+  return {
+    hiddenFate: { sex: 'male' } as HiddenFate,
+    storyMotifs: [],
+    archetype,
+    rank,
+    resolvedElement: 'Fire',
+    pose: '',
+    diversityAxis: '',
+    isEvolution: false,
+    abilityRefs: [],
+  };
+}
+
+/**
+ * Snapshot the Image-Engine surfaces the deterministic assembler actually reads
+ * for an archetype, for the Workshop LayerSnapshot. Replaces the retired
+ * getVisualMotif/getMetaPromptBlock capture. `element` scopes the element
+ * handling to the critiqued card when known; otherwise fire-family is reported
+ * for the probe default. Hook outputs are sampled per rank; `sampled` flags a
+ * rank whose hook uses Math.random (Vampire feral) so a reviewer treats the
+ * captured string as illustrative, not canon.
+ */
+export function buildImageEngineSnapshot(
+  archetype: ArchetypeName,
+  opts?: { element?: ElementName },
+): ImageEngineSnapshot {
+  const element = opts?.element ?? 'Fire';
+  const v = ELEMENT_VISUAL_LANGUAGE[element];
+  const hookOutputs = ALL_RANKS.map((rank) => {
+    const s = probeSheet(archetype, rank);
+    return {
+      rank,
+      posePrefix: hookPosePrefix(s) ?? '',
+      mandatorySegment: hookMandatorySegment(s),
+      narrativeAnchor: hookNarrativeAnchor(s),
+      // Vampire's feral posePrefix is the only randomised hook, at fresh Foundation.
+      sampled: archetype === 'Vampire' && rank === 'Foundation',
+    };
+  });
+  return {
+    styleLead: styleLeadFor(archetype),
+    hookOutputs,
+    weaponPoolSample: getWeaponPool(archetype).slice(0, 4).map((w) => w.id),
+    environmentPoolSample: getEnvironmentPool(archetype).slice(0, 4).map((e) => e.id),
+    posePoolSample: getPosePool(archetype, 'Foundation').slice(0, 4),
+    companionPoolSample: getCompanionPool(archetype).slice(0, 4).map((c) => c.id),
+    elementHandling: {
+      element,
+      fireFamily: FIRE_FAMILY_ELEMENTS.includes(element),
+      // The element-language fields the assembler actually reads for the render.
+      consumedFields: (
+        [
+          ['motion', v.motion],
+          ['lighting', v.lighting],
+          ['primaryColors', v.primaryColors],
+          ['atmosphere', v.atmosphere],
+        ] as const
+      )
+        .filter(([, val]) => Boolean(val))
+        .map(([k]) => k),
+    },
+    globalRules:
+      `segment-order ${SEGMENT_ORDER_VERSION}; negative leads: CRITICAL + ` +
+      `${archetype === 'Druid' ? 'Druid growth-suppressors dropped; ' : ''}` +
+      `COVERED_CHEST (unless Ascendant+male bareChestRoll) + SPECTACLE; ` +
+      `bare-chest gate: Ascendant male only, ~20% locked roll; ` +
+      `style: ${archetype === 'Druid' ? 'photoreal (Druid)' : 'painterly'}`,
   };
 }

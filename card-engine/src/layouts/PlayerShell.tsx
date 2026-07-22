@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { NavBar } from '../components/NavBar';
 import { ForgeIndicator } from '../components/forge/ForgeIndicator';
+import { CardJobIndicator } from '../components/forge/CardJobIndicator';
 
 // Player-facing layout: fantasy landscape background, player NavBar, and the
 // content offset/padding the player nav requires. Everything the game player
@@ -37,6 +38,7 @@ export function PlayerShell() {
       </div>
 
       <ForgeIndicator />
+      <CardJobIndicator />
     </div>
   );
 }

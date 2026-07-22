@@ -18,6 +18,7 @@ import {
 import * as ledger from '../services/economy/transactionLedger';
 import { initialize as initializeWallet, auditBalance } from '../services/economy/walletService';
 import { resumeIfPending as resumeForgeIfPending, sweepOrphanedReservations } from '../services/forge/forgeController';
+import { sweepOrphanedCardReservations } from '../services/forge/cardJobController';
 import { runMigrationIfNeeded, clearLegacyLocalStorage } from '../services/persistence/migration';
 import { drain as drainSyncQueue } from '../services/persistence/SyncQueue';
 
@@ -109,6 +110,13 @@ function reconcileForgeJobs(): void {
     if (reclaimed > 0) {
       // eslint-disable-next-line no-console
       console.warn(`[forge] reclaimed ${reclaimed} orphaned forge reservation(s) on startup`);
+    }
+    // A hard reload drops any in-flight reforge / tier-up job (see
+    // cardJobController header) — refund whatever reservation it was holding.
+    const cardReclaimed = sweepOrphanedCardReservations();
+    if (cardReclaimed > 0) {
+      // eslint-disable-next-line no-console
+      console.warn(`[forge] reclaimed ${cardReclaimed} orphaned card-job reservation(s) on startup`);
     }
   } catch (err) {
     // eslint-disable-next-line no-console

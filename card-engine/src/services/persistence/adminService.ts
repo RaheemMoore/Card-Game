@@ -4,6 +4,7 @@ import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
   LayerChange,
+  ProposalEngine,
   ProposalFailureType,
   ProposalLayer,
   ProposalStatus,
@@ -196,6 +197,8 @@ export async function getCardForAdmin(cardId: string): Promise<Card | null> {
 
 interface ProposalRow {
   id: string;
+  ticket_number: string | null;
+  engine: ProposalEngine;
   archetype: string;
   layer: ProposalLayer;
   failure_type: ProposalFailureType;
@@ -213,6 +216,8 @@ interface ProposalRow {
 function rowToProposal(r: ProposalRow): ArchetypeProposal {
   return {
     id: r.id,
+    ticketNumber: r.ticket_number ?? null,
+    engine: r.engine,
     archetype: r.archetype as ArchetypeName,
     layer: r.layer,
     failureType: r.failure_type,
@@ -242,7 +247,7 @@ export async function listArchetypeProposals(opts?: {
 }): Promise<ArchetypeProposal[]> {
   let q = client()
     .from('archetype_proposals')
-    .select('id, archetype, layer, failure_type, status, submitted_by, card_id, commit_sha, decided_reason, decided_at, created_at, updated_at')
+    .select('id, ticket_number, engine, archetype, layer, failure_type, status, submitted_by, card_id, commit_sha, decided_reason, decided_at, created_at, updated_at')
     .order('created_at', { ascending: false });
   if (opts?.archetype) q = q.eq('archetype', opts.archetype);
   if (opts?.status) q = q.eq('status', opts.status);
@@ -254,6 +259,8 @@ export async function listArchetypeProposals(opts?: {
     const row = r as Omit<ProposalRow, 'payload'>;
     return {
       id: row.id,
+      ticketNumber: row.ticket_number ?? null,
+      engine: row.engine,
       archetype: row.archetype as ArchetypeName,
       layer: row.layer,
       failureType: row.failure_type,
@@ -290,28 +297,23 @@ export async function getArchetypeProposalPayload(id: string): Promise<Archetype
 
 export async function createArchetypeProposal(input: {
   archetype: ArchetypeName;
+  engine: ProposalEngine;
   layer: ProposalLayer;
   failureType: ProposalFailureType;
   cardId?: string | null;
   payload: ArchetypeProposalPayload;
-  status?: ProposalStatus;
 }): Promise<ArchetypeProposal> {
-  const supabase = client();
-  const { data: session } = await supabase.auth.getUser();
-  const uid = session?.user?.id ?? null;
-  const { data, error } = await supabase
-    .from('archetype_proposals')
-    .insert({
-      archetype: input.archetype,
-      layer: input.layer,
-      failure_type: input.failureType,
-      status: input.status ?? 'submitted',
-      submitted_by: uid,
-      card_id: input.cardId ?? null,
-      payload: input.payload,
-    })
-    .select()
-    .single();
+  // Routed through the SECURITY DEFINER RPC (not a raw insert) so the ticket
+  // number is assigned atomically from the engine's server-side sequence and
+  // submitted_by is stamped server-side. New rows are always 'submitted'.
+  const { data, error } = await client().rpc('create_archetype_proposal', {
+    p_archetype: input.archetype,
+    p_engine: input.engine,
+    p_layer: input.layer,
+    p_failure_type: input.failureType,
+    p_card_id: input.cardId ?? null,
+    p_payload: input.payload,
+  });
   if (error) throw error;
   return rowToProposal(data as ProposalRow);
 }

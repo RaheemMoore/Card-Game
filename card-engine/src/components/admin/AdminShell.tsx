@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { fetchMyRole, getCurrentUser, signOut } from '../../services/persistence/supabaseClient';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminWorkspaceHeader } from './AdminWorkspaceHeader';
+import { LabIndicator } from './LabIndicator';
 
 // Full-viewport admin operations shell. Owns: the central admin guard, the
 // grouped Figma sidebar (expanded 218px / compact 80px, persisted), the
@@ -103,6 +104,8 @@ export function AdminShell() {
           <Outlet />
         </main>
       </div>
+
+      <LabIndicator />
     </div>
   );
 }

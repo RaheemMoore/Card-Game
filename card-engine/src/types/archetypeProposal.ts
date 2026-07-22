@@ -1,22 +1,55 @@
-import type { ArchetypeName } from './card';
+import type { ArchetypeName, Rank } from './card';
 
 /**
- * Which of the four layers a proposal is asking us to change. See
- * data/archetypeLayers.ts for the plain-language explanation copy shown
- * in the workshop UI.
+ * Which generation ENGINE a proposal targets (2026-07-21 image/lore
+ * decoupling). Every proposal is engine-first: exactly one engine per
+ * proposal (no "both"). This is the director-facing dimension; `ProposalLayer`
+ * below is the internal coarse tag it maps onto.
+ *
+ *  - 'lore'  → the Claude call (name/title/lore/hiddenFate/storyMotifs)
+ *  - 'image' → the deterministic portrait assembler (Leonardo prompt)
+ */
+export type ProposalEngine = 'image' | 'lore';
+
+/**
+ * Which of the four layers a proposal is asking us to change — kept as an
+ * INTERNAL coarse tag (the approval console, regen-verify, and layerSnapshot
+ * key off it). Directors no longer pick this directly; they pick an engine +
+ * a plain-language area (see data/archetypeLayers.ts) which maps onto a layer.
  */
 export type ProposalLayer = 'A' | 'B' | 'C' | 'D';
 
 /**
- * The five recognized failure modes a lore director can pick. These map
- * to the layer picker's guidance (D covers most Forged/Ascendant issues).
+ * The recognized failure modes a director can pick. Engine-scoped: the first
+ * five are Image-engine (portrait) issues; the last three are Lore-engine
+ * (text) issues. The filing form shows only the set matching the chosen engine.
  */
 export type ProposalFailureType =
+  // Image engine
   | 'not_same_character'
   | 'wrong_archetype_vibe'
   | 'evolution_wrong'
   | 'lore_portrait_misaligned'
-  | 'off_brand';
+  | 'off_brand'
+  // Lore engine
+  | 'lore_off_canon'
+  | 'pillar_options_weak'
+  | 'tone_or_motifs_off';
+
+/**
+ * The plain-language AREA a director files against — the director-facing
+ * successor to the raw A/B/C/D layer. Engine-scoped. Each area maps onto an
+ * internal ProposalLayer (see data/archetypeLayers.ts areaToLayer). Stored in
+ * the payload (not a column) so the approval console can show the specific
+ * area without a schema change.
+ */
+export type ImageArea =
+  | 'look_escalation'
+  | 'props'
+  | 'element_visuals'
+  | 'global_rules';
+export type LoreArea = 'canon' | 'pillars_elements' | 'lore_writing';
+export type ProposalArea = ImageArea | LoreArea;
 
 export type ProposalStatus =
   | 'draft'
@@ -36,9 +69,52 @@ export interface LayerSnapshot {
   canonIdentity: string;
   canonMotifs: string;
   canonRankProgression: { Foundation: string; Forged: string; Ascendant: string };
-  statVisualsForCard?: string;
   classSignaturePoolSample: string[];
-  metaPromptBlock: string;
+  /**
+   * Snapshot of the live Image-Engine surfaces the deterministic assembler
+   * ACTUALLY reads, captured on image-engine proposals. Replaces the retired
+   * `statVisualsForCard` (powerSystem getVisualMotif) and `metaPromptBlock`
+   * (getMetaPromptBlock) — both orphaned by the 2026-07-21 decoupling: the new
+   * assembler never calls them, so snapshotting them recorded dead code. Absent
+   * on lore-engine proposals. Strings, not blobs (honors the P1 payload-shrink).
+   */
+  imageSurfaces?: ImageEngineSnapshot;
+}
+
+/**
+ * What the Image Engine (services/portraitAssembler.ts + its data pools +
+ * archetypeHooks) resolves for this archetype, sampled at file time so a
+ * proposal reviewed weeks later reflects the engine that actually ran.
+ */
+export interface ImageEngineSnapshot {
+  /** styleLeadFor(archetype) — photoreal (Druid) vs painterly. */
+  styleLead: string;
+  /**
+   * Per-rank resolved hook strings (posePrefix / mandatorySegment /
+   * narrativeAnchor). `sampled` flags ranks whose hook uses Math.random
+   * (Vampire feral, pose picks) — a single sample is illustrative, not canon.
+   */
+  hookOutputs: {
+    rank: Rank;
+    posePrefix: string;
+    mandatorySegment: string;
+    narrativeAnchor: string;
+    sampled: boolean;
+  }[];
+  /** Pool id/label samples the assembler draws from (not full descriptors). */
+  weaponPoolSample: string[];
+  environmentPoolSample: string[];
+  posePoolSample: string[];
+  companionPoolSample: string[];
+  /** Fire-family membership + which element-language fields feed the render. */
+  elementHandling: { element: string; fireFamily: boolean; consumedFields: string[] };
+  /**
+   * Global assembler rules in force: the segment-order version tag, the
+   * reserved negative leads, the Druid growth-suppressor subtraction flag, and
+   * the bare-chest gate params (rank/sex/roll). Free-text so it survives the
+   * assembler evolving without a schema change.
+   */
+  globalRules: string;
 }
 
 /**
@@ -64,6 +140,13 @@ export interface ArchetypeProposalPayload {
   keep: string;
   change: string;
   rejectIf: string;
+  /**
+   * The plain-language area the director filed against (engine-scoped). The
+   * `layer` column is derived from this; kept in the payload too so the
+   * approval console can render the specific area, not just the coarse layer.
+   * Absent on legacy rows filed before the engine-first reshape.
+   */
+  area?: ProposalArea;
   notes?: string;
   referenceImageUrl?: string;
   layerSnapshot: LayerSnapshot;
@@ -148,6 +231,14 @@ export interface VerifyEvidence {
 
 export interface ArchetypeProposal {
   id: string;
+  /**
+   * Human-readable ticket, e.g. `IMG00042` / `LOR00042`. Server-assigned +
+   * immutable. Null on legacy rows filed before ticketing landed — those keep
+   * `id` (uuid) as their handle and render a neutral "legacy" chip.
+   */
+  ticketNumber: string | null;
+  /** Which engine this proposal targets. See ProposalEngine. */
+  engine: ProposalEngine;
   archetype: ArchetypeName;
   layer: ProposalLayer;
   failureType: ProposalFailureType;
