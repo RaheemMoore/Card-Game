@@ -45,7 +45,6 @@ import {
   engineFromLayer,
 } from '../data/archetypeLayers';
 import { buildImageEngineSnapshot } from '../services/portraitAssembler';
-import { getMetaPromptBlock } from '../data/metaPromptBlocks';
 import { getEnvironmentPool } from '../data/archetypeEnvironments';
 import {
   getPortraitHooks,
@@ -54,12 +53,7 @@ import {
 } from '../services/portrait/archetypeHooks';
 import { STYLE_ANCHOR, BASE_NEGATIVE } from '../services/claudeApi';
 import type { CharacterSheet } from '../types/characterSheet';
-import {
-  getDominantStat,
-  getOverallRank,
-  getVisualMotif,
-  deriveStatRanks,
-} from '../data/powerSystem';
+import { getOverallRank } from '../data/powerSystem';
 import {
   AdminPage,
   AdminSection,
