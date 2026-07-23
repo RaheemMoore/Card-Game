@@ -241,12 +241,7 @@ async function runForge(job: ForgeJob): Promise<void> {
   const cardId = `card_${job.jobId}`;
 
   try {
-    // whisperWords is a legacy Card field; keep a short derived list so old
-    // renderers (Codex search) still have something to key on.
-    const whisperWords = storyPillars.answers
-      .slice(0, 3)
-      .map((a) => a.answer.split(/\s+/).slice(0, 3).join(' '));
-    const shell = buildCardShell(archetype, stats, whisperWords);
+    const shell = buildCardShell(archetype, stats);
     shell.cardId = cardId;
 
     const text = await generateCardTextWithRetry({

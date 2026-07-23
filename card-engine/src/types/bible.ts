@@ -22,8 +22,29 @@ import type { ArchetypeName } from './card';
 export const ELEMENT_NAMES = [
   'Fire', 'Water', 'Earth', 'Wind', 'Ice', 'Lightning', 'Stone', 'Storm',
   'Nature', 'Beast', 'Blood', 'Poison', 'Metal', 'Spirit', 'Shadow',
-  'Light', 'Sound', 'Ash', 'Holy', 'Void', 'Time', 'Cosmic', 'Tech',
+  'Light', 'Ash', 'Holy', 'Void', 'Time', 'Cosmic', 'Tech',
   'Psychic', 'Moon', 'Dream',
+  // Necromancer-exclusive (2026-07-22). A normal pickable element, but only
+  // ever in the Necromancer's compatibility set — the physical architecture of
+  // the dead (bone/skull/marrow), distinct from Ash (grief), Spirit (souls),
+  // Shadow (dark). See data/elementVisualLanguage.ts BONE.
+  'Bone',
+  // Vampire-exclusive (2026-07-22). Dominion of eternal night — blood-moon,
+  // devoured sun, wheeling bats, crimson-into-black. Distinct from Shadow
+  // (fear-dark) and Moon (silver cycle). See elementVisualLanguage.ts NOCTURNE.
+  'Nocturne',
+  // Lycanthrope-exclusive rare (2026-07-22). The SUPERIOR version of Moon — the
+  // Moon Goddess's divine blessing: BLAZING silver-fire + full-moon corona +
+  // lunar runes, NOT Moon's calm silver glow. See elementVisualLanguage.ts LUNAR.
+  'Lunar',
+  // Tech-archetype rare family (2026-07-22). Offered to Mech Pilot, Android, and
+  // any tech archetype as ascension rares — engineered/machine power only.
+  // (Void is the 3rd tech rare, already above.) See elementVisualLanguage.ts.
+  'Plasma', 'Nanite',
+  // Android-exclusive (2026-07-22). The synthetic soul as refracted spectrum
+  // light + volumetric HOLOGRAMS — iridescent rainbow, prismatic facets, holo
+  // constructs. Distinct from Light (holy gold) + Tech (circuit-cyan). See PRISM.
+  'Prism',
   // Fallen-Seraph-exclusive (P4 Seraph corruption arc). Never appears in
   // any archetype's compatibility buckets — it is only ever assigned by
   // alignment transmutation at tier-up (Light → Infernal when the path
@@ -108,6 +129,46 @@ export interface StoryPillarAnswer {
 }
 
 /**
+ * Image-first character generation (Stage 3, 2026-07-22). A structured visual
+ * directive a StoryPillarOption may carry ALONGSIDE its lore `text`/`tags`. The
+ * player never sees which channel a choice feeds — the ritual reads as one
+ * story. The deterministic image roll layer (services/imageEngine/identityRoller)
+ * reads these tokens VERBATIM; any dimension a choice leaves unset is auto-rolled.
+ * Player-facing pins: build / age / mark / species. Auto-rolled (a choice may
+ * nudge): bearing / elementExpression. `sex` is normally system-rolled to the
+ * 60/40 humanoid/non-human + 50/50 M/F distribution and only rarely pinned.
+ * All fields optional. Ids reference BODY_CLASSES / BESPOKE_BODIES / FANTASY_MARKS.
+ */
+export interface ImageDirective {
+  /** BODY_CLASSES id — mass/frame/age vocabulary (e.g. 'stout','towering','ancient'). */
+  build?: string;
+  /** Age-band pin. */
+  age?: string;
+  /** FANTASY_MARKS id — fantasy prosthetic/condition (never 'wheelchair'/'cane'). */
+  mark?: string;
+  /** Bearing/posture nudge (auto-rolled unless pinned). */
+  bearing?: string;
+  /** Element-expression intensity/placement ONLY — never color (color lives in elementVisualLanguage). */
+  elementExpression?: string;
+  /** 'humanoid' or a BESPOKE_BODIES form id. Normally distribution-rolled; a choice may pin. */
+  species?: string;
+  /** Weapon/tool pin — a WEAPON_POOLS id for the archetype (see archetypeWeapons.ts). */
+  weapon?: string;
+  /** Whether the character appears alone or leading a retinue (archetypes with a companion pool only). */
+  companionPresence?: 'solitary' | 'retinue';
+  /** Specific retinue pin — a COMPANION_POOLS id (implies 'retinue'; see archetypeCompanions.ts). */
+  companion?: string;
+  /** Authored concrete visual objects for the portrait (image-first; replaces Claude motifs). */
+  motifs?: string[];
+  /** Pose hint. */
+  poseHint?: string;
+  /** Environment tag. */
+  environmentTag?: string;
+  /** Rare explicit sex pin; otherwise system-rolled to the presentation distribution. */
+  sex?: string;
+}
+
+/**
  * A pre-authored option shown in the wizard. Options are seed material — the
  * player may accept, refresh, lock, or write their own.
  */
@@ -129,6 +190,12 @@ export interface StoryPillarOption {
    * services/narrativeAxisService.ts.
    */
   alignmentWeight?: number;
+  /**
+   * Image-first (Stage 3) — optional visual directive this choice pins for the
+   * portrait. Read ONLY by the deterministic image roll layer, never by lore.
+   * The player never sees that a choice carries this. See ImageDirective.
+   */
+  image?: ImageDirective;
 }
 
 /** Full set of a card's Story Pillar answers, keyed by pillar index. */
@@ -180,6 +247,16 @@ export interface HiddenFate {
   companionId?: string;
   companionPresent?: boolean;
   environmentId?: string;
+  /**
+   * Which fashion variant of the archetype's guide this card resolved to
+   * (index into ARCHETYPE_FASHION_GUIDES[archetype].variants). GENERIC — not
+   * archetype-specific. For archetypes whose environment families are authored
+   * 1:1 parallel to their fashion variants (Barbarian's six Traditions), this
+   * couples the background to the tradition so a Glacier-Warden never spawns in
+   * a jungle. Set once at Foundation from the fashion cursor; undefined on
+   * legacy/tier-up cards, where the environment falls back to a random roll.
+   */
+  fashionVariantIndex?: number;
   /**
    * A locked ~20% roll (Raheem 2026-07-21) deciding whether this character MAY
    * render bare-chested at the Ascendant peak. Only ever consulted for

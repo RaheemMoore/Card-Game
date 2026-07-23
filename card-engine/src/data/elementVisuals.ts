@@ -34,7 +34,6 @@ export const ELEMENT_VISUALS: Record<ElementName, ElementVisual> = {
   Spirit: { color: '#bfb0ff', glow: '191,176,255' },
   Shadow: { color: '#9a86bf', glow: '154,134,191' },
   Light: { color: '#fff2b0', glow: '255,242,176' },
-  Sound: { color: '#ff9ecb', glow: '255,158,203' },
   Ash: { color: '#c2b9ad', glow: '194,185,173' },
   Holy: { color: '#ffe08a', glow: '255,224,138' },
   Void: { color: '#a884d6', glow: '150,110,190' },
@@ -46,6 +45,12 @@ export const ELEMENT_VISUALS: Record<ElementName, ElementVisual> = {
   Dream: { color: '#c8a8ff', glow: '200,168,255' },
   // Fallen-exclusive — molten obsidian + black light. Never fire-orange.
   Infernal: { color: '#a15be0', glow: '130,50,200' },
+  Bone: { color: '#e8e2d0', glow: '232,226,208' },
+  Nocturne: { color: '#a01f2e', glow: '160,31,46' },
+  Lunar: { color: '#eaf0ff', glow: '234,240,255' },
+  Plasma: { color: '#a8c8ff', glow: '168,200,255' },
+  Nanite: { color: '#c8ccd4', glow: '200,204,212' },
+  Prism: { color: '#cfefff', glow: '207,239,255' },
 };
 
 /** Fallback for any element without an explicit palette entry. */

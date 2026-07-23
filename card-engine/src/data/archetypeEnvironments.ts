@@ -117,50 +117,76 @@ const DRUID_ENVIRONMENTS: readonly EnvironmentFamily[] = [
   },
 ];
 
+// 2026-07-23 Barbarian Traditions: six environments in the SAME ORDER as the six
+// BARBARIAN fashion variants (hairFashionBible.ts). The forge locks
+// fashionVariantIndex and the environment picker (resolveLockedSelections) reads
+// it via isTraditionCoupled, so each Tradition gets its matching world and a
+// Glacier-Warden never spawns in a jungle. ORDER IS LOAD-BEARING — do not reorder
+// without reordering the fashion variants too.
 const BARBARIAN_ENVIRONMENTS: readonly EnvironmentFamily[] = [
-  { id: 'ancestral_hearth_hall', name: 'Ancestral Hearth Hall', byRank: {
-    Foundation: 'a communal hearth hall of carved beams, repaired tools and memorial objects, firelight on generations of shared history',
-    Forged: 'the hall roused for war, banners down and warriors gathering, the fire roaring as the clan rallies',
-    Ascendant: 'the great hall at the heart of a legend, ancestral spirits all but present in the firelight, the whole clan\'s history bearing down' } },
-  { id: 'storm_highland_pass', name: 'Storm-Beaten Highland Pass', byRank: {
-    Foundation: 'a harsh highland pass in driving wind, a caravan or sacred burden pressing through the cold',
-    Forged: 'the pass in a full mountain storm, the Barbarian holding the line for those behind them',
-    Ascendant: 'the highland pass at the edge of catastrophe, the whole mountain roaring as endurance becomes legend' } },
-  { id: 'burial_stone_valley', name: 'Burial-Stone Valley', byRank: {
-    Foundation: 'a sacred valley of standing stones, cairns and woven offerings, paths linking living and remembered dead',
-    Forged: 'the burial valley alive with ancestral presence, the stones seeming to lean in as old oaths stir',
-    Ascendant: 'the valley of the ancestors fully awake, every stone blazing with remembered power around the bearer' } },
-  { id: 'ruined_border_village', name: 'Ruined Border Village', byRank: {
-    Foundation: 'a border village mid-reconstruction after conflict, scaffolds and half-raised walls, the Barbarian as builder and protector',
-    Forged: 'the village under fresh threat, the Barbarian defending the rebuilt walls as people shelter behind',
-    Ascendant: 'the frontier settlement at its last stand, a whole community\'s survival resting on the guardian' } },
-  { id: 'oath_gathering_circle', name: 'Oath-Gathering Circle', byRank: {
-    Foundation: 'a ceremonial fire-circle of carved posts and banners where clan representatives witness promises',
-    Forged: 'the oath-circle at a decisive gathering, firelight high as binding vows are sworn',
-    Ascendant: 'the great oath-gathering of many clans, the circle ablaze as history turns on a single promise' } },
+  // 0 — Stoneholds of the High Crags
+  { id: 'crag_stonehold', name: 'Cliff-Fortress of the High Crags', byRank: {
+    Foundation: 'a cliff-fortress of dry-stacked granite built into a sheer crag face, standing ancestor-stones lining the approach, cold pale mountain light',
+    Forged: 'the crag-hold roused, ancestor-stones seeming to lean in, storm-cloud breaking over the granite ramparts',
+    Ascendant: 'the mountain stronghold at the edge of legend, every standing-stone blazing with ancestral presence, the whole crag face bearing down' } },
+  // 1 — Horse-Lords of the Grass Sea
+  { id: 'steppe_grass_sea', name: 'The Endless Grass Sea', byRank: {
+    Foundation: 'an endless wind-combed grass sea under a vast racing sky, felt tents and horse-herds small on the horizon, standards snapping in the gale',
+    Forged: 'the steppe under a full racing storm-sky, the horde\'s standards streaming as the grass flattens in the wind',
+    Ascendant: 'the grass sea at the turning of an age, a horizon-wide storm centered on the rider, banners of many clans riding the gale' } },
+  // 2 — Glacier-Wardens of the White Waste
+  { id: 'glacier_white_waste', name: 'The White Waste Glacier Coast', byRank: {
+    Foundation: 'a blue-shadowed glacier coast of cracked sea-ice and towering frost cliffs, a bone-framed longhouse half-buried in snow, low arctic sun',
+    Forged: 'the ice coast in a rising polar gale, cracks splitting the sea-ice, the frost cliffs groaning',
+    Ascendant: 'the deep-ice at world\'s edge, the glacier calving in mythic scale, a frozen sea shattering around the warden' } },
+  // 3 — Ash-Waste Warlords
+  { id: 'ashwaste_volcanic', name: 'The Cracked Volcanic Waste', byRank: {
+    Foundation: 'a cracked volcanic wasteland of black ash-dunes and glowing lava-seams, a fortress of fused obsidian on a smoking ridge, red-lit smoke sky',
+    Forged: 'the ash-waste erupting, lava-seams splitting wide, the obsidian fortress lit hell-red behind the warlord',
+    Ascendant: 'the volcano at full cataclysm, the earth tearing open in molten rivers, the sky choked black and ember-red around the conqueror' } },
+  // 4 — Canopy Head-Hunters of the Deep Green
+  { id: 'canopy_jungle_temple', name: 'The Deep-Green Temple Canopy', byRank: {
+    Foundation: 'a dense emerald rainforest canopy strung with vines, a stepped stone temple-pyramid rising through green mist, shafts of jungle light',
+    Forged: 'the jungle temple alive with ritual, torch-smoke curling up the pyramid steps, the canopy thick with watching green',
+    Ascendant: 'the great temple-city at the heart of the deep green fully awake, the pyramid blazing, the whole jungle bending toward the hunter' } },
+  // 5 — Sand-City Champions
+  { id: 'sandcity_arena', name: 'The Sand-City Arena', byRank: {
+    Foundation: 'a sun-baked sandstone arena-city of tiered colonnades and hanging banners, the great fighting-pit below, hot desert light and dust-haze',
+    Forged: 'the arena roaring at full crowd, banners streaming from the tiers, dust and sun over the champion in the pit',
+    Ascendant: 'the grand colosseum of the sand-city at its legendary hour, the whole city thundering, the pit an altar of triumph' } },
 ];
 
+// 2026-07-23 Monk moral-fork redesign: five environments index-parallel to the
+// five MONK fashion variants (0 Peace, 1 Fire, 2 Water, 3 Wind, 4 Earth). Monk
+// is tradition-coupled (the element-gated variant index locks the setting), so a
+// Peace monk ascends into the cosmic void and a Fire monk trains at the forge.
+// ORDER IS LOAD-BEARING — do not reorder without reordering the variants.
 const MONK_ENVIRONMENTS: readonly EnvironmentFamily[] = [
-  { id: 'dawn_practice_courtyard', name: 'Dawn Practice Courtyard', byRank: {
-    Foundation: 'a monastery courtyard at first light, worn footpaths and training marks, bells and disciplined routine',
-    Forged: 'the courtyard mid-form at dawn, the air itself seeming to move with perfected practice',
-    Ascendant: 'the practice courtyard transfigured by mastery, dawn-light and motion filling the whole space' } },
-  { id: 'mountain_stair_sanctuary', name: 'Mountain Stair Sanctuary', byRank: {
-    Foundation: 'a long mountain stair to a high sanctuary, mist and patient ascent, pilgrimage and effort',
-    Forged: 'the sanctuary stair swept by wind and cloud, the Monk unmoved amid the elements',
-    Ascendant: 'the mountain sanctuary at the roof of the world, clouds parting around a figure of total calm' } },
-  { id: 'riverstone_ford', name: 'Riverstone Meditation Ford', byRank: {
-    Foundation: 'a river ford of balanced stones and moving water, controlled breath under changing conditions',
-    Forged: 'the ford in swelling current, the Monk holding perfect balance where the water rages',
-    Ascendant: 'the meditation ford at flood, the river bending around an island of absolute stillness' } },
-  { id: 'bell_tower_storm', name: 'Bell Tower During a Storm', byRank: {
-    Foundation: 'a bell tower interior as a storm rises, the Monk keeping rhythm while the structure sways',
-    Forged: 'the tower pitching in a full gale, the bell steady under disciplined hands',
-    Ascendant: 'the storm-torn tower at its limit, the whole structure moving around one unshaken center' } },
-  { id: 'archive_of_disciplines', name: 'Archive of Disciplines', byRank: {
-    Foundation: 'a quiet library of manuals and annotated forms, teaching records and rival-school disagreements',
-    Forged: 'the archive alive with study, the Monk drawing a decisive technique from the records',
-    Ascendant: 'the great archive of disciplines fully opened, the accumulated knowledge of an age at the Monk\'s command' } },
+  // 0 — PEACE: mountain shrine → celestial cosmic void
+  { id: 'peace_summit_shrine', name: 'Summit Meditation Shrine', byRank: {
+    Foundation: 'a quiet high mountain meditation shrine at first light, worn prayer-stones and a single lotus-carved altar, mist and stillness',
+    Forged: 'the summit shrine wreathed in cloud, lotus-lanterns lit, the air itself gone serene and luminous around the seated monk',
+    Ascendant: 'the shrine dissolved into a serene deep-space void — the monk seated among wheeling galaxies and glowing nebulae, a cosmic starfield opening beneath the meditation-seat, a galaxy-disc halo turning behind the head' } },
+  // 1 — FIRE dojo → forge arena
+  { id: 'fire_forge_dojo', name: 'Ember-Forge Training Hall', byRank: {
+    Foundation: 'a stone training hall built around a great forge-hearth, scorched practice-posts and cooling-ember floor, heat-haze in the air',
+    Forged: 'the forge-hall roaring at full heat, the monk holding perfect form amid rising sparks and cinder',
+    Ascendant: 'a volcanic training-arena at the edge of legend, lava-seams glowing in the floor, the whole hall a crucible around one disciplined figure' } },
+  // 2 — WATER ford dojo → tidal arena
+  { id: 'water_tide_dojo', name: 'Tidal Stone Training Ford', byRank: {
+    Foundation: 'a training ford of balanced stones in moving water, spray and controlled breath, a maritime shrine on the bank',
+    Forged: 'the ford in swelling current, the monk redirecting the rushing water with fluid perfect form',
+    Ascendant: 'a great tidal arena at flood, waves curling around an island of absolute disciplined stillness' } },
+  // 3 — WIND terrace dojo → sky arena
+  { id: 'wind_terrace_dojo', name: 'High Wind Terrace', byRank: {
+    Foundation: 'a cliff-edge training terrace swept by mountain wind, prayer-flags snapping, thin high air',
+    Forged: 'the terrace in a rising gale, the monk poised weightless amid streaming banners and lifted debris',
+    Ascendant: 'a sky-high wind arena at the roof of the world, cloud and gale wheeling around one unshaken poised figure' } },
+  // 4 — EARTH courtyard dojo → mountain arena
+  { id: 'earth_stone_dojo', name: 'Stone-Circle Training Ground', byRank: {
+    Foundation: 'a training ground of standing stones and packed earth, carved discipline-markers, dust in the low light',
+    Forged: 'the stone circle trembling with rooted power, the monk immovable as the ground shifts',
+    Ascendant: 'a mountain-heart arena of colossal standing stones and heaving granite, the earth itself rooted around one unmovable master' } },
 ];
 
 const BEASTMASTER_ENVIRONMENTS: readonly EnvironmentFamily[] = [
@@ -301,27 +327,49 @@ const SERAPH_ENVIRONMENTS: readonly EnvironmentFamily[] = [
     Ascendant: 'a world-changing dawn tearing across the void, radiance without erasing the surrounding dark' } },
 ];
 
+// 2026-07-23 HUMAN reframe = no-element TECH INVENTOR. Seven Callings, seven
+// environments in the SAME ORDER as the seven HUMAN fashion variants
+// (hairFashionBible.ts). Human is tradition-coupled: the forge locks
+// fashionVariantIndex and the picker reads it via isTraditionCoupled, so an
+// Artificer always spawns in a foundry and a Marksman on an overwatch ridge.
+// ORDER IS LOAD-BEARING — do not reorder without reordering the variants too.
 const HUMAN_ENVIRONMENTS: readonly EnvironmentFamily[] = [
-  { id: 'frontier_crossroads', name: 'Busy Frontier Crossroads', byRank: {
-    Foundation: 'a bustling frontier crossroads where cultures, professions and travelers meet, conflicting opportunities everywhere',
-    Forged: 'the crossroads at a decisive hour, the Human seizing the moment amid the crowd',
-    Ascendant: 'the great crossroads at a turning point in history, a whole region\'s fate in the balance' } },
-  { id: 'royal_court', name: 'Royal Court of Competing Factions', byRank: {
-    Foundation: 'a tense royal court of competing factions, power navigated by judgment and persuasion',
-    Forged: 'the court at a decisive intrigue, every faction watching the Human\'s next move',
-    Ascendant: 'the throne-room at the pivot of an age, the Human shaping the fate of a kingdom' } },
-  { id: 'expedition_camp', name: 'Expedition Camp at an Ancient Ruin', byRank: {
-    Foundation: 'an expedition camp at the mouth of an ancient ruin, curiosity and careful preparation',
-    Forged: 'the expedition breaking into the ruin, the Human adapting to forgotten dangers',
-    Ascendant: 'the great ruin fully opened, a lost history unleashed around the Human who dared it' } },
-  { id: 'harbor_market', name: 'Crowded Harbor Market', byRank: {
-    Foundation: 'a crowded coastal harbor market of trade, migration and cultural exchange, sails and stalls',
-    Forged: 'the harbor at a decisive moment, the Human at the center of converging fortunes',
-    Ascendant: 'the great port at a world-turning event, trade and destiny colliding around the Human' } },
-  { id: 'rebuilt_city', name: 'Rebuilt City After Catastrophe', byRank: {
-    Foundation: 'a city under reconstruction after catastrophe, human collaboration and disagreement shaping what comes next',
-    Forged: 'the rebuilding city at a crossroads, the Human rallying its people to a choice',
-    Ascendant: 'the reborn metropolis at the moment its future is set, a whole people moving with the Human' } },
+  // 0 — Artificer → workshop-foundry
+  { id: 'artificer_foundry', name: 'Steamworks Foundry-Workshop', byRank: {
+    Foundation: 'a cluttered brass-and-iron workshop-foundry, half-built machines on the benches, boiler-pipes and hanging tools, warm forge-light and drifting steam',
+    Forged: 'the foundry at full working roar, turret-frames and constructs powering up on the assembly floor, steam venting and gear-trains turning',
+    Ascendant: 'a vast manufactory-foundry at legendary output, whole ranks of the Human\'s constructs assembling themselves, the great engines of the workshop thundering' } },
+  // 1 — Field-Medic → field-hospital
+  { id: 'medic_field_hospital', name: 'Frontline Field-Hospital', byRank: {
+    Foundation: 'a canvas-and-brass field-hospital tent behind the lines, cots and injector-racks, med-drones charging, lamplit and orderly',
+    Forged: 'the field-hospital overwhelmed and holding, the Human\'s med-drones and prosthetic-rigs working every cot at once',
+    Ascendant: 'a vast frontier trauma-hall at mythic scale, swarms of med-drones and finished prosthetics saving a whole army, the Human at its beating center' } },
+  // 2 — Scholar → archive/lab
+  { id: 'scholar_survey_hall', name: 'Instrument-Hall Research Archive', byRank: {
+    Foundation: 'a brass-instrument research hall, blueprint-tables and specimen cases, orreries and data-slates glowing in the lamplight',
+    Forged: 'the research hall alive with discovery, survey-drones mapping the air, charts and analytical engines whirring around the Human',
+    Ascendant: 'the grand analytical archive fully unlocked, a cathedral of computation-engines and star-charts, a lost knowledge unfurling at the Human\'s command' } },
+  // 3 — Pacifist → temple/sanctuary
+  { id: 'pacifist_sanctuary', name: 'Open Peace-Sanctuary', byRank: {
+    Foundation: 'a plain open sanctuary of quiet stone and hanging lanterns, prayer-cords and an unbarred door, calm and undefended',
+    Forged: 'the sanctuary filled with those who came for shelter, the Human keeping peace among them with open hands',
+    Ascendant: 'the great sanctuary become a beacon of reconciliation, a vast gathering laying down arms around the unarmed Human' } },
+  // 4 — Infiltrator → a dense CAMO field they dissolve into (couples with the
+  // ghillie-suit camo-blend scene in portraitAssembler.buildInfiltratorCamoScene)
+  { id: 'infiltrator_camo_thicket', name: 'Mottled Camouflage Thicket', byRank: {
+    Foundation: 'a dense thicket of mottled woodland foliage, ferns, moss and broken branches in muted grey-green-brown, dappled shadow everywhere — perfect concealment',
+    Forged: 'the overgrown thicket at a tense hour, the foliage a shifting camo field the Human melts through unseen',
+    Ascendant: 'a vast tangled wildwood at a knife-edge moment, a limitless camouflage field bending around a ghost no eye can find' } },
+  // 5 — Sky-Corsair → airship-dock
+  { id: 'corsair_airship_dock', name: 'Brass Airship Sky-Dock', byRank: {
+    Foundation: 'a brass-and-timber sky-dock high on a mooring-mast, airship envelopes and rigging, cloud and open sky below the gangplank',
+    Forged: 'the sky-dock in a running raid, the corsair\'s airship casting off amid grappling-lines and racing cloud',
+    Ascendant: 'a vast cloud-harbor of airships at the corsair\'s command, a sky-armada wheeling above the mooring-towers' } },
+  // 6 — Marksman → overwatch-ridge
+  { id: 'marksman_overwatch_ridge', name: 'Wind-Swept Overwatch Ridge', byRank: {
+    Foundation: 'a high wind-swept ridge overlooking a distant valley, scrub and grey rock, a long clear sightline and a spotter\'s vantage',
+    Forged: 'the overwatch ridge in a rising wind, the Human holding a decisive sightline over the contested ground far below',
+    Ascendant: 'the great ridge at the roof of the battle, a legendary vantage where a single shot decides the fate of the valley below' } },
 ];
 
 const ENVIRONMENT_POOLS: Partial<Record<ArchetypeName, readonly EnvironmentFamily[]>> = {
@@ -340,6 +388,21 @@ const ENVIRONMENT_POOLS: Partial<Record<ArchetypeName, readonly EnvironmentFamil
 
 export function getEnvironmentPool(archetype: ArchetypeName): readonly EnvironmentFamily[] {
   return ENVIRONMENT_POOLS[archetype] ?? [];
+}
+
+/**
+ * Archetypes whose environment families are authored 1:1 parallel to their
+ * fashion variants, so the background is picked by the locked
+ * hiddenFate.fashionVariantIndex instead of at random. Keep the two arrays the
+ * same length and order (Barbarian: six Traditions ↔ six environments).
+ */
+// Monk couples via its ELEMENT-gated variant index (pickFashionVariant matches
+// requiredElements → that index is locked onto fashionVariantIndex), so a Fire
+// monk trains at the forge and a Peace monk ascends into the cosmic void.
+const TRADITION_COUPLED: ReadonlySet<ArchetypeName> = new Set<ArchetypeName>(['Barbarian', 'Human', 'Monk']);
+
+export function isTraditionCoupled(archetype: ArchetypeName): boolean {
+  return TRADITION_COUPLED.has(archetype);
 }
 
 export function getEnvironmentById(archetype: ArchetypeName, id: string): EnvironmentFamily | undefined {

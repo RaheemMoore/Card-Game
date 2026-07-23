@@ -16,7 +16,7 @@ import {
   ARCHETYPE_NON_HUMAN_FORMS,
   buildElementDriftBans,
   truncateToLimit,
-} from './claudeApi';
+} from './imageEngine/imageConstants';
 
 /**
  * The Image Engine (2026-07-21 image/lore decoupling).
@@ -40,21 +40,22 @@ import {
  * archetypes.
  */
 
-const FIRE_FAMILY_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood', 'Ash', 'Holy'] as const;
+// Fire-family = elements allowed warm-ember/orange glow (they skip the
+// anti-warm-glow negatives). 'Holy' removed 2026-07-23 (Raheem: Holy is radiant
+// like LIGHT, not warm-ember — so it now renders cool/radiant, not fire-orange).
+// 'Ash' is intentionally NOT here: it's a live element still but queued for
+// removal in the element-restructure batch, so it's left out to avoid warm-tint.
+const FIRE_FAMILY_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood'] as const;
 
 /**
- * Bare-chest gate (Raheem 2026-07-21, refined): a bare male chest may render
- * ONLY at the Ascendant peak, and even then only ~20% of the time — "it's cool
- * sometimes," not a default. Women stay covered at every rank. The 20% is rolled
- * ONCE and LOCKED onto hiddenFate (bareChestRoll) at Foundation so a regen does
- * not flip-flop the render. This gate simply reads that locked roll.
+ * Bare-chest gate — DISABLED game-wide (Raheem 2026-07-23): NO shirtless / bare
+ * chest for ANY character at ANY rank. There are plenty of striking armor / robe
+ * / regalia options; nobody is ever undressed. Always returns false so every
+ * render routes through the fully-covered branch. (The old ~20%-at-Ascendant-male
+ * roll is retired; `bareChestRoll` is forced false in characterSheetFactory.)
  */
-function allowsBareChest(sheet: CharacterSheet): boolean {
-  return (
-    sheet.rank === 'Ascendant' &&
-    sheet.hiddenFate.sex === 'male' &&
-    sheet.hiddenFate.bareChestRoll === true
-  );
+function allowsBareChest(_sheet: CharacterSheet): boolean {
+  return false;
 }
 
 /**
@@ -91,32 +92,26 @@ const COMPOSITION_CLOSER =
   'entire head fully in frame, eyes and forehead visible, waist-up 3/4 body composition centered';
 
 /**
- * Compact style opener. The full STYLE_ANCHOR in claudeApi.ts is 1922 chars —
- * larger than the whole 1450-char Leonardo budget — because it was written as
- * guidance for Haiku to compress, not as a literal prefix. The deterministic
- * assembler can't paste that, so this distils its load-bearing essence:
- * painterly fantasy action, power channelling through the body (not physique
- * display), waist-up framing, and the modesty / anti-sexualization stance
- * (also hard-enforced by BASE_NEGATIVE). Kept short so identity + element +
- * composition all survive the budget.
+ * Compact style opener — the LIVE style lead every assembled prompt opens with.
+ * It distils the load-bearing essence of the old 1922-char STYLE_ANCHOR (removed
+ * from claudeApi.ts in the 2026-07-22 cleanup — it was Haiku-compression guidance
+ * for a portraitPrompt Claude no longer writes, not a literal prefix): painterly
+ * fantasy action, power channelling through the body (not physique display),
+ * waist-up framing, and the modesty / anti-sexualization stance (also hard-enforced
+ * by BASE_NEGATIVE). Kept short so identity + element + composition all survive the
+ * 1450-char budget. Exported so the Archetype Workshop can display the real lead.
  */
-const COMPACT_STYLE_LEAD =
-  'painterly fantasy action card art, mid-action pose (never a static portrait), cloth and hair ' +
+// 2026-07-23 (Raheem, EMPHATIC): the WHOLE game is painterly fantasy art — NO
+// archetype renders photoreal, INCLUDING Druid (this reverses the 2026-07-21
+// Druid-photoreal rule). "This is a fantasy card game. I want fantasy art."
+// Kept compact (~125 chars) so wardrobe + background still fit the budget; the
+// anti-photoreal enforcement lives in PAINTERLY_NEGATIVES, not here.
+export const COMPACT_STYLE_LEAD =
+  'painterly hand-painted fantasy card art, mid-action pose (never a static portrait), cloth and hair ' +
   'in motion, cinematic lighting';
 
-// Per-archetype style override. Druid alone renders PHOTOREAL (Raheem
-// 2026-07-21: "real skin textures unlike the painted fantasy feel of the other
-// cards"). Applied at EVERY rank (not just Foundation) so Character Reference
-// skin-rendering stays coherent across a tier-up.
-// Kept close to COMPACT_STYLE_LEAD's length (~122) so the weapon + environment
-// still fit the 1450 budget — the load-bearing signal is "photoreal skin", not
-// a verbose material list (materials are covered by the render + wardrobe).
-const DRUID_STYLE_LEAD =
-  'PHOTOREALISTIC render, real skin texture with visible pores and subsurface detail, ' +
-  'naturalistic forest lighting, lifelike materials, mid-action pose (never static), hair in motion';
-
-function styleLeadFor(archetype: ArchetypeName): string {
-  return archetype === 'Druid' ? DRUID_STYLE_LEAD : COMPACT_STYLE_LEAD;
+function styleLeadFor(_archetype: ArchetypeName): string {
+  return COMPACT_STYLE_LEAD;
 }
 
 const MODESTY_STYLE_TAIL =
@@ -185,7 +180,35 @@ function buildPosePrefix(sheet: CharacterSheet): string {
   return `RANK-SCALED ACTION: ${action}. Absolutely NO T-pose, NO orb-per-fist, NO symmetrical arms — the same person from Foundation but the action escalates with rank. `;
 }
 
+/**
+ * Archetype-specific element MANIFESTATION (2026-07-22). The element is NOT a
+ * generic aura on everyone — it manifests through the archetype's VESSEL: a Mech
+ * WIELDS it as weaponry, a Beastmaster's summoned ANIMAL is made of it, everyone
+ * else RADIATES it from the body. Fixes mechs glowing in the chest instead of the
+ * mech firing the weapon.
+ */
+function elementVessel(archetype: ArchetypeName, element: ElementName, scale: string): string {
+  switch (archetype) {
+    case 'Mech Pilot':
+      // Nanite is the exception: it IS the swarm, not a big mech wielding it.
+      if (element === 'Nanite')
+        return `a huge SWARM of MANY small and medium nanite-robots (NO single big mech) forming weapons and shields in mid-air around the pilot; the swarm ${scale}`;
+      return `the towering war-MECH WIELDS ${element} as its armament — ${element} cannons, blades, thrusters and ordnance firing and channeling FROM THE MECH ITSELF (NOT a glow on the human pilot); the mech's ${element} weaponry ${scale}`;
+    case 'Beastmaster':
+      return `the summoned beast IS ${element} — a great animal formed entirely OF ${element} prowling at their side, the ${element} taking animal shape, ${scale}`;
+    default:
+      return `${element} power VISIBLY ${scale} from the character`;
+  }
+}
+
 function buildElementPrefix(sheet: CharacterSheet): string {
+  if (isElementless(sheet.archetype)) {
+    return (
+      `GROUNDED GEAR (NOT an element) — the character's tools, weapons and devices are REAL mundane machinery of ` +
+      `brass, copper, steel, glass and leather, practical and hand-made — NO glowing energy, NO arcane aura, ` +
+      `NO magic VFX, NO neon, NO holograms`
+    );
+  }
   const element = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[element];
   const isFireFamily = FIRE_FAMILY_ELEMENTS.includes(element);
@@ -200,10 +223,13 @@ function buildElementPrefix(sheet: CharacterSheet): string {
         ? 'escalating dramatically, extending far beyond the body'
         : 'erupting';
   const nonFire = !isFireFamily ? ` ZERO fire, NO warm ember/orange.` : '';
+  // 2026-07-22 element-visual rework (art-prompt-director + LEONARDO_PLAYBOOK.md):
+  // lead with MATERIALS (biggest distinctiveness lever) + TEXTURES so no two
+  // elements share substance (Fire dry-char vs Blood wet-drip), then motion/lighting/color.
   return (
-    `ELEMENT SPECTACLE — ${element} power VISIBLY ${scale} from the character; the environment REACTS ` +
-    `(this element MUST DOMINATE the frame): ${firstClause(v.motion, 80)}; lighting ` +
-    `${firstClause(v.lighting, 64)}; only in ${element} colors ${v.primaryColors}.${nonFire}`
+    `ELEMENT SPECTACLE — ${elementVessel(sheet.archetype, element, scale)}; the environment REACTS ` +
+    `(this element MUST DOMINATE the frame): made of ${firstClause(v.materials, 44)}; ${firstClause(v.textures, 30)}; ` +
+    `${firstClause(v.motion, 64)}; lighting ${firstClause(v.lighting, 52)}; only in ${element} colors ${v.primaryColors}.${nonFire}`
   );
 }
 
@@ -260,9 +286,11 @@ function buildWardrobeClause(sheet: CharacterSheet): string {
   // maximally-detailed character). Leads with a hard coverage cue (the model
   // strips fit torsos otherwise, negatives notwithstanding).
   const pieces: string[] = [];
-  if (fashion.primaryGarment) pieces.push(`wearing ${fashion.primaryGarment}`);
+  // primaryGarment is asserted by the chest-coverage cue (2026-07-23) — do not
+  // repeat it here; spend the budget on armor + outer layer instead.
   if (fashion.armor) pieces.push(`armored in ${fashion.armor}`);
   if (fashion.outerLayer) pieces.push(`${fashion.outerLayer} over the shoulders`);
+  if (pieces.length === 0 && fashion.primaryGarment) pieces.push(`wearing ${fashion.primaryGarment}`);
   if (pieces.length === 0) return '';
   return `dressed in ${pieces.join(', ')}`;
 }
@@ -291,7 +319,205 @@ function buildAbilitySpectacle(refs: readonly CardAbilityReference[]): string {
  * reference docs (Tier I functional/restrained → Tier II proven → Tier III
  * mythic). Skin tone is explicitly protected from the element tint.
  */
+/**
+ * Archetypes with NO element — their power is BUILT, not channeled. The
+ * assembler must NOT inject an element scene-palette / spectacle / weapon-wreath
+ * for these, or the arcane palette hijacks the whole card (validated 2026-07-23:
+ * `Tech` turned every Human Calling into a teal sci-fi soldier). Human renders in
+ * a grounded gaslamp-fantasy steampunk palette instead.
+ */
+const ELEMENTLESS_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set<ArchetypeName>(['Human']);
+function isElementless(archetype: ArchetypeName): boolean {
+  return ELEMENTLESS_ARCHETYPES.has(archetype);
+}
+
+/**
+ * The no-element scene for Human — sets the old-school gaslamp/steampunk RENDER
+ * TONE (no magic) but does NOT dictate a workshop SETTING; the coupled
+ * environment (buildBackgroundClause) supplies the actual place, so the
+ * Infiltrator gets fog rooftops and the Pacifist a sanctuary, not a forge.
+ */
+function buildElementlessScenePalette(sheet: CharacterSheet): string {
+  const mood =
+    sheet.rank === 'Ascendant'
+      ? 'a legendary, larger-than-life moment'
+      : sheet.rank === 'Forged'
+        ? 'a charged, consequential moment'
+        : 'an intimate, grounded moment';
+  return (
+    `SCENE — a grounded OLD-SCHOOL GASLAMP-FANTASY STEAMPUNK world (absolutely NO elemental magic, NO glowing ` +
+    `arcane energy, NO neon, NO holograms, NO sci-fi chrome), ${mood}; rendered in warm brass, aged copper, ` +
+    `oiled leather, soot and gaslight tones; the character's skin stays its TRUE colour`
+  );
+}
+
+// Human Calling index (order in HUMAN.variants, load-bearing) for the special
+// camo-blend behavior.
+const HUMAN_INFILTRATOR_INDEX = 4;
+function isHumanInfiltrator(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Human' && sheet.hiddenFate.fashionVariantIndex === HUMAN_INFILTRATOR_INDEX;
+}
+
+/**
+ * The Infiltrator (Raheem 2026-07-23: "a camo background of a guy trying to
+ * disappear and doing a good job"). The SCENE itself is a camouflage field the
+ * ghillie-suited operative dissolves into — highest-priority segment so the
+ * blend actually renders instead of a generic hooded figure.
+ */
+function buildInfiltratorCamoScene(sheet: CharacterSheet): string {
+  const hidden =
+    sheet.rank === 'Ascendant'
+      ? 'almost impossible to spot — a master ghost, all but vanished'
+      : sheet.rank === 'Forged'
+        ? 'very hard to spot, mostly dissolved into the pattern'
+        : 'hard to spot, half-dissolved into the pattern';
+  return (
+    `SCENE — a dense CAMOUFLAGE field (mottled woodland foliage, ferns, moss, broken branches and dappled shadow in ` +
+    `muted grey-green-brown camo tones); the character wears a FULL GHILLIE CAMO SUIT patterned and textured to MATCH ` +
+    `this exact background, so they are DISAPPEARING into it and doing it WELL — ${hidden}, a broken-up silhouette low ` +
+    `among the foliage; ONLY the eyes and a sliver of face barely readable, everything else camouflaged; a grounded ` +
+    `gaslamp-fantasy world, NO magic, NO glow, NO neon; the character's skin stays its TRUE colour`
+  );
+}
+
+// Monk VIOLENCE variant indices (order in MONK.variants: 0 Peace, 1 Fire,
+// 2 Water, 3 Wind, 4 Earth). At Ascendant these reach the ALL-FOUR culmination.
+const MONK_VIOLENCE_INDICES: ReadonlySet<number> = new Set([1, 2, 3, 4]);
+function isMonkAllFourAscendant(sheet: CharacterSheet): boolean {
+  return (
+    sheet.archetype === 'Monk' &&
+    sheet.rank === 'Ascendant' &&
+    sheet.hiddenFate.fashionVariantIndex !== undefined &&
+    MONK_VIOLENCE_INDICES.has(sheet.hiddenFate.fashionVariantIndex)
+  );
+}
+
+/**
+ * Monk VIOLENCE Ascendant culmination (Raheem 2026-07-23): the grandmaster
+ * commands ALL FOUR elements at once, rendered as wild ELEMENTAL CHAOS raging
+ * across the whole background (NOT an organized quadrant mandala — Raheem: "just
+ * elemental chaos with all 4 going crazy"). The monk stands calm at the eye of
+ * the storm. Owns the scene clause (highest priority) so the single-element
+ * palette can't flood the frame.
+ */
+function buildMonkAllFourScene(): string {
+  return (
+    `SCENE — MONK VIOLENCE ASCENDANT, ALL-FOUR GRANDMASTER in wild ELEMENTAL CHAOS: a single grandmaster warrior-monk ` +
+    `centered and foreground, fully clothed, standing CALM and disciplined at the still eye of the storm, while ALL ` +
+    `FOUR ELEMENTS rage and collide in a churning MAELSTROM across the whole background, all going crazy at once — ` +
+    `roaring FIRE and ember-sparks, crashing WATER waves and spray, howling WIND and whipping debris, and shattering ` +
+    `EARTH with flying rock and stone-shards — every one of the four clearly present and unleashed, swirling and ` +
+    `clashing around the master; each element keeps its OWN vivid colour even in the chaos (do NOT blend to muddy ` +
+    `grey-brown); painterly hand-painted fantasy card art, NOT photoreal; NO glowing fists, the monk composed and not engulfed`
+  );
+}
+
+/**
+ * Monk PEACE Ascendant culmination (Raheem 2026-07-23): the fantasy-Buddha
+ * transcends into a serene celestial COSMIC BEING. Forced as a scene override
+ * because the plain cosmic palette + Ascendant power language kept rendering a
+ * muscular caped SUPERHERO instead of a serene robed Buddha (validated fail).
+ */
+function buildMonkPeaceCosmicScene(): string {
+  return (
+    `SCENE — MONK PEACE ASCENDANT, serene CELESTIAL COSMIC BUDDHA: a calm enlightened FANTASY-BUDDHA monk in tranquil ` +
+    `meditative LOTUS poise, hands resting in a peaceful mudra, draped in a flowing layered SAFFRON-AND-STARFIELD ` +
+    `MEDITATION ROBE of loose cloth (robes, NOT a superhero bodysuit, NOT a cape, NOT spandex, NOT a chiseled muscular ` +
+    `hero, NOT a power stance), a long mala prayer-bead strand, a painted third-eye, faint constellation-lines glowing ` +
+    `softly under the skin; a great galaxy-disc COSMIC NIMBUS of slowly orbiting stars haloing the head (never ` +
+    `feathered angel wings, never an angel halo, never a caster); seated serene amid a deep-space void of wheeling ` +
+    `galaxies and glowing nebulae; utterly calm and vast; painterly hand-painted fantasy card art, NOT photoreal; the ` +
+    `body keeps its TRUE build (a stout or aged Buddha stays stout/aged, never slimmed into a hero)`
+  );
+}
+
+const MONK_PEACE_INDEX = 0;
+function isMonkPeaceCosmic(sheet: CharacterSheet): boolean {
+  return (
+    sheet.archetype === 'Monk' &&
+    sheet.rank === 'Ascendant' &&
+    sheet.hiddenFate.fashionVariantIndex === MONK_PEACE_INDEX
+  );
+}
+
+// ---- Seraph three-path scene overrides (2026-07-23) ----------------------
+// The path anchor lives LOW in segment order and lost to the element palette
+// (the Twilight split washed out; the Fallen figure drifted to a red devil).
+// These OWN the high-priority scene clause so the flagship figure renders —
+// same fix as the Monk Peace-cosmic / all-four overrides. Foundation stays
+// undeclared austerity (no override fires below the gate rank).
+function isSeraphTwilight(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'Balanced' && sheet.rank !== 'Foundation';
+}
+function isSeraphFallenAscendant(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'Fallen' && sheet.rank === 'Ascendant';
+}
+function isSeraphGoodAscendant(sheet: CharacterSheet): boolean {
+  return (
+    sheet.archetype === 'Seraph' &&
+    sheet.rank === 'Ascendant' &&
+    sheet.narrativeAxisPath !== 'Fallen' &&
+    sheet.narrativeAxisPath !== 'Balanced'
+  );
+}
+
+/** Twilight (Balanced): a SINGLE figure hard-split down the exact centerline,
+ *  both halves at EQUAL luminance so neither floods (the validated failure). */
+function buildSeraphTwilightScene(sheet: CharacterSheet): string {
+  const scale =
+    sheet.rank === 'Ascendant'
+      ? 'full asymmetric SPLIT-CROWN regalia, mismatched wings at full span'
+      : 'exactly ONE ceremonial piece per side worn over a plain robe base';
+  return (
+    `SCENE — SERAPH TWILIGHT (Balanced path): a SINGLE figure HARD-SPLIT down the EXACT vertical centerline into ` +
+    `two EQUAL halves — one body, one head, split head-to-toe, a razor-sharp seam dividing the face, chest and ` +
+    `regalia straight down the middle (${scale}). The LEFT half is a radiant gold-and-white angel — one brilliant ` +
+    `white-feathered wing, half a burning gold halo, gold-veined ivory regalia, a gold-lit left eye — its glow ` +
+    `CONTAINED to the left side, matte and controlled, NOT blooming or bleeding past the seam. The RIGHT half is a ` +
+    `charred obsidian FALLEN angel — one wing of burnt black feathers dissolving into ash, half a shattered dark ` +
+    `halo, blackened tarnished regalia, molten-obsidian BLACK light bleeding UP through cracks, a black-fire right ` +
+    `eye — self-illuminated by its own cold black light at EQUAL strength to the left. BOTH halves read at FULL, ` +
+    `EQUAL brightness; neither floods nor washes out the other; a stark, deliberate 50/50 light-versus-dark ` +
+    `division that reads at a glance. Painterly hand-painted fantasy card art, NOT photoreal; the skin stays its ` +
+    `TRUE colour on both sides; NO red horned devil, NO fire-orange, NO two separate people, NO two heads — ONE person split`
+  );
+}
+
+/** Fallen Ascendant: a majestic ruined angel — beats the red-devil prior. */
+function buildSeraphFallenScene(): string {
+  return (
+    `SCENE — SERAPH FALLEN ASCENDANT, a CORRUPTED but MAJESTIC ruined angel at full commitment: great wings of ` +
+    `charred blackened feathers dissolving into ash and black glass, a shattered or inverted halo, full obsidian ` +
+    `regalia of blackened tarnished gold with molten-obsidian BLACK light bleeding UP through the cracks, dark ` +
+    `black-fire eyes — a beautiful, tragic, VIVID ruin of a heaven-born being. Radiance is REPLACED by cold molten ` +
+    `black light; the air is heavy with falling ash and thin sulfur haze. Painterly hand-painted fantasy card art, ` +
+    `NOT photoreal; the body keeps its TRUE build, age and ancestry (never slimmed or beautified into a generic ` +
+    `young demon). ABSOLUTELY NEVER a red horned devil, NEVER cartoon devil-horns, NEVER a sexy demoness, NEVER ` +
+    `fire-orange or campfire flame (this is molten obsidian + black light), NEVER a pentagram or inverted cross`
+  );
+}
+
+/** Good Ascendant: a radiant winged guardian — not a plate paladin. */
+function buildSeraphGoodScene(): string {
+  return (
+    `SCENE — SERAPH GOOD ASCENDANT, a radiant divine GUARDIAN at full commitment: full flowing regalia of gold and ` +
+    `white with cascading layered ceremonial cloth, great wings of brilliant white light, an intact burning gold ` +
+    `halo, VIVID divine radiance washing warm-gold light across the scene. A guardian-ANGEL of service and burden, ` +
+    `NOT a knight in plate armour and NOT a generic paladin — the divinity reads through wings, halo, sacred ` +
+    `vestment and celestial light, not a suit of armour. Painterly hand-painted fantasy card art, NOT photoreal; ` +
+    `the body keeps its TRUE build, age and ancestry (elders, heavyset and scrawny all belong — never auto-slimmed ` +
+    `or de-aged into a beautiful young angel)`
+  );
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
+  if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
+  if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();
+  if (isMonkPeaceCosmic(sheet)) return buildMonkPeaceCosmicScene();
+  if (isSeraphTwilight(sheet)) return buildSeraphTwilightScene(sheet);
+  if (isSeraphFallenAscendant(sheet)) return buildSeraphFallenScene();
+  if (isSeraphGoodAscendant(sheet)) return buildSeraphGoodScene();
+  if (isElementless(sheet.archetype)) return buildElementlessScenePalette(sheet);
   const v = ELEMENT_VISUAL_LANGUAGE[sheet.resolvedElement];
   const el = sheet.resolvedElement;
   // When companions are present the overwhelming element must radiate from the
@@ -307,7 +533,7 @@ function buildElementScenePalette(sheet: CharacterSheet): string {
         ? `ESCALATING POWER — ${el} strong around the character, spreading and more violent`
         : `EARLY RESTRAINED POWER — ${el} clearly present but CONTAINED, an intimate local scene`;
   return (
-    `SCENE — ${power}; rendered in ${el} colours ${v.primaryColors}; ${firstClause(v.atmosphere, 50)}; ` +
+    `SCENE — ${power}; substance of ${firstClause(v.materials, 40)}; rendered in ${el} colours ${v.primaryColors}; ${firstClause(v.atmosphere, 50)}; ` +
     `NO neutral/washed-out background; the character's skin stays its TRUE colour, never greyed or desaturated`
   );
 }
@@ -320,12 +546,34 @@ function buildCompanionClause(sheet: CharacterSheet): string {
   return `BACKGROUND COMPANIONS (behind and smaller than the character, out of focus, subordinate — NEVER a second main figure): ${sheet.companion}`;
 }
 
+// Human = the no-element inventor. Its weapon POOL is archetype-level and hands
+// out generic melee (a mace + round shield landed on a ninja). So the pooled
+// weapon is ignored for Human; instead each Calling gets its OWN defining
+// weapon here (or none). A prominent entry matters — the Marksman's rifle is its
+// whole silhouette and was vanishing when left to the low-priority wardrobe clause.
+// Index order = HUMAN.variants: 0 Artificer, 1 Medic, 2 Scholar, 3 Pacifist,
+// 4 Infiltrator, 5 Sky-Corsair, 6 Marksman.
+const HUMAN_CALLING_WEAPON: Record<number, string> = {
+  5: 'a brass gadget-cutlass at the hip and a brass forearm grapnel-launcher, held ready',
+  6: 'a long brass-scoped tech-rifle raised and aimed into the distance — its whole defining silhouette',
+};
+
 function buildWeaponClause(sheet: CharacterSheet): string {
+  if (isElementless(sheet.archetype)) {
+    const idx = sheet.hiddenFate.fashionVariantIndex;
+    const w = idx !== undefined ? HUMAN_CALLING_WEAPON[idx] : undefined;
+    // Empty for the tool/unarmed callings (Artificer/Medic/Scholar/Pacifist/
+    // Infiltrator) — their tools live in the fashion + camo scene.
+    return w ? `WEAPON (held and in use, defining silhouette): ${w}, mundane brass-and-steel, no glow, no energy` : '';
+  }
   if (!sheet.weapon || !sheet.weapon.trim()) return '';
   // The weapon is a defining silhouette — placed with the pose so the action
   // reads as USING it. §4.4: never "the same sword with a different glow". The
   // weapon is wreathed in the element so it CARRIES the element instead of
   // competing with it for the frame.
+  if (isElementless(sheet.archetype)) {
+    return `WEAPON/TOOL (held and in use, defining silhouette): ${sheet.weapon}, a mundane brass-and-steel mechanism, no energy wreath, no glow`;
+  }
   return `WEAPON (held and in use, defining silhouette): ${sheet.weapon}, wreathed in visible ${sheet.resolvedElement} energy`;
 }
 
@@ -430,6 +678,28 @@ const SPECTACLE_NEGATIVES =
   'no elemental effect, no visible power, no magic, ' +
   'washed-out, desaturated, neutral tan background, beige scene, sepia tone, muted flat palette, grey daylight scene';
 
+// 2026-07-23 (Raheem, EMPHATIC): the whole game is painterly fantasy art —
+// actively ban the photoreal drift for EVERY archetype (reverses the old Druid
+// photoreal exception). Reserved in the negative lead so it always survives.
+const PAINTERLY_NEGATIVES =
+  'photorealistic, photograph, photo, photo-real, realistic photo, hyperrealistic, lifelike skin, ' +
+  'real skin pores, DSLR photo, 3D render, CGI, octane render, unreal engine render';
+
+/**
+ * Elementless (Human) spectacle negatives — same anti-lame targets, but WITHOUT
+ * "no visible power / no magic" (that phrasing FORCES magic onto Human, which
+ * has none) and WITH hard bans on the sci-fi/arcane/neon look that hijacked the
+ * validation (see LEONARDO_PLAYBOOK "element palette SMOTHERS a no-element archetype").
+ */
+const STEAMPUNK_SPECTACLE_NEGATIVES =
+  'static portrait pose, standing still, hands at sides, stiff mannequin, ' +
+  'plain background, blank background, studio backdrop, white background, empty backdrop, ' +
+  'washed-out, desaturated, muted flat palette, grey daylight scene, ' +
+  'glowing energy, arcane aura, magic spell, spell-hands, elemental effect, energy weapon, laser, glowing blade, ' +
+  'neon glow, holographic HUD, digital interface, digital matrix rain, teal cyberpunk glow, sci-fi power armor, ' +
+  'chrome futurism, clean sterile spacesuit, superhero spandex bodysuit, ' +
+  'sailing ship on the ocean, sea galleon on water, ocean waves, naval sea-captain';
+
 /**
  * Leonardo accepts far more than the self-imposed 400 the legacy path uses.
  * The assembler uses a roomier cap so the modesty + spectacle reserves AND a
@@ -448,7 +718,17 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
   // in the reserved lead so it can never truncate off.
   const archetypeBans = sheet.archetype === 'Vampire'
     ? ', daylight, sunlight, daytime sky, bright noon, sunny meadow, blue midday sky'
-    : '';
+    : sheet.archetype === 'Monk'
+      // Peace must not read as a Seraph; Violence must not read as a hand-glow
+      // martial artist; the all-four must not blend to muddy soup.
+      ? ', angel wings, feathered wings, feathered halo, angel halo, Christian angel, glowing fists, hand energy blast, ki blast, glowing hands, star wizard casting, Dr Strange spell circles, muddy blended elements, generic martial artist, muscular superhero, superhero bodysuit, spandex bodysuit, cape, chiseled hero physique, comic-book superhero, dynamic power stance'
+      : sheet.archetype === 'Seraph'
+        // Fallen must not read as a red devil; Good must not read as a paladin;
+        // Twilight must stay ONE split figure, not two.
+        ? ', red horned devil, cartoon devil horns, demon skull, pentagram, inverted cross, sexy demoness, edgelord goth, fire-orange flame, campfire, generic paladin, knight in plate armor, shiny parade armor, two separate figures, two heads, beautiful young thin angel default'
+        : '';
+  const elementless = isElementless(sheet.archetype);
+  const spectacleNegatives = elementless ? STEAMPUNK_SPECTACLE_NEGATIVES : SPECTACLE_NEGATIVES;
   const bareChest = allowsBareChest(sheet);
   // Reserved lead (never truncated): anti-shirtless (covered case only) →
   // modesty → anti-lame → element drift bans. Then fill with as much of
@@ -456,7 +736,7 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
   // case the anti-shirtless block is dropped AND the coverage tokens are
   // stripped from the base fill so nothing fights the open-robe cue.
   const chestLead = bareChest ? '' : `${COVERED_CHEST_NEGATIVES}, `;
-  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${SPECTACLE_NEGATIVES}${elementDriftBans}${archetypeBans}`;
+  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${PAINTERLY_NEGATIVES}, ${spectacleNegatives}${elementless ? '' : elementDriftBans}${archetypeBans}`;
   const remaining = Math.max(ASSEMBLER_NEGATIVE_MAX - lead.length - warmGlowNegatives.length, 60);
   let baseSource = bareChest ? stripCoverageTokens(BASE_NEGATIVE) : BASE_NEGATIVE;
   if (sheet.archetype === 'Druid') baseSource = stripListTokens(baseSource, DRUID_GROWTH_SUPPRESSORS);
@@ -496,9 +776,13 @@ export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait
   // covered case gets an explicit coverage cue and the allowed (Ascendant male)
   // case gets an explicit open-robe / bare-chest cue. Placed right after the sex
   // prefix so it survives the 1450 budget.
-  const chestCue = bareChest
-    ? 'open outer robe/coat parted to reveal a bare muscular chest, no shirt beneath the open layer'
-    : 'chest and torso FULLY COVERED, high closed neckline, opaque garment closed at the chest';
+  // 2026-07-23: bare chest is retired game-wide, and the abstract "fully covered"
+  // phrasing kept losing to Phoenix's shirtless prior (validated 3-for-3 failures).
+  // Playbook: Phoenix anchors on NOUNS — name the actual closed garment.
+  const closedGarment = sheet.hiddenFate.fashion?.primaryGarment || 'a closed high-collared garment';
+  const chestCue =
+    `torso FULLY CLOTHED in ${firstClause(closedGarment, 42)} closed to the collar, zero exposed chest or midriff`;
+  void bareChest;
   const segments = [
     buildElementScenePalette(sheet), // element colors the WHOLE image — highest priority
     styleLeadFor(sheet.archetype), // dynamic action framing (Druid = photoreal)
@@ -535,7 +819,9 @@ export function assemblePortraitPrompt(sheet: CharacterSheet): AssembledPortrait
   const framing = sheet.companion && sheet.companion.trim()
     ? 'the character large in the foreground with the companions clearly visible behind them, entire head in frame, 3/4 body, wide background with depth'
     : COMPOSITION_CLOSER;
-  const reserved = `, ${framing}, ${sheet.resolvedElement} power filling the frame`;
+  const reserved = isElementless(sheet.archetype)
+    ? `, ${framing}, the character's machines and craft filling the frame`
+    : `, ${framing}, ${sheet.resolvedElement} power filling the frame`;
   const body = truncateToLimit(segments.join(', '), PORTRAIT_PROMPT_MAX - reserved.length);
 
   return {
@@ -624,8 +910,8 @@ export function buildImageEngineSnapshot(
     globalRules:
       `segment-order ${SEGMENT_ORDER_VERSION}; negative leads: CRITICAL + ` +
       `${archetype === 'Druid' ? 'Druid growth-suppressors dropped; ' : ''}` +
-      `COVERED_CHEST (unless Ascendant+male bareChestRoll) + SPECTACLE; ` +
-      `bare-chest gate: Ascendant male only, ~20% locked roll; ` +
-      `style: ${archetype === 'Druid' ? 'photoreal (Druid)' : 'painterly'}`,
+      `COVERED_CHEST + PAINTERLY (anti-photoreal, all archetypes) + SPECTACLE; ` +
+      `bare-chest: retired game-wide (always clothed); ` +
+      `style: painterly fantasy (no photoreal, all archetypes)`,
   };
 }

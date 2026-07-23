@@ -72,11 +72,11 @@ const WATER = V({
   primaryColors: 'ocean blue, deep teal, aqua',
   secondaryColors: 'turquoise, navy, seafoam',
   accentColors: 'white, silver',
-  materials: 'ocean water, rain, ice, mist, glass, coral, pearls',
-  textures: 'ripples, foam, waves, condensation, smooth reflections',
-  lighting: 'refraction, caustics, soft reflections, transparent glow — NO warm ember light',
-  motion: 'flowing currents, waterfalls, splashing droplets, swirling tides',
-  shapes: 'curved, flowing, spiral, circular',
+  materials: 'ocean water, clear glass, living coral, pearl',
+  textures: 'rippled surface, foam-crest, cool condensation sheen',
+  lighting: 'caustic refraction, soft blue reflection, transparent glow — NO warm light',
+  motion: 'flowing lateral currents, cresting waves, splashing droplet-spray',
+  shapes: 'curved, flowing, spiral, cresting',
   atmosphere: 'fog, rain, humidity',
   symbolism: 'healing, adaptability, wisdom, persistence',
   avoid: 'flat blue energy, generic magic swirl, plain blue glow, blue fire',
@@ -87,11 +87,11 @@ const EARTH = V({
   primaryColors: 'stone gray, granite, brown',
   secondaryColors: 'moss green, sandstone, clay',
   accentColors: 'gold, emerald, quartz',
-  materials: 'granite, marble, stone, crystal, clay, fossils, gemstones',
-  textures: 'rough rock, cracks, moss, weathering, chiseled stone',
-  lighting: 'soft ambient light, crystal reflections — NO warm ember light',
-  motion: 'tremors, dust, rising pillars',
-  shapes: 'blocky, angular, heavy',
+  materials: 'granite plates, boulder chunks, raw gemstone, buried fossils, slate',
+  textures: 'chunky rocky-plate, mineral-vein pits, weathered and cracked',
+  lighting: 'soft ambient, muted highlights on plate faces, dust-diffused — NO warm ember light',
+  motion: 'heaving stone plates, rising rock pillars, rock-fists forming, ground tremor',
+  shapes: 'blocky-heavy, columnar, angular',
   atmosphere: 'dust, falling debris',
   symbolism: 'protection, permanence, patience',
   avoid: 'plain brown rocks, smooth featureless boulders, glowing volcanic Earth (that is Fire)',
@@ -132,11 +132,11 @@ const ICE = V({
   primaryColors: 'ice blue, white',
   secondaryColors: 'pale cyan, frost gray',
   accentColors: 'crystal blue',
-  materials: 'ice, snow, crystal, frost',
-  textures: 'frost patterns, cracks, snow',
-  lighting: 'cold reflections, crystal sparkle — NO warm ember light',
-  motion: 'blizzards, snowflakes, freezing mist',
-  shapes: 'sharp, geometric',
+  materials: 'glacial ice, hard frost, snow-pack, faceted crystal',
+  textures: 'faceted frost-fracture, cracked glass-ice, rimed surface',
+  lighting: 'cold refracted sparkle, blue subsurface, sharp specular on facets — NO warm ember light',
+  motion: 'ice crystallizing OUTWARD in sharp spikes, drifting snow, freezing mist creeping',
+  shapes: 'angular, faceted, spike-and-shard',
   atmosphere: 'blizzard, frozen fog',
   symbolism: 'discipline, preservation',
   avoid: 'plain blue ice cubes, cartoon snow, blue fire',
@@ -147,11 +147,11 @@ const SHADOW = V({
   primaryColors: 'black, midnight purple',
   secondaryColors: 'dark gray, indigo',
   accentColors: 'violet, crimson',
-  materials: 'obsidian, smoke, void',
-  textures: 'ink, smoke, velvet darkness',
-  lighting: 'rim lighting only, low-key contrast — NO warm ember light',
-  motion: 'drifting smoke, shadow tendrils',
-  shapes: 'flowing, abstract',
+  materials: 'living ink, velvet smoke, polished obsidian',
+  textures: 'velvet ink-smoke, matte light-drinking black, tar-slick sheen',
+  lighting: 'rim-light only, deep low-key, light swallowed at the edges — NO warm ember light',
+  motion: 'low-drifting smoke, crawling shadow-tendrils reaching outward, darkness pooling',
+  shapes: 'flowing, tendril, formless-crawling',
   atmosphere: 'eclipse, fog, silence',
   symbolism: 'secrets, fear, death',
   avoid: 'pure black silhouettes, purple fire everywhere',
@@ -162,11 +162,11 @@ const METAL = V({
   primaryColors: 'steel, iron, silver',
   secondaryColors: 'bronze, brass',
   accentColors: 'gold, copper',
-  materials: 'forged steel, damascus steel, bronze, chains, gears',
-  textures: 'brushed metal, hammer marks, engraving',
-  lighting: 'sharp reflections, cool metallic shine — NO warm ember light, NO fire glow, cool metallic reflectivity only',
-  motion: 'rotating gears, sparks',
-  shapes: 'mechanical, geometric',
+  materials: 'forged steel, damascus steel, iron chains, interlocking gears, bladed alloy',
+  textures: 'brushed hammer-marks, engraved etching, riveted plate',
+  lighting: 'hard cool specular reflections, metallic sheen — NO warm ember light, NO fire glow, cool metallic reflectivity only',
+  motion: 'rotating gears, whirling blades, chains lashing, sparks flying off grinding metal',
+  shapes: 'mechanical, rigid, geometric-bladed',
   atmosphere: 'forge sparks, steam',
   symbolism: 'discipline, progress, craft',
   avoid: 'flat gray armor, chrome everything, molten-metal-only compositions (that reads as Fire)',
@@ -248,11 +248,11 @@ const BLOOD = V({
   primaryColors: 'deep crimson, arterial red',
   secondaryColors: 'rust brown, clot-black',
   accentColors: 'pale skin-tone, blood-drop silver-highlight',
-  materials: 'blood, wet crimson mist, red iron',
-  textures: 'misting-flowing liquid, veined-glow-under-skin, droplet-suspended',
-  lighting: 'cool ambient contrasted by warm crimson under-glow from within the character, not from outside',
-  motion: 'red mist rising, blood-droplets suspended, crimson pooling from the feet',
-  shapes: 'ribbon-and-droplet, veined-branching, pooling',
+  materials: 'arterial blood, clotting pools, glistening red iron',
+  textures: 'glossy wet sheen, syrup-thick viscous drips, beading droplets',
+  lighting: 'dark translucent red, subsurface under-skin glow, wet specular highlights',
+  motion: 'coiling ribbons, spraying arcs, hovering droplets, slow DOWNWARD drip',
+  shapes: 'tendrils, ribbons, spheres, coiling curves',
   atmosphere: 'red mist, crimson particles suspended',
   symbolism: 'sacrifice, kin-bond, life-cost',
   avoid: 'orange fire flame (that is Fire), purple, dry-crackling',
@@ -301,21 +301,6 @@ const LIGHT = V({
   atmosphere: 'light spilling from the ground beneath the feet, sky bright',
   symbolism: 'truth revealed, clarity of purpose',
   avoid: 'dark, moody, shadow, purple/black',
-});
-
-const SOUND = V({
-  theme: 'resonance, vibration, presence-through-air',
-  primaryColors: 'electric cyan, sonic magenta',
-  secondaryColors: 'waveform white, neon purple',
-  accentColors: 'concentric-ripple gold',
-  materials: 'resonance rings, waveform lines, drum-skin, string, brass horn',
-  textures: 'concentric ripple, waveform line, vibration blur, resonance echo',
-  lighting: 'cyan-magenta underglow, no warm ember, edge-lit by the pulse of the wave',
-  motion: 'concentric shock waves emanating outward, resonance rings around head and chest, vibration blur at the hands',
-  shapes: 'concentric-ring, waveform, radial-pulse',
-  atmosphere: 'sound waves rippling across the ground, waveform cutting through the frame; occasional fantasy-styled speaker-tower, stone amps, drum-kit, or lute in the background as playful world-building',
-  symbolism: 'unheard truth, resonance, memory-through-song',
-  avoid: 'ABSOLUTELY NEVER fire or flame or any warm-red glow, NEVER red aura',
 });
 
 const ASH = V({
@@ -378,19 +363,24 @@ const TIME = V({
   avoid: 'modern digital clocks, neon, fresh vibrant colors',
 });
 
+// 2026-07-23 rework (Raheem + art-prompt-director): COSMIC is now MONK-EXCLUSIVE
+// — the Peace-path culmination, the fantasy-Buddha transcended into a serene
+// celestial COSMIC BEING. Distinct from Void (starless black reality-tear),
+// Moon (silver cycle), Light/Holy (gold beams + halo). Cosmic is FULL of stars
+// and color, a calm vast starfield — NOT a caster blasting from the hands.
 const COSMIC = V({
-  theme: 'vastness, distance, star-forged wonder',
-  primaryColors: 'deep indigo, starlight white',
-  secondaryColors: 'nebula purple, galactic pink',
-  accentColors: 'starlight cyan, gold-star sparkle',
-  materials: 'stardust, nebula gas, gravitational lens, meteorite',
-  textures: 'constellation-and-nebula, gravity-warp, stardust-shimmer, galaxy-swirl',
-  lighting: 'starlight from all directions, gravitational lensing distortion, no daylight',
-  motion: 'constellation patterns lit under the skin, gravity-warped debris and stars orbiting the character',
-  shapes: 'orbiting-swirl, spiraling-galaxy, starburst',
-  atmosphere: 'stars and cosmic dust sparkling around the frame, night sky visible through the ground beneath their feet, nebula behind them',
-  symbolism: 'awe, distance from mortal concern',
-  avoid: 'earth-bound bright colors, fire, organic natural',
+  theme: 'transcendence, star-forged serenity, the enlightened mind gone vast',
+  primaryColors: 'deep-space indigo, void-blue black, starlight white',
+  secondaryColors: 'nebula violet, galactic rose-pink, deep teal cloud',
+  accentColors: 'gold-star sparkle, cyan pinpoint-stars, constellation-line silver',
+  materials: 'deep-space starfield, spiral galaxies, glowing nebula-gas clouds, orbiting stars and cosmic dust, a galaxy-disc halo, constellation-lines under the skin',
+  textures: 'grainy stardust shimmer, soft cloudy nebula-gas, pin-sharp starfield speckle, faint constellation-lines glowing beneath translucent skin, gravity-lens ripple',
+  lighting: 'soft cosmic self-illumination from within, starlight glinting from all directions, a serene celestial nimbus glow behind the head — NO daylight, NO warm sun, NOT a harsh beam',
+  motion: 'stars and cosmic dust slowly ORBITING the figure, a great galaxy-disc turning behind the head as a cosmic halo, constellation-lines drifting lit beneath the skin, nebula clouds curling gently — calm and vast, NOT a violent burst',
+  shapes: 'a serene ringed cosmic nimbus / galaxy-disc halo, orbiting-star rings, spiraling-galaxy swirls, a soft lotus-and-orbit symmetry',
+  atmosphere: 'a deep-space starfield and glowing nebulae filling the whole background, galaxies wheeling slowly, the ground beneath the feet opening onto the night sky, cosmic dust sparkling through the frame',
+  symbolism: 'enlightenment become vast, serenity beyond mortal concern, the self dissolved into the cosmos',
+  avoid: 'earth-bound bright daylight, fire, warm orange, organic nature; the starless ABSOLUTE-black reality-tear of Void (Cosmic is FULL of stars and color, not empty); silver moon-only palette (that is Moon); gold radiant beams and feathered halo (that is Light/Holy); angel wings; a menacing star-wizard or sorcerer casting from the hands (Cosmic is a SERENE seated/standing enlightened being, never a caster)',
 });
 
 const TECH = V({
@@ -476,6 +466,114 @@ const INFERNAL = V({
 /**
  * ---------- Canonical map ----------
  */
+// Bone — Necromancer-exclusive (2026-07-22). The physical architecture of the
+// dead: bone/skull/marrow constructs. Distinct from Ash (soot/grief), Spirit
+// (ectoplasm/souls), Shadow (ink/dark). Manifests as assembling skeletal
+// structures, NOT wet gore.
+const BONE = V({
+  theme: 'permanence of death, the frame beneath the flesh, memento mori',
+  primaryColors: 'bone white, aged ivory, grave-gray',
+  secondaryColors: 'marrow cream, tooth-yellow, ash-white',
+  accentColors: 'soul-light blue-green socket glow',
+  materials: 'bone, skull, rib, vertebrae, marrow, calcified relic, tooth',
+  textures: 'porous bone, hairline bone-cracks, polished ivory, calcified crust',
+  lighting: 'cold pale under-glow from within the bone, soul-light from the eye-sockets — NO warm light',
+  motion: 'bones assembling and rattling, skeletal constructs forming, marrow-dust drifting, bone-shards orbiting',
+  shapes: 'skeletal, ribbed, vertebral, interlocking-bone',
+  atmosphere: 'drifting bone-dust, floating skulls, ossuary architecture, rattling bones',
+  symbolism: 'permanence of death, the frame beneath the flesh, memento mori',
+  avoid: 'fleshy gore, wet blood (that is Blood), warm colors, fire, cartoon googly-eyed skulls',
+});
+
+// Nocturne — Vampire-exclusive (2026-07-22). Dominion of eternal night: a
+// personal blood-moon midnight. NOT Shadow (fear-dark) and NOT Moon (silver
+// cycle) — this is crimson-into-black, the devoured sun, wheeling bats.
+const NOCTURNE = V({
+  theme: 'dominion of eternal night, the devoured sun, blood-moon sovereignty',
+  primaryColors: 'blood-moon crimson, deep crimson-black, midnight void-black',
+  secondaryColors: 'dried-blood maroon, bruise-purple, star-choked black',
+  accentColors: 'blood-moon red-glow, pale bat-silhouette gray',
+  materials: 'blood-moon light, night-mist, wheeling bats, red-black sky, leather bat-wing membrane',
+  textures: 'velvet red-black gloom, drifting mist, moon-glow bleed, membranous wing-veining',
+  lighting: 'deep red blood-moon backlight, crimson rim on a field of black — NO warm daylight, the sun is devoured',
+  motion: 'bats wheeling and swirling, crimson mist coiling upward, the blood-moon rising, night bleeding across the sky',
+  shapes: 'crescent blood-moon, wheeling-bat swarm, billowing-mist, wing-silhouette',
+  atmosphere: 'a huge blood-moon dominating the sky, gothic spires in silhouette, a swirl of bats, perpetual crimson midnight',
+  symbolism: 'the eternal night, sovereignty over the dark, the sun devoured',
+  avoid: 'warm daylight, blue night sky, silver moon (that is Moon), cheerful stars, orange fire, campfire glow',
+});
+
+// Lunar — Lycanthrope-exclusive RARE (2026-07-22). The SUPERIOR version of Moon:
+// where Moon is calm silver GLOW, Lunar is BLAZING divine silver-FIRE — the Moon
+// Goddess's blessing, a full-moon corona and lunar runes. Must read as more
+// powerful/radiant than Moon at a glance.
+const LUNAR = V({
+  theme: "divine lunar sovereignty, the Moon Goddess's blessing, silver ascendance",
+  primaryColors: 'blazing silver-white, radiant moon-pearl, luminous platinum',
+  secondaryColors: 'deep midnight-blue field, prismatic halo-shimmer',
+  accentColors: 'silver-fire spark, lunar-rune glow',
+  materials: 'silver moonfire, radiant lunar corona, blessed silver, moon-glass, glowing lunar runes',
+  textures: 'blazing silver-flame, radiant corona-glow, engraved lunar-rune, liquid-silver sheen',
+  lighting: "BLAZING silver-white radiance from within — far brighter than Moon's soft glow — a full-moon corona haloing the whole figure, divine backlight",
+  motion: 'silver moonfire wreathing the body, a great full moon flaring behind, lunar runes orbiting, silver flame licking upward',
+  shapes: 'radiant full-disc, corona-burst, rune-ring, blazing crescent',
+  atmosphere: 'an enormous blazing full moon filling the sky, silver-fire raining, lunar runes in the air, divine silver light flooding the scene',
+  symbolism: "the Goddess's chosen, divine lunar authority, ascension",
+  avoid: 'soft dim moonlight (that is Moon), warm colors, sun-gold, plain calm silver glow — Lunar BLAZES, divine and radiant, never calm',
+});
+
+// Tech-archetype rare family (2026-07-22) — engineered/machine power. Shared by
+// Mech Pilot + Android. Each must read as CONTAINED, precise, machine-made —
+// never organic, never open flame.
+const PLASMA = V({
+  theme: 'engineered energy sovereignty, the caged star, raw power mastered',
+  primaryColors: 'blazing white-blue, electric violet, plasma-cyan',
+  secondaryColors: 'containment-ring gold, deep reactor-blue',
+  accentColors: 'white-hot core, arc-violet spark',
+  materials: 'a caged plasma-sphere held in glowing magnetic RINGS, plasma-blades, a plasma-cannon, molten ionized energy',
+  textures: 'roiling contained plasma inside metal containment rings, energy-field shimmer, white-hot core',
+  lighting: 'a blazing white-blue plasma core held INSIDE visible magnetic rings — CONTAINED not loose, hard energy-rim — NOT free lightning bolts, NOT open orange flame',
+  motion: 'plasma roiling WITHIN caged magnetic rings, plasma-blades ignited, a plasma-cannon discharging a bolt, contained not sprayed',
+  shapes: 'glowing containment-rings around a caged plasma-sphere, plasma-blade, cannon-muzzle',
+  atmosphere: 'orbiting magnetic containment rings holding caged plasma, a reactor-sun core',
+  symbolism: 'mastered power, the star in a cage',
+  avoid: 'open orange campfire flame (that is Fire), single yellow lightning bolt (that is Storm), wet colors, organic',
+});
+
+const NANITE = V({
+  theme: 'a living swarm of tiny machines, endless self-remaking',
+  primaryColors: 'liquid silver, chrome-gray, tech-cyan glint',
+  secondaryColors: 'matte gunmetal, hologram-teal',
+  accentColors: 'circuit-cyan glint, red sensor-pinpoints',
+  materials: 'a huge SWARM of MANY small and medium chrome robots (NO single big robot or mech), liquid-metal nanite dust',
+  textures: 'a dense crawling swarm of many distinct small and medium robots, granular chrome, individual machines visible',
+  lighting: 'cool metallic sheen with many tiny red/cyan sensor-glints across the swarm — no warm light',
+  motion: 'a huge swarm of many small and medium robots crawling, flying and assembling in mid-air, dissolving and reforming — the SWARM is the whole presence, not one big machine',
+  shapes: 'a dense cloud of many small and medium robots coalescing and scattering, no single large silhouette',
+  atmosphere: 'the air FILLED with a huge swarm of many small and medium robots swirling around the character',
+  symbolism: 'the machine that never dies, endless remaking',
+  avoid: 'a single large robot or mech, one solid body, a smooth glow, warm colors, organic — Nanite is a SWARM of MANY small and medium robots, NEVER one big machine',
+});
+
+// Prism — Android-exclusive (2026-07-22). The synthetic soul as refracted light
+// + volumetric HOLOGRAMS. Must read STRIKING and CLEARLY MANUFACTURED — iridescent
+// spectrum + projected holo-constructs, NOT gold holy light (Light/Holy) and NOT
+// flat circuit-cyan panels (Tech).
+const PRISM = V({
+  theme: 'the synthetic soul made of refracted light, holographic radiance',
+  primaryColors: 'iridescent rainbow-white, prismatic full-spectrum, holographic cyan-magenta',
+  secondaryColors: 'refracted spectrum bands, pearl-white',
+  accentColors: 'sharp spectral glint, holo-glyph glow',
+  materials: 'refracted spectrum light, prismatic crystal facets, VOLUMETRIC HOLOGRAMS, projected light-constructs, floating holo-glyphs',
+  textures: 'iridescent refraction, crisp holographic scanlines, faceted prism-crystal, spectral shimmer',
+  lighting: 'brilliant white light SPLITTING into rainbow spectra, holographic glow from within, sharp prismatic beams — NOT warm, NOT gold holy light',
+  motion: 'beams of white light splitting into rainbow spectra, volumetric holograms and data-mandalas assembling in the air, projected wings of light unfurling, spectral glyphs orbiting the figure',
+  shapes: 'prismatic facets, geometric holo-constructs, refracted spectrum-fans, sacred-geometry data-mandalas, projected light-wings',
+  atmosphere: 'the air alive with floating holographic constructs and refracted rainbow light, spectral geometry projected all around them',
+  symbolism: 'the manufactured soul, light given structure, the ghost in beautiful machine-light',
+  avoid: 'gold holy radiance (that is Light/Holy), flat circuit-cyan tech panels (that is Tech), warm colors, fire — Prism is IRIDESCENT SPECTRUM + volumetric HOLOGRAMS, striking and clean',
+});
+
 export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Fire: FIRE,
   Water: WATER,
@@ -493,7 +591,6 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Spirit: SPIRIT,
   Shadow: SHADOW,
   Light: LIGHT,
-  Sound: SOUND,
   Ash: ASH,
   Holy: HOLY,
   Void: VOID,
@@ -504,6 +601,12 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Moon: MOON,
   Dream: DREAM,
   Infernal: INFERNAL,
+  Bone: BONE,
+  Nocturne: NOCTURNE,
+  Lunar: LUNAR,
+  Plasma: PLASMA,
+  Nanite: NANITE,
+  Prism: PRISM,
 };
 
 /**

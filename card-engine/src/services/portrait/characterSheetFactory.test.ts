@@ -42,6 +42,22 @@ describe('resolveLockedSelections — rolls + locks at Foundation', () => {
     expect(out.environmentId).toBe('cemetery_district');
     expect(out.companionPresent).toBe(false);
   });
+
+  // Barbarian Tradition coupling (2026-07-23): the environment is picked by the
+  // locked fashionVariantIndex, NOT at random, so the background matches the
+  // culture. The env families are authored 1:1 parallel to the fashion variants.
+  it('couples the Barbarian environment to the fashion Tradition index (ignores rng)', () => {
+    const fate: HiddenFate = { ...foundationFate(), fashionVariantIndex: 2 };
+    // rng would pick index 0 (weapon), then index 0 (env) — but coupling wins.
+    const out = resolveLockedSelections(fate, 'Barbarian', seq([0, 0]));
+    expect(out.environmentId).toBe('glacier_white_waste'); // pool[2] = Glacier-Warden
+  });
+
+  it('falls back to a random Barbarian environment when no Tradition index is locked', () => {
+    const out = resolveLockedSelections(foundationFate(), 'Barbarian', seq([0, 0]));
+    expect(out.environmentId).toBe('crag_stonehold'); // rng index 0
+    expect(out.fashionVariantIndex).toBeUndefined();
+  });
 });
 
 describe('locked selections survive a tier-up via preserveIdentityAcrossRanks', () => {

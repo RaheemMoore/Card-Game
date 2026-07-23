@@ -65,7 +65,9 @@ describe('archetype hooks', () => {
     expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Foundation' }))).toContain('austerity');
     expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Ascendant', narrativeAxisPath: 'Fallen' }))).toContain('FALLEN');
     expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Ascendant', narrativeAxisPath: 'Good' }))).toContain('GOOD');
-    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Forged', narrativeAxisPath: 'Balanced' }))).toContain('BALANCED');
+    // Balanced = the TWILIGHT split path (anchor rewritten 2026-07-23 to force
+    // a vivid half-light/half-dark division rather than naming the axis).
+    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Forged', narrativeAxisPath: 'Balanced' }))).toContain('TWILIGHT');
   });
 
   it('Android keeps identity anchors across the form escalation', () => {
@@ -73,25 +75,23 @@ describe('archetype hooks', () => {
     expect(hookMandatorySegment(sheet('Android', { rank: 'Ascendant' }))).toContain('echoed');
   });
 
-  it('Ascendant-male bare chest fires ONLY when the locked ~20% roll is true', () => {
+  // Bare chest RETIRED game-wide (Raheem 2026-07-23): no shirtless, ever — even
+  // a legacy bareChestRoll:true male at Ascendant stays fully clothed.
+  it('Ascendant-male stays fully clothed even with a legacy bareChestRoll', () => {
     const bare = { sex: 'male', bareChestRoll: true } as CharacterSheet['hiddenFate'];
     const clad = { sex: 'male', bareChestRoll: false } as CharacterSheet['hiddenFate'];
     const rolled = assemblePortraitPrompt(sheet('Barbarian', { rank: 'Ascendant', isEvolution: true, hiddenFate: bare })).portraitPrompt;
     const notRolled = assemblePortraitPrompt(sheet('Barbarian', { rank: 'Ascendant', isEvolution: true, hiddenFate: clad })).portraitPrompt;
-    expect(rolled).toContain('bare muscular chest');
-    expect(notRolled).toContain('FULLY COVERED');
-    expect(notRolled).not.toContain('bare muscular chest');
+    expect(rolled).not.toContain('bare muscular chest');
+    expect(rolled).toContain('FULLY CLOTHED');
+    expect(notRolled).toContain('FULLY CLOTHED');
   });
 
-  it('the bare-chest roll lands near 20% and is locked (stable across ranks)', () => {
-    let bared = 0;
-    const N = 4000;
-    for (let i = 0; i < N; i++) {
+  it('the bare-chest roll is forced false (retired game-wide)', () => {
+    for (let i = 0; i < 200; i++) {
       const fate = resolveLockedSelections({} as CharacterSheet['hiddenFate'], 'Barbarian');
-      if (fate.bareChestRoll) bared++;
+      expect(fate.bareChestRoll).toBe(false);
     }
-    expect(bared / N).toBeGreaterThan(0.15);
-    expect(bared / N).toBeLessThan(0.25);
   });
 
   it('Vampire feral gate never fires on tier-up or above Foundation', () => {

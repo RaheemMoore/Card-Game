@@ -48,10 +48,10 @@ function seraphPathAnchor(path: string | undefined, rank: string): string {
   }
   const declared =
     path === 'Fallen'
-      ? 'the FALLEN path — blackened obsidian regalia, soot-veined weapon, Infernal molten-obsidian light (never fire-orange), a broken/inverted halo; NEVER horned-red-imp or sexy-demoness shorthand'
+      ? 'the FALLEN path — a CORRUPTED, MAJESTIC ANGEL, still winged and haloed but RUINED: great wings of charred blackened feathers dissolving into ash and black glass, a shattered or inverted halo, molten-obsidian BLACK light bleeding through cracks in blackened tarnished-gold regalia, dark black-fire eyes — a beautiful, tragic ruin, VIVID darkness. NEVER a red horned devil or imp, NEVER a sexy demoness, NEVER fire-orange (Infernal = molten obsidian + black light)'
       : path === 'Balanced'
-        ? 'the BALANCED path — asymmetric split regalia, half gold and half obsidian, mismatched wings, a grey-lacquered piece'
-        : 'the GOOD path — radiant gold-and-white regalia, gilded gear, warm halo';
+        ? 'the TWILIGHT path — the figure VIVIDLY SPLIT DOWN THE MIDDLE: one half brilliant radiant gold-and-white (a glowing white-feathered wing + a shining gold half-halo), the other half blackened obsidian shadow (a charred black wing + a broken dark half-halo). A STARK, BOLD, unmistakable light-versus-dark division across the whole body — the two halves must read at a glance'
+        : 'the GOOD path — a radiant guardian in gilded gold-and-white regalia, great wings of brilliant white light, an intact burning gold halo, VIVID divine radiance';
   const scale = rank === 'Ascendant' ? 'full commitment to' : 'exactly ONE ceremonial piece marking';
   return `SERAPH THREE-PATH ANCHOR: ${scale} ${declared}. The six Orders are independent of this alignment axis.`;
 }
@@ -84,6 +84,11 @@ const ARCHETYPE_PORTRAIT_HOOKS: Partial<Record<ArchetypeName, ArchetypePortraitH
     // The mech is REQUIRED in frame at every rank, and the pilot stays fully
     // human (never fuses with the machine).
     mandatorySegment(sheet) {
+      // Nanite exception (2026-07-22): the machine presence is a SWARM, not a
+      // single big mech — no towering war-machine, just many small/medium robots.
+      if (sheet.resolvedElement === 'Nanite') {
+        return `NO single large mech or big robot — the pilot's machine force is a huge SWARM of MANY small and medium nanite-robots swirling around them and assembling in mid-air. The pilot is FLESH-AND-BLOOD HUMAN in a flight-suit, NEVER fused with the machines.`;
+      }
       const scale =
         sheet.rank === 'Ascendant'
           ? 'a colossal titan-class mech, tower-tall, all weapon systems deployed'

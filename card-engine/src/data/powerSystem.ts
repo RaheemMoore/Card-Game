@@ -11,7 +11,9 @@ export const CLASS_AFFINITY: Record<ArchetypeName, Partial<Record<StatName, Bias
   'Mech Pilot': { Atk: 'High',      Def: 'Very High', Tech: 'Very High' },
   Android:      { Atk: 'Mid',       Def: 'High',      Tech: 'Very High' },
   Seraph:       { Atk: 'Mid',       Def: 'High',      Mana: 'High' },
-  Human:        { Atk: 'Mid',       Def: 'Mid',       Mana: 'Mid' },
+  // Human = the no-element TECH Inventor (2026-07-23 reframe). Power is BUILT,
+  // not channeled, so Human runs on Tech (like Mech Pilot/Android), never Mana.
+  Human:        { Atk: 'Mid',       Def: 'Mid',       Tech: 'Mid' },
 };
 
 export interface BiasRange {

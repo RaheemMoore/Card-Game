@@ -1067,7 +1067,7 @@ async function signedUrl(path: string): Promise<string | null> {
 // ---- Card synthesis ---------------------------------------------------
 
 function synthesizeCard(archetype: ArchetypeName, result: TierResult): Card {
-  const shell = buildCardShell(archetype, result.stats, []);
+  const shell = buildCardShell(archetype, result.stats);
   return {
     ...shell,
     cardName: result.cardName ?? '(no name)',
@@ -1082,7 +1082,7 @@ function synthesizeCardFromRun(run: RunSummary, portraitUrl: string | null): Car
   const archetype = run.input_snapshot?.archetype;
   const stats = run.input_snapshot?.stats;
   if (!archetype || !stats) return null;
-  const shell = buildCardShell(archetype, stats, []);
+  const shell = buildCardShell(archetype, stats);
   return {
     ...shell,
     cardName: run.claude_response?.cardName ?? '(no name)',

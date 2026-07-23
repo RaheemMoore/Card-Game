@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { assemblePortraitPrompt } from './portraitAssembler';
-import { PORTRAIT_PROMPT_MAX } from './claudeApi';
+import { PORTRAIT_PROMPT_MAX } from './imageEngine/imageConstants';
 import { emptyHiddenFate } from './hiddenFate';
 import type { CharacterSheet } from '../types/characterSheet';
 import type { HiddenFate } from '../types/bible';
@@ -163,35 +163,26 @@ describe('assemblePortraitPrompt — bare chest is gated to Ascendant + male ONL
   const female = (rank: 'Foundation' | 'Forged' | 'Ascendant') =>
     makeSheet({ rank, isEvolution: rank !== 'Foundation', hiddenFate: { ...hardFate(), sex: 'female' } });
 
-  it('Foundation male stays super modest — anti-shirtless negatives + FULLY COVERED cue', () => {
-    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(male('Foundation'));
+  // 2026-07-23: bare chest is retired GAME-WIDE (Raheem). Every rank+sex —
+  // including Ascendant male with a legacy bareChestRoll:true — stays clothed,
+  // and the cue names the actual closed garment (Phoenix anchors on nouns).
+  it.each(['Foundation', 'Forged', 'Ascendant'] as const)('%s male stays fully clothed — even with a legacy bareChestRoll', (rank) => {
+    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(male(rank));
     expect(negativePrompt).toContain('shirtless');
     expect(negativePrompt).toContain('bare chest');
-    expect(portraitPrompt).toContain('FULLY COVERED');
+    expect(portraitPrompt).toContain('FULLY CLOTHED');
     expect(portraitPrompt).not.toContain('bare muscular chest');
   });
 
-  it('Forged male stays covered (only the PEAK is bared)', () => {
-    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(male('Forged'));
+  it.each(['Foundation', 'Forged', 'Ascendant'] as const)('%s female stays fully clothed', (rank) => {
+    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(female(rank));
     expect(negativePrompt).toContain('bare chest');
-    expect(portraitPrompt).toContain('FULLY COVERED');
-  });
-
-  it('Ascendant female stays covered — guards the AND-vs-OR gate bug', () => {
-    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(female('Ascendant'));
-    expect(negativePrompt).toContain('bare chest');
-    expect(portraitPrompt).toContain('FULLY COVERED');
-    expect(portraitPrompt).not.toContain('bare muscular chest');
-  });
-
-  it('Ascendant male may be bared — no anti-shirtless negative, open-robe cue present', () => {
-    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(male('Ascendant'));
-    expect(negativePrompt).not.toContain('bare chest');
-    expect(negativePrompt).not.toContain('shirtless');
-    expect(portraitPrompt).toContain('bare muscular chest');
-    expect(portraitPrompt).not.toContain('FULLY COVERED');
-    // Female-explicit + groin negatives must STILL hold in the allowed case.
     expect(negativePrompt).toContain('bare breasts');
-    expect(negativePrompt).toContain('crotch bulge');
+    expect(portraitPrompt).toContain('FULLY CLOTHED');
+  });
+
+  it('the coverage cue names the actual closed garment', () => {
+    const { portraitPrompt } = assemblePortraitPrompt(male('Foundation'));
+    expect(portraitPrompt).toContain('FULLY CLOTHED in layered grave-robes of black linen');
   });
 });

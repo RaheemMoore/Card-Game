@@ -69,7 +69,7 @@ export const SERAPH_BIBLE: ArchetypeBibleChapter = {
     recognitionCues:
       'Story-Pillar-specific symbols, service-worn clothing, evidence of healing or guardianship, meaningful celestial features, and the visible burden of conviction.',
     avoid:
-      'White-and-gold armor (Good path only, Forged onward — never on Foundation or the Fallen/Balanced paths), symmetrical wings, universal halos, beautiful young angels, floating poses, and divinity equated with youth, whiteness, thinness, or beauty.',
+      'White-and-gold armor (Good path only, Forged onward — never on Foundation or the Fallen/Balanced paths), symmetrical wings, universal halos, and floating poses. A striking young seraph is perfectly fine — the goal is VARIETY across age, body, and ancestry (elders, heavyset, scrawny, and beautiful young all belong), NOT a ban on any one look. Just do not make EVERY seraph the same beautiful-young-thin default.',
   },
 
   symbolAndMaterial: {

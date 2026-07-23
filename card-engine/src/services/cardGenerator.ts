@@ -55,7 +55,6 @@ export function rollLycanthropeIdentity(): LycanthropeIdentity {
 export function buildCardShell(
   archetype: ArchetypeName,
   stats: CardStats,
-  whisperWords: string[],
 ): Omit<Card, 'cardName' | 'nameAndTitle' | 'lore'> {
   const dominant = getDominantStat(stats);
   const borderVariant = getBorderForDominantStat(dominant);
@@ -70,7 +69,6 @@ export function buildCardShell(
       baseVariant: borderVariant,
       baseSource: dominant ?? 'none',
     },
-    whisperWords,
     evolutionHistory: {},
     createdAt: new Date().toISOString(),
   };

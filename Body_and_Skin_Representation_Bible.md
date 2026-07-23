@@ -1,3 +1,5 @@
+> **STATUS — DESIGN SOURCE (not canonical implementation).** The canonical, current-state reference is generated from code: see [`IMAGE_ENGINE_REFERENCE.md`](IMAGE_ENGINE_REFERENCE.md) at the repo root, regenerated via `npm run docs:engines`. This document is the original design rationale the code was built from — consult it for intent, not current values.
+
 # Body and Skin Representation Bible
 **Version:** 1.0  
 **Project:** Card Game  

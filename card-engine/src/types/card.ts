@@ -55,17 +55,6 @@ export interface ArtSnapshot {
 
 export type EvolutionHistory = Partial<Record<StatName, Partial<Record<Rank, ArtSnapshot | null>>>>;
 
-export interface ModifierStack {
-  setting: string;
-  demeanor: string;
-  signatureDetail: string;
-  lighting: string;
-  element?: string;
-  physique?: string;
-  lineage?: string;
-  classSignature?: string;
-}
-
 export interface CardBorder {
   baseVariant: BorderVariant;
   baseSource: string;
@@ -160,16 +149,8 @@ export interface Card {
    */
   prestige?: import('./bible').PrestigeRole;
   /** @deprecated legacy pre-Bible whisper word list — kept for grandfathered cards. */
-  whisperWords: string[];
-  /** @deprecated legacy pre-Bible modifier stack — kept for grandfathered cards. */
-  modifiers?: ModifierStack;
+  whisperWords?: string[];
   identity?: CharacterIdentity;
-  /**
-   * Per-rank snapshot of the modifiers so we can trace the escalation over
-   * tier-ups: Foundation "Storm" → Forged "Tempest" → Ascendant "Savage Storm".
-   * `card.modifiers` always reflects the current rank's values.
-   */
-  modifierLineage?: Partial<Record<Rank, ModifierStack>>;
   /** Lycanthrope only. See LycanthropeIdentity. */
   lycanIdentity?: LycanthropeIdentity;
   /**

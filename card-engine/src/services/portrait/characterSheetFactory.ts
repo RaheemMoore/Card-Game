@@ -3,7 +3,7 @@ import type { ArchetypeName, Rank } from '../../types/card';
 import type { CardAbilityReference } from '../../types/abilities';
 import type { CharacterSheet } from '../../types/characterSheet';
 import { getWeaponPool, getWeaponDescriptor } from '../../data/archetypeWeapons';
-import { getEnvironmentPool } from '../../data/archetypeEnvironments';
+import { getEnvironmentPool, isTraditionCoupled } from '../../data/archetypeEnvironments';
 import {
   getCompanionPool,
   getCompanionById,
@@ -56,14 +56,28 @@ export function resolveLockedSelections(
 
   if (out.environmentId === undefined) {
     const pool = getEnvironmentPool(archetype);
-    if (pool.length > 0) out.environmentId = pick(pool, rng).id;
+    // Tradition coupling (Barbarian): when the env pool is authored 1:1 parallel
+    // to the fashion variants, pick the family matching the chosen Tradition so
+    // the background never mismatches the culture. Falls back to a random roll
+    // when the index is absent (legacy/tier-up) or out of range.
+    const idx = out.fashionVariantIndex;
+    if (
+      pool.length > 0 &&
+      isTraditionCoupled(archetype) &&
+      idx !== undefined &&
+      idx >= 0 &&
+      idx < pool.length
+    ) {
+      out.environmentId = pool[idx].id;
+    } else if (pool.length > 0) {
+      out.environmentId = pick(pool, rng).id;
+    }
   }
 
-  // ~20% locked roll: may this character bare its chest at the Ascendant peak?
-  // (Only consulted for Ascendant + male by the assembler.) Rolled once here so
-  // it is stable across tier-up / regen.
+  // Bare-chest retired game-wide (Raheem 2026-07-23): NO shirtless, ever.
+  // Force false so no card carries the flag (allowsBareChest also hard-returns false).
   if (out.bareChestRoll === undefined) {
-    out.bareChestRoll = rng() < 0.2;
+    out.bareChestRoll = false;
   }
 
   // companionPresent is the 50/50 gate (Beastmaster always true; empty-pool

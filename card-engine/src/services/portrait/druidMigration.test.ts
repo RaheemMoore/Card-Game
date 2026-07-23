@@ -55,10 +55,13 @@ describe('Druid assembler — photoreal + negative subtraction', () => {
     seq([0]),
   );
 
-  it('uses the PHOTOREALISTIC style lead, not the painterly one', () => {
-    const { portraitPrompt } = assemblePortraitPrompt(sheet());
-    expect(portraitPrompt).toContain('PHOTOREALISTIC');
-    expect(portraitPrompt).not.toContain('painterly fantasy action card art');
+  // 2026-07-23 (Raheem): the whole game is painterly — Druid's old photoreal
+  // exception was reversed. Druid now uses the painterly lead + anti-photoreal negatives.
+  it('uses the painterly style lead (photoreal exception retired) and bans photoreal', () => {
+    const { portraitPrompt, negativePrompt } = assemblePortraitPrompt(sheet());
+    expect(portraitPrompt).toContain('painterly hand-painted fantasy card art');
+    expect(portraitPrompt).not.toContain('PHOTOREALISTIC');
+    expect(negativePrompt).toContain('photorealistic');
   });
 
   it('drops the growth-suppressor negatives for Druid but keeps modesty', () => {

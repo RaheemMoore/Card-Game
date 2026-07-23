@@ -51,7 +51,8 @@ import {
   hookMandatorySegment,
   hookNarrativeAnchor,
 } from '../services/portrait/archetypeHooks';
-import { STYLE_ANCHOR, BASE_NEGATIVE } from '../services/claudeApi';
+import { COMPACT_STYLE_LEAD } from '../services/portraitAssembler';
+import { BASE_NEGATIVE } from '../services/imageEngine/imageConstants';
 import type { CharacterSheet } from '../types/characterSheet';
 import { getOverallRank } from '../data/powerSystem';
 import {
@@ -1041,9 +1042,9 @@ function LayerStatePanels({
         >
           <div className="space-y-2 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
             <div>
-              <span style={{ color: 'var(--admin-text-muted)' }}>Style lead (STYLE_ANCHOR):</span>
+              <span style={{ color: 'var(--admin-text-muted)' }}>Style lead (COMPACT_STYLE_LEAD):</span>
               <div className="mt-1 leading-snug" style={{ color: 'var(--admin-text)' }}>
-                {STYLE_ANCHOR.slice(0, 320)}…
+                {COMPACT_STYLE_LEAD.slice(0, 320)}…
               </div>
             </div>
             <div className="pt-1" style={{ borderTop: dashBorder }}>

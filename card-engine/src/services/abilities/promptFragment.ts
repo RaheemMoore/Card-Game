@@ -105,7 +105,7 @@ TUNING TARGETS (provisional, playtest will refine):
 - Ultimate slot only appears at Ascendant rank; don't mark a Foundation/Forged ability as ultimate
 
 RULES:
-1. Weave the ability into THIS character's lore, name, whisper words, and modifiers — no generic abilities.
+1. Weave the ability into THIS character's lore, name, and story pillars — no generic abilities.
 2. Only use effect / target / trigger / status IDs from the AVAILABLE lists above. If you need something not listed, prefer a close approximation from the list.
 3. familyIds MUST NOT include any restricted family for ${archetype}.
 4. resourceCost 0 requires resourceType "none" — if you set resourceType "${resource}", cost must be >= 1.
