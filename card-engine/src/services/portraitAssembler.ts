@@ -535,18 +535,21 @@ function isMonkPeaceCosmic(sheet: CharacterSheet): boolean {
 // These OWN the high-priority scene clause so the flagship figure renders —
 // same fix as the Monk Peace-cosmic / all-four overrides. Foundation stays
 // undeclared austerity (no override fires below the gate rank).
+// narrativeAxisPath is the lowercase band id ('good' | 'fallen' | 'balanced')
+// the forge choice + claudeApi anchor use — match it (was 'Fallen'/'Balanced',
+// a case-mismatch that kept these deterministic scenes from ever firing).
 function isSeraphTwilight(sheet: CharacterSheet): boolean {
-  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'Balanced' && sheet.rank !== 'Foundation';
+  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'balanced' && sheet.rank !== 'Foundation';
 }
 function isSeraphFallenAscendant(sheet: CharacterSheet): boolean {
-  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'Fallen' && sheet.rank === 'Ascendant';
+  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'fallen' && sheet.rank === 'Ascendant';
 }
 function isSeraphGoodAscendant(sheet: CharacterSheet): boolean {
   return (
     sheet.archetype === 'Seraph' &&
     sheet.rank === 'Ascendant' &&
-    sheet.narrativeAxisPath !== 'Fallen' &&
-    sheet.narrativeAxisPath !== 'Balanced'
+    sheet.narrativeAxisPath !== 'fallen' &&
+    sheet.narrativeAxisPath !== 'balanced'
   );
 }
 

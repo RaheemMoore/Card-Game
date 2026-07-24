@@ -195,14 +195,6 @@ export interface StoryPillarOption {
    */
   tags?: string[];
   /**
-   * P5 Seraph corruption arc — contribution of this option to the
-   * archetype's narrative-axis alignment score (+1 Good, -1 Fallen,
-   * 0 Balanced-leaning). Undefined = untagged (counts as 0 and does not
-   * qualify a card for axis computation). See
-   * services/narrativeAxisService.ts.
-   */
-  alignmentWeight?: number;
-  /**
    * Image-first (Stage 3) — optional visual directive this choice pins for the
    * portrait. Read ONLY by the deterministic image roll layer, never by lore.
    * The player never sees that a choice carries this. See ImageDirective.

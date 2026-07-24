@@ -65,11 +65,12 @@ describe('archetype hooks', () => {
 
   it('Seraph anchor reflects the resolved narrative-axis path', () => {
     expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Foundation' }))).toContain('austerity');
-    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Ascendant', narrativeAxisPath: 'Fallen' }))).toContain('FALLEN');
-    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Ascendant', narrativeAxisPath: 'Good' }))).toContain('GOOD');
+    // Path is the lowercase band id (2026-07-24 case fix).
+    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Ascendant', narrativeAxisPath: 'fallen' }))).toContain('FALLEN');
+    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Ascendant', narrativeAxisPath: 'good' }))).toContain('GOOD');
     // Balanced = the TWILIGHT split path (anchor rewritten 2026-07-23 to force
     // a vivid half-light/half-dark division rather than naming the axis).
-    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Forged', narrativeAxisPath: 'Balanced' }))).toContain('TWILIGHT');
+    expect(hookNarrativeAnchor(sheet('Seraph', { rank: 'Forged', narrativeAxisPath: 'balanced' }))).toContain('TWILIGHT');
   });
 
   it('Android keeps identity anchors across the form escalation', () => {
