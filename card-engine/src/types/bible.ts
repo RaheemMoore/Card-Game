@@ -47,10 +47,10 @@ export const ELEMENT_NAMES = [
   // light + volumetric HOLOGRAMS — iridescent rainbow, prismatic facets, holo
   // constructs. Distinct from Light (holy gold) + Tech (circuit-cyan). See PRISM.
   'Prism',
-  // Fallen-Seraph-exclusive (P4 Seraph corruption arc). Never appears in
-  // any archetype's compatibility buckets — it is only ever assigned by
-  // alignment transmutation at tier-up (Light → Infernal when the path
-  // resolves to 'fallen'). See data/narrativeAxes/seraphAlignment.ts.
+  // Fallen-Seraph element (P4 corruption arc). Assigned by transmutation
+  // (Light → Infernal when the Seraph's path is 'fallen') AND offered as a
+  // Seraph Rare (2026-07-24, Raheem). molten obsidian + black light, never
+  // fire-orange. See data/narrativeAxes/seraphAlignment.ts + elementVisualLanguage.
   'Infernal',
 ] as const;
 export type ElementName = typeof ELEMENT_NAMES[number];
