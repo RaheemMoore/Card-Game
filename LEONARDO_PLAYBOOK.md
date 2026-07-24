@@ -223,6 +223,13 @@ Bible-anchored (guardians NOT cursed monsters; identityThrough Duality; role inf
 - **Result: works for MALE Androids** — Destroy → faceless war-engine, Protect → faceless fortress-machine. Genuinely post-human.
 - **KNOWN PHOENIX LIMITATION: female Androids at Ascendant still render as GYNOIDS (fembots) with a human face**, regardless of path (even swarm/cloud), suppressed identity+wardrobe, and hard negatives (`gynoid, sexy fembot, human face`…). The sex bias is unbreakable via prompt on Phoenix. Male + aggressive paths defeat it; female + any path does not. Documented as a tool wall, not a code bug — revisit if the art model changes. Raheem's chosen direction ("lean into machine-monstrosities") is delivered for males.
 
+## Tier-up img2img does NOT suppress the scene-override form-breaks (VALIDATED 2026-07-24)
+
+Concern: the form-families were validated as fresh txt2img, but the live evolve-card flow is img2img from the prior rank's portrait — would a 0.45 init from a humanoid Foundation PIN the render and suppress the plant-being/skeleton/etc. form-break? **Answer: no.** Ran the real chain (Foundation txt2img → Forged img2img → Ascendant img2img) via `init_generation_image_id` + the actual `getInitStrengthForArchetype` values, on the two most at-risk breakers:
+- **Necromancer** — human → skeleton-lich (Forged, str 0.45) → crowned lich (Ascendant, str 0.2). Form broke fully; composition (scythe, void-arc, palette) carried over.
+- **Druid** — human → flowering plant-being (Forged, str 0.45) → full antlered plant-being (Ascendant, str 0.2). Identity (same face/ancestry) held across the break.
+The scene override dominates the init at these strengths. Existing init_strength tuning (0.45 Forged → 0.20 Ascendant organic; 0.55→0.30 machine; Lycan 0.15) is correct — loose enough to transform, tight enough to keep the same character. No change needed. (Node harness tip: use `init_generation_image_id` referencing the prior generation's `generated_images[0].id` — the `/init-image` presigned-S3 POST is fiddly to reproduce outside the `/api/s3-upload` proxy.)
+
 ## Learnings log (append-only, newest last)
 
 - **2026-07-22** — Established this playbook. Diagnosed root cause of same-y elements: assembler dropped materials/textures/shapes; `theme`/`symbolism` (emotional) were leaking into the Claude prompt. Direction: enrich the assembler with materials/textures/shapes, rework each element's fields for zero-overlap, keep emotional fields on the lore side only.
