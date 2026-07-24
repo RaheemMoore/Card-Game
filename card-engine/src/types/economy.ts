@@ -11,9 +11,6 @@ export type PaidActionId = typeof PAID_ACTION_IDS[number];
 export const GAMEPLAY_ACTION_IDS = [
   'stat_reroll',
   'battle_run_entry',
-  // Seraph corruption arc (P8) — "Resist the Fall" Gold sink, priced by rank.
-  'seraph_resist_fall_forged',
-  'seraph_resist_fall_ascendant',
 ] as const;
 export type GameplayActionId = typeof GAMEPLAY_ACTION_IDS[number];
 

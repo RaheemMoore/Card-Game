@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { collectImagePins } from './collectImagePins';
-import { visualQuestionsFor } from '../../data/visualPillars';
+import { visualQuestionsFor, resolveNarrativePath } from '../../data/visualPillars';
 import { rollIdentity } from '../imageEngine/identityRoller';
 import type { StoryPillarAnswers } from '../../types/bible';
 
@@ -66,6 +66,17 @@ describe('collectImagePins — Vampire image-first', () => {
     expect(good).toContain('tree_being');
     expect(good).not.toContain('cordyceps');
     expect(corrupted).toEqual(['cordyceps', 'carrion_bloom', 'bloodmaw']);
+  });
+
+  test('Seraph gets a moral-path question (no body form) and it resolves to a path', () => {
+    const { questions, options } = visualQuestionsFor('Seraph', 'Holy');
+    expect(questions.some((q) => q.id === 'vf_seraph_path')).toBe(true);
+    const fallen = options.find((o) => o.id === 'vf_seraph_fallen')!;
+    expect(resolveNarrativePath('Seraph', answersFor([fallen.id]))).toBe('fallen');
+    // Path options carry no image pin (they drive narrativeAxis, not the roll).
+    expect(fallen.image).toBeUndefined();
+    // Non-Seraph archetypes have no path.
+    expect(resolveNarrativePath('Barbarian', answersFor(['whatever']))).toBeUndefined();
   });
 
   test('unmatched option ids yield no pins', () => {

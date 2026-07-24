@@ -2,7 +2,6 @@ import type { Card, CardStats, StatName, Rank, ArtSnapshot, AbilityHistorySnapsh
 import type { HiddenFate, ElementName } from '../types/bible';
 import type { AbilitySlotType, CardAbilityReference } from '../types/abilities';
 import { SERAPH_ALIGNMENT } from '../data/narrativeAxes';
-import { computeAlignment } from './narrativeAxisService';
 import { resolveCurrentElement } from './elementResolver';
 import {
   BIAS_RANGES,
@@ -178,29 +177,12 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
     (r) => r.localTier === oldRank,
   );
 
-  // P7 — Seraph corruption arc. Recompute the narrative axis from the
-  // (immutable) Story Pillar answers and resolve the transmutation patch for
-  // the NEW rank. Non-Seraph / untagged cards get no patch and behave as before.
-  let seraphPatch: SeraphTransmutationPatch | undefined;
-  if (SERAPH_ALIGNMENT.appliesToArchetypes.includes(card.archetype)) {
-    const alignment = computeAlignment(card.storyPillars, SERAPH_ALIGNMENT);
-    if (alignment) {
-      const axisState: NarrativeAxisState = {
-        axisId: SERAPH_ALIGNMENT.axisId,
-        score: alignment.score,
-        path: alignment.path,
-        resolvedAtRank: newOverallRank,
-        ...(card.narrativeAxis?.resistedFall ? { resistedFall: true } : {}),
-      };
-      seraphPatch = applySeraphTransmutation(card, axisState);
-    }
-  }
-
-  // Element the art/prompt pipeline consumes — the transmuted element if the
-  // axis just transmuted, otherwise the card's current resolved element.
+  // Seraph moral path — image-first (2026-07-24): the path (and any Fallen+Light
+  // → Infernal transmutation) is chosen and LOCKED at the forge, not recomputed
+  // at tier-up. Carry the card's narrativeAxis + its already-resolved element.
   const resolvedElement: ElementName =
-    seraphPatch?.currentElement ?? resolveCurrentElement(card) ?? card.elementSelection.element;
-  const narrativeAxisForGen = seraphPatch ? { path: seraphPatch.narrativeAxis.path } : undefined;
+    resolveCurrentElement(card) ?? card.elementSelection.element;
+  const narrativeAxisForGen = card.narrativeAxis ? { path: card.narrativeAxis.path } : undefined;
 
   const text = await generateCardTextWithRetry({
     archetype: card.archetype,
@@ -323,10 +305,10 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
     prestige: prestige ?? card.prestige,
     evolutionHistory: history,
     abilityHistory: Object.keys(abilityHistory).length > 0 ? abilityHistory : undefined,
-    // P7 — persist the resolved narrative axis + any element transmutation.
-    narrativeAxis: seraphPatch?.narrativeAxis ?? card.narrativeAxis,
-    currentElement: seraphPatch?.currentElement ?? card.currentElement,
-    originalElement: seraphPatch?.originalElement ?? card.originalElement,
+    // Carry the forge-locked narrative axis + element transmutation forward.
+    narrativeAxis: card.narrativeAxis,
+    currentElement: card.currentElement,
+    originalElement: card.originalElement,
   };
 
   saveCard(updatedCard);

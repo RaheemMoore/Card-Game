@@ -2,6 +2,7 @@ import type { ArchetypeName } from '../types/card';
 import type {
   ElementName,
   ImageDirective,
+  StoryPillarAnswers,
   StoryPillarOption,
   StoryPillarQuestion,
 } from '../types/bible';
@@ -121,14 +122,56 @@ function companionQuestion(archetype: ArchetypeName): VisualQuestionSet {
   return { questions: [{ id: 'vf_companion', pillarIndex: 4, prompt: 'Who stands with you?' }], options };
 }
 
+// ---- Seraph — MORAL PATH (Good / Fallen / Balanced), chosen and LOCKED at the
+// forge (2026-07-24, replaces the retired tier-up alignment recompute). The path
+// value is the lowercase band id the claudeApi Seraph anchor + tierUp carry.
+// Fallen + Light transmutes the element to Infernal at forge time (forgeController).
+const SERAPH_PATH_OPTION: Record<string, { id: string; path: string; label: string }> = {
+  good: { id: 'vf_seraph_good', path: 'good', label: 'The Good path — a radiant guardian of gold-and-white, wings of brilliant light, an intact halo' },
+  fallen: { id: 'vf_seraph_fallen', path: 'fallen', label: 'The Fallen path — a corrupted but majestic ruined angel, charred wings, molten-obsidian black light' },
+  balanced: { id: 'vf_seraph_balanced', path: 'balanced', label: 'The Balanced (Twilight) path — one figure split down the middle, radiant gold and charred obsidian at once' },
+};
+
+function seraphPathQuestion(): VisualQuestionSet {
+  return {
+    questions: [{ id: 'vf_seraph_path', pillarIndex: 1, prompt: 'Where does your contested spark fall?' }],
+    // No image pin — the path drives narrativeAxis (resolveNarrativePath), not the
+    // deterministic identity roll. collectImagePins ignores un-pinned options.
+    options: Object.values(SERAPH_PATH_OPTION).map((o) => ({
+      id: o.id,
+      questionId: 'vf_seraph_path',
+      text: o.label,
+      tags: [],
+    })),
+  };
+}
+
+/**
+ * Resolve the Seraph alignment path (band id) the player chose, from the answers.
+ * Returns undefined for non-Seraph or if no path option was answered.
+ */
+export function resolveNarrativePath(
+  archetype: ArchetypeName,
+  answers: StoryPillarAnswers,
+): string | undefined {
+  if (archetype !== 'Seraph') return undefined;
+  const byOptionId = new Map(Object.values(SERAPH_PATH_OPTION).map((o) => [o.id, o.path]));
+  for (const a of answers.answers) {
+    const path = byOptionId.get(a.optionId);
+    if (path) return path;
+  }
+  return undefined;
+}
+
 /**
  * The visual (image-pinned) question set for an archetype's forge, gated by the
  * already-chosen element. Every archetype gets build + weapon + companion (where
- * a pool exists); the form question appears where FORM_FAMILIES gates one.
+ * a pool exists); the form question appears where FORM_FAMILIES gates one, and
+ * Seraph gets its moral-path question instead of a body-form question.
  */
 export function visualQuestionsFor(archetype: ArchetypeName, element: ElementName): VisualQuestionSet {
   const parts = [
-    formQuestion(archetype, element),
+    archetype === 'Seraph' ? seraphPathQuestion() : formQuestion(archetype, element),
     buildQuestion(archetype),
     weaponQuestion(archetype),
     companionQuestion(archetype),

@@ -1,7 +1,8 @@
-import type { ArchetypeName, CardStats, Card, AbilityHistorySnapshot } from '../../types/card';
+import type { ArchetypeName, CardStats, Card, AbilityHistorySnapshot, NarrativeAxisState } from '../../types/card';
 import type { CardAbilityReference } from '../../types/abilities';
-import type { ElementSelection, StoryPillarAnswers } from '../../types/bible';
+import type { ElementSelection, ElementName, StoryPillarAnswers } from '../../types/bible';
 import { buildCardShell } from '../cardGenerator';
+import { resolveNarrativePath } from '../../data/visualPillars';
 import { generateCardTextWithRetry } from '../claudeApi';
 import { generatePortraitStrict, pickAbTestModel } from '../leonardoApi';
 import { saveCard } from '../storage';
@@ -244,13 +245,38 @@ async function runForge(job: ForgeJob): Promise<void> {
     const shell = buildCardShell(archetype, stats);
     shell.cardId = cardId;
 
+    // Seraph moral path — image-first (2026-07-24): the path (Good/Fallen/
+    // Balanced) is chosen and LOCKED at the forge, not resolved at tier-up. A
+    // Fallen + Light Seraph transmutes its element to Infernal here, once; the
+    // origin is recorded so a later revert (not currently reachable — the path is
+    // locked) or the tier-up element resolver stays coherent.
+    const seraphPath = resolveNarrativePath(archetype, storyPillars);
+    let narrativeAxis: NarrativeAxisState | undefined;
+    let currentElement: ElementName | undefined;
+    let originalElement: ElementName | undefined;
+    let forgeElement = element;
+    if (seraphPath) {
+      narrativeAxis = {
+        axisId: 'seraph_alignment',
+        score: seraphPath === 'fallen' ? -4 : seraphPath === 'good' ? 4 : 0,
+        path: seraphPath,
+        resolvedAtRank: 'Foundation',
+      };
+      if (seraphPath === 'fallen' && element.element === 'Light') {
+        originalElement = 'Light';
+        currentElement = 'Infernal';
+        forgeElement = { ...element, element: 'Infernal' };
+      }
+    }
+
     const text = await generateCardTextWithRetry({
       archetype,
       stats,
       answers: storyPillars,
-      element,
+      element: forgeElement,
       cardId, // seeds the image-first identity roll (deterministic per forge)
       abilitySlotToFill: 'core',
+      narrativeAxis: narrativeAxis ? { path: narrativeAxis.path } : undefined,
     });
 
     // M3.6 A/B — rotate painterly Leonardo models on Foundation forges.
@@ -316,6 +342,9 @@ async function runForge(job: ForgeJob): Promise<void> {
       generationModel: portrait.modelKey,
       storyPillars,
       elementSelection: element,
+      ...(narrativeAxis ? { narrativeAxis } : {}),
+      ...(currentElement ? { currentElement } : {}),
+      ...(originalElement ? { originalElement } : {}),
       hiddenFate: text.hiddenFate,
       abilityHistory: abilityHistorySnapshot.length > 0
         ? { Foundation: abilityHistorySnapshot }

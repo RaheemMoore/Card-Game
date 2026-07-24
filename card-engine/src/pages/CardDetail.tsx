@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCard, deleteCard, saveCard } from '../services/storage';
+import { getCard, deleteCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
 import { BORDER_COLORS } from '../data/stats';
 import type { StatName, Card, ArtSnapshot, Rank } from '../types/card';
@@ -10,10 +10,7 @@ import {
   computeRankSum,
   getStatNames,
 } from '../data/powerSystem';
-import { canTierUp, applySeraphTransmutation } from '../services/tierUp';
-import { resistFall } from '../services/narrativeAxisService';
-import { SERAPH_ALIGNMENT } from '../data/narrativeAxes';
-import { resistFallActionId, resistFallCost } from '../services/economy/resistFall';
+import { canTierUp } from '../services/tierUp';
 import {
   startReforge,
   startTierUp,
@@ -83,8 +80,6 @@ export function CardDetail() {
     | { currency: 'premium'; required: number; actionLabel: string }
   >(null);
   const premiumBalance = useBalance('premium');
-  const goldBalance = useBalance('gameplay');
-  const [isResisting, setIsResisting] = useState(false);
   const [loreExpanded, setLoreExpanded] = useState(false);
   const [storyExpanded, setStoryExpanded] = useState(false);
 
@@ -205,66 +200,12 @@ export function CardDetail() {
     cancelPath();
   }
 
-  // P8 — "Resist the Fall". Gold-only sink that nudges a Fallen Seraph's
-  // alignment one step toward center; reverts a prior Light→Infernal
-  // transmutation once the path leaves 'fallen'.
-  async function handleResistFall() {
-    if (!card || isResisting || !card.narrativeAxis) return;
-    const rank = getOverallRank(card.stats);
-    const actionId = resistFallActionId(rank);
-    const cost = resistFallCost(rank);
-    if (!actionId || cost === null) return;
-
-    setIsResisting(true);
-    let reservation;
-    try {
-      reservation = wallet.reserve({
-        currency: 'gameplay',
-        amount: cost,
-        actionId,
-        cardId: card.cardId,
-      });
-    } catch (err) {
-      setIsResisting(false);
-      if (err instanceof wallet.InsufficientFundsError) return; // button is balance-gated
-      throw err;
-    }
-    try {
-      const newAxis = resistFall(card.narrativeAxis, SERAPH_ALIGNMENT, rank);
-      const patch = applySeraphTransmutation(card, newAxis);
-      const updated: Card = {
-        ...card,
-        narrativeAxis: patch.narrativeAxis,
-        currentElement: patch.currentElement ?? card.currentElement,
-        originalElement: patch.originalElement ?? card.originalElement,
-      };
-      saveCard(updated);
-      wallet.commit(reservation.transactionId);
-      setCard(updated);
-    } catch (err) {
-      wallet.refund(reservation.transactionId, err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsResisting(false);
-    }
-  }
-
   const borderColor = BORDER_COLORS[card.border.baseVariant];
   const rankSum = computeRankSum(card.stats);
   const activeStats = getStatNames(card.archetype);
   const canUpgrade = canTierUp(card);
   const hasPreviousTiers = tierTimeline.length > 0;
   const { overallRank, allTiers, currentIdx, isViewingHistory, displayCard } = viewState!;
-
-  // P8 — Seraph alignment panel + Resist the Fall gating.
-  const seraphAxis = card.archetype === 'Seraph' ? card.narrativeAxis : undefined;
-  const resistCost = resistFallCost(overallRank);
-  const canAffordResist = resistCost !== null && goldBalance >= resistCost;
-  const SERAPH_PATH_META: Record<string, { label: string; color: string }> = {
-    good: { label: 'Radiant', color: '#fbbf24' },
-    balanced: { label: 'Twilight', color: '#a78bfa' },
-    fallen: { label: 'Fallen', color: '#ef4444' },
-  };
-  const pathMeta = seraphAxis ? SERAPH_PATH_META[seraphAxis.path] : undefined;
 
   return (
     <div className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
@@ -635,51 +576,6 @@ export function CardDetail() {
               </div>
             )}
           </div>
-
-          {/* P8 — Seraph alignment + Resist the Fall */}
-          {seraphAxis && pathMeta && !isViewingHistory && (
-            <div
-              className="border rounded-lg p-3"
-              style={{ borderColor: `${pathMeta.color}55`, background: `${pathMeta.color}0d` }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-fantasy text-xs font-bold" style={{ color: pathMeta.color }}>
-                    Divine Alignment
-                  </span>
-                  <p className="text-[11px] text-bone/70 mt-0.5">
-                    Path:{' '}
-                    <span className="font-bold" style={{ color: pathMeta.color }}>
-                      {pathMeta.label}
-                    </span>
-                    <span className="text-ash/50"> · score {seraphAxis.score >= 0 ? `+${seraphAxis.score}` : seraphAxis.score}</span>
-                    {seraphAxis.resistedFall && <span className="text-ash/50"> · resisted</span>}
-                  </p>
-                </div>
-                {seraphAxis.path === 'fallen' && resistCost !== null && (
-                  <button
-                    onClick={handleResistFall}
-                    disabled={isResisting || !canAffordResist}
-                    className="px-3 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
-                      bg-gradient-to-r from-violet-500/70 to-indigo-500/70 text-ivory
-                      hover:shadow-[0_0_12px_rgba(139,92,246,0.35)]
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      flex items-center gap-2 shrink-0"
-                    title="Nudge your alignment one step back toward the light"
-                  >
-                    <span>{isResisting ? 'Resisting...' : 'Resist the Fall'}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-black/30">
-                      <CurrencyCost
-                        currency="gameplay"
-                        amount={resistCost}
-                        insufficient={!canAffordResist}
-                      />
-                    </span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Tier Up */}
           {canUpgrade && (
