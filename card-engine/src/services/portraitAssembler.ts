@@ -907,6 +907,8 @@ const LYCAN_PACK_ROLES: readonly string[] = [
   "a WARDEN OF THE BOUNDARY — twin territory-stakes and glowing border-runes, holding the tree-line",
 ];
 const LYCAN_MOON_PHASES: readonly string[] = ['new moon', 'crescent moon', 'half moon', 'gibbous moon', 'full moon'];
+// Parallel ids (SAME ORDER) for the player's birth-moon pick (hiddenFate.moonPhase).
+export const LYCAN_MOON_PHASE_IDS: readonly string[] = ['new_moon', 'crescent', 'half', 'gibbous', 'full'];
 // index = transformation level 0–4. Raheem 2026-07-24: the werewolf transformation
 // TEARS the clothes, so a bare muscular were-torso with TORN CLOTHING remnants is the
 // desired look for the shifted forms (2–4) — bare torso is fine there. The HUMAN /
@@ -933,7 +935,9 @@ function buildLycanScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
   const role = LYCAN_PACK_ROLES[pickFormIndex(sheet, LYCAN_PACK_ROLES.length)];
-  const moonStart = moonPhaseSeed(sheet) % LYCAN_MOON_PHASES.length;
+  // Player's birth-moon pick sets the Foundation start stage; seed is the fallback.
+  const pinnedMoon = sheet.hiddenFate.moonPhase ? LYCAN_MOON_PHASE_IDS.indexOf(sheet.hiddenFate.moonPhase) : -1;
+  const moonStart = pinnedMoon >= 0 ? pinnedMoon : moonPhaseSeed(sheet) % LYCAN_MOON_PHASES.length;
   // ALL Lycans END full (level 4) at Ascendant; moon phase sets the Foundation start,
   // rank advances it (+2 at Forged). Foundation full-moon-born already begins full.
   const level = sheet.rank === 'Ascendant' ? 4 : Math.min(4, moonStart + (sheet.rank === 'Forged' ? 2 : 0));
@@ -977,6 +981,8 @@ const ANDROID_PATHS: readonly string[] = [
   'BEFRIEND ALL LIFE — a floating SENSOR-SWARM intelligence: a constellation of dozens of drifting sensor-orbs and connective light-filaments with NO central body; a network, not a person — no face',
   'LEAVE ALL LIFE BEHIND — a dispersing CORE-CLOUD: a barely-solid drift of distributed cores, nanite-mist and star-geometry departing into the void; a cloud, not a figure — no body, no face',
 ];
+// Parallel ids (SAME ORDER) for the Ascendant path the player picks at tier-up.
+export const ANDROID_PATH_IDS: readonly string[] = ['protect', 'destroy', 'befriend', 'leave'];
 function pathSeed(sheet: CharacterSheet): number {
   const s = `path:${sheet.hiddenFate.age ?? ''}|${sheet.hiddenFate.skinTone ?? ''}|${sheet.hiddenFate.sex ?? ''}`;
   let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h);
@@ -994,7 +1000,10 @@ function buildAndroidScene(sheet: CharacterSheet): string {
   const purpose = ANDROID_PURPOSES[pickFormIndex(sheet, ANDROID_PURPOSES.length)];
   const chassis = `${firstClause(v.materials, 28)} in ${el} colours ${firstClause(v.primaryColors, 22)}`;
   if (sheet.rank === 'Ascendant') {
-    const path = ANDROID_PATHS[pathSeed(sheet) % ANDROID_PATHS.length];
+    // The path is the player's Ascendant tier-up pick (hiddenFate.androidPath);
+    // seed is the fallback for cards tiered up before the choice existed.
+    const pinnedPath = sheet.hiddenFate.androidPath ? ANDROID_PATH_IDS.indexOf(sheet.hiddenFate.androidPath) : -1;
+    const path = ANDROID_PATHS[pinnedPath >= 0 ? pinnedPath : pathSeed(sheet) % ANDROID_PATHS.length];
     return (
       `SCENE — OVERWHELMING POWER: a POST-HUMAN android that has SHED all human form — ${path}. ` +
       `Built of ${chassis}. This is a MACHINE STRUCTURE / SWARM, NOT a character — render NO human face, NO head, NO standing humanoid figure, NO woman and NO man; only a faint trace of its origin as ${purposeShort(purpose)}; painterly hand-painted fantasy card art, NOT photoreal`

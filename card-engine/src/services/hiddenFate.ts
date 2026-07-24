@@ -76,6 +76,9 @@ export const LOCKED_HIDDEN_FATE_FIELDS: readonly (keyof HiddenFate)[] = [
   'speciesForm',
   // Beastmaster's bonded beast — a lifelong partner, locked across ranks.
   'summonId',
+  // Lycan birth moon-phase (Foundation start stage) + Android Ascendant path.
+  'moonPhase',
+  'androidPath',
 ] as const;
 
 /**

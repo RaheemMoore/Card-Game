@@ -10,7 +10,7 @@ import { formsFor } from '../services/imageEngine/formFamilies';
 import { BODY_CLASSES, BODY_ALLOWLIST, type BodyClassId } from '../services/imageEngine/identityPools';
 import { getWeaponPool } from './archetypeWeapons';
 import { getCompanionPool } from './archetypeCompanions';
-import { beastmasterSummonOptions } from '../services/portraitAssembler';
+import { beastmasterSummonOptions, LYCAN_MOON_PHASE_IDS } from '../services/portraitAssembler';
 
 /**
  * Image-first visual pillars (2026-07-24).
@@ -180,12 +180,30 @@ function summonQuestion(element: ElementName): VisualQuestionSet {
   };
 }
 
+// Lycanthrope birth moon — the "minor slider" (Raheem): sets the Foundation
+// transformation start stage on the fixed human→full-wolf ramp. Pins moonPhase.
+const LYCAN_MOON_LABELS: Record<string, string> = {
+  new_moon: 'New moon — born mostly human, the change barely stirring',
+  crescent: 'Crescent moon — the first coarse fur and wolfish tells',
+  half: 'Half moon — half-shifted, a powerful were-guardian',
+  gibbous: 'Gibbous moon — mostly wolf, towering and furred',
+  full: 'Full moon — born already a full Lycan Guardian',
+};
+function lycanMoonQuestion(): VisualQuestionSet {
+  return {
+    questions: [{ id: 'vf_moon', pillarIndex: 5, prompt: 'Under what moon were you born?' }],
+    options: LYCAN_MOON_PHASE_IDS.map((id) =>
+      vopt('vf_moon_' + id, 'vf_moon', LYCAN_MOON_LABELS[id] ?? id, { moonPhase: id }),
+    ),
+  };
+}
+
 /**
  * The visual (image-pinned) question set for an archetype's forge, gated by the
  * already-chosen element. Every archetype gets build + weapon + companion (where
  * a pool exists); the form question appears where FORM_FAMILIES gates one; Seraph
- * gets its moral-path question, and Beastmaster its summoned-beast question,
- * instead of a body-form / generic-companion question.
+ * gets its moral-path question, Beastmaster its summoned-beast question, and
+ * Lycanthrope an extra birth-moon slider.
  */
 export function visualQuestionsFor(archetype: ArchetypeName, element: ElementName): VisualQuestionSet {
   const parts = [
@@ -193,6 +211,7 @@ export function visualQuestionsFor(archetype: ArchetypeName, element: ElementNam
     buildQuestion(archetype),
     weaponQuestion(archetype),
     archetype === 'Beastmaster' ? summonQuestion(element) : companionQuestion(archetype),
+    archetype === 'Lycanthrope' ? lycanMoonQuestion() : { questions: [], options: [] },
   ];
   return {
     questions: parts.flatMap((p) => p.questions),

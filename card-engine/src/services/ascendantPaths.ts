@@ -120,3 +120,32 @@ function fallbackPaths(card: Card): AscendantPath[] {
     },
   ];
 }
+
+/**
+ * Android Ascendant PATHS (image-first, 2026-07-24). Unlike the Claude-generated
+ * narrative forks above, these are the four FIXED post-human end-states the
+ * player picks at the Forged→Ascendant tier-up. ORDER MATCHES ANDROID_PATH_IDS
+ * (portraitAssembler) — the modal passes the id by index into hiddenFate.androidPath.
+ */
+export const ANDROID_ASCENDANT_PATHS: readonly AscendantPath[] = [
+  {
+    title: 'Protect All Life',
+    narrative:
+      'A walking fortress-citadel — a mobile bulwark of shield-walls, ramparts and warding turret-arms. A structure that shelters, no longer a figure.',
+  },
+  {
+    title: 'Destroy All Life',
+    narrative:
+      'A bladed war-engine monstrosity — a multi-limbed extermination-machine bristling with cannon-spikes. A war-machine, not a soldier.',
+  },
+  {
+    title: 'Befriend All Life',
+    narrative:
+      'A floating sensor-swarm intelligence — dozens of drifting orbs and light-filaments with no central body. A network that touches every life.',
+  },
+  {
+    title: 'Leave All Life Behind',
+    narrative:
+      'A dispersing core-cloud — a barely-solid drift of distributed cores, nanite-mist and star-geometry departing into the void.',
+  },
+];

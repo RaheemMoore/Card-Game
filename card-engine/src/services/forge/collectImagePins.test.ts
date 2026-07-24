@@ -99,6 +99,15 @@ describe('collectImagePins — Vampire image-first', () => {
     expect(r.species).toBe('humanoid');
   });
 
+  test('Lycan gets a birth-moon slider (5 phases) that pins moonPhase', () => {
+    const { questions, options } = visualQuestionsFor('Lycanthrope', 'Moon');
+    expect(questions.some((q) => q.id === 'vf_moon')).toBe(true);
+    const moons = options.filter((o) => o.questionId === 'vf_moon').map((o) => o.image?.moonPhase);
+    expect(moons).toEqual(['new_moon', 'crescent', 'half', 'gibbous', 'full']);
+    const full = options.find((o) => o.image?.moonPhase === 'full')!;
+    expect(collectImagePins('Lycanthrope', 'Moon', answersFor([full.id])).moonPhase).toBe('full');
+  });
+
   test('unmatched option ids yield no pins', () => {
     const pins = collectImagePins('Barbarian', 'Fire', answersFor(['not-a-real-option']));
     expect(pins).toEqual({});

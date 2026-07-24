@@ -3,7 +3,7 @@ import type { AbilitySlotType } from '../../types/abilities';
 import { getCard } from '../storage';
 import { regeneratePortrait } from '../regeneratePortrait';
 import { tierUpCard } from '../tierUp';
-import { generateAscendantPaths, type AscendantPath } from '../ascendantPaths';
+import { generateAscendantPaths, ANDROID_ASCENDANT_PATHS, type AscendantPath } from '../ascendantPaths';
 import { getOverallRank } from '../../data/powerSystem';
 import * as wallet from '../economy/walletService';
 import * as ledger from '../economy/transactionLedger';
@@ -192,13 +192,20 @@ export function startTierUp(card: Card): void {
  * Player picked an Ascendant path — run the second (portrait) phase against the
  * same reservation. Only valid while awaiting-path.
  */
-export function choosePath(): void {
+export function choosePath(androidPath?: string): void {
   const job = currentJob;
   if (!job || job.status !== 'awaiting-path') return;
-  // The narrative was folded into the Bible-driven Ascendant Paths; the pick
-  // itself just commits the player to advancing. See runTierUp's void of it.
-  setJob({ ...job, status: 'running', step: 'Forging new form…', ascendantPaths: undefined });
-  void runTierUp(job);
+  // For non-Android archetypes the narrative fork is folded into the Bible-driven
+  // Ascendant Paths and the pick just commits to advancing. For Android, the pick
+  // IS the post-human form — thread it into hiddenFate.androidPath so
+  // buildAndroidScene renders the chosen end-state.
+  const inputCard =
+    androidPath && job.inputCard.hiddenFate
+      ? { ...job.inputCard, hiddenFate: { ...job.inputCard.hiddenFate, androidPath } }
+      : job.inputCard;
+  const running: CardJob = { ...job, status: 'running', step: 'Forging new form…', ascendantPaths: undefined, inputCard };
+  setJob(running);
+  void runTierUp(running);
 }
 
 /**
@@ -254,7 +261,12 @@ async function runReforge(job: CardJob): Promise<void> {
 
 async function loadAscendantPaths(job: CardJob): Promise<void> {
   try {
-    const paths = await generateAscendantPaths(job.inputCard);
+    // Android picks its fixed post-human PATH (image-driven); every other
+    // archetype gets the Claude-generated narrative forks.
+    const paths =
+      job.inputCard.archetype === 'Android'
+        ? ANDROID_ASCENDANT_PATHS.slice()
+        : await generateAscendantPaths(job.inputCard);
     if (currentJob?.jobId !== job.jobId) return;
     patchJob({ status: 'awaiting-path', step: 'Choose your Ascendant path', ascendantPaths: paths });
   } catch (err) {

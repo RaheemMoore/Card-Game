@@ -1207,6 +1207,10 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       if (imagePins.summon && hiddenFate.summonId === undefined) {
         hiddenFate = { ...hiddenFate, summonId: imagePins.summon };
       }
+      // Lycanthrope birth moon-phase (Foundation transformation start stage).
+      if (imagePins.moonPhase && hiddenFate.moonPhase === undefined) {
+        hiddenFate = { ...hiddenFate, moonPhase: imagePins.moonPhase };
+      }
     }
 
     // Image/lore decoupling — the Leonardo prompt is built deterministically by

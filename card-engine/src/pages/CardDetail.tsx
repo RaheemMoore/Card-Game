@@ -19,6 +19,7 @@ import {
   acknowledge as acknowledgeCardJob,
   readResultCard,
 } from '../services/forge/cardJobController';
+import { ANDROID_PATH_IDS } from '../services/portraitAssembler';
 import { useCardJob } from '../services/forge/useCardJob';
 import * as wallet from '../services/economy/walletService';
 import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
@@ -189,10 +190,13 @@ export function CardDetail() {
     }
   }
 
-  function handleChoosePath() {
-    // The narrative is folded into the Bible-driven Ascendant Paths; picking
-    // just advances the job to its portrait phase (still the same reservation).
-    choosePath();
+  function handleChoosePath(index: number) {
+    // Android: the pick IS the post-human form — pass its id (by index into
+    // ANDROID_PATH_IDS) so buildAndroidScene renders it. Other archetypes: the
+    // narrative fork just advances the job to its portrait phase.
+    const androidPath =
+      card?.archetype === 'Android' ? ANDROID_PATH_IDS[index] : undefined;
+    choosePath(androidPath);
   }
 
   function handleCancelAscendantModal() {
@@ -703,10 +707,13 @@ export function CardDetail() {
             <div className="p-5 border-b border-gold/30 bg-gradient-to-b from-gold/10 to-transparent">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-fantasy text-xl font-bold text-gold">Your Ascendant Story</h3>
+                  <h3 className="font-fantasy text-xl font-bold text-gold">
+                    {card.archetype === 'Android' ? 'Choose Your Final Form' : 'Your Ascendant Story'}
+                  </h3>
                   <p className="text-xs text-ash/80 italic mt-1">
-                    Two paths continue {card.cardName}'s story into their Ascendant form.
-                    Choose the direction their legend takes.
+                    {card.archetype === 'Android'
+                      ? `${card.cardName} sheds all human form. Choose the post-human end-state they become.`
+                      : `Paths continue ${card.cardName}'s story into their Ascendant form. Choose the direction their legend takes.`}
                   </p>
                 </div>
                 <button
@@ -722,7 +729,7 @@ export function CardDetail() {
               {ascendantPaths.map((path, i) => (
                 <button
                   key={i}
-                  onClick={handleChoosePath}
+                  onClick={() => handleChoosePath(i)}
                   disabled={isTieringUp}
                   className="w-full text-left p-4 rounded-lg border-2 border-slate-dark
                     bg-slate-dark/40 hover:border-gold/60 hover:bg-gold/5

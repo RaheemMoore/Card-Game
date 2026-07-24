@@ -178,6 +178,12 @@ export interface ImageDirective {
    * entity the assembler renders. See data/visualPillars.ts + buildBeastmasterScene.
    */
   summon?: string;
+  /**
+   * Lycanthrope moon-phase pin — the birth moon that sets which STAGE of the
+   * human→full-wolf transformation the Foundation card starts at (all Lycans
+   * still end full wolf by Ascendant). One of LYCAN_MOON_PHASE_IDS.
+   */
+  moonPhase?: string;
 }
 
 /**
@@ -269,6 +275,17 @@ export interface HiddenFate {
    * lifelong partner). Undefined = the assembler seed-rolls the species.
    */
   summonId?: string;
+  /**
+   * Lycanthrope birth moon-phase id (Foundation transformation start stage).
+   * Locked across ranks. Undefined = the assembler seed-rolls it.
+   */
+  moonPhase?: string;
+  /**
+   * Android Ascendant PATH id (Protect / Destroy / Befriend / Leave) — the
+   * post-human end-state, chosen at the Forged→Ascendant tier-up (not at forge).
+   * Consumed only at Ascendant by buildAndroidScene; undefined ⇒ seed-rolled.
+   */
+  androidPath?: string;
   /**
    * Which fashion variant of the archetype's guide this card resolved to
    * (index into ARCHETYPE_FASHION_GUIDES[archetype].variants). GENERIC — not
