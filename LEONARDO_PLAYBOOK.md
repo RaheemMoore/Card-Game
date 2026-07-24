@@ -204,6 +204,16 @@ Raheem wanted Druids to genuinely BREAK human form (they were capped as "a perso
 - **Antler/wing ban is rank-conditional**: banned at Foundation/Forged (where the deer-druid / angel cliché drifted in), LIFTED at Ascendant so the flower-druid/tree-being can grow branch-antlers.
 - **Robes are the modesty base at every tier** and match the live DRUID fashion (bark-fiber robe, moss-lined tunic, mantle, cloak). Lower tiers = a robed druid with partial overgrowth (human at Foundation → half at Forged), so they never drift into a shirtless were-beast. Gen-test fashion MUST use the real robed druid variant, not skimpy leaf-wraps (a skimpy test wardrobe was half the bare-torso problem).
 
+## Lycanthrope: Guardians of the Moon Goddess — role × moon-phase × rank-to-full-wolf (VALIDATED 2026-07-24)
+
+Bible-anchored (guardians NOT cursed monsters; identityThrough Duality; role inferable; "not only an animal"). Three levers in `buildLycanScene`:
+- **Pack ROLE** (seed-picked via `formSeed`): Hunter / Moonkeeper-Healer / Scout / Lorekeeper / Guardian / Warden — each with visible role tools/emblem (spear, herb-satchel, horn, story-staff, shield, boundary-stakes). Keeps the Bible's "role inferable" true even in wolf-form.
+- **MOON PHASE** (rolled via a SECOND seed `moonPhaseSeed`, salted off sex+hair+age so it decorrelates from role): sets WHERE the FOUNDATION card starts on the human→wolf journey (new=human tells → full=already a full wolf at Foundation). Raheem's rule.
+- **RANK → full wolf**: ALL Lycans END in full wolf-form by Ascendant (level 4). `level = Ascendant?4 : min(4, moonStart + (Forged?2:0))`. Reconciles with the Bible's "rank ≠ size/muscle/dominance" by framing the Ascendant wolf as a **noble Guardian / lunar apotheosis**, not a brute, and by scaling **pack presence** (leads a pack at Ascendant) = authority, not brute size.
+- **MODESTY — the werewolf exception (Raheem):** clothes TEAR on transformation, so a **bare muscular were-torso with TORN CLOTHING remnants is DESIRED** on the shifted forms (levels 2–4) — do NOT ban it (unlike every other archetype). Human/partial forms (0–1) stay CLOTHED (not yet torn). So the Lycan `archetypeBans` only keeps it a FURRED werewolf (not a nude human) + drops the rabid-monster read; it does NOT add the bare-chest/midriff bans the Druid needed. This is the ONE archetype where the bare were-torso is on-brand.
+- **Element = STRIKING lunar manifestation** (Raheem): a great moon dominates every card; Moon=silver glow, Lunar (exclusive)=BLAZING silver-fire corona, Blood=blood-moon crimson, Beast=primal amber, Shadow=umbral night. Pulled from `ELEMENT_VISUAL_LANGUAGE`.
+- Full form renders as a bipedal werewolf (weapon-holding) OR a great four-legged wolf (both validated, both loved). Quadruped is naturally the most modest; bipedal gets the torn-clothes look.
+
 ## Learnings log (append-only, newest last)
 
 - **2026-07-22** — Established this playbook. Diagnosed root cause of same-y elements: assembler dropped materials/textures/shapes; `theme`/`symbolism` (emotional) were leaking into the Claude prompt. Direction: enrich the assembler with materials/textures/shapes, rework each element's fields for zero-overlap, keep emotional fields on the lore side only.

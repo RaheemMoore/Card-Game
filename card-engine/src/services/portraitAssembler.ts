@@ -807,9 +807,79 @@ function buildBeastmasterScene(sheet: CharacterSheet): string {
   return `SCENE — ${power}: a fully-HUMAN beastmaster commands ${beast}; the beast's ENTIRE BODY is COMPOSED OF ${el} (${firstClause(v.materials, 28)}) — NOT a normal animal with a glow, the animal IS ${el}; in ${el} colours ${firstClause(v.primaryColors, 22)}, NO neutral background`;
 }
 
+// ---- Lycanthrope form-family (2026-07-24) — Guardians of the Moon Goddess, NOT
+// cursed monsters (Bible: identityThrough Duality, "not only an animal", rank ≠
+// size/muscle/aggression/dominance). Two axes + a rank-driven progression:
+//   • PACK ROLE (seed-picked) — Hunter/Moonkeeper/Scout/Lorekeeper/Guardian/Warden.
+//     Role tools/emblem stay visible even in wolf-form (Bible: role inferable).
+//   • MOON PHASE (rolled, moonPhaseSeed) — sets WHERE the FOUNDATION card starts on
+//     the human→wolf journey (new=human tells … full=already a full wolf). Raheem.
+//   • RANK drives the transformation to completion: ALL Lycans END in FULL wolf
+//     form by Ascendant (Raheem). The Ascendant wolf is a MAJESTIC GUARDIAN (lunar
+//     apotheosis), never a snarling brute — that honors the Bible's "rank ≠ dominance".
+// Modesty: the shifted levels (2–4) are DENSE FUR head-to-toe + a torn transformation
+// harness — fur is the coverage (same lesson as the Druid bear). The element gets a
+// STRIKING lunar manifestation (Raheem). Owns the SCENE so the specific form renders.
+const LYCAN_PACK_ROLES: readonly string[] = [
+  "a HUNTER of the pack — a bone-tipped hunting spear in hand, trophy-tokens and trail-marks on a reinforced harness",
+  "a MOONKEEPER HEALER — a herb-and-remedy satchel and a moon-silver charm at the throat, calm and tending",
+  "a SCOUT of the boundary — light and swift, a curved signal-horn and territory trail-marks, alert and watchful",
+  "a LOREKEEPER — a pack-knot tapestry-cloak and a bone-etched story-staff, ceremonial and wise",
+  "a GUARDIAN — a heavy reinforced war-harness and a boundary-warden's round shield, stalwart",
+  "a WARDEN OF THE BOUNDARY — twin territory-stakes and glowing border-runes, holding the tree-line",
+];
+const LYCAN_MOON_PHASES: readonly string[] = ['new moon', 'crescent moon', 'half moon', 'gibbous moon', 'full moon'];
+// index = transformation level 0–4. Raheem 2026-07-24: the werewolf transformation
+// TEARS the clothes, so a bare muscular were-torso with TORN CLOTHING remnants is the
+// desired look for the shifted forms (2–4) — bare torso is fine there. The HUMAN /
+// PARTIAL forms (0–1) stay CLOTHED (not transformed enough to tear). Full form can be
+// a bipedal werewolf OR a great four-legged wolf; both read as a Guardian, not a brute.
+const LYCAN_FORM_AT_LEVEL: readonly string[] = [
+  'a HUMAN pack-guardian in INTACT transformation-ready gear — only subtle wolfish tells (wolf-bright eyes, a fanged canine, a wolfish crest of hair, coarse fur just breaking at the forearms and jaw)',
+  'PARTLY shifted — coarse fur spreading over the arms, shoulders and jaw, hands becoming claws, wolfish features rising, clothing STRAINING and beginning to tear but still mostly geared',
+  'HALF-SHIFTED — a powerful wolf-headed were-guardian, a muscular fur-and-hide torso, clothing TORN OPEN by the shift (torn shirt and harness remnants hanging off the transformed body), clawed and upright',
+  'MOSTLY WOLF — a towering bipedal werewolf guardian, thick fur and muscle, TORN transformation-clothing remnants and the pack-harness still hanging from the transformed body',
+  'a FULL LYCAN GUARDIAN — either a mighty bipedal werewolf (muscular, thick fur, TORN clothing remnants and pack role-emblem still worn) OR a great fur-covered four-legged wolf; a noble controlled GUARDIAN of the Moon Goddess, not a rabid brute',
+];
+function moonPhaseSeed(sheet: CharacterSheet): number {
+  // Different salt/field mix than formSeed so pack-role and moon-phase decorrelate.
+  const s = `moon:${sheet.hiddenFate.sex ?? ''}|${sheet.hiddenFate.hair ?? ''}|${sheet.hiddenFate.age ?? ''}`;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+function isLycanForm(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Lycanthrope';
+}
+function buildLycanScene(sheet: CharacterSheet): string {
+  const el = sheet.resolvedElement;
+  const v = ELEMENT_VISUAL_LANGUAGE[el];
+  const role = LYCAN_PACK_ROLES[formSeed(sheet) % LYCAN_PACK_ROLES.length];
+  const moonStart = moonPhaseSeed(sheet) % LYCAN_MOON_PHASES.length;
+  // ALL Lycans END full (level 4) at Ascendant; moon phase sets the Foundation start,
+  // rank advances it (+2 at Forged). Foundation full-moon-born already begins full.
+  const level = sheet.rank === 'Ascendant' ? 4 : Math.min(4, moonStart + (sheet.rank === 'Forged' ? 2 : 0));
+  const form = LYCAN_FORM_AT_LEVEL[level];
+  const power =
+    sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
+  // Pack presence scales with rank = AUTHORITY, not brute size (Bible-safe).
+  const pack =
+    sheet.rank === 'Ascendant' ? 'LEADING a whole pack of wolf-guardians massed behind'
+    : sheet.rank === 'Forged' ? 'a packmate at their side' : 'alone under the night';
+  return (
+    `SCENE — ${power}: ${role}; ${form}; born under a ${moonPhaseNoun(moonStart)}, ${pack}. ` +
+    `STRIKING ${el} manifestation — ${firstClause(v.materials, 30)}, a great moon dominating the sky, in ${el} colours ${firstClause(v.primaryColors, 24)}; ` +
+    `the character stays RECOGNIZABLE (their hair-colour in the mane, their eyes and scars kept); painterly hand-painted fantasy card art, NOT photoreal`
+  );
+}
+function moonPhaseNoun(i: number): string {
+  return LYCAN_MOON_PHASES[i] ?? 'full moon';
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
   if (isNecromancerForm(sheet)) return buildNecromancerFormScene(sheet);
   if (isBeastmasterForm(sheet)) return buildBeastmasterScene(sheet);
+  if (isLycanForm(sheet)) return buildLycanScene(sheet);
   if (isDruidForm(sheet)) return buildDruidFormScene(sheet);
   if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
   if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();
@@ -1045,7 +1115,12 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
             ? ', bare human chest, bare midriff, exposed navel, exposed abs, exposed pecs, leaf bikini, loincloth only, human skin patches'
             // Humanoid tiers: antlers/horns/wings still drift into deer-druid / angel cliché.
             : ', antlers, deer antlers, horns, wings, bare chest, bare midriff, exposed navel, exposed abs, shirtless plant man, leaf bikini, loincloth only'
-          : '';
+          : sheet.archetype === 'Lycanthrope'
+            // Raheem: bare were-torso is DESIRED (clothes tear on transformation) — do
+            // NOT ban it. Only keep it a FURRED werewolf (not a nude human) + drop the
+            // rabid-monster read (they are Guardians). Global reserve still bans nipples/genitals.
+            ? ', fully nude human, naked human man with no fur, hairless smooth human body, drooling rabid mindless beast'
+            : '';
   const elementless = isElementless(sheet.archetype);
   const spectacleNegatives = elementless ? STEAMPUNK_SPECTACLE_NEGATIVES : SPECTACLE_NEGATIVES;
   const bareChest = allowsBareChest(sheet);
