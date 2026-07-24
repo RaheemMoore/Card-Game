@@ -189,6 +189,16 @@ const VAMPIRE_FORM_PAIRS: Record<string, [VampireForm, VampireForm]> = {
       Ascendant: 'the full COURT-DECADENT — a hypnotic ballroom seducer draped in decadent finery, half-lidded gaze, a goblet of blood-wine, a rose-and-rot opulent hall behind under candlelight; seductive menace, fully clothed',
     },
   ],
+  Sanguine: [
+    {
+      Forged: 'the CRYSTAL SOVEREIGN manifesting — a regal vampire lord whose skin and dark regalia are crystallizing into faceted ruby-and-garnet blood-crystal, sharp crimson gem-spurs rising along the shoulders, a dark-red crystal crown forming, refracted red light — upright and commanding, fully robed',
+      Ascendant: 'the full CRYSTAL SOVEREIGN — a vampire lord sheathed in gleaming faceted blood-crystal armor of ruby and garnet, a jagged crimson-crystal crown, sharp gem-spurs, red light refracting through the whole faceted body, a cathedral of dark-red crystal behind; regal and jeweled, NOT a wet-blood beast',
+    },
+    {
+      Forged: 'the GARNET RELIQUARY manifesting — a vampire whose body is becoming a lattice of dark-red faceted crystal beneath high-collared regalia, cradling a crystallized blood-relic that refracts crimson light, austere and upright',
+      Ascendant: 'the full GARNET RELIQUARY — a vampire become a walking reliquary of blood-crystal, the body a lattice of dark-red faceted garnet beneath austere high-collared vestments, a crystallized blood-relic blazing crimson in cupped hands, floating crystal shards refracting light around them; austere, upright, sacred and hard',
+    },
+  ],
   Void: [
     {
       Forged: 'the HOLLOW SOVEREIGN manifesting — regalia beginning to be worn by an ABSENCE, patches of the body going to starless void-black, reality fraying at the edges, cold pinprick eyes',

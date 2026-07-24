@@ -44,6 +44,7 @@ export const ELEMENT_VISUALS: Record<ElementName, ElementVisual> = {
   Infernal: { color: '#a15be0', glow: '130,50,200' },
   Bone: { color: '#e8e2d0', glow: '232,226,208' },
   Nocturne: { color: '#a01f2e', glow: '160,31,46' },
+  Sanguine: { color: '#9b1b3a', glow: '155,27,58' },
   Lunar: { color: '#eaf0ff', glow: '234,240,255' },
   Plasma: { color: '#a8c8ff', glow: '168,200,255' },
   Nanite: { color: '#c8ccd4', glow: '200,204,212' },

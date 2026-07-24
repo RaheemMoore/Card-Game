@@ -87,11 +87,8 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     rare: ['Void'],
   },
   Vampire: {
-    // Nocturne is Vampire-EXCLUSIVE; Void is the Ascension-blocker rare.
-    // TODO(Raheem): add 'Sanguine' as a 4th natural element — it does not exist
-    // yet (only the Sanguine Chalice weapon). Needs an ELEMENT_NAMES entry +
-    // elementVisualLanguage + a Vampire form pair before it can be offered.
-    naturally_compatible: ['Blood', 'Shadow', 'Nocturne'],
+    // Nocturne + Sanguine are Vampire-EXCLUSIVE; Void is the Ascension-blocker rare.
+    naturally_compatible: ['Blood', 'Shadow', 'Nocturne', 'Sanguine'],
     rare: ['Void'],
   },
   Lycanthrope: {

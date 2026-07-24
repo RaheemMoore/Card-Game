@@ -35,6 +35,10 @@ export const ELEMENT_NAMES = [
   // devoured sun, wheeling bats, crimson-into-black. Distinct from Shadow
   // (fear-dark) and Moon (silver cycle). See elementVisualLanguage.ts NOCTURNE.
   'Nocturne',
+  // Vampire-exclusive (2026-07-24, Raheem). CRYSTALLIZED blood — a vampire's
+  // vitality hardened into faceted ruby/garnet crystal. Distinct from Blood
+  // (wet liquid crimson) and Nocturne (blood-moon night). See SANGUINE.
+  'Sanguine',
   // Lycanthrope-exclusive rare (2026-07-22). The SUPERIOR version of Moon — the
   // Moon Goddess's divine blessing: BLAZING silver-fire + full-moon corona +
   // lunar runes, NOT Moon's calm silver glow. See elementVisualLanguage.ts LUNAR.

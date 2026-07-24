@@ -34,11 +34,10 @@ interface ElementPickerProps {
 export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   const natural = buckets.naturally_compatible;
-  // Rare elements are narratively/late-game gated — surfaced as locked tiles at
-  // the forge so the player learns they exist, but not selectable here (the
-  // narrative-eligibility gate needs Story Pillar answers, deferred to a later
-  // lore batch; until then rares stay locked for every archetype).
-  const locked = buckets.rare;
+  // Rares are FULLY SELECTABLE during testing (Raheem 2026-07-24) — the "Rare"
+  // label stays for info, but nothing is locked. The narrative-eligibility /
+  // decision gate that hides them behind choices lands in a later batch.
+  const rare = buckets.rare;
 
   const pick = (element: ElementName) => {
     onComplete({ element, bond: DEFAULT_BOND, compatibility: bucketFor(archetype, element) });
@@ -68,22 +67,19 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
           </button>
         ))}
 
-        {locked.map((element) => (
-          <div
+        {rare.map((element) => (
+          <button
             key={element}
-            aria-disabled="true"
-            aria-describedby={`lock-${element}`}
-            tabIndex={0}
-            className="rounded-xl border-2 border-fuchsia-400/30 bg-obsidian/40 p-5 text-center
-              opacity-60 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-fuchsia-400/40"
+            onClick={() => pick(element)}
+            className="rounded-xl border-2 border-fuchsia-400/50 bg-obsidian/70 p-5 text-center transition-all
+              hover:border-gold/60 hover:shadow-[0_0_28px_rgba(232,121,249,0.4)]
+              focus:outline-none focus:ring-2 focus:ring-fuchsia-400/60"
           >
-            <span className="block font-fantasy text-2xl font-bold text-bone/60">
-              🔒 {element}
+            <span className="block font-fantasy text-2xl font-bold text-ivory">{element}</span>
+            <span className="mt-2 block text-[10px] uppercase tracking-widest text-fuchsia-300/80">
+              Rare
             </span>
-            <span id={`lock-${element}`} className="mt-2 block text-[10px] uppercase tracking-widest text-fuchsia-300/70">
-              Rare — unlocks later
-            </span>
-          </div>
+          </button>
         ))}
       </div>
     </div>

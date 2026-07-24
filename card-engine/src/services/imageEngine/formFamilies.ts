@@ -73,6 +73,11 @@ export const FORM_FAMILIES: Partial<Record<ArchetypeName, readonly ArchetypeForm
       concept: 'the Dracula/Lestat count — high-collared crimson-lined cloak, immaculate black finery, pale aristocratic menace, one fang at a knowing smile, candlelit ballroom behind' },
     { id: 'court_decadent', name: 'Court-Decadent', pattern: 'elemental', gate: 'Nocturne',
       concept: 'a hypnotic ballroom aristocrat in opulent high-collared brocade and layered finery, a goblet of blood-wine, rose-and-rot grandeur, commanding not exposed' },
+    // Sanguine (crystallized blood) — art-director wow-tune + Leonardo-validate before ship.
+    { id: 'crystal_sovereign', name: 'Crystal Sovereign', pattern: 'elemental', gate: 'Sanguine',
+      concept: 'a regal vampire lord whose body is crystallizing into faceted ruby-and-garnet blood-crystal — jeweled crimson gem-armor, a dark-red crystal crown, sharp garnet spurs, refracted red light, fully robed and commanding' },
+    { id: 'garnet_reliquary', name: 'Garnet Reliquary', pattern: 'elemental', gate: 'Sanguine',
+      concept: 'a vampire become a walking reliquary of blood-crystal — the body a lattice of dark-red faceted crystal beneath high-collared regalia, cradling a crystallized blood-relic, crimson facets refracting, upright and austere' },
     { id: 'hollow_sovereign', name: 'Hollow Sovereign', pattern: 'ascension', gate: 'Void', ascensionOnly: true, isNonHuman: true,
       concept: 'a crown and red-lined cloak worn by NOTHING — a body-shaped absence of starless black, reality fraying and tearing at the silhouette, two cold pinpricks of light for eyes; regal oblivion' },
     { id: 'star_eater', name: 'Star-Eater', pattern: 'ascension', gate: 'Void', ascensionOnly: true, isNonHuman: true,

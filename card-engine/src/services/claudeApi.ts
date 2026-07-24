@@ -118,6 +118,11 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a thin sliver of blood-moon caught in one eye',
     'a wisp of crimson mist curling from one cuff',
   ],
+  Sanguine: [
+    'a single faceted blood-crystal shard hovering at one shoulder',
+    'a garnet crystal-spur breaking through the skin of one hand',
+    'a thin vein of ruby crystal catching the light along the jaw',
+  ],
   Lunar: [
     'a ring of glowing lunar runes orbiting one wrist',
     'a hairline of silver-fire tracing the collarbone',
