@@ -220,9 +220,11 @@ function buildPosePrefix(sheet: CharacterSheet): string {
   if (sheet.pose) {
     return `REQUIRED POSE: ${sheet.pose}. No T-pose, no orb-per-fist, no symmetrical arms. `;
   }
-  // Vampire form-family: element-gated form replaces the generic non-human form
-  // at Forged/Ascendant (Foundation keeps the feral gate).
-  const form = sheet.archetype === 'Vampire' && sheet.rank !== 'Foundation'
+  // Form-family override at Forged/Ascendant (Foundation keeps its normal path):
+  // Vampire regal forms replace the generic non-human form string here (keeping
+  // the element palette). Necromancer forms are handled by a SCENE override
+  // (buildNecromancerFormScene) so the pose keeps the generic bone reinforcement.
+  const form = sheet.rank !== 'Foundation' && sheet.archetype === 'Vampire'
     ? vampireFormFor(sheet)
     : ARCHETYPE_NON_HUMAN_FORMS[sheet.archetype];
   const isRootedMortal = form === null;
@@ -624,7 +626,7 @@ const DRUID_CORRUPTED_FORMS: readonly string[] = [
   'a CARRION-BLOOM BLIGHT being — rotting brown-black corpse-flowers, blighted purple-black foliage, oozing rot, drifting flies, a decayed diseased plant-corpse (NOT a healthy green druid)',
   '__BLOODMAW__', // handled specially (rank-bleeding palette)
 ];
-function druidSeed(sheet: CharacterSheet): number {
+function formSeed(sheet: CharacterSheet): number {
   const s = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
@@ -636,7 +638,7 @@ function isDruidForm(sheet: CharacterSheet): boolean {
 function buildDruidFormScene(sheet: CharacterSheet): string {
   const corrupted = sheet.resolvedElement === 'Poison';
   const set = corrupted ? DRUID_CORRUPTED_FORMS : DRUID_GOOD_FORMS;
-  const pick = set[druidSeed(sheet) % set.length];
+  const pick = set[formSeed(sheet) % set.length];
   const stage =
     sheet.rank === 'Ascendant' ? 'has ALMOST ENTIRELY BECOME'
     : sheet.rank === 'Forged' ? 'is HALF-TRANSFORMED into'
@@ -653,7 +655,39 @@ function buildDruidFormScene(sheet: CharacterSheet): string {
   return `SCENE — DRUID PLANT-FORM: a druid who ${stage} ${pick}; ${wind}; ${tail}`;
 }
 
+// ---- Necromancer form-family (2026-07-23) — a FORM choice (not element-gated),
+// picked by a stable identity-seed, deepening across rank (Forged=manifesting →
+// Ascendant=full). Owns the SCENE so the SPECIFIC form renders (Death Knight vs
+// Skeletal Magus vs Shadow Wraith vs Lich vs living), preserving the bone-identity
+// rules (hair on the skull, body-type via purple shadow-muscle, soul-light). ----
+// The Necromancer sacrifices souls to become MORE than human (Raheem): these are
+// NON-HUMAN beings MADE OF bone or shadow — the armor/regalia IS fused bone, not
+// clothing on a person. They fight the living-human identity block, so they own
+// the SCENE (which still carries the element as soul-light so the palette holds).
+const NECROMANCER_FORMS: readonly string[] = [
+  'a SKELETAL DEATH KNIGHT of FUSED BONE — a bare skull head with soul-light eye-sockets, bone-plate over a skeleton, a bone blade; NOT a human in armor, the being IS bone',
+  'a SKELETON MAGE of BARE BONE — a skull head with soul-light sockets, exposed ribs, skeletal hands, tattered robes on the bones; NOT a living human',
+  'an INCORPOREAL SHADOW WRAITH of living darkness — a skull-like void-face with soul-light eyes, no solid body, trailing into black smoke; NOT a human, pure shadow',
+  'a crowned SKELETON LICH-KING of BARE BONE — a crowned skull with soul-light sockets, a skeletal body in tattered royal robes, a bone scepter; NOT a human',
+];
+function isNecromancerForm(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Necromancer' && sheet.rank !== 'Foundation';
+}
+/** Necromancer non-human form scene — includes the element (soul-light tinted by
+ *  it + the rank power phrase) so the element palette + tests still hold. */
+function buildNecromancerFormScene(sheet: CharacterSheet): string {
+  const el = sheet.resolvedElement;
+  const v = ELEMENT_VISUAL_LANGUAGE[el];
+  const power =
+    sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
+  const pick = NECROMANCER_FORMS[formSeed(sheet) % NECROMANCER_FORMS.length];
+  // Compact — painterly (style lead), no-bare-chest (negatives) and body
+  // preservation (identity block) are handled elsewhere; keep BACKGROUND in budget.
+  return `SCENE — ${power}: soul SACRIFICED to become NON-HUMAN — ${pick}. Soul-light in ${el} colours ${firstClause(v.primaryColors, 24)}, NO neutral background`;
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
+  if (isNecromancerForm(sheet)) return buildNecromancerFormScene(sheet);
   if (isDruidForm(sheet)) return buildDruidFormScene(sheet);
   if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
   if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();

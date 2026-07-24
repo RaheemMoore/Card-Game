@@ -179,6 +179,14 @@ Wired the 8 good + 3 corrupted plant-forms live as a SCENE override (`buildDruid
 - **Corrupted forms lost to the healthy-green-druid prior** (Cordyceps rendered a handsome tree-druid). Fix: forceful sickly/hollowed/parasitic language + explicit "NOT a healthy green nature-druid." Re-gen: a gaunt cordyceps-puppeted horror.
 - **Male plant-torsos render with visible abs** (bare-plant-flesh). Strengthened the scene coverage ("whole torso FULLY COVERED in plant-matter, NO exposed abs/pecs") — improved but not perfect; a green plant-*creature* torso is a softer call than human nudity.
 
+## Necromancer non-human forms — must own the scene + carry the element (2026-07-23)
+
+Necromancer forms are NON-HUMAN beings MADE OF bone or shadow (Raheem: "Death Knight is made of bone, Lich is made of bone — not the clothing; they sacrifice souls to become MORE than human; Shadow Wraith should also not be human"). Seed-picked (Death Knight / Skeleton Mage / Shadow Wraith / Lich).
+- **Pose-action was TOO WEAK** — it rendered living humans with bone/element motifs (living face, human body). The undead/bone transformation fights the living-human identity block and LOSES from a low segment.
+- **FIX: a SCENE override** (`buildNecromancerFormScene`) that owns the frame and forces the non-human bone/shadow being ("the being ITSELF is bone", "NOT a human in armor"). Re-gen: full skeletons + a shadow-skull wraith + a crowned skeleton lich (with the character's hair still on the skull — identity preserved). Same rule as radical Vampire/Druid forms.
+- **The scene MUST still carry the element** — Necromancer's `makeSheet` default drives the element-dominance tests, and soul-light IS element-tinted. So the scene includes the `${power}` phrase (RESTRAINED/ESCALATING/OVERWHELMING POWER) + `${el} colours ${primaryColors}`. Keep it COMPACT (~240 chars) or it evicts the BACKGROUND segment (1450 prompt budget). Painterly (style lead), no-bare-chest (negatives) and body-preservation (identity block) don't need repeating in the scene.
+- **Ancestry variety is a TEST-HARNESS rule, not a pipeline bug** — the live pipeline enforces skin-tone variety ("Pick from FULL range, do NOT bias to light-to-medium"). All-one-ancestry validation batches = hardcoded `skinTone` in the gen script. Vary skin/hair/ancestry + body + sex + age per case (see memory `feedback_validation_varied_bodies`).
+
 ## Learnings log (append-only, newest last)
 
 - **2026-07-22** — Established this playbook. Diagnosed root cause of same-y elements: assembler dropped materials/textures/shapes; `theme`/`symbolism` (emotional) were leaking into the Claude prompt. Direction: enrich the assembler with materials/textures/shapes, rework each element's fields for zero-overlap, keep emotional fields on the lore side only.
