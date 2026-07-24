@@ -264,16 +264,15 @@ export async function generatePortraitStrict(
 }
 
 /**
- * Per-archetype + per-rank init_strength for tier-up / regen. Default 0.45
- * works for the standard "same face, aged and hardened" Forged pattern.
- * Lycanthrope drops to 0.15 across all ranks so the model can break the
- * human silhouette.
+ * Per-archetype + per-rank init_strength for img2img tier-up / regen.
  *
- * M4.8 — Ascendant drops to 0.30 so Phoenix has room to unfurl non-mortal
- * features (wings, bat-mist, bone-form, cosmic-skin, halo — Bible §Ascendant
- * cataclysm) while text anchors (bodyDimensions, skinPresentation, hairDetail,
- * facialStructure) carry identity forward. At 0.45 the Foundation portrait
- * held too tightly and Ascendant looked like Forged with a slight variation.
+ * RETAINED FOR THE M5.5 img2img A/B HARNESS ONLY. The production tier-up and
+ * regenerate-portrait paths went image-first (pure text-to-image off the
+ * identity-locked prompt) — see tierUp.ts / regeneratePortrait.ts. init_strength
+ * is a whole-frame blend that could never hold a face while releasing rank
+ * spectacle (0.45 froze Ascendant into "Forged with a tint", 0.20 drifted
+ * off-character); identity now rides the locked HiddenFate tokens instead.
+ * Kept so M55Harness can still demonstrate the old img2img behavior.
  */
 export function getInitStrengthForArchetype(
   archetype: ArchetypeName,

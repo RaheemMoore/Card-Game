@@ -1,5 +1,5 @@
 import type { Card } from '../types/card';
-import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
+import { generatePortraitStrict } from './leonardoApi';
 import { generateCardTextWithRetry } from './claudeApi';
 import { getDominantStat, getBorderForDominantStat } from '../data/powerSystem';
 import { saveCard } from './storage';
@@ -40,20 +40,18 @@ export async function regeneratePortrait(card: Card): Promise<Card> {
     narrativeAxis,
   });
 
-  const initImage =
-    typeof card.portraitAsset === 'string' &&
-    (card.portraitAsset.startsWith('data:image/') || card.portraitAsset.startsWith('/assets/'))
-      ? card.portraitAsset
-      : undefined;
-
-  const initStrength = getInitStrengthForArchetype(card.archetype);
+  // Image-first: re-roll via pure text-to-image off the identity-locked prompt
+  // (existingHiddenFate holds every identity field verbatim), matching forge +
+  // tier-up. Dropping the img2img init image gives a genuine re-roll instead of
+  // a near-copy of the frame the user just rejected, while the locked tokens
+  // keep it the same person.
   const regenModelKey =
     (card.generationModel as import('./leonardoApi').LeonardoModelKey | undefined) ?? 'phoenix_1_0';
   const { dataUrl: portrait } = await generatePortraitStrict(
     text.portraitPrompt,
     text.negativePrompt,
-    initImage,
-    initStrength,
+    undefined,
+    undefined,
     regenModelKey,
   );
 

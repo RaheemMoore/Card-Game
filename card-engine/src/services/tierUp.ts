@@ -13,7 +13,7 @@ import {
   getBorderForDominantStat,
   getStatNames,
 } from '../data/powerSystem';
-import { generatePortraitStrict, getInitStrengthForArchetype } from './leonardoApi';
+import { generatePortraitStrict } from './leonardoApi';
 import { generateCardTextWithRetry } from './claudeApi';
 import { saveCard } from './storage';
 import { emptyHiddenFate } from './hiddenFate';
@@ -222,24 +222,20 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
   // Leonardo/NSFW failure, same as before.
   let portraitError: string | undefined;
   let portraitRegenerated = true;
-  const previousIsUsableImage =
-    typeof card.portraitAsset === 'string' &&
-    (card.portraitAsset.startsWith('data:image/') || card.portraitAsset.startsWith('/assets/'));
-  const initImage = previousIsUsableImage ? card.portraitAsset : undefined;
-  // M4.8 — pass rank so Ascendant gets a looser 0.30 init, letting Phoenix
-  // unfurl non-mortal features while keeping identity anchors from text.
-  const initStrength = getInitStrengthForArchetype(card.archetype, newOverallRank);
 
-  // Tier-ups keep whatever model the card was originally forged with so the
-  // Collection A/B stays coherent — a card tagged phoenix_1_0 stays phoenix
-  // through its evolutions.
+  // Image-first: tier-up regenerates via pure text-to-image off the
+  // identity-locked prompt (existingHiddenFate carries every identity field
+  // verbatim), exactly like the forge path. The prior img2img init image was
+  // a whole-frame blend that couldn't hold a face while releasing spectacle —
+  // 0.45 froze Ascendant into "Forged with a tint", 0.20 drifted off-character.
+  // Identity now rides the locked tokens; the rank prompt drives the escalation.
   const tierModelKey =
     (card.generationModel as import('./leonardoApi').LeonardoModelKey | undefined) ?? 'phoenix_1_0';
   const portraitResult = await generatePortraitStrict(
     text.portraitPrompt,
     text.negativePrompt,
-    initImage,
-    initStrength,
+    undefined,
+    undefined,
     tierModelKey,
   ).catch((err: unknown) => {
     portraitRegenerated = false;

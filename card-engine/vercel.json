@@ -3,7 +3,7 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/api/leonardo/(.*)", "destination": "/api/leonardo?leonardoPath=$1" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|src/|node_modules/|@).*)", "destination": "/index.html" }
   ],
   "crons": [
     { "path": "/api/prompt-lab-retention-sweep", "schedule": "0 3 * * *" }
