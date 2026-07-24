@@ -606,21 +606,44 @@ function buildVampireRadicalScene(sheet: CharacterSheet): string {
     : `SCENE — VAMPIRE STAR-EATER: a cosmic-horror vampire whose torso is a collapsing EVENT-HORIZON — light bending and pouring inward, a black-hole maw in the chest swallowing a blood-moon, constellations spiraling down into it; a being that DRINKS STARS not blood, NOT a normal humanoid count; deep-space black filling the frame; ${tail}`;
 }
 
-// ---- Druid plant-form family (2026-07-23) — LOCKED at creation, element-gated:
-// Nature/Earth/Water/Spirit = the good plant-forms, Poison = the corrupted set
-// (incl. the Blood+Nature Bloodmaw). A stable identity-seed picks one; it deepens
-// across rank (Foundation subtle green-touch → Ascendant mostly the plant-being).
-// Owns the SCENE so a specific plant-being renders, not a generic tree-druid. ----
-const DRUID_GOOD_FORMS: readonly string[] = [
-  'a HERBALIST druid draped in living healing herbs, poultices, and satchels of seeds and roots (the LEAST transformed — a person OF plants, human-shaped)',
-  'a TREE-BEING — bark-skin, branch-limbs, canopy-hair grown into leafy branches, roots trailing from the feet',
-  'a FUNGAL being — a great mushroom-cap crown over the head, gilled flesh, shelf-fungus along the limbs, drifting spore-dust, glowing bioluminescent caps',
-  'a FLOWERING being — blossoms and petals erupting from the skin, a crown of wildflowers, bloom-heavy vines, drifting pollen',
-  'a MOSS-AND-LICHEN being — soft green moss covering the skin, lichen-crusted and damp, a verdant hooded form',
-  'a BRAMBLE-THORN being — woody thorn-vines wrapping the body as armor, a crown of thorns, hardy and defensive',
-  'a WATER-PLANT being — dripping kelp-fronds and river-reeds for hair and limbs, wet and glistening, lily-pads and pond-water',
-  'a DESERT-SUCCULENT being — thick spined cactus-flesh, waxy succulent leaves, desert-bloom flowers, drought-hardy',
+// ---- Druid wildshape form-family (2026-07-23, expanded per Raheem: "they were
+// supposed to be able to BREAK human form") — element-gated: Nature/Earth/Water/
+// Spirit = the good forms, Poison = the corrupted set (incl. the Blood+Nature
+// Bloodmaw). A stable identity-seed picks one; it deepens across rank —
+// Foundation (green-touched human) → Forged (half hybrid) → Ascendant (the human
+// form FULLY BROKEN into a non-human creature of living plant-matter).
+//
+// Druid's lane vs its neighbours: Beastmaster SUMMONS a separate elemental beast
+// (stays human); Lycan BECOMES a flesh wolf (lunar). The Druid's OWN body
+// wildshapes into a creature made ENTIRELY of bark/vine/bloom — and that creature
+// can be PLANT-shaped (tree-titan, bramble colossus) OR ANIMAL-shaped (a bear/
+// stag/wolf/raptor grown of plant-matter). Always plant-substance, always still
+// them (face legible in the bark, hair as foliage). Owns the SCENE. ----
+// TWO LANES (Raheem 2026-07-23: "we absolutely have to RETAIN these forms as
+// well — cordyceps is one of my favorites"). HUMANOID plant-beings stay an
+// upright, deeply-transformed plant-PERSON at Ascendant (the beloved antlered
+// flower-druid / gaunt cordyceps look). CREATURE wildshapes fully break the
+// human form into a non-human beast GROWN of plant-matter. The seed picks across
+// both, so a Druid set yields ~60% plant-beings + ~40% full beasts.
+const DRUID_HUMANOID_FORMS: readonly string[] = [
+  'a TOWERING TREE-BEING of gnarled oak and hanging moss — branch-limbs, a canopy crown, roots trailing from the feet',
+  'a FLOWERING WILDBLOOM being — blossoms and petals erupting from the body, ANTLERS of flowering branch, a crown of wildflowers, bloom-heavy vines, drifting pollen',
+  'a MOSS-AND-LICHEN being — deep soft moss and damp lichen over the whole body, a verdant hooded shape',
+  'a BRAMBLE-THORN colossus — woody thorn-vines and briar wrapping the body as living armor, a crown of thorns',
+  'a WATER-PLANT being — dripping kelp-fronds, river-reeds and lily-pads for hair and limbs, wet and glistening',
+  'a DESERT-SUCCULENT being — thick spined cactus-flesh, waxy succulent leaves and desert-bloom flowers',
 ];
+// Quadrupedal mammals only — they render with FULL fur/bark coverage. A winged
+// raptor form was dropped: Phoenix rendered it as a bare-chested winged man
+// (a recurring M5.7 modesty failure the negatives could not beat). Wolf AND stag
+// dropped for the same reason — Phoenix renders every non-bear beast as a bare-
+// torso upright were-creature no coverage cue can beat. Only the BEAR reliably
+// covers (dense fur over the whole torso). The antlered-majesty desire is served
+// by the humanoid antlered flower-druid instead.
+const DRUID_CREATURE_FORMS: readonly string[] = [
+  'a great BEAR grown entirely of bark, bramble and thorn — moss across its back, blossoms in its pelt, thick fur over the WHOLE body',
+];
+const DRUID_GOOD_FORMS: readonly string[] = [...DRUID_HUMANOID_FORMS, ...DRUID_CREATURE_FORMS];
 const DRUID_CORRUPTED_FORMS: readonly string[] = [
   'a CORDYCEPS-CORRUPTED being — pale twisted parasitic-fungus STALKS erupting from the head, neck and shoulders, the body hollowed and PUPPETED by the fungus, sickly grey-green, gaunt and WRONG (a diseased horror, NOT a healthy green nature-druid)',
   'a CARRION-BLOOM BLIGHT being — rotting brown-black corpse-flowers, blighted purple-black foliage, oozing rot, drifting flies, a decayed diseased plant-corpse (NOT a healthy green druid)',
@@ -639,20 +662,62 @@ function buildDruidFormScene(sheet: CharacterSheet): string {
   const corrupted = sheet.resolvedElement === 'Poison';
   const set = corrupted ? DRUID_CORRUPTED_FORMS : DRUID_GOOD_FORMS;
   const pick = set[formSeed(sheet) % set.length];
-  const stage =
-    sheet.rank === 'Ascendant' ? 'has ALMOST ENTIRELY BECOME'
-    : sheet.rank === 'Forged' ? 'is HALF-TRANSFORMED into'
-    : 'is mostly human with the FIRST GREEN TOUCHES of';
-  const wind = 'always ACCOMPANIED BY WIND — leaves, petals and pollen carried on a visible wind-current spiralling around them, hair and cloak lifted by their own summoned wind';
-  const tail = 'painterly hand-painted fantasy card art, NOT photoreal; the chest and whole torso FULLY COVERED in plant-matter (bark, leaves, moss or fungus over the entire torso), NO bare human torso, NO exposed abs or pecs; NO antlers, NO horns, NO wings';
-  if (pick === '__BLOODMAW__') {
-    const bleed =
-      sheet.rank === 'Ascendant' ? 'FULLY BLOOD-GORGED — crimson blood-red foliage, maws gaping and dripping arterial blood-sap, the whole plant-body engorged red'
-      : sheet.rank === 'Forged' ? 'the maws REDDENING and beginning to drip blood-sap, red creeping through the green'
-      : 'green with the first RED HINTS at the maw-edges';
-    return `SCENE — DRUID BLOODMAW (the one carnivorous CORRUPTED plant-druid, the only Blood+Nature card): a druid ${stage} a CARNIVOROUS PLANT-BEING — venus-flytrap MAWS, pitcher-plant pods, sundew tendrils; ${bleed}; ${wind}; ${tail}`;
+  const bloodmaw = pick === '__BLOODMAW__';
+  const creature = DRUID_CREATURE_FORMS.includes(pick); // corrupted forms are never creatures
+  const wind = 'ACCOMPANIED BY WIND — leaves, petals and pollen on a visible wind-current, foliage and any cloak lifted';
+  // Raheem 2026-07-23, "meet in the middle": a PLANT-BEING (no human skin) DRESSED
+  // in druidic regalia. Both at once — the not-human, made-of-plant body he loves,
+  // PLUS regalia over the torso for modesty. ("Made entirely of plant-matter" alone
+  // induced a bare plant-skin torso; regalia alone lost the plant-being look.)
+  const plantBeing = 'the body itself is a PLANT-BEING of bark, wood, moss and vine — NO human skin anywhere';
+  const regalia = 'DRESSED IN full druidic regalia — a CLOSED-FRONT high-collared robe and layered vestments worn OVER the plant-body, covering the CHEST, torso and midriff COMPLETELY (a closed buttoned/wrapped robe, NOT an open mantle, NOT a bare-chested cloak) — NO bare torso, NO bare midriff, NO exposed abs or pecs';
+  // Foundation/Forged coverage (still partly human at those tiers — robed for modesty).
+  const robes = 'the druid WEARS full druidic robes and regalia (a bark-fiber robe, moss-lined tunic, mantle and cloak) that FULLY COVER the chest, torso, midriff, arms and legs (NO bare chest, NO bare midriff, NO exposed abs)';
+  // Bible §rank-continuity — identity carried the way the Necromancer lich keeps its hair.
+  const identity = "the bark-and-leaf face stays LEGIBLE as the character and their hair grows foliage in its true colour, unmistakably still them";
+
+  if (sheet.rank === 'Ascendant') {
+    // CREATURE lane: the human form fully breaks into a full beast whose DENSE
+    // fur/bark is the coverage (bear, stag). HUMANOID lane: a PLANT-BEING (no human
+    // skin) in regalia — the beloved antlered flower-druid / gaunt cordyceps look,
+    // now clothed. Antler ban is lifted at Ascendant (rank-conditional archetypeBans).
+    if (bloodmaw) {
+      return (
+        `SCENE — OVERWHELMING POWER: a PLANT-BEING druid overgrown into a CARNIVOROUS PLANT-BEING — venus-flytrap maws, pitcher pods and sundew tendrils, the growth BLOOD-GORGED crimson and dripping arterial sap; ` +
+        `${plantBeing}, ${regalia}; ${identity}; ${wind}; painterly hand-painted fantasy card art, NOT photoreal`
+      );
+    }
+    if (creature) {
+      return (
+        `SCENE — OVERWHELMING POWER: the druid has FULLY BROKEN HUMAN FORM into ${pick}; ` +
+        `a NON-HUMAN beast whose ENTIRE body is densely covered in thick fur, bark, moss and leaf — NO bare skin, NO smooth exposed torso, NO human chest or abs anywhere; ` +
+        `the beast's colouring and markings ECHO the character (their hair-colour in its mane/pelt), unmistakably still them; ` +
+        `${wind}; painterly hand-painted fantasy card art, NOT photoreal`
+      );
+    }
+    return (
+      `SCENE — OVERWHELMING POWER: a PLANT-BEING druid overgrown into ${pick} — ` +
+      `${plantBeing}, ${regalia}; a living crown or branch-antlers rising above the regalia; ` +
+      `${identity}; ${wind}; painterly hand-painted fantasy card art, NOT photoreal`
+    );
   }
-  return `SCENE — DRUID PLANT-FORM: a druid who ${stage} ${pick}; ${wind}; ${tail}`;
+
+  // Foundation / Forged = a ROBED druid with partial overgrowth. Keep the
+  // no-antler/horn/wing ban here (that is where the deer-druid & angel cliché
+  // drifted). For CREATURE forms the beast stays LATENT (a robed druid with the
+  // first plant growth), so the lower tiers never drift into a shirtless were-beast.
+  const stage = sheet.rank === 'Forged' ? 'HALF-OVERGROWN' : 'in the FIRST STAGE of overgrowth';
+  const tail = `${robes}; NO antlers, NO horns, NO wings; painterly hand-painted fantasy card art, NOT photoreal`;
+  if (bloodmaw) {
+    const bleed =
+      sheet.rank === 'Forged' ? 'the maws REDDENING and beginning to drip blood-sap, red creeping through the green'
+      : 'green with the first RED HINTS at the maw-edges';
+    return `SCENE — DRUID BLOODMAW (the one carnivorous CORRUPTED plant-druid, the only Blood+Nature card): a ROBED druid ${stage} into a CARNIVOROUS PLANT-BEING — venus-flytrap MAWS, pitcher-plant pods, sundew tendrils growing over the robes; ${bleed}; ${wind}; ${tail}`;
+  }
+  if (creature) {
+    return `SCENE — DRUID WILDSHAPE (latent): a ROBED druid ${stage} toward becoming ${pick} — bark, leaf and vine spreading over the robes, the beast-shape only BEGINNING to stir (still human-shaped and fully ROBED, the beast NOT yet formed); ${wind}; ${tail}`;
+  }
+  return `SCENE — DRUID PLANT-FORM: a ROBED druid ${stage} into ${pick}; ${wind}; ${tail}`;
 }
 
 // ---- Necromancer form-family (2026-07-23) — a FORM choice (not element-gated),
@@ -974,8 +1039,12 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
         // Twilight must stay ONE split figure, not two.
         ? ', red horned devil, cartoon devil horns, demon skull, pentagram, inverted cross, sexy demoness, edgelord goth, fire-orange flame, campfire, generic paladin, knight in plate armor, shiny parade armor, two separate figures, two heads, beautiful young thin angel default'
         : sheet.archetype === 'Druid'
-          // Antlers/horns keep drifting onto the plant-forms; bare plant-torso too.
-          ? ', antlers, deer antlers, horns, wings, bare chest, exposed abs, shirtless plant man'
+          ? sheet.rank === 'Ascendant'
+            // FULL form-break: a non-human plant/animal creature. Branch-antlers
+            // are ALLOWED here — only keep modesty (no bare torso/midriff).
+            ? ', bare human chest, bare midriff, exposed navel, exposed abs, exposed pecs, leaf bikini, loincloth only, human skin patches'
+            // Humanoid tiers: antlers/horns/wings still drift into deer-druid / angel cliché.
+            : ', antlers, deer antlers, horns, wings, bare chest, bare midriff, exposed navel, exposed abs, shirtless plant man, leaf bikini, loincloth only'
           : '';
   const elementless = isElementless(sheet.archetype);
   const spectacleNegatives = elementless ? STEAMPUNK_SPECTACLE_NEGATIVES : SPECTACLE_NEGATIVES;
