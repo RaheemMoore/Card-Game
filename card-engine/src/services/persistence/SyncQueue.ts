@@ -26,6 +26,12 @@ export interface SyncOp {
   attempts: number;
   createdAt: string;
   lastError?: string;
+  // Set once an op has exhausted MAX_ATTEMPTS. Dead ops are skipped by the
+  // drain loop so a single poison op (e.g. one that violates a DB constraint)
+  // can't block every healthy op queued behind it. They still keep the status
+  // pill in 'error' so the failure stays visible, and reviveDeadLetters()
+  // gives them a fresh chance on boot (after a fix ships, they drain cleanly).
+  dead?: boolean;
 }
 
 export type SyncStatus = 'idle' | 'syncing' | 'error';
@@ -137,12 +143,17 @@ export function drain(): Promise<void> {
     try {
       while (true) {
         const ops = await readAll();
-        if (ops.length === 0) {
-          notify('idle');
+        // Skip dead-lettered ops when choosing the next op to deliver — they've
+        // already exhausted their retries and must not block healthy ops behind
+        // them. They still count toward the error status below.
+        const op = ops.find((o) => !o.dead);
+        if (!op) {
+          // Nothing actionable. If dead ops remain, keep surfacing an error so
+          // the stuck writes stay visible; otherwise we're fully drained.
+          notify(ops.length > 0 ? 'error' : 'idle');
           return;
         }
         notify('syncing');
-        const op = ops[0];
         const handler = handlers.get(op.kind);
         if (!handler) {
           // Handler not yet registered (adapter still booting). Wait a beat
@@ -157,11 +168,16 @@ export function drain(): Promise<void> {
         } catch (err) {
           op.attempts += 1;
           op.lastError = err instanceof Error ? err.message : String(err);
-          await put(op);
           if (op.attempts >= MAX_ATTEMPTS) {
+            // Poison op — dead-letter it so it stops blocking the queue. Status
+            // stays 'error' (a dead op remains), but subsequent healthy ops now
+            // get a chance to drain on the next loop iteration.
+            op.dead = true;
+            await put(op);
             notify('error');
-            return;
+            continue;
           }
+          await put(op);
           notify('error');
           await delay(backoffMs(op.attempts));
           // Fall through to next loop iteration to retry the same op.
@@ -173,6 +189,24 @@ export function drain(): Promise<void> {
     }
   })();
   return drainPromise;
+}
+
+// Revive dead-lettered ops: clear their `dead` flag and reset attempts so the
+// next drain gives them a fresh set of retries. Called once on boot — after a
+// fix ships (e.g. a dropped DB constraint), a previously-poison op drains
+// cleanly; if it's still poison it simply re-dead-letters without blocking the
+// queue. Returns how many ops were revived.
+export async function reviveDeadLetters(): Promise<number> {
+  const ops = await readAll();
+  let revived = 0;
+  for (const op of ops) {
+    if (!op.dead) continue;
+    op.dead = false;
+    op.attempts = 0;
+    await put(op);
+    revived += 1;
+  }
+  return revived;
 }
 
 // Testing helper — clears the durable queue. Never call from production.
