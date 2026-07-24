@@ -5,7 +5,7 @@ import type {
   StoryPillarOption,
   StoryPillarQuestion,
 } from '../types/bible';
-import { formsForGate } from '../services/imageEngine/formFamilies';
+import { formsFor } from '../services/imageEngine/formFamilies';
 import { BODY_CLASSES, BODY_ALLOWLIST, type BodyClassId } from '../services/imageEngine/identityPools';
 import { getWeaponPool } from './archetypeWeapons';
 import { getCompanionPool } from './archetypeCompanions';
@@ -55,12 +55,26 @@ function shortFlavor(concept: string): string {
   return clause.charAt(0).toUpperCase() + clause.slice(1);
 }
 
+// Per-archetype prompt for the form question (falls back to a generic line).
+const FORM_PROMPTS: Partial<Record<ArchetypeName, string>> = {
+  Vampire: 'What shape does your power take?',
+  Necromancer: 'What do you sacrifice your soul to become?',
+  Lycanthrope: 'What is your role in the pack?',
+  Android: 'What were you built to be?',
+};
+
 function formQuestion(archetype: ArchetypeName, element: ElementName): VisualQuestionSet {
-  // Void's ascension forms are never offered at the forge (Ascendant-tier only).
-  const forms = formsForGate(archetype, element).filter((f) => !f.ascensionOnly);
+  // Ascension forms are never offered at the forge (Ascendant-tier only).
+  const all = formsFor(archetype).filter((f) => !f.ascensionOnly);
+  if (all.length === 0) return { questions: [], options: [] };
+  // Element-gated families (Vampire: the element gates the form pair) filter by
+  // the chosen element; role/form/division families (Necromancer, Lycan, Android)
+  // are not element-gated and show every form.
+  const isElementGated = all.some((f) => f.gate !== undefined);
+  const forms = isElementGated ? all.filter((f) => f.gate === element) : all;
   if (forms.length === 0) return { questions: [], options: [] };
   const questions: StoryPillarQuestion[] = [
-    { id: 'vf_form', pillarIndex: 1, prompt: 'What shape does your power take?' },
+    { id: 'vf_form', pillarIndex: 1, prompt: FORM_PROMPTS[archetype] ?? 'What form do you take?' },
   ];
   const options = forms.map((form) =>
     vopt('vf_form_' + form.id, 'vf_form', `${form.name} — ${shortFlavor(form.concept)}`, {

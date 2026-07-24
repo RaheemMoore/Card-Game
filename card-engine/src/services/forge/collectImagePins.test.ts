@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { collectImagePins } from './collectImagePins';
 import { visualQuestionsFor } from '../../data/visualPillars';
+import { rollIdentity } from '../imageEngine/identityRoller';
 import type { StoryPillarAnswers } from '../../types/bible';
 
 // Build an answers object by picking a specific option per question from the
@@ -58,6 +59,28 @@ describe('collectImagePins — Vampire image-first', () => {
   test('unmatched option ids yield no pins', () => {
     const pins = collectImagePins('Barbarian', 'Fire', answersFor(['not-a-real-option']));
     expect(pins).toEqual({});
+  });
+
+  test('Necromancer form question offers the 4 undead forms as species pins', () => {
+    const forms = visualQuestionsFor('Necromancer', 'Bone').options
+      .filter((o) => o.questionId === 'vf_form')
+      .map((o) => o.image?.species);
+    expect(forms).toEqual(['death_knight', 'skeleton_mage', 'shadow_wraith', 'lich_king']);
+  });
+
+  test('Lycan pack-role and Android purpose are non-element-gated (shown for any element)', () => {
+    const lycan = visualQuestionsFor('Lycanthrope', 'Moon').options.filter((o) => o.questionId === 'vf_form');
+    const android = visualQuestionsFor('Android', 'Tech').options.filter((o) => o.questionId === 'vf_form');
+    expect(lycan).toHaveLength(6);
+    expect(android).toHaveLength(8);
+  });
+
+  test('a rank-gated form (Necromancer) keeps a rolled person, not an entity', () => {
+    // isNonHuman:false — Foundation stays a human necromancer; the undead form
+    // manifests at Forged+ via the assembler, so the identity roll stays a person.
+    const r = rollIdentity({ archetype: 'Necromancer', cardId: 'necro_1', pins: { species: 'lich_king' } });
+    expect(['male', 'female']).toContain(r.sex);
+    expect(r.species).toBe('lich_king');
   });
 
   test('generic levers roll out to a non-Vampire archetype (build + weapon)', () => {

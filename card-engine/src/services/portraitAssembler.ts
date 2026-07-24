@@ -9,7 +9,7 @@ import { getWeaponPool } from '../data/archetypeWeapons';
 import { getPosePool } from '../data/archetypePoses';
 import { getCompanionPool } from '../data/archetypeCompanions';
 import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
-import { formsForGate } from './imageEngine/formFamilies';
+import { formsForGate, formsFor } from './imageEngine/formFamilies';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
   BASE_NEGATIVE,
@@ -674,6 +674,19 @@ function formSeed(sheet: CharacterSheet): number {
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
   return Math.abs(h);
 }
+/** Image-first (2026-07-24): pick a form-family pool INDEX from the player's
+ *  pinned form id (hiddenFate.speciesForm). The archetype's FORM_FAMILIES order
+ *  MUST match the SCENE pool order (documented at each pool). Cards forged before
+ *  the pin (no speciesForm / unknown id) fall back to the stable per-character
+ *  formSeed so their look never shifts. */
+function pickFormIndex(sheet: CharacterSheet, poolLength: number): number {
+  const id = sheet.hiddenFate.speciesForm;
+  if (id) {
+    const i = formsFor(sheet.archetype).findIndex((f) => f.id === id);
+    if (i >= 0 && i < poolLength) return i;
+  }
+  return formSeed(sheet) % poolLength;
+}
 function isDruidForm(sheet: CharacterSheet): boolean {
   return sheet.archetype === 'Druid';
 }
@@ -764,7 +777,7 @@ function buildNecromancerFormScene(sheet: CharacterSheet): string {
   const v = ELEMENT_VISUAL_LANGUAGE[el];
   const power =
     sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
-  const pick = NECROMANCER_FORMS[formSeed(sheet) % NECROMANCER_FORMS.length];
+  const pick = NECROMANCER_FORMS[pickFormIndex(sheet, NECROMANCER_FORMS.length)];
   // Compact — painterly (style lead), no-bare-chest (negatives) and body
   // preservation (identity block) are handled elsewhere; keep BACKGROUND in budget.
   return `SCENE — ${power}: soul SACRIFICED to become NON-HUMAN — ${pick}. Soul-light in ${el} colours ${firstClause(v.primaryColors, 24)}, NO neutral background`;
@@ -873,7 +886,7 @@ function isLycanForm(sheet: CharacterSheet): boolean {
 function buildLycanScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
-  const role = LYCAN_PACK_ROLES[formSeed(sheet) % LYCAN_PACK_ROLES.length];
+  const role = LYCAN_PACK_ROLES[pickFormIndex(sheet, LYCAN_PACK_ROLES.length)];
   const moonStart = moonPhaseSeed(sheet) % LYCAN_MOON_PHASES.length;
   // ALL Lycans END full (level 4) at Ascendant; moon phase sets the Foundation start,
   // rank advances it (+2 at Forged). Foundation full-moon-born already begins full.
@@ -932,7 +945,7 @@ function isAndroidForm(sheet: CharacterSheet): boolean {
 function buildAndroidScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
-  const purpose = ANDROID_PURPOSES[formSeed(sheet) % ANDROID_PURPOSES.length];
+  const purpose = ANDROID_PURPOSES[pickFormIndex(sheet, ANDROID_PURPOSES.length)];
   const chassis = `${firstClause(v.materials, 28)} in ${el} colours ${firstClause(v.primaryColors, 22)}`;
   if (sheet.rank === 'Ascendant') {
     const path = ANDROID_PATHS[pathSeed(sheet) % ANDROID_PATHS.length];

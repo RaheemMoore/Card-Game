@@ -78,6 +78,64 @@ export const FORM_FAMILIES: Partial<Record<ArchetypeName, readonly ArchetypeForm
     { id: 'star_eater', name: 'Star-Eater', pattern: 'ascension', gate: 'Void', ascensionOnly: true, isNonHuman: true,
       concept: 'a collapsing event-horizon for a torso, light bending and pouring inward, the blood-moon swallowed into a black-hole maw in the chest, constellations spiraling down the throat; drinks stars, not blood' },
   ],
+
+  // ---- Necromancer — FORM blocker (which undead the soul is sacrificed into).
+  // Rank-gated: the character is HUMAN at Foundation, the undead form manifests at
+  // Forged+. So isNonHuman stays FALSE (the identity roll keeps a person for lore +
+  // Foundation; buildNecromancerFormScene renders the undead form at Forged+).
+  // ORDER MATCHES NECROMANCER_FORMS in portraitAssembler.ts. ----
+  Necromancer: [
+    { id: 'death_knight', name: 'Death Knight', pattern: 'form',
+      concept: 'a skeletal death knight of fused bone, soul-light eye-sockets, a bone blade' },
+    { id: 'skeleton_mage', name: 'Skeleton Mage', pattern: 'form',
+      concept: 'a skeleton mage of bare bone, exposed ribs, tattered robes on the bones' },
+    { id: 'shadow_wraith', name: 'Shadow Wraith', pattern: 'form',
+      concept: 'an incorporeal shadow wraith of living darkness, a skull-like void-face trailing into smoke' },
+    { id: 'lich_king', name: 'Lich-King', pattern: 'form',
+      concept: 'a crowned skeleton lich-king in tattered royal robes, a bone scepter' },
+  ],
+
+  // ---- Lycanthrope — ROLE blocker (the pack role that stays legible even in
+  // full-wolf form). The wolf-ascension itself is fixed (rank-driven); the role is
+  // the overlay. isNonHuman FALSE — a rolled human the wolf is applied over.
+  // ORDER MATCHES LYCAN_PACK_ROLES in portraitAssembler.ts. ----
+  Lycanthrope: [
+    { id: 'hunter', name: 'Hunter', pattern: 'role',
+      concept: 'a hunter of the pack — a bone-tipped hunting spear, trophy-tokens on a reinforced harness' },
+    { id: 'moonkeeper', name: 'Moonkeeper', pattern: 'role',
+      concept: 'a moonkeeper healer — a herb satchel and a moon-silver charm, calm and tending' },
+    { id: 'scout', name: 'Scout', pattern: 'role',
+      concept: 'a scout of the boundary — light and swift, a curved signal-horn, alert and watchful' },
+    { id: 'lorekeeper', name: 'Lorekeeper', pattern: 'role',
+      concept: 'a lorekeeper — a pack-knot tapestry-cloak and a bone-etched story-staff, ceremonial and wise' },
+    { id: 'guardian', name: 'Guardian', pattern: 'role',
+      concept: 'a guardian — a heavy reinforced war-harness and a boundary-warden’s round shield, stalwart' },
+    { id: 'warden', name: 'Warden', pattern: 'role',
+      concept: 'a warden of the boundary — twin territory-stakes and glowing border-runes, holding the tree-line' },
+  ],
+
+  // ---- Android — DIVISION blocker (the PURPOSE it was built for; the Ascendant
+  // PATH fork is a separate tier-up choice). isNonHuman FALSE at forge time (a
+  // humanoid chrysalis reflecting the rolled person). ORDER MATCHES
+  // ANDROID_PURPOSES in portraitAssembler.ts. ----
+  Android: [
+    { id: 'guardian_model', name: 'Guardian-model', pattern: 'division',
+      concept: 'built to protect — heavy warding shield-plates, a sentinel bearing, a purpose-glyph' },
+    { id: 'explorer_model', name: 'Explorer-model', pattern: 'division',
+      concept: 'built to survey — survey-sensor masts, long-range optics, a cartographer’s array' },
+    { id: 'healer_model', name: 'Healer-model', pattern: 'division',
+      concept: 'built to mend — precise medical manipulators, remedy-modules, a caduceus mark' },
+    { id: 'diplomat_model', name: 'Diplomat-model', pattern: 'division',
+      concept: 'built to speak — an elegant envoy frame, an expressive face-plate, translator-arrays' },
+    { id: 'artisan_model', name: 'Artisan-model', pattern: 'division',
+      concept: 'built to make — fine crafting-manipulators, tool-fingers, a maker’s rig' },
+    { id: 'laborer_model', name: 'Laborer-model', pattern: 'division',
+      concept: 'built to haul — a heavy industrial frame, load-bearing limbs, work-worn plating' },
+    { id: 'caretaker_model', name: 'Caretaker-model', pattern: 'division',
+      concept: 'built to tend — a gentle frame with many soft hands and a tending kit' },
+    { id: 'weapon_model', name: 'Weapon-model', pattern: 'division',
+      concept: 'built to fight — an armored combat frame, integrated armaments, targeting-optics' },
+  ],
 };
 
 /** All forms an archetype can become (empty if it uses the legacy single form). */
