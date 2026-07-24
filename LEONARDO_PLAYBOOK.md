@@ -171,6 +171,14 @@ Wired the 8 element-gated Vampire forms live (element gates the pair; a stable i
 - Same rule as Monk/Seraph: **a form that fights a strong Phoenix prior must own the SCENE clause, not a lower segment.** Forms that agree with the prior can ride the cheaper pose-action path.
 - Void "pure absence" is inherently hard (Phoenix wants a person) — it lands as a crowned void-king / cosmic-horror rather than a literal empty cloak. Acceptable; distinct from the other forms.
 
+## Druid plant-form family — element-gated scene (VALIDATED 2026-07-23)
+
+Wired the 8 good + 3 corrupted plant-forms live as a SCENE override (`buildDruidFormScene`, all ranks, Foundation subtle → Ascendant full). Element-gated: Poison = the corrupted set (incl. the special Blood+Nature **Bloodmaw**, whose palette bleeds green→crimson across rank), everything else = the good set; a stable identity-seed picks the form.
+- **Bloodmaw nailed it** first try (green plant-body gorged and bleeding crimson sap).
+- **Antlers drift hard onto Druids** — 2 of 4 first-pass renders sprouted deer-antlers. Added `antlers, deer antlers, horns, wings` to the Druid negative branch.
+- **Corrupted forms lost to the healthy-green-druid prior** (Cordyceps rendered a handsome tree-druid). Fix: forceful sickly/hollowed/parasitic language + explicit "NOT a healthy green nature-druid." Re-gen: a gaunt cordyceps-puppeted horror.
+- **Male plant-torsos render with visible abs** (bare-plant-flesh). Strengthened the scene coverage ("whole torso FULLY COVERED in plant-matter, NO exposed abs/pecs") — improved but not perfect; a green plant-*creature* torso is a softer call than human nudity.
+
 ## Learnings log (append-only, newest last)
 
 - **2026-07-22** — Established this playbook. Diagnosed root cause of same-y elements: assembler dropped materials/textures/shapes; `theme`/`symbolism` (emotional) were leaking into the Claude prompt. Direction: enrich the assembler with materials/textures/shapes, rework each element's fields for zero-overlap, keep emotional fields on the lore side only.

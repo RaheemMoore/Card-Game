@@ -604,7 +604,57 @@ function buildVampireRadicalScene(sheet: CharacterSheet): string {
     : `SCENE — VAMPIRE STAR-EATER: a cosmic-horror vampire whose torso is a collapsing EVENT-HORIZON — light bending and pouring inward, a black-hole maw in the chest swallowing a blood-moon, constellations spiraling down into it; a being that DRINKS STARS not blood, NOT a normal humanoid count; deep-space black filling the frame; ${tail}`;
 }
 
+// ---- Druid plant-form family (2026-07-23) — LOCKED at creation, element-gated:
+// Nature/Earth/Water/Spirit = the good plant-forms, Poison = the corrupted set
+// (incl. the Blood+Nature Bloodmaw). A stable identity-seed picks one; it deepens
+// across rank (Foundation subtle green-touch → Ascendant mostly the plant-being).
+// Owns the SCENE so a specific plant-being renders, not a generic tree-druid. ----
+const DRUID_GOOD_FORMS: readonly string[] = [
+  'a HERBALIST druid draped in living healing herbs, poultices, and satchels of seeds and roots (the LEAST transformed — a person OF plants, human-shaped)',
+  'a TREE-BEING — bark-skin, branch-limbs, canopy-hair grown into leafy branches, roots trailing from the feet',
+  'a FUNGAL being — a great mushroom-cap crown over the head, gilled flesh, shelf-fungus along the limbs, drifting spore-dust, glowing bioluminescent caps',
+  'a FLOWERING being — blossoms and petals erupting from the skin, a crown of wildflowers, bloom-heavy vines, drifting pollen',
+  'a MOSS-AND-LICHEN being — soft green moss covering the skin, lichen-crusted and damp, a verdant hooded form',
+  'a BRAMBLE-THORN being — woody thorn-vines wrapping the body as armor, a crown of thorns, hardy and defensive',
+  'a WATER-PLANT being — dripping kelp-fronds and river-reeds for hair and limbs, wet and glistening, lily-pads and pond-water',
+  'a DESERT-SUCCULENT being — thick spined cactus-flesh, waxy succulent leaves, desert-bloom flowers, drought-hardy',
+];
+const DRUID_CORRUPTED_FORMS: readonly string[] = [
+  'a CORDYCEPS-CORRUPTED being — pale twisted parasitic-fungus STALKS erupting from the head, neck and shoulders, the body hollowed and PUPPETED by the fungus, sickly grey-green, gaunt and WRONG (a diseased horror, NOT a healthy green nature-druid)',
+  'a CARRION-BLOOM BLIGHT being — rotting brown-black corpse-flowers, blighted purple-black foliage, oozing rot, drifting flies, a decayed diseased plant-corpse (NOT a healthy green druid)',
+  '__BLOODMAW__', // handled specially (rank-bleeding palette)
+];
+function druidSeed(sheet: CharacterSheet): number {
+  const s = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+function isDruidForm(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Druid';
+}
+function buildDruidFormScene(sheet: CharacterSheet): string {
+  const corrupted = sheet.resolvedElement === 'Poison';
+  const set = corrupted ? DRUID_CORRUPTED_FORMS : DRUID_GOOD_FORMS;
+  const pick = set[druidSeed(sheet) % set.length];
+  const stage =
+    sheet.rank === 'Ascendant' ? 'has ALMOST ENTIRELY BECOME'
+    : sheet.rank === 'Forged' ? 'is HALF-TRANSFORMED into'
+    : 'is mostly human with the FIRST GREEN TOUCHES of';
+  const wind = 'always ACCOMPANIED BY WIND — leaves, petals and pollen carried on a visible wind-current spiralling around them, hair and cloak lifted by their own summoned wind';
+  const tail = 'painterly hand-painted fantasy card art, NOT photoreal; the chest and whole torso FULLY COVERED in plant-matter (bark, leaves, moss or fungus over the entire torso), NO bare human torso, NO exposed abs or pecs; NO antlers, NO horns, NO wings';
+  if (pick === '__BLOODMAW__') {
+    const bleed =
+      sheet.rank === 'Ascendant' ? 'FULLY BLOOD-GORGED — crimson blood-red foliage, maws gaping and dripping arterial blood-sap, the whole plant-body engorged red'
+      : sheet.rank === 'Forged' ? 'the maws REDDENING and beginning to drip blood-sap, red creeping through the green'
+      : 'green with the first RED HINTS at the maw-edges';
+    return `SCENE — DRUID BLOODMAW (the one carnivorous CORRUPTED plant-druid, the only Blood+Nature card): a druid ${stage} a CARNIVOROUS PLANT-BEING — venus-flytrap MAWS, pitcher-plant pods, sundew tendrils; ${bleed}; ${wind}; ${tail}`;
+  }
+  return `SCENE — DRUID PLANT-FORM: a druid who ${stage} ${pick}; ${wind}; ${tail}`;
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
+  if (isDruidForm(sheet)) return buildDruidFormScene(sheet);
   if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
   if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();
   if (isMonkPeaceCosmic(sheet)) return buildMonkPeaceCosmicScene();
@@ -832,7 +882,10 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
         // Fallen must not read as a red devil; Good must not read as a paladin;
         // Twilight must stay ONE split figure, not two.
         ? ', red horned devil, cartoon devil horns, demon skull, pentagram, inverted cross, sexy demoness, edgelord goth, fire-orange flame, campfire, generic paladin, knight in plate armor, shiny parade armor, two separate figures, two heads, beautiful young thin angel default'
-        : '';
+        : sheet.archetype === 'Druid'
+          // Antlers/horns keep drifting onto the plant-forms; bare plant-torso too.
+          ? ', antlers, deer antlers, horns, wings, bare chest, exposed abs, shirtless plant man'
+          : '';
   const elementless = isElementless(sheet.archetype);
   const spectacleNegatives = elementless ? STEAMPUNK_SPECTACLE_NEGATIVES : SPECTACLE_NEGATIVES;
   const bareChest = allowsBareChest(sheet);
