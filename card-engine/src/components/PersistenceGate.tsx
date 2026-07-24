@@ -20,7 +20,7 @@ import { initialize as initializeWallet, auditBalance } from '../services/econom
 import { resumeIfPending as resumeForgeIfPending, sweepOrphanedReservations } from '../services/forge/forgeController';
 import { sweepOrphanedCardReservations } from '../services/forge/cardJobController';
 import { runMigrationIfNeeded, clearLegacyLocalStorage } from '../services/persistence/migration';
-import { drain as drainSyncQueue } from '../services/persistence/SyncQueue';
+import { drain as drainSyncQueue, reviveDeadLetters } from '../services/persistence/SyncQueue';
 
 type GateState =
   | { kind: 'loading'; step: string }
@@ -336,8 +336,10 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       // transactions.
       initializeWallet();
       reconcileForgeJobs();
-      // Kick a drain in case initializeWallet's seed enqueued anything.
-      void drainSyncQueue();
+      // Give any previously dead-lettered ops a fresh chance now that a fix may
+      // have shipped (e.g. a dropped DB constraint), then kick a drain — also
+      // covers anything initializeWallet's seed enqueued.
+      void reviveDeadLetters().then(() => drainSyncQueue());
 
       // Drift check — governance §13 auditability. Warn only; do not
       // silently overwrite.
