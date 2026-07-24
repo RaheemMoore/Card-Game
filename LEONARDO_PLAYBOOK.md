@@ -163,6 +163,14 @@ To avoid hidden-rule landmines (like the Druid-photoreal surprise), the per-arch
 - **HARD LIMIT — Leonardo rejects a `negative_prompt` over 1000 chars** ("Invalid negative_prompt, maximum length of 1000 characters exceeded"). `ASSEMBLER_NEGATIVE_MAX` must stay at 1000; the final `truncateToLimit(..., 1000)` guarantees it. Do NOT raise it. When adding negatives, keep them lean and put non-negotiable anatomy/modesty count-guards (`extra limbs, extra fingers`, `nudity`) in the RESERVED `CRITICAL_NEGATIVES` lead so base-fill truncation can't drop them.
 - **Prompt body cap is 1450** (`PORTRAIT_PROMPT_MAX`); the negative cap is 1000. Different limits — don't conflate.
 
+## Vampire form-family — regal vs radical wiring (VALIDATED 2026-07-23)
+
+Wired the 8 element-gated Vampire forms live (element gates the pair; a stable identity-seeded coin-flip picks within it; Forged=manifesting, Ascendant=full). Key lesson on WHERE to inject a form:
+- **Regal forms that AGREE with the handsome-vampire prior** (Blood-Sovereign winged, Crimson-Knight, Gothic-Sovereign, Court-Decadent) render great as a **pose-action** string (`buildPosePrefix`, low priority). Blood + Nocturne validated first try.
+- **Radical forms that FIGHT the prior** (Shadow → Nosferatu gaunt-horror / Mist-Swarm; Void → Hollow-Sovereign absence / Star-Eater cosmic-maw) LOSE as a pose-action — the first pass rendered handsome winged counts instead. FIX: a high-priority **SCENE override** (`buildVampireRadicalScene`, gated on element ∈ {Shadow, Void}) that owns the frame + explicitly negates the count ("a MONSTER, NOT a handsome count" / "NOT a solid person"). Re-gen: Nosferatu, Hollow-Sovereign, and Star-Eater all rendered distinctly.
+- Same rule as Monk/Seraph: **a form that fights a strong Phoenix prior must own the SCENE clause, not a lower segment.** Forms that agree with the prior can ride the cheaper pose-action path.
+- Void "pure absence" is inherently hard (Phoenix wants a person) — it lands as a crowned void-king / cosmic-horror rather than a literal empty cloak. Acceptable; distinct from the other forms.
+
 ## Learnings log (append-only, newest last)
 
 - **2026-07-22** — Established this playbook. Diagnosed root cause of same-y elements: assembler dropped materials/textures/shapes; `theme`/`symbolism` (emotional) were leaking into the Claude prompt. Direction: enrich the assembler with materials/textures/shapes, rework each element's fields for zero-overlap, keep emotional fields on the lore side only.

@@ -152,11 +152,79 @@ function buildSexPrefix(sex: string): string {
   return `${sex} character (${detail})`;
 }
 
+// ---- Vampire form-family (2026-07-23) — the ELEMENT gates the form pair, and a
+// stable per-character seed picks one of the two. Wired live here (replaces the
+// generic Blood-Sovereign at Forged/Ascendant); Foundation stays on the ~1/3
+// feral gate. Void is the Ascension-trade form. Concepts from formFamilies.ts. ----
+type VampireForm = { Forged: string; Ascendant: string };
+const VAMPIRE_FORM_PAIRS: Record<string, [VampireForm, VampireForm]> = {
+  Blood: [
+    {
+      Forged: 'the BLOOD-SOVEREIGN manifesting — an upright regal vampire lord, great leathery bat-wings beginning to spread, crimson power welling from within, a few bats and blood-mist gathering, fully clothed in dark ornate regalia',
+      Ascendant: 'the full BLOOD-SOVEREIGN — a regal winged bat-lord, huge leathery wings spread wide, crimson radiance pouring from within, mist and a swarm of bats swirling in attendance beneath a blood-moon; commanding and UPRIGHT, never a crouching feral beast',
+    },
+    {
+      Forged: 'the CRIMSON KNIGHT manifesting — a vampire warlord in blood-forged plate beaded with wet red, a blade beginning to wreathe in its own crimson aura, regal and armored',
+      Ascendant: 'the full CRIMSON KNIGHT — a towering blood-warlord in crimson blood-forged plate running wet, a great blade wreathed in a crimson aura, a blood-moon behind; a crusader turned, regal and armored, NOT feral',
+    },
+  ],
+  Shadow: [
+    {
+      Forged: 'the NOSFERATU manifesting — gaunt and hollow-eyed, fingers lengthening into talons, rat-fangs, plague-shadow beginning to cling; ancient and wrong, the monster not the count',
+      Ascendant: 'the full NOSFERATU — a gaunt bald plague-horror, hollow black eyes, long taloned fingers, rat-fangs, plague-shadow clinging like a shroud; ancient, wrong, terrifying — NOT a handsome count',
+    },
+    {
+      Forged: 'the MIST-SWARM manifesting — the body\'s edges dissolving into bats and crimson vapor, a half-formed face and a reaching hand still solid',
+      Ascendant: 'the full MIST-SWARM — barely a body at all, a storm of bats and crimson vapor coalescing into a half-formed face and reaching hands, dissolving at every edge; a being of swarm and mist, not solid flesh',
+    },
+  ],
+  Nocturne: [
+    {
+      Forged: 'the GOTHIC SOVEREIGN manifesting — immaculate black finery, a high-collared crimson-lined cloak rising, pale aristocratic menace, one fang at a knowing smile',
+      Ascendant: 'the full GOTHIC SOVEREIGN — the archetypal count in immaculate black finery and a high-collared crimson-lined cloak, pale patrician menace, a candlelit gothic hall and a blood-moon behind; elegant and deadly, a DISTINCT face and ancestry (NOT a copy of any famous Dracula actor)',
+    },
+    {
+      Forged: 'the COURT-DECADENT manifesting — draped decadence, a half-lidded hypnotic gaze, a goblet of blood-wine in hand, rose-and-rot opulence gathering',
+      Ascendant: 'the full COURT-DECADENT — a hypnotic ballroom seducer draped in decadent finery, half-lidded gaze, a goblet of blood-wine, a rose-and-rot opulent hall behind under candlelight; seductive menace, fully clothed',
+    },
+  ],
+  Void: [
+    {
+      Forged: 'the HOLLOW SOVEREIGN manifesting — regalia beginning to be worn by an ABSENCE, patches of the body going to starless void-black, reality fraying at the edges, cold pinprick eyes',
+      Ascendant: 'the HOLLOW SOVEREIGN — a crown and a red-lined cloak worn by NOTHING, a body-shaped ABSENCE of starless black, reality fraying and tearing at the silhouette, two cold pinpricks of light for eyes; regal oblivion, a void where a vampire should be',
+    },
+    {
+      Forged: 'the STAR-EATER manifesting — the chest beginning to collapse into a light-bending well, faint constellations drawn inward, the hunger turning cosmic',
+      Ascendant: 'the STAR-EATER — a collapsing event-horizon for a torso, light bending and pouring inward, the blood-moon swallowed into a black-hole maw in the chest, constellations spiraling down the throat; a cosmic horror that drinks stars, not blood',
+    },
+  ],
+};
+
+/** Deterministic 0/1 pick within an element's form pair, stable across ranks
+ *  (seeded from locked identity fields so a regen keeps the same form). */
+function vampirePairIndex(sheet: CharacterSheet): 0 | 1 {
+  const seed = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return (Math.abs(h) % 2) as 0 | 1;
+}
+
+/** The element-gated Vampire form string for this rank (Forged/Ascendant). */
+function vampireFormFor(sheet: CharacterSheet): string {
+  const pair = VAMPIRE_FORM_PAIRS[sheet.resolvedElement] ?? VAMPIRE_FORM_PAIRS.Blood;
+  const form = pair[vampirePairIndex(sheet)];
+  return sheet.rank === 'Ascendant' ? form.Ascendant : form.Forged;
+}
+
 function buildPosePrefix(sheet: CharacterSheet): string {
   if (sheet.pose) {
     return `REQUIRED POSE: ${sheet.pose}. No T-pose, no orb-per-fist, no symmetrical arms. `;
   }
-  const form = ARCHETYPE_NON_HUMAN_FORMS[sheet.archetype];
+  // Vampire form-family: element-gated form replaces the generic non-human form
+  // at Forged/Ascendant (Foundation keeps the feral gate).
+  const form = sheet.archetype === 'Vampire' && sheet.rank !== 'Foundation'
+    ? vampireFormFor(sheet)
+    : ARCHETYPE_NON_HUMAN_FORMS[sheet.archetype];
   const isRootedMortal = form === null;
   // Weapon-forward on tier-up: the locked weapon VANISHED at Forged/Ascended
   // because the fallback action was transformation-only. Lead every tier-up
@@ -510,6 +578,32 @@ function buildSeraphGoodScene(): string {
   );
 }
 
+// Vampire RADICAL forms (Shadow → Nosferatu/Mist-Swarm, Void → Hollow-Sovereign/
+// Star-Eater) fight the handsome-count prior and lose as a pose-action — they need
+// to OWN the scene clause (validated 2026-07-23). The regal forms (Blood/Nocturne)
+// stay on the pose-action path (they agree with the prior and render well).
+function isVampireRadicalForm(sheet: CharacterSheet): boolean {
+  return (
+    sheet.archetype === 'Vampire' &&
+    sheet.rank !== 'Foundation' &&
+    (sheet.resolvedElement === 'Shadow' || sheet.resolvedElement === 'Void')
+  );
+}
+function buildVampireRadicalScene(sheet: CharacterSheet): string {
+  const idx = vampirePairIndex(sheet);
+  const asc = sheet.rank === 'Ascendant';
+  const tail = 'painterly hand-painted fantasy card art, NOT photoreal';
+  if (sheet.resolvedElement === 'Shadow') {
+    return idx === 0
+      ? `SCENE — VAMPIRE NOSFERATU: a gaunt, bald, hollow-eyed PLAGUE-HORROR vampire — long taloned skeletal fingers, rat-fangs, sunken cheeks, sickly grey-pale skin, plague-shadow clinging like a tattered shroud; a MONSTER, NOT a handsome count, NOT in fine court clothing — dark ragged wrappings covering the torso; ${asc ? 'full monstrous horror under a blood-moon' : 'the horror manifesting'}; ${tail}`
+      : `SCENE — VAMPIRE MIST-SWARM: barely a solid body — a swirling STORM OF BATS and crimson vapor coalescing into a half-formed face and reaching hands, dissolving at every edge into wings and mist, only fragments solid; NOT a whole person, NOT a handsome count; ${asc ? 'a vast swarm filling the frame under a blood-moon' : 'the body beginning to dissolve into the swarm'}; ${tail}`;
+  }
+  // Void
+  return idx === 0
+    ? `SCENE — VAMPIRE HOLLOW SOVEREIGN: a crown and a red-lined cloak worn by NOTHING — a body-shaped ABSENCE of starless void-black where the vampire should be, reality fraying and tearing at the silhouette's edges, two cold pinprick lights for eyes; regal OBLIVION, an empty void wearing fine regalia, NOT a solid person; deep-black void filling the frame; ${tail}`
+    : `SCENE — VAMPIRE STAR-EATER: a cosmic-horror vampire whose torso is a collapsing EVENT-HORIZON — light bending and pouring inward, a black-hole maw in the chest swallowing a blood-moon, constellations spiraling down into it; a being that DRINKS STARS not blood, NOT a normal humanoid count; deep-space black filling the frame; ${tail}`;
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
   if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
   if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();
@@ -517,6 +611,7 @@ function buildElementScenePalette(sheet: CharacterSheet): string {
   if (isSeraphTwilight(sheet)) return buildSeraphTwilightScene(sheet);
   if (isSeraphFallenAscendant(sheet)) return buildSeraphFallenScene();
   if (isSeraphGoodAscendant(sheet)) return buildSeraphGoodScene();
+  if (isVampireRadicalForm(sheet)) return buildVampireRadicalScene(sheet);
   if (isElementless(sheet.archetype)) return buildElementlessScenePalette(sheet);
   const v = ELEMENT_VISUAL_LANGUAGE[sheet.resolvedElement];
   const el = sheet.resolvedElement;
