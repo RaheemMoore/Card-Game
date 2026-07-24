@@ -186,3 +186,30 @@ describe('assemblePortraitPrompt — bare chest is gated to Ascendant + male ONL
     expect(portraitPrompt).toContain('FULLY CLOTHED in layered grave-robes of black linen');
   });
 });
+
+describe('assemblePortraitPrompt — Sanguine Vampire forms (2026-07-24)', () => {
+  function sanguineSheet(speciesForm: string): CharacterSheet {
+    return makeSheet({
+      archetype: 'Vampire',
+      resolvedElement: 'Sanguine',
+      rank: 'Ascendant',
+      // tier-up leaves pose empty so the form-family action renders the form.
+      pose: '',
+      weapon: 'a Bloodline Rapier',
+      hiddenFate: { ...hardFate(), speciesForm },
+    });
+  }
+
+  it('renders the chosen Sanguine form (Crystal Sovereign vs Garnet Reliquary) distinctly', () => {
+    const sov = assemblePortraitPrompt(sanguineSheet('crystal_sovereign')).portraitPrompt;
+    const rel = assemblePortraitPrompt(sanguineSheet('garnet_reliquary')).portraitPrompt;
+    expect(sov).toContain('CRYSTAL SOVEREIGN');
+    expect(rel).toContain('GARNET RELIQUARY');
+    expect(sov).not.toEqual(rel); // the player's pick actually changes the form
+  });
+
+  it('injects the crystallized-blood element language (not wet Blood)', () => {
+    const sov = assemblePortraitPrompt(sanguineSheet('crystal_sovereign')).portraitPrompt.toLowerCase();
+    expect(sov).toMatch(/garnet|ruby|faceted|blood-crystal/);
+  });
+});
