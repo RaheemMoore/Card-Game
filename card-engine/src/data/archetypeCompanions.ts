@@ -27,6 +27,10 @@ const NECROMANCER_SERVANTS: readonly CompanionEntry[] = [
   { id: 'corpse_guards', descriptor: 'hulking stitched corpse-guards standing sentinel' },
   { id: 'bone_hounds', descriptor: 'four-legged skeletal hound-beasts prowling on all fours (canine animals, NOT humanoid)' },
   { id: 'grave_poltergeists', descriptor: 'flickering poltergeists rattling grave-debris in the air' },
+  // Bone Colossus (Raheem, 2026-07-23) — a summoned towering bone-giant the
+  // Necromancer commands at higher ranks. Phrased plural so rank-scaling reads
+  // ("a few …" at Forged, "a massed legion of …" at Ascendant = multiple colossi).
+  { id: 'bone_colossus', descriptor: 'towering bone-colossus giants, each built from hundreds of fused skeletons, looming over the field' },
 ];
 
 const BEASTMASTER_BEASTS: readonly CompanionEntry[] = [
