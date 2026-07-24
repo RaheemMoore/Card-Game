@@ -472,11 +472,11 @@ const SANGUINE = V({
   materials: 'faceted blood-crystal, hardened crimson glass, garnet and ruby gemstone, crystallized arterial shards, blood turned to jewel and spur',
   textures: 'sharp crystalline facets, glassy blood-gem sheen, refractive ruby depth, fractured crystal edges, polished garnet',
   lighting: 'deep translucent red refracting THROUGH crystal facets, internal ruby glow, sharp specular glints on faceted edges — NOT a wet liquid sheen (that is Blood)',
-  motion: 'blood crystallizing and shattering into shards, ruby crystal fragments hovering and slowly rotating, crimson light refracting through floating facets, blood-crystal spurs growing sharp from the body',
+  motion: 'faceted ruby crystal fragments hovering and slowly rotating, crimson light refracting through floating shards, sharp blood-crystal spurs growing hard and angular from the body, brittle facets catching the light — crystallizing and setting SOLID, never flowing or dripping',
   shapes: 'faceted crystal shards, angular ruby spurs, geometric gem-clusters, crystalline spikes and lattices',
   atmosphere: 'floating blood-crystal shards suspended in the air, refracted crimson light scattering, a cathedral of dark-red crystal behind',
   symbolism: 'vitality made permanent, blood hardened into power, the crystallized jewel of the bloodline',
-  avoid: 'wet flowing liquid blood or dripping pools (that is Blood — Sanguine is HARD faceted crystal), orange fire, purple, soft organic forms, blood-moon night sky (that is Nocturne)',
+  avoid: 'wet flowing or dripping liquid blood and glossy blood pools (that is Blood — Sanguine is HARD faceted crystal, dry and solid), molten glow, lava, obsidian or volcanic glass (that is Infernal), blood-moon or night sky (that is Nocturne), red devil skin, horns, orange fire, purple, soft organic curves',
 });
 
 // Lunar — Lycanthrope-exclusive RARE (2026-07-22). The SUPERIOR version of Moon:

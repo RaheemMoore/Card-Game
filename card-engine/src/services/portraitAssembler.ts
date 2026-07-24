@@ -191,12 +191,12 @@ const VAMPIRE_FORM_PAIRS: Record<string, [VampireForm, VampireForm]> = {
   ],
   Sanguine: [
     {
-      Forged: 'the CRYSTAL SOVEREIGN manifesting — a regal vampire lord whose skin and dark regalia are crystallizing into faceted ruby-and-garnet blood-crystal, sharp crimson gem-spurs rising along the shoulders, a dark-red crystal crown forming, refracted red light — upright and commanding, fully robed',
-      Ascendant: 'the full CRYSTAL SOVEREIGN — a vampire lord sheathed in gleaming faceted blood-crystal armor of ruby and garnet, a jagged crimson-crystal crown, sharp gem-spurs, red light refracting through the whole faceted body, a cathedral of dark-red crystal behind; regal and jeweled, NOT a wet-blood beast',
+      Forged: 'the CRYSTAL SOVEREIGN manifesting — a regal vampire lord whose dark regalia is setting into hard faceted ruby-and-garnet blood-crystal, sharp crimson gem-spurs jutting from the shoulders, a jagged dark-red crystal crown forming, red light refracting through solid facets — upright and commanding, fully robed',
+      Ascendant: 'the full CRYSTAL SOVEREIGN — a vampire warlord sheathed in gleaming solid blood-crystal plate of ruby and garnet, a jagged crimson-crystal crown and sharp gem-spurs bristling from the armor, red light refracting through the dry faceted body, a cathedral of hard dark-red crystal behind; jeweled and regal, never a wet-blood or molten beast',
     },
     {
-      Forged: 'the GARNET RELIQUARY manifesting — a vampire whose body is becoming a lattice of dark-red faceted crystal beneath high-collared regalia, cradling a crystallized blood-relic that refracts crimson light, austere and upright',
-      Ascendant: 'the full GARNET RELIQUARY — a vampire become a walking reliquary of blood-crystal, the body a lattice of dark-red faceted garnet beneath austere high-collared vestments, a crystallized blood-relic blazing crimson in cupped hands, floating crystal shards refracting light around them; austere, upright, sacred and hard',
+      Forged: 'the GARNET RELIQUARY manifesting — a bare-headed vampire in austere high-collared vestments, the exposed hands and throat setting into a dry lattice of dark-red faceted garnet, cradling a single crystallized blood-relic that refracts crimson light, plain and upright',
+      Ascendant: 'the full GARNET RELIQUARY — a crownless vampire become a walking reliquary, the body a dry lattice of dark-red faceted garnet beneath plain austere vestments, a crystallized blood-relic blazing crimson in cupped hands with hard shards refracting light around it; sacred, upright, solid crystal — no crown, no spurs, no wet blood',
     },
   ],
   Void: [
