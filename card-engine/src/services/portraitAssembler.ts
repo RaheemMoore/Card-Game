@@ -686,8 +686,65 @@ function buildNecromancerFormScene(sheet: CharacterSheet): string {
   return `SCENE — ${power}: soul SACRIFICED to become NON-HUMAN — ${pick}. Soul-light in ${el} colours ${firstClause(v.primaryColors, 24)}, NO neutral background`;
 }
 
+// ---- Beastmaster beast-form family (2026-07-23) — the Beastmaster stays fully
+// HUMAN; the "form" is the SUMMONED BEAST. It is NOT a normal animal with a tint
+// but an apex creature whose entire body is COMPOSED OF the element. A stable
+// identity-seed picks the species within the element (so a set has variety), and
+// the beast scales in size + number across rank. This fights Phoenix's "normal
+// animal + glow" prior, so it owns the SCENE (carrying the rank power phrase +
+// element colours so the palette + rank tests still hold). Species are curated
+// per Beastmaster element (elements.ts): Beast/Earth/Wind/Water/Spirit + Ice. ----
+const BEASTMASTER_BEASTS: Partial<Record<ElementName, readonly string[]>> = {
+  Beast: [
+    'DIRE WOLF the size of a warhorse, all raw muscle, fang and bristling fur',
+    'SABERTOOTH GREAT-CAT with immense curved fangs, coiled mid-pounce',
+    'great TUSKED WAR-BOAR, scarred and snorting, hooves tearing the ground',
+  ],
+  Earth: [
+    'DIRE BEAR of living rock and moss, boulder-plates grinding along its back',
+    'WAR-RHINO of granite, its cracked-stone hide shedding gravel',
+    'mountainous TORTOISE-TITAN, a mossy crag of a shell on its back',
+  ],
+  Wind: [
+    'colossal STORM-RAPTOR eagle woven from living wind and torn cloud',
+    'coiling WIND-SERPENT, translucent, air rushing visibly through it',
+    'GALE-STALLION at full gallop, mane and body of rushing wind',
+  ],
+  Water: [
+    'coiling RIVER-SERPENT of clear rushing water, current visible inside it',
+    'great ORCA-BEAST arcing in a curl of surging whitewater',
+    'WATER-HOUND of flowing whitewater, spray trailing from its flanks',
+  ],
+  Spirit: [
+    'translucent SPIRIT-STAG, ghost-antlers blazing with soft soul-light',
+    'luminous SPECTRAL TIGER, ghost-fire striping its half-seen flanks',
+    'great SPECTRAL OWL of drifting soul-light, wings of pale flame',
+  ],
+  Ice: [
+    'frost-furred MAMMOTH, tusks of blue glacier-ice, breath fogging',
+    'glacial DIRE-WOLF of packed snow and ice-crystal, frost cracking off it',
+    'crystalline ICE-ELK, antlers of jagged clear frost',
+  ],
+};
+function isBeastmasterForm(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Beastmaster' && Boolean(BEASTMASTER_BEASTS[sheet.resolvedElement]);
+}
+function buildBeastmasterScene(sheet: CharacterSheet): string {
+  const el = sheet.resolvedElement;
+  const v = ELEMENT_VISUAL_LANGUAGE[el];
+  const species = BEASTMASTER_BEASTS[el]![formSeed(sheet) % BEASTMASTER_BEASTS[el]!.length];
+  const power =
+    sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
+  const beast =
+    sheet.rank === 'Ascendant' ? `a COLOSSAL ${species}, towering, a whole PACK of them massing behind`
+    : sheet.rank === 'Forged' ? `a huge ${species} looming beside the beastmaster, the bond blazing`
+    : `a ${species}, prowling at the beastmaster's side`;
+  return `SCENE — ${power}: a fully-HUMAN beastmaster commands ${beast}; the beast's ENTIRE BODY is COMPOSED OF ${el} (${firstClause(v.materials, 28)}) — NOT a normal animal with a glow, the animal IS ${el}; in ${el} colours ${firstClause(v.primaryColors, 22)}, NO neutral background`;
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
   if (isNecromancerForm(sheet)) return buildNecromancerFormScene(sheet);
+  if (isBeastmasterForm(sheet)) return buildBeastmasterScene(sheet);
   if (isDruidForm(sheet)) return buildDruidFormScene(sheet);
   if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
   if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();
