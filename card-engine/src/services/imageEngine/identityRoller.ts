@@ -15,7 +15,13 @@
  * archetypes with a bespoke form; humanoids split 50/50 male/female. Rooted-mortal
  * archetypes are always humanoid. Sex is NEVER tied to stats.
  *
- * INERT until the pipeline flip (S3.5) wires it into forgeController.
+ * WIRED 2026-07-24 into claudeApi.generateCardText (image-first flip): a FRESH
+ * forge rolls sex/build/age/mark here (seeded from cardId), pins them into the
+ * Claude prompt AND overrides hiddenFate post-parse. The live forge pins
+ * species:'humanoid' — the per-archetype form-families own the non-human /
+ * transformation space now, so the 40% bespoke-body path is not used from the forge
+ * (it remains available for callers that pass a non-humanoid pin). Tier-up/regen
+ * skip the roll (existingHiddenFate) and preserve locked identity.
  */
 import type { ArchetypeName } from '../../types/card';
 import type { ImageDirective } from '../../types/bible';

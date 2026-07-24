@@ -253,6 +253,10 @@ export async function runTier(
       stats,
       answers,
       element: elementSelection,
+      // Seed the image-first identity roll so the Lab has player-parity with the
+      // live forge. Deterministic per config; only the fresh (Foundation) tier
+      // rolls — higher tiers pass priorTier.hiddenFate and skip the roll.
+      cardId: priorTier?.hiddenFate ? undefined : `lab_${archetype}_${element}_${bond}`,
       existingName: priorTier?.cardName,
       existingHiddenFate: priorTier?.hiddenFate,
     });

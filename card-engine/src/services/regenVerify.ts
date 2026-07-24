@@ -60,6 +60,9 @@ export async function runRegenVerify(opts: {
     stats,
     answers,
     element,
+    // Reproduce the original Lab run's rolled identity (same seed the Lab used)
+    // so before/after verify compares the SAME person. Foundation-tier only.
+    cardId: tier === 'Foundation' ? `lab_${archetype}_${element.element}_${element.bond}` : undefined,
   });
 
   onStep?.('Generating Leonardo portrait…');
@@ -155,7 +158,7 @@ export async function runCardRegenVerify(opts: {
 
   onStep?.('Generating Claude text (current pipeline)…');
   const startedAt = Date.now();
-  const claudeResult = await generateCardTextWithRetry({ archetype, stats, answers, element });
+  const claudeResult = await generateCardTextWithRetry({ archetype, stats, answers, element, cardId: card.cardId });
 
   onStep?.('Generating Leonardo portrait…');
   const { dataUrl } = await generatePortraitStrict(

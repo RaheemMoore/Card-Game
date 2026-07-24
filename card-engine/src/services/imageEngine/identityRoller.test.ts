@@ -66,6 +66,19 @@ describe('rollIdentity — presentation distribution', () => {
     expect(female).toBeLessThan(0.56);
   });
 
+  // The live forge (claudeApi.generateCardText) pins species:'humanoid' so the
+  // per-archetype form-families own the non-human/transformation space instead.
+  test('forge contract: pinning species=humanoid forces humanoid + ~50/50 M/F even for a non-human archetype', () => {
+    const rolls = ids.map((cardId) => rollIdentity({ archetype: 'Necromancer', cardId, pins: { species: 'humanoid' } }));
+    expect(rolls.every((r) => r.species === 'humanoid')).toBe(true);
+    expect(rolls.every((r) => r.sex === 'male' || r.sex === 'female')).toBe(true);
+    const female = rolls.filter((r) => r.sex === 'female').length / N;
+    expect(female).toBeGreaterThan(0.44);
+    expect(female).toBeLessThan(0.56);
+    // and a real spread of builds (not one dominant body)
+    expect(new Set(rolls.map((r) => r.build)).size).toBeGreaterThan(3);
+  });
+
   test('build always drawn from the archetype allowlist', () => {
     for (const archetype of ['Barbarian', 'Necromancer', 'Seraph', 'Human'] as const) {
       const rolls = ids.slice(0, 500).map((cardId) => rollIdentity({ archetype, cardId }));

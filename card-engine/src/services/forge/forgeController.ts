@@ -249,6 +249,7 @@ async function runForge(job: ForgeJob): Promise<void> {
       stats,
       answers: storyPillars,
       element,
+      cardId, // seeds the image-first identity roll (deterministic per forge)
       abilitySlotToFill: 'core',
     });
 

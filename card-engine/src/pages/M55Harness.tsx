@@ -253,6 +253,9 @@ export function M55Harness() {
         stats,
         answers,
         element,
+        // Seed the image-first identity roll so the harness varies bodies like
+        // prod. Unique per run (Date.now) so back-to-back runs roll new people.
+        cardId: existing?.hiddenFate ? undefined : `m55_${config.archetype}_${element}_${Date.now()}`,
         existingHiddenFate: existing?.hiddenFate,
         existingName: existing?.name,
       });

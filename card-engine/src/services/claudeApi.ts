@@ -38,6 +38,8 @@ import { parseHiddenFate, preserveIdentityAcrossRanks } from './hiddenFate';
 import { buildAbilityPromptFragment, parseAbilityCandidate } from './abilities/promptFragment';
 import { assemblePortraitPrompt } from './portraitAssembler';
 import { resolveLockedSelections, buildCharacterSheet } from './portrait/characterSheetFactory';
+import { rollIdentity } from './imageEngine/identityRoller';
+import { BODY_CLASSES, AGE_BANDS } from './imageEngine/identityPools';
 
 /**
  * Image/lore decoupling (2026-07-21). EVERY archetype now has its Leonardo
@@ -1028,6 +1030,13 @@ export interface GenerateCardTextInput {
   stats: CardStats;
   answers: StoryPillarAnswers;
   element: ElementSelection;
+  /**
+   * The card's deterministic id — seeds the image-first identity roll
+   * (identityRoller) so sex/build/age are decided in code, not by Claude
+   * (kills the female/"buff-guy" skew). Only used on a FRESH forge
+   * (existingHiddenFate absent). Omit to keep the legacy Claude-authored path.
+   */
+  cardId?: string;
   /** Provided on tier-up / regeneration — enforces Bible §Rank continuity. */
   existingHiddenFate?: HiddenFate;
   /** Provided on tier-up — locks the card name. */
@@ -1060,7 +1069,23 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
   // M4.0 — pick diversity axis + pose OUTSIDE buildPrompt so we can also
   // prepend them to the raw Leonardo prompt Phoenix sees. Tier-up/regen
   // keep locked identity + pose family — skipped.
-  const diversityAxis = input.existingHiddenFate ? '' : pickDiversityAxis(input.archetype);
+  // Image-first identity (2026-07-24): on a FRESH forge with a cardId, roll the
+  // core presentation (sex / build / age / mark) DETERMINISTICALLY in code instead
+  // of letting Claude infer it (the female / back-to-back-buff-guy skew root). The
+  // roll forces `humanoid` — the per-archetype form-families now own the non-human
+  // / transformation space. The rolled values are (a) pinned into the Claude prompt
+  // as the "diversity axis" so name+lore match, AND (b) overwritten onto hiddenFate
+  // post-parse so the IMAGE is guaranteed. Tier-up/regen (existingHiddenFate) skip
+  // the roll and keep locked identity.
+  const rolled =
+    input.cardId && !input.existingHiddenFate
+      ? rollIdentity({ archetype: input.archetype, cardId: input.cardId, pins: { species: 'humanoid' } })
+      : null;
+  const diversityAxis = input.existingHiddenFate
+    ? ''
+    : rolled
+      ? `ROLLED IDENTITY (LOCKED — hiddenFate.sex/bodyType/age AND the name + lore MUST match this EXACT person, do not drift, do not soften): a ${rolled.sex}, ${BODY_CLASSES[rolled.build].leoDescription}, ${AGE_BANDS[rolled.age].leoDescription}${rolled.markDescription ? `, with ${rolled.markDescription}` : ''}`
+      : pickDiversityAxis(input.archetype);
   // Vampire feral-Foundation gate (Bible §Vampire §9 exception): ~1/3 of
   // FRESH Vampire Foundation forges manifest as the feral, half-sentient
   // beast the vampire will grow out of. Fires only at Foundation on a fresh
@@ -1134,6 +1159,20 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
     let hiddenFate = parseHiddenFate(parsed.hiddenFate);
     if (input.existingHiddenFate) {
       hiddenFate = preserveIdentityAcrossRanks(input.existingHiddenFate, hiddenFate);
+    }
+    // Image-first override — the rolled identity WINS over whatever Claude wrote
+    // for the core presentation fields (guarantees the body/sex/age the roll chose).
+    // bodyDimensions is cleared so it can't double-signal against the rolled bodyType
+    // string (the assembler reads hiddenFate.bodyType, not bodyDimensions).
+    if (rolled) {
+      hiddenFate = {
+        ...hiddenFate,
+        sex: rolled.sex,
+        bodyType: BODY_CLASSES[rolled.build].leoDescription,
+        age: AGE_BANDS[rolled.age].leoDescription,
+        bodyDimensions: undefined,
+        ...(rolled.markDescription ? { disabilityOrCondition: rolled.markDescription } : {}),
+      };
     }
 
     // Image/lore decoupling — the Leonardo prompt is built deterministically by
