@@ -157,6 +157,12 @@ To avoid hidden-rule landmines (like the Druid-photoreal surprise), the per-arch
 - **Peace cosmic culmination** kept rendering a muscular caped SUPERHERO (the Dr-Strange trap) from the plain cosmic palette + Ascendant power language. FIX = a dedicated high-priority scene override (`buildMonkPeaceCosmicScene`) forcing a serene robed FANTASY-BUDDHA in lotus meditation + mala + third-eye + galaxy-disc nimbus, plus negatives (superhero/bodysuit/cape/chiseled/power-stance). Result: a perfect serene cosmic Buddha. Lesson: a flagship figure that fights a strong prior needs the figure forced in the SCENE clause (highest priority), not just the fashion.
 - **All-four = elemental CHAOS, not a mandala** (Raheem). A tidy quadrant layout felt wrong; the winning render is the four elements raging as a churning maelstrom around a calm monk at the eye. Wind stays the weakest element to render (perennial) — fire/water/earth carry it.
 
+## Weapon-in-hand / no-clip fix + the 1000-char negative limit (2026-07-23)
+
+- **Weapons missing the hand or spearing through the body** (Raheem): fixed with `WEAPON_ANATOMY_NEGATIVES` ("weapon clipping through the body, floating weapon, weapon missing the hand") added to the negative lead ONLY when the card renders a weapon (`hasWeapon(sheet)`). Validated 3/3 across varied bodies — every weapon gripped cleanly, no clipping. The positive prompt body is already at the 1450 API cap, so a positive grip cue would evict the BACKGROUND segment — the fix HAS to be negative-side.
+- **HARD LIMIT — Leonardo rejects a `negative_prompt` over 1000 chars** ("Invalid negative_prompt, maximum length of 1000 characters exceeded"). `ASSEMBLER_NEGATIVE_MAX` must stay at 1000; the final `truncateToLimit(..., 1000)` guarantees it. Do NOT raise it. When adding negatives, keep them lean and put non-negotiable anatomy/modesty count-guards (`extra limbs, extra fingers`, `nudity`) in the RESERVED `CRITICAL_NEGATIVES` lead so base-fill truncation can't drop them.
+- **Prompt body cap is 1450** (`PORTRAIT_PROMPT_MAX`); the negative cap is 1000. Different limits — don't conflate.
+
 ## Learnings log (append-only, newest last)
 
 - **2026-07-22** — Established this playbook. Diagnosed root cause of same-y elements: assembler dropped materials/textures/shapes; `theme`/`symbolism` (emotional) were leaking into the Claude prompt. Direction: enrich the assembler with materials/textures/shapes, rework each element's fields for zero-overlap, keep emotional fields on the lore side only.

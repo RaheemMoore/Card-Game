@@ -558,6 +558,10 @@ const HUMAN_CALLING_WEAPON: Record<number, string> = {
   6: 'a long brass-scoped tech-rifle raised and aimed into the distance — its whole defining silhouette',
 };
 
+// 2026-07-23 (Raheem): weapons kept missing the hands or clipping through the
+// body. The prompt body is already at the 1450 API cap, so the fix lives in the
+// reserved grip cue (below, always survives) + WEAPON_ANATOMY_NEGATIVES, not in
+// a longer weapon clause that would evict the BACKGROUND segment.
 function buildWeaponClause(sheet: CharacterSheet): string {
   if (isElementless(sheet.archetype)) {
     const idx = sheet.hiddenFate.fashionVariantIndex;
@@ -571,10 +575,12 @@ function buildWeaponClause(sheet: CharacterSheet): string {
   // reads as USING it. §4.4: never "the same sword with a different glow". The
   // weapon is wreathed in the element so it CARRIES the element instead of
   // competing with it for the frame.
-  if (isElementless(sheet.archetype)) {
-    return `WEAPON/TOOL (held and in use, defining silhouette): ${sheet.weapon}, a mundane brass-and-steel mechanism, no energy wreath, no glow`;
-  }
   return `WEAPON (held and in use, defining silhouette): ${sheet.weapon}, wreathed in visible ${sheet.resolvedElement} energy`;
+}
+
+/** True when this card renders a weapon (so the grip cue + anatomy negatives fire). */
+function hasWeapon(sheet: CharacterSheet): boolean {
+  return Boolean(buildWeaponClause(sheet).trim());
 }
 
 function buildBackgroundClause(sheet: CharacterSheet): string {
@@ -620,7 +626,8 @@ function buildBackgroundClause(sheet: CharacterSheet): string {
 const CRITICAL_NEGATIVES =
   'nudity, topless woman, exposed nipples, visible nipples, bare breasts, cleavage, deep neckline, ' +
   'underboob, sideboob, bare midriff, exposed belly, crop top, crotch bulge, bulge emphasis, ' +
-  'underwear as clothing, lingerie, bikini armor, chainmail bikini, sexualized, pin-up, suggestive';
+  'underwear as clothing, lingerie, bikini armor, chainmail bikini, sexualized, pin-up, suggestive, ' +
+  'extra limbs, extra fingers, fused fingers'; // count-guards reserved so they never truncate
 
 /**
  * Anti-shirtless block, injected into the reserved negative lead for EVERY
@@ -682,8 +689,11 @@ const SPECTACLE_NEGATIVES =
 // actively ban the photoreal drift for EVERY archetype (reverses the old Druid
 // photoreal exception). Reserved in the negative lead so it always survives.
 const PAINTERLY_NEGATIVES =
-  'photorealistic, photograph, photo, photo-real, realistic photo, hyperrealistic, lifelike skin, ' +
-  'real skin pores, DSLR photo, 3D render, CGI, octane render, unreal engine render';
+  'photorealistic, photograph, hyperrealistic, DSLR photo, 3D render, CGI, octane render';
+
+// 2026-07-23: fix weapons that miss the hand or spear through the body.
+const WEAPON_ANATOMY_NEGATIVES =
+  'weapon clipping through the body, floating weapon, weapon missing the hand';
 
 /**
  * Elementless (Human) spectacle negatives — same anti-lame targets, but WITHOUT
@@ -705,6 +715,7 @@ const STEAMPUNK_SPECTACLE_NEGATIVES =
  * The assembler uses a roomier cap so the modesty + spectacle reserves AND a
  * healthy slice of BASE_NEGATIVE all survive.
  */
+// Leonardo hard-rejects a negative_prompt over 1000 chars — do not raise this.
 const ASSEMBLER_NEGATIVE_MAX = 1000;
 
 function buildNegativePrompt(sheet: CharacterSheet): string {
@@ -736,7 +747,9 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
   // case the anti-shirtless block is dropped AND the coverage tokens are
   // stripped from the base fill so nothing fights the open-robe cue.
   const chestLead = bareChest ? '' : `${COVERED_CHEST_NEGATIVES}, `;
-  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${PAINTERLY_NEGATIVES}, ${spectacleNegatives}${elementless ? '' : elementDriftBans}${archetypeBans}`;
+  // Weapon-anatomy bans only when the card actually renders a weapon.
+  const weaponLead = hasWeapon(sheet) ? `, ${WEAPON_ANATOMY_NEGATIVES}` : '';
+  const lead = `${chestLead}${CRITICAL_NEGATIVES}, ${PAINTERLY_NEGATIVES}, ${spectacleNegatives}${weaponLead}${elementless ? '' : elementDriftBans}${archetypeBans}`;
   const remaining = Math.max(ASSEMBLER_NEGATIVE_MAX - lead.length - warmGlowNegatives.length, 60);
   let baseSource = bareChest ? stripCoverageTokens(BASE_NEGATIVE) : BASE_NEGATIVE;
   if (sheet.archetype === 'Druid') baseSource = stripListTokens(baseSource, DRUID_GROWTH_SUPPRESSORS);
