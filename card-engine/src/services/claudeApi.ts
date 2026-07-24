@@ -1202,6 +1202,11 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
       } else if (imagePins.companionPresence === 'solitary') {
         hiddenFate = { ...hiddenFate, companionPresent: false };
       }
+      // Beastmaster summoned beast — a dedicated pin (never touches species, so
+      // the Beastmaster stays human).
+      if (imagePins.summon && hiddenFate.summonId === undefined) {
+        hiddenFate = { ...hiddenFate, summonId: imagePins.summon };
+      }
     }
 
     // Image/lore decoupling — the Leonardo prompt is built deterministically by

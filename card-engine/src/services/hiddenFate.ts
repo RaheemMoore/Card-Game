@@ -74,6 +74,8 @@ export const LOCKED_HIDDEN_FATE_FIELDS: readonly (keyof HiddenFate)[] = [
   // form at every tier (the form only visibly manifests at Forged/Ascendant,
   // so it MUST survive Foundation→Forged verbatim).
   'speciesForm',
+  // Beastmaster's bonded beast — a lifelong partner, locked across ranks.
+  'summonId',
 ] as const;
 
 /**

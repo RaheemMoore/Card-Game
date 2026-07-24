@@ -837,13 +837,42 @@ const BEASTMASTER_BEASTS: Partial<Record<ElementName, readonly string[]>> = {
     'crystalline ICE-ELK, antlers of jagged clear frost',
   ],
 };
+// Parallel ids for the element-gated apex beasts (SAME ORDER as BEASTMASTER_BEASTS)
+// so the player's companion-style pick (hiddenFate.summonId) selects the species.
+const BEASTMASTER_BEAST_IDS: Partial<Record<ElementName, readonly string[]>> = {
+  Beast: ['dire_wolf', 'sabertooth', 'war_boar'],
+  Earth: ['dire_bear', 'war_rhino', 'tortoise_titan'],
+  Wind: ['storm_raptor', 'wind_serpent', 'gale_stallion'],
+  Water: ['river_serpent', 'orca_beast', 'water_hound'],
+  Spirit: ['spirit_stag', 'spectral_tiger', 'spectral_owl'],
+  Ice: ['frost_mammoth', 'glacial_wolf', 'ice_elk'],
+};
+/** The Beastmaster's choosable apex beasts for an element ({id, label}), or [].
+ *  label = the beast name (the leading CAPS word), title-cased. */
+export function beastmasterSummonOptions(element: ElementName): { id: string; label: string }[] {
+  const beasts = BEASTMASTER_BEASTS[element];
+  const ids = BEASTMASTER_BEAST_IDS[element];
+  if (!beasts || !ids) return [];
+  return ids.map((id, i) => {
+    // Grab the leading run of CAPS words (the beast name), e.g. "DIRE WOLF",
+    // "TUSKED WAR-BOAR", ignoring a lowercase lead like "great "/"coiling ".
+    const name = (beasts[i].match(/[A-Z][A-Z-]+(?:\s+[A-Z][A-Z-]+)?/)?.[0] ?? beasts[i]).toLowerCase();
+    return { id, label: name.charAt(0).toUpperCase() + name.slice(1) };
+  });
+}
+function beastmasterSpeciesIndex(sheet: CharacterSheet, poolLength: number): number {
+  const id = sheet.hiddenFate.summonId;
+  const ids = BEASTMASTER_BEAST_IDS[sheet.resolvedElement];
+  const i = id && ids ? ids.indexOf(id) : -1;
+  return i >= 0 ? i : formSeed(sheet) % poolLength;
+}
 function isBeastmasterForm(sheet: CharacterSheet): boolean {
   return sheet.archetype === 'Beastmaster' && Boolean(BEASTMASTER_BEASTS[sheet.resolvedElement]);
 }
 function buildBeastmasterScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
-  const species = BEASTMASTER_BEASTS[el]![formSeed(sheet) % BEASTMASTER_BEASTS[el]!.length];
+  const species = BEASTMASTER_BEASTS[el]![beastmasterSpeciesIndex(sheet, BEASTMASTER_BEASTS[el]!.length)];
   const power =
     sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
   const beast =

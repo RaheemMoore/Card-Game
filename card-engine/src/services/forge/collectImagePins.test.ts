@@ -79,6 +79,26 @@ describe('collectImagePins — Vampire image-first', () => {
     expect(resolveNarrativePath('Barbarian', answersFor(['whatever']))).toBeUndefined();
   });
 
+  test('Beastmaster gets an element-gated summoned-beast question (companion-style, not a form)', () => {
+    const { questions, options } = visualQuestionsFor('Beastmaster', 'Beast');
+    expect(questions.some((q) => q.id === 'vf_summon')).toBe(true);
+    // No body-form question, no generic companion question.
+    expect(questions.some((q) => q.id === 'vf_form' || q.id === 'vf_companion')).toBe(false);
+    const summons = options.filter((o) => o.questionId === 'vf_summon').map((o) => o.image?.summon);
+    expect(summons).toEqual(['dire_wolf', 'sabertooth', 'war_boar']);
+  });
+
+  test('the summon pin never transforms the Beastmaster (stays a rolled person)', () => {
+    const beast = visualQuestionsFor('Beastmaster', 'Beast').options.find((o) => o.image?.summon)!;
+    const pins = collectImagePins('Beastmaster', 'Beast', answersFor([beast.id]));
+    expect(pins.summon).toBe('dire_wolf');
+    expect(pins.species).toBeUndefined();
+    // The forge merges the humanoid default (claudeApi): species:'humanoid' + pins.
+    const r = rollIdentity({ archetype: 'Beastmaster', cardId: 'bm_1', pins: { species: 'humanoid', ...pins } });
+    expect(['male', 'female']).toContain(r.sex);
+    expect(r.species).toBe('humanoid');
+  });
+
   test('unmatched option ids yield no pins', () => {
     const pins = collectImagePins('Barbarian', 'Fire', answersFor(['not-a-real-option']));
     expect(pins).toEqual({});

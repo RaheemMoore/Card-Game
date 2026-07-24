@@ -10,6 +10,7 @@ import { formsFor } from '../services/imageEngine/formFamilies';
 import { BODY_CLASSES, BODY_ALLOWLIST, type BodyClassId } from '../services/imageEngine/identityPools';
 import { getWeaponPool } from './archetypeWeapons';
 import { getCompanionPool } from './archetypeCompanions';
+import { beastmasterSummonOptions } from '../services/portraitAssembler';
 
 /**
  * Image-first visual pillars (2026-07-24).
@@ -163,18 +164,35 @@ export function resolveNarrativePath(
   return undefined;
 }
 
+// Beastmaster — the summoned APEX BEAST (a companion-style pick, NOT a body form:
+// the Beastmaster stays human). Element-gated species; pins `summon` (never
+// `species`). Replaces the generic companion question for Beastmaster.
+function summonQuestion(element: ElementName): VisualQuestionSet {
+  const options = beastmasterSummonOptions(element);
+  if (options.length === 0) return { questions: [], options: [] };
+  return {
+    questions: [{ id: 'vf_summon', pillarIndex: 4, prompt: 'What beast answers your call?' }],
+    options: options.map((o) =>
+      vopt('vf_summon_' + o.id, 'vf_summon', `A ${o.label.toLowerCase()} of pure ${element.toLowerCase()}`, {
+        summon: o.id,
+      }),
+    ),
+  };
+}
+
 /**
  * The visual (image-pinned) question set for an archetype's forge, gated by the
  * already-chosen element. Every archetype gets build + weapon + companion (where
- * a pool exists); the form question appears where FORM_FAMILIES gates one, and
- * Seraph gets its moral-path question instead of a body-form question.
+ * a pool exists); the form question appears where FORM_FAMILIES gates one; Seraph
+ * gets its moral-path question, and Beastmaster its summoned-beast question,
+ * instead of a body-form / generic-companion question.
  */
 export function visualQuestionsFor(archetype: ArchetypeName, element: ElementName): VisualQuestionSet {
   const parts = [
     archetype === 'Seraph' ? seraphPathQuestion() : formQuestion(archetype, element),
     buildQuestion(archetype),
     weaponQuestion(archetype),
-    companionQuestion(archetype),
+    archetype === 'Beastmaster' ? summonQuestion(element) : companionQuestion(archetype),
   ];
   return {
     questions: parts.flatMap((p) => p.questions),

@@ -171,6 +171,13 @@ export interface ImageDirective {
   environmentTag?: string;
   /** Rare explicit sex pin; otherwise system-rolled to the presentation distribution. */
   sex?: string;
+  /**
+   * Summoned-creature pin (Beastmaster). The player's chosen apex beast id for
+   * the archetype's element. Unlike `species`, this NEVER transforms the
+   * character — the Beastmaster stays fully human; the beast is a separate
+   * entity the assembler renders. See data/visualPillars.ts + buildBeastmasterScene.
+   */
+  summon?: string;
 }
 
 /**
@@ -263,6 +270,13 @@ export interface HiddenFate {
    * form. This holds the form ID, not a Leonardo descriptor string.
    */
   speciesForm?: string;
+  /**
+   * Image-first summoned-beast pin (Beastmaster, 2026-07-24). The chosen apex
+   * beast id for the card's element; the Beastmaster stays HUMAN and the beast
+   * is rendered as a separate creature. Locked across ranks (a bonded beast is a
+   * lifelong partner). Undefined = the assembler seed-rolls the species.
+   */
+  summonId?: string;
   /**
    * Which fashion variant of the archetype's guide this card resolved to
    * (index into ARCHETYPE_FASHION_GUIDES[archetype].variants). GENERIC — not
