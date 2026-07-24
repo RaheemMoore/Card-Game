@@ -1145,15 +1145,11 @@ function LayerStatePanels({
               </ul>
             </div>
             <div className="pt-1" style={{ borderTop: dashBorder }}>
-              <span style={{ color: 'var(--admin-text-muted)' }}>Elements available ({elements.length} of 26):</span>
+              <span style={{ color: 'var(--admin-text-muted)' }}>Elements available ({elements.length}):</span>
               <div className="mt-1 space-y-0.5" style={{ color: 'var(--admin-text)' }}>
                 <div>
                   <span style={{ color: 'var(--admin-text-muted)' }}>Naturally compatible:</span>{' '}
                   {buckets.naturally_compatible.join(', ') || '—'}
-                </div>
-                <div>
-                  <span style={{ color: 'var(--admin-text-muted)' }}>Through reinterpretation:</span>{' '}
-                  {buckets.compatible_through_reinterpretation.join(', ') || '—'}
                 </div>
                 <div>
                   <span style={{ color: 'var(--admin-text-muted)' }}>Rare (narrative-gated):</span>{' '}

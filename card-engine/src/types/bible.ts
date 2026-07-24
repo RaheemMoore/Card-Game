@@ -75,9 +75,12 @@ export type ElementBond = typeof ELEMENT_BONDS[number];
  * discovery frequency, NEVER power. See elementCompatibilityBucket() in
  * data/elements.ts.
  */
+// 2026-07-23: collapsed to 2 tiers — the middle
+// 'compatible_through_reinterpretation' tier was removed (Raheem). Elements are
+// now Natural (freely picked) or Rare (narratively earned); anything else is
+// not_available.
 export type ElementCompatibility =
   | 'naturally_compatible'
-  | 'compatible_through_reinterpretation'
   | 'rare'
   | 'not_available';
 

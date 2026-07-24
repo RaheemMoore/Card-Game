@@ -21,7 +21,6 @@ import { bucketFor } from '../data/elements';
 
 const COMPATIBILITY_LABEL: Record<ElementCompatibility, string> = {
   naturally_compatible: 'Naturally Compatible',
-  compatible_through_reinterpretation: 'Compatible Through Reinterpretation',
   rare: 'Rare',
   not_available: 'Not Available',
 };
@@ -32,12 +31,6 @@ const COMPATIBILITY_STYLE: Record<ElementCompatibility, { ring: string; text: st
     text: 'text-emerald-300',
     glow: 'shadow-[0_0_28px_rgba(16,185,129,0.35)]',
     hint: 'This power fits your kind naturally.',
-  },
-  compatible_through_reinterpretation: {
-    ring: 'border-sky-400/60',
-    text: 'text-sky-300',
-    glow: 'shadow-[0_0_28px_rgba(56,189,248,0.35)]',
-    hint: 'This power fits when it is reinterpreted through your archetype.',
   },
   rare: {
     ring: 'border-fuchsia-400/70',

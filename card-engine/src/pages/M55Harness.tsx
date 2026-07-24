@@ -96,7 +96,7 @@ function makeElementSelection(el: ElementName): ElementSelection {
   return {
     element: el,
     bond: 'It is my inheritance.',
-    compatibility: 'compatible_through_reinterpretation',
+    compatibility: 'naturally_compatible',
   };
 }
 

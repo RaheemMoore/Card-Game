@@ -76,7 +76,6 @@ const FIELD_LABEL_CLASS = 'block text-[10px] uppercase tracking-wider mb-1';
 
 const BUCKET_LABEL: Record<ElementCompatibility, string> = {
   naturally_compatible: 'Naturally Compatible',
-  compatible_through_reinterpretation: 'Reinterpretation',
   rare: 'Rare',
   not_available: '(unavailable)',
 };
@@ -201,7 +200,6 @@ function PromptLabWorkspace() {
   const eligibleByBucket = useMemo(() => {
     const buckets: Record<ElementCompatibility, ElementName[]> = {
       naturally_compatible: [],
-      compatible_through_reinterpretation: [],
       rare: [],
       not_available: [],
     };
@@ -381,7 +379,7 @@ function PromptLabWorkspace() {
                     className="flex-1 px-2 py-1.5 text-sm disabled:opacity-50"
                     style={CONTROL_STYLE}
                   >
-                    {(['naturally_compatible', 'compatible_through_reinterpretation', 'rare'] as const).map((b) =>
+                    {(['naturally_compatible', 'rare'] as const).map((b) =>
                       eligibleByBucket[b].length > 0 ? (
                         <optgroup key={b} label={BUCKET_LABEL[b]}>
                           {eligibleByBucket[b].map((el) => (

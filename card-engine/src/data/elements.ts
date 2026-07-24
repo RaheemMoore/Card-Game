@@ -33,16 +33,14 @@ import { ELEMENT_BONDS, ELEMENT_NAMES } from '../types/bible';
  */
 export const BUCKET_WEIGHTS: Record<ElementCompatibility, number> = {
   naturally_compatible: 60,
-  compatible_through_reinterpretation: 30,
   rare: 8,
   not_available: 0,
 };
 
-// ---------- Per-archetype compatibility, verbatim from Bible §Step 12 ----------
+// ---------- Per-archetype compatibility (2-tier: Natural / Rare) ----------
 
 type ArchetypeElementBuckets = {
   naturally_compatible: ElementName[];
-  compatible_through_reinterpretation: ElementName[];
   rare: ElementName[];
   not_available?: ElementName[];
 };
@@ -58,75 +56,64 @@ type ArchetypeElementBuckets = {
  * services/tierUp.ts). It must NOT appear in the normal forge picker.
  */
 export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBuckets> = {
+  // 2026-07-23 CURATED 2-TIER (Raheem-approved). Each archetype offers a curated
+  // Natural set + a small narratively-gated Rare set; anything not listed is
+  // unavailable. Barbarian = the six-Tradition union (element gates the tradition).
   Barbarian: {
-    naturally_compatible: ['Fire', 'Earth', 'Storm', 'Wind', 'Ice', 'Blood', 'Beast'],
-    compatible_through_reinterpretation: ['Light', 'Shadow', 'Metal', 'Spirit', 'Poison', 'Water'],
-    rare: ['Holy', 'Void', 'Time', 'Tech', 'Psychic'],
+    naturally_compatible: ['Fire', 'Earth', 'Metal', 'Wind', 'Storm', 'Ice', 'Beast'],
+    rare: ['Blood', 'Holy'],
   },
-  // 2026-07-23 moral-fork redesign: PEACE picks Holy/Light (→ Cosmic culmination),
-  // VIOLENCE picks Fire/Water/Wind/Earth (→ all-four culmination). Cosmic is now
-  // MONK-EXCLUSIVE (removed from every other archetype's rare). Path-gating of
-  // which six are offered is the deferred ritual mechanic; the buckets list all.
+  // Moral-fork: PEACE picks Holy/Light (→ Cosmic culmination), VIOLENCE picks
+  // Fire/Water/Wind/Earth (→ all-four). Cosmic is MONK-EXCLUSIVE.
   Monk: {
     naturally_compatible: ['Holy', 'Light', 'Fire', 'Water', 'Wind', 'Earth'],
-    compatible_through_reinterpretation: ['Spirit', 'Ice', 'Storm', 'Metal'],
     rare: ['Cosmic'],
     not_available: ['Beast'],
   },
   Beastmaster: {
-    // Nature is now Druid-EXCLUSIVE (2026-07-23) — removed here.
-    naturally_compatible: ['Beast', 'Earth', 'Wind', 'Water', 'Spirit', 'Ice'],
-    compatible_through_reinterpretation: ['Fire', 'Storm', 'Light', 'Shadow', 'Poison', 'Blood'],
-    rare: ['Time', 'Void', 'Psychic', 'Holy', 'Tech', 'Metal'],
+    naturally_compatible: ['Beast', 'Earth', 'Wind', 'Water', 'Spirit'],
+    rare: ['Ice'],
   },
   Druid: {
-    // Nature is Druid-EXCLUSIVE.
-    naturally_compatible: ['Nature', 'Earth', 'Water', 'Wind', 'Spirit', 'Light', 'Ice'],
-    compatible_through_reinterpretation: ['Fire', 'Storm', 'Shadow', 'Poison'],
-    rare: ['Time', 'Void', 'Psychic', 'Holy', 'Tech', 'Metal', 'Beast', 'Blood'],
+    // Nature is Druid-EXCLUSIVE; corrupted path uses Poison.
+    naturally_compatible: ['Nature', 'Earth', 'Water'],
+    rare: ['Poison', 'Spirit'],
   },
   Necromancer: {
-    naturally_compatible: ['Spirit', 'Shadow', 'Blood', 'Poison'],
-    compatible_through_reinterpretation: ['Earth', 'Ice', 'Water', 'Psychic'],
-    rare: ['Fire', 'Wind', 'Beast', 'Light', 'Holy', 'Storm', 'Metal', 'Time', 'Void', 'Tech', 'Dream'],
+    // Bone is Necromancer-EXCLUSIVE.
+    naturally_compatible: ['Spirit', 'Shadow', 'Blood', 'Bone'],
+    rare: ['Poison', 'Void'],
   },
   Vampire: {
-    // Bible §Vampire: Vampires draw only on Blood, Shadow, and Void — the
-    // hunger itself, the dark they hunt in, and the erased self. Blood is the
-    // native spine; Shadow and Void are the two reinterpretations. Rare is empty
-    // so the narrative-eligibility gate no longer restricts any Vampire element.
-    naturally_compatible: ['Blood'],
-    compatible_through_reinterpretation: ['Shadow', 'Void'],
-    rare: [],
+    // Nocturne is Vampire-EXCLUSIVE; Void is the Ascension-blocker rare.
+    naturally_compatible: ['Blood', 'Shadow', 'Nocturne'],
+    rare: ['Void'],
   },
   Lycanthrope: {
-    // Layer-A canon re-gate (Tori, lore director, 2026-07-20 — parked for
-    // Raheem via proposal f67e3513). Lycan elements are either a natural fit
-    // (lunar/pack/wild) or Rare — there is deliberately NO middle tier.
-    naturally_compatible: ['Beast', 'Blood', 'Spirit', 'Moon', 'Earth'],
-    compatible_through_reinterpretation: [],
-    rare: ['Shadow', 'Poison', 'Ice', 'Dream'],
+    // Lunar is Lycan-EXCLUSIVE rare (superior Moon).
+    naturally_compatible: ['Moon', 'Beast', 'Blood'],
+    rare: ['Lunar', 'Shadow'],
   },
   'Mech Pilot': {
-    naturally_compatible: ['Tech', 'Storm', 'Metal'],
-    compatible_through_reinterpretation: ['Earth', 'Wind', 'Ice', 'Psychic', 'Light', 'Spirit', 'Water'],
-    rare: ['Time', 'Void', 'Holy', 'Beast', 'Blood', 'Poison', 'Dream', 'Moon', 'Shadow'],
-    not_available: ['Fire'],
+    // Division-based: the mech's element loadout (element gates the division);
+    // tech-rares (Plasma/Nanite/Void) unlock at Ascension.
+    naturally_compatible: ['Tech', 'Metal', 'Storm', 'Fire', 'Ice', 'Earth', 'Light', 'Wind'],
+    rare: ['Plasma', 'Nanite', 'Void'],
   },
   Android: {
-    naturally_compatible: ['Tech', 'Storm', 'Metal', 'Psychic', 'Light'],
-    compatible_through_reinterpretation: ['Ice', 'Water', 'Wind', 'Earth', 'Spirit', 'Moon', 'Shadow'],
-    rare: ['Time', 'Void', 'Holy', 'Beast', 'Blood', 'Poison', 'Dream', 'Fire'],
+    // Purpose-based; tech-rares locked behind the purpose-line.
+    naturally_compatible: ['Tech', 'Metal', 'Light', 'Prism'],
+    rare: ['Plasma', 'Nanite', 'Void'],
   },
   Seraph: {
     naturally_compatible: ['Holy', 'Light', 'Spirit', 'Wind', 'Fire'],
-    compatible_through_reinterpretation: ['Storm', 'Water', 'Earth', 'Metal', 'Ice', 'Psychic', 'Moon'],
-    rare: ['Time', 'Dream', 'Blood', 'Shadow', 'Void', 'Tech', 'Beast', 'Poison'],
+    rare: ['Water', 'Earth', 'Metal', 'Ice'],
   },
   Human: {
-    naturally_compatible: ['Fire', 'Water', 'Wind', 'Earth', 'Light', 'Metal'],
-    compatible_through_reinterpretation: ['Ice', 'Storm', 'Spirit', 'Psychic', 'Tech', 'Moon'],
-    rare: ['Holy', 'Shadow', 'Blood', 'Poison', 'Time', 'Void', 'Dream', 'Beast'],
+    // Human is the no-element TECH class — elements are vestigial here (the
+    // ritual offers a Craft slot instead, a deferred systems item). Kept minimal.
+    naturally_compatible: ['Tech', 'Metal'],
+    rare: [],
   },
 };
 
@@ -138,9 +125,6 @@ export function bucketFor(
 ): ElementCompatibility {
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   if (buckets.naturally_compatible.includes(element)) return 'naturally_compatible';
-  if (buckets.compatible_through_reinterpretation.includes(element)) {
-    return 'compatible_through_reinterpretation';
-  }
   if (buckets.rare.includes(element)) return 'rare';
   return 'not_available';
 }
@@ -150,7 +134,6 @@ export function elementsAvailableToArchetype(archetype: ArchetypeName): ElementN
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   return [
     ...buckets.naturally_compatible,
-    ...buckets.compatible_through_reinterpretation,
     ...buckets.rare,
   ];
 }
