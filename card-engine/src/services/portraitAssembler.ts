@@ -315,6 +315,13 @@ function buildElementPrefix(sheet: CharacterSheet): string {
  * element colors always survive the budget ahead of exact garment names.
  */
 function buildIdentityBlock(sheet: CharacterSheet): string {
+  // Android that has SHED human form (Ascendant): identity is NOT a human face/body —
+  // it is machine lineage (serial/manufacture marks + chosen purpose). Forcing "hold
+  // this exact person" here is what kept rendering a humanoid robot / sexy fembot
+  // (a Bible FAILURE — "human-looking end-state is a failure for Android").
+  if (sheet.archetype === 'Android' && sheet.rank === 'Ascendant') {
+    return 'SUBJECT: a POST-HUMAN machine-being — NOT a person, NO human face, NO human head, NO humanoid two-arm-two-leg body. Identity is carried ONLY by its stamped serial/manufacture-marks and chosen-purpose emblem, never by human features.';
+  }
   const f = sheet.hiddenFate;
   // COMPACT identity lead — first-clause of each field so the whole subject
   // description stays ~150 chars, leaving budget for element + background +
@@ -337,6 +344,9 @@ function buildIdentityBlock(sheet: CharacterSheet): string {
 }
 
 function buildWardrobeClause(sheet: CharacterSheet): string {
+  // A post-human Android (Ascendant) is a MACHINE STRUCTURE, not a clothed figure —
+  // any garment/chassis-shell wording re-implies a humanoid body (the fembot bug).
+  if (sheet.archetype === 'Android' && sheet.rank === 'Ascendant') return '';
   const fashion = sheet.hiddenFate.fashion;
   if (!fashion) return '';
   // Ascendant-male bare-chest branch: the outer layer is worn OPEN over a bare
@@ -876,10 +886,100 @@ function moonPhaseNoun(i: number): string {
   return LYCAN_MOON_PHASES[i] ?? 'full moon';
 }
 
+// ---- Android form-family (2026-07-24) — identity through PURPOSE + self-authorship
+// PAST human form (Bible: "the human form is a chrysalis"; "human-looking end-state
+// is a Bible FAILURE for Android"). Rank = INCREASING departure from human: Foundation
+// humanoid → Forged silhouette departs (extra limbs / opened panels / fused tools) →
+// Ascendant POST-HUMAN radical form driven by the drastic PATH chosen. Two seeds:
+// PURPOSE (original function, seed) + PATH (chosen stance, second seed). Element = the
+// chassis material/energy. Owns the SCENE. ----
+const ANDROID_PURPOSES: readonly string[] = [
+  "a GUARDIAN-model (built to protect) — heavy warding shield-plates, a sentinel bearing, a purpose-glyph on the chest",
+  "an EXPLORER-model (built to survey) — survey-sensor masts, long-range optics and a cartographer's array",
+  "a HEALER-model (built to mend) — precise medical manipulators, remedy-modules and a caduceus purpose-mark",
+  "a DIPLOMAT-model (built to speak) — an elegant envoy frame, an expressive face-plate and translator-arrays",
+  "an ARTISAN-model (built to make) — fine crafting-manipulators, tool-fingers and a maker's rig of instruments",
+  "a LABORER-model (built to haul) — a heavy industrial frame, load-bearing limbs and work-worn plating",
+  "a CARETAKER-model (built to tend) — a gentle frame with many soft hands and a tending kit",
+  "a WEAPON-model (built to fight) — an armored combat frame, integrated armaments and targeting-optics",
+];
+const ANDROID_PATHS: readonly string[] = [
+  'PROTECT ALL LIFE — a walking FORTRESS-CITADEL machine: a mobile bulwark of layered shield-walls, ramparts and many warding turret-arms; a STRUCTURE, not a figure — no head, no face, no person',
+  'DESTROY ALL LIFE — a WAR-ENGINE monstrosity: a bladed, multi-limbed extermination-machine bristling with cannon-spikes and claws; a WAR-MACHINE, not a soldier — no head, no face, no person',
+  'BEFRIEND ALL LIFE — a floating SENSOR-SWARM intelligence: a constellation of dozens of drifting sensor-orbs and connective light-filaments with NO central body; a network, not a person — no face',
+  'LEAVE ALL LIFE BEHIND — a dispersing CORE-CLOUD: a barely-solid drift of distributed cores, nanite-mist and star-geometry departing into the void; a cloud, not a figure — no body, no face',
+];
+function pathSeed(sheet: CharacterSheet): number {
+  const s = `path:${sheet.hiddenFate.age ?? ''}|${sheet.hiddenFate.skinTone ?? ''}|${sheet.hiddenFate.sex ?? ''}`;
+  let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h);
+}
+function purposeShort(p: string): string {
+  const m = p.match(/([A-Z]+)-model/);
+  return m ? `a ${m[1].toLowerCase()}-model` : 'its original model';
+}
+function isAndroidForm(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Android';
+}
+function buildAndroidScene(sheet: CharacterSheet): string {
+  const el = sheet.resolvedElement;
+  const v = ELEMENT_VISUAL_LANGUAGE[el];
+  const purpose = ANDROID_PURPOSES[formSeed(sheet) % ANDROID_PURPOSES.length];
+  const chassis = `${firstClause(v.materials, 28)} in ${el} colours ${firstClause(v.primaryColors, 22)}`;
+  if (sheet.rank === 'Ascendant') {
+    const path = ANDROID_PATHS[pathSeed(sheet) % ANDROID_PATHS.length];
+    return (
+      `SCENE — OVERWHELMING POWER: a POST-HUMAN android that has SHED all human form — ${path}. ` +
+      `Built of ${chassis}. This is a MACHINE STRUCTURE / SWARM, NOT a character — render NO human face, NO head, NO standing humanoid figure, NO woman and NO man; only a faint trace of its origin as ${purposeShort(purpose)}; painterly hand-painted fantasy card art, NOT photoreal`
+    );
+  }
+  if (sheet.rank === 'Forged') {
+    return (
+      `SCENE — ESCALATING POWER: an android whose silhouette is DEPARTING from human — extra limbs, altered joints, opened chest-panels, sensor-arrays and tools FUSED as body-parts (its maker would no longer recognize it); ${purpose}, of ${chassis}; painterly hand-painted fantasy card art, NOT photoreal`
+    );
+  }
+  return (
+    `SCENE — EARLY RESTRAINED POWER: ${purpose}, still largely HUMANOID (the chrysalis shape, reflecting the character's ancestry and features) with only subtle synthetic tells (seams, a panel, luminous eyes, a serial-mark); of ${chassis}; painterly hand-painted fantasy card art, NOT photoreal`
+  );
+}
+
+// ---- Mech Pilot form-family (2026-07-24) — identity through MACHINE PARTNERSHIP
+// (Bible: pilot AND machine are DISTINCT partners; deepen synchronization + machine
+// HISTORY across rank — do NOT just enlarge the mech or add weapons; avoid generic
+// power armor / cyberpunk neon / Android overlap). DIVISION (seed) picks the machine
+// TYPE + pilot gear. Element = the mech's armament. Owns the SCENE. ----
+const MECH_DIVISIONS: readonly string[] = [
+  "GUARDIANS division — a stalwart bulwark-mech with a great tower-shield and defensive bracing, the pilot in reinforced interface-gear",
+  "EXPLORERS division — a long-range survey-walker with sensor-masts, all-terrain legs and expedition stowage, the pilot in a cartographer's rig",
+  "RESCUE CORPS — a rescue-mech with grappling arms, floodlights, cutting tools and extraction gear, the pilot in hi-visibility rescue interface-wear",
+  "ENGINEERING division — a heavy utility-mech with crane-arms, welding rigs and repair tools, the pilot in a grease-worn technician's harness",
+  "RECON UNITS — a light fast scout-mech, streamlined with optics and low-profile lines, the pilot in a lean recon flight-suit",
+  "PEACEKEEPING CORPS — a patrol-mech with restraint gear and clear authority-markings (non-lethal), the pilot in a marshal's interface-uniform",
+];
+function isMechForm(sheet: CharacterSheet): boolean {
+  return sheet.archetype === 'Mech Pilot';
+}
+function buildMechScene(sheet: CharacterSheet): string {
+  const el = sheet.resolvedElement;
+  const v = ELEMENT_VISUAL_LANGUAGE[el];
+  const division = MECH_DIVISIONS[formSeed(sheet) % MECH_DIVISIONS.length];
+  const history =
+    sheet.rank === 'Ascendant' ? 'a LEGENDARY partnership — the machine a living HISTORY of repairs, mission-tallies and honors, deep synchronization (historically significant, NOT merely bigger or more-armed)'
+    : sheet.rank === 'Forged' ? 'a TRUSTED partnership — the machine bears repaired battle-scars, patched wiring and mission-tallies, earned synchronization'
+    : 'a NEW pairing — factory-fresh, the pilot still learning the machine, few marks yet';
+  const power = sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
+  return (
+    `SCENE — ${power}: PILOT AND MACHINE together as DISTINCT partners — a ${division}; ${history}. ` +
+    `the mech WIELDS ${el} as its armament (${firstClause(v.materials, 24)}) in ${el} colours ${firstClause(v.primaryColors, 20)}; ` +
+    `a real BUILT machine of brushed metal, ceramic plating and patched wiring — NOT sleek power-armor, NOT cyberpunk neon, NOT an android; painterly hand-painted fantasy card art, NOT photoreal`
+  );
+}
+
 function buildElementScenePalette(sheet: CharacterSheet): string {
   if (isNecromancerForm(sheet)) return buildNecromancerFormScene(sheet);
   if (isBeastmasterForm(sheet)) return buildBeastmasterScene(sheet);
   if (isLycanForm(sheet)) return buildLycanScene(sheet);
+  if (isAndroidForm(sheet)) return buildAndroidScene(sheet);
+  if (isMechForm(sheet)) return buildMechScene(sheet);
   if (isDruidForm(sheet)) return buildDruidFormScene(sheet);
   if (isHumanInfiltrator(sheet)) return buildInfiltratorCamoScene(sheet);
   if (isMonkAllFourAscendant(sheet)) return buildMonkAllFourScene();
@@ -1120,7 +1220,19 @@ function buildNegativePrompt(sheet: CharacterSheet): string {
             // NOT ban it. Only keep it a FURRED werewolf (not a nude human) + drop the
             // rabid-monster read (they are Guardians). Global reserve still bans nipples/genitals.
             ? ', fully nude human, naked human man with no fur, hairless smooth human body, drooling rabid mindless beast'
-            : '';
+            : sheet.archetype === 'Android'
+              // Bible: human-looking end-state is a FAILURE. Foundation IS humanoid
+              // (chrysalis); from Forged on, ban the human silhouette + the chrome-hero cliché.
+              ? sheet.rank === 'Foundation'
+                ? ', chrome superhero, gundam, sleek sci-fi robot hero'
+                : sheet.rank === 'Ascendant'
+                  // Ascendant must be POST-HUMAN — hard-ban every humanoid-robot default.
+                  ? ', human face, human head, humanoid robot, gynoid, sexy fembot, android woman, handsome android man, two arms two legs robot, chrome superhero, iron man, gundam, power armor man, sleek robot hero, humanoid silhouette'
+                  : ', fully human, human silhouette, ordinary human body, chrome superhero, sleek humanoid robot hero, gundam, generic mecha, sexy fembot'
+              : sheet.archetype === 'Mech Pilot'
+                // Pilot AND machine as distinct partners; a real built machine, not armor.
+                ? ', generic power armor, iron man suit, power ranger, cyberpunk neon, glowing android, sleek humanoid robot, the pilot missing, no visible pilot'
+                : '';
   const elementless = isElementless(sheet.archetype);
   const spectacleNegatives = elementless ? STEAMPUNK_SPECTACLE_NEGATIVES : SPECTACLE_NEGATIVES;
   const bareChest = allowsBareChest(sheet);

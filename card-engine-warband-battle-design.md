@@ -184,11 +184,15 @@ The design deliberately turns *existing* card fields into battle mechanics (litt
 ## 10. Open Questions (STILL TO DECIDE)
 
 **Map / arena system (NEW — decided in principle, details open):**
-- **Board structure (DECIDED):** 2–3 **open lanes**, not a fine grid. *Canyon example:* players start at
-  **top and bottom**; a **horizontal canyon** splits the field. Three vertical lanes span it — a central
-  the entire **central lane is a bridge** spanning the canyon end-to-end (the one safe ground corridor to
-  the enemy crystal); the rift only gaps the two **outer lanes**, which are **fly routes** (air only;
-  grounded units can't cross and risk the fall).
+- **Board structure (DECIDED):** a **top-down grid board** — tabletop/tactics view (flat overhead map, a
+  faint movement grid, unit tokens on squares, the selected unit's reachable cells highlighted). Lanes are
+  columns on the grid: a central **bridge** column (the safe ground corridor to the enemy crystal) flanked
+  by **fly-route** columns; the **canyon rift** is the middle row — grounded units can't cross it and risk
+  the fall, flyers cross via the air (a distinct air-move highlight). Players hold the top and bottom rows.
+  *No perspective / no distance illusion* — it reads like a real board game.
+- **Backgrounds (DECIDED):** all maps are **top-down / orthographic battle maps** (straight overhead, flat).
+  First canyon map generated via Leonardo Phoenix and saved for dev use:
+  `card-engine/public/assets/backgrounds/canyon-battlefield.jpg`.
 - **Map timing (DECIDED):** the map is **chosen first**; players then build/commit their warband to fit it
   (rewards specialists, matches the "both came prepared" fantasy). *(Pick-vs-vote UI still open.)*
 - **How elements favor a map:** per-map elemental *leaning* vs purely card/environment interactions — or both.
