@@ -9,6 +9,7 @@ import { getWeaponPool } from '../data/archetypeWeapons';
 import { getPosePool } from '../data/archetypePoses';
 import { getCompanionPool } from '../data/archetypeCompanions';
 import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
+import { formsForGate } from './imageEngine/formFamilies';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
   BASE_NEGATIVE,
@@ -200,9 +201,17 @@ const VAMPIRE_FORM_PAIRS: Record<string, [VampireForm, VampireForm]> = {
   ],
 };
 
-/** Deterministic 0/1 pick within an element's form pair, stable across ranks
- *  (seeded from locked identity fields so a regen keeps the same form). */
+/** Which form of the element's pair to render. Image-first (2026-07-24): the
+ *  player's chosen form id (hiddenFate.speciesForm) decides it deterministically
+ *  — the FORM_FAMILIES order matches VAMPIRE_FORM_PAIRS (index 0/1). Cards forged
+ *  before the form pin (no speciesForm) fall back to the legacy per-character
+ *  hash so their look never shifts. */
 function vampirePairIndex(sheet: CharacterSheet): 0 | 1 {
+  const id = sheet.hiddenFate.speciesForm;
+  if (id) {
+    const i = formsForGate('Vampire', sheet.resolvedElement).findIndex((f) => f.id === id);
+    if (i === 0 || i === 1) return i;
+  }
   const seed = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;

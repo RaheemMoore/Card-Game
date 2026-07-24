@@ -9,8 +9,8 @@ import type {
 import {
   getOptionsForQuestion,
   getQuestionsForArchetype,
-  sampleOptions,
 } from '../data/storyPillars';
+import type { VisualQuestionSet } from '../data/visualPillars';
 
 /**
  * Story Pillar wizard — Bible §Guided Narrative Chains.
@@ -29,6 +29,13 @@ const OPTIONS_PER_QUESTION = 5;
 interface StoryPillarWizardProps {
   archetype: ArchetypeName;
   onComplete: (answers: StoryPillarAnswers) => void;
+  /**
+   * Image-first (2026-07-24) — when provided, the wizard renders THIS set of
+   * image-pinned questions (form / build / weapon / companion) instead of the
+   * archetype's legacy Story Pillar chain. `collectImagePins` reads the same set
+   * so the pins can't drift. See data/visualPillars.ts.
+   */
+  questionSet?: VisualQuestionSet;
 }
 
 interface QuestionState {
@@ -44,10 +51,10 @@ interface QuestionState {
 }
 
 function initialQuestionState(
-  archetype: ArchetypeName,
   question: StoryPillarQuestion,
+  pool: StoryPillarOption[],
 ): QuestionState {
-  const shown = sampleOptions(archetype, question.id, OPTIONS_PER_QUESTION);
+  const shown = sampleFromPool(pool, OPTIONS_PER_QUESTION);
   return {
     question,
     shown,
@@ -56,14 +63,32 @@ function initialQuestionState(
   };
 }
 
-export function StoryPillarWizard({ archetype, onComplete }: StoryPillarWizardProps) {
+export function StoryPillarWizard({ archetype, onComplete, questionSet }: StoryPillarWizardProps) {
   const orderedQuestions = useMemo<StoryPillarQuestion[]>(
-    () => sequenceQuestions(getQuestionsForArchetype(archetype)),
-    [archetype],
+    () => sequenceQuestions(questionSet?.questions ?? getQuestionsForArchetype(archetype)),
+    [archetype, questionSet],
+  );
+
+  // One resolver for the option pool — the injected visual set wins, else the
+  // legacy archetype chain. Both the wizard and collectImagePins read the same
+  // set, so a rendered option and its image pin never diverge.
+  const resolveOptions = useCallback(
+    (questionId: string): StoryPillarOption[] =>
+      questionSet
+        ? questionSet.options.filter((o) => o.questionId === questionId)
+        : getOptionsForQuestion(archetype, questionId),
+    [archetype, questionSet],
   );
 
   const [states, setStates] = useState<QuestionState[]>(() =>
-    orderedQuestions.map((q) => initialQuestionState(archetype, q)),
+    orderedQuestions.map((q) =>
+      initialQuestionState(
+        q,
+        questionSet
+          ? questionSet.options.filter((o) => o.questionId === q.id)
+          : getOptionsForQuestion(archetype, q.id),
+      ),
+    ),
   );
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -82,7 +107,7 @@ export function StoryPillarWizard({ archetype, onComplete }: StoryPillarWizardPr
 
       // Sample avoiding everything ever shown; if we run out of pool, allow
       // repeats from earlier shows but not the locked ones.
-      const pool = getOptionsForQuestion(archetype, state.question.id);
+      const pool = resolveOptions(state.question.id);
       const freshCandidates = pool.filter(
         (o) => !state.everShown.includes(o.id) && !lockedIds.has(o.id),
       );
@@ -114,7 +139,7 @@ export function StoryPillarWizard({ archetype, onComplete }: StoryPillarWizardPr
       next[currentIndex] = state;
       return next;
     });
-  }, [archetype, currentIndex]);
+  }, [currentIndex, resolveOptions]);
 
   const toggleLock = useCallback(
     (i: number) => {
@@ -307,4 +332,10 @@ function sequenceQuestions(questions: StoryPillarQuestion[]): StoryPillarQuestio
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
+}
+
+/** Show up to n options from a pool (small pools — e.g. a 2-form question —
+ *  simply show all of them). */
+function sampleFromPool(pool: StoryPillarOption[], n: number): StoryPillarOption[] {
+  return shuffle(pool).slice(0, n);
 }

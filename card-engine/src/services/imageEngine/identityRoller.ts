@@ -37,6 +37,7 @@ import {
   type BodyClassId,
   type AgeBandId,
 } from './identityPools';
+import { formById } from './formFamilies';
 
 const NON_HUMAN_CHANCE = 0.4;
 const MARK_CHANCE = 0.2;
@@ -134,7 +135,7 @@ export function rollIdentity(input: RollIdentityInput): RolledIdentity {
   const { archetype, cardId, pins = {}, existing = {} } = input;
   const rng = mulberry32(hashString(cardId));
 
-  // --- species (humanoid vs bespoke non-human) ---
+  // --- species (humanoid vs bespoke non-human vs pinned form-family form) ---
   const bespoke = bespokeFormsFor(archetype);
   const speciesRoll = (() => {
     if (existing.species) return existing.species;
@@ -142,15 +143,27 @@ export function rollIdentity(input: RollIdentityInput): RolledIdentity {
     if (!archetypeSupportsNonHuman(archetype)) return 'humanoid';
     return rng() < NON_HUMAN_CHANCE ? pick(bespoke, rng).id : 'humanoid';
   })();
-  const isHumanoid = speciesRoll === 'humanoid';
+  // A pinned FORM_FAMILIES form decides presentation by its isNonHuman flag, NOT
+  // by the id string: a "count" form (blood_sovereign, gothic_sovereign…) is a
+  // rolled male/female person wearing the form, while nosferatu/mist_swarm/
+  // star_eater read as an `entity`. A legacy BESPOKE_BODIES roll (no form-family
+  // entry) is always non-human, as before.
+  const formPin = formById(archetype, speciesRoll);
+  const presentsHumanoid =
+    speciesRoll === 'humanoid' || (formPin !== undefined && !formPin.isNonHuman);
+  // The descriptor string is only meaningful for legacy BESPOKE_BODIES forms;
+  // form-family forms carry their look via the assembler keyed on the id.
   const speciesForm =
-    existing.speciesForm ?? (isHumanoid ? undefined : bespoke.find((b) => b.id === speciesRoll)?.form);
+    existing.speciesForm ??
+    (formPin !== undefined || presentsHumanoid
+      ? undefined
+      : bespoke.find((b) => b.id === speciesRoll)?.form);
 
-  // --- sex: humanoids 50/50 M/F; non-human forms read as 'entity' unless pinned ---
+  // --- sex: humanoid presentation 50/50 M/F; non-human forms read 'entity' ---
   const sex: RolledSex =
     (existing.sex as RolledSex | undefined) ??
     (pins.sex === 'male' || pins.sex === 'female' ? pins.sex : undefined) ??
-    (isHumanoid ? (rng() < 0.5 ? 'male' : 'female') : 'entity');
+    (presentsHumanoid ? (rng() < 0.5 ? 'male' : 'female') : 'entity');
 
   // --- build (mass/frame) from the archetype allowlist ---
   const build: BodyClassId =

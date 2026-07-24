@@ -253,6 +253,17 @@ export interface HiddenFate {
   companionPresent?: boolean;
   environmentId?: string;
   /**
+   * Image-first form pin (2026-07-24). The player's chosen archetype FORM id
+   * (a `FORM_FAMILIES` entry id, e.g. 'crimson_knight', 'nosferatu'). Set once
+   * at Foundation from the visual-pillar form question and LOCKED across ranks
+   * (via LOCKED_HIDDEN_FATE_FIELDS) so the same form manifests at tier-up. The
+   * portrait assembler selects the element-gated form by matching this id
+   * (replacing the legacy per-character hash). Undefined on legacy cards and on
+   * archetypes without a form family — those fall back to the hash / generic
+   * form. This holds the form ID, not a Leonardo descriptor string.
+   */
+  speciesForm?: string;
+  /**
    * Which fashion variant of the archetype's guide this card resolved to
    * (index into ARCHETYPE_FASHION_GUIDES[archetype].variants). GENERIC — not
    * archetype-specific. For archetypes whose environment families are authored
