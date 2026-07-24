@@ -124,6 +124,27 @@ function reconcileForgeJobs(): void {
   }
 }
 
+// Retry a transient boot operation. Under load the Supabase instance can
+// return a Postgres statement-timeout (surfaced as a 5xx) on an otherwise
+// healthy read; without this a single blip hard-fails the whole login into
+// the "forge is unreachable" screen. A couple of backoff attempts lets the
+// query succeed once the momentary contention clears. A genuinely persistent
+// error still throws after the last attempt and surfaces the error screen.
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      if (i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 600 * (i + 1)));
+      }
+    }
+  }
+  throw lastErr;
+}
+
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
@@ -230,10 +251,10 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       setBossStore(bossStore);
       try {
         await Promise.all([
-          cardStore.hydrate(),
-          ledgerStore.hydrate(),
-          abilityStore.hydrate(),
-          bossStore.hydrate(),
+          withRetry(() => cardStore.hydrate()),
+          withRetry(() => ledgerStore.hydrate()),
+          withRetry(() => abilityStore.hydrate()),
+          withRetry(() => bossStore.hydrate()),
         ]);
       } catch (err) {
         // eslint-disable-next-line no-console
