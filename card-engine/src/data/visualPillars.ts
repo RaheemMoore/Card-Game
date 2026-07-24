@@ -13,19 +13,22 @@ import { getCompanionPool } from './archetypeCompanions';
 /**
  * Image-first visual pillars (2026-07-24).
  *
- * The forge's overt visual choices, generated as an element-gated question set
- * the StoryPillarWizard renders and `collectImagePins` re-resolves. Each option
- * carries an `image: ImageDirective` — that is the whole point: the player's
- * pick controls the portrait. Options still read as narrative lines so the
- * ritual holds together (image-first; lore rides along, added back later).
+ * The forge's overt visual choices, generated per-archetype and gated by the
+ * already-chosen element. Each option carries an `image: ImageDirective` — that
+ * is the whole point: the player's pick controls the portrait. Options still
+ * read as short lines so the ritual holds together (image-first; lore is added
+ * back as separate Story Pillar questions later).
  *
  * ONE SOURCE OF TRUTH: both the wizard and `collectImagePins` call
- * `visualQuestionsFor`, so a form/build/weapon/companion option and its pin can
- * never drift apart.
+ * `visualQuestionsFor`, so a rendered option and its image pin can never drift.
  *
- * PILOT SCOPE: Vampire only. Every other archetype returns an empty set, so the
- * wizard falls back to the legacy `STORY_PILLAR_CHAINS` questions and the forge
- * keeps its `species:'humanoid'` default (no regression).
+ * COVERAGE (2026-07-24 rollout):
+ *   - build / weapon / companion — GENERIC, every archetype (from the existing
+ *     BODY_ALLOWLIST / WEAPON_POOLS / COMPANION_POOLS pools). Companion only
+ *     appears for archetypes that actually have a retinue pool.
+ *   - form — only where FORM_FAMILIES has element-gated entries (Vampire today).
+ *     Other archetypes' bespoke forms are still SCENE-rolled by the assembler
+ *     until they are authored as explicit player choices in a later batch.
  */
 
 export interface VisualQuestionSet {
@@ -33,7 +36,8 @@ export interface VisualQuestionSet {
   options: StoryPillarOption[];
 }
 
-const EMPTY: VisualQuestionSet = { questions: [], options: [] };
+/** How many build silhouettes to offer per archetype (a spread from its allowlist). */
+const BUILD_CHOICES = 6;
 
 function vopt(
   id: string,
@@ -51,78 +55,78 @@ function shortFlavor(concept: string): string {
   return clause.charAt(0).toUpperCase() + clause.slice(1);
 }
 
-// Curated Vampire build shortlist (a subset of BODY_ALLOWLIST.Vampire) — a
-// spread of silhouettes that all read as a vampire. Image-first: the pick pins
-// hiddenFate.bodyType via ImageDirective.build.
-const VAMPIRE_BUILDS: BodyClassId[] = ['lean', 'willowy', 'towering', 'hollowed', 'regal', 'heroic'];
-
-function vampireVisualQuestions(element: ElementName): VisualQuestionSet {
-  const questions: StoryPillarQuestion[] = [];
-  const options: StoryPillarOption[] = [];
-
-  // Q1 — FORM (element-gated). Void's ascension forms are never offered at the
-  // forge (Ascendant-tier only), so ascensionOnly forms are excluded.
-  const forms = formsForGate('Vampire', element).filter((f) => !f.ascensionOnly);
-  if (forms.length > 0) {
-    questions.push({ id: 'vam_form', pillarIndex: 1, prompt: 'What shape does your power take?' });
-    for (const form of forms) {
-      options.push(
-        vopt('vam_form_' + form.id, 'vam_form', `${form.name} — ${shortFlavor(form.concept)}`, {
-          species: form.id,
-        }),
-      );
-    }
-  }
-
-  // Q2 — BUILD.
-  questions.push({ id: 'vam_build', pillarIndex: 2, prompt: 'What kind of body carries it?' });
-  for (const id of VAMPIRE_BUILDS.filter((b) => BODY_ALLOWLIST.Vampire.includes(b))) {
-    const cls = BODY_CLASSES[id];
-    options.push(
-      vopt('vam_build_' + id, 'vam_build', `${cls.label} — ${cls.leoDescription}`, { build: id }),
-    );
-  }
-
-  // Q3 — WEAPON.
-  const weapons = getWeaponPool('Vampire');
-  if (weapons.length > 0) {
-    questions.push({ id: 'vam_weapon', pillarIndex: 3, prompt: 'What do you wield?' });
-    for (const w of weapons) {
-      options.push(vopt('vam_weapon_' + w.id, 'vam_weapon', w.name, { weapon: w.id }));
-    }
-  }
-
-  // Q4 — COMPANION / RETINUE.
-  const companions = getCompanionPool('Vampire');
-  questions.push({ id: 'vam_companion', pillarIndex: 4, prompt: 'Who attends you?' });
-  options.push(
-    vopt('vam_companion_none', 'vam_companion', 'No one — I walk alone.', {
-      companionPresence: 'solitary',
+function formQuestion(archetype: ArchetypeName, element: ElementName): VisualQuestionSet {
+  // Void's ascension forms are never offered at the forge (Ascendant-tier only).
+  const forms = formsForGate(archetype, element).filter((f) => !f.ascensionOnly);
+  if (forms.length === 0) return { questions: [], options: [] };
+  const questions: StoryPillarQuestion[] = [
+    { id: 'vf_form', pillarIndex: 1, prompt: 'What shape does your power take?' },
+  ];
+  const options = forms.map((form) =>
+    vopt('vf_form_' + form.id, 'vf_form', `${form.name} — ${shortFlavor(form.concept)}`, {
+      species: form.id,
     }),
   );
-  for (const c of companions) {
+  return { questions, options };
+}
+
+function buildQuestion(archetype: ArchetypeName): VisualQuestionSet {
+  const ids = BODY_ALLOWLIST[archetype].slice(0, BUILD_CHOICES) as BodyClassId[];
+  const options = ids.map((id) => {
+    const cls = BODY_CLASSES[id];
+    return vopt('vf_build_' + id, 'vf_build', `${cls.label} — ${cls.leoDescription}`, { build: id });
+  });
+  return { questions: [{ id: 'vf_build', pillarIndex: 2, prompt: 'What kind of body carries it?' }], options };
+}
+
+function weaponQuestion(archetype: ArchetypeName): VisualQuestionSet {
+  const pool = getWeaponPool(archetype);
+  if (pool.length === 0) return { questions: [], options: [] };
+  const options = pool.map((w) => vopt('vf_weapon_' + w.id, 'vf_weapon', w.name, { weapon: w.id }));
+  return { questions: [{ id: 'vf_weapon', pillarIndex: 3, prompt: 'What do you wield?' }], options };
+}
+
+function companionQuestion(archetype: ArchetypeName): VisualQuestionSet {
+  const pool = getCompanionPool(archetype);
+  if (pool.length === 0) return { questions: [], options: [] };
+  const options: StoryPillarOption[] = [
+    vopt('vf_companion_none', 'vf_companion', 'No one — I stand alone.', {
+      companionPresence: 'solitary',
+    }),
+  ];
+  for (const c of pool) {
     const label = c.descriptor.charAt(0).toUpperCase() + c.descriptor.slice(1);
     options.push(
-      vopt('vam_companion_' + c.id, 'vam_companion', label, {
+      vopt('vf_companion_' + c.id, 'vf_companion', label, {
         companionPresence: 'retinue',
         companion: c.id,
       }),
     );
   }
-
-  return { questions, options };
+  return { questions: [{ id: 'vf_companion', pillarIndex: 4, prompt: 'Who stands with you?' }], options };
 }
 
 /**
  * The visual (image-pinned) question set for an archetype's forge, gated by the
- * already-chosen element. Empty for non-piloted archetypes.
+ * already-chosen element. Every archetype gets build + weapon + companion (where
+ * a pool exists); the form question appears where FORM_FAMILIES gates one.
  */
 export function visualQuestionsFor(archetype: ArchetypeName, element: ElementName): VisualQuestionSet {
-  if (archetype === 'Vampire') return vampireVisualQuestions(element);
-  return EMPTY;
+  const parts = [
+    formQuestion(archetype, element),
+    buildQuestion(archetype),
+    weaponQuestion(archetype),
+    companionQuestion(archetype),
+  ];
+  return {
+    questions: parts.flatMap((p) => p.questions),
+    options: parts.flatMap((p) => p.options),
+  };
 }
 
 /** Whether this archetype uses the image-first visual pillars (vs legacy chains). */
-export function hasVisualPillars(archetype: ArchetypeName): boolean {
-  return archetype === 'Vampire';
+export function hasVisualPillars(_archetype: ArchetypeName): boolean {
+  // Rollout 2026-07-24: every archetype is image-first. Kept as a function so a
+  // future archetype could opt out without touching call sites.
+  return true;
 }

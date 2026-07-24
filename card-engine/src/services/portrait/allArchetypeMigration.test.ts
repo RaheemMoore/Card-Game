@@ -54,10 +54,12 @@ describe('archetype hooks', () => {
     }
   });
 
-  it('Lycanthrope anatomy lock fires only at Ascendant', () => {
+  it('Lycanthrope anatomy lock fires only at Ascendant, allowing bipedal OR quadruped', () => {
     expect(hookMandatorySegment(sheet('Lycanthrope', { rank: 'Foundation' }))).toBe('');
     const asc = hookMandatorySegment(sheet('Lycanthrope', { rank: 'Ascendant' }));
-    expect(asc).toContain('EXACTLY FOUR legs');
+    // 2026-07-24: the full form may be a standing bipedal werewolf OR a four-legged wolf.
+    expect(asc).toMatch(/bipedal/);
+    expect(asc).toMatch(/four-legged wolf/);
     expect(asc).toMatch(/NEVER horns/);
   });
 

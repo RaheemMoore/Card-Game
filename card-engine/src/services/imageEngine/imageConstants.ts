@@ -173,6 +173,13 @@ export const BASE_NEGATIVE = [
   'Lycanthrope with horns', 'Lycanthrope with antlers',
   'Lycanthrope Foundation already fully transformed',
   'Lycanthrope Foundation with fur breaking through',
+  // Bipedal-vs-quadruped limb drift + element-in-sky-only (2026-07-24).
+  'Lycanthrope bipedal werewolf with extra arms',
+  'Lycanthrope with more than two arms', 'Lycanthrope with six limbs',
+  'centaur-like Lycanthrope with both bipedal torso and four wolf legs',
+  'element only in the sky for a Lycanthrope',
+  'element hidden in the background for a Lycanthrope',
+  'pack role-emblem washed out by element glow',
   // Mech Pilot: MUST have a visible mech in every render, pilot STAYS HUMAN.
   'Mech Pilot without a visible mech', 'Mech Pilot alone in frame',
   'no mecha in a Mech Pilot render', 'no giant robot for Mech Pilot',

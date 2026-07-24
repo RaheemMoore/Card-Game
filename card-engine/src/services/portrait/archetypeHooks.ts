@@ -72,7 +72,7 @@ const ARCHETYPE_PORTRAIT_HOOKS: Partial<Record<ArchetypeName, ArchetypePortraitH
     // legs, horns, wings). Reinforce the hard rules; harmless at lower ranks.
     mandatorySegment(sheet) {
       if (sheet.rank !== 'Ascendant') return '';
-      return 'LYCAN ANATOMY LOCK: a natural wolf on EXACTLY FOUR legs (never three, five, or a fused/missing leg), fur color = the character\'s hair color; ABSOLUTELY NEVER horns, NEVER wings, NEVER antlers, NEVER angelic radiance.';
+      return 'LYCAN ANATOMY LOCK: a FULL Lycan Guardian in ONE of two forms — EITHER a standing bipedal werewolf on exactly two legs with exactly two arms, OR a great four-legged wolf on exactly four legs; NEVER a mix of the two. In EITHER form: no extra, missing, or fused limbs; a single head, one tail; fur color = the character\'s hair color. ABSOLUTELY NEVER horns, NEVER wings, NEVER antlers, NEVER angelic radiance. A noble controlled Guardian of the Moon Goddess, never a rabid brute.';
     },
   },
   Seraph: {

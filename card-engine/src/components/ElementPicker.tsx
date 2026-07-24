@@ -34,8 +34,10 @@ interface ElementPickerProps {
 export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   const natural = buckets.naturally_compatible;
-  // Rare elements are the ascension/late-game fork — surfaced as locked tiles at
-  // the forge so the player learns they exist, but not selectable here.
+  // Rare elements are narratively/late-game gated — surfaced as locked tiles at
+  // the forge so the player learns they exist, but not selectable here (the
+  // narrative-eligibility gate needs Story Pillar answers, deferred to a later
+  // lore batch; until then rares stay locked for every archetype).
   const locked = buckets.rare;
 
   const pick = (element: ElementName) => {
@@ -79,7 +81,7 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
               🔒 {element}
             </span>
             <span id={`lock-${element}`} className="mt-2 block text-[10px] uppercase tracking-widest text-fuchsia-300/70">
-              Unlocks at Ascendant
+              Rare — unlocks later
             </span>
           </div>
         ))}

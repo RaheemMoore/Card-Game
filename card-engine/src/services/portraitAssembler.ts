@@ -887,7 +887,7 @@ function buildLycanScene(sheet: CharacterSheet): string {
     : sheet.rank === 'Forged' ? 'a packmate at their side' : 'alone under the night';
   return (
     `SCENE — ${power}: ${role}; ${form}; born under a ${moonPhaseNoun(moonStart)}, ${pack}. ` +
-    `STRIKING ${el} manifestation — ${firstClause(v.materials, 30)}, a great moon dominating the sky, in ${el} colours ${firstClause(v.primaryColors, 24)}; ` +
+    `STRIKING ${el} manifestation ERUPTING FROM THE BODY — ${el} ${firstClause(v.materials, 30)} wreathing the claws, breath and bared maw, coursing through the fur and gathering as an aura around the guardian, in ${el} colours ${firstClause(v.primaryColors, 24)}; a moon still hangs in the night sky behind but the element strikes on and around the wolf-body itself; ` +
     `the character stays RECOGNIZABLE (their hair-colour in the mane, their eyes and scars kept); painterly hand-painted fantasy card art, NOT photoreal`
   );
 }
