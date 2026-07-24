@@ -70,6 +70,15 @@ export const LOCKED_HIDDEN_FATE_FIELDS: readonly (keyof HiddenFate)[] = [
   'weaponId',
   'companionId',
   'environmentId',
+  // Image-first form pin — the player's chosen form id must render as the SAME
+  // form at every tier (the form only visibly manifests at Forged/Ascendant,
+  // so it MUST survive Foundation→Forged verbatim).
+  'speciesForm',
+  // Beastmaster's bonded beast — a lifelong partner, locked across ranks.
+  'summonId',
+  // Lycan birth moon-phase (Foundation start stage) + Android Ascendant path.
+  'moonPhase',
+  'androidPath',
 ] as const;
 
 /**

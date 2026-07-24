@@ -9,6 +9,7 @@ import { getWeaponPool } from '../data/archetypeWeapons';
 import { getPosePool } from '../data/archetypePoses';
 import { getCompanionPool } from '../data/archetypeCompanions';
 import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
+import { formsForGate, formsFor } from './imageEngine/formFamilies';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
 import {
   BASE_NEGATIVE,
@@ -188,6 +189,16 @@ const VAMPIRE_FORM_PAIRS: Record<string, [VampireForm, VampireForm]> = {
       Ascendant: 'the full COURT-DECADENT — a hypnotic ballroom seducer draped in decadent finery, half-lidded gaze, a goblet of blood-wine, a rose-and-rot opulent hall behind under candlelight; seductive menace, fully clothed',
     },
   ],
+  Sanguine: [
+    {
+      Forged: 'the CRYSTAL SOVEREIGN manifesting — a regal vampire lord whose dark regalia is setting into hard faceted ruby-and-garnet blood-crystal, sharp crimson gem-spurs jutting from the shoulders, a jagged dark-red crystal crown forming, red light refracting through solid facets — upright and commanding, fully robed',
+      Ascendant: 'the full CRYSTAL SOVEREIGN — a vampire warlord sheathed in gleaming solid blood-crystal plate of ruby and garnet, a jagged crimson-crystal crown and sharp gem-spurs bristling from the armor, red light refracting through the dry faceted body, a cathedral of hard dark-red crystal behind; jeweled and regal, never a wet-blood or molten beast',
+    },
+    {
+      Forged: 'the GARNET RELIQUARY manifesting — a bare-headed vampire in austere high-collared vestments, the exposed hands and throat setting into a dry lattice of dark-red faceted garnet, cradling a single crystallized blood-relic that refracts crimson light, plain and upright',
+      Ascendant: 'the full GARNET RELIQUARY — a crownless vampire become a walking reliquary, the body a dry lattice of dark-red faceted garnet beneath plain austere vestments, a crystallized blood-relic blazing crimson in cupped hands with hard shards refracting light around it; sacred, upright, solid crystal — no crown, no spurs, no wet blood',
+    },
+  ],
   Void: [
     {
       Forged: 'the HOLLOW SOVEREIGN manifesting — regalia beginning to be worn by an ABSENCE, patches of the body going to starless void-black, reality fraying at the edges, cold pinprick eyes',
@@ -200,9 +211,17 @@ const VAMPIRE_FORM_PAIRS: Record<string, [VampireForm, VampireForm]> = {
   ],
 };
 
-/** Deterministic 0/1 pick within an element's form pair, stable across ranks
- *  (seeded from locked identity fields so a regen keeps the same form). */
+/** Which form of the element's pair to render. Image-first (2026-07-24): the
+ *  player's chosen form id (hiddenFate.speciesForm) decides it deterministically
+ *  — the FORM_FAMILIES order matches VAMPIRE_FORM_PAIRS (index 0/1). Cards forged
+ *  before the form pin (no speciesForm) fall back to the legacy per-character
+ *  hash so their look never shifts. */
 function vampirePairIndex(sheet: CharacterSheet): 0 | 1 {
+  const id = sheet.hiddenFate.speciesForm;
+  if (id) {
+    const i = formsForGate('Vampire', sheet.resolvedElement).findIndex((f) => f.id === id);
+    if (i === 0 || i === 1) return i;
+  }
   const seed = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
@@ -526,18 +545,21 @@ function isMonkPeaceCosmic(sheet: CharacterSheet): boolean {
 // These OWN the high-priority scene clause so the flagship figure renders —
 // same fix as the Monk Peace-cosmic / all-four overrides. Foundation stays
 // undeclared austerity (no override fires below the gate rank).
+// narrativeAxisPath is the lowercase band id ('good' | 'fallen' | 'balanced')
+// the forge choice + claudeApi anchor use — match it (was 'Fallen'/'Balanced',
+// a case-mismatch that kept these deterministic scenes from ever firing).
 function isSeraphTwilight(sheet: CharacterSheet): boolean {
-  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'Balanced' && sheet.rank !== 'Foundation';
+  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'balanced' && sheet.rank !== 'Foundation';
 }
 function isSeraphFallenAscendant(sheet: CharacterSheet): boolean {
-  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'Fallen' && sheet.rank === 'Ascendant';
+  return sheet.archetype === 'Seraph' && sheet.narrativeAxisPath === 'fallen' && sheet.rank === 'Ascendant';
 }
 function isSeraphGoodAscendant(sheet: CharacterSheet): boolean {
   return (
     sheet.archetype === 'Seraph' &&
     sheet.rank === 'Ascendant' &&
-    sheet.narrativeAxisPath !== 'Fallen' &&
-    sheet.narrativeAxisPath !== 'Balanced'
+    sheet.narrativeAxisPath !== 'fallen' &&
+    sheet.narrativeAxisPath !== 'balanced'
   );
 }
 
@@ -659,11 +681,37 @@ const DRUID_CORRUPTED_FORMS: readonly string[] = [
   'a CARRION-BLOOM BLIGHT being — rotting brown-black corpse-flowers, blighted purple-black foliage, oozing rot, drifting flies, a decayed diseased plant-corpse (NOT a healthy green druid)',
   '__BLOODMAW__', // handled specially (rank-bleeding palette)
 ];
+// Image-first: parallel FORM_FAMILIES ids in the SAME ORDER as the pools above,
+// so the player's chosen wildshape (hiddenFate.speciesForm) selects it.
+const DRUID_GOOD_FORM_IDS: readonly string[] = [
+  'tree_being', 'wildbloom', 'moss_lichen', 'bramble_thorn', 'water_plant', 'desert_succulent', 'bark_bear',
+];
+const DRUID_CORRUPTED_FORM_IDS: readonly string[] = ['cordyceps', 'carrion_bloom', 'bloodmaw'];
 function formSeed(sheet: CharacterSheet): number {
   const s = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
   return Math.abs(h);
+}
+/** Image-first (2026-07-24): pick a form-family pool INDEX from the player's
+ *  pinned form id (hiddenFate.speciesForm). The archetype's FORM_FAMILIES order
+ *  MUST match the SCENE pool order (documented at each pool). Cards forged before
+ *  the pin (no speciesForm / unknown id) fall back to the stable per-character
+ *  formSeed so their look never shifts. */
+function pickFormIndex(sheet: CharacterSheet, poolLength: number): number {
+  const id = sheet.hiddenFate.speciesForm;
+  if (id) {
+    const i = formsFor(sheet.archetype).findIndex((f) => f.id === id);
+    if (i >= 0 && i < poolLength) return i;
+  }
+  return formSeed(sheet) % poolLength;
+}
+/** Pick a pool index from the player's pinned form id against a parallel id list
+ *  (for pools split into sub-sets, e.g. Druid good vs corrupted). Fallback: seed. */
+function pickIndexByIds(sheet: CharacterSheet, ids: readonly string[]): number {
+  const id = sheet.hiddenFate.speciesForm;
+  const i = id ? ids.indexOf(id) : -1;
+  return i >= 0 ? i : formSeed(sheet) % ids.length;
 }
 function isDruidForm(sheet: CharacterSheet): boolean {
   return sheet.archetype === 'Druid';
@@ -671,7 +719,8 @@ function isDruidForm(sheet: CharacterSheet): boolean {
 function buildDruidFormScene(sheet: CharacterSheet): string {
   const corrupted = sheet.resolvedElement === 'Poison';
   const set = corrupted ? DRUID_CORRUPTED_FORMS : DRUID_GOOD_FORMS;
-  const pick = set[formSeed(sheet) % set.length];
+  const ids = corrupted ? DRUID_CORRUPTED_FORM_IDS : DRUID_GOOD_FORM_IDS;
+  const pick = set[pickIndexByIds(sheet, ids)];
   const bloodmaw = pick === '__BLOODMAW__';
   const creature = DRUID_CREATURE_FORMS.includes(pick); // corrupted forms are never creatures
   const wind = 'ACCOMPANIED BY WIND — leaves, petals and pollen on a visible wind-current, foliage and any cloak lifted';
@@ -755,7 +804,7 @@ function buildNecromancerFormScene(sheet: CharacterSheet): string {
   const v = ELEMENT_VISUAL_LANGUAGE[el];
   const power =
     sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
-  const pick = NECROMANCER_FORMS[formSeed(sheet) % NECROMANCER_FORMS.length];
+  const pick = NECROMANCER_FORMS[pickFormIndex(sheet, NECROMANCER_FORMS.length)];
   // Compact — painterly (style lead), no-bare-chest (negatives) and body
   // preservation (identity block) are handled elsewhere; keep BACKGROUND in budget.
   return `SCENE — ${power}: soul SACRIFICED to become NON-HUMAN — ${pick}. Soul-light in ${el} colours ${firstClause(v.primaryColors, 24)}, NO neutral background`;
@@ -801,13 +850,42 @@ const BEASTMASTER_BEASTS: Partial<Record<ElementName, readonly string[]>> = {
     'crystalline ICE-ELK, antlers of jagged clear frost',
   ],
 };
+// Parallel ids for the element-gated apex beasts (SAME ORDER as BEASTMASTER_BEASTS)
+// so the player's companion-style pick (hiddenFate.summonId) selects the species.
+const BEASTMASTER_BEAST_IDS: Partial<Record<ElementName, readonly string[]>> = {
+  Beast: ['dire_wolf', 'sabertooth', 'war_boar'],
+  Earth: ['dire_bear', 'war_rhino', 'tortoise_titan'],
+  Wind: ['storm_raptor', 'wind_serpent', 'gale_stallion'],
+  Water: ['river_serpent', 'orca_beast', 'water_hound'],
+  Spirit: ['spirit_stag', 'spectral_tiger', 'spectral_owl'],
+  Ice: ['frost_mammoth', 'glacial_wolf', 'ice_elk'],
+};
+/** The Beastmaster's choosable apex beasts for an element ({id, label}), or [].
+ *  label = the beast name (the leading CAPS word), title-cased. */
+export function beastmasterSummonOptions(element: ElementName): { id: string; label: string }[] {
+  const beasts = BEASTMASTER_BEASTS[element];
+  const ids = BEASTMASTER_BEAST_IDS[element];
+  if (!beasts || !ids) return [];
+  return ids.map((id, i) => {
+    // Grab the leading run of CAPS words (the beast name), e.g. "DIRE WOLF",
+    // "TUSKED WAR-BOAR", ignoring a lowercase lead like "great "/"coiling ".
+    const name = (beasts[i].match(/[A-Z][A-Z-]+(?:\s+[A-Z][A-Z-]+)?/)?.[0] ?? beasts[i]).toLowerCase();
+    return { id, label: name.charAt(0).toUpperCase() + name.slice(1) };
+  });
+}
+function beastmasterSpeciesIndex(sheet: CharacterSheet, poolLength: number): number {
+  const id = sheet.hiddenFate.summonId;
+  const ids = BEASTMASTER_BEAST_IDS[sheet.resolvedElement];
+  const i = id && ids ? ids.indexOf(id) : -1;
+  return i >= 0 ? i : formSeed(sheet) % poolLength;
+}
 function isBeastmasterForm(sheet: CharacterSheet): boolean {
   return sheet.archetype === 'Beastmaster' && Boolean(BEASTMASTER_BEASTS[sheet.resolvedElement]);
 }
 function buildBeastmasterScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
-  const species = BEASTMASTER_BEASTS[el]![formSeed(sheet) % BEASTMASTER_BEASTS[el]!.length];
+  const species = BEASTMASTER_BEASTS[el]![beastmasterSpeciesIndex(sheet, BEASTMASTER_BEASTS[el]!.length)];
   const power =
     sheet.rank === 'Ascendant' ? 'OVERWHELMING POWER' : sheet.rank === 'Forged' ? 'ESCALATING POWER' : 'EARLY RESTRAINED POWER';
   const beast =
@@ -839,6 +917,8 @@ const LYCAN_PACK_ROLES: readonly string[] = [
   "a WARDEN OF THE BOUNDARY — twin territory-stakes and glowing border-runes, holding the tree-line",
 ];
 const LYCAN_MOON_PHASES: readonly string[] = ['new moon', 'crescent moon', 'half moon', 'gibbous moon', 'full moon'];
+// Parallel ids (SAME ORDER) for the player's birth-moon pick (hiddenFate.moonPhase).
+export const LYCAN_MOON_PHASE_IDS: readonly string[] = ['new_moon', 'crescent', 'half', 'gibbous', 'full'];
 // index = transformation level 0–4. Raheem 2026-07-24: the werewolf transformation
 // TEARS the clothes, so a bare muscular were-torso with TORN CLOTHING remnants is the
 // desired look for the shifted forms (2–4) — bare torso is fine there. The HUMAN /
@@ -864,8 +944,10 @@ function isLycanForm(sheet: CharacterSheet): boolean {
 function buildLycanScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
-  const role = LYCAN_PACK_ROLES[formSeed(sheet) % LYCAN_PACK_ROLES.length];
-  const moonStart = moonPhaseSeed(sheet) % LYCAN_MOON_PHASES.length;
+  const role = LYCAN_PACK_ROLES[pickFormIndex(sheet, LYCAN_PACK_ROLES.length)];
+  // Player's birth-moon pick sets the Foundation start stage; seed is the fallback.
+  const pinnedMoon = sheet.hiddenFate.moonPhase ? LYCAN_MOON_PHASE_IDS.indexOf(sheet.hiddenFate.moonPhase) : -1;
+  const moonStart = pinnedMoon >= 0 ? pinnedMoon : moonPhaseSeed(sheet) % LYCAN_MOON_PHASES.length;
   // ALL Lycans END full (level 4) at Ascendant; moon phase sets the Foundation start,
   // rank advances it (+2 at Forged). Foundation full-moon-born already begins full.
   const level = sheet.rank === 'Ascendant' ? 4 : Math.min(4, moonStart + (sheet.rank === 'Forged' ? 2 : 0));
@@ -878,7 +960,7 @@ function buildLycanScene(sheet: CharacterSheet): string {
     : sheet.rank === 'Forged' ? 'a packmate at their side' : 'alone under the night';
   return (
     `SCENE — ${power}: ${role}; ${form}; born under a ${moonPhaseNoun(moonStart)}, ${pack}. ` +
-    `STRIKING ${el} manifestation — ${firstClause(v.materials, 30)}, a great moon dominating the sky, in ${el} colours ${firstClause(v.primaryColors, 24)}; ` +
+    `STRIKING ${el} manifestation ERUPTING FROM THE BODY — ${el} ${firstClause(v.materials, 30)} wreathing the claws, breath and bared maw, coursing through the fur and gathering as an aura around the guardian, in ${el} colours ${firstClause(v.primaryColors, 24)}; a moon still hangs in the night sky behind but the element strikes on and around the wolf-body itself; ` +
     `the character stays RECOGNIZABLE (their hair-colour in the mane, their eyes and scars kept); painterly hand-painted fantasy card art, NOT photoreal`
   );
 }
@@ -909,6 +991,8 @@ const ANDROID_PATHS: readonly string[] = [
   'BEFRIEND ALL LIFE — a floating SENSOR-SWARM intelligence: a constellation of dozens of drifting sensor-orbs and connective light-filaments with NO central body; a network, not a person — no face',
   'LEAVE ALL LIFE BEHIND — a dispersing CORE-CLOUD: a barely-solid drift of distributed cores, nanite-mist and star-geometry departing into the void; a cloud, not a figure — no body, no face',
 ];
+// Parallel ids (SAME ORDER) for the Ascendant path the player picks at tier-up.
+export const ANDROID_PATH_IDS: readonly string[] = ['protect', 'destroy', 'befriend', 'leave'];
 function pathSeed(sheet: CharacterSheet): number {
   const s = `path:${sheet.hiddenFate.age ?? ''}|${sheet.hiddenFate.skinTone ?? ''}|${sheet.hiddenFate.sex ?? ''}`;
   let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h);
@@ -923,10 +1007,13 @@ function isAndroidForm(sheet: CharacterSheet): boolean {
 function buildAndroidScene(sheet: CharacterSheet): string {
   const el = sheet.resolvedElement;
   const v = ELEMENT_VISUAL_LANGUAGE[el];
-  const purpose = ANDROID_PURPOSES[formSeed(sheet) % ANDROID_PURPOSES.length];
+  const purpose = ANDROID_PURPOSES[pickFormIndex(sheet, ANDROID_PURPOSES.length)];
   const chassis = `${firstClause(v.materials, 28)} in ${el} colours ${firstClause(v.primaryColors, 22)}`;
   if (sheet.rank === 'Ascendant') {
-    const path = ANDROID_PATHS[pathSeed(sheet) % ANDROID_PATHS.length];
+    // The path is the player's Ascendant tier-up pick (hiddenFate.androidPath);
+    // seed is the fallback for cards tiered up before the choice existed.
+    const pinnedPath = sheet.hiddenFate.androidPath ? ANDROID_PATH_IDS.indexOf(sheet.hiddenFate.androidPath) : -1;
+    const path = ANDROID_PATHS[pinnedPath >= 0 ? pinnedPath : pathSeed(sheet) % ANDROID_PATHS.length];
     return (
       `SCENE — OVERWHELMING POWER: a POST-HUMAN android that has SHED all human form — ${path}. ` +
       `Built of ${chassis}. This is a MACHINE STRUCTURE / SWARM, NOT a character — render NO human face, NO head, NO standing humanoid figure, NO woman and NO man; only a faint trace of its origin as ${purposeShort(purpose)}; painterly hand-painted fantasy card art, NOT photoreal`

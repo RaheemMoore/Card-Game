@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCard, deleteCard, saveCard } from '../services/storage';
+import { getCard, deleteCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
 import { BORDER_COLORS } from '../data/stats';
 import type { StatName, Card, ArtSnapshot, Rank } from '../types/card';
@@ -10,10 +10,7 @@ import {
   computeRankSum,
   getStatNames,
 } from '../data/powerSystem';
-import { canTierUp, applySeraphTransmutation } from '../services/tierUp';
-import { resistFall } from '../services/narrativeAxisService';
-import { SERAPH_ALIGNMENT } from '../data/narrativeAxes';
-import { resistFallActionId, resistFallCost } from '../services/economy/resistFall';
+import { canTierUp } from '../services/tierUp';
 import {
   startReforge,
   startTierUp,
@@ -22,6 +19,7 @@ import {
   acknowledge as acknowledgeCardJob,
   readResultCard,
 } from '../services/forge/cardJobController';
+import { ANDROID_PATH_IDS } from '../services/portraitAssembler';
 import { useCardJob } from '../services/forge/useCardJob';
 import * as wallet from '../services/economy/walletService';
 import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
@@ -83,8 +81,6 @@ export function CardDetail() {
     | { currency: 'premium'; required: number; actionLabel: string }
   >(null);
   const premiumBalance = useBalance('premium');
-  const goldBalance = useBalance('gameplay');
-  const [isResisting, setIsResisting] = useState(false);
   const [loreExpanded, setLoreExpanded] = useState(false);
   const [storyExpanded, setStoryExpanded] = useState(false);
 
@@ -194,58 +190,18 @@ export function CardDetail() {
     }
   }
 
-  function handleChoosePath() {
-    // The narrative is folded into the Bible-driven Ascendant Paths; picking
-    // just advances the job to its portrait phase (still the same reservation).
-    choosePath();
+  function handleChoosePath(index: number) {
+    // Android: the pick IS the post-human form — pass its id (by index into
+    // ANDROID_PATH_IDS) so buildAndroidScene renders it. Other archetypes: the
+    // narrative fork just advances the job to its portrait phase.
+    const androidPath =
+      card?.archetype === 'Android' ? ANDROID_PATH_IDS[index] : undefined;
+    choosePath(androidPath);
   }
 
   function handleCancelAscendantModal() {
     // Backed out after paying for the paths lookup — controller refunds.
     cancelPath();
-  }
-
-  // P8 — "Resist the Fall". Gold-only sink that nudges a Fallen Seraph's
-  // alignment one step toward center; reverts a prior Light→Infernal
-  // transmutation once the path leaves 'fallen'.
-  async function handleResistFall() {
-    if (!card || isResisting || !card.narrativeAxis) return;
-    const rank = getOverallRank(card.stats);
-    const actionId = resistFallActionId(rank);
-    const cost = resistFallCost(rank);
-    if (!actionId || cost === null) return;
-
-    setIsResisting(true);
-    let reservation;
-    try {
-      reservation = wallet.reserve({
-        currency: 'gameplay',
-        amount: cost,
-        actionId,
-        cardId: card.cardId,
-      });
-    } catch (err) {
-      setIsResisting(false);
-      if (err instanceof wallet.InsufficientFundsError) return; // button is balance-gated
-      throw err;
-    }
-    try {
-      const newAxis = resistFall(card.narrativeAxis, SERAPH_ALIGNMENT, rank);
-      const patch = applySeraphTransmutation(card, newAxis);
-      const updated: Card = {
-        ...card,
-        narrativeAxis: patch.narrativeAxis,
-        currentElement: patch.currentElement ?? card.currentElement,
-        originalElement: patch.originalElement ?? card.originalElement,
-      };
-      saveCard(updated);
-      wallet.commit(reservation.transactionId);
-      setCard(updated);
-    } catch (err) {
-      wallet.refund(reservation.transactionId, err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsResisting(false);
-    }
   }
 
   const borderColor = BORDER_COLORS[card.border.baseVariant];
@@ -254,17 +210,6 @@ export function CardDetail() {
   const canUpgrade = canTierUp(card);
   const hasPreviousTiers = tierTimeline.length > 0;
   const { overallRank, allTiers, currentIdx, isViewingHistory, displayCard } = viewState!;
-
-  // P8 — Seraph alignment panel + Resist the Fall gating.
-  const seraphAxis = card.archetype === 'Seraph' ? card.narrativeAxis : undefined;
-  const resistCost = resistFallCost(overallRank);
-  const canAffordResist = resistCost !== null && goldBalance >= resistCost;
-  const SERAPH_PATH_META: Record<string, { label: string; color: string }> = {
-    good: { label: 'Radiant', color: '#fbbf24' },
-    balanced: { label: 'Twilight', color: '#a78bfa' },
-    fallen: { label: 'Fallen', color: '#ef4444' },
-  };
-  const pathMeta = seraphAxis ? SERAPH_PATH_META[seraphAxis.path] : undefined;
 
   return (
     <div className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
@@ -636,51 +581,6 @@ export function CardDetail() {
             )}
           </div>
 
-          {/* P8 — Seraph alignment + Resist the Fall */}
-          {seraphAxis && pathMeta && !isViewingHistory && (
-            <div
-              className="border rounded-lg p-3"
-              style={{ borderColor: `${pathMeta.color}55`, background: `${pathMeta.color}0d` }}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-fantasy text-xs font-bold" style={{ color: pathMeta.color }}>
-                    Divine Alignment
-                  </span>
-                  <p className="text-[11px] text-bone/70 mt-0.5">
-                    Path:{' '}
-                    <span className="font-bold" style={{ color: pathMeta.color }}>
-                      {pathMeta.label}
-                    </span>
-                    <span className="text-ash/50"> · score {seraphAxis.score >= 0 ? `+${seraphAxis.score}` : seraphAxis.score}</span>
-                    {seraphAxis.resistedFall && <span className="text-ash/50"> · resisted</span>}
-                  </p>
-                </div>
-                {seraphAxis.path === 'fallen' && resistCost !== null && (
-                  <button
-                    onClick={handleResistFall}
-                    disabled={isResisting || !canAffordResist}
-                    className="px-3 py-1.5 rounded-lg font-fantasy text-xs font-bold transition-all
-                      bg-gradient-to-r from-violet-500/70 to-indigo-500/70 text-ivory
-                      hover:shadow-[0_0_12px_rgba(139,92,246,0.35)]
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      flex items-center gap-2 shrink-0"
-                    title="Nudge your alignment one step back toward the light"
-                  >
-                    <span>{isResisting ? 'Resisting...' : 'Resist the Fall'}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-black/30">
-                      <CurrencyCost
-                        currency="gameplay"
-                        amount={resistCost}
-                        insufficient={!canAffordResist}
-                      />
-                    </span>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Tier Up */}
           {canUpgrade && (
             <div className="border border-dashed border-gold/30 rounded-lg p-3 bg-gold/5">
@@ -807,10 +707,13 @@ export function CardDetail() {
             <div className="p-5 border-b border-gold/30 bg-gradient-to-b from-gold/10 to-transparent">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-fantasy text-xl font-bold text-gold">Your Ascendant Story</h3>
+                  <h3 className="font-fantasy text-xl font-bold text-gold">
+                    {card.archetype === 'Android' ? 'Choose Your Final Form' : 'Your Ascendant Story'}
+                  </h3>
                   <p className="text-xs text-ash/80 italic mt-1">
-                    Two paths continue {card.cardName}'s story into their Ascendant form.
-                    Choose the direction their legend takes.
+                    {card.archetype === 'Android'
+                      ? `${card.cardName} sheds all human form. Choose the post-human end-state they become.`
+                      : `Paths continue ${card.cardName}'s story into their Ascendant form. Choose the direction their legend takes.`}
                   </p>
                 </div>
                 <button
@@ -826,7 +729,7 @@ export function CardDetail() {
               {ascendantPaths.map((path, i) => (
                 <button
                   key={i}
-                  onClick={handleChoosePath}
+                  onClick={() => handleChoosePath(i)}
                   disabled={isTieringUp}
                   className="w-full text-left p-4 rounded-lg border-2 border-slate-dark
                     bg-slate-dark/40 hover:border-gold/60 hover:bg-gold/5

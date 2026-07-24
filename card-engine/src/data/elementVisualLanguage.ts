@@ -461,6 +461,24 @@ const NOCTURNE = V({
   avoid: 'warm daylight, blue night sky, silver moon (that is Moon), cheerful stars, orange fire, campfire glow',
 });
 
+// Sanguine — Vampire-exclusive (2026-07-24, Raheem). CRYSTALLIZED blood: the
+// vampire's vitality hardened into faceted ruby/garnet crystal. Where Blood is
+// WET and flowing, Sanguine is HARD, sharp, refractive gem — a jewel, not a pool.
+const SANGUINE = V({
+  theme: 'crystallized blood, vitality hardened to jewel, gemstone sovereignty',
+  primaryColors: 'deep garnet crimson, ruby red, dark blood-crystal',
+  secondaryColors: 'wine-dark facet-shadow, dried-blood maroon, black-red crystal core',
+  accentColors: 'ruby glint, crimson refraction-spark, rose-gold crystal edge',
+  materials: 'faceted blood-crystal, hardened crimson glass, garnet and ruby gemstone, crystallized arterial shards, blood turned to jewel and spur',
+  textures: 'sharp crystalline facets, glassy blood-gem sheen, refractive ruby depth, fractured crystal edges, polished garnet',
+  lighting: 'deep translucent red refracting THROUGH crystal facets, internal ruby glow, sharp specular glints on faceted edges — NOT a wet liquid sheen (that is Blood)',
+  motion: 'faceted ruby crystal fragments hovering and slowly rotating, crimson light refracting through floating shards, sharp blood-crystal spurs growing hard and angular from the body, brittle facets catching the light — crystallizing and setting SOLID, never flowing or dripping',
+  shapes: 'faceted crystal shards, angular ruby spurs, geometric gem-clusters, crystalline spikes and lattices',
+  atmosphere: 'floating blood-crystal shards suspended in the air, refracted crimson light scattering, a cathedral of dark-red crystal behind',
+  symbolism: 'vitality made permanent, blood hardened into power, the crystallized jewel of the bloodline',
+  avoid: 'wet flowing or dripping liquid blood and glossy blood pools (that is Blood — Sanguine is HARD faceted crystal, dry and solid), molten glow, lava, obsidian or volcanic glass (that is Infernal), blood-moon or night sky (that is Nocturne), red devil skin, horns, orange fire, purple, soft organic curves',
+});
+
 // Lunar — Lycanthrope-exclusive RARE (2026-07-22). The SUPERIOR version of Moon:
 // where Moon is calm silver GLOW, Lunar is BLAZING divine silver-FIRE — the Moon
 // Goddess's blessing, a full-moon corona and lunar runes. Must read as more
@@ -558,6 +576,7 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Infernal: INFERNAL,
   Bone: BONE,
   Nocturne: NOCTURNE,
+  Sanguine: SANGUINE,
   Lunar: LUNAR,
   Plasma: PLASMA,
   Nanite: NANITE,

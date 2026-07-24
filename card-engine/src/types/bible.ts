@@ -35,6 +35,10 @@ export const ELEMENT_NAMES = [
   // devoured sun, wheeling bats, crimson-into-black. Distinct from Shadow
   // (fear-dark) and Moon (silver cycle). See elementVisualLanguage.ts NOCTURNE.
   'Nocturne',
+  // Vampire-exclusive (2026-07-24, Raheem). CRYSTALLIZED blood — a vampire's
+  // vitality hardened into faceted ruby/garnet crystal. Distinct from Blood
+  // (wet liquid crimson) and Nocturne (blood-moon night). See SANGUINE.
+  'Sanguine',
   // Lycanthrope-exclusive rare (2026-07-22). The SUPERIOR version of Moon — the
   // Moon Goddess's divine blessing: BLAZING silver-fire + full-moon corona +
   // lunar runes, NOT Moon's calm silver glow. See elementVisualLanguage.ts LUNAR.
@@ -47,10 +51,10 @@ export const ELEMENT_NAMES = [
   // light + volumetric HOLOGRAMS — iridescent rainbow, prismatic facets, holo
   // constructs. Distinct from Light (holy gold) + Tech (circuit-cyan). See PRISM.
   'Prism',
-  // Fallen-Seraph-exclusive (P4 Seraph corruption arc). Never appears in
-  // any archetype's compatibility buckets — it is only ever assigned by
-  // alignment transmutation at tier-up (Light → Infernal when the path
-  // resolves to 'fallen'). See data/narrativeAxes/seraphAlignment.ts.
+  // Fallen-Seraph element (P4 corruption arc). Assigned by transmutation
+  // (Light → Infernal when the Seraph's path is 'fallen') AND offered as a
+  // Seraph Rare (2026-07-24, Raheem). molten obsidian + black light, never
+  // fire-orange. See data/narrativeAxes/seraphAlignment.ts + elementVisualLanguage.
   'Infernal',
 ] as const;
 export type ElementName = typeof ELEMENT_NAMES[number];
@@ -171,6 +175,19 @@ export interface ImageDirective {
   environmentTag?: string;
   /** Rare explicit sex pin; otherwise system-rolled to the presentation distribution. */
   sex?: string;
+  /**
+   * Summoned-creature pin (Beastmaster). The player's chosen apex beast id for
+   * the archetype's element. Unlike `species`, this NEVER transforms the
+   * character — the Beastmaster stays fully human; the beast is a separate
+   * entity the assembler renders. See data/visualPillars.ts + buildBeastmasterScene.
+   */
+  summon?: string;
+  /**
+   * Lycanthrope moon-phase pin — the birth moon that sets which STAGE of the
+   * human→full-wolf transformation the Foundation card starts at (all Lycans
+   * still end full wolf by Ascendant). One of LYCAN_MOON_PHASE_IDS.
+   */
+  moonPhase?: string;
 }
 
 /**
@@ -187,14 +204,6 @@ export interface StoryPillarOption {
    * classify tension. e.g. ["protective", "clan", "inherited-burden"].
    */
   tags?: string[];
-  /**
-   * P5 Seraph corruption arc — contribution of this option to the
-   * archetype's narrative-axis alignment score (+1 Good, -1 Fallen,
-   * 0 Balanced-leaning). Undefined = untagged (counts as 0 and does not
-   * qualify a card for axis computation). See
-   * services/narrativeAxisService.ts.
-   */
-  alignmentWeight?: number;
   /**
    * Image-first (Stage 3) — optional visual directive this choice pins for the
    * portrait. Read ONLY by the deterministic image roll layer, never by lore.
@@ -252,6 +261,35 @@ export interface HiddenFate {
   companionId?: string;
   companionPresent?: boolean;
   environmentId?: string;
+  /**
+   * Image-first form pin (2026-07-24). The player's chosen archetype FORM id
+   * (a `FORM_FAMILIES` entry id, e.g. 'crimson_knight', 'nosferatu'). Set once
+   * at Foundation from the visual-pillar form question and LOCKED across ranks
+   * (via LOCKED_HIDDEN_FATE_FIELDS) so the same form manifests at tier-up. The
+   * portrait assembler selects the element-gated form by matching this id
+   * (replacing the legacy per-character hash). Undefined on legacy cards and on
+   * archetypes without a form family — those fall back to the hash / generic
+   * form. This holds the form ID, not a Leonardo descriptor string.
+   */
+  speciesForm?: string;
+  /**
+   * Image-first summoned-beast pin (Beastmaster, 2026-07-24). The chosen apex
+   * beast id for the card's element; the Beastmaster stays HUMAN and the beast
+   * is rendered as a separate creature. Locked across ranks (a bonded beast is a
+   * lifelong partner). Undefined = the assembler seed-rolls the species.
+   */
+  summonId?: string;
+  /**
+   * Lycanthrope birth moon-phase id (Foundation transformation start stage).
+   * Locked across ranks. Undefined = the assembler seed-rolls it.
+   */
+  moonPhase?: string;
+  /**
+   * Android Ascendant PATH id (Protect / Destroy / Befriend / Leave) — the
+   * post-human end-state, chosen at the Forged→Ascendant tier-up (not at forge).
+   * Consumed only at Ascendant by buildAndroidScene; undefined ⇒ seed-rolled.
+   */
+  androidPath?: string;
   /**
    * Which fashion variant of the archetype's guide this card resolved to
    * (index into ARCHETYPE_FASHION_GUIDES[archetype].variants). GENERIC — not

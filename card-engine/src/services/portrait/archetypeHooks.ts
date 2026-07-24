@@ -40,16 +40,18 @@ const VAMPIRE_FERAL_POSE =
   'eyes. No T-pose, no orb-per-fist, no symmetrical arms. ';
 
 // Seraph three-path anchor (P6 corruption arc). The alignment axis is resolved
-// upstream into sheet.narrativeAxisPath ('Good' | 'Fallen' | 'Balanced'); rank
+// upstream into sheet.narrativeAxisPath — the lowercase band id ('good' |
+// 'fallen' | 'balanced') the forge choice + claudeApi anchor use (was 'Good' |
+// 'Fallen' | 'Balanced', a case-mismatch that kept this anchor dead). Rank
 // governs how much of the path is visible (Foundation austere → Ascendant full).
 function seraphPathAnchor(path: string | undefined, rank: string): string {
   if (rank === 'Foundation') {
     return 'SERAPH: austerity — plain unbleached linen/monastic robe, NO armor/halo/wings/horns/aura yet; the divine spark has not declared.';
   }
   const declared =
-    path === 'Fallen'
+    path === 'fallen'
       ? 'the FALLEN path — a CORRUPTED, MAJESTIC ANGEL, still winged and haloed but RUINED: great wings of charred blackened feathers dissolving into ash and black glass, a shattered or inverted halo, molten-obsidian BLACK light bleeding through cracks in blackened tarnished-gold regalia, dark black-fire eyes — a beautiful, tragic ruin, VIVID darkness. NEVER a red horned devil or imp, NEVER a sexy demoness, NEVER fire-orange (Infernal = molten obsidian + black light)'
-      : path === 'Balanced'
+      : path === 'balanced'
         ? 'the TWILIGHT path — the figure VIVIDLY SPLIT DOWN THE MIDDLE: one half brilliant radiant gold-and-white (a glowing white-feathered wing + a shining gold half-halo), the other half blackened obsidian shadow (a charred black wing + a broken dark half-halo). A STARK, BOLD, unmistakable light-versus-dark division across the whole body — the two halves must read at a glance'
         : 'the GOOD path — a radiant guardian in gilded gold-and-white regalia, great wings of brilliant white light, an intact burning gold halo, VIVID divine radiance';
   const scale = rank === 'Ascendant' ? 'full commitment to' : 'exactly ONE ceremonial piece marking';
@@ -72,7 +74,7 @@ const ARCHETYPE_PORTRAIT_HOOKS: Partial<Record<ArchetypeName, ArchetypePortraitH
     // legs, horns, wings). Reinforce the hard rules; harmless at lower ranks.
     mandatorySegment(sheet) {
       if (sheet.rank !== 'Ascendant') return '';
-      return 'LYCAN ANATOMY LOCK: a natural wolf on EXACTLY FOUR legs (never three, five, or a fused/missing leg), fur color = the character\'s hair color; ABSOLUTELY NEVER horns, NEVER wings, NEVER antlers, NEVER angelic radiance.';
+      return 'LYCAN ANATOMY LOCK: a FULL Lycan Guardian in ONE of two forms — EITHER a standing bipedal werewolf on exactly two legs with exactly two arms, OR a great four-legged wolf on exactly four legs; NEVER a mix of the two. In EITHER form: no extra, missing, or fused limbs; a single head, one tail; fur color = the character\'s hair color. ABSOLUTELY NEVER horns, NEVER wings, NEVER antlers, NEVER angelic radiance. A noble controlled Guardian of the Moon Goddess, never a rabid brute.';
     },
   },
   Seraph: {

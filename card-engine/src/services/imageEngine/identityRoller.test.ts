@@ -92,3 +92,34 @@ describe('rollIdentity — presentation distribution', () => {
     expect(AGE_BANDS.mummified.restrictTo).toContain('Necromancer');
   });
 });
+
+describe('rollIdentity — form-family pins (image-first, 2026-07-24)', () => {
+  test('a COUNT form (isNonHuman:false) presents as a rolled male/female person', () => {
+    // gothic_sovereign is the aristocratic humanoid count — must NOT read entity.
+    const r = rollIdentity({
+      archetype: 'Vampire',
+      cardId: 'card_count_1',
+      pins: { species: 'gothic_sovereign' },
+    });
+    expect(r.species).toBe('gothic_sovereign');
+    expect(['male', 'female']).toContain(r.sex);
+  });
+
+  test('a NON-HUMAN form (isNonHuman:true) reads as entity', () => {
+    const r = rollIdentity({
+      archetype: 'Vampire',
+      cardId: 'card_nosferatu_1',
+      pins: { species: 'nosferatu' },
+    });
+    expect(r.species).toBe('nosferatu');
+    expect(r.sex).toBe('entity');
+  });
+
+  test('form pin is deterministic from cardId', () => {
+    const a = rollIdentity({ archetype: 'Vampire', cardId: 'card_x', pins: { species: 'crimson_knight', build: 'towering' } });
+    const b = rollIdentity({ archetype: 'Vampire', cardId: 'card_x', pins: { species: 'crimson_knight', build: 'towering' } });
+    expect(a).toEqual(b);
+    expect(a.species).toBe('crimson_knight');
+    expect(a.build).toBe('towering');
+  });
+});

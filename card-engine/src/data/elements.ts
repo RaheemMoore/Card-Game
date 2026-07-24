@@ -56,12 +56,14 @@ type ArchetypeElementBuckets = {
  * services/tierUp.ts). It must NOT appear in the normal forge picker.
  */
 export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBuckets> = {
-  // 2026-07-23 CURATED 2-TIER (Raheem-approved). Each archetype offers a curated
-  // Natural set + a small narratively-gated Rare set; anything not listed is
-  // unavailable. Barbarian = the six-Tradition union (element gates the tradition).
+  // 2-TIER: each archetype offers a curated Natural set (selectable at the forge)
+  // + a Rare set (surfaced locked until the deferred narrative-eligibility gate);
+  // anything not listed is unavailable. The Barbarian's six Traditions are now
+  // decoupled from elements (fashion/environment only).
+  // 2026-07-24 (Raheem): tightened per-archetype element limits.
   Barbarian: {
-    naturally_compatible: ['Fire', 'Earth', 'Metal', 'Wind', 'Storm', 'Ice', 'Beast'],
-    rare: ['Blood', 'Holy'],
+    naturally_compatible: ['Fire', 'Earth'],
+    rare: ['Blood', 'Metal'],
   },
   // Moral-fork: PEACE picks Holy/Light (→ Cosmic culmination), VIOLENCE picks
   // Fire/Water/Wind/Earth (→ all-four). Cosmic is MONK-EXCLUSIVE.
@@ -71,22 +73,22 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     not_available: ['Beast'],
   },
   Beastmaster: {
-    naturally_compatible: ['Beast', 'Earth', 'Wind', 'Water', 'Spirit'],
-    rare: ['Ice'],
+    naturally_compatible: ['Earth', 'Wind', 'Water', 'Ice'],
+    rare: ['Shadow', 'Spirit'],
   },
   Druid: {
-    // Nature is Druid-EXCLUSIVE; corrupted path uses Poison.
-    naturally_compatible: ['Nature', 'Earth', 'Water'],
-    rare: ['Poison', 'Spirit'],
+    // Nature is Druid-EXCLUSIVE (the good path); Poison is the corrupted path.
+    naturally_compatible: ['Nature', 'Poison'],
+    rare: [],
   },
   Necromancer: {
     // Bone is Necromancer-EXCLUSIVE.
-    naturally_compatible: ['Spirit', 'Shadow', 'Blood', 'Bone'],
-    rare: ['Poison', 'Void'],
+    naturally_compatible: ['Poison', 'Shadow', 'Blood', 'Bone'],
+    rare: ['Void'],
   },
   Vampire: {
-    // Nocturne is Vampire-EXCLUSIVE; Void is the Ascension-blocker rare.
-    naturally_compatible: ['Blood', 'Shadow', 'Nocturne'],
+    // Nocturne + Sanguine are Vampire-EXCLUSIVE; Void is the Ascension-blocker rare.
+    naturally_compatible: ['Blood', 'Shadow', 'Nocturne', 'Sanguine'],
     rare: ['Void'],
   },
   Lycanthrope: {
@@ -95,19 +97,21 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     rare: ['Lunar', 'Shadow'],
   },
   'Mech Pilot': {
-    // Division-based: the mech's element loadout (element gates the division);
-    // tech-rares (Plasma/Nanite/Void) unlock at Ascension.
-    naturally_compatible: ['Tech', 'Metal', 'Storm', 'Fire', 'Ice', 'Earth', 'Light', 'Wind'],
-    rare: ['Plasma', 'Nanite', 'Void'],
+    // 2026-07-24 (Raheem): pure engineered/machine power — the tech family only.
+    naturally_compatible: ['Tech', 'Plasma', 'Nanite', 'Void'],
+    rare: [],
   },
   Android: {
-    // Purpose-based; tech-rares locked behind the purpose-line.
-    naturally_compatible: ['Tech', 'Metal', 'Light', 'Prism'],
-    rare: ['Plasma', 'Nanite', 'Void'],
+    // 2026-07-24 (Raheem): the engineered tech core; Void + Prism are the rares.
+    naturally_compatible: ['Tech', 'Plasma', 'Nanite'],
+    rare: ['Void', 'Prism'],
   },
   Seraph: {
-    naturally_compatible: ['Holy', 'Light', 'Spirit', 'Wind', 'Fire'],
-    rare: ['Water', 'Earth', 'Metal', 'Ice'],
+    // 2026-07-24 (Raheem). Light is the radiant path; a Fallen+Light Seraph
+    // transmutes Light → Infernal at the forge. Infernal is also offered as a
+    // (locked) rare so a non-Light Fallen can reach it once the rare gate lands.
+    naturally_compatible: ['Light', 'Shadow'],
+    rare: ['Infernal', 'Holy'],
   },
   Human: {
     // Human is the no-element TECH class — elements are vestigial here (the

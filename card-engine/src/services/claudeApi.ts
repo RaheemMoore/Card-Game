@@ -4,6 +4,7 @@ import type {
   ElementName,
   ElementSelection,
   HiddenFate,
+  ImageDirective,
   StoryPillarAnswers,
 } from '../types/bible';
 import type { AbilityCandidate, AbilitySlotType, CardAbilityReference } from '../types/abilities';
@@ -40,6 +41,7 @@ import { assemblePortraitPrompt } from './portraitAssembler';
 import { resolveLockedSelections, buildCharacterSheet } from './portrait/characterSheetFactory';
 import { rollIdentity } from './imageEngine/identityRoller';
 import { BODY_CLASSES, AGE_BANDS } from './imageEngine/identityPools';
+import { collectImagePins } from './forge/collectImagePins';
 
 /**
  * Image/lore decoupling (2026-07-21). EVERY archetype now has its Leonardo
@@ -115,6 +117,11 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a single bat alighting on one shoulder',
     'a thin sliver of blood-moon caught in one eye',
     'a wisp of crimson mist curling from one cuff',
+  ],
+  Sanguine: [
+    'a single faceted blood-crystal shard hovering at one shoulder',
+    'a garnet crystal-spur breaking through the skin of one hand',
+    'a thin vein of ruby crystal catching the light along the jaw',
   ],
   Lunar: [
     'a ring of glowing lunar runes orbiting one wrist',
@@ -484,10 +491,6 @@ const DIVERSITY_AXES: readonly string[] = [
  * ARCHETYPE_NON_HUMAN_FORMS.Vampire). Wings are permitted at every form —
  * the feral↔sovereign contrast is bearing + sentience, not wing presence.
  */
-/** ~1/3 of fresh Vampire Foundation forges manifest the feral beast form
- *  (the render-side feral pose lives in the Vampire portrait hook; this gate
- *  only informs the Claude text/storyMotifs context). */
-const VAMPIRE_FERAL_CHANCE = 1 / 3;
 
 /**
  * Gothic-night setting directive, per rank. Vampires exist at night and in
@@ -1077,25 +1080,39 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
   // as the "diversity axis" so name+lore match, AND (b) overwritten onto hiddenFate
   // post-parse so the IMAGE is guaranteed. Tier-up/regen (existingHiddenFate) skip
   // the roll and keep locked identity.
+  // Image-first (2026-07-24): the player's overt visual choices (form / build /
+  // weapon / companion) are re-resolved into ImageDirective pins here and fed to
+  // BOTH the identity roll (form → species, build) and the locked-selection seed
+  // below (weapon / companion). Non-piloted archetypes return {} so the roll
+  // keeps its `species:'humanoid'` default — no regression.
+  const imagePins: ImageDirective =
+    input.cardId && !input.existingHiddenFate
+      ? collectImagePins(input.archetype, input.element.element as ElementName, input.answers)
+      : {};
   const rolled =
     input.cardId && !input.existingHiddenFate
-      ? rollIdentity({ archetype: input.archetype, cardId: input.cardId, pins: { species: 'humanoid' } })
+      ? rollIdentity({
+          archetype: input.archetype,
+          cardId: input.cardId,
+          pins: { species: 'humanoid', ...imagePins },
+        })
       : null;
   const diversityAxis = input.existingHiddenFate
     ? ''
     : rolled
       ? `ROLLED IDENTITY (LOCKED — hiddenFate.sex/bodyType/age AND the name + lore MUST match this EXACT person, do not drift, do not soften): a ${rolled.sex}, ${BODY_CLASSES[rolled.build].leoDescription}, ${AGE_BANDS[rolled.age].leoDescription}${rolled.markDescription ? `, with ${rolled.markDescription}` : ''}`
       : pickDiversityAxis(input.archetype);
-  // Vampire feral-Foundation gate (Bible §Vampire §9 exception): ~1/3 of
-  // FRESH Vampire Foundation forges manifest as the feral, half-sentient
-  // beast the vampire will grow out of. Fires only at Foundation on a fresh
-  // forge — tier-ups and Forged/Ascendant are always humanoid, so the gate
-  // never needs persisting (Forged inherits identity, not the beast form).
+  // Vampire feral-Foundation gate — image-first (2026-07-24): the feral,
+  // half-sentient bat-beast is now the DETERMINISTIC Foundation expression of a
+  // player who chose Shadow → Nosferatu (species pin === 'nosferatu'), not a
+  // random 1/3 coin flip that would override the player's form choice. Fires
+  // only at Foundation on a fresh forge; the Nosferatu form proper manifests at
+  // Forged/Ascendant, so the beast look is Foundation-only and never persisted.
   const vampireFeralFires =
     input.archetype === 'Vampire' &&
     !input.existingHiddenFate &&
     overallRank === 'Foundation' &&
-    Math.random() < VAMPIRE_FERAL_CHANCE;
+    rolled?.species === 'nosferatu';
   const requiredPose = input.existingHiddenFate
     ? ''
     : vampireFeralFires
@@ -1172,7 +1189,33 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
         age: AGE_BANDS[rolled.age].leoDescription,
         bodyDimensions: undefined,
         ...(rolled.markDescription ? { disabilityOrCondition: rolled.markDescription } : {}),
+        // Image-first: persist + lock the chosen FORM id so the element-gated
+        // form manifests deterministically at Forged/Ascendant.
+        ...(rolled.species !== 'humanoid' ? { speciesForm: rolled.species } : {}),
       };
+      // Seed the player's weapon/companion pins BEFORE resolveLockedSelections —
+      // its fill-if-undefined guards then preserve them instead of rolling.
+      if (imagePins.weapon && hiddenFate.weaponId === undefined) {
+        hiddenFate = { ...hiddenFate, weaponId: imagePins.weapon };
+      }
+      if (imagePins.companionPresence === 'retinue') {
+        hiddenFate = {
+          ...hiddenFate,
+          companionPresent: true,
+          ...(imagePins.companion ? { companionId: imagePins.companion } : {}),
+        };
+      } else if (imagePins.companionPresence === 'solitary') {
+        hiddenFate = { ...hiddenFate, companionPresent: false };
+      }
+      // Beastmaster summoned beast — a dedicated pin (never touches species, so
+      // the Beastmaster stays human).
+      if (imagePins.summon && hiddenFate.summonId === undefined) {
+        hiddenFate = { ...hiddenFate, summonId: imagePins.summon };
+      }
+      // Lycanthrope birth moon-phase (Foundation transformation start stage).
+      if (imagePins.moonPhase && hiddenFate.moonPhase === undefined) {
+        hiddenFate = { ...hiddenFate, moonPhase: imagePins.moonPhase };
+      }
     }
 
     // Image/lore decoupling — the Leonardo prompt is built deterministically by

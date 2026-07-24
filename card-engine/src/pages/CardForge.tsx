@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ArchetypeName, CardStats, Card } from '../types/card';
-import type { ElementName, ElementSelection, StoryPillarAnswers } from '../types/bible';
+import type { ElementSelection, StoryPillarAnswers } from '../types/bible';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
 import { StoryPillarWizard } from '../components/StoryPillarWizard';
-import { BondPicker } from '../components/BondPicker';
-import { rollElement } from '../services/elementRoller';
+import { ElementPicker } from '../components/ElementPicker';
+import { visualQuestionsFor } from '../data/visualPillars';
 import { CardRenderer } from '../components/CardRenderer';
 import * as forgeController from '../services/forge/forgeController';
 import { useForgeJob } from '../services/forge/useForgeJob';
@@ -66,8 +66,9 @@ export function CardForge() {
   const [stage, setStage] = useState<WizardStage>('archetype');
   const [archetype, setArchetype] = useState<ArchetypeName | null>(null);
   const [stats, setStats] = useState<CardStats | null>(null);
-  const [storyPillars, setStoryPillars] = useState<StoryPillarAnswers | null>(null);
-  const [rolledElement, setRolledElement] = useState<ElementName | null>(null);
+  // Image-first: the element the player explicitly chose. Gates the visual form
+  // question and drives the portrait. See data/visualPillars.ts.
+  const [chosenElement, setChosenElement] = useState<ElementSelection | null>(null);
 
   // The reveal is copied out of the job the moment it succeeds, then the job is
   // acknowledged — this clears the persisted record + the global indicator while
@@ -115,10 +116,10 @@ export function CardForge() {
     } else if (job.status === 'failed') {
       setForgeError(job.error ?? 'The forge failed.');
       forgeController.acknowledge();
-      // Return the player to the bond picker to retry when the wizard inputs
-      // are still around (no reload happened); otherwise send them to the start.
-      if (archetype && stats && storyPillars && rolledElement) {
-        setStage('element');
+      // Return the player to the visual pillars to retry when the inputs are
+      // still around (no reload happened); otherwise send them to the start.
+      if (archetype && stats && chosenElement) {
+        setStage('pillars');
       } else {
         resetWizard();
         setStage('archetype');
@@ -130,8 +131,21 @@ export function CardForge() {
   function resetWizard() {
     setArchetype(null);
     setStats(null);
-    setStoryPillars(null);
-    setRolledElement(null);
+    setChosenElement(null);
+  }
+
+  function beginForge(element: ElementSelection, answers: StoryPillarAnswers) {
+    if (!archetype || !stats) return;
+    setForgeError(null);
+    try {
+      forgeController.startForge({ archetype, stats, storyPillars: answers, element });
+    } catch (err) {
+      if (err instanceof wallet.InsufficientFundsError) {
+        setInsufficientFunds(true);
+        return;
+      }
+      throw err;
+    }
   }
 
   function handleArchetypeSelect(a: ArchetypeName) {
@@ -141,31 +155,21 @@ export function CardForge() {
 
   function handleStatsComplete(s: CardStats) {
     setStats(s);
+    // Image-first: the element is an explicit choice that gates the form, so it
+    // comes BEFORE the pillars.
+    setStage('element');
+  }
+
+  // The player chose their element; it gates the visual form question next.
+  function handleElementChosen(selection: ElementSelection) {
+    setChosenElement(selection);
     setStage('pillars');
   }
 
   function handlePillarsComplete(answers: StoryPillarAnswers) {
     if (!archetype) return;
-    setStoryPillars(answers);
-    // Bible §Element rarity gates + BUCKET_WEIGHTS — auto-roll the element now
-    // that the Story Pillar answers are locked in. Player only chooses the bond
-    // in the next stage. See services/elementRoller.ts.
-    setRolledElement(rollElement(archetype, answers));
-    setStage('element');
-  }
-
-  function handleElementComplete(element: ElementSelection) {
-    if (!archetype || !stats || !storyPillars) return;
-    setForgeError(null);
-    try {
-      forgeController.startForge({ archetype, stats, storyPillars, element });
-    } catch (err) {
-      if (err instanceof wallet.InsufficientFundsError) {
-        setInsufficientFunds(true);
-        return;
-      }
-      throw err;
-    }
+    // Element already chosen at the element stage — forge now.
+    if (chosenElement) beginForge(chosenElement, answers);
   }
 
   function handleForgeAnother() {
@@ -176,8 +180,10 @@ export function CardForge() {
     setStage('archetype');
   }
 
-  const stages = ['archetype', 'stats', 'pillars', 'element', 'reveal'] as const;
-  const activeKey: typeof stages[number] = isForging || showReveal ? 'reveal' : stage;
+  // Image-first order: element BEFORE the pillars.
+  const stages: readonly (WizardStage | 'reveal')[] =
+    ['archetype', 'stats', 'element', 'pillars', 'reveal'];
+  const activeKey: WizardStage | 'reveal' = isForging || showReveal ? 'reveal' : stage;
   const stageIndex = stages.indexOf(activeKey);
 
   return (
@@ -208,12 +214,14 @@ export function CardForge() {
         <DiceRoll archetype={archetype} onComplete={handleStatsComplete} />
       )}
 
-      {!isForging && !showReveal && stage === 'pillars' && archetype && (
-        <StoryPillarWizard archetype={archetype} onComplete={handlePillarsComplete} />
+      {/* Image-first: element picker BEFORE the pillars. */}
+      {!isForging && !showReveal && stage === 'element' && archetype && (
+        <ElementPicker archetype={archetype} onComplete={handleElementChosen} />
       )}
 
-      {!isForging && !showReveal && stage === 'element' && archetype && storyPillars && rolledElement && (
+      {!isForging && !showReveal && stage === 'pillars' && archetype && chosenElement && (
         <div className="w-full flex flex-col items-center gap-3">
+          {/* The forge fires FROM this step, so surface the cost here. */}
           <div className="text-xs text-ash flex items-center gap-2">
             <span>Forging will charge</span>
             <CurrencyCost
@@ -230,10 +238,10 @@ export function CardForge() {
               Forge failed: {forgeError}. Your {FORGE_PRICE} was refunded.
             </div>
           )}
-          <BondPicker
+          <StoryPillarWizard
             archetype={archetype}
-            element={rolledElement}
-            onComplete={handleElementComplete}
+            onComplete={handlePillarsComplete}
+            questionSet={visualQuestionsFor(archetype, chosenElement.element)}
           />
         </div>
       )}
