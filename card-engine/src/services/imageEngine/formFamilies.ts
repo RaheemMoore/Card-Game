@@ -136,6 +136,34 @@ export const FORM_FAMILIES: Partial<Record<ArchetypeName, readonly ArchetypeForm
     { id: 'weapon_model', name: 'Weapon-model', pattern: 'division',
       concept: 'built to fight — an armored combat frame, integrated armaments, targeting-optics' },
   ],
+
+  // ---- Druid — FORM blocker (the wildshape). Element-conditional: the GOOD set
+  // (ungated) shows unless the player picked Poison, which gates the CORRUPTED
+  // set (corruption is decided by the element pick, not asked twice). isNonHuman
+  // FALSE — the rolled person stays legible under the plant-matter (Bible
+  // continuity). ORDER MATCHES DRUID_GOOD_FORMS / DRUID_CORRUPTED_FORMS. ----
+  Druid: [
+    { id: 'tree_being', name: 'Tree-Being', pattern: 'form',
+      concept: 'a towering tree-being of gnarled oak and hanging moss, branch-limbs, a canopy crown' },
+    { id: 'wildbloom', name: 'Wildbloom', pattern: 'form',
+      concept: 'a flowering wildbloom being, blossoms erupting from the body, antlers of flowering branch' },
+    { id: 'moss_lichen', name: 'Moss-Lichen', pattern: 'form',
+      concept: 'a moss-and-lichen being, deep soft moss and damp lichen over a verdant hooded shape' },
+    { id: 'bramble_thorn', name: 'Bramble-Thorn', pattern: 'form',
+      concept: 'a bramble-thorn colossus, woody thorn-vines and briar as living armor, a crown of thorns' },
+    { id: 'water_plant', name: 'Water-Plant', pattern: 'form',
+      concept: 'a water-plant being, dripping kelp-fronds, river-reeds and lily-pads for hair and limbs' },
+    { id: 'desert_succulent', name: 'Desert-Succulent', pattern: 'form',
+      concept: 'a desert-succulent being, thick spined cactus-flesh, waxy leaves and desert-bloom flowers' },
+    { id: 'bark_bear', name: 'Bark-Bear', pattern: 'form',
+      concept: 'a great bear grown of bark, bramble and thorn, moss across its back, blossoms in its pelt' },
+    { id: 'cordyceps', name: 'Cordyceps', pattern: 'form', gate: 'Poison',
+      concept: 'a cordyceps-corrupted being, parasitic-fungus stalks erupting, the body hollowed and puppeted' },
+    { id: 'carrion_bloom', name: 'Carrion-Bloom', pattern: 'form', gate: 'Poison',
+      concept: 'a carrion-bloom blight being, rotting corpse-flowers, blighted foliage, oozing rot' },
+    { id: 'bloodmaw', name: 'Bloodmaw', pattern: 'form', gate: 'Poison',
+      concept: 'a carnivorous plant-being, venus-flytrap maws and pitcher pods, blood-gorged and dripping' },
+  ],
 };
 
 /** All forms an archetype can become (empty if it uses the legacy single form). */

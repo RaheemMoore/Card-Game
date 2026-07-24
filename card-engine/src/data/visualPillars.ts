@@ -67,11 +67,12 @@ function formQuestion(archetype: ArchetypeName, element: ElementName): VisualQue
   // Ascension forms are never offered at the forge (Ascendant-tier only).
   const all = formsFor(archetype).filter((f) => !f.ascensionOnly);
   if (all.length === 0) return { questions: [], options: [] };
-  // Element-gated families (Vampire: the element gates the form pair) filter by
-  // the chosen element; role/form/division families (Necromancer, Lycan, Android)
-  // are not element-gated and show every form.
-  const isElementGated = all.some((f) => f.gate !== undefined);
-  const forms = isElementGated ? all.filter((f) => f.gate === element) : all;
+  // Unified gate rule: forms whose gate matches the chosen element win (Vampire's
+  // element→pair; Druid's Poison→corrupted); if none match, the ungated forms
+  // show (role/form/division families, and Druid's non-Poison good set).
+  const gatedMatch = all.filter((f) => f.gate === element);
+  const ungated = all.filter((f) => !f.gate);
+  const forms = gatedMatch.length > 0 ? gatedMatch : ungated;
   if (forms.length === 0) return { questions: [], options: [] };
   const questions: StoryPillarQuestion[] = [
     { id: 'vf_form', pillarIndex: 1, prompt: FORM_PROMPTS[archetype] ?? 'What form do you take?' },

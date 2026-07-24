@@ -668,6 +668,12 @@ const DRUID_CORRUPTED_FORMS: readonly string[] = [
   'a CARRION-BLOOM BLIGHT being — rotting brown-black corpse-flowers, blighted purple-black foliage, oozing rot, drifting flies, a decayed diseased plant-corpse (NOT a healthy green druid)',
   '__BLOODMAW__', // handled specially (rank-bleeding palette)
 ];
+// Image-first: parallel FORM_FAMILIES ids in the SAME ORDER as the pools above,
+// so the player's chosen wildshape (hiddenFate.speciesForm) selects it.
+const DRUID_GOOD_FORM_IDS: readonly string[] = [
+  'tree_being', 'wildbloom', 'moss_lichen', 'bramble_thorn', 'water_plant', 'desert_succulent', 'bark_bear',
+];
+const DRUID_CORRUPTED_FORM_IDS: readonly string[] = ['cordyceps', 'carrion_bloom', 'bloodmaw'];
 function formSeed(sheet: CharacterSheet): number {
   const s = `${sheet.hiddenFate.skinTone ?? ''}${sheet.hiddenFate.age ?? ''}${sheet.hiddenFate.sex ?? ''}`;
   let h = 0;
@@ -687,13 +693,21 @@ function pickFormIndex(sheet: CharacterSheet, poolLength: number): number {
   }
   return formSeed(sheet) % poolLength;
 }
+/** Pick a pool index from the player's pinned form id against a parallel id list
+ *  (for pools split into sub-sets, e.g. Druid good vs corrupted). Fallback: seed. */
+function pickIndexByIds(sheet: CharacterSheet, ids: readonly string[]): number {
+  const id = sheet.hiddenFate.speciesForm;
+  const i = id ? ids.indexOf(id) : -1;
+  return i >= 0 ? i : formSeed(sheet) % ids.length;
+}
 function isDruidForm(sheet: CharacterSheet): boolean {
   return sheet.archetype === 'Druid';
 }
 function buildDruidFormScene(sheet: CharacterSheet): string {
   const corrupted = sheet.resolvedElement === 'Poison';
   const set = corrupted ? DRUID_CORRUPTED_FORMS : DRUID_GOOD_FORMS;
-  const pick = set[formSeed(sheet) % set.length];
+  const ids = corrupted ? DRUID_CORRUPTED_FORM_IDS : DRUID_GOOD_FORM_IDS;
+  const pick = set[pickIndexByIds(sheet, ids)];
   const bloodmaw = pick === '__BLOODMAW__';
   const creature = DRUID_CREATURE_FORMS.includes(pick); // corrupted forms are never creatures
   const wind = 'ACCOMPANIED BY WIND — leaves, petals and pollen on a visible wind-current, foliage and any cloak lifted';

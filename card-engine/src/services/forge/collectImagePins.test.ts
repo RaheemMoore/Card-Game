@@ -56,6 +56,18 @@ describe('collectImagePins — Vampire image-first', () => {
     expect(voidForms).toHaveLength(0);
   });
 
+  test('Druid forms are element-conditional (good set vs Poison-corrupted set)', () => {
+    const good = visualQuestionsFor('Druid', 'Nature').options
+      .filter((o) => o.questionId === 'vf_form')
+      .map((o) => o.image?.species);
+    const corrupted = visualQuestionsFor('Druid', 'Poison').options
+      .filter((o) => o.questionId === 'vf_form')
+      .map((o) => o.image?.species);
+    expect(good).toContain('tree_being');
+    expect(good).not.toContain('cordyceps');
+    expect(corrupted).toEqual(['cordyceps', 'carrion_bloom', 'bloodmaw']);
+  });
+
   test('unmatched option ids yield no pins', () => {
     const pins = collectImagePins('Barbarian', 'Fire', answersFor(['not-a-real-option']));
     expect(pins).toEqual({});
