@@ -43,7 +43,7 @@ const NEUTRAL_ROLES: readonly string[] = [
   'practical', 'battlefield', 'ceremonial', 'industrial',
 ];
 
-const FIRE_FAMILY: readonly ElementName[] = ['Fire', 'Blood', 'Ash', 'Holy'];
+const FIRE_FAMILY: readonly ElementName[] = ['Fire', 'Blood'];
 
 const EMBER_RX = /\b(ember|infernal|molten|glowing coals|flame-lit|hooked chains?|volcanic glass|warm ember|orange rim)\b/gi;
 const FASHION_BANNED_ROLE_RX = /\b(infernal|celestial|corrupted)\b/i;

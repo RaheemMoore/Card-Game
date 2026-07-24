@@ -112,21 +112,7 @@ const NATURE = V({
   avoid: 'only leaves, generic vines everywhere, green fire, pale-mint-green (that is Wind), yellow-green (that is Poison), no wings on Druid-users',
 });
 
-const LIGHTNING = V({
-  theme: 'speed, precision, innovation, energy',
-  primaryColors: 'electric blue, white',
-  secondaryColors: 'cyan, indigo',
-  accentColors: 'violet, silver',
-  materials: 'plasma, crystal, charged metal',
-  textures: 'electric fractures, energy veins, arc patterns',
-  lighting: 'extremely bright flashes, pulses — NO warm ember light',
-  motion: 'branching arcs, sparks, magnetic distortion',
-  shapes: 'sharp, angular, branching',
-  atmosphere: 'ozone, static particles',
-  symbolism: 'intelligence, speed, discovery',
-  avoid: 'single yellow lightning bolt, flat neon blue glow, yellow fire',
-});
-
+// LIGHTNING merged into STORM (2026-07-23 element-restructure batch).
 const ICE = V({
   theme: 'control, silence, precision, preservation',
   primaryColors: 'ice blue, white',
@@ -198,21 +184,7 @@ const WIND = V({
   avoid: 'solid opaque wind, white-only wind, warm colors, blue-magic default',
 });
 
-const STONE = V({
-  theme: 'weight, patience, ancient guard',
-  primaryColors: 'granite gray, umber, slate',
-  secondaryColors: 'moss green, lichen olive',
-  accentColors: 'quartz white, iron-vein rust',
-  materials: 'granite plates, boulder chunks, buried fossils',
-  textures: 'chunky rocky-plate, mineral-vein, weathered pit',
-  lighting: 'soft ambient, muted highlights on plate faces, dust-diffused',
-  motion: 'heaving plates, rising pillars, rock-fists forming',
-  shapes: 'blocky-heavy, columnar, angular',
-  atmosphere: 'dust cloud rising, cracked ground fanning outward',
-  symbolism: 'permanence, unmoved witness',
-  avoid: 'glowing volcanic stone (that is Fire), smooth featureless boulders',
-});
-
+// STONE merged into EARTH (2026-07-23 element-restructure batch).
 const STORM = V({
   theme: 'chaos, wrath, sky-fury',
   primaryColors: 'steel gray, electric blue',
@@ -303,21 +275,7 @@ const LIGHT = V({
   avoid: 'dark, moody, shadow, purple/black',
 });
 
-const ASH = V({
-  theme: 'aftermath, memory of heat, buried grief',
-  primaryColors: 'charcoal gray, soot black',
-  secondaryColors: 'ember orange (only in cracks), bone white',
-  accentColors: 'burnt-paper edges',
-  materials: 'ash, charred bone, spent coal, burnt scroll',
-  textures: 'dust-and-cinder, charred cracking, falling flake, soot-smear',
-  lighting: 'muted ambient with only tiny ember-red seeping through cracks, not open flame',
-  motion: 'gray dust rising, ash flaking off, embers drifting slowly through the air',
-  shapes: 'crumbling, drifting-flake, cracked-open',
-  atmosphere: 'scorch marks and gray ash spreading, ash-fall through the sky',
-  symbolism: 'what remains after fire, memory of loss',
-  avoid: 'pure open flame (that is Fire), wet colors, clean colors',
-});
-
+// ASH removed (2026-07-23 — Raheem: a byproduct of Fire, not its own element).
 const HOLY = V({
   theme: 'sacred duty, divine mandate, radiant guardianship',
   primaryColors: 'radiant gold, white radiance',
@@ -580,8 +538,6 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Earth: EARTH,
   Wind: WIND,
   Ice: ICE,
-  Lightning: LIGHTNING,
-  Stone: STONE,
   Storm: STORM,
   Nature: NATURE,
   Beast: BEAST,
@@ -591,7 +547,6 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Spirit: SPIRIT,
   Shadow: SHADOW,
   Light: LIGHT,
-  Ash: ASH,
   Holy: HOLY,
   Void: VOID,
   Time: TIME,

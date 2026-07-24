@@ -209,7 +209,6 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
   Ice: ', melted into fire, warm palette replacing ice-blue, element changed from Ice',
   Wind: ', fire replacing wind, red-orange gusts, element changed from Wind',
   Storm: ', fire replacing lightning, orange storm clouds, element changed from Storm',
-  Lightning: ', fire replacing lightning, ember bolts, element changed from Lightning',
   Nature: ', burning forest palette, fire replacing growth, element changed from Nature',
   Shadow: ', bright radiant palette replacing shadow, holy glow, element changed from Shadow',
   Void: ', warm colors in void, fire in the void, radiant light replacing void-black, element changed from Void',
@@ -224,9 +223,7 @@ const ELEMENT_DRIFT_BANS: Partial<Record<ElementName, string>> = {
   Dream: ', fire replacing dream-pastels, ember haze, element changed from Dream',
   Metal: ', fire replacing cold metal sheen, forge-fire dominance, element changed from Metal',
   Earth: ', lava replacing earth-brown, fire palette, element changed from Earth',
-  Stone: ', lava replacing stone-gray, fire cracks, element changed from Stone',
   Beast: ', fire replacing beast-natural palette, flaming animal, element changed from Beast',
-  Ash: ', open flames replacing cold ash, active fire instead of aftermath, element changed from Ash',
   // Fire itself drifts toward generic orange blobs, not other elements.
   Fire: ', blue magic glow replacing fire, ice palette, element changed from Fire',
   // Fallen-Seraph exclusive (P4). Infernal is molten obsidian + black light.

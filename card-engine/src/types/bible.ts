@@ -20,9 +20,11 @@ import type { ArchetypeName } from './card';
  * Rare, or Not Available.
  */
 export const ELEMENT_NAMES = [
-  'Fire', 'Water', 'Earth', 'Wind', 'Ice', 'Lightning', 'Stone', 'Storm',
+  // 2026-07-23 element-restructure: Stone merged into Earth, Lightning into
+  // Storm, Ash removed (a byproduct of Fire, not its own element).
+  'Fire', 'Water', 'Earth', 'Wind', 'Ice', 'Storm',
   'Nature', 'Beast', 'Blood', 'Poison', 'Metal', 'Spirit', 'Shadow',
-  'Light', 'Ash', 'Holy', 'Void', 'Time', 'Cosmic', 'Tech',
+  'Light', 'Holy', 'Void', 'Time', 'Cosmic', 'Tech',
   'Psychic', 'Moon', 'Dream',
   // Necromancer-exclusive (2026-07-22). A normal pickable element, but only
   // ever in the Necromancer's compatibility set — the physical architecture of

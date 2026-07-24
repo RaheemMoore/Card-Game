@@ -59,8 +59,8 @@ type ArchetypeElementBuckets = {
  */
 export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBuckets> = {
   Barbarian: {
-    naturally_compatible: ['Fire', 'Earth', 'Stone', 'Storm', 'Wind', 'Ice', 'Blood', 'Beast', 'Nature'],
-    compatible_through_reinterpretation: ['Light', 'Shadow', 'Metal', 'Spirit', 'Poison', 'Water', 'Lightning', 'Ash'],
+    naturally_compatible: ['Fire', 'Earth', 'Storm', 'Wind', 'Ice', 'Blood', 'Beast'],
+    compatible_through_reinterpretation: ['Light', 'Shadow', 'Metal', 'Spirit', 'Poison', 'Water'],
     rare: ['Holy', 'Void', 'Time', 'Tech', 'Psychic'],
   },
   // 2026-07-23 moral-fork redesign: PEACE picks Holy/Light (→ Cosmic culmination),
@@ -69,24 +69,26 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
   // which six are offered is the deferred ritual mechanic; the buckets list all.
   Monk: {
     naturally_compatible: ['Holy', 'Light', 'Fire', 'Water', 'Wind', 'Earth'],
-    compatible_through_reinterpretation: ['Spirit', 'Ice', 'Lightning', 'Metal'],
+    compatible_through_reinterpretation: ['Spirit', 'Ice', 'Storm', 'Metal'],
     rare: ['Cosmic'],
     not_available: ['Beast'],
   },
   Beastmaster: {
-    naturally_compatible: ['Beast', 'Nature', 'Earth', 'Wind', 'Water', 'Spirit', 'Ice'],
-    compatible_through_reinterpretation: ['Fire', 'Lightning', 'Light', 'Shadow', 'Poison', 'Blood'],
+    // Nature is now Druid-EXCLUSIVE (2026-07-23) — removed here.
+    naturally_compatible: ['Beast', 'Earth', 'Wind', 'Water', 'Spirit', 'Ice'],
+    compatible_through_reinterpretation: ['Fire', 'Storm', 'Light', 'Shadow', 'Poison', 'Blood'],
     rare: ['Time', 'Void', 'Psychic', 'Holy', 'Tech', 'Metal'],
   },
   Druid: {
+    // Nature is Druid-EXCLUSIVE.
     naturally_compatible: ['Nature', 'Earth', 'Water', 'Wind', 'Spirit', 'Light', 'Ice'],
-    compatible_through_reinterpretation: ['Fire', 'Lightning', 'Shadow', 'Poison'],
+    compatible_through_reinterpretation: ['Fire', 'Storm', 'Shadow', 'Poison'],
     rare: ['Time', 'Void', 'Psychic', 'Holy', 'Tech', 'Metal', 'Beast', 'Blood'],
   },
   Necromancer: {
     naturally_compatible: ['Spirit', 'Shadow', 'Blood', 'Poison'],
     compatible_through_reinterpretation: ['Earth', 'Ice', 'Water', 'Psychic'],
-    rare: ['Fire', 'Wind', 'Nature', 'Beast', 'Light', 'Holy', 'Lightning', 'Metal', 'Time', 'Void', 'Tech', 'Dream'],
+    rare: ['Fire', 'Wind', 'Beast', 'Light', 'Holy', 'Storm', 'Metal', 'Time', 'Void', 'Tech', 'Dream'],
   },
   Vampire: {
     // Bible §Vampire: Vampires draw only on Blood, Shadow, and Void — the
@@ -106,24 +108,24 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     rare: ['Shadow', 'Poison', 'Ice', 'Dream'],
   },
   'Mech Pilot': {
-    naturally_compatible: ['Tech', 'Lightning', 'Metal'],
+    naturally_compatible: ['Tech', 'Storm', 'Metal'],
     compatible_through_reinterpretation: ['Earth', 'Wind', 'Ice', 'Psychic', 'Light', 'Spirit', 'Water'],
-    rare: ['Time', 'Void', 'Holy', 'Nature', 'Beast', 'Blood', 'Poison', 'Dream', 'Moon', 'Shadow'],
+    rare: ['Time', 'Void', 'Holy', 'Beast', 'Blood', 'Poison', 'Dream', 'Moon', 'Shadow'],
     not_available: ['Fire'],
   },
   Android: {
-    naturally_compatible: ['Tech', 'Lightning', 'Metal', 'Psychic', 'Light'],
+    naturally_compatible: ['Tech', 'Storm', 'Metal', 'Psychic', 'Light'],
     compatible_through_reinterpretation: ['Ice', 'Water', 'Wind', 'Earth', 'Spirit', 'Moon', 'Shadow'],
-    rare: ['Time', 'Void', 'Holy', 'Nature', 'Beast', 'Blood', 'Poison', 'Dream', 'Fire'],
+    rare: ['Time', 'Void', 'Holy', 'Beast', 'Blood', 'Poison', 'Dream', 'Fire'],
   },
   Seraph: {
     naturally_compatible: ['Holy', 'Light', 'Spirit', 'Wind', 'Fire'],
-    compatible_through_reinterpretation: ['Lightning', 'Water', 'Earth', 'Metal', 'Ice', 'Psychic', 'Moon'],
-    rare: ['Time', 'Dream', 'Nature', 'Blood', 'Shadow', 'Void', 'Tech', 'Beast', 'Poison'],
+    compatible_through_reinterpretation: ['Storm', 'Water', 'Earth', 'Metal', 'Ice', 'Psychic', 'Moon'],
+    rare: ['Time', 'Dream', 'Blood', 'Shadow', 'Void', 'Tech', 'Beast', 'Poison'],
   },
   Human: {
     naturally_compatible: ['Fire', 'Water', 'Wind', 'Earth', 'Light', 'Metal'],
-    compatible_through_reinterpretation: ['Ice', 'Lightning', 'Nature', 'Spirit', 'Psychic', 'Tech', 'Moon'],
+    compatible_through_reinterpretation: ['Ice', 'Storm', 'Spirit', 'Psychic', 'Tech', 'Moon'],
     rare: ['Holy', 'Shadow', 'Blood', 'Poison', 'Time', 'Void', 'Dream', 'Beast'],
   },
 };
@@ -179,7 +181,7 @@ const RARE_ELEMENT_TAG_HINTS: Partial<Record<ElementName, string[]>> = {
   Dream: ['vision', 'symbol', 'unresolved', 'mystery', 'memory'],
   Moon: ['lunar', 'cycles', 'transformation', 'guardian', 'boundary'],
   Fire: ['forge', 'transformation', 'passion', 'hearth'],
-  Lightning: ['sudden', 'awakening', 'insight', 'confrontation'],
+  Storm: ['sudden', 'awakening', 'insight', 'confrontation', 'sky-fury'],
   Nature: ['stewardship', 'cycles', 'restoration'],
   Beast: ['pack', 'partnership', 'wild', 'bond'],
   Blood: ['inheritance', 'sacrifice', 'kinship', 'oath'],

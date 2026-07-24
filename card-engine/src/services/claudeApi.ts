@@ -162,16 +162,6 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a small ice-skate skid mark under their foot',
     'a snowman half-formed in the background',
   ],
-  Lightning: [
-    'a jar of pickles with a bolt jumping into it',
-    'a battery-lantern flickering nearby',
-    'their hair frizzed comically upward',
-  ],
-  Stone: [
-    'a small pet turtle at their feet',
-    'a rock they clearly named, tucked in a pocket',
-    'stone dust caked comically on the boots',
-  ],
   Storm: [
     'an umbrella turned inside-out flying past',
     'a weathervane spinning wildly in the background',
@@ -218,11 +208,6 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a hand-mirror reflecting a prism onto the wall behind',
     'a stained-glass fragment held aloft',
     'a chorus of tiny sun-motes orbiting',
-  ],
-  Ash: [
-    'a burnt scroll fragment tucked into their belt',
-    'a phoenix feather (still smoldering) in their hair',
-    'a small pile of ash spelling their name at their feet',
   ],
   Holy: [
     'a hymnal book held open, pages fluttering',
