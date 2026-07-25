@@ -9,7 +9,7 @@ import type { AbilityStore } from '../persistence/AbilityStore';
 import { normalizeCandidate } from './candidateNormalizer';
 import { validateAbilityVersion, type ValidationError } from './validator';
 import { detectDuplicate } from './duplicateDetector';
-import { registerPlaceholderArt, generateCanonicalArt } from './canonicalArtPipeline';
+import { registerPlaceholderArt } from './canonicalArtPipeline';
 import { EFFECT_CATALOG } from '../../data/abilities/effects';
 import { TARGET_CATALOG } from '../../data/abilities/targets';
 import { TRIGGER_CATALOG } from '../../data/abilities/triggers';
@@ -125,16 +125,20 @@ export function proposeAbility(
 
 /**
  * Auto-art on discovery. Registers a family-tinted placeholder synchronously
- * (so the Codex has something to render immediately) then fires Leonardo in
- * the background to replace it with canonical art. Costs a Leonardo credit
- * per novel identity — accepted trade so the Codex grows without admin
- * intervention (see Raheem, 2026-07-18). Errors swallowed: the placeholder
- * survives and admin can regenerate later.
+ * so the Codex has something to render immediately.
+ *
+ * Leonardo is intentionally NOT fired here. During development we don't want
+ * to spend a Leonardo credit on an ability that's still sitting in the admin
+ * queue and may be rejected. Canonical art is generated on demand from the
+ * admin Abilities panel (or the dev console tool) *after* the ability is
+ * approved. Previously this path fired Leonardo per novel identity
+ * (see Raheem, 2026-07-18); gated off 2026-07-25 to stop wasting credits on
+ * unapproved abilities.
  */
 async function autoGenerateArtForDiscovery(
   store: AbilityStore,
   def: AbilityDefinition,
-  version: AbilityVersion,
+  _version: AbilityVersion,
 ): Promise<void> {
   const primaryFamily = def.familyIds[0];
   const family = primaryFamily ? store.getFamily(primaryFamily) : undefined;
@@ -143,12 +147,6 @@ async function autoGenerateArtForDiscovery(
   } catch (err) {
     // eslint-disable-next-line no-console
     console.info('[abilities] placeholder art skipped for', def.id, err);
-  }
-  try {
-    await generateCanonicalArt(store, { def, version, family });
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('[abilities] auto-Leonardo failed for', def.id, err);
   }
 }
 
