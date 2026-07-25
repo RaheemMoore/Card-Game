@@ -1,0 +1,31 @@
+{
+  "styleHeader": "Painterly fantasy concept art, digital matte painting, soft blended brushwork, rich atmospheric depth, cinematic soft lighting.",
+  "familyLabels": {
+    "light": "The living grove — Nature path",
+    "dark": "The corrupted grove — Poison path"
+  },
+  "anchors": {
+    "light": {
+      "line": "Eye-level camera slightly low. A large overgrown moss-covered blacksmith anvil, cracked and split with thick roots and vines, on a weathered stone pedestal, centered in the lower third with its top surface clear. Tall trees framing the far left and right edges, a soft waterfall in the misty background center, shafts of light from the upper center, foreground plants along the bottom edges. Peaceful and balanced, soft daylight, quiet sacred grove, the anvil cold and unlit, serene and inviting. Deep forest green, warm gold sunlight, earthy brown. Vertical 3:4 composition."
+    },
+    "dark": {
+      "line": "Eye-level camera slightly low, dark and moody. A large well-formed classic blacksmith anvil (pointed horn, waist, wide flat top), cracked and covered in dripping black rot and cruel thorns, on a weathered stone pedestal centered in the lower third, top surface clear and unlit. Skeletal dead leafless trees framing far left and right edges, a fouled dark waterfall of black-green sludge in the misty background center, glowing sickly bioluminescent toxic mushrooms, thick purple-green poison miasma and fog coiling everywhere, oozing slime, decayed diseased and menacing. Sickly acid green, bruised purple, rot-black, gloomy dark. Vertical 3:4 composition."
+    }
+  },
+  "states": [
+    { "id": "entry", "label": "Entry grove", "family": "light", "isAnchor": true },
+    {
+      "id": "nature-element", "label": "Nature — element", "family": "light", "strength": "Mid",
+      "line": "Eye-level camera slightly low. A large overgrown moss-covered blacksmith anvil, cracked and split with roots and vines, on a weathered stone pedestal centered in the lower third, top surface clear. Tall trees framing far left and right edges, a soft waterfall in the misty background center, foreground plants along the bottom edges. EXPLODING with vivid natural life: masses of blooming pink and violet wildflowers everywhere, thick fresh green vines and blossoms wrapping the anvil, swarms of glowing pollen and many butterflies, lush radiant flowering overgrowth, abundant and magical springtime. Saturated vivid emerald green, bright floral pink and violet, warm gold. Vertical 3:4 composition."
+    },
+    {
+      "id": "nature-forge", "label": "Nature — forge", "family": "light", "strength": "Mid",
+      "line": "Eye-level camera slightly low. A large overgrown moss-covered blacksmith anvil, cracked and split with roots and vines, on a weathered stone pedestal centered in the lower third, top surface clear. Tall trees framing far left and right edges, a soft waterfall in the misty background center, foreground plants along the bottom edges. The anvil ALIGHT with a warm golden-green forge fire blazing from its top surface, glowing embers and luminous pollen swirling upward, verdant firelight spilling across the moss and roots, powerful and sacred. Warm gold-green, glowing ember, deep forest green. Vertical 3:4 composition."
+    },
+    { "id": "poison-element", "label": "Poison — element", "family": "dark", "isAnchor": true },
+    {
+      "id": "poison-forge", "label": "Poison — forge", "family": "dark", "strength": "Mid",
+      "line": "Eye-level camera slightly low, dark and moody. A large well-formed classic blacksmith anvil (pointed horn, waist, wide flat top), cracked and covered in dripping black rot and thorns, on a weathered stone pedestal centered in the lower third. The anvil ALIGHT with a toxic acid-green and violet forge fire blazing upward from its top surface, bubbling venom and glowing spores rising in sickly green vapor. Skeletal dead trees framing far left and right, fouled dark waterfall behind, purple-green poison miasma, glowing toxic mushrooms, fouled black-green water, menacing and diseased. Toxic acid green, sickly violet, rot-black, gloomy dark. Vertical 3:4 composition."
+    }
+  ]
+}
