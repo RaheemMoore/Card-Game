@@ -422,8 +422,9 @@ function buildAbilitySpectacle(refs: readonly CardAbilityReference[]): string {
  * Archetypes with NO element — their power is BUILT, not channeled. The
  * assembler must NOT inject an element scene-palette / spectacle / weapon-wreath
  * for these, or the arcane palette hijacks the whole card (validated 2026-07-23:
- * `Tech` turned every Human Calling into a teal sci-fi soldier). Human renders in
- * a grounded gaslamp-fantasy steampunk palette instead.
+ * the former `Tech` element turned every Human Calling into a teal sci-fi soldier —
+ * `Tech` has since been removed as an element). Human renders in a grounded
+ * gaslamp-fantasy steampunk palette instead.
  */
 const ELEMENTLESS_ARCHETYPES: ReadonlySet<ArchetypeName> = new Set<ArchetypeName>(['Human']);
 function isElementless(archetype: ArchetypeName): boolean {

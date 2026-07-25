@@ -24,7 +24,8 @@ export const ELEMENT_NAMES = [
   // Storm, Ash removed (a byproduct of Fire, not its own element).
   'Fire', 'Water', 'Earth', 'Wind', 'Ice', 'Storm',
   'Nature', 'Beast', 'Blood', 'Poison', 'Metal', 'Spirit', 'Shadow',
-  'Light', 'Holy', 'Void', 'Time', 'Cosmic', 'Tech',
+  // 2026-07-25: 'Tech' removed as an element (it is a STAT only, like Mana).
+  'Light', 'Holy', 'Void', 'Time', 'Cosmic',
   'Psychic', 'Moon', 'Dream',
   // Necromancer-exclusive (2026-07-22). A normal pickable element, but only
   // ever in the Necromancer's compatibility set — the physical architecture of
@@ -49,7 +50,7 @@ export const ELEMENT_NAMES = [
   'Plasma', 'Nanite',
   // Android-exclusive (2026-07-22). The synthetic soul as refracted spectrum
   // light + volumetric HOLOGRAMS — iridescent rainbow, prismatic facets, holo
-  // constructs. Distinct from Light (holy gold) + Tech (circuit-cyan). See PRISM.
+  // constructs. Distinct from Light (holy gold) + circuit-cyan machine glow. See PRISM.
   'Prism',
   // Fallen-Seraph element (P4 corruption arc). Assigned by transmutation
   // (Light → Infernal when the Seraph's path is 'fallen') AND offered as a

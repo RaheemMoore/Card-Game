@@ -36,6 +36,7 @@ import { RelicDiscoveryModal } from '../components/RelicDiscoveryModal';
 import type { BadgeResource, RelicMoment } from '../components/abilities';
 import { getQuestionsForArchetype } from '../data/storyPillars';
 import { getElementVisual, elementGlowShadow } from '../data/elementVisuals';
+import { getElementImage } from '../data/elementImages';
 
 const REGEN_PRICE = PREMIUM_PRICE_CATALOG.regenerate_portrait.premiumCost;
 const EVOLVE_PRICE = PREMIUM_PRICE_CATALOG.evolve_card_art.premiumCost;
@@ -485,23 +486,36 @@ export function CardDetail() {
 
           {card.elementSelection && (() => {
             const visual = getElementVisual(card.elementSelection.element);
+            const elementImage = getElementImage(card.elementSelection.element);
             return (
               <div>
                 <h3 className="font-fantasy text-sm font-bold text-ivory mb-1">Element</h3>
-                <span
-                  className="font-fantasy text-lg"
-                  style={{
-                    color: visual.color,
-                    textShadow: elementGlowShadow(card.elementSelection.element, overallRank),
-                  }}
-                >
-                  {card.elementSelection.element}
-                </span>
-                <div className="text-[11px] text-ash mt-1">
-                  <span className="italic">"{card.elementSelection.bond}"</span>
-                  <span className="text-bone/50 ml-2">
-                    ({card.elementSelection.compatibility.replace(/_/g, ' ')})
-                  </span>
+                <div className="flex items-center gap-3">
+                  {elementImage && (
+                    <img
+                      src={elementImage}
+                      alt={`${card.elementSelection.element} crystal`}
+                      className="w-12 h-12 rounded-md object-cover shrink-0"
+                      style={{ boxShadow: `0 0 12px rgba(${visual.glow},0.35)` }}
+                    />
+                  )}
+                  <div>
+                    <span
+                      className="font-fantasy text-lg"
+                      style={{
+                        color: visual.color,
+                        textShadow: elementGlowShadow(card.elementSelection.element, overallRank),
+                      }}
+                    >
+                      {card.elementSelection.element}
+                    </span>
+                    <div className="text-[11px] text-ash mt-1">
+                      <span className="italic">"{card.elementSelection.bond}"</span>
+                      <span className="text-bone/50 ml-2">
+                        ({card.elementSelection.compatibility.replace(/_/g, ' ')})
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             );

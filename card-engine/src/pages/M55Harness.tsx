@@ -33,7 +33,7 @@ const BATCH: readonly HarnessConfig[] = [
   { archetype: 'Necromancer', element: 'Void',   note: 'Void = starless-black + reality-tear, no warm colors' },
   { archetype: 'Vampire',     element: 'Blood',  note: 'Fire-family — ember IS legit; red mist not orange flame' },
   { archetype: 'Lycanthrope', element: 'Moon',   note: 'Moon silver + midnight-blue, no warm' },
-  { archetype: 'Mech Pilot',  element: 'Tech',   note: 'Tech circuit-cyan + hologram-teal, no ember' },
+  { archetype: 'Mech Pilot',  element: 'Plasma', note: 'Plasma cobalt/violet ionized energy, no ember' },
   { archetype: 'Android',     element: 'Cosmic', note: 'Cosmic deep-indigo + starlight + constellation patterns on chrome — replaces Sound (M5.7)' },
   { archetype: 'Seraph',      element: 'Light',  note: 'Light gold + prism-rainbow — old celestial-role leak candidate' },
 ];

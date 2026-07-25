@@ -239,13 +239,6 @@ const ELEMENT_QUIRK_POOL: Record<ElementName, readonly string[]> = {
     'a floating astronaut helmet at their feet',
     'a mini-planet orbiting the head',
   ],
-  Tech: [
-    'a floating hologram of a to-do list next to their head',
-    'a cable trailing from their arm to nothing',
-    'a coffee mug with steam holograph',
-    'a floating "system booting" notification',
-    'a stylus tucked behind their ear',
-  ],
   Psychic: [
     'a levitating teacup and spoon stirring itself',
     'floating chess pieces mid-move',
