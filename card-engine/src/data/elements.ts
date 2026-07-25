@@ -98,12 +98,14 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
   },
   'Mech Pilot': {
     // 2026-07-24 (Raheem): pure engineered/machine power — the tech family only.
-    naturally_compatible: ['Tech', 'Plasma', 'Nanite', 'Void'],
+    // 2026-07-25: 'Tech' removed as an element (stat only); Plasma/Nanite/Void carry it.
+    naturally_compatible: ['Plasma', 'Nanite', 'Void'],
     rare: [],
   },
   Android: {
     // 2026-07-24 (Raheem): the engineered tech core; Void + Prism are the rares.
-    naturally_compatible: ['Tech', 'Plasma', 'Nanite'],
+    // 2026-07-25: 'Tech' removed as an element (stat only); Plasma/Nanite carry it.
+    naturally_compatible: ['Plasma', 'Nanite'],
     rare: ['Void', 'Prism'],
   },
   Seraph: {
@@ -116,7 +118,8 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
   Human: {
     // Human is the no-element TECH class — elements are vestigial here (the
     // ritual offers a Craft slot instead, a deferred systems item). Kept minimal.
-    naturally_compatible: ['Tech', 'Metal'],
+    // 2026-07-25: 'Tech' removed as an element (stat only); Human keeps Metal.
+    naturally_compatible: ['Metal'],
     rare: [],
   },
 };
@@ -163,7 +166,6 @@ const RARE_ELEMENT_TAG_HINTS: Partial<Record<ElementName, string[]>> = {
   Void: ['loss', 'absence', 'emptiness', 'exile', 'silence', 'erasure'],
   Time: ['memory', 'legacy', 'inheritance', 'cycles', 'ancient', 'preservation'],
   Cosmic: ['stars', 'distant', 'greater-purpose', 'origin', 'inheritance'],
-  Tech: ['machine', 'device', 'engineering', 'invention', 'artifact'],
   Psychic: ['insight', 'mind', 'memory', 'connection', 'sacred'],
   Dream: ['vision', 'symbol', 'unresolved', 'mystery', 'memory'],
   Moon: ['lunar', 'cycles', 'transformation', 'guardian', 'boundary'],

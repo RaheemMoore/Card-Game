@@ -122,7 +122,7 @@ describe('collectImagePins — Vampire image-first', () => {
 
   test('Lycan pack-role and Android purpose are non-element-gated (shown for any element)', () => {
     const lycan = visualQuestionsFor('Lycanthrope', 'Moon').options.filter((o) => o.questionId === 'vf_form');
-    const android = visualQuestionsFor('Android', 'Tech').options.filter((o) => o.questionId === 'vf_form');
+    const android = visualQuestionsFor('Android', 'Plasma').options.filter((o) => o.questionId === 'vf_form');
     expect(lycan).toHaveLength(6);
     expect(android).toHaveLength(8);
   });

@@ -1,9 +1,11 @@
 import type { ArchetypeName } from '../types/card';
 import type { ElementName, ElementSelection } from '../types/bible';
 import { ELEMENT_COMPATIBILITY, bucketFor } from '../data/elements';
+import { getElementImage } from '../data/elementImages';
+import { getElementVisual } from '../data/elementVisuals';
 
 /**
- * Element picker — image-first forge (2026-07-24).
+ * Element picker — image-first forge (2026-07-24, art tiles 2026-07-25).
  *
  * Replaces the auto-roll + BondPicker. The element is now an EXPLICIT,
  * per-archetype-gated player choice — it gates the form family that unlocks in
@@ -11,24 +13,74 @@ import { ELEMENT_COMPATIBILITY, bucketFor } from '../data/elements';
  * neutral bond is assigned so the downstream pipeline (Claude flavor) still has
  * one.
  *
+ * Each tile shows the element's custom crystal artwork (data/elementImages.ts)
+ * with the name + rarity label beneath — mirroring the archetype-emblem tiles
+ * in ArchetypeSelector. The tile border/glow echoes the element's own hue
+ * (data/elementVisuals.ts). Elements without artwork fall back to a lettered
+ * gradient tile.
+ *
  * Rarity is not color-only (accessibility): every tile carries a text label,
- * and the Rare/ascension tile is a keyboard-reachable, aria-disabled tile with
- * a spoken reason rather than being hidden.
+ * and the Rare tile stays keyboard-reachable with a spoken rarity.
  */
 
 // Dropped-question default (Raheem 2026-07-24): the bond field still feeds the
 // Claude prompt, so pick a neutral one when there is no bond question.
 const DEFAULT_BOND = 'It is part of who I am.' as const;
 
-const NATURAL_STYLE = {
-  ring: 'border-emerald-500/60',
-  text: 'text-emerald-300',
-  glow: 'hover:shadow-[0_0_28px_rgba(16,185,129,0.35)]',
-};
-
 interface ElementPickerProps {
   archetype: ArchetypeName;
   onComplete: (selection: ElementSelection) => void;
+}
+
+interface ElementTileProps {
+  element: ElementName;
+  rarityLabel: string;
+  rarityClass: string;
+  onPick: (element: ElementName) => void;
+}
+
+function ElementTile({ element, rarityLabel, rarityClass, onPick }: ElementTileProps) {
+  const image = getElementImage(element);
+  const { color, glow } = getElementVisual(element);
+
+  return (
+    <button
+      onClick={() => onPick(element)}
+      className="group relative rounded-xl border-2 bg-obsidian/70 p-2 text-center transition-all
+        hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-gold/60"
+      style={{ borderColor: `${color}66` }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = color;
+        e.currentTarget.style.boxShadow = `0 0 28px rgba(${glow},0.45)`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = `${color}66`;
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      {image ? (
+        <img
+          src={image}
+          alt={`${element} crystal`}
+          className="w-full aspect-square rounded-md mb-2 object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="w-full aspect-square rounded-md mb-2 flex items-center justify-center text-3xl font-bold font-fantasy"
+          style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}
+        >
+          {element.charAt(0)}
+        </div>
+      )}
+      <span className="block font-fantasy text-lg font-bold text-ivory leading-tight">
+        {element}
+      </span>
+      <span className={`mt-0.5 block text-[10px] uppercase tracking-widest ${rarityClass}`}>
+        {rarityLabel}
+      </span>
+    </button>
+  );
 }
 
 export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
@@ -54,32 +106,23 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-0">
         {natural.map((element) => (
-          <button
+          <ElementTile
             key={element}
-            onClick={() => pick(element)}
-            className={`rounded-xl border-2 bg-obsidian/70 p-5 text-center transition-all
-              ${NATURAL_STYLE.ring} ${NATURAL_STYLE.glow} hover:border-gold/60 focus:outline-none focus:ring-2 focus:ring-gold/60`}
-          >
-            <span className="block font-fantasy text-2xl font-bold text-ivory">{element}</span>
-            <span className={`mt-2 block text-[10px] uppercase tracking-widest ${NATURAL_STYLE.text}`}>
-              Naturally Compatible
-            </span>
-          </button>
+            element={element}
+            rarityLabel="Naturally Compatible"
+            rarityClass="text-emerald-300/90"
+            onPick={pick}
+          />
         ))}
 
         {rare.map((element) => (
-          <button
+          <ElementTile
             key={element}
-            onClick={() => pick(element)}
-            className="rounded-xl border-2 border-fuchsia-400/50 bg-obsidian/70 p-5 text-center transition-all
-              hover:border-gold/60 hover:shadow-[0_0_28px_rgba(232,121,249,0.4)]
-              focus:outline-none focus:ring-2 focus:ring-fuchsia-400/60"
-          >
-            <span className="block font-fantasy text-2xl font-bold text-ivory">{element}</span>
-            <span className="mt-2 block text-[10px] uppercase tracking-widest text-fuchsia-300/80">
-              Rare
-            </span>
-          </button>
+            element={element}
+            rarityLabel="Rare"
+            rarityClass="text-fuchsia-300/90"
+            onPick={pick}
+          />
         ))}
       </div>
     </div>

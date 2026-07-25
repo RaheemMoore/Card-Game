@@ -341,21 +341,6 @@ const COSMIC = V({
   avoid: 'earth-bound bright daylight, fire, warm orange, organic nature; the starless ABSOLUTE-black reality-tear of Void (Cosmic is FULL of stars and color, not empty); silver moon-only palette (that is Moon); gold radiant beams and feathered halo (that is Light/Holy); angel wings; a menacing star-wizard or sorcerer casting from the hands (Cosmic is a SERENE seated/standing enlightened being, never a caster)',
 });
 
-const TECH = V({
-  theme: 'invention, control-through-craft, integrated systems',
-  primaryColors: 'circuit cyan, hologram teal',
-  secondaryColors: 'neon white, matrix green accent',
-  accentColors: 'HUD-amber warning',
-  materials: 'brushed alloy panels, hologram-plate, fiber optic, embedded circuitry',
-  textures: 'circuit-line, hologram-projection, pixel-grid, neon-glow hard-edge',
-  lighting: 'clean cobalt luminance, embedded-circuit underglow, HUD glow across the face',
-  motion: 'glowing circuit lines under the skin, holographic projections floating around the hands, energy weapons materializing',
-  shapes: 'geometric-hardline, circuit-branching, hex-grid',
-  atmosphere: 'holographic projections and tech-grid overlay, digital rain-drift',
-  symbolism: 'craft, mastery through system',
-  avoid: 'organic natural, fire, wet-water, steampunk gears, medieval leather',
-});
-
 const PSYCHIC = V({
   theme: 'mind reaching outward, unseen influence, empath',
   primaryColors: 'violet purple, pink magenta',
@@ -569,7 +554,6 @@ export const ELEMENT_VISUAL_LANGUAGE: Record<ElementName, ElementVisual> = {
   Void: VOID,
   Time: TIME,
   Cosmic: COSMIC,
-  Tech: TECH,
   Psychic: PSYCHIC,
   Moon: MOON,
   Dream: DREAM,

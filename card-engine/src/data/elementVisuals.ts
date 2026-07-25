@@ -36,7 +36,6 @@ export const ELEMENT_VISUALS: Record<ElementName, ElementVisual> = {
   Void: { color: '#a884d6', glow: '150,110,190' },
   Time: { color: '#dcc37f', glow: '220,195,127' },
   Cosmic: { color: '#8fb6ff', glow: '143,182,255' },
-  Tech: { color: '#4de0d0', glow: '77,224,208' },
   Psychic: { color: '#e07fd0', glow: '224,127,208' },
   Moon: { color: '#cdd6ff', glow: '205,214,255' },
   Dream: { color: '#c8a8ff', glow: '200,168,255' },
