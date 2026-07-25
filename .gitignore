@@ -87,3 +87,7 @@ vite.config.ts.timestamp-*
 
 # pnpm
 .pnpm-store
+
+# macOS metadata
+.DS_Store
+._*
