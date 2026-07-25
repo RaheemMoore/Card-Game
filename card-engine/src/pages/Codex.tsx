@@ -26,13 +26,28 @@ export function Codex() {
 
   return (
     <div className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full">
-      <header className="mb-8">
+      <header className="mb-6">
         <h1 className="font-fantasy text-3xl font-bold text-ivory">Ability Codex</h1>
         <p className="text-sm text-ash mt-1">
           Discovered {totalDiscovered} of {totalLibrary} known abilities.
           The library grows as new ones are forged.
         </p>
       </header>
+
+      <nav className="flex items-center gap-2 mb-8" aria-label="Codex sections">
+        <span
+          aria-current="page"
+          className="rounded-full border border-gold/70 bg-gold/10 px-4 py-1.5 text-sm font-semibold text-gold"
+        >
+          Abilities
+        </span>
+        <Link
+          to="/codex/elements"
+          className="rounded-full border border-gold/30 px-4 py-1.5 text-sm text-bone/80 hover:border-gold/60 hover:text-ivory transition-colors"
+        >
+          Elements
+        </Link>
+      </nav>
 
       {families.length === 0 ? (
         <p className="text-ash italic">
