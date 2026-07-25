@@ -17,6 +17,7 @@ import { ForgeStrike } from './pages/minigames/forge-strike';
 import { MiniGamesHub } from './pages/minigames/MiniGamesHub';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
+import { CodexElements } from './pages/CodexElements';
 import { DevAbilities } from './pages/DevAbilities';
 import { DevSeedBattle } from './pages/DevSeedBattle';
 import { M55Harness } from './pages/M55Harness';
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="/collection" element={<Collection />} />
             <Route path="/card/:cardId" element={<CardDetail />} />
             <Route path="/codex" element={<Codex />} />
+            <Route path="/codex/elements" element={<CodexElements />} />
             <Route path="/codex/family/:familyId" element={<CodexFamily />} />
             <Route path="/codex/ability/:abilityId" element={<CodexAbility />} />
             <Route path="/battle" element={<Battle />} />
