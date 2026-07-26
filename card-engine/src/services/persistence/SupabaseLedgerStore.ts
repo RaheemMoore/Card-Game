@@ -3,6 +3,10 @@ import type { LedgerStore } from '../economy/transactionLedger';
 import { getSupabaseClient, getCurrentUserId } from './supabaseClient';
 import { enqueue, registerHandler } from './SyncQueue';
 
+// Rows per hydrate page — keeps each statement well under Supabase's
+// default statement timeout regardless of total transaction history size.
+const HYDRATE_PAGE_SIZE = 200;
+
 // Wire shape: snake_case columns matching the economy_transactions table.
 interface TxnRow {
   transaction_id: string;
@@ -136,21 +140,30 @@ export class SupabaseLedgerStore implements LedgerStore {
   // Pull all transactions for the current user into the JSON cache.
   // Sequences establish authoritative order; created_at is the secondary
   // sort so two devices writing at the same tick converge cleanly.
+  // Paginated so a long transaction history can't push a single statement
+  // past Supabase's statement timeout.
   async hydrate(): Promise<void> {
     const client = getSupabaseClient();
     if (!client) throw new Error('Supabase client not available for hydrate.');
     const userId = getCurrentUserId();
     if (!userId) throw new Error('hydrate called before session ready.');
 
-    const { data, error } = await client
-      .from('economy_transactions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('sequence', { ascending: true })
-      .order('created_at', { ascending: true });
-    if (error) throw error;
+    const rows: TxnRow[] = [];
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await client
+        .from('economy_transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('sequence', { ascending: true })
+        .order('created_at', { ascending: true })
+        .range(offset, offset + HYDRATE_PAGE_SIZE - 1);
+      if (error) throw error;
+      rows.push(...((data ?? []) as TxnRow[]));
+      if (!data || data.length < HYDRATE_PAGE_SIZE) break;
+      offset += HYDRATE_PAGE_SIZE;
+    }
 
-    const rows = (data ?? []) as TxnRow[];
     const txns = rows.map(fromRow);
     this.cache = JSON.stringify(txns);
     // Seed the signature map so the first local write after hydrate only
