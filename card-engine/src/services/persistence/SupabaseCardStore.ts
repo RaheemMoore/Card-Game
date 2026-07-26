@@ -3,6 +3,10 @@ import type { CardStore } from './CardStore';
 import { getSupabaseClient, getCurrentUserId } from './supabaseClient';
 import { enqueue, registerHandler } from './SyncQueue';
 
+// Rows per hydrate page — keeps each statement well under Supabase's
+// default statement timeout regardless of total collection size.
+const HYDRATE_PAGE_SIZE = 200;
+
 interface CardRow {
   card_id: string;
   user_id: string;
@@ -76,23 +80,31 @@ export class SupabaseCardStore implements CardStore {
   }
 
   // Fetch all cards for the current user into the in-memory cache. Called
-  // once by <PersistenceGate/> before the router mounts.
+  // once by <PersistenceGate/> before the router mounts. Paginated so a
+  // large collection can't push a single statement past Supabase's
+  // statement timeout (each `data` row carries the full Card jsonb blob).
   async hydrate(): Promise<void> {
     const client = getSupabaseClient();
     if (!client) throw new Error('Supabase client not available for hydrate.');
     const userId = getCurrentUserId();
     if (!userId) throw new Error('hydrate called before session ready.');
 
-    const { data, error } = await client
-      .from('cards')
-      .select('data')
-      .eq('user_id', userId);
-    if (error) throw error;
-
     this.cache.clear();
-    for (const row of data ?? []) {
-      const card = (row as { data: Card }).data;
-      if (card && card.cardId) this.cache.set(card.cardId, card);
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await client
+        .from('cards')
+        .select('data')
+        .eq('user_id', userId)
+        .order('card_id')
+        .range(offset, offset + HYDRATE_PAGE_SIZE - 1);
+      if (error) throw error;
+      for (const row of data ?? []) {
+        const card = (row as { data: Card }).data;
+        if (card && card.cardId) this.cache.set(card.cardId, card);
+      }
+      if (!data || data.length < HYDRATE_PAGE_SIZE) break;
+      offset += HYDRATE_PAGE_SIZE;
     }
     this.notify();
   }
