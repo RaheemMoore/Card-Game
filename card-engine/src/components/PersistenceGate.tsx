@@ -145,6 +145,50 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
   throw lastErr;
 }
 
+// Backoff across repeated boot attempts (manual Retry, a plain F5, or a
+// fresh tab all re-run boot() from scratch). Without this, every reload
+// during an outage immediately re-fires the sign-in call plus up to four
+// concurrent hydrate queries, which piles more load onto a backend that's
+// already struggling to recover instead of giving it room to. Persisted in
+// sessionStorage so the wait survives the reload that triggered it.
+const COOLDOWN_KEY = 'persistenceGateCooldown';
+const BASE_BACKOFF_MS = 15_000;
+const MAX_BACKOFF_MS = 120_000;
+
+interface Cooldown {
+  failCount: number;
+  nextAttempt: number;
+}
+
+function readCooldown(): Cooldown {
+  try {
+    const raw = sessionStorage.getItem(COOLDOWN_KEY);
+    if (!raw) return { failCount: 0, nextAttempt: 0 };
+    return JSON.parse(raw) as Cooldown;
+  } catch {
+    return { failCount: 0, nextAttempt: 0 };
+  }
+}
+
+function recordFailure(): void {
+  const prev = readCooldown();
+  const failCount = prev.failCount + 1;
+  const backoff = Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** (failCount - 1));
+  try {
+    sessionStorage.setItem(COOLDOWN_KEY, JSON.stringify({ failCount, nextAttempt: Date.now() + backoff }));
+  } catch {
+    // sessionStorage unavailable (private mode, etc.) — backoff just won't persist.
+  }
+}
+
+function clearCooldown(): void {
+  try {
+    sessionStorage.removeItem(COOLDOWN_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === 'string') return err;
@@ -193,6 +237,17 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Backoff — if a prior attempt this session failed, wait out the
+      // cooldown before touching Supabase again (see recordFailure above).
+      const cooldown = readCooldown();
+      const waitMs = cooldown.nextAttempt - Date.now();
+      if (waitMs > 0) {
+        const seconds = Math.ceil(waitMs / 1000);
+        setState({ kind: 'loading', step: `The forge needs a moment to recover — retrying in ${seconds}s…` });
+        await new Promise((r) => setTimeout(r, waitMs));
+        if (cancelled) return;
+      }
+
       // Auth.
       setState({ kind: 'loading', step: 'Signing in…' });
       const session = await ensureSession();
@@ -214,6 +269,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
           }
           return;
         }
+        recordFailure();
         setState({ kind: 'error', reason: session.reason, message: session.message });
         return;
       }
@@ -223,6 +279,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       const migration = await runMigrationIfNeeded();
       if (cancelled) return;
       if (migration.reason === 'failed') {
+        recordFailure();
         setState({ kind: 'error', reason: 'migration', message: migration.error ?? 'Migration failed.' });
         return;
       }
@@ -259,6 +316,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('[persistence] hydrate failed:', err);
+        recordFailure();
         setState({
           kind: 'error',
           reason: 'hydrate',
@@ -377,6 +435,7 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       clearLegacyLocalStorage(session.session.user.id);
 
       installDevArtTools();
+      clearCooldown();
       if (!cancelled) setState({ kind: 'ready', mode: 'supabase' });
     }
 
