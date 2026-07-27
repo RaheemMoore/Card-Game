@@ -10,7 +10,7 @@ interface Props {
 }
 
 /**
- * Mobile action controls: Focus, Inspect, End Party Turn (primary), Auto.
+ * Mobile action controls: End Party Turn (primary), Auto.
  * Auto is a display-only affordance because the reducer does not yet support
  * auto-battle — it's stubbed as disabled with an explanatory title.
  */
@@ -30,21 +30,9 @@ export function MobileActionControls({ canAct, pendingCount, totalHeroes, onSubm
     <div
       className="grid items-stretch gap-2 w-full"
       style={{
-        gridTemplateColumns: '54px 54px 1fr 54px',
+        gridTemplateColumns: '1fr 54px',
       }}
     >
-      <IconButton
-        glyph="◎"
-        label="Focus"
-        onClick={() => canAct && onSubmit({ kind: 'focus' })}
-        disabled={!canAct}
-      />
-      <IconButton
-        glyph="⚲"
-        label="Inspect"
-        onClick={() => canAct && onSubmit({ kind: 'inspect' })}
-        disabled={!canAct}
-      />
       <button
         type="button"
         onClick={endParty}

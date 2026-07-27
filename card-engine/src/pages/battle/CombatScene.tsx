@@ -226,11 +226,13 @@ export function CombatScene({
         </CombatFrame>
       </div>
 
-      {/* Energy gauge (inside shelf, left of the ability bar) — the acting
-          hero's resource, big and obvious per Raheem's screenshot markup. */}
+      {/* Energy counter (inside shelf, left of the ability bar) — the acting
+          hero's resource. Intrinsically sized (no fixed width) so it can
+          never overlap the centered ability bar, unlike the old wide gauge.
+          Height-matched + vertically centered against the ability slot row. */}
       <div
-        className="absolute left-6 sm:left-10 lg:left-16"
-        style={{ bottom: '5.75rem', width: 260, zIndex: 24 }}
+        className="absolute left-6 sm:left-10 lg:left-16 flex items-center"
+        style={{ bottom: '5.75rem', height: 72, zIndex: 24 }}
       >
         <EnergyGauge
           actorId={actingHero.actorId}

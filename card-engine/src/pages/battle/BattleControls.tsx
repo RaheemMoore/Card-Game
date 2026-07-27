@@ -44,20 +44,6 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit }: P
         <UtilityChip x={148.5} label="✕" caption="LEAVE" onClick={onExit} />
       </CombatFrame>
 
-      {/* Center: focus + inspect quick actions */}
-      <div className="flex gap-2">
-        <QuickButton
-          label="Focus"
-          onClick={() => canAct && onSubmit({ kind: 'focus' })}
-          disabled={!canAct}
-        />
-        <QuickButton
-          label="Inspect"
-          onClick={() => canAct && onSubmit({ kind: 'inspect' })}
-          disabled={!canAct}
-        />
-      </div>
-
       {/* End Turn button — Figma 18:65: gradient border 2px #eb962e, 190×58.
           P1: one click ends the whole party turn (all pending heroes guard).
           Label + aria communicate that so users don't have to guess. */}
@@ -151,36 +137,3 @@ function UtilityChip({
   );
 }
 
-function QuickButton({
-  label,
-  onClick,
-  disabled,
-}: {
-  label: string;
-  onClick: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-40"
-      style={{
-        padding: '8px 14px',
-        borderRadius: 5,
-        border: '1px solid #573b1f',
-        background: '#0f0e0f',
-        color: '#d6c7a8',
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: 1.4,
-        textTransform: 'uppercase',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-      }}
-    >
-      {label}
-    </button>
-  );
-}
