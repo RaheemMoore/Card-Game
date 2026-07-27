@@ -3,6 +3,7 @@ import type {
   AbilityVersion,
 } from '../../types/abilities';
 import type {
+  AbilityCombatSnapshot,
   BattleEvent,
   BattleIntent,
   BattleSnapshot,
@@ -50,7 +51,7 @@ import {
  *       { state, events } = advance(state)
  */
 
-const TIMEOUT_ROUND_CAP = 30;
+export const TIMEOUT_ROUND_CAP = 30;
 
 /**
  * Fraction of boss maxHp that must be dealt during the same round (between
@@ -572,6 +573,38 @@ function validateAbilityUsable(
   return null;
 }
 
+/**
+ * Preview the direct-damage total an ability would deal to the boss right
+ * now, using the exact same math + resistance lookup as `resolveAbilityEffects`
+ * so the pre-commit UI preview never drifts from the real outcome. Read-only —
+ * does not touch shields/state. Returns null if the ability has no
+ * direct_damage effect (e.g. a pure heal/shield/status ability).
+ */
+export function previewAbilityDamage(
+  state: BattleState,
+  hero: HeroCombatant,
+  ability: AbilityCombatSnapshot,
+): number | null {
+  const resistance = bossResistance(state);
+  let total = 0;
+  let any = false;
+  for (const effect of ability.version.effects) {
+    if (effect.type !== 'direct_damage') continue;
+    any = true;
+    const dmg = resolveDamage({
+      baseAmount: effect.amount,
+      damageType: effect.damageType ?? 'physical',
+      scaling: effect.scaling,
+      attackerStats: hero.snapshot.stats,
+      targetMitigation: 0,
+      targetResistance: resistance,
+      targetShields: state.boss.shields,
+    });
+    total += dmg.postShieldAmount;
+  }
+  return any ? total : null;
+}
+
 function resolveAbilityEffects(
   state: BattleState,
   actorId: string,
@@ -749,7 +782,7 @@ function resolveTarget(
   return h ? { kind: 'hero', actor: h } : null;
 }
 
-function bossResistance(state: BattleState): ResistanceProfile {
+export function bossResistance(state: BattleState): ResistanceProfile {
   // B2 hardcodes fire-elemental profile via bossId prefix. B3 pulls from BossDefinition.
   if (state.boss.snapshot.bossId.startsWith('boss_fire_elemental')) {
     return FIRE_ELEMENTAL_RESISTANCE;
