@@ -1,5 +1,6 @@
 import type { BossCombatant } from '../../../types/combat';
 import { getCurrentBossVersion } from '../../../services/bosses/registry';
+import { TIMEOUT_ROUND_CAP } from '../../../services/combat/reducer';
 import { CombatFrame } from '../CombatFrame';
 
 interface Props {
@@ -199,6 +200,22 @@ export function MobileBossHeader({ boss, round }: Props) {
           >
             T{round}
           </div>
+        </div>
+
+        {/* Row 4 — rounds remaining before timeout defeat (otherwise invisible) */}
+        <div
+          style={{
+            marginTop: 2,
+            textAlign: 'right',
+            color: TIMEOUT_ROUND_CAP - round <= 5 ? '#e6a04a' : '#8a7554',
+            fontSize: 7,
+            fontWeight: 700,
+            letterSpacing: 0.6,
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+          aria-label={`${Math.max(0, TIMEOUT_ROUND_CAP - round)} rounds remaining before timeout defeat`}
+        >
+          {Math.max(0, TIMEOUT_ROUND_CAP - round)} ROUNDS LEFT
         </div>
       </div>
     </CombatFrame>

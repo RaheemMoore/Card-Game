@@ -191,6 +191,37 @@ export function CombatFrame({
       role={role}
       aria-label={ariaLabel}
     >
+      {/* Gilded hairline — sits just inside the outer stroke so the frame
+          reads as a painted double-edge rather than a single flat border. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 2,
+          border: `1px solid ${tokens.outer}`,
+          opacity: 0.35,
+          borderRadius: Math.max(0, tokens.radiusPx - 2),
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Subtle parchment grain — low-opacity diagonal texture + vignette,
+          code-only substitute for a painted frame until real art lands. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: tokens.radiusPx,
+          pointerEvents: 'none',
+          opacity: 0.5,
+          mixBlendMode: 'overlay',
+          background:
+            'repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 3px), ' +
+            'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.05) 0%, transparent 60%)',
+        }}
+      />
+
       {/* Inner rail */}
       <div
         aria-hidden
@@ -335,8 +366,13 @@ function CornerOrnament({ pos, innerInset }: { pos: 'tl' | 'tr' | 'bl' | 'br'; i
     <>
       <div style={horizArm} aria-hidden />
       <div style={vertArm} aria-hidden />
-      <div style={gemWrap} aria-hidden>
+      <div style={{ ...gemWrap, filter: 'drop-shadow(0 0 3px rgba(230,156,56,0.65))' }} aria-hidden>
         <svg viewBox="0 0 12 12" fill="none" style={{ width: '100%', height: '100%' }}>
+          {/* Small curl flourish either side of the gem — a code-only stand-in
+              for scrollwork until a painted 9-slice frame replaces this
+              primitive entirely. */}
+          <path d="M0.5 6C2 6 2.5 4.5 2.5 3" stroke="#804f21" strokeWidth="0.6" fill="none" />
+          <path d="M11.5 6C10 6 9.5 4.5 9.5 3" stroke="#804f21" strokeWidth="0.6" fill="none" />
           <path
             d="M11.293 6L6 11.293L0.707031 6L6 0.707031L11.293 6Z"
             fill="#E69C38"

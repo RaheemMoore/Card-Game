@@ -3,12 +3,14 @@ import type { BattleState, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
+import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
 import { HeroForeground } from './HeroForeground';
 import { AbilityCommandBar } from './AbilityCommandBar';
 import { BattleControls } from './BattleControls';
 import { CombatFrame } from './CombatFrame';
+import { AttackVFX } from './AttackVFX';
 
 interface Props {
   state: BattleState;
@@ -87,7 +89,7 @@ export function CombatScene({
 
       {/* Turn Badge (upper-right) — CombatFrame/TurnBadge preset */}
       <div className="absolute top-3 right-3 z-30">
-        <CombatFrame preset="turnBadge" style={{ width: 142, height: 52 }}>
+        <CombatFrame preset="turnBadge" style={{ width: 142, height: 66 }}>
           {/* Diamond gem accent — Figma 20:49 */}
           <div
             aria-hidden
@@ -140,6 +142,26 @@ export function CombatScene({
           >
             {canAct ? 'PLAYER' : 'RESOLVE'}
           </div>
+          {/* Rounds-remaining — the 30-round timeout is otherwise invisible
+              to the player; turns amber inside the last 5 rounds. */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 12,
+              right: 12,
+              top: 47,
+              color: TIMEOUT_ROUND_CAP - state.round <= 5 ? '#e6a04a' : '#7a6a52',
+              fontSize: 8,
+              fontWeight: 600,
+              letterSpacing: 0.8,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              whiteSpace: 'nowrap',
+              textAlign: 'center',
+            }}
+            aria-label={`${Math.max(0, TIMEOUT_ROUND_CAP - state.round)} rounds remaining before timeout defeat`}
+          >
+            {Math.max(0, TIMEOUT_ROUND_CAP - state.round)} ROUNDS LEFT
+          </div>
         </CombatFrame>
       </div>
 
@@ -155,6 +177,9 @@ export function CombatScene({
         currentBeat={currentBeat}
         onSelectActor={onSelectActor}
       />
+
+      {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
+      <AttackVFX state={state} currentBeat={currentBeat} />
 
       {/* Command Shelf — CombatFrame/CommandShelf preset. Spans the bottom
           and hosts the Ability Command Bar + BattleControls. */}
@@ -172,6 +197,7 @@ export function CombatScene({
         hero={actingHero}
         bossActorId={boss.actorId}
         disabled={!canAct}
+        state={state}
         onSubmit={onSubmit}
       />
 
