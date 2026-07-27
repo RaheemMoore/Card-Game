@@ -8,7 +8,7 @@ import {
   baselineHeroPolicy,
 } from './harness';
 import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
-import type { CardStats, Rank } from '../../types/card';
+import type { BiasTier, CardStats, Rank } from '../../types/card';
 import type { BossSnapshot } from '../../types/combat';
 
 /**
@@ -25,11 +25,20 @@ import type { BossSnapshot } from '../../types/combat';
 
 const NEUTRAL_BOSS = buildFireElementalBossSnapshot();
 
-function statsFor(atk: number, def: number, mana: number): CardStats {
+/**
+ * NOTE: every sim below labeled "Barbarian" uses Mana `bias: 'Mid'` — but a
+ * real Barbarian's Mana bias is Very Low per card-engine-power-system-spec.md
+ * (Foundation 5-25, Forged floor 26, hard ceiling 55). These locked win-rate
+ * assertions were calibrated against that Mid-bias input and are left as-is
+ * (changing them would silently re-tune what's locked); the "ranks + stat
+ * spreads" sweep below adds an explicit Very-Low-bias case instead so
+ * archetype-realistic resource scarcity is actually exercised somewhere.
+ */
+function statsFor(atk: number, def: number, mana: number, manaBias: BiasTier = 'Mid'): CardStats {
   return {
     Atk: { value: atk, bias: 'Mid', hardCap: 100 },
     Def: { value: def, bias: 'Mid', hardCap: 100 },
-    Mana: { value: mana, bias: 'Mid', hardCap: 100 },
+    Mana: { value: mana, bias: manaBias, hardCap: 100 },
   };
 }
 
@@ -101,6 +110,10 @@ describe('B6 balance sweep — ranks + stat spreads', () => {
       { label: 'Forged balanced',  rank: 'Forged',     stats: statsFor(65, 55, 60) },
       { label: 'Forged glass',     rank: 'Forged',     stats: statsFor(80, 40, 55) },
       { label: 'Ascendant elite',  rank: 'Ascendant',  stats: statsFor(85, 65, 75) },
+      // Archetype-realistic case: a real Barbarian's Mana bias is Very Low,
+      // not Mid — every other config above uses Mid regardless of label.
+      // This is the one that should actually feel resource-scarce.
+      { label: 'Forged real-bias Barbarian (Very Low Mana)', rank: 'Forged', stats: statsFor(65, 55, 30, 'Very Low') },
     ];
     const results = configs.map((c) => {
       const hero = buildHeroForRank(c.rank, c.stats);
