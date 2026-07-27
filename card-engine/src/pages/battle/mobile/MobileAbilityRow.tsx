@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot } from '../../../types/combat';
+import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../../types/combat';
 import type { AbilitySlotType } from '../../../types/abilities';
 import { getAbilityStore } from '../../../services/abilities/registry';
 import { getArtCrops } from '../../../types/abilities';
+import { previewAbilityDamage } from '../../../services/combat/reducer';
+import { AbilityPreviewCard } from '../AbilityPreviewCard';
 
 interface Props {
   hero: HeroCombatant;
   bossActorId: string;
   disabled: boolean;
+  state: BattleState;
   onSubmit: (action: PlayerAction) => void;
 }
 
@@ -33,7 +36,7 @@ const SLOT_INDEX: Record<AbilitySlotType, number> = {
  * This keeps the cards + boss as the visual stars while still surfacing
  * every gameplay-relevant field.
  */
-export function MobileAbilityRow({ hero, bossActorId, disabled, onSubmit }: Props) {
+export function MobileAbilityRow({ hero, bossActorId, disabled, state, onSubmit }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const store = getAbilityStore();
 
@@ -65,25 +68,31 @@ export function MobileAbilityRow({ hero, bossActorId, disabled, onSubmit }: Prop
     : null;
   const pendingArtUrl = pendingAbility ? artUrl(store, pendingAbility) : null;
   const pendingSlot = pendingAbility?.slot;
+  const pendingProjectedDamage = pendingAbility
+    ? previewAbilityDamage(state, hero, pendingAbility)
+    : null;
 
   return (
     <div className="relative w-full" aria-label={`Abilities for ${hero.snapshot.displayName}`}>
-      {/* Popover — appears above the strip when an ability is pending */}
+      {/* Preview card — appears above the strip when an ability is pending */}
       {pendingAbility && (
-        <AbilityPopover
-          ability={pendingAbility}
-          slot={pendingSlot!}
-          artUrl={pendingArtUrl}
-          onConfirm={() => {
-            onSubmit({
-              kind: 'ability',
-              abilityDefinitionId: pendingAbility.definitionId,
-              targetActorIds: [bossActorId],
-            });
-            setPendingId(null);
-          }}
-          onCancel={() => setPendingId(null)}
-        />
+        <div className="absolute left-1 right-1 z-30" style={{ bottom: 'calc(100% + 6px)' }}>
+          <AbilityPreviewCard
+            ability={pendingAbility}
+            slot={pendingSlot!}
+            artUrl={pendingArtUrl}
+            projectedDamage={pendingProjectedDamage}
+            onConfirm={() => {
+              onSubmit({
+                kind: 'ability',
+                abilityDefinitionId: pendingAbility.definitionId,
+                targetActorIds: [bossActorId],
+              });
+              setPendingId(null);
+            }}
+            onCancel={() => setPendingId(null)}
+          />
+        </div>
       )}
 
       <div
@@ -265,171 +274,6 @@ function MobileAbilityTile({
         )}
       </div>
     </button>
-  );
-}
-
-/**
- * Popover above the ability strip that surfaces art + full description +
- * cost details when an ability is pending. Reuses the compact combat-frame
- * material language (dark bg, gold border) without wrapping in a heavy
- * CombatFrame preset — this is a transient tooltip, not a canonical surface.
- */
-function AbilityPopover({
-  ability,
-  slot,
-  artUrl,
-  onConfirm,
-  onCancel,
-}: {
-  ability: AbilityCombatSnapshot;
-  slot: AbilitySlotType;
-  artUrl: string | null;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <div
-      role="dialog"
-      aria-label={`Confirm ${ability.displayName}`}
-      className="absolute left-1 right-1 z-30"
-      style={{
-        bottom: 'calc(100% + 6px)',
-        background: 'linear-gradient(to bottom, #18110a, #0b0806)',
-        border: '1.5px solid #b8862a',
-        borderRadius: 6,
-        boxShadow: '0 -6px 22px rgba(0,0,0,0.65), 0 0 22px rgba(235,150,46,0.3)',
-        padding: 8,
-        pointerEvents: 'auto',
-        display: 'flex',
-        gap: 8,
-      }}
-    >
-      {/* Art crop */}
-      <div
-        style={{
-          width: 60,
-          height: 60,
-          flexShrink: 0,
-          borderRadius: 4,
-          overflow: 'hidden',
-          background: '#1a1210',
-          border: '1px solid #573b1f',
-        }}
-      >
-        {artUrl ? (
-          <img
-            src={artUrl}
-            alt=""
-            aria-hidden
-            draggable={false}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)',
-            }}
-          />
-        )}
-      </div>
-
-      {/* Text column */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div
-              style={{
-                color: '#f0942e',
-                fontSize: 8,
-                fontWeight: 700,
-                letterSpacing: 1.2,
-                fontFamily: 'Inter, system-ui, sans-serif',
-              }}
-            >
-              {SLOT_LABEL[slot]}
-              {ability.resourceCost > 0 && (
-                <span style={{ color: '#c8a86a', marginLeft: 4, letterSpacing: 0.4 }}>
-                  · COST {ability.resourceCost}
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                color: '#ebd9b2',
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: 'Inter, system-ui, sans-serif',
-                lineHeight: 1.1,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {ability.displayName}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Cancel ability selection"
-            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: 3,
-              border: '1px solid #573b1f',
-              background: '#0f0e0f',
-              color: '#d6c7a8',
-              fontSize: 10,
-              lineHeight: 1,
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div
-          style={{
-            color: '#c8b895',
-            fontSize: 10,
-            fontFamily: 'Inter, system-ui, sans-serif',
-            lineHeight: 1.3,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {ability.def.descriptionShort || ability.def.descriptionLong || 'Deal damage to the target.'}
-        </div>
-
-        <button
-          type="button"
-          onClick={onConfirm}
-          className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          style={{
-            marginTop: 2,
-            height: 26,
-            borderRadius: 4,
-            border: '1.5px solid #eb962e',
-            background: 'linear-gradient(to right, #592b09, #1a1412)',
-            color: '#ffdb94',
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.4,
-            fontFamily: 'Inter, system-ui, sans-serif',
-            cursor: 'pointer',
-            boxShadow: '0 0 12px rgba(235,150,46,0.35)',
-          }}
-        >
-          CONFIRM →
-        </button>
-      </div>
-    </div>
   );
 }
 

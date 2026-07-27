@@ -282,6 +282,7 @@ export function MobileCombatScene({
               hero={selectedHero}
               bossActorId={state.boss.actorId}
               disabled={!canAct}
+              state={state}
               onSubmit={onSubmit}
             />
           )}

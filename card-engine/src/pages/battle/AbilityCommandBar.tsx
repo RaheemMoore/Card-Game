@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot } from '../../types/combat';
+import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
+import { previewAbilityDamage } from '../../services/combat/reducer';
 import { CombatFrame } from './CombatFrame';
+import { AbilityPreviewCard } from './AbilityPreviewCard';
 
 interface Props {
   hero: HeroCombatant;
   bossActorId: string;
   disabled: boolean;
+  state: BattleState;
   onSubmit: (action: PlayerAction) => void;
 }
 
@@ -28,7 +31,7 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
  * Selected slot swaps preset from `abilitySlot` → `abilitySlotSelected`
  * (Figma 18:56 tokens: #160f06 bg, #c27826 1.5px border).
  */
-export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Props) {
+export function AbilityCommandBar({ hero, bossActorId, disabled, state, onSubmit }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const store = getAbilityStore();
 
@@ -55,40 +58,68 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, onSubmit }: Pro
     [hero],
   );
 
+  const pendingAbility = pendingId
+    ? hero.snapshot.abilities.find((a) => a.definitionId === pendingId) ?? null
+    : null;
+  const pendingProjectedDamage = pendingAbility
+    ? previewAbilityDamage(state, hero, pendingAbility)
+    : null;
+
   return (
     <div
-      className={`absolute left-1/2 -translate-x-1/2 flex items-center transition-opacity duration-200 ${
-        disabled ? 'opacity-45' : 'opacity-100'
-      }`}
-      style={{ bottom: '5.75rem', zIndex: 25, gap: 15 }}
-      aria-label="Ability command bar"
-      aria-hidden={disabled}
+      className="absolute left-1/2 -translate-x-1/2"
+      style={{ bottom: '5.75rem', zIndex: 25 }}
     >
-      {slots.map(({ slot, ability }) => (
-        <AbilitySlot
-          key={slot}
-          slot={slot}
-          ability={ability}
-          hero={hero}
-          disabled={disabled}
-          pending={ability ? pendingId === ability.definitionId : false}
-          artUrl={ability ? artUrl(store, ability) : null}
-          onClick={() => {
-            if (!ability) return;
-            if (isDenied(hero, ability, disabled)) return;
-            if (pendingId !== ability.definitionId) {
-              setPendingId(ability.definitionId);
-              return;
-            }
-            onSubmit({
-              kind: 'ability',
-              abilityDefinitionId: ability.definitionId,
-              targetActorIds: [bossActorId],
-            });
-            setPendingId(null);
-          }}
-        />
-      ))}
+      {/* Preview panel — expands above the bar when an ability is armed.
+          Confirm/Cancel live here now; a slot tap only arms/disarms. */}
+      {pendingAbility && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{ bottom: 'calc(100% + 10px)', width: 260 }}
+        >
+          <AbilityPreviewCard
+            ability={pendingAbility}
+            slot={pendingAbility.slot}
+            artUrl={artUrl(store, pendingAbility)}
+            projectedDamage={pendingProjectedDamage}
+            onConfirm={() => {
+              onSubmit({
+                kind: 'ability',
+                abilityDefinitionId: pendingAbility.definitionId,
+                targetActorIds: [bossActorId],
+              });
+              setPendingId(null);
+            }}
+            onCancel={() => setPendingId(null)}
+          />
+        </div>
+      )}
+
+      <div
+        className={`flex items-center transition-opacity duration-200 ${
+          disabled ? 'opacity-45' : 'opacity-100'
+        }`}
+        style={{ gap: 15 }}
+        aria-label="Ability command bar"
+        aria-hidden={disabled}
+      >
+        {slots.map(({ slot, ability }) => (
+          <AbilitySlot
+            key={slot}
+            slot={slot}
+            ability={ability}
+            hero={hero}
+            disabled={disabled}
+            pending={ability ? pendingId === ability.definitionId : false}
+            artUrl={ability ? artUrl(store, ability) : null}
+            onClick={() => {
+              if (!ability) return;
+              if (isDenied(hero, ability, disabled)) return;
+              setPendingId((cur) => (cur === ability.definitionId ? null : ability.definitionId));
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -148,7 +179,7 @@ function AbilitySlot({
       aria-label={
         empty
           ? `${SLOT_LABEL[slot]} slot — empty`
-          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — click again to confirm' : ''}`
+          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the preview panel to confirm or cancel' : ''}`
       }
     >
       <CombatFrame
@@ -251,7 +282,7 @@ function AbilitySlot({
             fontFamily: 'Inter, system-ui, sans-serif',
           }}
         >
-          {pending ? 'CONFIRM →' : statusText}
+          {pending ? 'SELECTED' : statusText}
         </div>
       </CombatFrame>
     </button>
