@@ -13,6 +13,7 @@ import { AbilityCommandBar } from './AbilityCommandBar';
 import { BattleControls } from './BattleControls';
 import { CombatFrame } from './CombatFrame';
 import { AttackVFX } from './AttackVFX';
+import { EnergyGauge } from './EnergyGauge';
 
 interface Props {
   state: BattleState;
@@ -223,6 +224,21 @@ export function CombatScene({
         <CombatFrame preset="commandShelf" className="h-full w-full">
           <></>
         </CombatFrame>
+      </div>
+
+      {/* Energy gauge (inside shelf, left of the ability bar) — the acting
+          hero's resource, big and obvious per Raheem's screenshot markup. */}
+      <div
+        className="absolute left-6 sm:left-10 lg:left-16"
+        style={{ bottom: '5.75rem', width: 260, zIndex: 24 }}
+      >
+        <EnergyGauge
+          actorId={actingHero.actorId}
+          current={actingHero.resource}
+          max={actingHero.snapshot.maxResource}
+          resourceLabel={actingHero.snapshot.resourceType === 'tech' ? 'TECH' : 'MANA'}
+          currentBeat={currentBeat}
+        />
       </div>
 
       {/* Ability command bar (inside shelf) */}

@@ -160,6 +160,8 @@ function MobileHeroLane({
   }, [currentBeat, combatant.actorId]);
 
   const isDefeated = combatant.defeated;
+  const hpPct = Math.max(0, combatant.hp / combatant.snapshot.maxHp);
+  const hpCritical = !isDefeated && hpPct <= 0.25;
 
   // Selected: bigger, raised, glow. Side lanes: smaller, dropped, subdued.
   // Playback mode drops selected slightly and dims glow.
@@ -217,14 +219,32 @@ function MobileHeroLane({
               </span>
             </div>
           )}
+          {/* HP bar — always visible regardless of selection, so a
+              non-selected hero can't quietly die unnoticed on mobile
+              (previously HP had no visual here at all, screen-reader label
+              only). Overlaid on the card's own bottom edge rather than
+              pushed below it, so the tray doesn't need extra height. */}
+          {!isDefeated && (
+            <div
+              aria-hidden
+              className="absolute left-1 right-1 bottom-1 rounded-full overflow-hidden pointer-events-none"
+              style={{ height: 3, background: 'rgba(0,0,0,0.6)' }}
+            >
+              <div
+                className={`h-full transition-all duration-300 ${
+                  hpCritical ? 'bg-crimson mobile-hp-critical' : 'bg-emerald-500'
+                }`}
+                style={{ width: `${hpPct * 100}%` }}
+              />
+            </div>
+          )}
           <FloatingDamage currentBeat={currentBeat} actorId={combatant.actorId} />
         </div>
       </button>
 
-      {/* HP + resource overlays are rendered by the card face itself + the
-          MobileResourceRow below the tray — no under-card strip needed here.
-          Keeping this comment as a reminder not to reintroduce the strip
-          without also shrinking the tray container height. */}
+      {/* Resource is shown for the selected hero only by MobileResourceRow
+          below the tray — HP now has its own always-visible bar on each
+          card above (see the bottom-edge overlay in the render above). */}
 
       <style>{`
         @keyframes mobile-hero-lane-shake {
@@ -245,12 +265,19 @@ function MobileHeroLane({
           border-radius: 8px;
           animation: mobile-hero-lane-shake 0.35s ease-out, mobile-hero-lane-target-pulse 1.1s ease-in-out infinite;
         }
+        @keyframes mobile-hp-critical-pulse {
+          0%, 100% { opacity: 1; }
+          50%      { opacity: 0.4; }
+        }
+        .mobile-hp-critical { animation: mobile-hp-critical-pulse 1s ease-in-out infinite; }
+
         @media (prefers-reduced-motion: reduce) {
           .mobile-hero-lane-shake { animation: none !important; }
           .mobile-hero-lane-target-reticle {
             animation: none !important;
             box-shadow: 0 0 0 3px #eb962e;
           }
+          .mobile-hp-critical { animation: none !important; opacity: 1; }
         }
       `}</style>
     </div>

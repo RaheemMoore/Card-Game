@@ -106,7 +106,36 @@ function HeroLaneCard({
     setShakeKey((n) => n + 1);
   }, [currentBeat, combatant.actorId]);
 
+  // HP bar flashes green on a heal; resource bar flashes cyan on gain / amber
+  // on spend — same beat-watching pattern as the shake above, just a second
+  // independent tracker so a heal and a hit in the same beat don't collide.
+  const [hpFlash, setHpFlash] = useState<{ key: number; color: string } | null>(null);
+  const lastHpFlashBeatId = useRef<string | null>(null);
+  const [resFlash, setResFlash] = useState<{ key: number; color: string } | null>(null);
+  const lastResFlashBeatId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!currentBeat) return;
+    const e = currentBeat.event;
+    if (
+      e.kind === 'healing_applied' &&
+      e.targetActorId === combatant.actorId &&
+      currentBeat.id !== lastHpFlashBeatId.current
+    ) {
+      lastHpFlashBeatId.current = currentBeat.id;
+      setHpFlash((cur) => ({ key: (cur?.key ?? 0) + 1, color: '#7dfca0' }));
+    }
+    if (
+      e.kind === 'resource_changed' &&
+      e.actorId === combatant.actorId &&
+      currentBeat.id !== lastResFlashBeatId.current
+    ) {
+      lastResFlashBeatId.current = currentBeat.id;
+      setResFlash((cur) => ({ key: (cur?.key ?? 0) + 1, color: e.delta > 0 ? '#bfe8ff' : '#ff9d4a' }));
+    }
+  }, [currentBeat, combatant.actorId]);
+
   const hpPct = Math.max(0, combatant.hp / combatant.snapshot.maxHp);
+  const hpCritical = !combatant.defeated && hpPct <= 0.25;
   const rPct =
     combatant.snapshot.maxResource === 0
       ? 0
@@ -202,14 +231,24 @@ function HeroLaneCard({
         <FloatingDamage currentBeat={currentBeat} actorId={combatant.actorId} />
       </div>
 
-      {/* Compact stat strip — hangs from the card bottom */}
-      <div className="mt-1 w-full max-w-[190px] text-[9px] leading-tight px-1">
-        <StripBar label="HP" value={combatant.hp} pct={hpPct} color="from-emerald-400 to-emerald-600" />
+      {/* Stat strip — hangs from the card bottom. Bumped up from the original
+          9px/6px-bar treatment: HP/resource are critical resources, they need
+          to read at a glance, not on close inspection. */}
+      <div className="mt-1.5 w-full max-w-[190px] text-[11px] leading-tight px-1">
+        <StripBar
+          label="HP"
+          value={combatant.hp}
+          pct={hpPct}
+          color="from-emerald-400 to-emerald-600"
+          critical={hpCritical}
+          flash={hpFlash}
+        />
         <StripBar
           label={combatant.snapshot.resourceType === 'mana' ? 'MP' : 'TP'}
           value={combatant.resource}
           pct={rPct}
           color="from-sky-400 to-sky-600"
+          flash={resFlash}
         />
         <div
           className="flex items-center justify-center gap-0.5 mt-0.5"
@@ -252,12 +291,25 @@ function HeroLaneCard({
           border-radius: 10px;
           animation: hero-lane-shake 0.35s ease-out, hero-lane-target-pulse 1.1s ease-in-out infinite;
         }
+
+        /* Critical HP — a hero at or below 25% HP gets an unmissable pulsing
+           red glow on their HP bar so they can't quietly die unnoticed. */
+        @keyframes strip-bar-critical-pulse {
+          0%, 100% { box-shadow: 0 0 0 1px rgba(220,38,38,0.6), 0 0 6px 1px rgba(220,38,38,0.5); }
+          50%      { box-shadow: 0 0 0 1.5px rgba(255,90,90,0.9), 0 0 12px 3px rgba(220,38,38,0.8); }
+        }
+        .strip-bar-critical { animation: strip-bar-critical-pulse 1s ease-in-out infinite; }
+
         @media (prefers-reduced-motion: reduce) {
           .hero-lane-shake { animation: none !important; }
           .hero-lane { transition: none !important; }
           .hero-lane-target-reticle {
             animation: none !important;
             box-shadow: 0 0 0 3px #eb962e;
+          }
+          .strip-bar-critical {
+            animation: none !important;
+            box-shadow: 0 0 0 1.5px rgba(220,38,38,0.9);
           }
         }
       `}</style>
@@ -270,22 +322,40 @@ function StripBar({
   value,
   pct,
   color,
+  critical = false,
+  flash = null,
 }: {
   label: string;
   value: number;
   pct: number;
   color: string;
+  /** Red pulsing treatment — HP at or below 25%, so a hero can't quietly bleed out unnoticed. */
+  critical?: boolean;
+  /** Recolored `.fs-flash` pulse on the moment this value changes (heal / resource gain-or-spend). */
+  flash?: { key: number; color: string } | null;
 }) {
   return (
-    <div className="flex items-center gap-1">
-      <span className="text-bone/60 w-6 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-void/90 overflow-hidden border border-bone/20">
+    <div className="flex items-center gap-1.5 mb-0.5">
+      <span className="text-bone/70 font-bold w-7 shrink-0">{label}</span>
+      <div
+        className={`relative flex-1 h-3 rounded-full bg-void/90 overflow-hidden border ${
+          critical ? 'border-crimson' : 'border-bone/20'
+        } ${critical ? 'strip-bar-critical' : ''}`}
+      >
         <div
           className={`h-full bg-gradient-to-r ${color} transition-all duration-300`}
           style={{ width: `${Math.max(0, Math.min(1, pct)) * 100}%` }}
         />
+        {flash && (
+          <div
+            key={flash.key}
+            aria-hidden
+            className="absolute inset-0 fs-flash"
+            style={{ background: flash.color }}
+          />
+        )}
       </div>
-      <span className="tabular-nums text-bone/80 text-right" style={{ minWidth: '3ch' }}>
+      <span className="tabular-nums text-bone/90 font-semibold text-right" style={{ minWidth: '3.5ch' }}>
         {value}
       </span>
     </div>
