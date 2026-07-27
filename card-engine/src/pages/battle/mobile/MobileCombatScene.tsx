@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../../types/card';
 import type { BattleState, PlayerAction } from '../../../types/combat';
 import type { AnimationBeat } from '../../../services/combat/presentation/types';
+import type { JournalEntry } from '../../../services/combat/presentation/journalSummary';
 import { targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
 import { MobileBossHeader } from './MobileBossHeader';
 import { MobileIntentPanel } from './MobileIntentPanel';
@@ -17,7 +18,7 @@ interface Props {
   actingActorId: string | null;
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
-  journal: readonly AnimationBeat[];
+  journalEntries: readonly JournalEntry[];
   isPlaying: boolean;
   pendingCount: number;
   onSkip: () => void;
@@ -52,7 +53,7 @@ export function MobileCombatScene({
   actingActorId,
   partyCards,
   currentBeat,
-  journal,
+  journalEntries,
   isPlaying,
   pendingCount: journalPendingCount,
   onSkip,
@@ -353,7 +354,7 @@ export function MobileCombatScene({
 
         {/* Combat journal — collapsed strip; drawer overlay when expanded */}
         <MobileCombatJournal
-          journal={journal}
+          journalEntries={journalEntries}
           isPlaying={isPlaying}
           pendingCount={journalPendingCount}
           onSkip={onSkip}

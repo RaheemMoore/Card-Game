@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { AnimationBeat } from '../../../services/combat/presentation/types';
-import type { BattleEvent } from '../../../types/combat';
-import { formatEvent } from '../formatEvent';
+import { useEffect, useState } from 'react';
+import { JOURNAL_KIND_LABEL, type JournalEntry } from '../../../services/combat/presentation/journalSummary';
 import { CombatFrame } from '../CombatFrame';
 
 interface Props {
-  journal: readonly AnimationBeat[];
+  /** Condensed one-line-per-action view over the event stream. */
+  journalEntries: readonly JournalEntry[];
+  /** Beat-pacing semantics (skip button, "N pending") stay beat-driven. */
   isPlaying: boolean;
   pendingCount: number;
   onSkip: () => void;
@@ -20,18 +20,12 @@ interface Props {
  * Reuses the Combat Frame journal preset for material continuity with the
  * desktop rail (Figma 17:18).
  */
-export function MobileCombatJournal({ journal, isPlaying, pendingCount, onSkip }: Props) {
+export function MobileCombatJournal({ journalEntries, isPlaying, pendingCount, onSkip }: Props) {
   const [expanded, setExpanded] = useState(false);
 
-  const { active, history, currentRound } = useMemo(() => {
-    const activeBeat = journal[journal.length - 1] ?? null;
-    const historyBeats = journal.slice(0, -1);
-    let round = 0;
-    for (const b of journal) {
-      if (b.event.kind === 'round_started') round = b.event.round;
-    }
-    return { active: activeBeat, history: historyBeats, currentRound: round };
-  }, [journal]);
+  const active = journalEntries[journalEntries.length - 1] ?? null;
+  const history = journalEntries.slice(0, -1);
+  const currentRound = active ? active.round : 0;
 
   useEffect(() => {
     if (!expanded) return;
@@ -42,7 +36,7 @@ export function MobileCombatJournal({ journal, isPlaying, pendingCount, onSkip }
     return () => window.removeEventListener('keydown', onKey);
   }, [expanded]);
 
-  const activeText = active ? formatEvent(active.event) : 'The arena settles.';
+  const activeText = active ? active.text : 'The arena settles.';
 
   return (
     <>
@@ -257,8 +251,8 @@ export function MobileCombatJournal({ journal, isPlaying, pendingCount, onSkip }
                     maxHeight: 'calc(75dvh - env(safe-area-inset-bottom, 0px) - 130px)',
                   }}
                 >
-                  {history.map((beat) => (
-                    <MobileJournalCard key={beat.id} beat={beat} tone="history" />
+                  {history.map((entry) => (
+                    <MobileJournalCard key={entry.id} entry={entry} tone="history" />
                   ))}
                   {history.length === 0 && (
                     <div
@@ -275,7 +269,7 @@ export function MobileCombatJournal({ journal, isPlaying, pendingCount, onSkip }
                 </div>
                 {active && (
                   <div style={{ padding: '4px 10px 10px' }}>
-                    <MobileJournalCard beat={active} tone="active" />
+                    <MobileJournalCard entry={active} tone="active" />
                   </div>
                 )}
               </div>
@@ -288,14 +282,13 @@ export function MobileCombatJournal({ journal, isPlaying, pendingCount, onSkip }
 }
 
 function MobileJournalCard({
-  beat,
+  entry,
   tone,
 }: {
-  beat: AnimationBeat;
+  entry: JournalEntry;
   tone: 'active' | 'history';
 }) {
-  const e = beat.event;
-  if (e.kind === 'round_started' && tone === 'history') {
+  if (entry.kind === 'round_marker' && tone === 'history') {
     return (
       <div
         className="flex items-center gap-2"
@@ -313,17 +306,16 @@ function MobileJournalCard({
             textTransform: 'uppercase',
           }}
         >
-          Round {(e as Extract<BattleEvent, { kind: 'round_started' }>).round}
+          {entry.text}
         </span>
         <div style={{ flex: 1, height: 1, background: 'rgba(212,175,55,0.22)' }} />
       </div>
     );
   }
 
-  const category = categoryOf(e);
-  const isBossIntent = e.kind === 'boss_intent_declared';
-  const isDamage = e.kind === 'damage_dealt';
-  const isHighlighted = tone === 'active' || isBossIntent || (isDamage && e.amount >= 50);
+  const category = JOURNAL_KIND_LABEL[entry.kind];
+  const isBossIntent = entry.kind === 'boss_intent';
+  const isHighlighted = tone === 'active' || isBossIntent;
 
   const bg = tone === 'active' ? '#160d07' : isHighlighted ? '#130d08' : '#09090a';
   const border =
@@ -362,33 +354,8 @@ function MobileJournalCard({
           marginTop: 2,
         }}
       >
-        {formatEvent(e)}
+        {entry.text}
       </div>
     </div>
   );
-}
-
-function categoryOf(e: BattleEvent): string {
-  switch (e.kind) {
-    case 'battle_started': return 'BATTLE';
-    case 'round_started': return 'TURN';
-    case 'boss_intent_declared': return 'BOSS INTENT';
-    case 'player_action_selected': return 'HERO ACTION';
-    case 'damage_dealt': return 'DAMAGE';
-    case 'healing_applied': return 'HEAL';
-    case 'shield_gained': return 'SHIELD';
-    case 'status_applied':
-    case 'status_removed':
-      return 'STATUS';
-    case 'resource_changed':
-    case 'ultimate_charge_changed':
-    case 'cooldown_started':
-    case 'cooldown_ticked':
-      return 'TICK';
-    case 'actor_defeated': return 'DEFEATED';
-    case 'phase_transition': return 'PHASE';
-    case 'action_denied': return 'DENIED';
-    case 'battle_ended': return 'ENDED';
-    default: return 'EVENT';
-  }
 }

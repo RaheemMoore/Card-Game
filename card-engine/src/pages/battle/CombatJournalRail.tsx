@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
-import type { AnimationBeat, BeatCue } from '../../services/combat/presentation/types';
-import type { BattleEvent } from '../../types/combat';
-import { formatEvent } from './formatEvent';
+import { useEffect, useRef } from 'react';
+import { JOURNAL_KIND_LABEL, type JournalEntry } from '../../services/combat/presentation/journalSummary';
 import { CombatFrame } from './CombatFrame';
 
 interface Props {
-  journal: readonly AnimationBeat[];
+  /** Condensed one-line-per-action view over the event stream. */
+  journalEntries: readonly JournalEntry[];
+  /** Beat-pacing semantics (skip button, "N pending") stay beat-driven. */
   isPlaying: boolean;
   pendingCount: number;
   onSkip: () => void;
@@ -21,23 +21,17 @@ interface Props {
  *   - Event cards     — 282×76, 5px radius; boss-intent variant has warm orange border
  *   - Active Event    — 282×92, 6px radius, orange border, gold ACTIVE label
  */
-export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: Props) {
+export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onSkip }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     el.scrollTop = el.scrollHeight;
-  }, [journal.length]);
+  }, [journalEntries.length]);
 
-  const { active, history, currentRound } = useMemo(() => {
-    const activeBeat = journal[journal.length - 1] ?? null;
-    const historyBeats = journal.slice(0, -1);
-    let round = 0;
-    for (const b of journal) {
-      if (b.event.kind === 'round_started') round = b.event.round;
-    }
-    return { active: activeBeat, history: historyBeats, currentRound: round };
-  }, [journal]);
+  const active = journalEntries[journalEntries.length - 1] ?? null;
+  const history = journalEntries.slice(0, -1);
+  const currentRound = journalEntries.length > 0 ? journalEntries[journalEntries.length - 1].round : 0;
 
   return (
     <CombatFrame
@@ -136,15 +130,15 @@ export function CombatJournalRail({ journal, isPlaying, pendingCount, onSkip }: 
           style={{ paddingTop: 4, paddingBottom: 4 }}
           aria-live="polite"
         >
-          {history.map((beat) => (
-            <JournalEventCard key={beat.id} beat={beat} tone="history" />
+          {history.map((entry) => (
+            <JournalEventCard key={entry.id} entry={entry} tone="history" />
           ))}
         </div>
 
         {/* Active event card — 282×92, orange border */}
         {active && (
           <div style={{ marginTop: 8 }}>
-            <JournalEventCard beat={active} tone="active" />
+            <JournalEventCard entry={active} tone="active" />
           </div>
         )}
       </div>
@@ -202,15 +196,14 @@ function OrnamentDivider() {
  *   - default (17:31/35/39/43): 76px, `#09090a` bg, `#241c14` border
  */
 function JournalEventCard({
-  beat,
+  entry,
   tone,
 }: {
-  beat: AnimationBeat;
+  entry: JournalEntry;
   tone: 'active' | 'history';
 }) {
-  const e = beat.event;
-  // Round-start renders as a slim scrollwork divider instead of a full card.
-  if (e.kind === 'round_started' && tone === 'history') {
+  // Round markers render as a slim scrollwork divider instead of a full card.
+  if (entry.kind === 'round_marker' && tone === 'history') {
     return (
       <div
         className="flex items-center gap-2"
@@ -229,17 +222,16 @@ function JournalEventCard({
             whiteSpace: 'nowrap',
           }}
         >
-          Round {(e as Extract<BattleEvent, { kind: 'round_started' }>).round}
+          {entry.text}
         </span>
         <div style={{ flex: 1, height: 1, background: 'rgba(212,175,55,0.25)' }} />
       </div>
     );
   }
 
-  const category = categoryOf(e);
-  const isBossIntent = e.kind === 'boss_intent_declared';
-  const isDamage = e.kind === 'damage_dealt';
-  const isHighlighted = tone === 'active' || isBossIntent || (isDamage && e.amount >= 50);
+  const category = JOURNAL_KIND_LABEL[entry.kind];
+  const isBossIntent = entry.kind === 'boss_intent';
+  const isHighlighted = tone === 'active' || isBossIntent;
 
   const bg = tone === 'active'
     ? '#160d07'
@@ -300,7 +292,7 @@ function JournalEventCard({
             height: 22,
           }}
         >
-          <IconGem cue={beat.cue} highlighted={isHighlighted} />
+          <IconGem kind={entry.kind} highlighted={isHighlighted} />
         </div>
       )}
 
@@ -322,13 +314,13 @@ function JournalEventCard({
           WebkitBoxOrient: 'vertical',
         }}
       >
-        {formatEvent(e)}
+        {entry.text}
       </div>
     </div>
   );
 }
 
-function IconGem({ cue, highlighted }: { cue: BeatCue; highlighted: boolean }) {
+function IconGem({ kind, highlighted }: { kind: JournalEntry['kind']; highlighted: boolean }) {
   const fill = highlighted ? '#e69c38' : '#4a3a22';
   const stroke = highlighted ? '#ffcc63' : '#7a5a30';
   return (
@@ -347,46 +339,20 @@ function IconGem({ cue, highlighted }: { cue: BeatCue; highlighted: boolean }) {
         fill={highlighted ? '#1a0f05' : '#d6c7a8'}
         style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
       >
-        {glyphFor(cue)}
+        {glyphFor(kind)}
       </text>
     </svg>
   );
 }
 
-function categoryOf(e: BattleEvent): string {
-  switch (e.kind) {
-    case 'battle_started': return 'BATTLE';
-    case 'round_started': return 'TURN';
-    case 'boss_intent_declared': return 'BOSS INTENT';
-    case 'player_action_selected': return 'HERO ACTION';
-    case 'damage_dealt': return 'DAMAGE';
-    case 'healing_applied': return 'HEAL';
-    case 'shield_gained': return 'SHIELD';
-    case 'status_applied':
-    case 'status_removed':
-      return 'STATUS';
-    case 'resource_changed':
-    case 'ultimate_charge_changed':
-    case 'cooldown_started':
-    case 'cooldown_ticked':
-      return 'TICK';
-    case 'actor_defeated': return 'DEFEATED';
-    case 'phase_transition': return 'PHASE';
-    case 'action_denied': return 'DENIED';
-    case 'battle_ended': return 'ENDED';
-    default: return 'EVENT';
-  }
-}
-
-function glyphFor(cue: BeatCue): string {
-  switch (cue) {
-    case 'intent': return '👁';
-    case 'impact': return '⚔';
-    case 'floating': return '+';
-    case 'wind_up': return '↑';
+function glyphFor(kind: JournalEntry['kind']): string {
+  switch (kind) {
+    case 'boss_intent': return '👁';
+    case 'action': return '⚔';
+    case 'boss_action': return '⚔';
     case 'phase': return '⚡';
-    case 'handoff': return '»';
-    case 'ultimate': return '★';
+    case 'round_marker': return '»';
+    case 'battle_end': return '★';
     default: return '·';
   }
 }

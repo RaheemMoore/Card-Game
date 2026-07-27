@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Card } from '../../types/card';
 import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
@@ -7,6 +7,7 @@ import {
   type BattleRewardOutcome,
 } from '../../services/combat/battleRewardService';
 import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
+import { summarizeJournal } from '../../services/combat/presentation/journalSummary';
 import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
 import { ResultModal } from './ResultModal';
@@ -76,6 +77,14 @@ export function CombatViewport({
   const presentation = useCombatPresentation(events);
   const isMobile = useIsMobileCombatLayout();
 
+  // A separate condensed view over the same event stream, purely for the
+  // journal panels — does not touch `presentation` (beat pacing/animation
+  // triggers stay exactly as they were).
+  const journalEntries = useMemo(
+    () => (state ? summarizeJournal(events, state) : []),
+    [events, state],
+  );
+
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -119,7 +128,7 @@ export function CombatViewport({
               actingActorId={actingActorId}
               partyCards={partyCards}
               currentBeat={presentation.currentBeat}
-              journal={presentation.journal}
+              journalEntries={journalEntries}
               isPlaying={presentation.isPlaying}
               pendingCount={presentation.pendingCount}
               onSkip={presentation.skip}
@@ -151,7 +160,7 @@ export function CombatViewport({
           </div>
           {/* Journal rail */}
           <CombatJournalRail
-            journal={presentation.journal}
+            journalEntries={journalEntries}
             isPlaying={presentation.isPlaying}
             pendingCount={presentation.pendingCount}
             onSkip={presentation.skip}
