@@ -7,6 +7,7 @@ interface Props {
   pendingCount?: number;
   onExit: () => void;
   onSubmit: (action: PlayerAction) => void;
+  onOpenGuide: () => void;
 }
 
 /**
@@ -18,7 +19,7 @@ interface Props {
  * (a full-width shelf frame using preset="commandShelf"). This component
  * places the utility tray on the left and the End Turn on the right.
  */
-export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit }: Props) {
+export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onOpenGuide }: Props) {
   // End Turn = "every remaining hero guards + boss goes." Submitting once per
   // pending hero cycles the party through in one click so users don't have to
   // hunt the End Turn button for each hero individually.
@@ -40,7 +41,7 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit }: P
       {/* Utility tray — Settings / Guide / Leave */}
       <CombatFrame preset="utilityTray" style={{ width: 226, height: 72 }}>
         <UtilityChip x={12.5} label="⚙" caption="SETTINGS" onClick={undefined} />
-        <UtilityChip x={80.5} label="📖" caption="GUIDE" onClick={undefined} />
+        <UtilityChip x={80.5} label="📖" caption="GUIDE" onClick={onOpenGuide} />
         <UtilityChip x={148.5} label="✕" caption="LEAVE" onClick={onExit} />
       </CombatFrame>
 

@@ -12,6 +12,7 @@ import { MobileAbilityRow } from './MobileAbilityRow';
 import { MobileActionControls } from './MobileActionControls';
 import { MobileResourceRow } from './MobileResourceRow';
 import { MobileCombatJournal } from './MobileCombatJournal';
+import { CombatGuideModal } from '../CombatGuideModal';
 
 interface Props {
   state: BattleState;
@@ -62,6 +63,7 @@ export function MobileCombatScene({
   onExit,
 }: Props) {
   const canAct = state.phase === 'awaiting_player_action';
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const defaultSelected =
     actingActorId ??
@@ -175,6 +177,29 @@ export function MobileCombatScene({
             <MobileBossHeader boss={state.boss} round={state.round} />
           </div>
           <div className="pointer-events-auto flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setGuideOpen(true)}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              aria-label="Open guide"
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 4,
+                border: '1px solid #573b1f',
+                background: 'rgba(6,4,8,0.85)',
+                color: '#d6c7a8',
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'Inter, system-ui, sans-serif',
+                backdropFilter: 'blur(2px)',
+              }}
+            >
+              ?
+            </button>
             <button
               type="button"
               onClick={onExit}
@@ -373,6 +398,8 @@ export function MobileCombatScene({
           .mobile-collapsible { transition: none !important; }
         }
       `}</style>
+
+      {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
     </div>
   );
 }

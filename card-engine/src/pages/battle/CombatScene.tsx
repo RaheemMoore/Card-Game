@@ -14,6 +14,7 @@ import { BattleControls } from './BattleControls';
 import { CombatFrame } from './CombatFrame';
 import { AttackVFX } from './AttackVFX';
 import { EnergyGauge } from './EnergyGauge';
+import { CombatGuideModal } from './CombatGuideModal';
 
 interface Props {
   state: BattleState;
@@ -49,6 +50,7 @@ export function CombatScene({
     state.heroes.find((h) => !h.defeated) ??
     state.heroes[0];
   const canAct = state.phase === 'awaiting_player_action';
+  const [guideOpen, setGuideOpen] = useState(false);
 
   // Armed-ability + target-pick state lives here (not inside AbilityCommandBar)
   // so HeroForeground's target-pick mode can share the same source of truth.
@@ -261,7 +263,10 @@ export function CombatScene({
         onSubmit={onSubmit}
         canAct={canAct}
         pendingCount={state.pendingActorIds.length}
+        onOpenGuide={() => setGuideOpen(true)}
       />
+
+      {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
     </div>
   );
 }
