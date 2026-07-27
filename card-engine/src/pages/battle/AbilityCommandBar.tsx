@@ -6,7 +6,7 @@ import { getArtCrops } from '../../types/abilities';
 import { previewAbilityDamage } from '../../services/combat/reducer';
 import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
 import { displayNameFor } from './journalNames';
-import { CombatFrame } from './CombatFrame';
+import { PaintedPanel } from './PaintedPanel';
 import { AbilityPreviewCard } from './AbilityPreviewCard';
 
 interface Props {
@@ -95,10 +95,7 @@ export function AbilityCommandBar({
     : null;
 
   return (
-    <div
-      className="absolute left-1/2 -translate-x-1/2"
-      style={{ bottom: '5.75rem', zIndex: 25 }}
-    >
+    <div className="relative" style={{ zIndex: 25 }}>
       {/* Preview panel — expands above the bar when an ability is armed.
           Confirm/Cancel live here now; a slot tap only arms/disarms. */}
       {pendingAbility && (
@@ -186,7 +183,6 @@ function AbilitySlot({
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
-  const preset = pending ? 'abilitySlotSelected' : 'abilitySlot';
 
   const nameColor = pending ? '#ebd9b2' : '#e8d6b2';
   const metaColor = pending ? '#f09c33' : '#948266';
@@ -216,13 +212,24 @@ function AbilitySlot({
           : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the preview panel to confirm or cancel' : ''}`
       }
     >
-      <CombatFrame
-        preset={preset}
+      <PaintedPanel
+        borderWidth={pending ? 18 : 14}
+        background={pending ? '#1b1108' : '#100c08'}
         style={{
           width: 170,
           height: 72,
           transform: pending ? 'translateY(-3px)' : 'translateY(0)',
-          transition: 'transform 200ms',
+          transition: 'transform 200ms, border-width 150ms',
+          filter: empty
+            ? 'grayscale(0.6) brightness(0.7)'
+            : denied
+            ? 'brightness(0.75) saturate(0.7)'
+            : 'none',
+          boxShadow: pending
+            ? '0 0 18px rgba(235,150,46,0.5)'
+            : !denied
+            ? '0 0 8px rgba(194,120,38,0.22)'
+            : 'none',
         }}
       >
         {/* Diamond icon slot — rotated 45° container, Figma 18:53 pattern */}
@@ -318,7 +325,7 @@ function AbilitySlot({
         >
           {pending ? 'SELECTED' : statusText}
         </div>
-      </CombatFrame>
+      </PaintedPanel>
     </button>
   );
 }

@@ -1,0 +1,72 @@
+import type { CSSProperties, ReactNode } from 'react';
+
+/**
+ * Real painted 9-slice frame art (CC0, Foozle "RPG UI Set 1 - Diablo Style",
+ * sourced from itch.io / OpenGameArt — see
+ * public/assets/combat/shelf/SOURCE-LICENSE.txt) replacing the CSS-drawn
+ * CombatFrame primitive for the command shelf band. Carved-stone/bronze
+ * panel with real filigree corners — the thing CSS gradients couldn't
+ * fake (per the ui-ux-director consult that scoped this pass).
+ *
+ * Uses CSS `border-image`: the source PNG's corner+edge region paints the
+ * border ring only (no `fill`), so the element's own `background` still
+ * shows through the interior — same layering model as the old CombatFrame,
+ * just with painted art for the ring instead of a CSS stroke.
+ *
+ * `borderWidth` controls the ON-SCREEN thickness independent of the source
+ * slice size — the same art asset can render as a thin outer shelf frame
+ * and a heavier, more dominant ability-slot frame just by changing this
+ * prop, without needing two separate image files.
+ */
+
+const PANEL_SRC = '/assets/combat/shelf/panel-1.png';
+/** Pixel size of the corner region in the 624×436 source image. */
+const PANEL_SLICE_PX = 140;
+
+interface Props {
+  children?: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+  /** Final rendered border thickness (px). Bigger = more visually dominant. */
+  borderWidth?: number;
+  /** Background behind the interior (border-image only paints the ring). */
+  background?: string;
+  role?: string;
+  ariaLabel?: string;
+}
+
+export function PaintedPanel({
+  children,
+  className = '',
+  style,
+  borderWidth = 24,
+  background = '#0d0c0e',
+  role,
+  ariaLabel,
+}: Props) {
+  return (
+    // No default `position` class here — this primitive has no internal
+    // absolutely-positioned children (unlike the old CombatFrame), so it
+    // doesn't need one, and hardcoding `relative` previously fought with
+    // callers that need `absolute` via className (Tailwind's cascade order
+    // let `relative` win regardless of className string order, silently
+    // breaking the command shelf's bottom-pinned positioning).
+    <div
+      className={className}
+      role={role}
+      aria-label={ariaLabel}
+      style={{
+        background,
+        borderStyle: 'solid',
+        borderWidth,
+        borderImageSource: `url(${PANEL_SRC})`,
+        borderImageSlice: PANEL_SLICE_PX,
+        borderImageWidth: `${borderWidth}px`,
+        borderImageRepeat: 'stretch',
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}

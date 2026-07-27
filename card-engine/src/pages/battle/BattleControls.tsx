@@ -1,5 +1,4 @@
 import type { PlayerAction } from '../../types/combat';
-import { CombatFrame } from './CombatFrame';
 
 interface Props {
   canAct: boolean;
@@ -11,13 +10,11 @@ interface Props {
 }
 
 /**
- * Bottom battle controls, sourced from Figma nodes:
- *   - CombatFrame/UtilityTray (22:90 / 20:36) — 226×72 tray with 58×48 chips
- *   - CommandShelf End Turn Zone (18:64) — 230×96 with gradient End Turn button
- *
- * The Command Shelf backdrop itself is rendered separately in CombatScene
- * (a full-width shelf frame using preset="commandShelf"). This component
- * places the utility tray on the left and the End Turn on the right.
+ * Utility tray (Settings/Guide/Leave) + End Turn — the right-hand zone of
+ * the composed command shelf (see CombatScene.tsx). Used to render as its
+ * own independently-bordered CombatFrame box; now a borderless group living
+ * inside the shelf's single painted frame, separated from End Turn by a
+ * thin seam instead of a second outer stroke.
  */
 export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onOpenGuide }: Props) {
   // End Turn = "every remaining hero guards + boss goes." Submitting once per
@@ -34,18 +31,18 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
       ? `End party turn — guards all ${pendingCount} remaining heroes and lets the boss act`
       : 'End turn — guards this hero and lets the boss act';
   return (
-    <div
-      className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-6"
-      style={{ zIndex: 30, height: '5rem' }}
-    >
-      {/* Utility tray — Settings / Guide / Leave */}
-      <CombatFrame preset="utilityTray" style={{ width: 226, height: 72 }}>
-        <UtilityChip x={12.5} label="⚙" caption="SETTINGS" onClick={undefined} />
-        <UtilityChip x={80.5} label="📖" caption="GUIDE" onClick={onOpenGuide} />
-        <UtilityChip x={148.5} label="✕" caption="LEAVE" onClick={onExit} />
-      </CombatFrame>
+    <div className="flex items-center gap-3">
+      {/* Utility tray — Settings / Guide / Leave, borderless group */}
+      <div className="flex items-center gap-1.5">
+        <UtilityChip label="⚙" caption="SETTINGS" onClick={undefined} />
+        <UtilityChip label="📖" caption="GUIDE" onClick={onOpenGuide} />
+        <UtilityChip label="✕" caption="LEAVE" onClick={onExit} />
+      </div>
 
-      {/* End Turn button — Figma 18:65: gradient border 2px #eb962e, 190×58.
+      {/* Seam — a thin inset rule instead of a second frame boundary */}
+      <div aria-hidden style={{ width: 1, height: 44, background: 'rgba(128,79,33,0.5)' }} />
+
+      {/* End Turn button — gradient border, unchanged visual language.
           P1: one click ends the whole party turn (all pending heroes guard).
           Label + aria communicate that so users don't have to guess. */}
       <button
@@ -84,12 +81,10 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
  * #0f0e0f bg, #573b1f border, 5px radius, glyph icon + 7px caption.
  */
 function UtilityChip({
-  x,
   label,
   caption,
   onClick,
 }: {
-  x: number;
   label: string;
   caption: string;
   onClick?: () => void;
@@ -102,9 +97,6 @@ function UtilityChip({
       disabled={!clickable}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{
-        position: 'absolute',
-        left: x,
-        top: 10.5,
         width: 58,
         height: 48,
         background: '#0f0e0f',

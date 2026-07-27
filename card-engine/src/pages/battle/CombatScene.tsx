@@ -15,6 +15,7 @@ import { CombatFrame } from './CombatFrame';
 import { AttackVFX } from './AttackVFX';
 import { EnergyGauge } from './EnergyGauge';
 import { CombatGuideModal } from './CombatGuideModal';
+import { PaintedPanel } from './PaintedPanel';
 
 interface Props {
   state: BattleState;
@@ -217,54 +218,53 @@ export function CombatScene({
       {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
       <AttackVFX state={state} currentBeat={currentBeat} />
 
-      {/* Command Shelf — CombatFrame/CommandShelf preset. Spans the bottom
-          and hosts the Ability Command Bar + BattleControls. */}
-      <div
-        className="absolute inset-x-2 bottom-2"
-        style={{ height: '9.5rem', zIndex: 15, pointerEvents: 'none' }}
+      {/* Command Shelf — ONE composed panel (real painted 9-slice frame,
+          see PaintedPanel.tsx) with three internal zones sharing a single
+          outer boundary: energy | abilities | utility+end-turn. Previously
+          five independently-bordered siblings sitting on top of each other
+          in the same band — that's what caused the "edges smear together"
+          mess. Ability slots get a heavier border-width than this outer
+          frame (see AbilityCommandBar.tsx) so they read as the dominant,
+          most-important element, not the empty background box. */}
+      <PaintedPanel
+        className="absolute inset-x-2 bottom-2 flex items-center gap-4 px-5"
+        style={{ height: '9.5rem', zIndex: 15 }}
+        borderWidth={10}
+        background="#060708"
       >
-        <CombatFrame preset="commandShelf" className="h-full w-full">
-          <></>
-        </CombatFrame>
-      </div>
+        {/* Zone 1 — energy counter, height-matched to the ability slot row */}
+        <div className="flex items-center" style={{ height: 72 }}>
+          <EnergyGauge
+            actorId={actingHero.actorId}
+            current={actingHero.resource}
+            max={actingHero.snapshot.maxResource}
+            resourceLabel={actingHero.snapshot.resourceType === 'tech' ? 'TECH' : 'MANA'}
+            currentBeat={currentBeat}
+          />
+        </div>
 
-      {/* Energy counter (inside shelf, left of the ability bar) — the acting
-          hero's resource. Intrinsically sized (no fixed width) so it can
-          never overlap the centered ability bar, unlike the old wide gauge.
-          Height-matched + vertically centered against the ability slot row. */}
-      <div
-        className="absolute left-6 sm:left-10 lg:left-16 flex items-center"
-        style={{ bottom: '5.75rem', height: 72, zIndex: 24 }}
-      >
-        <EnergyGauge
-          actorId={actingHero.actorId}
-          current={actingHero.resource}
-          max={actingHero.snapshot.maxResource}
-          resourceLabel={actingHero.snapshot.resourceType === 'tech' ? 'TECH' : 'MANA'}
-          currentBeat={currentBeat}
+        {/* Zone 2 — ability slots, centered in the remaining space */}
+        <div className="flex-1 flex items-center justify-center min-w-0">
+          <AbilityCommandBar
+            hero={actingHero}
+            disabled={!canAct}
+            state={state}
+            pendingId={pendingAbilityId}
+            onArm={armAbility}
+            pickedTargetActorId={pickedTargetActorId}
+            onSubmit={onSubmit}
+          />
+        </div>
+
+        {/* Zone 3 — utility tray + End Turn */}
+        <BattleControls
+          onExit={onExit}
+          onSubmit={onSubmit}
+          canAct={canAct}
+          pendingCount={state.pendingActorIds.length}
+          onOpenGuide={() => setGuideOpen(true)}
         />
-      </div>
-
-      {/* Ability command bar (inside shelf) */}
-      <AbilityCommandBar
-        hero={actingHero}
-        disabled={!canAct}
-        state={state}
-        pendingId={pendingAbilityId}
-        onArm={armAbility}
-        pickedTargetActorId={pickedTargetActorId}
-        onSubmit={onSubmit}
-      />
-
-      {/* Battle controls (inside shelf). pendingCount = heroes still owing a
-          command this round; End Party Turn cycles through them in one click. */}
-      <BattleControls
-        onExit={onExit}
-        onSubmit={onSubmit}
-        canAct={canAct}
-        pendingCount={state.pendingActorIds.length}
-        onOpenGuide={() => setGuideOpen(true)}
-      />
+      </PaintedPanel>
 
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
     </div>
