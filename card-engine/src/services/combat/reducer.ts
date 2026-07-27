@@ -314,6 +314,7 @@ function doBossIntentReveal(state: BattleState): StepResult {
     intentType: chosen.intentType,
     telegraphText: chosen.telegraphText,
     targetActorIds,
+    interruptible: chosen.interruptible,
   };
 
   const events: BattleEvent[] = [

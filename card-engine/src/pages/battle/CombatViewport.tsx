@@ -74,7 +74,7 @@ export function CombatViewport({
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
-  const presentation = useCombatPresentation(events);
+  const presentation = useCombatPresentation(events, {}, state?.boss.actorId);
   const isMobile = useIsMobileCombatLayout();
 
   // A separate condensed view over the same event stream, purely for the

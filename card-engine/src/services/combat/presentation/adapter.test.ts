@@ -8,6 +8,7 @@ const intent: BattleIntent = {
   intentType: 'heavy_attack',
   telegraphText: 'winds up',
   targetActorIds: ['hero_1'],
+  interruptible: true,
 };
 
 const result: BattleResult = { outcome: 'victory', roundsElapsed: 3, heroesSurviving: 1 };

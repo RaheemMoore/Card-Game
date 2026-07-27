@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { BattleEvent } from '../../../types/combat';
+import type { BattleEvent, BattleIntent } from '../../../types/combat';
 import { createQueueState, drainNext, skipAll, syncEvents } from './queue';
 
 const evt = (kind: BattleEvent['kind'], round = 1): BattleEvent => {
@@ -119,5 +119,87 @@ describe('presentation queue', () => {
     s = syncEvents(s, [evt('round_started', 1), evt('damage_dealt')]);
     s = syncEvents(s, [evt('round_started', 1), evt('damage_dealt'), evt('phase_transition')]);
     expect(s.pending.map((b) => b.id)).toEqual(['beat_0', 'beat_1', 'beat_2']);
+  });
+
+  describe('severity tagging', () => {
+    const heavyIntent: BattleIntent = {
+      actionId: 'act_heavy',
+      intentType: 'heavy_attack',
+      telegraphText: 'charges up',
+      targetActorIds: ['hero_1'],
+      interruptible: true,
+    };
+    const normalIntent: BattleIntent = {
+      actionId: 'act_area',
+      intentType: 'area_attack',
+      telegraphText: 'sweeps',
+      targetActorIds: ['hero_1'],
+      interruptible: false,
+    };
+    const bossDamage = (): BattleEvent => ({
+      kind: 'damage_dealt',
+      sourceActorId: 'boss',
+      targetActorId: 'hero_1',
+      amount: 40,
+      damageType: 'fire',
+      blockedByShield: 0,
+    });
+
+    it('tags an interruptible intent beat and its own damage as heavy', () => {
+      let s = createQueueState();
+      s = syncEvents(
+        s,
+        [{ kind: 'boss_intent_declared', round: 1, intent: heavyIntent }, bossDamage()],
+        'boss',
+      );
+      expect(s.pending[0].severity).toBe('heavy');
+      expect(s.pending[1].severity).toBe('heavy');
+    });
+
+    it('tags an uninterruptible intent and its damage as normal', () => {
+      let s = createQueueState();
+      s = syncEvents(
+        s,
+        [{ kind: 'boss_intent_declared', round: 1, intent: normalIntent }, bossDamage()],
+        'boss',
+      );
+      expect(s.pending[0].severity).toBe('normal');
+      expect(s.pending[1].severity).toBe('normal');
+    });
+
+    it('finds the declaring intent across separate sync batches (hero turns in between)', () => {
+      let s = createQueueState();
+      // Batch 1: boss declares a heavy intent.
+      s = syncEvents(s, [{ kind: 'boss_intent_declared', round: 1, intent: heavyIntent }], 'boss');
+      // Batch 2: a hero's whole turn happens in between (own separate sync call).
+      s = syncEvents(
+        s,
+        [
+          { kind: 'boss_intent_declared', round: 1, intent: heavyIntent },
+          { kind: 'player_action_selected', actorId: 'hero_1', action: { kind: 'guard' } },
+        ],
+        'boss',
+      );
+      // Batch 3: the boss finally resolves — its damage_dealt beat must still
+      // resolve to 'heavy' even though the declaring event was 2 batches back.
+      s = syncEvents(
+        s,
+        [
+          { kind: 'boss_intent_declared', round: 1, intent: heavyIntent },
+          { kind: 'player_action_selected', actorId: 'hero_1', action: { kind: 'guard' } },
+          bossDamage(),
+        ],
+        'boss',
+      );
+      const damageBeat = s.pending.find((b) => b.event.kind === 'damage_dealt');
+      expect(damageBeat?.severity).toBe('heavy');
+    });
+
+    it('does not tag anything when bossActorId is omitted (back-compat)', () => {
+      let s = createQueueState();
+      s = syncEvents(s, [{ kind: 'boss_intent_declared', round: 1, intent: heavyIntent }, bossDamage()]);
+      expect(s.pending[0].severity).toBeUndefined();
+      expect(s.pending[1].severity).toBeUndefined();
+    });
   });
 });

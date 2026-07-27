@@ -35,6 +35,10 @@ interface Shot {
   from: Point;
   to: Point;
   color: string;
+  /** True for a boss-sourced hit that resolved a 'heavy' (interruptible)
+   *  charge-up — gets a visibly bigger, longer-held bolt/impact so the
+   *  drama of the charge pays off in the hit itself. */
+  heavy: boolean;
 }
 
 /**
@@ -63,12 +67,13 @@ export function AttackVFX({ state, currentBeat }: Props) {
     const from = sourceIsBoss ? BOSS_POINT : heroPoint;
     const to = sourceIsBoss ? heroPoint : BOSS_POINT;
     const color = ELEMENT_COLOR[e.damageType] ?? ELEMENT_COLOR.physical;
+    const heavy = sourceIsBoss && currentBeat.severity === 'heavy';
 
     const id = currentBeat.id;
-    setShots((cur) => [...cur, { id, from, to, color }]);
+    setShots((cur) => [...cur, { id, from, to, color, heavy }]);
     const timeout = window.setTimeout(() => {
       setShots((cur) => cur.filter((s) => s.id !== id));
-    }, 500);
+    }, heavy ? 750 : 500);
     return () => window.clearTimeout(timeout);
   }, [currentBeat, state.boss.actorId, state.heroes]);
 
@@ -83,11 +88,17 @@ export function AttackVFX({ state, currentBeat }: Props) {
   );
 }
 
-function Bolt({ from, to, color }: Shot) {
+function Bolt({ from, to, color, heavy }: Shot) {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
   const length = Math.hypot(dx, dy);
+
+  const boltHeight = heavy ? 10 : 4;
+  const impactSize = heavy ? 84 : 44;
+  const glowPx = heavy ? 16 : 6;
+  const boltMs = heavy ? 320 : 220;
+  const impactMs = heavy ? 520 : 380;
 
   return (
     <>
@@ -98,11 +109,11 @@ function Bolt({ from, to, color }: Shot) {
           left: `${from.x}%`,
           top: `${from.y}%`,
           width: `${length}%`,
-          height: 4,
+          height: boltHeight,
           transformOrigin: '0 50%',
           transform: `rotate(${angle}deg)`,
           background: `linear-gradient(to right, transparent, ${color})`,
-          borderRadius: 2,
+          borderRadius: boltHeight / 2,
         }}
       />
       <div
@@ -111,10 +122,10 @@ function Bolt({ from, to, color }: Shot) {
           position: 'absolute',
           left: `${to.x}%`,
           top: `${to.y}%`,
-          width: 44,
-          height: 44,
-          marginLeft: -22,
-          marginTop: -22,
+          width: impactSize,
+          height: impactSize,
+          marginLeft: -impactSize / 2,
+          marginTop: -impactSize / 2,
           borderRadius: '50%',
           background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
         }}
@@ -122,18 +133,18 @@ function Bolt({ from, to, color }: Shot) {
       <style>{`
         @keyframes attack-bolt-travel {
           0%   { opacity: 0; transform: rotate(${angle}deg) scaleX(0); filter: drop-shadow(0 0 0 transparent); }
-          10%  { opacity: 1; filter: drop-shadow(0 0 6px ${color}); }
-          65%  { opacity: 1; transform: rotate(${angle}deg) scaleX(1); filter: drop-shadow(0 0 6px ${color}); }
-          100% { opacity: 0; transform: rotate(${angle}deg) scaleX(1); filter: drop-shadow(0 0 6px ${color}); }
+          10%  { opacity: 1; filter: drop-shadow(0 0 ${glowPx}px ${color}); }
+          65%  { opacity: 1; transform: rotate(${angle}deg) scaleX(1); filter: drop-shadow(0 0 ${glowPx}px ${color}); }
+          100% { opacity: 0; transform: rotate(${angle}deg) scaleX(1); filter: drop-shadow(0 0 ${glowPx}px ${color}); }
         }
-        .attack-bolt { animation: attack-bolt-travel 220ms ease-in forwards; }
+        .attack-bolt { animation: attack-bolt-travel ${boltMs}ms ease-in forwards; }
 
         @keyframes attack-impact-burst {
           0%, 55% { opacity: 0; transform: scale(0.3); }
           70%     { opacity: 1; transform: scale(1.2); }
           100%    { opacity: 0; transform: scale(1.7); }
         }
-        .attack-impact { animation: attack-impact-burst 380ms ease-out forwards; }
+        .attack-impact { animation: attack-impact-burst ${impactMs}ms ease-out forwards; }
 
         @media (prefers-reduced-motion: reduce) {
           .attack-bolt, .attack-impact { animation: none !important; display: none; }

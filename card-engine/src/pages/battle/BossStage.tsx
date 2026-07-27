@@ -27,6 +27,28 @@ export function BossStage({ boss, currentBeat }: Props) {
     setShakeKey((n) => n + 1);
   }, [currentBeat, boss.actorId]);
 
+  // Charge-up: a heavy (interruptible) boss intent lights this up and holds
+  // it — spanning however many hero turns pass — until the matching
+  // damage_dealt beat fires (hit lands) or the action fizzles from an
+  // interrupt. This is a real telegraphed attack building, not the ambient
+  // idle motion Raheem pulled from the intent panel on 2026-07-20 — that
+  // was decorative; this is tied to an actual imminent hit.
+  const [charging, setCharging] = useState(false);
+  const lastChargeBeatId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!currentBeat) return;
+    if (currentBeat.id === lastChargeBeatId.current) return;
+    lastChargeBeatId.current = currentBeat.id;
+    const e = currentBeat.event;
+    if (e.kind === 'boss_intent_declared' && currentBeat.severity === 'heavy') {
+      setCharging(true);
+    } else if (e.kind === 'damage_dealt' && e.sourceActorId === boss.actorId) {
+      setCharging(false);
+    } else if (e.kind === 'action_denied' && e.actorId === boss.actorId && e.reason === 'interrupted') {
+      setCharging(false);
+    }
+  }, [currentBeat, boss.actorId]);
+
   const sprite = getBossSprite(boss.snapshot.bossId, 'idle');
   const spriteUrl = sprite ? resolveCombatAssetUrl(sprite) : null;
 
@@ -42,12 +64,12 @@ export function BossStage({ boss, currentBeat }: Props) {
     >
       <div
         key={shakeKey}
-        className="boss-stage-sprite relative"
+        className={`boss-stage-sprite relative ${charging ? 'boss-stage-charging' : ''}`}
         style={{
           width: 'clamp(320px, 34vw, 460px)',
           height: 'clamp(380px, 44vh, 560px)',
         }}
-        aria-label={boss.snapshot.name}
+        aria-label={`${boss.snapshot.name}${charging ? ' — charging a heavy attack' : ''}`}
       >
         {spriteUrl ? (
           <img
@@ -117,8 +139,27 @@ export function BossStage({ boss, currentBeat }: Props) {
         .boss-stage-sprite {
           animation: boss-stage-hit-shake 0.35s ease-out;
         }
+
+        /* Charge-up — a real telegraphed heavy attack building, held for
+           however many hero turns pass before it resolves. Brightens and
+           intensifies over the loop rather than a flat pulse, so the last
+           stretch before lock-in reads as "about to happen" (still
+           stoppable — matches the existing interrupt mechanic). */
+        @keyframes boss-stage-charge-pulse {
+          0%   { filter: brightness(1) saturate(1); }
+          70%  { filter: brightness(1.15) saturate(1.1); }
+          100% { filter: brightness(1.55) saturate(1.35); }
+        }
+        .boss-stage-sprite.boss-stage-charging {
+          animation: boss-stage-charge-pulse 1.4s ease-in-out infinite alternate;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .boss-stage-sprite { animation: none !important; }
+          .boss-stage-sprite.boss-stage-charging {
+            animation: none !important;
+            filter: brightness(1.3) saturate(1.2);
+          }
         }
       `}</style>
     </div>

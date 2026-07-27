@@ -27,6 +27,7 @@ export interface UseCombatPresentationOptions {
 export function useCombatPresentation(
   rawEvents: readonly BattleEvent[],
   options: UseCombatPresentationOptions = {},
+  bossActorId?: string,
 ): UseCombatPresentationApi {
   const [queue, setQueue] = useState<QueueState>(() => createQueueState());
   const timerRef = useRef<number | null>(null);
@@ -34,8 +35,8 @@ export function useCombatPresentation(
   const reducedMotion = options.reducedMotion ?? detectReducedMotion();
 
   useEffect(() => {
-    setQueue((prev) => syncEvents(prev, rawEvents));
-  }, [rawEvents]);
+    setQueue((prev) => syncEvents(prev, rawEvents, bossActorId));
+  }, [rawEvents, bossActorId]);
 
   useEffect(() => {
     if (queue.pending.length === 0) return;

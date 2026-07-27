@@ -36,6 +36,24 @@ export function MobileArenaStage({ boss, currentBeat, emphasized, cardTrayHeight
     setShakeKey((n) => n + 1);
   }, [currentBeat, boss.actorId]);
 
+  // Charge-up — mirrors BossStage.tsx's desktop treatment. See that file for
+  // the full rationale (real telegraphed heavy attack, not ambient motion).
+  const [charging, setCharging] = useState(false);
+  const lastChargeBeatId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!currentBeat) return;
+    if (currentBeat.id === lastChargeBeatId.current) return;
+    lastChargeBeatId.current = currentBeat.id;
+    const e = currentBeat.event;
+    if (e.kind === 'boss_intent_declared' && currentBeat.severity === 'heavy') {
+      setCharging(true);
+    } else if (e.kind === 'damage_dealt' && e.sourceActorId === boss.actorId) {
+      setCharging(false);
+    } else if (e.kind === 'action_denied' && e.actorId === boss.actorId && e.reason === 'interrupted') {
+      setCharging(false);
+    }
+  }, [currentBeat, boss.actorId]);
+
   const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
   const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
   const sprite = getBossSprite(boss.snapshot.bossId, 'idle');
@@ -90,13 +108,13 @@ export function MobileArenaStage({ boss, currentBeat, emphasized, cardTrayHeight
       >
         <div
           key={shakeKey}
-          className="mobile-boss-sprite relative"
+          className={`mobile-boss-sprite relative ${charging ? 'mobile-boss-charging' : ''}`}
           style={{
             width: emphasized ? 'min(74vw, 320px)' : 'min(64vw, 280px)',
             height: emphasized ? 'min(42dvh, 320px)' : 'min(38dvh, 280px)',
             transition: 'width 300ms ease-out, height 300ms ease-out',
           }}
-          aria-label={boss.snapshot.name}
+          aria-label={`${boss.snapshot.name}${charging ? ' — charging a heavy attack' : ''}`}
         >
           {spriteUrl ? (
             <img
@@ -140,8 +158,22 @@ export function MobileArenaStage({ boss, currentBeat, emphasized, cardTrayHeight
           100% { transform: translate(0, 0); filter: brightness(1); }
         }
         .mobile-boss-sprite { animation: mobile-boss-hit-shake 0.35s ease-out; }
+
+        @keyframes mobile-boss-charge-pulse {
+          0%   { filter: brightness(1) saturate(1); }
+          70%  { filter: brightness(1.15) saturate(1.1); }
+          100% { filter: brightness(1.55) saturate(1.35); }
+        }
+        .mobile-boss-sprite.mobile-boss-charging {
+          animation: mobile-boss-charge-pulse 1.4s ease-in-out infinite alternate;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .mobile-boss-sprite { animation: none !important; }
+          .mobile-boss-sprite.mobile-boss-charging {
+            animation: none !important;
+            filter: brightness(1.3) saturate(1.2);
+          }
         }
       `}</style>
     </div>

@@ -24,6 +24,12 @@ export interface AnimationBeat {
   /** How long the beat should hold before advancing (ms). */
   durationMs: number;
   cue: BeatCue;
+  /** Only set on `boss_intent_declared` and the boss's own `damage_dealt` —
+   *  'heavy' for an interruptible action (a real telegraphed "charge"),
+   *  'normal' for everything else. Drives the boss charge-up visual and
+   *  bigger AttackVFX bolt/impact sizing without re-deriving from live
+   *  state (which may have already moved past the declaring round). */
+  severity?: 'heavy' | 'normal';
 }
 
 /**

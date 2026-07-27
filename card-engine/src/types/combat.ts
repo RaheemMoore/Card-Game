@@ -229,6 +229,10 @@ export interface BattleIntent {
   telegraphText: string;
   /** Which actor(s) the action will target when it resolves. */
   targetActorIds: string[];
+  /** Mirrors the action's own `interruptible` flag — surfaced on the intent
+   *  itself so the presentation layer can decide charge-up length/drama
+   *  without re-looking up the boss's action table. */
+  interruptible: boolean;
 }
 
 /** What the player chose to do this round. */

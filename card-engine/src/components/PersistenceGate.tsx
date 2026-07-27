@@ -54,9 +54,12 @@ function installDevArtTools(): void {
 async function seedAndBackfillAbilitiesLocal(): Promise<void> {
   const store = getAbilityStore();
   try {
-    if (store.getAllDefinitions().length === 0) {
-      await seedAbilityLibrary(store);
-    }
+    // Always call — seedAbilityLibrary is idempotent per-item (diffs each
+    // definition/version individually), so this is cheap once seeded.
+    // Gating on "store is completely empty" meant any ability added to
+    // SEED_ABILITIES after the first-ever boot silently never reached an
+    // already-bootstrapped store — a real bug, not just belt-and-suspenders.
+    await seedAbilityLibrary(store);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[abilities] local seed failed:', err);
@@ -327,27 +330,30 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       // Ability library seed — admin-only. RLS rejects non-admin writes.
-      // Best-effort: if the library is empty and the caller isn't admin,
-      // the failure is logged and Codex reads simply return empty until an
-      // admin runs the seed. Backfill runs regardless — it only writes
-      // per-user references which every user is allowed to write.
-      if (abilityStore.getAllDefinitions().length === 0) {
-        try {
-          const seedResult = await seedAbilityLibrary(abilityStore);
-          if (import.meta.env.DEV) {
-            // eslint-disable-next-line no-console
-            console.debug(
-              `[abilities] seeded library: ${seedResult.familiesUpserted} families, ${seedResult.definitionsUpserted} definitions, ${seedResult.versionsUpserted} versions`,
-            );
-          }
-        } catch (err) {
-          if (import.meta.env.DEV) {
-            // eslint-disable-next-line no-console
-            console.debug(
-              '[abilities] library seed skipped (likely non-admin session):',
-              extractErrorMessage(err),
-            );
-          }
+      // Best-effort: if the caller isn't admin, the failure is logged and
+      // Codex reads simply return whatever's already there until an admin
+      // runs the seed. Backfill runs regardless — it only writes per-user
+      // references which every user is allowed to write.
+      //
+      // Always attempted (not just when the library is empty) — seedAbilityLibrary
+      // diffs each definition/version individually and is a no-op once already
+      // current, so gating on "empty" meant any ability added to SEED_ABILITIES
+      // after the first-ever admin boot would never reach an already-seeded store.
+      try {
+        const seedResult = await seedAbilityLibrary(abilityStore);
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.debug(
+            `[abilities] seeded library: ${seedResult.familiesUpserted} families, ${seedResult.definitionsUpserted} definitions, ${seedResult.versionsUpserted} versions`,
+          );
+        }
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.debug(
+            '[abilities] library seed skipped (likely non-admin session):',
+            extractErrorMessage(err),
+          );
         }
       }
 
