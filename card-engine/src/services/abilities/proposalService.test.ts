@@ -151,6 +151,6 @@ describe('proposeAbility', () => {
       expect(outcome.errors.length).toBeGreaterThan(0);
     }
     // Library shouldn't have grown.
-    expect(store.getAllDefinitions().length).toBe(5);
+    expect(store.getAllDefinitions().length).toBe(6);
   });
 });

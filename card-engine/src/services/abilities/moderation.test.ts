@@ -127,10 +127,10 @@ describe('computeAnalytics', () => {
   it('counts by status + families', async () => {
     const store = await storeWithProposed();
     const analytics = computeAnalytics(store);
-    expect(analytics.totalDefinitions).toBe(6); // 5 seeds + 1 proposed
-    expect(analytics.approvedCount).toBe(5);
+    expect(analytics.totalDefinitions).toBe(7); // 6 seeds + 1 proposed
+    expect(analytics.approvedCount).toBe(6);
     expect(analytics.proposedCount).toBe(1);
-    expect(analytics.perFamily.find((f) => f.familyId === 'martial')?.approved).toBe(1);
+    expect(analytics.perFamily.find((f) => f.familyId === 'martial')?.approved).toBe(2);
   });
 });
 

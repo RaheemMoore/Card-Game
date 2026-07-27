@@ -13,15 +13,26 @@ import type { Card } from '../types/card';
  * Routed at /dev/seed-battle. NOT for production.
  */
 
+interface AbilitySlotSpec {
+  abilityId: string;
+  slot: 'core' | 'signature' | 'ultimate';
+}
+
 interface SeedSpec {
   name: string;
   title: string;
   archetype: Card['archetype'];
   atk: number;
   def: number;
+  /** Bias tier drives realistic scarcity testing — matches this archetype's
+   *  real Mana bias from card-engine-power-system-spec.md, not an arbitrary
+   *  'Mid' for everyone (that's what was masking resource scarcity in the
+   *  balance sims — see balancePass.test.ts fixture fix in the same pass). */
   mana: number;
-  abilityId: string;
-  slot: 'signature' | 'core';
+  manaBias: 'Very Low' | 'Low' | 'Mid' | 'Mid-High' | 'High' | 'Very High';
+  /** Full core + signature + ultimate loadout — a real hero's kit, not just
+   *  one ability, so playtesting reflects actual difficulty. */
+  abilities: AbilitySlotSpec[];
   portrait: string;
   lore: string;
 }
@@ -30,15 +41,24 @@ interface SeedSpec {
  * The three heroes borrow reference portraits from the C0 handoff so the
  * visual QA can judge card-first composition. Each archetype maps to a
  * different silhouette so combat sprites read distinctly.
+ *
+ * Mana values/bias are deliberately spread across the real per-archetype
+ * bias table (Barbarian Very Low, Lycanthrope Mid, Necromancer Very High)
+ * so a single playtest party covers scarce, moderate, and resource-fluid
+ * casters at once — a single "Mid" hero can't surface a scarcity bug the
+ * way an off-bias low-Mana hero can.
  */
 const SEED_PARTY: SeedSpec[] = [
   {
     name: 'Gryndak',
     title: 'Gryndak, the Half-Claimed',
     archetype: 'Barbarian',
-    atk: 62, def: 55, mana: 40,
-    abilityId: 'ability_ember_cleave',
-    slot: 'signature',
+    atk: 62, def: 55, mana: 30, manaBias: 'Very Low',
+    abilities: [
+      { abilityId: 'ability_thornbite', slot: 'core' },
+      { abilityId: 'ability_ember_cleave', slot: 'signature' },
+      { abilityId: 'ability_ruinous_zenith', slot: 'ultimate' },
+    ],
     portrait: '/assets/dev-portraits/Gryndak.jpg',
     lore: 'Half his blood answered a whisper before the pact was sealed. He does not name what watches him.',
   },
@@ -46,9 +66,12 @@ const SEED_PARTY: SeedSpec[] = [
     name: 'Seojin',
     title: 'Seojin, Lycanthrope of the Infinite',
     archetype: 'Lycanthrope',
-    atk: 45, def: 68, mana: 50,
-    abilityId: 'ability_aegis_ward',
-    slot: 'signature',
+    atk: 45, def: 68, mana: 58, manaBias: 'Mid',
+    abilities: [
+      { abilityId: 'ability_soul_drain', slot: 'core' },
+      { abilityId: 'ability_aegis_ward', slot: 'signature' },
+      { abilityId: 'ability_ruinous_zenith', slot: 'ultimate' },
+    ],
     portrait: '/assets/dev-portraits/Seojin.jpg',
     lore: 'Once, she ran only under one moon. The pack sings her name in three tongues now.',
   },
@@ -56,9 +79,12 @@ const SEED_PARTY: SeedSpec[] = [
     name: 'Ashvara',
     title: 'Ashvara, the Void-Synchronized',
     archetype: 'Necromancer',
-    atk: 55, def: 45, mana: 60,
-    abilityId: 'ability_soul_drain',
-    slot: 'core',
+    atk: 55, def: 45, mana: 82, manaBias: 'Very High',
+    abilities: [
+      { abilityId: 'ability_soul_drain', slot: 'core' },
+      { abilityId: 'ability_radiant_ward', slot: 'signature' },
+      { abilityId: 'ability_ruinous_zenith', slot: 'ultimate' },
+    ],
     portrait: '/assets/dev-portraits/Ashvara.jpg',
     lore: 'She keeps her prayers unfinished so the dead have somewhere to arrive.',
   },
@@ -68,19 +94,21 @@ function slugId(name: string): string {
   return 'test_' + name.toLowerCase().replace(/\s+/g, '_');
 }
 
-function ensureReference(cardId: string, spec: SeedSpec) {
+function ensureReferences(cardId: string, spec: SeedSpec) {
   const existing = abilityRegistry.getReferencesForCard(cardId);
-  if (existing.some((r) => r.abilityId === spec.abilityId)) return;
-  const abilityDef = SEED_ABILITIES.find((s) => s.definition.id === spec.abilityId);
-  if (!abilityDef) return;
-  abilityRegistry.saveReference({
-    cardId,
-    abilityId: spec.abilityId,
-    abilityVersionId: abilityDef.version.id,
-    slotType: spec.slot,
-    localTier: 'Forged',
-    displayOrder: 0,
-  });
+  for (const abilitySpec of spec.abilities) {
+    if (existing.some((r) => r.abilityId === abilitySpec.abilityId)) continue;
+    const abilityDef = SEED_ABILITIES.find((s) => s.definition.id === abilitySpec.abilityId);
+    if (!abilityDef) continue;
+    abilityRegistry.saveReference({
+      cardId,
+      abilityId: abilitySpec.abilityId,
+      abilityVersionId: abilityDef.version.id,
+      slotType: abilitySpec.slot,
+      localTier: 'Forged',
+      displayOrder: 0,
+    });
+  }
 }
 
 function seedCards(): { seeded: number; existing: number } {
@@ -91,9 +119,9 @@ function seedCards(): { seeded: number; existing: number } {
   for (const spec of SEED_PARTY) {
     const cardId = slugId(spec.name);
     if (existingIds.has(cardId)) {
-      // Card exists but its ability reference may not — heal that here so
+      // Card exists but its ability references may not — heal that here so
       // the Picker's "battle-ready" filter never orphans a seeded card.
-      ensureReference(cardId, spec);
+      ensureReferences(cardId, spec);
       existing += 1;
       continue;
     }
@@ -118,7 +146,7 @@ function seedCards(): { seeded: number; existing: number } {
       stats: {
         Atk: { value: spec.atk, bias: 'Mid', hardCap: 100 },
         Def: { value: spec.def, bias: 'Mid', hardCap: 100 },
-        Mana: { value: spec.mana, bias: 'Mid', hardCap: 100 },
+        Mana: { value: spec.mana, bias: spec.manaBias, hardCap: 100 },
       },
       dominantStat: dominant,
       border: { baseVariant: border, baseSource: '' },
@@ -127,17 +155,7 @@ function seedCards(): { seeded: number; existing: number } {
       evolutionHistory: {},
       createdAt: now,
     });
-    const abilityDef = SEED_ABILITIES.find((s) => s.definition.id === spec.abilityId);
-    if (abilityDef) {
-      abilityRegistry.saveReference({
-        cardId,
-        abilityId: spec.abilityId,
-        abilityVersionId: abilityDef.version.id,
-        slotType: spec.slot,
-        localTier: 'Forged',
-        displayOrder: 0,
-      });
-    }
+    ensureReferences(cardId, spec);
     seeded += 1;
   }
   return { seeded, existing };
@@ -166,9 +184,11 @@ export function DevSeedBattle() {
     <div className="max-w-lg mx-auto mt-16 p-6 rounded border border-gold/40 bg-void/70 text-bone">
       <h1 className="font-fantasy text-2xl text-gold mb-2">Dev — Seed Battle</h1>
       <p className="text-sm text-bone/70 mb-4">
-        Injects three test Barbarian cards (Vanguard, Warden, Reaver), attaches one seed ability
-        each, and drops you into the Picker with a party ready to go. Runs the same wallet /
-        combat / journal path as production — the only shortcut is skipping the Forge.
+        Injects three test cards (Gryndak the Barbarian, Seojin the Lycanthrope, Ashvara the
+        Necromancer) with a full core + signature + ultimate ability loadout each and
+        archetype-realistic Mana bias (Very Low / Mid / Very High), then drops you into the
+        Picker with a party ready to go. Runs the same wallet / combat / journal path as
+        production — the only shortcut is skipping the Forge.
       </p>
 
       {status.kind === 'seeding' && (

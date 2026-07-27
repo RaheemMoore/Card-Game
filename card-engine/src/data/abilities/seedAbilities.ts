@@ -243,10 +243,63 @@ const RADIANT_WARD_V1: AbilityVersion = {
   publishedAt: NOW,
 };
 
+/* ---------- 6. Ruinous Zenith (test-only ultimate — placeholder) ----------
+ * None of the original 5 seeds are slotType 'ultimate', which made it
+ * impossible to give a dev-seed hero a real 3-slot loadout for playtesting.
+ * This is a minimal, deliberately generic ultimate to fill that gap — the
+ * whole roster is getting replaced when the real ability set is authored,
+ * so keep this simple rather than lore-invested. */
+
+const RUINOUS_ZENITH_DEF: AbilityDefinition = {
+  id: 'ability_ruinous_zenith',
+  slug: 'ruinous-zenith',
+  displayName: 'Ruinous Zenith',
+  familyIds: ['martial'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['ultimate', 'burst', 'test-only'],
+  descriptionShort: 'Unleash a devastating burst at full ultimate charge.',
+  descriptionLong:
+    'Placeholder ultimate for dev-seed playtesting only — a large single-target burst, no status effects.',
+  currentVersionId: 'ability_ruinous_zenith_v1',
+  status: 'approved',
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+const RUINOUS_ZENITH_V1: AbilityVersion = {
+  id: 'ability_ruinous_zenith_v1',
+  abilityId: 'ability_ruinous_zenith',
+  versionNumber: 1,
+  slotType: 'ultimate',
+  targetRule: { type: 'single_enemy' },
+  resourceType: 'mana',
+  resourceCost: 0,
+  effects: [
+    {
+      type: 'direct_damage',
+      amount: 45,
+      damageType: 'physical',
+      scaling: { stat: 'atk', coefficient: 1.0 },
+    },
+    {
+      type: 'damage_over_time',
+      statusId: 'burn',
+      amountPerTick: 6,
+      duration: 3,
+    },
+  ],
+  triggers: [{ type: 'on_use' }],
+  scalingRules: [{ stat: 'atk', coefficient: 1.0 }],
+  status: 'approved',
+  publishedAt: NOW,
+};
+
 export const SEED_ABILITIES: SeedAbility[] = [
   { definition: EMBER_CLEAVE_DEF,  version: EMBER_CLEAVE_V1 },
   { definition: AEGIS_WARD_DEF,    version: AEGIS_WARD_V1 },
   { definition: THORNBITE_DEF,     version: THORNBITE_V1 },
   { definition: SOUL_DRAIN_DEF,    version: SOUL_DRAIN_V1 },
   { definition: RADIANT_WARD_DEF,  version: RADIANT_WARD_V1 },
+  { definition: RUINOUS_ZENITH_DEF, version: RUINOUS_ZENITH_V1 },
 ];
