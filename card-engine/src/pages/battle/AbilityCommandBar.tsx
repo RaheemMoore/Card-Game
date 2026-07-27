@@ -1,17 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
 import { previewAbilityDamage } from '../../services/combat/reducer';
+import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
+import { displayNameFor } from './journalNames';
 import { CombatFrame } from './CombatFrame';
 import { AbilityPreviewCard } from './AbilityPreviewCard';
 
 interface Props {
   hero: HeroCombatant;
-  bossActorId: string;
   disabled: boolean;
   state: BattleState;
+  /** Controlled — CombatScene owns this so HeroForeground's target-pick mode
+   *  can be driven from the same source of truth. */
+  pendingId: string | null;
+  onArm: (definitionId: string | null) => void;
+  /** The ally actorId picked via HeroForeground's target-pick mode, if any. */
+  pickedTargetActorId: string | null;
   onSubmit: (action: PlayerAction) => void;
 }
 
@@ -31,22 +38,31 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
  * Selected slot swaps preset from `abilitySlot` → `abilitySlotSelected`
  * (Figma 18:56 tokens: #160f06 bg, #c27826 1.5px border).
  */
-export function AbilityCommandBar({ hero, bossActorId, disabled, state, onSubmit }: Props) {
-  const [pendingId, setPendingId] = useState<string | null>(null);
+export function AbilityCommandBar({
+  hero,
+  disabled,
+  state,
+  pendingId,
+  onArm,
+  pickedTargetActorId,
+  onSubmit,
+}: Props) {
   const store = getAbilityStore();
 
   useEffect(() => {
     if (!pendingId) return;
     const a = hero.snapshot.abilities.find((x) => x.definitionId === pendingId);
-    if (!a || isDenied(hero, a, disabled)) setPendingId(null);
+    if (!a || isDenied(hero, a, disabled)) onArm(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hero, disabled, pendingId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPendingId(null);
+      if (e.key === 'Escape') onArm(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const slots = useMemo(
@@ -61,6 +77,19 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, state, onSubmit
   const pendingAbility = pendingId
     ? hero.snapshot.abilities.find((a) => a.definitionId === pendingId) ?? null
     : null;
+  const pendingTargetRule = pendingAbility?.version.targetRule ?? null;
+  const needsPick = pendingTargetRule
+    ? targetRuleNeedsPlayerPick(pendingTargetRule) &&
+      state.heroes.some((h) => !h.defeated && h.actorId !== hero.actorId)
+    : false;
+  const resolvedTargetIds: string[] | null = !pendingAbility || !pendingTargetRule
+    ? null
+    : needsPick
+    ? pickedTargetActorId
+      ? [pickedTargetActorId]
+      : null
+    : resolveTargetRule(state, hero.actorId, pendingTargetRule, []).targetActorIds;
+  const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
   const pendingProjectedDamage = pendingAbility
     ? previewAbilityDamage(state, hero, pendingAbility)
     : null;
@@ -82,15 +111,18 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, state, onSubmit
             slot={pendingAbility.slot}
             artUrl={artUrl(store, pendingAbility)}
             projectedDamage={pendingProjectedDamage}
+            targetName={targetName}
+            needsTargetPick={needsPick && !pickedTargetActorId}
             onConfirm={() => {
+              if (!resolvedTargetIds) return;
               onSubmit({
                 kind: 'ability',
                 abilityDefinitionId: pendingAbility.definitionId,
-                targetActorIds: [bossActorId],
+                targetActorIds: resolvedTargetIds,
               });
-              setPendingId(null);
+              onArm(null);
             }}
-            onCancel={() => setPendingId(null)}
+            onCancel={() => onArm(null)}
           />
         </div>
       )}
@@ -115,7 +147,7 @@ export function AbilityCommandBar({ hero, bossActorId, disabled, state, onSubmit
             onClick={() => {
               if (!ability) return;
               if (isDenied(hero, ability, disabled)) return;
-              setPendingId((cur) => (cur === ability.definitionId ? null : ability.definitionId));
+              onArm(pendingId === ability.definitionId ? null : ability.definitionId);
             }}
           />
         ))}
@@ -147,8 +179,10 @@ function AbilitySlot({
   artUrl: string | null;
 }) {
   const empty = !ability;
-  const onCd =
-    !empty && hero.cooldowns.some((c) => c.abilityDefinitionId === ability!.definitionId);
+  const cooldownEntry = !empty
+    ? hero.cooldowns.find((c) => c.abilityDefinitionId === ability!.definitionId)
+    : undefined;
+  const onCd = cooldownEntry !== undefined;
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
@@ -160,7 +194,7 @@ function AbilitySlot({
   const statusText = empty
     ? 'EMPTY'
     : onCd
-    ? 'COOLDOWN'
+    ? `COOLDOWN (${cooldownEntry!.remainingRounds})`
     : short
     ? 'NO RESOURCE'
     : notCharged
@@ -269,7 +303,7 @@ function AbilitySlot({
           {`${SLOT_LABEL[slot]}${ability && ability.resourceCost > 0 ? `  •  COST ${ability.resourceCost}` : ''}`}
         </div>
 
-        {/* Status line: READY / COOLDOWN / etc */}
+        {/* Status line: READY / COOLDOWN (N) / etc */}
         <div
           style={{
             position: 'absolute',

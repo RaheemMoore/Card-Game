@@ -1,16 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../../types/combat';
 import type { AbilitySlotType } from '../../../types/abilities';
 import { getAbilityStore } from '../../../services/abilities/registry';
 import { getArtCrops } from '../../../types/abilities';
 import { previewAbilityDamage } from '../../../services/combat/reducer';
+import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
+import { displayNameFor } from '../journalNames';
 import { AbilityPreviewCard } from '../AbilityPreviewCard';
 
 interface Props {
   hero: HeroCombatant;
-  bossActorId: string;
   disabled: boolean;
   state: BattleState;
+  /** Controlled — MobileCombatScene owns this so MobilePartyCardTray's
+   *  target-pick mode can share the same source of truth. */
+  pendingId: string | null;
+  onArm: (definitionId: string | null) => void;
+  pickedTargetActorId: string | null;
   onSubmit: (action: PlayerAction) => void;
 }
 
@@ -29,29 +35,36 @@ const SLOT_INDEX: Record<AbilitySlotType, number> = {
 /**
  * Mobile Ability Row — a compact 3-tile strip (~46px tall). Each tile shows
  * only the essentials: number badge, ability name, cost, and a status color.
- * No art in the strip itself — art + full description live in a popover that
- * appears above the strip when a tile is tapped (first tap = pending, second
- * tap = confirm, per the desktop two-tap contract).
- *
- * This keeps the cards + boss as the visual stars while still surfacing
- * every gameplay-relevant field.
+ * No art in the strip itself — art + full description + Confirm/Cancel live
+ * in a shared preview card that appears above the strip when a tile is
+ * armed. Tapping a tile only arms/disarms it — firing only ever happens via
+ * the preview card's Confirm button (no more "tap twice to fire").
  */
-export function MobileAbilityRow({ hero, bossActorId, disabled, state, onSubmit }: Props) {
-  const [pendingId, setPendingId] = useState<string | null>(null);
+export function MobileAbilityRow({
+  hero,
+  disabled,
+  state,
+  pendingId,
+  onArm,
+  pickedTargetActorId,
+  onSubmit,
+}: Props) {
   const store = getAbilityStore();
 
   useEffect(() => {
     if (!pendingId) return;
     const a = hero.snapshot.abilities.find((x) => x.definitionId === pendingId);
-    if (!a || isDenied(hero, a, disabled)) setPendingId(null);
+    if (!a || isDenied(hero, a, disabled)) onArm(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hero, disabled, pendingId]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPendingId(null);
+      if (e.key === 'Escape') onArm(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const slots = useMemo(
@@ -68,6 +81,19 @@ export function MobileAbilityRow({ hero, bossActorId, disabled, state, onSubmit 
     : null;
   const pendingArtUrl = pendingAbility ? artUrl(store, pendingAbility) : null;
   const pendingSlot = pendingAbility?.slot;
+  const pendingTargetRule = pendingAbility?.version.targetRule ?? null;
+  const needsPick = pendingTargetRule
+    ? targetRuleNeedsPlayerPick(pendingTargetRule) &&
+      state.heroes.some((h) => !h.defeated && h.actorId !== hero.actorId)
+    : false;
+  const resolvedTargetIds: string[] | null = !pendingAbility || !pendingTargetRule
+    ? null
+    : needsPick
+    ? pickedTargetActorId
+      ? [pickedTargetActorId]
+      : null
+    : resolveTargetRule(state, hero.actorId, pendingTargetRule, []).targetActorIds;
+  const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
   const pendingProjectedDamage = pendingAbility
     ? previewAbilityDamage(state, hero, pendingAbility)
     : null;
@@ -82,15 +108,18 @@ export function MobileAbilityRow({ hero, bossActorId, disabled, state, onSubmit 
             slot={pendingSlot!}
             artUrl={pendingArtUrl}
             projectedDamage={pendingProjectedDamage}
+            targetName={targetName}
+            needsTargetPick={needsPick && !pickedTargetActorId}
             onConfirm={() => {
+              if (!resolvedTargetIds) return;
               onSubmit({
                 kind: 'ability',
                 abilityDefinitionId: pendingAbility.definitionId,
-                targetActorIds: [bossActorId],
+                targetActorIds: resolvedTargetIds,
               });
-              setPendingId(null);
+              onArm(null);
             }}
-            onCancel={() => setPendingId(null)}
+            onCancel={() => onArm(null)}
           />
         </div>
       )}
@@ -115,18 +144,7 @@ export function MobileAbilityRow({ hero, bossActorId, disabled, state, onSubmit 
             onClick={() => {
               if (!ability) return;
               if (isDenied(hero, ability, disabled)) return;
-              if (pendingId !== ability.definitionId) {
-                setPendingId(ability.definitionId);
-                return;
-              }
-              // Second tap on the same tile — confirm via the popover's
-              // handler for consistency (also fires here for keyboard users).
-              onSubmit({
-                kind: 'ability',
-                abilityDefinitionId: ability.definitionId,
-                targetActorIds: [bossActorId],
-              });
-              setPendingId(null);
+              onArm(pendingId === ability.definitionId ? null : ability.definitionId);
             }}
           />
         ))}
@@ -151,8 +169,10 @@ function MobileAbilityTile({
   onClick: () => void;
 }) {
   const empty = !ability;
-  const onCd =
-    !empty && hero.cooldowns.some((c) => c.abilityDefinitionId === ability!.definitionId);
+  const cooldownEntry = !empty
+    ? hero.cooldowns.find((c) => c.abilityDefinitionId === ability!.definitionId)
+    : undefined;
+  const onCd = cooldownEntry !== undefined;
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
@@ -160,18 +180,18 @@ function MobileAbilityTile({
   const statusText = empty
     ? 'EMPTY'
     : onCd
-    ? 'CD'
+    ? `CD ${cooldownEntry!.remainingRounds}`
     : short
     ? 'NO MP'
     : notCharged
     ? 'LOCK'
     : pending
-    ? 'CONFIRM'
+    ? 'SELECTED'
     : 'READY';
   const statusColor =
     statusText === 'READY'
       ? '#8ab87d'
-      : statusText === 'CONFIRM'
+      : statusText === 'SELECTED'
       ? '#f0942e'
       : statusText === 'LOCK'
       ? '#c88a45'
@@ -207,7 +227,7 @@ function MobileAbilityTile({
         empty
           ? `${SLOT_LABEL[slot]} slot — empty`
           : `${SLOT_LABEL[slot]}: ${ability!.displayName}${
-              pending ? ' — tap again to confirm' : ''
+              pending ? ' — selected, use the preview panel to confirm or cancel' : ''
             }`
       }
     >

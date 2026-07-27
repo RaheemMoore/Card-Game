@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../../types/card';
 import type { BattleState, PlayerAction } from '../../../types/combat';
 import type { AnimationBeat } from '../../../services/combat/presentation/types';
+import { targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
 import { MobileBossHeader } from './MobileBossHeader';
 import { MobileIntentPanel } from './MobileIntentPanel';
 import { MobileArenaStage } from './MobileArenaStage';
@@ -97,6 +98,34 @@ export function MobileCombatScene({
 
   const aliveCount = state.heroes.filter((h) => !h.defeated).length;
   const pendingActions = state.pendingActorIds.length;
+
+  // Armed-ability + target-pick state, mirroring desktop's CombatScene —
+  // owned here so MobilePartyCardTray's target-pick mode shares the same
+  // source of truth as MobileAbilityRow's preview card.
+  const [pendingAbilityId, setPendingAbilityId] = useState<string | null>(null);
+  const [pickedTargetActorId, setPickedTargetActorId] = useState<string | null>(null);
+
+  const armAbility = (definitionId: string | null) => {
+    setPendingAbilityId(definitionId);
+    setPickedTargetActorId(null);
+  };
+
+  useEffect(() => {
+    setPendingAbilityId(null);
+    setPickedTargetActorId(null);
+  }, [selectedHero?.actorId]);
+
+  const pendingAbility = pendingAbilityId
+    ? selectedHero?.snapshot.abilities.find((a) => a.definitionId === pendingAbilityId) ?? null
+    : null;
+  const needsTargetPick =
+    pendingAbility && selectedHero
+      ? targetRuleNeedsPlayerPick(pendingAbility.version.targetRule) &&
+        state.heroes.some((h) => !h.defeated && h.actorId !== selectedHero.actorId)
+      : false;
+  const pickableActorIds = selectedHero
+    ? state.heroes.filter((h) => !h.defeated && h.actorId !== selectedHero.actorId).map((h) => h.actorId)
+    : [];
 
   const isPlaybackMode = !canAct || isPlaying;
 
@@ -222,6 +251,9 @@ export function MobileCombatScene({
             canAct={canAct}
             currentBeat={currentBeat}
             loweredForPlayback={isPlaybackMode}
+            targetPickMode={
+              needsTargetPick ? { pickableActorIds, onPick: setPickedTargetActorId } : null
+            }
           />
         </div>
       </div>
@@ -280,9 +312,11 @@ export function MobileCombatScene({
           {selectedHero && !selectedHero.defeated && (
             <MobileAbilityRow
               hero={selectedHero}
-              bossActorId={state.boss.actorId}
               disabled={!canAct}
               state={state}
+              pendingId={pendingAbilityId}
+              onArm={armAbility}
+              pickedTargetActorId={pickedTargetActorId}
               onSubmit={onSubmit}
             />
           )}

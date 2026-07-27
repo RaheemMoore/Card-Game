@@ -7,6 +7,11 @@ import { getHeroSprite } from '../../data/combat/heroSpriteManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { FloatingDamage } from './FloatingDamage';
 
+interface TargetPickMode {
+  pickableActorIds: string[];
+  onPick: (actorId: string) => void;
+}
+
 interface Props {
   heroes: HeroCombatant[];
   partyCards: Card[];
@@ -14,6 +19,10 @@ interface Props {
   canAct: boolean;
   currentBeat: AnimationBeat | null;
   onSelectActor: (actorId: string) => void;
+  /** When set, tapping a pickable ally lane picks an ability target instead
+   *  of reordering turn order — the two "tap a hero" behaviors never
+   *  overlap since only one is ever active at a time. */
+  targetPickMode?: TargetPickMode | null;
 }
 
 /**
@@ -34,6 +43,7 @@ export function HeroForeground({
   canAct,
   currentBeat,
   onSelectActor,
+  targetPickMode = null,
 }: Props) {
   return (
     <div
@@ -48,6 +58,7 @@ export function HeroForeground({
       {heroes.map((combatant, i) => {
         const card = partyCards[i];
         if (!card) return <div key={combatant.actorId} />;
+        const pickable = targetPickMode ? targetPickMode.pickableActorIds.includes(combatant.actorId) : false;
         return (
           <HeroLaneCard
             key={combatant.actorId}
@@ -57,6 +68,7 @@ export function HeroForeground({
             canAct={canAct}
             currentBeat={currentBeat}
             onSelect={() => onSelectActor(combatant.actorId)}
+            picking={targetPickMode ? { pickable, onPick: () => targetPickMode.onPick(combatant.actorId) } : null}
           />
         );
       })}
@@ -71,6 +83,7 @@ function HeroLaneCard({
   canAct,
   currentBeat,
   onSelect,
+  picking,
 }: {
   card: Card;
   combatant: HeroCombatant;
@@ -78,6 +91,9 @@ function HeroLaneCard({
   canAct: boolean;
   currentBeat: AnimationBeat | null;
   onSelect: () => void;
+  /** Non-null while an ability's target picker is active; `pickable`
+   *  gates whether THIS lane can be tapped to pick. */
+  picking: { pickable: boolean; onPick: () => void } | null;
 }) {
   const [shakeKey, setShakeKey] = useState(0);
   const lastShakeBeatId = useRef<string | null>(null);
@@ -112,12 +128,20 @@ function HeroLaneCard({
     ? 'opacity-100'
     : 'opacity-80';
 
-  const tappable = canAct && !isActing && !isDefeated;
+  const tappable = picking ? picking.pickable : canAct && !isActing && !isDefeated;
+  const handleTap = picking ? picking.onPick : onSelect;
+  const ariaHint = picking
+    ? picking.pickable
+      ? ' — tap to target this ally'
+      : ''
+    : tappable
+    ? ' — tap to act next'
+    : '';
   return (
     <div
-      className={`hero-lane relative flex flex-col items-center justify-end transition-all duration-300 ease-out pointer-events-auto ${laneTransform} ${laneOpacity} ${tappable ? 'cursor-pointer' : ''}`}
-      aria-label={`${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP${tappable ? ' — tap to act next' : ''}`}
-      onClick={tappable ? onSelect : undefined}
+      className={`hero-lane relative flex flex-col items-center justify-end transition-all duration-300 ease-out pointer-events-auto ${laneTransform} ${laneOpacity} ${tappable ? 'cursor-pointer' : ''} ${picking?.pickable ? 'hero-lane-pickable' : ''}`}
+      aria-label={`${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP${ariaHint}`}
+      onClick={tappable ? handleTap : undefined}
       role={tappable ? 'button' : undefined}
       tabIndex={tappable ? 0 : undefined}
       onKeyDown={
@@ -125,7 +149,7 @@ function HeroLaneCard({
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onSelect();
+                handleTap();
               }
             }
           : undefined
@@ -159,7 +183,7 @@ function HeroLaneCard({
       {/* Card frame */}
       <div
         key={shakeKey}
-        className="relative hero-lane-shake"
+        className={`relative hero-lane-shake ${picking?.pickable ? 'hero-lane-target-reticle' : ''}`}
         style={{
           filter: isActing
             ? 'drop-shadow(0 14px 26px rgba(0,0,0,0.9)) drop-shadow(0 0 26px rgba(212,175,55,0.55))'
@@ -217,9 +241,24 @@ function HeroLaneCard({
           100% { transform: translate(0, 0); }
         }
         .hero-lane-shake { animation: hero-lane-shake 0.35s ease-out; }
+
+        /* Target-picker affordance — a distinct gold pulsing ring so "pick an
+           ability target" never looks like the plain turn-reorder tap-hint. */
+        @keyframes hero-lane-target-pulse {
+          0%, 100% { box-shadow: 0 0 0 2px #eb962e, 0 0 18px 4px rgba(235,150,46,0.55); }
+          50%      { box-shadow: 0 0 0 3px #ffcc63, 0 0 26px 8px rgba(235,150,46,0.75); }
+        }
+        .hero-lane-target-reticle {
+          border-radius: 10px;
+          animation: hero-lane-shake 0.35s ease-out, hero-lane-target-pulse 1.1s ease-in-out infinite;
+        }
         @media (prefers-reduced-motion: reduce) {
           .hero-lane-shake { animation: none !important; }
           .hero-lane { transition: none !important; }
+          .hero-lane-target-reticle {
+            animation: none !important;
+            box-shadow: 0 0 0 3px #eb962e;
+          }
         }
       `}</style>
     </div>

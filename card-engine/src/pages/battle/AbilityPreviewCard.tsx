@@ -20,6 +20,8 @@ export function AbilityPreviewCard({
   slot,
   artUrl,
   projectedDamage,
+  targetName,
+  needsTargetPick = false,
   onConfirm,
   onCancel,
 }: {
@@ -28,6 +30,11 @@ export function AbilityPreviewCard({
   artUrl: string | null;
   /** Computed via previewAbilityDamage — null when the ability has no direct-damage effect. */
   projectedDamage: number | null;
+  /** Display name of the resolved target, or null while a pick is still pending. */
+  targetName: string | null;
+  /** True when this ability needs a player-picked ally target and none has
+   *  been picked yet — Confirm is replaced with a "tap an ally" prompt. */
+  needsTargetPick?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -111,6 +118,17 @@ export function AbilityPreviewCard({
             >
               {ability.displayName}
             </div>
+            {targetName && (
+              <div
+                style={{
+                  color: '#9c8969',
+                  fontSize: 10,
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
+              >
+                on {targetName}
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -170,27 +188,48 @@ export function AbilityPreviewCard({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={onConfirm}
-          className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-          style={{
-            marginTop: 2,
-            height: 26,
-            borderRadius: 4,
-            border: '1.5px solid #eb962e',
-            background: 'linear-gradient(to right, #592b09, #1a1412)',
-            color: '#ffdb94',
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 1.4,
-            fontFamily: 'Inter, system-ui, sans-serif',
-            cursor: 'pointer',
-            boxShadow: '0 0 12px rgba(235,150,46,0.35)',
-          }}
-        >
-          CONFIRM →
-        </button>
+        {needsTargetPick ? (
+          <div
+            style={{
+              marginTop: 2,
+              height: 26,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 4,
+              border: '1.5px dashed #6b5230',
+              color: '#d8b878',
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: 1.1,
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
+            TAP AN ALLY TO TARGET
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            style={{
+              marginTop: 2,
+              height: 26,
+              borderRadius: 4,
+              border: '1.5px solid #eb962e',
+              background: 'linear-gradient(to right, #592b09, #1a1412)',
+              color: '#ffdb94',
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 1.4,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              cursor: 'pointer',
+              boxShadow: '0 0 12px rgba(235,150,46,0.35)',
+            }}
+          >
+            CONFIRM →
+          </button>
+        )}
       </div>
     </div>
   );

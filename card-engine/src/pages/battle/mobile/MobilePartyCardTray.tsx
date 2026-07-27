@@ -5,6 +5,11 @@ import type { AnimationBeat } from '../../../services/combat/presentation/types'
 import { CardRenderer } from '../../../components/CardRenderer';
 import { FloatingDamage } from '../FloatingDamage';
 
+interface TargetPickMode {
+  pickableActorIds: string[];
+  onPick: (actorId: string) => void;
+}
+
 interface Props {
   heroes: HeroCombatant[];
   partyCards: Card[];
@@ -15,6 +20,9 @@ interface Props {
   currentBeat: AnimationBeat | null;
   /** Playback Mode: cards lower slightly, glow reduced. */
   loweredForPlayback: boolean;
+  /** When set, tapping a pickable ally lane picks an ability target instead
+   *  of switching the selected hero. */
+  targetPickMode?: TargetPickMode | null;
 }
 
 /**
@@ -34,6 +42,7 @@ export function MobilePartyCardTray({
   canAct,
   currentBeat,
   loweredForPlayback,
+  targetPickMode = null,
 }: Props) {
   // Visual rotation so the selected hero always renders in the CENTER
   // display slot, with neighbors on either side. The canonical party order
@@ -96,6 +105,7 @@ export function MobilePartyCardTray({
               : displayIdx === displayOrder.length - 1 && displayOrder.length >= 2 && !isSelected
               ? 'right'
               : 'center';
+          const pickable = targetPickMode ? targetPickMode.pickableActorIds.includes(combatant.actorId) : false;
           return (
             <MobileHeroLane
               key={combatant.actorId}
@@ -107,6 +117,7 @@ export function MobilePartyCardTray({
               onSelect={() => onSelect(combatant.actorId)}
               currentBeat={currentBeat}
               loweredForPlayback={loweredForPlayback}
+              picking={targetPickMode ? { pickable, onPick: () => targetPickMode.onPick(combatant.actorId) } : null}
             />
           );
         })}
@@ -124,6 +135,7 @@ function MobileHeroLane({
   onSelect,
   currentBeat,
   loweredForPlayback,
+  picking,
 }: {
   card: Card;
   combatant: HeroCombatant;
@@ -133,6 +145,8 @@ function MobileHeroLane({
   onSelect: () => void;
   currentBeat: AnimationBeat | null;
   loweredForPlayback: boolean;
+  /** Non-null while an ability's target picker is active. */
+  picking: { pickable: boolean; onPick: () => void } | null;
 }) {
   const [shakeKey, setShakeKey] = useState(0);
   const lastShakeBeatId = useRef<string | null>(null);
@@ -165,10 +179,10 @@ function MobileHeroLane({
     >
       <button
         type="button"
-        onClick={onSelect}
-        disabled={isDefeated}
+        onClick={picking ? picking.onPick : onSelect}
+        disabled={picking ? !picking.pickable : isDefeated}
         aria-label={`${combatant.snapshot.displayName} — ${
-          isSelected ? 'selected' : 'tap to select'
+          picking ? (picking.pickable ? 'tap to target this ally' : '') : isSelected ? 'selected' : 'tap to select'
         }, ${combatant.hp} of ${combatant.snapshot.maxHp} HP`}
         aria-pressed={isSelected}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-lg"
@@ -186,7 +200,7 @@ function MobileHeroLane({
       >
         <div
           key={shakeKey}
-          className="relative mobile-hero-lane-shake"
+          className={`relative mobile-hero-lane-shake ${picking?.pickable ? 'mobile-hero-lane-target-reticle' : ''}`}
           style={{
             filter: isSelected
               ? canAct
@@ -222,8 +236,21 @@ function MobileHeroLane({
           100% { transform: translate(0, 0); }
         }
         .mobile-hero-lane-shake { animation: mobile-hero-lane-shake 0.35s ease-out; }
+
+        @keyframes mobile-hero-lane-target-pulse {
+          0%, 100% { box-shadow: 0 0 0 2px #eb962e, 0 0 14px 3px rgba(235,150,46,0.55); }
+          50%      { box-shadow: 0 0 0 3px #ffcc63, 0 0 20px 6px rgba(235,150,46,0.75); }
+        }
+        .mobile-hero-lane-target-reticle {
+          border-radius: 8px;
+          animation: mobile-hero-lane-shake 0.35s ease-out, mobile-hero-lane-target-pulse 1.1s ease-in-out infinite;
+        }
         @media (prefers-reduced-motion: reduce) {
           .mobile-hero-lane-shake { animation: none !important; }
+          .mobile-hero-lane-target-reticle {
+            animation: none !important;
+            box-shadow: 0 0 0 3px #eb962e;
+          }
         }
       `}</style>
     </div>

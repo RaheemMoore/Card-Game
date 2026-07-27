@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import type { Card } from '../../types/card';
 import type { BattleState, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
+import { targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
 import { HeroForeground } from './HeroForeground';
@@ -46,6 +48,34 @@ export function CombatScene({
     state.heroes.find((h) => !h.defeated) ??
     state.heroes[0];
   const canAct = state.phase === 'awaiting_player_action';
+
+  // Armed-ability + target-pick state lives here (not inside AbilityCommandBar)
+  // so HeroForeground's target-pick mode can share the same source of truth.
+  const [pendingAbilityId, setPendingAbilityId] = useState<string | null>(null);
+  const [pickedTargetActorId, setPickedTargetActorId] = useState<string | null>(null);
+
+  const armAbility = (definitionId: string | null) => {
+    setPendingAbilityId(definitionId);
+    setPickedTargetActorId(null);
+  };
+
+  // Switching acting hero (or losing the ability to a deny) clears any armed
+  // pick — stale cross-hero state would be confusing, not helpful.
+  useEffect(() => {
+    setPendingAbilityId(null);
+    setPickedTargetActorId(null);
+  }, [actingHero.actorId]);
+
+  const pendingAbility = pendingAbilityId
+    ? actingHero.snapshot.abilities.find((a) => a.definitionId === pendingAbilityId) ?? null
+    : null;
+  const needsTargetPick = pendingAbility
+    ? targetRuleNeedsPlayerPick(pendingAbility.version.targetRule) &&
+      state.heroes.some((h) => !h.defeated && h.actorId !== actingHero.actorId)
+    : false;
+  const pickableActorIds = state.heroes
+    .filter((h) => !h.defeated && h.actorId !== actingHero.actorId)
+    .map((h) => h.actorId);
 
   return (
     <div className="absolute inset-0">
@@ -176,6 +206,9 @@ export function CombatScene({
         canAct={canAct}
         currentBeat={currentBeat}
         onSelectActor={onSelectActor}
+        targetPickMode={
+          needsTargetPick ? { pickableActorIds, onPick: setPickedTargetActorId } : null
+        }
       />
 
       {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
@@ -195,9 +228,11 @@ export function CombatScene({
       {/* Ability command bar (inside shelf) */}
       <AbilityCommandBar
         hero={actingHero}
-        bossActorId={boss.actorId}
         disabled={!canAct}
         state={state}
+        pendingId={pendingAbilityId}
+        onArm={armAbility}
+        pickedTargetActorId={pickedTargetActorId}
         onSubmit={onSubmit}
       />
 
