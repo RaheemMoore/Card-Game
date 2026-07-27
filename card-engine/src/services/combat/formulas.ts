@@ -38,7 +38,7 @@ const RESOURCE_RANK_BONUS: Record<Rank, number> = {
   Forged: 1,
   Ascendant: 2,
 };
-const RESOURCE_REGEN_PER_ROUND = 1;
+export const RESOURCE_REGEN_PER_ROUND = 1;
 
 const DEFENSE_MITIGATION_DIVISOR = 5;
 

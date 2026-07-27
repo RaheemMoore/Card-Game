@@ -2,6 +2,7 @@ import type {
   AbilityEffect,
   AbilityVersion,
 } from '../../types/abilities';
+import { resolveTargetRule } from './targeting';
 import type {
   AbilityCombatSnapshot,
   BattleEvent,
@@ -17,9 +18,11 @@ import type {
 import {
   FIRE_ELEMENTAL_RESISTANCE,
   NEUTRAL_RESISTANCE,
+  RESOURCE_REGEN_PER_ROUND,
   clampUltimateCharge,
   deriveHeroStats,
   guardShieldAmount,
+  heroResistance,
   FOCUS_RESOURCE_GAIN,
   resolveDamage,
   resolveHeal,
@@ -247,7 +250,26 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
         rounds: abilityRef.version.cooldownRounds ?? 0,
       });
 
-      const outcome = resolveAbilityEffects(next, hero.actorId, action, abilityRef.version.effects);
+      // Target resolution is reducer-owned (not client-supplied) so any RNG
+      // a rule consumes (random_enemy) lands in the deterministic replay log.
+      // The one exception is single_ally, where the UI already collected a
+      // player pick — resolveTargetRule trusts/validates that pick.
+      const targetResolution = resolveTargetRule(
+        next,
+        hero.actorId,
+        abilityRef.version.targetRule,
+        action.targetActorIds,
+      );
+      if (targetResolution.nextRngCursor !== undefined) {
+        next = { ...next, rngCursor: targetResolution.nextRngCursor };
+      }
+
+      const outcome = resolveAbilityEffects(
+        next,
+        hero.actorId,
+        targetResolution.targetActorIds,
+        abilityRef.version.effects,
+      );
       next = outcome.state;
       events.push(...outcome.events);
       break;
@@ -482,9 +504,8 @@ function doEndOfRound(state: BattleState): StepResult {
     ...next,
     heroes: next.heroes.map((h) => {
       if (h.defeated) return h;
-      const regen = 1;
       const room = Math.max(0, h.snapshot.maxResource - h.resource);
-      const gained = Math.min(regen, room);
+      const gained = Math.min(RESOURCE_REGEN_PER_ROUND, room);
       if (gained > 0) {
         events.push({ kind: 'resource_changed', actorId: h.actorId, delta: gained, source: 'regen' });
       }
@@ -608,7 +629,7 @@ export function previewAbilityDamage(
 function resolveAbilityEffects(
   state: BattleState,
   actorId: string,
-  action: PlayerAction & { kind: 'ability' },
+  targetActorIds: readonly string[],
   effects: readonly AbilityEffect[],
 ): StepResult {
   let next = state;
@@ -617,95 +638,111 @@ function resolveAbilityEffects(
   for (const effect of effects) {
     switch (effect.type) {
       case 'direct_damage': {
-        const targetId = action.targetActorIds[0] ?? state.boss.actorId;
         const hero = next.heroes.find((h) => h.actorId === actorId)!;
-        const target = resolveTarget(next, targetId);
-        if (!target || target.kind !== 'boss') break;
-        const dmg = resolveDamage({
-          baseAmount: effect.amount,
-          damageType: effect.damageType ?? 'physical',
-          scaling: effect.scaling,
-          attackerStats: hero.snapshot.stats,
-          targetMitigation: 0,
-          targetResistance: bossResistance(next),
-          targetShields: next.boss.shields,
-        });
-        next = applyDamageToBoss(next, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
-          sourceActorId: actorId,
-          damageType: dmg.damageType,
-        });
-        // Ultimate charge from damage dealt.
-        const delta = ultimateChargeGain({ damageDealt: dmg.postShieldAmount });
-        if (delta > 0) {
-          next = mutateHero(next, actorId, (h) => ({
-            ...h,
-            ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
-          }));
-          events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'damage_dealt' });
+        for (const targetId of targetActorIds) {
+          const target = resolveTarget(next, targetId);
+          if (!target) continue;
+          const targetResistance =
+            target.kind === 'boss' ? bossResistance(next) : heroResistance(target.actor.snapshot);
+          const targetMitigation =
+            target.kind === 'boss' ? 0 : Math.floor(target.actor.snapshot.stats.Def.value / 5);
+          const dmg = resolveDamage({
+            baseAmount: effect.amount,
+            damageType: effect.damageType ?? 'physical',
+            scaling: effect.scaling,
+            attackerStats: hero.snapshot.stats,
+            targetMitigation,
+            targetResistance,
+            targetShields: target.actor.shields,
+          });
+          next =
+            target.kind === 'boss'
+              ? applyDamageToBoss(next, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+                  sourceActorId: actorId,
+                  damageType: dmg.damageType,
+                })
+              : applyDamageToHero(next, targetId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+                  sourceActorId: actorId,
+                  damageType: dmg.damageType,
+                });
+          // Ultimate charge from damage dealt.
+          const delta = ultimateChargeGain({ damageDealt: dmg.postShieldAmount });
+          if (delta > 0) {
+            next = mutateHero(next, actorId, (h) => ({
+              ...h,
+              ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
+            }));
+            events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'damage_dealt' });
+          }
         }
         break;
       }
       case 'healing': {
-        const hero = next.heroes.find((h) => h.actorId === actorId);
-        if (!hero || hero.defeated) break;
-        const heal = resolveHeal(effect.amount, hero.hp, hero.snapshot.maxHp);
-        if (heal.actualAmount > 0) {
-          next = mutateHero(next, actorId, (h) => ({ ...h, hp: h.hp + heal.actualAmount }));
-          events.push({ kind: 'healing_applied', sourceActorId: actorId, targetActorId: actorId, amount: heal.actualAmount, overheal: heal.overheal });
+        for (const targetId of targetActorIds) {
+          const hero = next.heroes.find((h) => h.actorId === targetId);
+          if (!hero || hero.defeated) continue;
+          const heal = resolveHeal(effect.amount, hero.hp, hero.snapshot.maxHp);
+          if (heal.actualAmount > 0) {
+            next = mutateHero(next, targetId, (h) => ({ ...h, hp: h.hp + heal.actualAmount }));
+            events.push({ kind: 'healing_applied', sourceActorId: actorId, targetActorId: targetId, amount: heal.actualAmount, overheal: heal.overheal });
+          }
         }
         break;
       }
       case 'shielding': {
-        const hero = next.heroes.find((h) => h.actorId === actorId);
-        if (!hero || hero.defeated) break;
-        next = mutateHero(next, actorId, (h) => ({
-          ...h,
-          shields: [
-            ...h.shields,
-            {
-              amount: effect.amount,
-              types: [],
-              remainingRounds: effect.duration ?? Infinity,
-              sourceActorId: actorId,
-            },
-          ],
-        }));
-        events.push({ kind: 'shield_gained', sourceActorId: actorId, targetActorId: actorId, amount: effect.amount, types: [] });
+        for (const targetId of targetActorIds) {
+          const hero = next.heroes.find((h) => h.actorId === targetId);
+          if (!hero || hero.defeated) continue;
+          next = mutateHero(next, targetId, (h) => ({
+            ...h,
+            shields: [
+              ...h.shields,
+              {
+                amount: effect.amount,
+                types: [],
+                remainingRounds: effect.duration ?? Infinity,
+                sourceActorId: actorId,
+              },
+            ],
+          }));
+          events.push({ kind: 'shield_gained', sourceActorId: actorId, targetActorId: targetId, amount: effect.amount, types: [] });
+        }
         break;
       }
       case 'apply_status': {
-        const targetId = action.targetActorIds[0] ?? state.boss.actorId;
-        const instance: StatusInstance = {
-          instanceId: `st_${state.step}_${effect.status.statusId}`,
-          statusId: effect.status.statusId,
-          sourceActorId: actorId,
-          application: effect.status,
-          remainingRounds: effect.status.duration,
-          stacks: effect.status.stacks ?? 1,
-        };
-        if (targetId === next.boss.actorId) {
-          next = {
-            ...next,
-            boss: { ...next.boss, statuses: [...next.boss.statuses, instance] },
+        for (const targetId of targetActorIds) {
+          const instance: StatusInstance = {
+            instanceId: `st_${state.step}_${effect.status.statusId}_${targetId}`,
+            statusId: effect.status.statusId,
+            sourceActorId: actorId,
+            application: effect.status,
+            remainingRounds: effect.status.duration,
+            stacks: effect.status.stacks ?? 1,
           };
-          // Ult charge from applying status to boss.
-          const delta = ultimateChargeGain({ statusAppliedToBoss: true });
-          next = mutateHero(next, actorId, (h) => ({
-            ...h,
-            ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
-          }));
-          events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'status_applied' });
-        } else {
-          next = mutateHero(next, targetId, (h) => ({ ...h, statuses: [...h.statuses, instance] }));
+          if (targetId === next.boss.actorId) {
+            next = {
+              ...next,
+              boss: { ...next.boss, statuses: [...next.boss.statuses, instance] },
+            };
+            // Ult charge from applying status to boss.
+            const delta = ultimateChargeGain({ statusAppliedToBoss: true });
+            next = mutateHero(next, actorId, (h) => ({
+              ...h,
+              ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
+            }));
+            events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'status_applied' });
+          } else {
+            next = mutateHero(next, targetId, (h) => ({ ...h, statuses: [...h.statuses, instance] }));
+          }
+          events.push({
+            kind: 'status_applied',
+            sourceActorId: actorId,
+            targetActorId: targetId,
+            statusId: instance.statusId,
+            instanceId: instance.instanceId,
+            duration: instance.remainingRounds,
+          });
         }
-        events.push({
-          kind: 'status_applied',
-          sourceActorId: actorId,
-          targetActorId: targetId,
-          statusId: instance.statusId,
-          instanceId: instance.instanceId,
-          duration: instance.remainingRounds,
-        });
         break;
       }
       case 'resource_gain': {
