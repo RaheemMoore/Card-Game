@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ArchetypeName, CardStats, Card } from '../types/card';
 import type { ElementSelection, StoryPillarAnswers } from '../types/bible';
-import { forgeSceneFor } from '../data/forgeScenes';
+import { archetypeBackgroundFor } from '../data/archetypeBackgrounds';
 import { ArchetypeSelector } from '../components/ArchetypeSelector';
 import { DiceRoll } from '../components/DiceRoll';
 import { StoryPillarWizard } from '../components/StoryPillarWizard';
@@ -187,20 +187,26 @@ export function CardForge() {
   const activeKey: WizardStage | 'reveal' = isForging || showReveal ? 'reveal' : stage;
   const stageIndex = stages.indexOf(activeKey);
 
-  // Dynamic forge scene: the world transforms with the archetype + element choice.
-  const forgeScene = forgeSceneFor(archetype, chosenElement?.element ?? null);
+  // Static per-archetype background — set once the archetype is chosen and
+  // held through the rest of the forge flow (stats, element, pillars, reveal).
+  const forgeBackground = archetypeBackgroundFor(archetype);
 
   return (
     <div className="relative flex-1 flex flex-col">
-      {forgeScene && (
+      {forgeBackground && (
         <div
-          key={forgeScene}
-          className="pointer-events-none absolute inset-0 overflow-hidden animate-[fadeIn_0.6s_ease-out]"
+          key={archetype}
+          className="pointer-events-none fixed inset-0 overflow-hidden animate-[fadeIn_0.6s_ease-out]"
         >
           <img
-            src={forgeScene}
+            src={forgeBackground.landscape}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover"
+            className="hidden md:block absolute inset-0 w-full h-full object-cover"
+          />
+          <img
+            src={forgeBackground.portrait}
+            alt=""
+            className="md:hidden absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80" />
         </div>

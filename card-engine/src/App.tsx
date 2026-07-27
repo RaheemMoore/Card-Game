@@ -23,6 +23,7 @@ import { DevSeedBattle } from './pages/DevSeedBattle';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
+import { LoginPreview } from './pages/LoginPreview';
 
 // Wallet + card-store initialization now happens inside PersistenceGate,
 // which awaits Supabase auth + migration + hydrate before the router
@@ -34,6 +35,9 @@ export default function App() {
     <PersistenceGate>
       <BrowserRouter>
         <Routes>
+          {/* Throwaway preview route — new login background art check only. */}
+          <Route path="/login" element={<LoginPreview />} />
+
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
               no content offset. AdminShell owns the guard + its own chrome. */}
