@@ -23,9 +23,9 @@ function testStats(atk = 55, def = 45, mana = 60): CardStats {
 
 // A hero with all 5 seed abilities as a smoke test — mixes signatures + cores.
 function buildTestHero() {
-  const soulDrain = SEED_ABILITIES.find((s) => s.definition.id === 'ability_soul_drain')!;
-  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
-  const radiantWard = SEED_ABILITIES.find((s) => s.definition.id === 'ability_radiant_ward')!;
+  const soulDrain = SEED_ABILITIES.find((s) => s.definition.id === 'ability_inherited_guard')!;
+  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
+  const radiantWard = SEED_ABILITIES.find((s) => s.definition.id === 'ability_bearing_witness')!;
   return buildHeroSnapshot({
     cardId: 'card_test',
     archetype: 'Barbarian',
@@ -127,9 +127,13 @@ describe('snapshot immutability', () => {
 describe('element damage type is frozen into the snapshot', () => {
   // An element-typed ability, mirroring how core-slot abilities are authored.
   function elementTypedHero(elementDamageType: 'physical' | 'holy') {
-    const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
+    // Attuned Strike is the roster's element-typed basic, which is exactly
+    // what this is testing — and being a single direct_damage effect, its
+    // total is not muddied by a damage-over-time rider.
+    const attuned = SEED_ABILITIES.find((s) => s.definition.id === 'ability_attuned_strike')!;
+    const emberCleave = attuned;
     const version = {
-      ...emberCleave.version,
+      ...attuned.version,
       damageTypeSource: 'element' as const,
     };
     return buildHeroSnapshot({
@@ -174,7 +178,7 @@ describe('element damage type is frozen into the snapshot', () => {
     const snap = buildBattleSnapshot({ seed: 777, hero: elementTypedHero('holy') });
     const first = runBattle(snap, baselineHeroPolicy);
 
-    const seed = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
+    const seed = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
     const original = seed.definition.slug;
     seed.definition.slug = 'mutated-underneath-us';
     const second = runBattle(snap, baselineHeroPolicy);

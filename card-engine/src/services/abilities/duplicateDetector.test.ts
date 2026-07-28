@@ -4,29 +4,39 @@ import { normalizeCandidate } from './candidateNormalizer';
 import { detectDuplicate, overlapScore, signatureOf } from './duplicateDetector';
 import type { AbilityCandidate } from '../../types/abilities';
 
-const emberCleaveCandidate: AbilityCandidate = {
-  displayName: 'Ember Cleave',
-  familyIds: ['martial', 'fire'],
-  rarity: 'uncommon',
-  role: 'damage',
-  tags: ['sweep', 'burn', 'martial'],
-  descriptionShort: 'A sweeping strike that leaves the target burning.',
-  slotType: 'signature',
-  resourceType: 'mana',
-  resourceCost: 3,
-  cooldownRounds: 1,
-  targetRule: { type: 'single_enemy' },
-  effects: [
-    { type: 'direct_damage', amount: 18, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.5 } },
-    { type: 'damage_over_time', statusId: 'burn', amountPerTick: 4, duration: 3 },
-  ],
-  triggers: [{ type: 'on_use' }],
+const byId = (id: string) => {
+  const seed = SEED_ABILITIES.find((s) => s.definition.id === id);
+  if (!seed) throw new Error(`fixture missing: ${id}`);
+  return { def: seed.definition, version: seed.version };
 };
 
-// Library entry for Ember Cleave, in the same shape signatureOf() expects.
-const emberCleaveLib = { def: SEED_ABILITIES[0].definition, version: SEED_ABILITIES[0].version };
-const aegisWardLib = { def: SEED_ABILITIES[1].definition, version: SEED_ABILITIES[1].version };
-const soulDrainLib = { def: SEED_ABILITIES[3].definition, version: SEED_ABILITIES[3].version };
+/**
+ * A candidate shaped EXACTLY like Oathbreaker's Answer, so the exact-match
+ * path has something to collide with. Kept in sync by construction: the
+ * fields that feed `signatureOf` are read off the real ability rather than
+ * hand-copied, which is what stopped these fixtures from silently rotting the
+ * last time the roster changed.
+ */
+const collidingLib = byId('ability_oathbreakers_answer');
+const emberCleaveCandidate: AbilityCandidate = {
+  displayName: "A Different Name Entirely",
+  familyIds: [...collidingLib.def.familyIds],
+  rarity: collidingLib.def.rarity,
+  role: collidingLib.def.role,
+  tags: [...collidingLib.def.tags],
+  descriptionShort: collidingLib.def.descriptionShort,
+  slotType: collidingLib.version.slotType,
+  resourceType: collidingLib.version.resourceType,
+  resourceCost: collidingLib.version.resourceCost,
+  cooldownRounds: collidingLib.version.cooldownRounds,
+  targetRule: collidingLib.version.targetRule,
+  effects: collidingLib.version.effects,
+  triggers: collidingLib.version.triggers,
+};
+
+const emberCleaveLib = collidingLib;
+const aegisWardLib = byId('ability_bearing_witness');
+const soulDrainLib = byId('ability_set_guard');
 
 describe('signatureOf', () => {
   it('is identical for two candidates with the same normalized shape', () => {
@@ -53,7 +63,7 @@ describe('signatureOf', () => {
 
 describe('overlapScore', () => {
   it('scores near-maximum when candidate matches an existing library entry exactly', () => {
-    // Categories neither entry populates (e.g. conditions on Ember Cleave)
+    // Categories neither entry populates (e.g. conditions on Oathbreaker's Answer)
     // contribute 0, so the max is the weighted sum of the categories both
     // sides do use. Exact-match detection uses signatureOf() — this score is
     // just admin context.

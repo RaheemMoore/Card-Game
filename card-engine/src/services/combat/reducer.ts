@@ -1,4 +1,5 @@
 import type {
+  AbilityCondition,
   AbilityVersion,
   DamageType,
   ScalingRule,
@@ -1248,19 +1249,26 @@ function setStatuses(
 function conditionHolds(
   state: BattleState,
   hero: HeroCombatant,
-  condition: { type: string; percent?: number },
+  condition: AbilityCondition,
 ): boolean {
   switch (condition.type) {
-    case 'target_below_health_percent':
-      return state.boss.hp / state.boss.snapshot.maxHp <= (condition.percent ?? 0);
-    case 'self_below_health_percent':
-      return hero.hp / hero.snapshot.maxHp <= (condition.percent ?? 0);
-    case 'ally_below_health_percent':
-      return state.heroes.some(
-        (h) => !h.defeated && h.hp / h.snapshot.maxHp <= (condition.percent ?? 0),
-      );
+    case 'boss_hp_below_threshold':
+      return state.boss.hp / state.boss.snapshot.maxHp <= condition.percent;
+    case 'user_hp_below_threshold':
+      return hero.hp / hero.snapshot.maxHp <= condition.percent;
     case 'target_has_status':
-      return state.boss.statuses.length > 0;
+      return state.boss.statuses.some((st) => st.statusId === condition.statusId);
+    case 'user_has_status':
+      return hero.statuses.some((st) => st.statusId === condition.statusId);
+    case 'resource_above_threshold':
+      return hero.resource >= condition.amount;
+    case 'shield_active':
+      return condition.on === 'target'
+        ? state.boss.shields.length > 0
+        : hero.shields.length > 0;
+    // 'summon_exists' can never hold — summoning is out of scope — and
+    // 'family_ability_used_earlier' needs per-battle usage history the state
+    // does not carry. Both resolve false rather than silently true.
     default:
       return false;
   }

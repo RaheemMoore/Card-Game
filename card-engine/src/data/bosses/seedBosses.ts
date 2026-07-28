@@ -111,8 +111,8 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
 
 /* ---------- Emberborn Wraith v2 (B6 balance pass, 2026-07-18) ----------
  * v1 numbers were beatable in ~11 rounds at 100% by a Forged Mid Barbarian
- * spamming Ember Cleave with no risk. v2 raises each action's baseDamage by
- * ~1.8× so the hero has to actively use Radiant Ward + Guard to survive.
+ * spamming Oathbreaker's Answer with no risk. v2 raises each action's baseDamage by
+ * ~1.8× so the hero has to actively use Bearing Witness + Guard to survive.
  * v1 stays in the version table with status='deprecated' so any battle
  * snapshotted against it resolves off the frozen numbers.
  */

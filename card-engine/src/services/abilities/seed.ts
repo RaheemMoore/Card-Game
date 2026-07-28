@@ -5,8 +5,8 @@ import { registerPlaceholderArt } from './canonicalArtPipeline';
 
 /**
  * Idempotently populate the ability library with the launch taxonomy (8
- * families) and the 5 seed abilities (Ember Cleave, Aegis Ward, Thornbite,
- * Soul Drain, Radiant Ward).
+ * families) and the starting ability roster (6 shared basics + 3 each for
+ * Barbarian, Druid and Seraph — see data/abilities/seedAbilities.ts).
  *
  * Safe to call every session — existing rows are overwritten with the
  * latest catalog values. Admin-only against Supabase (RLS enforces).

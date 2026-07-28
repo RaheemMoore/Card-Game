@@ -1,3 +1,4 @@
+import { APPROVED_ABILITY_ART } from '../../data/abilities/visualManifest';
 import { describe, it, expect } from 'vitest';
 import { InMemoryAbilityStore } from '../persistence/AbilityStore';
 import { seedAbilityLibrary } from './seed';
@@ -51,7 +52,7 @@ describe('registerPlaceholderArt', () => {
     await seedAbilityLibrary(store);
     // Seed already populates placeholders — pick an ability, wipe its art,
     // and re-register to isolate the "no art yet" branch.
-    const def = store.getDefinition('ability_thornbite')!;
+    const def = store.getDefinition('ability_thornmantle')!;
     // Manually clear by saving a placeholder into a different ability id
     // then verifying that ability_thornbite's placeholder path still works.
     const asset = await registerPlaceholderArt(store, def, store.getFamily('nature'), {
@@ -66,7 +67,7 @@ describe('registerPlaceholderArt', () => {
   it('is idempotent — a second call is a no-op', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);
-    const def = store.getDefinition('ability_thornbite')!;
+    const def = store.getDefinition('ability_thornmantle')!;
 
     const first = await registerPlaceholderArt(store, def, store.getFamily('nature'), { now });
     const second = await registerPlaceholderArt(store, def, store.getFamily('nature'), { now });
@@ -90,7 +91,7 @@ describe('registerPlaceholderArt', () => {
     // Slugs with approved Gate 7A crops register as provider='manual' with
     // an assets triple pointing at /assets/abilities/approved/<slug>/.
     // Everything else is a family-tinted SVG placeholder in all three roles.
-    const approvedSlugs = new Set(['ember-cleave', 'aegis-ward', 'thornbite', 'soul-drain', 'radiant-ward']);
+    const approvedSlugs = new Set(Object.keys(APPROVED_ABILITY_ART));
     for (const def of store.getAllDefinitions()) {
       const art = store.getArtForAbility(def.id);
       expect(art, `art for ${def.id}`).toBeTruthy();
@@ -108,7 +109,7 @@ describe('registerPlaceholderArt', () => {
   it('backfills a stale placeholder row when the slug is in the approved manifest', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);
-    const def = store.getDefinition('ability_ember_cleave')!;
+    const def = store.getDefinition('ability_bearing_witness')!;
     const family = store.getFamily('fire');
     // Simulate an already-seeded prod account that landed BEFORE Gate 7A:
     // mark the current manifest row as 'replaced' and drop a bare placeholder
@@ -130,7 +131,7 @@ describe('registerPlaceholderArt', () => {
     const upgraded = await registerPlaceholderArt(store, def, family, { now });
     expect(upgraded).not.toBeNull();
     expect(upgraded?.provider).toBe('manual');
-    expect(upgraded?.assets?.combat.url).toMatch(/\/assets\/abilities\/approved\/ember-cleave\//);
+    expect(upgraded?.assets?.combat.url).toMatch(/\/assets\/abilities\/approved\/radiant-ward\//);
     // Same asset id — updates in place, no orphan row.
     expect(upgraded?.id).toBe(`art_${def.id}_placeholder_v1`);
 
@@ -142,7 +143,7 @@ describe('registerPlaceholderArt', () => {
   it('leaves a landed Leonardo asset alone even if the slug is now in the manifest', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);
-    const def = store.getDefinition('ability_ember_cleave')!;
+    const def = store.getDefinition('ability_bearing_witness')!;
     // Retire the manifest seed row and land a Leonardo asset on top.
     const existing = store.getArtForAbility(def.id)!;
     await store.saveArt({ ...existing, status: 'replaced' });
@@ -171,24 +172,24 @@ describe('buildLeonardoPrompt', () => {
   it('threads family theme, role, tags, and description into the prompt', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);
-    const def = store.getDefinition('ability_ember_cleave')!;
-    const version = store.getCurrentVersion('ability_ember_cleave')!;
+    const def = store.getDefinition('ability_oathbreakers_answer')!;
+    const version = store.getCurrentVersion('ability_oathbreakers_answer')!;
     const family = store.getFamily('fire');
 
     const { prompt, negativePrompt } = buildLeonardoPrompt({ def, version, family });
     expect(prompt).toContain('Fire family');
     expect(prompt).toContain('role: damage');
     expect(prompt).toContain(def.descriptionShort);
-    expect(prompt).toContain('sweep');
-    expect(prompt).toContain('burn');
+    // Tags come from the ability itself, so assert against its real ones.
+    for (const tag of def.tags) expect(prompt).toContain(tag);
     expect(negativePrompt).toContain('watermark');
   });
 
   it('applies family-appropriate atmosphere — tech does not get warm-ember language', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);
-    const def = store.getDefinition('ability_aegis_ward')!;
-    const version = store.getCurrentVersion('ability_aegis_ward')!;
+    const def = store.getDefinition('ability_set_guard')!;
+    const version = store.getCurrentVersion('ability_set_guard')!;
     const techFamily = store.getFamily('tech');
     const fireFamily = store.getFamily('fire');
 
@@ -206,8 +207,8 @@ describe('buildLeonardoPrompt', () => {
   it('crop parameter shifts composition hints — combat vs detail vs relic', async () => {
     const store = new InMemoryAbilityStore();
     await seedAbilityLibrary(store);
-    const def = store.getDefinition('ability_ember_cleave')!;
-    const version = store.getCurrentVersion('ability_ember_cleave')!;
+    const def = store.getDefinition('ability_bearing_witness')!;
+    const version = store.getCurrentVersion('ability_bearing_witness')!;
     const family = store.getFamily('fire');
 
     const combat = buildLeonardoPrompt({ def, version, family, crop: 'combat' });

@@ -34,7 +34,7 @@ function testStats(atk = 55, def = 45, mana = 60): CardStats {
 }
 
 function twoHeroState(): BattleState {
-  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
+  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
   const heroes = ['Seojin', 'Ashvara'].map((name, i) =>
     buildHeroSnapshot({
       cardId: `card_${i}`,
@@ -59,9 +59,9 @@ describe('summarizeJournal', () => {
 
     const events: BattleEvent[] = [
       { kind: 'round_started', round: 1 },
-      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_ember_cleave', targetActorIds: [boss] } },
+      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_oathbreakers_answer', targetActorIds: [boss] } },
       { kind: 'resource_changed', actorId: seojin.actorId, delta: -3, source: 'ability_cost' },
-      { kind: 'cooldown_started', actorId: seojin.actorId, abilityDefinitionId: 'ability_ember_cleave', rounds: 2 },
+      { kind: 'cooldown_started', actorId: seojin.actorId, abilityDefinitionId: 'ability_oathbreakers_answer', rounds: 2 },
       { kind: 'damage_dealt', sourceActorId: seojin.actorId, targetActorId: boss, amount: 49, damageType: 'fire', blockedByShield: 0 },
       { kind: 'ultimate_charge_changed', actorId: seojin.actorId, delta: 2, source: 'damage_dealt' },
     ];
@@ -69,7 +69,7 @@ describe('summarizeJournal', () => {
     const entries = summarizeJournal(events, state);
     const action = entries.find((e) => e.kind === 'action');
     expect(action).toBeDefined();
-    expect(action!.text).toBe(`Seojin used "Ember Cleave" on ${state.boss.snapshot.name} for 3 energy — 49 damage`);
+    expect(action!.text).toBe(`Seojin used "Oathbreaker's Answer" on ${state.boss.snapshot.name} for 3 energy — 49 damage`);
     void ashvara;
   });
 
@@ -78,13 +78,13 @@ describe('summarizeJournal', () => {
     const [seojin, ashvara] = state.heroes;
 
     const events: BattleEvent[] = [
-      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_radiant_ward', targetActorIds: [ashvara.actorId] } },
+      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_bearing_witness', targetActorIds: [ashvara.actorId] } },
       { kind: 'healing_applied', sourceActorId: seojin.actorId, targetActorId: ashvara.actorId, amount: 30, overheal: 0 },
     ];
 
     const entries = summarizeJournal(events, state);
     expect(entries).toHaveLength(1);
-    expect(entries[0].text).toBe(`Seojin used "Radiant Ward" on Ashvara — healed 30`);
+    expect(entries[0].text).toBe(`Seojin used "Bearing Witness" on Ashvara — healed 30`);
   });
 
   it('drops regen resource_changed events entirely', () => {
@@ -136,7 +136,7 @@ describe('summarizeJournal', () => {
     const boss = state.boss.actorId;
 
     const events: BattleEvent[] = [
-      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_ember_cleave', targetActorIds: [boss] } },
+      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_oathbreakers_answer', targetActorIds: [boss] } },
       { kind: 'damage_dealt', sourceActorId: seojin.actorId, targetActorId: boss, amount: 49, damageType: 'fire', blockedByShield: 0 },
       { kind: 'damage_dealt', sourceActorId: boss, targetActorId: seojin.actorId, amount: 27, damageType: 'fire', blockedByShield: 0 },
     ];
@@ -151,10 +151,10 @@ describe('summarizeJournal', () => {
     const [seojin] = state.heroes;
     const boss = state.boss.actorId;
     const events: BattleEvent[] = [
-      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_ember_cleave', targetActorIds: [boss] } },
+      { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_oathbreakers_answer', targetActorIds: [boss] } },
       { kind: 'action_denied', actorId: seojin.actorId, reason: 'insufficient_resource' },
     ];
     const entries = summarizeJournal(events, state);
-    expect(entries[0].text).toBe('Seojin tried to use "Ember Cleave" but insufficient resource');
+    expect(entries[0].text).toBe("Seojin tried to use \"Oathbreaker's Answer\" but insufficient resource");
   });
 });

@@ -33,9 +33,9 @@ function statsFor(atk: number, def: number, mana: number): CardStats {
 }
 
 function heroFor(id: string, stats: CardStats) {
-  const soul = SEED_ABILITIES.find((s) => s.definition.id === 'ability_soul_drain')!;
-  const ember = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
-  const radiant = SEED_ABILITIES.find((s) => s.definition.id === 'ability_radiant_ward')!;
+  const soul = SEED_ABILITIES.find((s) => s.definition.id === 'ability_inherited_guard')!;
+  const ember = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
+  const radiant = SEED_ABILITIES.find((s) => s.definition.id === 'ability_bearing_witness')!;
   return buildHeroSnapshot({
     cardId: id,
     archetype: 'Barbarian',

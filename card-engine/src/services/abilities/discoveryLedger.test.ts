@@ -35,18 +35,18 @@ describe('grantDiscoveryReward', () => {
 
   it('returns no_discovery_record when the player has never seen the ability', async () => {
     const store = await seededStore();
-    const result = grantDiscoveryReward(store, 'ability_ember_cleave');
+    const result = grantDiscoveryReward(store, 'ability_oathbreakers_answer');
     expect(result.kind).toBe('no_discovery_record');
   });
 
   it('grants BOTH gold + crystals per rarity ladder (uncommon = 100g + 30c)', async () => {
     const store = await seededStore();
-    store.saveDiscovery(discovery('ability_ember_cleave', USER));
+    store.saveDiscovery(discovery('ability_oathbreakers_answer', USER));
 
     const goldBefore = wallet.getBalance('gameplay');
     const crystalsBefore = wallet.getBalance('premium');
 
-    const result = grantDiscoveryReward(store, 'ability_ember_cleave');
+    const result = grantDiscoveryReward(store, 'ability_oathbreakers_answer');
     expect(result.kind).toBe('granted');
     if (result.kind === 'granted') {
       expect(result.items).toHaveLength(2);
@@ -59,19 +59,19 @@ describe('grantDiscoveryReward', () => {
     expect(wallet.getBalance('gameplay')).toBe(goldBefore + 100);
     expect(wallet.getBalance('premium')).toBe(crystalsBefore + 30);
 
-    const disc = store.getDiscovery('ability_ember_cleave');
+    const disc = store.getDiscovery('ability_oathbreakers_answer');
     expect(disc?.rewardGranted).toBe(true);
     expect(disc?.rewardTransactionId).toBeTruthy();
   });
 
   it('is idempotent — a second call after grant is a no-op', async () => {
     const store = await seededStore();
-    store.saveDiscovery(discovery('ability_thornbite', USER));
-    grantDiscoveryReward(store, 'ability_thornbite');
+    store.saveDiscovery(discovery('ability_thornmantle', USER));
+    grantDiscoveryReward(store, 'ability_thornmantle');
     const goldAfterFirst = wallet.getBalance('gameplay');
     const crystalsAfterFirst = wallet.getBalance('premium');
 
-    const second = grantDiscoveryReward(store, 'ability_thornbite');
+    const second = grantDiscoveryReward(store, 'ability_thornmantle');
     expect(second.kind).toBe('already_granted');
     expect(wallet.getBalance('gameplay')).toBe(goldAfterFirst);
     expect(wallet.getBalance('premium')).toBe(crystalsAfterFirst);
@@ -84,16 +84,17 @@ describe('grantDiscoveryReward', () => {
     const originalAmounts = rewardDef.guaranteed.map((g) => g.amount);
     rewardDef.guaranteed.forEach((g) => (g.amount = 0));
     try {
-      store.saveDiscovery(discovery('ability_thornbite', USER));
+      // Must be a COMMON ability — that is the reward row being zeroed.
+      store.saveDiscovery(discovery('ability_set_guard', USER));
       const goldBefore = wallet.getBalance('gameplay');
       const crystalsBefore = wallet.getBalance('premium');
 
-      const result = grantDiscoveryReward(store, 'ability_thornbite');
+      const result = grantDiscoveryReward(store, 'ability_set_guard');
       expect(result.kind).toBe('zero_value_placeholder');
       expect(wallet.getBalance('gameplay')).toBe(goldBefore);
       expect(wallet.getBalance('premium')).toBe(crystalsBefore);
       // rewardGranted stays false so a future value bump can retry.
-      expect(store.getDiscovery('ability_thornbite')?.rewardGranted).toBe(false);
+      expect(store.getDiscovery('ability_set_guard')?.rewardGranted).toBe(false);
     } finally {
       rewardDef.guaranteed.forEach((g, i) => (g.amount = originalAmounts[i]));
     }

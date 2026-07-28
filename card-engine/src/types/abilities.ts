@@ -426,7 +426,7 @@ export interface StatusDefinition {
  */
 export interface AbilityDefinition {
   id: string;
-  /** Human-readable, stable, kebab-case (e.g. "ember-cleave"). Used in URLs + logs. */
+  /** Human-readable, stable, kebab-case (e.g. "oathbreakers-answer"). Used in URLs + logs. */
   slug: string;
   displayName: string;
   familyIds: string[];

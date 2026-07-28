@@ -10,6 +10,16 @@ import type { StatusDefinition } from '../../types/abilities';
  * simulator at Stage B; recorded here so ability authors can reason about it.
  *
  * Governance §12: adding a new status requires explicit Raheem approval.
+ *
+ * WHAT A STATUS DOES vs WHAT IT IS. This file is the catalog — identity,
+ * stacking, duration, dispel class. The MAGNITUDES live next to the damage
+ * pipeline in `services/combat/formulas.ts` (`statusDamageModifiers`,
+ * THORNS_REFLECT_SHARE, REGENERATION_PER_STACK), because they are balance
+ * numbers that have to be read in the same breath as `resolveDamage`.
+ *
+ * `rooted` was cut 2026-07-28: "cannot target other enemies" is a no-op in a
+ * single-boss fight, so it was a status that could be applied and never do
+ * anything. It comes back if PvP lands.
  */
 export const STATUS_CATALOG: Record<string, StatusDefinition> = {
   burn: {
@@ -78,17 +88,6 @@ export const STATUS_CATALOG: Record<string, StatusDefinition> = {
     bossBehavior: 'normal',
     description: 'Damage dealt reduced by 30%.',
   },
-  rooted: {
-    id: 'rooted',
-    displayName: 'Rooted',
-    category: 'negative',
-    stackBehavior: 'refresh',
-    maxStacks: 1,
-    defaultDuration: 2,
-    dispelCategory: 'basic',
-    bossBehavior: 'reduced_duration',
-    description: 'Cannot target other enemies until removed. Reactions still fire.',
-  },
   regeneration: {
     id: 'regeneration',
     displayName: 'Regeneration',
@@ -143,6 +142,34 @@ export const STATUS_CATALOG: Record<string, StatusDefinition> = {
     dispelCategory: 'basic',
     bossBehavior: 'normal',
     description: 'Each stack improves the next ability. Monk signature status.',
+  },
+  /* --- Applied by EFFECTS rather than by `apply_status` ---------------
+     `guard` and `taunt` effects materialise these directly in the reducer.
+     They live here anyway so their stacking is defined rather than falling
+     back to a default, and so `remove_status` can find them by category. */
+  guarded: {
+    id: 'guarded',
+    displayName: 'Guarding',
+    category: 'positive',
+    // Refresh, not stack: two guards should not multiply into immunity. The
+    // stronger application wins and resets the clock.
+    stackBehavior: 'refresh',
+    maxStacks: 1,
+    defaultDuration: 1,
+    dispelCategory: 'unremovable',
+    bossBehavior: 'normal',
+    description: 'Incoming damage reduced. The reduction is carried by the application.',
+  },
+  taunt: {
+    id: 'taunt',
+    displayName: 'Taunting',
+    category: 'positive',
+    stackBehavior: 'refresh',
+    maxStacks: 1,
+    defaultDuration: 2,
+    dispelCategory: 'unremovable',
+    bossBehavior: 'normal',
+    description: 'The boss attacks this hero, overriding its own target choice.',
   },
 };
 

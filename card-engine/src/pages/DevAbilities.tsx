@@ -12,7 +12,7 @@ import {
   type AbilityTier,
   type RelicMoment,
 } from '../components/abilities';
-import { APPROVED_ABILITY_ART } from '../data/abilities/visualManifest';
+import { getApprovedArt } from '../data/abilities/visualManifest';
 
 type Guard = 'checking' | 'allowed' | 'denied';
 
@@ -44,12 +44,32 @@ export function DevAbilities() {
   return <Harness />;
 }
 
-const emberCombat = APPROVED_ABILITY_ART['ember-cleave'].combat.url;
-const emberDetail = APPROVED_ABILITY_ART['ember-cleave'].detail.url;
-const emberRelic = APPROVED_ABILITY_ART['ember-cleave'].relic.url;
-const aegisCombat = APPROVED_ABILITY_ART['aegis-ward'].combat.url;
-const aegisDetail = APPROVED_ABILITY_ART['aegis-ward'].detail.url;
-const aegisRelic = APPROVED_ABILITY_ART['aegis-ward'].relic.url;
+/**
+ * Sample art for the harness.
+ *
+ * These used to be direct `APPROVED_ABILITY_ART['ember-cleave'].combat.url`
+ * reads at MODULE SCOPE — no optional chaining — so this whole page threw on
+ * import the moment those manifest entries went away. Now it degrades to the
+ * placeholder tile instead, which is what a real un-arted ability shows.
+ */
+const PLACEHOLDER_ART =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">' +
+      '<rect width="64" height="64" fill="#241a12"/>' +
+      '<text x="32" y="38" font-size="10" fill="#8a7a5c" text-anchor="middle">no art</text>' +
+      '</svg>',
+  );
+
+const sampleArt = (slug: string, crop: 'combat' | 'detail' | 'relic'): string =>
+  getApprovedArt(slug)?.[crop].url ?? PLACEHOLDER_ART;
+
+const emberCombat = sampleArt('oathbreakers-answer', 'combat');
+const emberDetail = sampleArt('oathbreakers-answer', 'detail');
+const emberRelic = sampleArt('oathbreakers-answer', 'relic');
+const aegisCombat = sampleArt('bearing-witness', 'combat');
+const aegisDetail = sampleArt('bearing-witness', 'detail');
+const aegisRelic = sampleArt('bearing-witness', 'relic');
 
 const COMMAND_STATES: AbilityCommandState[] = [
   'ready',

@@ -29,7 +29,7 @@ export function slugify(displayName: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-/** Slug → stable ability id, e.g. "ember-cleave" → "ability_ember_cleave". */
+/** Slug → stable ability id, e.g. "oathbreakers-answer" → "ability_oathbreakers_answer". */
 export function slugToAbilityId(slug: string): string {
   return `${ABILITY_ID_PREFIX}${slug.replace(/-/g, '_')}`;
 }

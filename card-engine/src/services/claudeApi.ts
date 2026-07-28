@@ -881,7 +881,7 @@ This is a fantasy card BATTLE game. Every card is an action shot — element ERU
 
 ${abilityContext ? `=== EXISTING ABILITIES ON THIS CARD (weave their visual signature into the portrait) ===
 ${abilityContext}
-Weave each ability's visual signature into the portraitPrompt as concrete objects, effects, or pose. If the ability is "Ember Cleave" (fire + martial), the sword or weapon should be visibly wreathed in fire in the pose. If the ability is "Soul Drain" (necromancy), spectral hands, drifting spirits, or drawn-out lifelight should be visible. Ability spectacle intensifies with rank per the ELEMENT SPECTACLE block above.
+Weave each ability's visual signature into the portraitPrompt as concrete objects, effects, or pose. If the ability is "Oathbreaker's Answer" (martial + beast), the weapon should read as heavy and blood-marked in the pose. If the ability is "The Grove Remembers" (nature), roots, bramble, or living wood should be visibly reaching into the frame. Ability spectacle intensifies with rank per the ELEMENT SPECTACLE block above.
 ` : ''}
 
 ${existingHiddenFate ? `=== LOCKED HIDDEN FATE (Rank continuity — preserve verbatim, HARD CONSTRAINT) ===

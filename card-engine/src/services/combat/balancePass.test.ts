@@ -43,9 +43,9 @@ function statsFor(atk: number, def: number, mana: number, manaBias: BiasTier = '
 }
 
 function buildHeroForRank(rank: Rank, stats: CardStats) {
-  const soul = SEED_ABILITIES.find((s) => s.definition.id === 'ability_soul_drain')!;
-  const ember = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
-  const radiant = SEED_ABILITIES.find((s) => s.definition.id === 'ability_radiant_ward')!;
+  const soul = SEED_ABILITIES.find((s) => s.definition.id === 'ability_inherited_guard')!;
+  const ember = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
+  const radiant = SEED_ABILITIES.find((s) => s.definition.id === 'ability_bearing_witness')!;
   return buildHeroSnapshot({
     cardId: `card_${rank}`,
     archetype: 'Barbarian',
@@ -140,9 +140,9 @@ describe('B6 balance sweep — ranks + stat spreads', () => {
 
 describe('B6 shipped-boss balance lock', () => {
   // The shipped Emberborn Wraith v2 numbers are calibrated so that:
-  //   - A Forged Mid Barbarian using only Ember Cleave + Focus (the baseline
+  //   - A Forged Mid Barbarian using only Oathbreaker's Answer + Focus (the baseline
   //     policy) LOSES — the boss is a real challenge, teaches the player
-  //     they need to slot Radiant Ward + Guard defensively.
+  //     they need to slot Bearing Witness + Guard defensively.
   //   - An Ascendant elite with the same policy WINS reliably — the boss
   //     is beatable when the hero is properly ranked up.
   //
@@ -154,7 +154,7 @@ describe('B6 shipped-boss balance lock', () => {
   // RECALIBRATED 2026-07-28, when statuses and damage-over-time became
   // mechanically real. This lock was written while `damage_over_time` fell
   // through the reducer's `default:` branch and every status was inert, so
-  // Ember Cleave's burn contributed exactly nothing. It now contributes ~10%
+  // Oathbreaker's Answer's burn contributed exactly nothing. It now contributes ~10%
   // of damage dealt (measured: 323 direct / 36 dot over 11 rounds, one burn
   // instance, stacks correctly capped) — and because this sim is fully
   // deterministic, "0.0 and 1.0 on the head" as the note above says, ANY real
