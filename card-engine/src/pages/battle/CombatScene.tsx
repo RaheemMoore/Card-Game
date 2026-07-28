@@ -4,14 +4,12 @@ import type { BattleState, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
-import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
 import { targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
 import { HeroForeground } from './HeroForeground';
 import { AbilityCommandBar } from './AbilityCommandBar';
 import { BattleControls } from './BattleControls';
-import { CombatFrame } from './CombatFrame';
 import { AttackVFX } from './AttackVFX';
 import { EnergyGauge } from './EnergyGauge';
 import { CombatGuideModal } from './CombatGuideModal';
@@ -29,9 +27,10 @@ interface Props {
 
 /**
  * The Arena scene — one continuous visual surface. The Arena itself remains
- * unframed; the shared CombatFrame family (BossHUD, Intent, Journal, Turn
- * Badge, Command Shelf, Utility Tray, Ability Slot) creates the visual shell
- * around it — Figma spec 22:36.
+ * unframed; a family of painted 9-slice panels (see PaintedPanel.tsx) creates
+ * the visual shell around it: Boss HUD, Turn Badge, Combat Journal, and the
+ * full-width Command Shelf all share one ring + filigree-corner treatment.
+ * The CSS-drawn CombatFrame primitive these grew out of is now mobile-only.
  */
 export function CombatScene({
   state,
@@ -51,13 +50,33 @@ export function CombatScene({
     state.heroes.find((h) => !h.defeated) ??
     state.heroes[0];
   const canAct = state.phase === 'awaiting_player_action';
-  // Same lookup BossHUDOverlay does for its intent panel — the turn badge
-  // just needs the action's display name, not the full intent detail.
+
+  // The boss's in-flight action name, shown as a caption on the command shelf
+  // while its turn plays out. (Was the Turn Badge's second line; the badge is
+  // gone — round/timeout moved to the journal header, and this moved next to
+  // End Turn where the player is already looking.)
+  //
+  // Keyed off the PRESENTATION beat, not `state.phase`. The reducer resolves
+  // the boss synchronously inside the same click that ends the party turn, so
+  // `phase` never observably leaves `awaiting_player_action` — the old badge's
+  // `RESOLVE · …` line was effectively dead for that reason. The animation
+  // queue is the real "boss is acting, wait" window.
   const resolvingIntentName = (() => {
-    if (canAct || !boss.currentIntent) return null;
-    const currentPhase = boss.snapshot.phases.find((p) => p.id === boss.currentPhaseId);
-    const action = currentPhase?.actions.find((a) => a.id === boss.currentIntent!.actionId);
-    return action?.displayName ?? null;
+    const beat = currentBeat;
+    if (!beat) return null;
+    const e = beat.event;
+    const isBossBeat =
+      e.kind === 'boss_intent_declared' ||
+      (e.kind === 'damage_dealt' && e.sourceActorId === boss.actorId);
+    if (!isBossBeat) return null;
+    const actionId =
+      e.kind === 'boss_intent_declared' ? e.intent.actionId : boss.currentIntent?.actionId;
+    if (!actionId) return null;
+    for (const phase of boss.snapshot.phases) {
+      const action = phase.actions.find((a) => a.id === actionId);
+      if (action) return action.displayName;
+    }
+    return null;
   })();
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -121,105 +140,11 @@ export function CombatScene({
         }}
       />
 
-      {/* Layer 3 — Boss HUD (upper-left) — CombatFrame/BossHUD + Intent */}
-      <BossHUDOverlay
-        boss={boss}
-        intent={boss.currentIntent}
-        currentBeat={currentBeat}
-        state={state}
-      />
+      {/* Layer 3 — Boss HUD (upper-left) — CombatFrame/BossHUD. The attached
+          Intent panel was removed; boss-intent detail now lives solely in the
+          Combat Journal corner box (see CombatJournalRail.tsx). */}
+      <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
 
-      {/* Turn Badge (upper-right) — CombatFrame/TurnBadge preset. Widened
-          slightly (142→172) to carry one real extra data point instead of
-          just "PLAYER"/"RESOLVE": how many heroes still owe a command this
-          round (`pendingActorIds`, already-tracked data — no invented
-          action-economy counter), or the boss's current intent action name
-          while it resolves (same lookup BossHUDOverlay already does). */}
-      <div className="absolute top-3 right-3 z-30">
-        <CombatFrame preset="turnBadge" style={{ width: 172, height: 66 }}>
-          {/* Diamond gem accent — Figma 20:49 */}
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              left: 12.5,
-              top: 0.5,
-              width: 28,
-              height: 28,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <div style={{ transform: 'rotate(-45deg)', width: 20, height: 20 }}>
-              <svg viewBox="0 0 20 20" fill="none" style={{ width: '100%', height: '100%' }}>
-                <path d="M19 10L10 19L1 10L10 1L19 10Z" fill="#a86a2a" stroke="#f2ab47" strokeWidth="1" />
-                <text x="10" y="13.5" textAnchor="middle" fontSize="10" fill="#faeaca" style={{ fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 700 }}>
-                  🜂
-                </text>
-              </svg>
-            </div>
-          </div>
-          <div
-            style={{
-              position: 'absolute',
-              left: 46.5,
-              top: 11.5,
-              color: '#ebd6b0',
-              fontSize: 15,
-              fontWeight: 600,
-              letterSpacing: 1.2,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            TURN {state.round}
-          </div>
-          <div
-            style={{
-              position: 'absolute',
-              left: 47.5,
-              top: 31.5,
-              right: 10,
-              color: '#9c805c',
-              fontSize: 8,
-              letterSpacing: 1.1,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {canAct
-              ? state.pendingActorIds.length > 1
-                ? `PLAYER · ${state.pendingActorIds.length} LEFT`
-                : 'PLAYER'
-              : resolvingIntentName
-              ? `RESOLVE · ${resolvingIntentName}`
-              : 'RESOLVE'}
-          </div>
-          {/* Rounds-remaining — the 30-round timeout is otherwise invisible
-              to the player; turns amber inside the last 5 rounds. */}
-          <div
-            style={{
-              position: 'absolute',
-              left: 12,
-              right: 12,
-              top: 47,
-              color: TIMEOUT_ROUND_CAP - state.round <= 5 ? '#e6a04a' : '#7a6a52',
-              fontSize: 8,
-              fontWeight: 600,
-              letterSpacing: 0.8,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              textAlign: 'center',
-            }}
-            aria-label={`${Math.max(0, TIMEOUT_ROUND_CAP - state.round)} rounds remaining before timeout defeat`}
-          >
-            {Math.max(0, TIMEOUT_ROUND_CAP - state.round)} ROUNDS LEFT
-          </div>
-        </CombatFrame>
-      </div>
 
       {/* Layer 4 — Boss stage */}
       <BossStage boss={boss} currentBeat={currentBeat} />
@@ -249,26 +174,15 @@ export function CombatScene({
           frame (see AbilityCommandBar.tsx) so they read as the dominant,
           most-important element, not the empty background box. */}
       <PaintedPanel
-        className="absolute inset-x-2 bottom-2 flex items-center gap-4 px-5"
+        className="absolute inset-x-0 bottom-0 flex items-center gap-5 px-6"
         style={{ height: '9.5rem', zIndex: 15, boxShadow: '0px -8px 24px rgba(0,0,0,0.55)' }}
         borderWidth={10}
         background="#060708"
       >
-        {/* Corner ornaments — real painted gold filigree brackets, not a
-            CSS approximation. Same recolored asset as the panel border
-            itself so it reads as one coherent gold frame, not a mismatched
-            add-on. */}
-        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
-          style={{ position: 'absolute', left: -3, top: -3, width: 30, height: 30, pointerEvents: 'none' }} />
-        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
-          style={{ position: 'absolute', right: -3, top: -3, width: 30, height: 30, transform: 'scaleX(-1)', pointerEvents: 'none' }} />
-        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
-          style={{ position: 'absolute', left: -3, bottom: -3, width: 30, height: 30, transform: 'scaleY(-1)', pointerEvents: 'none' }} />
-        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
-          style={{ position: 'absolute', right: -3, bottom: -3, width: 30, height: 30, transform: 'scale(-1)', pointerEvents: 'none' }} />
-
-        {/* Zone 1 — energy counter, height-matched to the ability slot row */}
-        <div className="flex items-center" style={{ height: 72 }}>
+        {/* Zone 1 — energy counter, height-matched to the ability slot row.
+            Pinned left; the shelf is now full-viewport-width, so each zone
+            has to hold its own edge or the contents island in the middle. */}
+        <div className="flex items-center" style={{ height: 72, flex: '0 0 auto' }}>
           <EnergyGauge
             actorId={actingHero.actorId}
             current={actingHero.resource}
@@ -277,6 +191,11 @@ export function CombatScene({
             currentBeat={currentBeat}
           />
         </div>
+
+        {/* Seam — thin inset rule, same language BattleControls already uses
+            between its tray and End Turn, so the wider shelf reads as three
+            deliberate bays rather than one empty room. */}
+        <ShelfSeam />
 
         {/* Zone 2 — ability slots, centered in the remaining space */}
         <div className="flex-1 flex items-center justify-center min-w-0">
@@ -291,17 +210,31 @@ export function CombatScene({
           />
         </div>
 
-        {/* Zone 3 — utility tray + End Turn */}
+        <ShelfSeam />
+
+        {/* Zone 3 — utility tray + End Turn, pinned right */}
         <BattleControls
           onExit={onExit}
           onSubmit={onSubmit}
           canAct={canAct}
           pendingCount={state.pendingActorIds.length}
+          resolvingIntentName={resolvingIntentName}
           onOpenGuide={() => setGuideOpen(true)}
         />
       </PaintedPanel>
 
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
     </div>
+  );
+}
+
+/** Vertical hairline between command-shelf zones — same rule BattleControls
+ *  uses internally, so the shelf's seams all read as one system. */
+function ShelfSeam() {
+  return (
+    <div
+      aria-hidden
+      style={{ flex: '0 0 auto', width: 1, height: 72, background: 'rgba(128,79,33,0.5)' }}
+    />
   );
 }

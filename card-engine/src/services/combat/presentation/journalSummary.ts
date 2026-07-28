@@ -1,4 +1,4 @@
-import type { BattleEvent, BattleState } from '../../../types/combat';
+import type { BattleEvent, BattleIntent, BattleState } from '../../../types/combat';
 import { getAbilityStore } from '../../abilities/registry';
 import { displayNameFor } from '../../../pages/battle/journalNames';
 import { formatEvent } from '../../../pages/battle/formatEvent';
@@ -18,6 +18,12 @@ export interface JournalEntry {
   text: string;
   kind: 'action' | 'boss_intent' | 'boss_action' | 'round_marker' | 'phase' | 'system' | 'battle_end';
   round: number;
+  /** `boss_intent` only — who the telegraphed action is aimed at, and for how
+   *  much. The removed upper-left Intent panel was the only surface carrying
+   *  these; the journal is now their sole home, so they travel on the entry
+   *  rather than the rail re-deriving them from BattleState. */
+  intentTargetLabel?: string;
+  intentDamage?: number;
 }
 
 export const JOURNAL_KIND_LABEL: Record<JournalEntry['kind'], string> = {
@@ -47,9 +53,14 @@ export function summarizeJournal(events: readonly BattleEvent[], state: BattleSt
     open = null;
   };
 
-  const pushSingle = (kind: JournalEntry['kind'], text: string, e: BattleEvent) => {
+  const pushSingle = (
+    kind: JournalEntry['kind'],
+    text: string,
+    e: BattleEvent,
+    extra?: Partial<JournalEntry>,
+  ) => {
     flush();
-    entries.push({ id: nextId(), sourceEvents: [e], text, kind, round: currentRound });
+    entries.push({ id: nextId(), sourceEvents: [e], text, kind, round: currentRound, ...extra });
   };
 
   for (const e of events) {
@@ -61,7 +72,10 @@ export function summarizeJournal(events: readonly BattleEvent[], state: BattleSt
         continue;
 
       case 'boss_intent_declared':
-        pushSingle('boss_intent', `boss intends: ${e.intent.telegraphText}`, e);
+        pushSingle('boss_intent', e.intent.telegraphText, e, {
+          intentTargetLabel: intentTargetLabelFor(e.intent, state),
+          intentDamage: projectedIntentDamage(e.intent, state, currentRound),
+        });
         continue;
 
       case 'phase_transition':
@@ -130,6 +144,25 @@ export function summarizeJournal(events: readonly BattleEvent[], state: BattleSt
   }
   flush();
   return entries;
+}
+
+/** Same target resolution the removed Intent panel did — single named hero,
+ *  or "ALL HEROES" for a multi-target telegraph. */
+function intentTargetLabelFor(intent: BattleIntent, state: BattleState): string {
+  if (intent.targetActorIds.length > 1) return 'ALL HEROES';
+  const id = intent.targetActorIds[0];
+  return id ? displayNameFor(state, id).toUpperCase() : '—';
+}
+
+/** Same projection the removed Intent panel did: base + per-round scaling.
+ *  Searches every phase rather than only the boss's current one — an intent
+ *  declared just before a phase transition would otherwise resolve to 0. */
+function projectedIntentDamage(intent: BattleIntent, state: BattleState, round: number): number {
+  for (const phase of state.boss.snapshot.phases) {
+    const action = phase.actions.find((a) => a.id === intent.actionId);
+    if (action) return action.baseDamage + Math.floor(action.scalingPerRound * round);
+  }
+  return 0;
 }
 
 function composeActionText(events: readonly BattleEvent[], state: BattleState): string {

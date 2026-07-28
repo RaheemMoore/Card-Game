@@ -126,7 +126,7 @@ export function AbilityCommandBar({
         className={`flex items-center transition-opacity duration-200 ${
           disabled ? 'opacity-45' : 'opacity-100'
         }`}
-        style={{ gap: 15 }}
+        style={{ gap: 24 }}
         aria-label="Ability command bar"
         aria-hidden={disabled}
       >
