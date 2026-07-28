@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BattleEvent } from '../../../types/combat';
-import { createQueueState, drainNext, skipAll, syncEvents, type QueueState } from './queue';
-import { REDUCED_MOTION_MS, type AnimationBeat } from './types';
+import type { MotionLevel } from '../../../vfx/types';
+import {
+  createQueueState,
+  drainNext,
+  selectCurrentBeat,
+  skipAll,
+  syncEvents,
+  type AbilitySlotLookup,
+  type QueueState,
+} from './queue';
+import { REDUCED_MOTION_BY_CUE, type AnimationBeat } from './types';
 
 /**
  * Drives paced playback of reducer events for the view. Given the growing
@@ -20,8 +29,10 @@ export interface UseCombatPresentationApi {
 }
 
 export interface UseCombatPresentationOptions {
-  /** Force reduced-motion behaviour (test override). Defaults to media query. */
-  reducedMotion?: boolean;
+  /** Resolved once by the view (CombatViewport) and threaded down. */
+  motionLevel?: MotionLevel;
+  /** Resolves an ability id to its slot so ultimates get their own pacing. */
+  slotLookup?: AbilitySlotLookup;
 }
 
 export function useCombatPresentation(
@@ -32,18 +43,19 @@ export function useCombatPresentation(
   const [queue, setQueue] = useState<QueueState>(() => createQueueState());
   const timerRef = useRef<number | null>(null);
 
-  const reducedMotion = options.reducedMotion ?? detectReducedMotion();
+  const { slotLookup } = options;
+  const motionLevel = options.motionLevel ?? (detectReducedMotion() ? 'off' : 'full');
 
   useEffect(() => {
-    setQueue((prev) => syncEvents(prev, rawEvents, bossActorId));
-  }, [rawEvents, bossActorId]);
+    setQueue((prev) => syncEvents(prev, rawEvents, bossActorId, slotLookup));
+  }, [rawEvents, bossActorId, slotLookup]);
 
   useEffect(() => {
     if (queue.pending.length === 0) return;
     if (timerRef.current !== null) return;
 
     const next = queue.pending[0];
-    const holdMs = reducedMotion ? REDUCED_MOTION_MS : next.durationMs;
+    const holdMs = motionLevel === 'off' ? REDUCED_MOTION_BY_CUE[next.cue] : next.durationMs;
 
     const id = setTimeout(() => {
       timerRef.current = null;
@@ -57,7 +69,7 @@ export function useCombatPresentation(
         timerRef.current = null;
       }
     };
-  }, [queue.pending, reducedMotion]);
+  }, [queue.pending, motionLevel]);
 
   const skip = useCallback(() => {
     if (timerRef.current !== null) {
@@ -67,7 +79,7 @@ export function useCombatPresentation(
     setQueue((prev) => skipAll(prev));
   }, []);
 
-  const currentBeat = queue.journal.length > 0 ? queue.journal[queue.journal.length - 1] : null;
+  const currentBeat = selectCurrentBeat(queue);
 
   return useMemo(
     () => ({

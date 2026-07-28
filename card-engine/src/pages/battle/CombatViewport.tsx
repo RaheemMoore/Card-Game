@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Card } from '../../types/card';
+import type { AbilitySlotType } from '../../types/abilities';
 import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
 import {
   grantBattleReward,
@@ -77,7 +78,22 @@ export function CombatViewport({
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
-  const presentation = useCombatPresentation(events, {}, state?.boss.actorId);
+
+  // Lets the presentation queue recognise an ultimate and give it its own
+  // pacing. Reads the ALREADY-FROZEN ability snapshots rather than adding a
+  // field anywhere, so nothing cosmetic leaks into the determinism payload.
+  const slotLookup = useMemo(() => {
+    const slots = new Map<string, AbilitySlotType>();
+    for (const hero of state?.heroes ?? []) {
+      for (const ability of hero.snapshot.abilities) {
+        slots.set(ability.definitionId, ability.slot);
+      }
+    }
+    return (definitionId: string) => slots.get(definitionId);
+  }, [state?.heroes]);
+
+  const presentationOptions = useMemo(() => ({ slotLookup }), [slotLookup]);
+  const presentation = useCombatPresentation(events, presentationOptions, state?.boss.actorId);
   const isMobile = useIsMobileCombatLayout();
 
   // A separate condensed view over the same event stream, purely for the
