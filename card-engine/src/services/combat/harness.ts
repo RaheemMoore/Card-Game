@@ -254,7 +254,8 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
       id: p.id,
       healthThresholdStart: p.healthThresholdStart,
       healthThresholdEnd: p.healthThresholdEnd,
-      passiveEffects: [],
+      passiveEffects: p.passiveDescriptions,
+      ...(p.passiveStatuses ? { passiveStatuses: p.passiveStatuses } : {}),
       actions: p.actions.map((a) => ({
         id: a.id,
         displayName: a.displayName,
@@ -266,6 +267,10 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
         baseDamage: a.baseDamage ?? 0,
         scalingPerRound: a.scalingPerRound ?? 0,
         damageType: a.damageType ?? 'physical',
+        ...(a.shieldAmount != null ? { shieldAmount: a.shieldAmount } : {}),
+        ...(a.shieldDurationRounds != null
+          ? { shieldDurationRounds: a.shieldDurationRounds }
+          : {}),
       })),
     })),
     resistanceProfileId: `rp_${def.slug}`,

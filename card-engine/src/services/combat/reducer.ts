@@ -1,5 +1,6 @@
 import type {
   AbilityCondition,
+  StatusApplication,
   AbilityVersion,
   DamageType,
   ScalingRule,
@@ -95,11 +96,12 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     };
   });
 
+  const openingPhase = snapshot.boss.phases[0];
   const boss: BossCombatant = {
     actorId: 'boss_0',
     snapshot: snapshot.boss,
     hp: snapshot.boss.maxHp,
-    currentPhaseId: snapshot.boss.phases[0].id,
+    currentPhaseId: openingPhase.id,
     actionCooldowns: [],
     statuses: [],
     shields: [],
@@ -107,7 +109,7 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     currentIntent: null,
   };
 
-  return {
+  const opening: BattleState = {
     snapshot,
     round: 0,
     step: 0,
@@ -121,6 +123,18 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     ],
     result: null,
   };
+
+  // Nothing TRANSITIONS into phase 0, so its passives have to be applied here
+  // or a boss whose first phase regenerates would not start doing so until it
+  // dropped into its second. Routed through the same helper as a real
+  // transition rather than hand-built, so the catalog's stacking caps apply —
+  // building the instances inline let an authored `stacks: 9` through against
+  // regeneration's maximum of 3.
+  const openingEvents: BattleEvent[] = [];
+  const withPassives = applyPhasePassives(opening, openingPhase, openingEvents);
+  return openingEvents.length > 0
+    ? { ...withPassives, log: [...withPassives.log, ...openingEvents] }
+    : withPassives;
 }
 
 /* ------------------------------------------------------------------ */
@@ -411,28 +425,87 @@ function doResolveBoss(state: BattleState): StepResult {
     return transition(state, [], 'end_of_round');
   }
 
-  // B2 boss actions ship as raw parameters keyed on intentType, not full AbilityEffect
-  // arrays (BossActionSnapshot is a lighter shape than AbilityVersion). We map
-  // the small set of intent types the fire elemental uses.
+  // Boss actions ship as raw parameters keyed on intentType rather than full
+  // AbilityEffect arrays — BossActionSnapshot is a lighter shape than
+  // AbilityVersion. Until 2026-07-28 this switch did not exist at all: every
+  // intent, including `area_attack` and `execute`, fell through the same
+  // single-target damage path, so the ten declared intent types were one
+  // behaviour wearing ten names.
   const events: BattleEvent[] = [];
   let next: BattleState = state;
 
   const bossBaseDamage = action.baseDamage + Math.floor(action.scalingPerRound * state.round);
-  if (bossBaseDamage > 0) {
+
+  /** One boss hit against one hero. */
+  const strike = (hero: HeroCombatant) => {
     const dmg = resolveDamage({
       baseAmount: bossBaseDamage,
       // Authored per action. Was hardcoded 'fire' for every boss in the game,
       // which made hero elemental resistance meaningless and every future
       // boss a reskin of this one.
       damageType: action.damageType,
-      targetMitigation: Math.floor(target.snapshot.stats.Def.value / 5),
+      targetMitigation: Math.floor(hero.snapshot.stats.Def.value / 5),
       targetResistance: NEUTRAL_RESISTANCE,
-      targetShields: target.shields,
+      targetShields: hero.shields,
+      incomingMultiplier: statusDamageModifiers([], hero.statuses, action.damageType)
+        .incomingMultiplier,
     });
-    next = applyDamageToHero(next, target.actorId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+    next = applyDamageToHero(next, hero.actorId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
       sourceActorId: state.boss.actorId,
       damageType: dmg.damageType,
     });
+  };
+
+  switch (action.intentType) {
+    case 'area_attack': {
+      // Hits EVERYONE. This is the pressure that makes a party-wide healer
+      // matter and makes taunt a trap — there is no one to pull aggro from.
+      // Re-read the hero list per strike so a death mid-sweep is respected.
+      if (bossBaseDamage > 0) {
+        for (const hero of state.heroes) {
+          const live = next.heroes.find((h) => h.actorId === hero.actorId);
+          if (live && !live.defeated) strike(live);
+        }
+      }
+      break;
+    }
+    case 'shield': {
+      // `BossCombatant.shields` already existed, was already consumed by
+      // applyDamageToBoss and already expired — the only missing piece was a
+      // producer, because this intent was never implemented.
+      const amount = action.shieldAmount ?? 0;
+      if (amount > 0) {
+        next = {
+          ...next,
+          boss: {
+            ...next.boss,
+            shields: [
+              ...next.boss.shields,
+              {
+                amount,
+                types: [],
+                remainingRounds: action.shieldDurationRounds ?? 2,
+                sourceActorId: state.boss.actorId,
+              },
+            ],
+          },
+        };
+        events.push({
+          kind: 'shield_gained',
+          sourceActorId: state.boss.actorId,
+          targetActorId: state.boss.actorId,
+          amount,
+          types: [],
+        });
+      }
+      if (bossBaseDamage > 0) strike(target);
+      break;
+    }
+    default: {
+      // heavy_attack and everything not yet given its own behaviour.
+      if (bossBaseDamage > 0) strike(target);
+      break;
+    }
   }
 
   // Add the used action to the boss's cooldown table.
@@ -557,6 +630,7 @@ function doCheckPhaseTransition(state: BattleState): StepResult {
       { kind: 'phase_transition', fromPhaseId: boss.currentPhaseId, toPhaseId: nextPhase.id },
     ];
     let next = { ...state, boss: { ...boss, currentPhaseId: nextPhase.id } };
+    next = applyPhasePassives(next, nextPhase, events);
     // Phase transition grants ult charge to all living heroes.
     next = {
       ...next,
@@ -1150,9 +1224,34 @@ function applyDotTicks(state: BattleState, events: BattleEvent[]): BattleState {
 }
 
 /** Regeneration heals a share of MAX hp so it stays meaningful on a tanky
- *  hero instead of decaying into rounding noise. */
+ *  hero instead of decaying into rounding noise.
+ *
+ *  Applies to the BOSS too. That is the whole of pressure axis F: a boss that
+ *  outheals chip damage cannot be ground down, so damage-over-time — which
+ *  ticks through regardless — stops being a worse direct-damage and becomes
+ *  the answer to a specific fight. */
 function applyRegeneration(state: BattleState, events: BattleEvent[]): BattleState {
   let next = state;
+
+  const bossStacks = Math.min(
+    REGENERATION_MAX_STACKS,
+    next.boss.statuses.filter((st) => st.statusId === 'regeneration').reduce((n, st) => n + st.stacks, 0),
+  );
+  if (next.boss.hp > 0 && bossStacks > 0) {
+    const amount = Math.floor(next.boss.snapshot.maxHp * REGENERATION_PER_STACK * bossStacks);
+    const healed = Math.min(amount, next.boss.snapshot.maxHp - next.boss.hp);
+    if (healed > 0) {
+      next = { ...next, boss: { ...next.boss, hp: next.boss.hp + healed } };
+      events.push({
+        kind: 'healing_applied',
+        sourceActorId: next.boss.actorId,
+        targetActorId: next.boss.actorId,
+        amount: healed,
+        overheal: amount - healed,
+      });
+    }
+  }
+
   for (const hero of next.heroes) {
     if (hero.defeated) continue;
     const stacks = Math.min(
@@ -1170,6 +1269,41 @@ function applyRegeneration(state: BattleState, events: BattleEvent[]): BattleSta
       targetActorId: hero.actorId,
       amount: heal.actualAmount,
       overheal: heal.overheal,
+    });
+  }
+  return next;
+}
+
+/**
+ * Apply a phase's passive statuses to the boss on entry.
+ *
+ * Routed through `addStatus` so the catalog's stacking behaviour and caps
+ * apply exactly as they do for heroes — a phase cannot stack regeneration
+ * past its own maximum just because it is a boss.
+ */
+function applyPhasePassives(
+  state: BattleState,
+  phase: { id: string; passiveStatuses?: readonly StatusApplication[] },
+  events: BattleEvent[],
+): BattleState {
+  let next = state;
+  for (const [i, application] of (phase.passiveStatuses ?? []).entries()) {
+    const instance: StatusInstance = {
+      instanceId: `st_phase_${phase.id}_${i}_${application.statusId}`,
+      statusId: application.statusId,
+      sourceActorId: next.boss.actorId,
+      application,
+      remainingRounds: application.duration,
+      stacks: application.stacks ?? 1,
+    };
+    next = addStatus(next, next.boss.actorId, instance);
+    events.push({
+      kind: 'status_applied',
+      sourceActorId: next.boss.actorId,
+      targetActorId: next.boss.actorId,
+      statusId: instance.statusId,
+      instanceId: instance.instanceId,
+      duration: instance.remainingRounds,
     });
   }
   return next;
@@ -1199,7 +1333,13 @@ function addStatus(state: BattleState, targetId: string, instance: StatusInstanc
 
   const merge = (existing: StatusInstance[]): StatusInstance[] => {
     const idx = existing.findIndex((st) => st.statusId === instance.statusId);
-    if (idx === -1) return [...existing, instance];
+    // Clamp on FIRST application too, not only when merging. The cap used to
+    // be enforced solely on the merge path, so an ability (or a boss phase
+    // passive) authored with `stacks: 9` sailed straight past a catalog
+    // maximum of 3 simply by being the first one applied.
+    const clamped: StatusInstance =
+      instance.stacks > maxStacks ? { ...instance, stacks: maxStacks } : instance;
+    if (idx === -1) return [...existing, clamped];
 
     const current = existing[idx];
     if (behavior === 'ignore') return existing;
@@ -1208,7 +1348,7 @@ function addStatus(state: BattleState, targetId: string, instance: StatusInstanc
     if (behavior === 'stack') {
       next[idx] = {
         ...current,
-        stacks: Math.min(maxStacks, current.stacks + instance.stacks),
+        stacks: Math.min(maxStacks, current.stacks + clamped.stacks),
         remainingRounds: Math.max(current.remainingRounds, instance.remainingRounds),
         // Take the stronger tick so a weak re-application can't dilute a
         // strong one, and keep the ORIGINAL source so kill credit is stable.
@@ -1216,16 +1356,16 @@ function addStatus(state: BattleState, targetId: string, instance: StatusInstanc
           ...current.application,
           amountPerTick: Math.max(
             current.application.amountPerTick ?? 0,
-            instance.application.amountPerTick ?? 0,
+            clamped.application.amountPerTick ?? 0,
           ) || undefined,
         },
       };
     } else {
       next[idx] = {
         ...current,
-        stacks: Math.min(maxStacks, Math.max(current.stacks, instance.stacks)),
+        stacks: Math.min(maxStacks, Math.max(current.stacks, clamped.stacks)),
         remainingRounds: Math.max(current.remainingRounds, instance.remainingRounds),
-        application: instance.application,
+        application: clamped.application,
       };
     }
     return next;

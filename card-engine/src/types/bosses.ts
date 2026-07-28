@@ -1,4 +1,4 @@
-import type { DamageType } from './abilities';
+import type { DamageType, StatusApplication } from './abilities';
 import type { BossIntentType } from './combat';
 
 /**
@@ -40,8 +40,18 @@ export interface BossPhaseDefinition {
   /** HP % where this phase ends (next phase begins). 0 = boss dies here. */
   healthThresholdEnd: number;
   actions: BossActionDefinition[];
-  /** Free-text passive descriptions — B4 renders in tooltips. Not yet mechanical. */
+  /** Free-text passive descriptions, rendered in tooltips. Human-readable
+   *  counterpart to `passiveStatuses` — keep the two in agreement. */
   passiveDescriptions: string[];
+  /**
+   * Statuses applied to the BOSS when this phase is entered.
+   *
+   * This is what makes a phase mechanically distinct rather than just a
+   * different action list — a phase can regenerate, carry thorns, or run
+   * enraged. Applied through the same `addStatus` path heroes use, so the
+   * catalog's stacking rules and caps apply.
+   */
+  passiveStatuses?: StatusApplication[];
 }
 
 export interface BossActionDefinition {
@@ -67,6 +77,10 @@ export interface BossActionDefinition {
    * fight, and it silently invalidated any hero's elemental resistance.
    */
   damageType?: DamageType;
+  /** For `shield` intents — absorb granted to the boss. */
+  shieldAmount?: number;
+  /** Rounds that shield lasts. Defaults to 2. */
+  shieldDurationRounds?: number;
 }
 
 export interface BossVersion {

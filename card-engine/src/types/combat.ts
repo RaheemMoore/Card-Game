@@ -105,6 +105,8 @@ export interface BossPhaseSnapshot {
   healthThresholdEnd: number;
   actions: BossActionSnapshot[];
   passiveEffects: readonly string[];
+  /** Statuses applied to the boss on entering this phase. */
+  passiveStatuses?: readonly StatusApplication[];
 }
 
 export interface BossActionSnapshot {
@@ -121,6 +123,9 @@ export interface BossActionSnapshot {
   scalingPerRound: number;
   /** Damage type this action deals. Defaults to 'physical' when unauthored. */
   damageType: DamageType;
+  /** For `shield` intents — absorb granted to the boss. */
+  shieldAmount?: number;
+  shieldDurationRounds?: number;
 }
 
 export type BossIntentType =
