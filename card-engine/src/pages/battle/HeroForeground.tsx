@@ -270,6 +270,29 @@ function HeroLaneCard({
         </div>
       </div>
 
+      {/* Dock tab — a short gold-accented connector bridging the lane down
+          into the command shelf's top edge (they sit flush already; this
+          gives that seam a visible, deliberate "the card sits on this
+          shelf" relationship instead of two layers just happening to touch).
+          Wider/brighter for the acting lane, a quieter sliver for idle ones
+          so the connection still reads for all three without competing with
+          the acting card. */}
+      <div
+        aria-hidden
+        className="mt-1"
+        style={{
+          width: isActing ? 46 : 22,
+          height: 7,
+          margin: '4px auto 0',
+          background: isActing
+            ? 'linear-gradient(180deg, #eb962e, #a8651f)'
+            : 'linear-gradient(180deg, rgba(168,101,31,0.55), rgba(120,70,20,0.4))',
+          borderRadius: '3px 3px 0 0',
+          boxShadow: isActing ? '0 0 8px rgba(235,150,46,0.45)' : 'none',
+          transition: 'width 300ms ease-out, background 300ms',
+        }}
+      />
+
       <style>{`
         @keyframes hero-lane-shake {
           0%   { transform: translate(0, 0); }

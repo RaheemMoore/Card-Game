@@ -34,6 +34,28 @@ interface FrameTokens {
   edgeHighlight?: EdgeHighlight;
 }
 
+/**
+ * Panel-priority tiers — a labeling pass over presets that already existed,
+ * not a new token system. Each preset already varies by cornerOrnaments /
+ * edgeHighlight / shadow strength; this just names the 3 tiers that
+ * grouping was implicitly encoding, so future additions/adjustments have a
+ * checklist instead of guessing a panel's intended visual weight:
+ *
+ *   Primary   — bossHud, commandShelf: cornerOrnaments + edgeHighlight +
+ *               the strongest shadow. The two surfaces combat decisions
+ *               actually happen around (the threat, and the controls).
+ *   Secondary — intent, journal: edgeHighlight, no corner ornaments.
+ *               Detail/context surfaces — important, but not where the
+ *               player's eye should land first.
+ *   Tertiary  — turnBadge, utilityTray: no edgeHighlight, thinnest outer
+ *               stroke, lightest shadow. Ambient/system chrome.
+ *
+ * `abilitySlot`/`abilitySlotSelected` predate the command shelf's move to
+ * `PaintedPanel.tsx`'s painted 9-slice frames and are no longer used by the
+ * shelf's ability tiles — kept only in case another surface still renders
+ * through them; do not treat their tokens as this tier system's source of
+ * truth for ability-slot weight.
+ */
 export const FRAME_PRESETS = {
   bossHud: {
     bg: '#09090b',

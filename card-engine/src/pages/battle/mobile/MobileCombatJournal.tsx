@@ -23,9 +23,13 @@ interface Props {
 export function MobileCombatJournal({ journalEntries, isPlaying, pendingCount, onSkip }: Props) {
   const [expanded, setExpanded] = useState(false);
 
-  const active = journalEntries[journalEntries.length - 1] ?? null;
-  const history = journalEntries.slice(0, -1);
-  const currentRound = active ? active.round : 0;
+  const latest = journalEntries[journalEntries.length - 1] ?? null;
+  // Same rule as the desktop CombatJournalRail: the boss-intent detail panel
+  // already owns that content, so don't re-announce it here as "ACTIVE".
+  const activeToneSuppressed = latest?.kind === 'boss_intent';
+  const active = activeToneSuppressed ? null : latest;
+  const history = activeToneSuppressed ? journalEntries : journalEntries.slice(0, -1);
+  const currentRound = latest ? latest.round : 0;
 
   useEffect(() => {
     if (!expanded) return;
@@ -36,7 +40,9 @@ export function MobileCombatJournal({ journalEntries, isPlaying, pendingCount, o
     return () => window.removeEventListener('keydown', onKey);
   }, [expanded]);
 
-  const activeText = active ? active.text : 'The arena settles.';
+  // Preview text always reflects the truly-latest event, regardless of
+  // whether its card styling was suppressed as a boss-intent duplicate.
+  const activeText = latest ? latest.text : 'The arena settles.';
 
   return (
     <>
@@ -251,8 +257,13 @@ export function MobileCombatJournal({ journalEntries, isPlaying, pendingCount, o
                     maxHeight: 'calc(75dvh - env(safe-area-inset-bottom, 0px) - 130px)',
                   }}
                 >
-                  {history.map((entry) => (
-                    <MobileJournalCard key={entry.id} entry={entry} tone="history" />
+                  {history.map((entry, i) => (
+                    <MobileJournalCard
+                      key={entry.id}
+                      entry={entry}
+                      tone="history"
+                      isLatest={activeToneSuppressed && i === history.length - 1}
+                    />
                   ))}
                   {history.length === 0 && (
                     <div
@@ -284,9 +295,13 @@ export function MobileCombatJournal({ journalEntries, isPlaying, pendingCount, o
 function MobileJournalCard({
   entry,
   tone,
+  isLatest = false,
 }: {
   entry: JournalEntry;
   tone: 'active' | 'history';
+  /** History-toned card that's still the most recent entry (active styling
+   *  suppressed as a boss-intent duplicate) — thin gold accent instead. */
+  isLatest?: boolean;
 }) {
   if (entry.kind === 'round_marker' && tone === 'history') {
     return (
@@ -319,7 +334,13 @@ function MobileJournalCard({
 
   const bg = tone === 'active' ? '#160d07' : isHighlighted ? '#130d08' : '#09090a';
   const border =
-    tone === 'active' ? '1.5px solid #ba6e21' : isHighlighted ? '1px solid #874f1a' : '1px solid #241c14';
+    tone === 'active'
+      ? '1.5px solid #ba6e21'
+      : isLatest
+      ? '1px solid #57381c'
+      : isHighlighted
+      ? '1px solid #874f1a'
+      : '1px solid #241c14';
   const categoryColor = tone === 'active' ? '#f59c30' : isHighlighted ? '#f0942e' : '#a38763';
 
   return (
@@ -329,6 +350,7 @@ function MobileJournalCard({
         padding: '6px 10px',
         background: bg,
         border,
+        borderLeft: isLatest && tone === 'history' ? '2px solid #d4af37' : undefined,
         borderRadius: tone === 'active' ? 6 : 4,
       }}
     >
@@ -342,7 +364,7 @@ function MobileJournalCard({
           textTransform: 'uppercase',
         }}
       >
-        {tone === 'active' ? 'ACTIVE' : category}
+        {tone === 'active' ? 'ACTIVE' : isLatest ? `${category} · LATEST` : category}
       </div>
       <div
         style={{

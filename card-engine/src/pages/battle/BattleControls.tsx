@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { PlayerAction } from '../../types/combat';
+import { LeaveConfirmModal } from './LeaveConfirmModal';
 
 interface Props {
   canAct: boolean;
@@ -11,12 +13,15 @@ interface Props {
 
 /**
  * Utility tray (Settings/Guide/Leave) + End Turn — the right-hand zone of
- * the composed command shelf (see CombatScene.tsx). Used to render as its
- * own independently-bordered CombatFrame box; now a borderless group living
- * inside the shelf's single painted frame, separated from End Turn by a
- * thin seam instead of a second outer stroke.
+ * the composed command shelf (see CombatScene.tsx). The utility tray is a
+ * Tertiary-weight secondary-controls cluster (see CombatFrame.tsx's
+ * panel-tier comment) — one quiet, single-bordered group, sized and toned
+ * down from End Turn so it reads as clearly subordinate rather than a
+ * fourth combat-level action sitting at the same visual weight.
  */
 export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onOpenGuide }: Props) {
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
+
   // End Turn = "every remaining hero guards + boss goes." Submitting once per
   // pending hero cycles the party through in one click so users don't have to
   // hunt the End Turn button for each hero individually.
@@ -32,11 +37,25 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
       : 'End turn — guards this hero and lets the boss act';
   return (
     <div className="flex items-center gap-3">
-      {/* Utility tray — Settings / Guide / Leave, borderless group */}
-      <div className="flex items-center gap-1.5">
+      {/* Utility tray — Settings / Guide / Leave, one quiet bordered group
+          instead of three individually-bordered chips, so it reads as a
+          single subordinate cluster rather than three peer buttons. */}
+      <div
+        className="flex items-center"
+        style={{
+          gap: 1,
+          padding: 3,
+          background: '#0a0908',
+          border: '1px solid rgba(87,59,31,0.55)',
+          borderRadius: 6,
+        }}
+      >
         <UtilityChip label="⚙" caption="SETTINGS" onClick={undefined} />
         <UtilityChip label="📖" caption="GUIDE" onClick={onOpenGuide} />
-        <UtilityChip label="✕" caption="LEAVE" onClick={onExit} />
+        {/* Leave is deliberately the same quiet weight as Settings/Guide at
+            rest — it only escalates once the confirm step is triggered — so
+            it can't be mistaken for a second primary action next to End Turn. */}
+        <UtilityChip label="✕" caption="LEAVE" onClick={() => setConfirmingLeave(true)} />
       </div>
 
       {/* Seam — a thin inset rule instead of a second frame boundary */}
@@ -72,13 +91,24 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
       >
         {endLabel}
       </button>
+
+      {confirmingLeave && (
+        <LeaveConfirmModal
+          onCancel={() => setConfirmingLeave(false)}
+          onConfirm={() => {
+            setConfirmingLeave(false);
+            onExit();
+          }}
+        />
+      )}
     </div>
   );
 }
 
 /**
- * Chip inside the Utility Tray — matches Figma 20:38/41/44: 58×48 tile,
- * #0f0e0f bg, #573b1f border, 5px radius, glyph icon + 7px caption.
+ * Chip inside the Utility Tray — quieter and smaller than the original
+ * Figma 20:38/41/44 spec (58×48, individually bordered) since the tray is
+ * now one shared bordered group rather than three peer buttons.
  */
 function UtilityChip({
   label,
@@ -97,30 +127,30 @@ function UtilityChip({
       disabled={!clickable}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{
-        width: 58,
-        height: 48,
-        background: '#0f0e0f',
-        border: '1px solid #573b1f',
-        borderRadius: 5,
+        width: 46,
+        height: 40,
+        background: 'transparent',
+        border: 'none',
+        borderRadius: 4,
         overflow: 'hidden',
-        color: '#b8a68a',
+        color: '#8a7a5c',
         cursor: clickable ? 'pointer' : 'default',
-        opacity: clickable ? 1 : 0.75,
+        opacity: clickable ? 1 : 0.55,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 4,
+        gap: 2,
       }}
       aria-label={caption}
       title={clickable ? caption : `${caption} (coming soon)`}
     >
-      <span style={{ fontSize: 16, lineHeight: 1 }}>{label}</span>
+      <span style={{ fontSize: 13, lineHeight: 1 }}>{label}</span>
       <span
         style={{
-          fontSize: 7,
+          fontSize: 6,
           fontWeight: 600,
-          letterSpacing: 1,
+          letterSpacing: 0.8,
           fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
@@ -129,4 +159,3 @@ function UtilityChip({
     </button>
   );
 }
-

@@ -13,6 +13,7 @@ import { MobileActionControls } from './MobileActionControls';
 import { MobileResourceRow } from './MobileResourceRow';
 import { MobileCombatJournal } from './MobileCombatJournal';
 import { CombatGuideModal } from '../CombatGuideModal';
+import { LeaveConfirmModal } from '../LeaveConfirmModal';
 
 interface Props {
   state: BattleState;
@@ -64,6 +65,7 @@ export function MobileCombatScene({
 }: Props) {
   const canAct = state.phase === 'awaiting_player_action';
   const [guideOpen, setGuideOpen] = useState(false);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
 
   const defaultSelected =
     actingActorId ??
@@ -202,7 +204,7 @@ export function MobileCombatScene({
             </button>
             <button
               type="button"
-              onClick={onExit}
+              onClick={() => setConfirmingLeave(true)}
               className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               aria-label="Leave battle"
               style={{
@@ -400,6 +402,15 @@ export function MobileCombatScene({
       `}</style>
 
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
+      {confirmingLeave && (
+        <LeaveConfirmModal
+          onCancel={() => setConfirmingLeave(false)}
+          onConfirm={() => {
+            setConfirmingLeave(false);
+            onExit();
+          }}
+        />
+      )}
     </div>
   );
 }

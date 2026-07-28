@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { BossCombatant, BattleIntent, BattleState } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { getCurrentBossVersion } from '../../services/bosses/registry';
@@ -19,11 +20,21 @@ interface Props {
  * (file 9IIvc01ts7LZJ0RaCMGanf, nodes 22:39 + 22:76). Do not fork.
  */
 export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
-  // `currentBeat` is intentionally unused here — P1 pulled the wind-up
-  // shadow pulse from the intent panel per Raheem 2026-07-20 (no screen
-  // motion). Kept in props so the component API stays stable for a later
-  // "minimal animation" pass.
-  void currentBeat;
+  // P1 pulled the wind-up shadow pulse from the intent panel per Raheem
+  // 2026-07-20 (no screen motion) — `currentBeat` stayed unused since. It's
+  // used now for one restrained thing: `cue === 'phase'` (phase
+  // transitions) had zero visual consumer anywhere in the combat UI, a real
+  // existing hook nothing was wired to. One-shot border flash, same
+  // beat-id-tracking pattern HeroForeground already uses for its hit-shake.
+  const [phaseFlashKey, setPhaseFlashKey] = useState(0);
+  const lastPhaseFlashBeatId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!currentBeat || currentBeat.cue !== 'phase') return;
+    if (currentBeat.id === lastPhaseFlashBeatId.current) return;
+    lastPhaseFlashBeatId.current = currentBeat.id;
+    setPhaseFlashKey((k) => k + 1);
+  }, [currentBeat]);
+
   const hpPct = Math.max(0, boss.hp / boss.snapshot.maxHp);
   const phaseLabel = boss.currentPhaseId.replace(/^phase_fe_/, '').toUpperCase();
   const isRage = phaseLabel === 'RAGE';
@@ -69,6 +80,8 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
 
       {/* Primary HUD frame — 360×184 per Figma 22:39 */}
       <CombatFrame
+        key={phaseFlashKey}
+        className="boss-hud-phase-flash"
         preset="bossHud"
         style={{ height: 184 }}
         tokens={
@@ -199,24 +212,24 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
           />
         </div>
 
-        {/* Resistance tiles — Figma: 3 chips at y=140, 24px tall */}
+        {/* Resistance tiles — Figma: originally 3 chips at y=140, 24px tall.
+            Down to 2: the 3rd ("RAGE") was a redundant 3rd signal for the
+            same boolean already shown by the RAGE bar above AND this
+            frame's amber border/glow when raging — dropped, not hidden.
+            "ARMOR N" was also a mislabel: N is `resistant.length`, a count
+            of resisted elemental types, not a mitigation stat — renamed to
+            say what it actually is. Widened to fill the freed width. */}
         <ResistTile
           x={22}
-          w={58}
+          w={98}
           label={`FIRE ${resistances.resistant.includes('fire' as never) ? '−' : ' '}`}
           active={resistances.resistant.includes('fire' as never)}
         />
         <ResistTile
-          x={87}
-          w={76}
-          label={`ARMOR ${resistances.resistant.length}`}
-          active={false}
-        />
-        <ResistTile
-          x={170}
-          w={58}
-          label={isRage ? 'RAGE ⚡' : 'RAGE'}
-          active={isRage}
+          x={130}
+          w={98}
+          label={`RESISTS ${resistances.resistant.length}`}
+          active={resistances.resistant.length > 0}
         />
       </CombatFrame>
 
@@ -325,6 +338,18 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
           </CombatFrame>
         </div>
       )}
+
+      <style>{`
+        @keyframes boss-hud-phase-flash {
+          0%   { box-shadow: 0 0 0 0 rgba(255,214,140,0); }
+          20%  { box-shadow: 0 0 26px 6px rgba(255,214,140,0.65); }
+          100% { box-shadow: 0 0 0 0 rgba(255,214,140,0); }
+        }
+        .boss-hud-phase-flash { animation: boss-hud-phase-flash 900ms ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .boss-hud-phase-flash { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

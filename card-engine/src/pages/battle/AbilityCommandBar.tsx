@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
@@ -30,13 +30,11 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
 };
 
 /**
- * Ability Command Bar — three fixed slots sourced from Figma
- * CombatFrame/AbilitySlot (22:180) and CommandShelf Ability Strip Zone
- * (18:52/56/60). Slot dimensions preserved exactly: 170×72 with icon at
- * left rotated 45°, name + meta text on the right.
- *
- * Selected slot swaps preset from `abilitySlot` → `abilitySlotSelected`
- * (Figma 18:56 tokens: #160f06 bg, #c27826 1.5px border).
+ * Ability Command Bar — three fixed slots, 170×72, rendered through
+ * `PaintedPanel.tsx`'s painted 9-slice frame (not the CombatFrame
+ * `abilitySlot`/`abilitySlotSelected` presets — those predate the shelf's
+ * move to real frame art and are no longer used here). Selected state is
+ * driven by `pending` (border width, lift, glow) rather than a preset swap.
  */
 export function AbilityCommandBar({
   hero,
@@ -183,6 +181,7 @@ function AbilitySlot({
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
+  const [hovered, setHovered] = useState(false);
 
   const nameColor = pending ? '#ebd9b2' : '#e8d6b2';
 
@@ -203,13 +202,15 @@ function AbilitySlot({
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       disabled={denied}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{ background: 'transparent', border: 'none', padding: 0, cursor: denied ? 'not-allowed' : 'pointer' }}
       aria-label={
         empty
           ? `${SLOT_LABEL[slot]} slot — empty`
-          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the preview panel to confirm or cancel' : ''}`
+          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the preview panel to confirm or cancel' : notCharged ? ' — locked' : denied ? ` — unavailable: ${statusText}` : ''}`
       }
     >
       {/* Thinner border (was 14/18px — too heavy for a 170×72 tile, it was
@@ -217,7 +218,7 @@ function AbilitySlot({
           of hand-tuned absolute offsets, so content can never sit under the
           painted ring or spill past the tile regardless of border width. */}
       <PaintedPanel
-        borderWidth={pending ? 10 : 7}
+        borderWidth={pending ? 10 : hovered && !denied ? 8 : 7}
         background={pending ? '#1b1108' : '#100c08'}
         style={{
           width: 170,
@@ -227,7 +228,7 @@ function AbilitySlot({
           gap: 10,
           padding: '0 10px',
           transform: pending ? 'translateY(-3px)' : 'translateY(0)',
-          transition: 'transform 200ms, border-width 150ms',
+          transition: 'transform 200ms, border-width 150ms, box-shadow 150ms',
           filter: empty
             ? 'grayscale(0.6) brightness(0.7)'
             : denied
@@ -235,6 +236,8 @@ function AbilitySlot({
             : 'none',
           boxShadow: pending
             ? '0 0 18px rgba(235,150,46,0.5)'
+            : hovered && !denied
+            ? '0 0 12px rgba(235,150,46,0.35)'
             : !denied
             ? '0 0 8px rgba(194,120,38,0.22)'
             : 'none',
@@ -253,6 +256,10 @@ function AbilitySlot({
               overflow: 'hidden',
               background: '#1a1210',
               border: '1px solid #7a5530',
+              // Icon dims on its own opacity, not only the tile-wide filter —
+              // "do not rely on color alone" means the shape/brightness change
+              // has to read even if the amber/gray hue shift doesn't.
+              opacity: denied && !empty ? 0.5 : 1,
             }}
           >
             {artUrl ? (
@@ -267,6 +274,26 @@ function AbilitySlot({
               <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)' }} />
             )}
           </div>
+          {/* Locked overlay — a real padlock glyph over the icon, not just a
+              text label, so "locked" reads as a distinct blocked state at a
+              glance rather than a dimmer flavor of "unavailable." */}
+          {notCharged && (
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 5,
+                background: 'rgba(10,6,3,0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 16,
+              }}
+            >
+              🔒
+            </div>
+          )}
           {/* Slot-type tag */}
           <div
             style={{
@@ -288,6 +315,31 @@ function AbilitySlot({
           >
             {slotBadge}
           </div>
+          {/* Cooldown badge — shape-based signal (a distinct amber ring with
+              the round count) instead of leaving cooldown to the status text
+              and color shift alone. */}
+          {onCd && (
+            <div
+              style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                width: 15,
+                height: 15,
+                borderRadius: '50%',
+                background: '#2c1c0c',
+                border: '1px solid #b5792a',
+                color: '#f0c07a',
+                fontSize: 8,
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {cooldownEntry!.remainingRounds}
+            </div>
+          )}
           {/* Cost pip */}
           {!empty && ability!.resourceCost > 0 && (
             <div

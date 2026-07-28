@@ -51,6 +51,14 @@ export function CombatScene({
     state.heroes.find((h) => !h.defeated) ??
     state.heroes[0];
   const canAct = state.phase === 'awaiting_player_action';
+  // Same lookup BossHUDOverlay does for its intent panel — the turn badge
+  // just needs the action's display name, not the full intent detail.
+  const resolvingIntentName = (() => {
+    if (canAct || !boss.currentIntent) return null;
+    const currentPhase = boss.snapshot.phases.find((p) => p.id === boss.currentPhaseId);
+    const action = currentPhase?.actions.find((a) => a.id === boss.currentIntent!.actionId);
+    return action?.displayName ?? null;
+  })();
   const [guideOpen, setGuideOpen] = useState(false);
 
   // Armed-ability + target-pick state lives here (not inside AbilityCommandBar)
@@ -121,9 +129,14 @@ export function CombatScene({
         state={state}
       />
 
-      {/* Turn Badge (upper-right) — CombatFrame/TurnBadge preset */}
+      {/* Turn Badge (upper-right) — CombatFrame/TurnBadge preset. Widened
+          slightly (142→172) to carry one real extra data point instead of
+          just "PLAYER"/"RESOLVE": how many heroes still owe a command this
+          round (`pendingActorIds`, already-tracked data — no invented
+          action-economy counter), or the boss's current intent action name
+          while it resolves (same lookup BossHUDOverlay already does). */}
       <div className="absolute top-3 right-3 z-30">
-        <CombatFrame preset="turnBadge" style={{ width: 142, height: 66 }}>
+        <CombatFrame preset="turnBadge" style={{ width: 172, height: 66 }}>
           {/* Diamond gem accent — Figma 20:49 */}
           <div
             aria-hidden
@@ -167,14 +180,23 @@ export function CombatScene({
               position: 'absolute',
               left: 47.5,
               top: 31.5,
+              right: 10,
               color: '#9c805c',
               fontSize: 8,
-              letterSpacing: 1.28,
+              letterSpacing: 1.1,
               fontFamily: 'Inter, system-ui, sans-serif',
               whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            {canAct ? 'PLAYER' : 'RESOLVE'}
+            {canAct
+              ? state.pendingActorIds.length > 1
+                ? `PLAYER · ${state.pendingActorIds.length} LEFT`
+                : 'PLAYER'
+              : resolvingIntentName
+              ? `RESOLVE · ${resolvingIntentName}`
+              : 'RESOLVE'}
           </div>
           {/* Rounds-remaining — the 30-round timeout is otherwise invisible
               to the player; turns amber inside the last 5 rounds. */}
