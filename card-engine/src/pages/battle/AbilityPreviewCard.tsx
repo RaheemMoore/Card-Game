@@ -103,6 +103,11 @@ export function AbilityPreviewCard({
                   · COST {ability.resourceCost}
                 </span>
               )}
+              {ability.cooldownRounds > 0 && (
+                <span style={{ color: '#c8a86a', marginLeft: 4, letterSpacing: 0.4 }}>
+                  · CD {ability.cooldownRounds}
+                </span>
+              )}
             </div>
             <div
               style={{

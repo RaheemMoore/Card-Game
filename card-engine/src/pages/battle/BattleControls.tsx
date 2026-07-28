@@ -47,7 +47,7 @@ export function BattleControls({
       ? `End party turn — guards all ${pendingCount} remaining heroes and lets the boss act`
       : 'End turn — guards this hero and lets the boss act';
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center" style={{ gap: 'clamp(6px, 1.1vw, 12px)' }}>
       {/* Utility tray — Settings / Guide / Leave, one quiet bordered group
           instead of three individually-bordered chips, so it reads as a
           single subordinate cluster rather than three peer buttons. */}
@@ -107,7 +107,7 @@ export function BattleControls({
         disabled={!canAct}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
         style={{
-          width: 210,
+          width: 'clamp(132px, 19vw, 210px)',
           height: 58,
           borderRadius: 6,
           border: '2px solid #eb962e',
@@ -115,7 +115,7 @@ export function BattleControls({
             ? 'linear-gradient(to right, #592b09, #1a1412)'
             : 'linear-gradient(to right, #2a1608, #150c0e)',
           color: '#ffdb94',
-          fontSize: pendingCount > 1 ? 13 : 18,
+          fontSize: pendingCount > 1 ? 'clamp(10px, 1.3vw, 13px)' : 18,
           fontWeight: 600,
           letterSpacing: 1.6,
           fontFamily: 'Inter, system-ui, sans-serif',
@@ -165,7 +165,7 @@ function UtilityChip({
       disabled={!clickable}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{
-        width: 46,
+        width: 'clamp(30px, 4.4vw, 46px)',
         height: 40,
         background: 'transparent',
         border: 'none',

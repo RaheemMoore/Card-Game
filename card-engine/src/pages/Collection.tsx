@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { ArchetypeName } from '../types/card';
+import type { ArchetypeName, Card as CardType } from '../types/card';
 import { ARCHETYPE_NAMES, RANKS } from '../types/card';
 import type { Rank } from '../types/card';
 import { getAllCards, deleteCard } from '../services/storage';
 import { CardRenderer } from '../components/CardRenderer';
+import { CardSheet } from '../components/CardSheet';
+import { buildStaticCardSheetAbilities } from '../services/abilities/cardSheetAdapter';
 import { getOverallRank } from '../data/powerSystem';
 
 type SortOption = 'newest' | 'oldest' | 'highest-atk' | 'by-rank' | 'total-stats';
@@ -16,6 +18,7 @@ export function Collection() {
   const [filterRank, setFilterRank] = useState<Rank | ''>('');
   const [sort, setSort] = useState<SortOption>('newest');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [sheetCard, setSheetCard] = useState<CardType | null>(null);
 
   const filtered = useMemo(() => {
     let result = [...cards];
@@ -158,6 +161,19 @@ export function Collection() {
             >
               x
             </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSheetCard(card);
+              }}
+              className="absolute top-1 left-1 w-6 h-6 rounded-full bg-abyss/80 text-ash
+                hover:bg-gold hover:text-ivory text-xs opacity-100 sm:opacity-0 sm:group-hover:opacity-100
+                transition-opacity flex items-center justify-center"
+              title="Quick view card"
+              aria-label="Quick view card"
+            >
+              ⤢
+            </button>
           </div>
         ))}
       </div>
@@ -188,6 +204,14 @@ export function Collection() {
             </div>
           </div>
         </div>
+      )}
+
+      {sheetCard && (
+        <CardSheet
+          card={sheetCard}
+          abilities={buildStaticCardSheetAbilities(sheetCard)}
+          onClose={() => setSheetCard(null)}
+        />
       )}
     </div>
   );
