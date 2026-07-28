@@ -1,25 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../types/combat';
+import type { HeroCombatant, AbilityCombatSnapshot } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
-import { previewAbilityDamage } from '../../services/combat/reducer';
-import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
-import { displayNameFor } from './journalNames';
 import { PaintedPanel } from './PaintedPanel';
-import { AbilityPreviewCard } from './AbilityPreviewCard';
 
 interface Props {
   hero: HeroCombatant;
   disabled: boolean;
-  state: BattleState;
   /** Controlled — CombatScene owns this so HeroForeground's target-pick mode
    *  can be driven from the same source of truth. */
   pendingId: string | null;
   onArm: (definitionId: string | null) => void;
-  /** The ally actorId picked via HeroForeground's target-pick mode, if any. */
-  pickedTargetActorId: string | null;
-  onSubmit: (action: PlayerAction) => void;
+  /** Hover preview — CombatScene forwards this into the Ability Codex panel
+   *  so hovering a slot previews the ability without arming it. */
+  onHoverAbility: (ability: AbilityCombatSnapshot | null) => void;
 }
 
 const SLOT_ORDER: AbilitySlotType[] = ['core', 'signature', 'ultimate'];
@@ -31,20 +26,15 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
 
 /**
  * Ability Command Bar — three fixed slots, 170×72, rendered through
- * `PaintedPanel.tsx`'s painted 9-slice frame (not the CombatFrame
- * `abilitySlot`/`abilitySlotSelected` presets — those predate the shelf's
- * move to real frame art and are no longer used here). Selected state is
- * driven by `pending` (border width, lift, glow) rather than a preset swap.
+ * `PaintedPanel.tsx`'s painted 9-slice frame. Selected state is driven by
+ * `pending` (border width, lift, glow) rather than a preset swap.
+ *
+ * The armed-ability preview + Confirm/Cancel used to expand as a popover
+ * above the clicked slot; that content now lives in the persistent
+ * AbilityCodexPanel (a shelf zone of its own) so it never occludes the
+ * arena and stays visible even while just hovering, not arming.
  */
-export function AbilityCommandBar({
-  hero,
-  disabled,
-  state,
-  pendingId,
-  onArm,
-  pickedTargetActorId,
-  onSubmit,
-}: Props) {
+export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbility }: Props) {
   const store = getAbilityStore();
 
   useEffect(() => {
@@ -72,61 +62,13 @@ export function AbilityCommandBar({
     [hero],
   );
 
-  const pendingAbility = pendingId
-    ? hero.snapshot.abilities.find((a) => a.definitionId === pendingId) ?? null
-    : null;
-  const pendingTargetRule = pendingAbility?.version.targetRule ?? null;
-  const needsPick = pendingTargetRule
-    ? targetRuleNeedsPlayerPick(pendingTargetRule) &&
-      state.heroes.some((h) => !h.defeated && h.actorId !== hero.actorId)
-    : false;
-  const resolvedTargetIds: string[] | null = !pendingAbility || !pendingTargetRule
-    ? null
-    : needsPick
-    ? pickedTargetActorId
-      ? [pickedTargetActorId]
-      : null
-    : resolveTargetRule(state, hero.actorId, pendingTargetRule, []).targetActorIds;
-  const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
-  const pendingProjectedDamage = pendingAbility
-    ? previewAbilityDamage(state, hero, pendingAbility)
-    : null;
-
   return (
     <div className="relative" style={{ zIndex: 25 }}>
-      {/* Preview panel — expands above the bar when an ability is armed.
-          Confirm/Cancel live here now; a slot tap only arms/disarms. */}
-      {pendingAbility && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2"
-          style={{ bottom: 'calc(100% + 10px)', width: 260 }}
-        >
-          <AbilityPreviewCard
-            ability={pendingAbility}
-            slot={pendingAbility.slot}
-            artUrl={artUrl(store, pendingAbility)}
-            projectedDamage={pendingProjectedDamage}
-            targetName={targetName}
-            needsTargetPick={needsPick && !pickedTargetActorId}
-            onConfirm={() => {
-              if (!resolvedTargetIds) return;
-              onSubmit({
-                kind: 'ability',
-                abilityDefinitionId: pendingAbility.definitionId,
-                targetActorIds: resolvedTargetIds,
-              });
-              onArm(null);
-            }}
-            onCancel={() => onArm(null)}
-          />
-        </div>
-      )}
-
       <div
         className={`flex items-center transition-opacity duration-200 ${
           disabled ? 'opacity-45' : 'opacity-100'
         }`}
-        style={{ gap: 24 }}
+        style={{ gap: 'clamp(10px, 2.2vw, 24px)' }}
         aria-label="Ability command bar"
         aria-hidden={disabled}
       >
@@ -144,6 +86,7 @@ export function AbilityCommandBar({
               if (isDenied(hero, ability, disabled)) return;
               onArm(pendingId === ability.definitionId ? null : ability.definitionId);
             }}
+            onHover={(hovered) => onHoverAbility(hovered ? ability ?? null : null)}
           />
         ))}
       </div>
@@ -163,6 +106,7 @@ function AbilitySlot({
   disabled,
   pending,
   onClick,
+  onHover,
   artUrl,
 }: {
   slot: AbilitySlotType;
@@ -171,6 +115,7 @@ function AbilitySlot({
   disabled: boolean;
   pending: boolean;
   onClick: () => void;
+  onHover: (hovered: boolean) => void;
   artUrl: string | null;
 }) {
   const empty = !ability;
@@ -202,15 +147,25 @@ function AbilitySlot({
     <button
       type="button"
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => {
+        setHovered(true);
+        if (!empty) onHover(true);
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        onHover(false);
+      }}
+      onFocus={() => {
+        if (!empty) onHover(true);
+      }}
+      onBlur={() => onHover(false)}
       disabled={denied}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{ background: 'transparent', border: 'none', padding: 0, cursor: denied ? 'not-allowed' : 'pointer' }}
       aria-label={
         empty
           ? `${SLOT_LABEL[slot]} slot — empty`
-          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the preview panel to confirm or cancel' : notCharged ? ' — locked' : denied ? ` — unavailable: ${statusText}` : ''}`
+          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the ability panel to confirm or cancel' : notCharged ? ' — locked' : denied ? ` — unavailable: ${statusText}` : ''}`
       }
     >
       {/* Thinner border (was 14/18px — too heavy for a 170×72 tile, it was
@@ -221,7 +176,7 @@ function AbilitySlot({
         borderWidth={pending ? 10 : hovered && !denied ? 8 : 7}
         background={pending ? '#1b1108' : '#100c08'}
         style={{
-          width: 170,
+          width: 'clamp(112px, 16vw, 170px)',
           height: 72,
           display: 'flex',
           alignItems: 'center',

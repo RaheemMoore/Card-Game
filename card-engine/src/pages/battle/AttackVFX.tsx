@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { BattleState } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import type { DamageType } from '../../types/abilities';
+import { computeHeroLaneXPercents } from './PartyDock';
+import { useViewportWidth } from './useViewportWidth';
 
 interface Props {
   state: BattleState;
@@ -14,11 +16,14 @@ interface Point {
 }
 
 /** Approximate anchor points (% of the arena container) matching where
- *  BossStage and HeroForeground actually render their sprites/cards. Not
- *  pixel-perfect — this is a stylized arcade zap, not a physics sim. */
+ *  BossStage and HeroSpriteLayer actually render their sprites. Not
+ *  pixel-perfect — this is a stylized arcade zap, not a physics sim.
+ *  Hero X lanes are NOT static — they must match
+ *  `computeHeroLaneXPercents()` (the same function HeroSpriteLayer uses),
+ *  since the lanes shift right of the party dock and the dock's width is
+ *  itself fluid. See that function's docstring in `PartyDock.tsx`. */
 const BOSS_POINT: Point = { x: 50, y: 34 };
-const HERO_LANE_X = [16.67, 50, 83.33];
-const HERO_POINT_Y = 78;
+const HERO_POINT_Y = 74;
 
 const ELEMENT_COLOR: Record<DamageType, string> = {
   physical: '#e8d6b2',
@@ -44,7 +49,7 @@ interface Shot {
 /**
  * A 2D bolt/zap that travels from attacker to target and bursts on impact,
  * keyed off the same `damage_dealt` events that already drive the hit-shake
- * on BossStage/HeroForeground. Purely decorative — reads events, never
+ * on BossStage/HeroSpriteLayer. Purely decorative — reads events, never
  * feeds back into the reducer. Desktop only for now: the mobile party tray
  * rotates hero lanes on selection, so a stable per-hero anchor point would
  * need its own follow-up pass.
@@ -52,6 +57,7 @@ interface Shot {
 export function AttackVFX({ state, currentBeat }: Props) {
   const [shots, setShots] = useState<Shot[]>([]);
   const lastBeatId = useRef<string | null>(null);
+  const viewportWidth = useViewportWidth();
 
   useEffect(() => {
     if (!currentBeat) return;
@@ -60,10 +66,11 @@ export function AttackVFX({ state, currentBeat }: Props) {
     if (e.kind !== 'damage_dealt') return;
     lastBeatId.current = currentBeat.id;
 
+    const heroLaneX = computeHeroLaneXPercents(viewportWidth);
     const sourceIsBoss = e.sourceActorId === state.boss.actorId;
     const heroActorId = sourceIsBoss ? e.targetActorId : e.sourceActorId;
     const heroIndex = state.heroes.findIndex((h) => h.actorId === heroActorId);
-    const heroPoint: Point = { x: HERO_LANE_X[heroIndex] ?? 50, y: HERO_POINT_Y };
+    const heroPoint: Point = { x: heroLaneX[heroIndex] ?? 50, y: HERO_POINT_Y };
     const from = sourceIsBoss ? BOSS_POINT : heroPoint;
     const to = sourceIsBoss ? heroPoint : BOSS_POINT;
     const color = ELEMENT_COLOR[e.damageType] ?? ELEMENT_COLOR.physical;
@@ -75,7 +82,7 @@ export function AttackVFX({ state, currentBeat }: Props) {
       setShots((cur) => cur.filter((s) => s.id !== id));
     }, heavy ? 750 : 500);
     return () => window.clearTimeout(timeout);
-  }, [currentBeat, state.boss.actorId, state.heroes]);
+  }, [currentBeat, state.boss.actorId, state.heroes, viewportWidth]);
 
   if (shots.length === 0) return null;
 

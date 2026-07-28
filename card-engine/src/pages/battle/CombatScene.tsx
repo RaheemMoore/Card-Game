@@ -1,19 +1,27 @@
 import { useEffect, useState } from 'react';
 import type { Card } from '../../types/card';
-import type { BattleState, PlayerAction } from '../../types/combat';
+import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
-import { targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
+import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
+import { previewAbilityDamage } from '../../services/combat/reducer';
+import { getAbilityStore } from '../../services/abilities/registry';
+import { getArtCrops } from '../../types/abilities';
+import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
-import { HeroForeground } from './HeroForeground';
+import { HeroSpriteLayer } from './HeroSpriteLayer';
+import { PartyDock, computePartyDockWidth } from './PartyDock';
+import { useViewportWidth } from './useViewportWidth';
 import { AbilityCommandBar } from './AbilityCommandBar';
+import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
-import { EnergyGauge } from './EnergyGauge';
 import { CombatGuideModal } from './CombatGuideModal';
 import { PaintedPanel } from './PaintedPanel';
+import { CardSheet } from '../../components/CardSheet';
+import { buildBattleCardSheetAbilities, buildBattleLiveState } from './cardSheetAdapters';
 
 interface Props {
   state: BattleState;
@@ -31,6 +39,16 @@ interface Props {
  * the visual shell around it: Boss HUD, Turn Badge, Combat Journal, and the
  * full-width Command Shelf all share one ring + filigree-corner treatment.
  * The CSS-drawn CombatFrame primitive these grew out of is now mobile-only.
+ *
+ * The party's card identity lives in the docked PartyDock, anchored to the
+ * shelf's bottom-left corner. The card art rises above the shelf's own top
+ * edge into the arena (a hand of cards peeking up from behind the frame) —
+ * only the HP/MP/ultimate readout underneath stays inside the shelf band.
+ * A separate HeroSpriteLayer stands in the arena floor band above the
+ * shelf as the actual combat-reactive presence (shake/lunge/floating-damage/
+ * shield-ring/low-HP tint/status pills) — it's purely presentational and
+ * echoes the dock's acting/targetable state rather than owning any of it;
+ * the dock cards remain the only click targets.
  */
 export function CombatScene({
   state,
@@ -43,6 +61,8 @@ export function CombatScene({
 }: Props) {
   const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
   const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
+  const viewportWidth = useViewportWidth();
+  const partyDockWidth = computePartyDockWidth(viewportWidth);
 
   const boss = state.boss;
   const actingHero =
@@ -81,9 +101,12 @@ export function CombatScene({
   const [guideOpen, setGuideOpen] = useState(false);
 
   // Armed-ability + target-pick state lives here (not inside AbilityCommandBar)
-  // so HeroForeground's target-pick mode can share the same source of truth.
+  // so PartyDock's target-pick mode can share the same source of truth.
   const [pendingAbilityId, setPendingAbilityId] = useState<string | null>(null);
   const [pickedTargetActorId, setPickedTargetActorId] = useState<string | null>(null);
+  // Hover-preview state for the Ability Codex panel — cleared whenever
+  // something is armed so the panel never shows two competing previews.
+  const [hoveredAbility, setHoveredAbility] = useState<AbilityCombatSnapshot | null>(null);
 
   const armAbility = (definitionId: string | null) => {
     setPendingAbilityId(definitionId);
@@ -95,6 +118,7 @@ export function CombatScene({
   useEffect(() => {
     setPendingAbilityId(null);
     setPickedTargetActorId(null);
+    setHoveredAbility(null);
   }, [actingHero.actorId]);
 
   const pendingAbility = pendingAbilityId
@@ -107,6 +131,25 @@ export function CombatScene({
   const pickableActorIds = state.heroes
     .filter((h) => !h.defeated && h.actorId !== actingHero.actorId)
     .map((h) => h.actorId);
+
+  const resolvedTargetIds: string[] | null = !pendingAbility
+    ? null
+    : needsTargetPick
+    ? pickedTargetActorId
+      ? [pickedTargetActorId]
+      : null
+    : resolveTargetRule(state, actingHero.actorId, pendingAbility.version.targetRule, []).targetActorIds;
+  const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
+  const projectedDamage = pendingAbility ? previewAbilityDamage(state, actingHero, pendingAbility) : null;
+  const abilityStore = getAbilityStore();
+  const pendingArtUrl = pendingAbility
+    ? (() => {
+        const art = abilityStore.getArtForAbility(pendingAbility.definitionId);
+        return art ? getArtCrops(art).combat.url : null;
+      })()
+    : null;
+
+  const [sheetHero, setSheetHero] = useState<{ card: Card; combatant: HeroCombatant } | null>(null);
 
   return (
     <div className="absolute inset-0">
@@ -149,81 +192,124 @@ export function CombatScene({
       {/* Layer 4 — Boss stage */}
       <BossStage boss={boss} currentBeat={currentBeat} />
 
-      {/* Layer 5 — Hero foreground */}
-      <HeroForeground
+      {/* Layer 5 — Hero pixel sprites, standing in the arena floor band
+          above the shelf. Purely presentational (see HeroSpriteLayer.tsx
+          docstring) — echoes the dock's acting/targetable state, doesn't
+          own it. This is what AttackVFX's beams actually travel to/from. */}
+      <HeroSpriteLayer
+        heroes={state.heroes}
+        actingActorId={actingHero.actorId}
+        canAct={canAct}
+        currentBeat={currentBeat}
+        targetPickMode={needsTargetPick ? { pickableActorIds } : null}
+      />
+
+      {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
+      <AttackVFX state={state} currentBeat={currentBeat} />
+
+      {/* Command Shelf — a real painted 9-slice frame (see PaintedPanel.tsx)
+          holding just the ability bar + utility tray. Short on purpose: the
+          party dock is a sibling layer (below) that rises above this
+          frame's top edge, so it isn't sized to contain the cards. Zone
+          widths/paddings are fluid (clamp()-driven) below ~1450px so
+          nothing overlaps down to tablet-landscape widths. */}
+      <PaintedPanel
+        className="absolute inset-x-0 bottom-0 flex items-center"
+        style={{ height: '8.5rem', zIndex: 15, boxShadow: '0px -8px 24px rgba(0,0,0,0.55)' }}
+        borderWidth={10}
+        background="#060708"
+      >
+        {/* Reserves the horizontal space the (absolutely-positioned) party
+            dock occupies, so the ability bar/controls never sit under it.
+            MUST use the same computePartyDockWidth() call PartyDock itself
+            uses — that's the single source of truth keeping the two in
+            sync (see PartyDock.tsx docstring). */}
+        <div aria-hidden style={{ flex: `0 0 ${partyDockWidth}px` }} />
+
+        <ShelfSeam />
+
+        {/* Ability slots — the explanation popover floats above this zone,
+            only while an ability is armed or hovered. */}
+        <div
+          className="relative flex-1 flex items-center justify-center min-w-0"
+          style={{ height: '100%', paddingLeft: 'clamp(8px, 1.8vw, 24px)', paddingRight: 'clamp(8px, 1.8vw, 24px)' }}
+        >
+          {(pendingAbility || hoveredAbility) && (
+            <div
+              className="absolute left-1/2 -translate-x-1/2"
+              style={{ bottom: 'calc(100% + 12px)', width: '100%', maxWidth: 340, zIndex: 30 }}
+            >
+              <AbilityCodexPanel
+                hero={actingHero}
+                pendingAbility={pendingAbility}
+                pendingArtUrl={pendingArtUrl}
+                projectedDamage={projectedDamage}
+                targetName={targetName}
+                needsTargetPick={needsTargetPick && !pickedTargetActorId}
+                onConfirm={() => {
+                  if (!resolvedTargetIds || !pendingAbility) return;
+                  onSubmit({
+                    kind: 'ability',
+                    abilityDefinitionId: pendingAbility.definitionId,
+                    targetActorIds: resolvedTargetIds,
+                  });
+                  armAbility(null);
+                }}
+                onCancel={() => armAbility(null)}
+                hoveredAbility={hoveredAbility}
+              />
+            </div>
+          )}
+          <AbilityCommandBar
+            hero={actingHero}
+            disabled={!canAct}
+            pendingId={pendingAbilityId}
+            onArm={armAbility}
+            onHoverAbility={setHoveredAbility}
+          />
+        </div>
+
+        <ShelfSeam />
+
+        {/* Utility tray + End Turn, pinned right */}
+        <div style={{ paddingRight: 'clamp(8px, 1.8vw, 24px)' }}>
+          <BattleControls
+            onExit={onExit}
+            onSubmit={onSubmit}
+            canAct={canAct}
+            pendingCount={state.pendingActorIds.length}
+            resolvingIntentName={resolvingIntentName}
+            onOpenGuide={() => setGuideOpen(true)}
+          />
+        </div>
+      </PaintedPanel>
+
+      {/* Party dock — a sibling of the shelf, not a child, so its card art
+          can rise above the shelf's top edge into the arena without being
+          clipped by the shelf's own box. */}
+      <PartyDock
         heroes={state.heroes}
         partyCards={partyCards}
         actingActorId={actingHero.actorId}
         canAct={canAct}
         currentBeat={currentBeat}
         onSelectActor={onSelectActor}
+        onOpenCard={(card, combatant) => setSheetHero({ card, combatant })}
         targetPickMode={
           needsTargetPick ? { pickableActorIds, onPick: setPickedTargetActorId } : null
         }
       />
 
-      {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
-      <AttackVFX state={state} currentBeat={currentBeat} />
-
-      {/* Command Shelf — ONE composed panel (real painted 9-slice frame,
-          see PaintedPanel.tsx) with three internal zones sharing a single
-          outer boundary: energy | abilities | utility+end-turn. Previously
-          five independently-bordered siblings sitting on top of each other
-          in the same band — that's what caused the "edges smear together"
-          mess. Ability slots get a heavier border-width than this outer
-          frame (see AbilityCommandBar.tsx) so they read as the dominant,
-          most-important element, not the empty background box. */}
-      <PaintedPanel
-        className="absolute inset-x-0 bottom-0 flex items-center gap-5 px-6"
-        style={{ height: '9.5rem', zIndex: 15, boxShadow: '0px -8px 24px rgba(0,0,0,0.55)' }}
-        borderWidth={10}
-        background="#060708"
-      >
-        {/* Zone 1 — energy counter, height-matched to the ability slot row.
-            Pinned left; the shelf is now full-viewport-width, so each zone
-            has to hold its own edge or the contents island in the middle. */}
-        <div className="flex items-center" style={{ height: 72, flex: '0 0 auto' }}>
-          <EnergyGauge
-            actorId={actingHero.actorId}
-            current={actingHero.resource}
-            max={actingHero.snapshot.maxResource}
-            resourceLabel={actingHero.snapshot.resourceType === 'tech' ? 'TECH' : 'MANA'}
-            currentBeat={currentBeat}
-          />
-        </div>
-
-        {/* Seam — thin inset rule, same language BattleControls already uses
-            between its tray and End Turn, so the wider shelf reads as three
-            deliberate bays rather than one empty room. */}
-        <ShelfSeam />
-
-        {/* Zone 2 — ability slots, centered in the remaining space */}
-        <div className="flex-1 flex items-center justify-center min-w-0">
-          <AbilityCommandBar
-            hero={actingHero}
-            disabled={!canAct}
-            state={state}
-            pendingId={pendingAbilityId}
-            onArm={armAbility}
-            pickedTargetActorId={pickedTargetActorId}
-            onSubmit={onSubmit}
-          />
-        </div>
-
-        <ShelfSeam />
-
-        {/* Zone 3 — utility tray + End Turn, pinned right */}
-        <BattleControls
-          onExit={onExit}
-          onSubmit={onSubmit}
-          canAct={canAct}
-          pendingCount={state.pendingActorIds.length}
-          resolvingIntentName={resolvingIntentName}
-          onOpenGuide={() => setGuideOpen(true)}
-        />
-      </PaintedPanel>
-
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
+
+      {sheetHero && (
+        <CardSheet
+          card={sheetHero.card}
+          abilities={buildBattleCardSheetAbilities(sheetHero.combatant)}
+          liveState={buildBattleLiveState(sheetHero.combatant)}
+          onClose={() => setSheetHero(null)}
+        />
+      )}
     </div>
   );
 }
