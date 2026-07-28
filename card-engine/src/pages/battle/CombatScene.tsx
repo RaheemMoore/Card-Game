@@ -228,10 +228,23 @@ export function CombatScene({
           most-important element, not the empty background box. */}
       <PaintedPanel
         className="absolute inset-x-2 bottom-2 flex items-center gap-4 px-5"
-        style={{ height: '9.5rem', zIndex: 15 }}
+        style={{ height: '9.5rem', zIndex: 15, boxShadow: '0px -8px 24px rgba(0,0,0,0.55)' }}
         borderWidth={10}
         background="#060708"
       >
+        {/* Corner ornaments — real painted gold filigree brackets, not a
+            CSS approximation. Same recolored asset as the panel border
+            itself so it reads as one coherent gold frame, not a mismatched
+            add-on. */}
+        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
+          style={{ position: 'absolute', left: -3, top: -3, width: 30, height: 30, pointerEvents: 'none' }} />
+        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
+          style={{ position: 'absolute', right: -3, top: -3, width: 30, height: 30, transform: 'scaleX(-1)', pointerEvents: 'none' }} />
+        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
+          style={{ position: 'absolute', left: -3, bottom: -3, width: 30, height: 30, transform: 'scaleY(-1)', pointerEvents: 'none' }} />
+        <img src="/assets/combat/shelf/corner.png" alt="" aria-hidden draggable={false}
+          style={{ position: 'absolute', right: -3, bottom: -3, width: 30, height: 30, transform: 'scale(-1)', pointerEvents: 'none' }} />
+
         {/* Zone 1 — energy counter, height-matched to the ability slot row */}
         <div className="flex items-center" style={{ height: 72 }}>
           <EnergyGauge

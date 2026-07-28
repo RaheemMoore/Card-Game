@@ -4,9 +4,12 @@ import type { CSSProperties, ReactNode } from 'react';
  * Real painted 9-slice frame art (CC0, Foozle "RPG UI Set 1 - Diablo Style",
  * sourced from itch.io / OpenGameArt — see
  * public/assets/combat/shelf/SOURCE-LICENSE.txt) replacing the CSS-drawn
- * CombatFrame primitive for the command shelf band. Carved-stone/bronze
+ * CombatFrame primitive for the command shelf band. Carved gold/bronze
  * panel with real filigree corners — the thing CSS gradients couldn't
- * fake (per the ui-ux-director consult that scoped this pass).
+ * fake. The source pack shipped a gray-stone tone that read as flat and
+ * un-fantasy; `panel-1.png`/`panel-2.png`/`corner.png` are the same art,
+ * recolored in place (hue mix toward warm gold, +saturation) so the frame
+ * itself carries color instead of relying on a filter or a different asset.
  *
  * Uses CSS `border-image`: the source PNG's corner+edge region paints the
  * border ring only (no `fill`), so the element's own `background` still
@@ -66,6 +69,27 @@ export function PaintedPanel({
         ...style,
       }}
     >
+      {/* Inner gold hairline — sits just inside the painted border so the
+          frame reads as a layered, carved metal edge rather than one flat
+          stroke. Kept separate from `boxShadow` (which callers already use
+          for glow/elevation) so it can't be silently clobbered by a
+          caller's own shadow value.
+          NB: relies on the caller already establishing a containing block
+          (the shelf has `absolute` in its className; ability slots always
+          set a non-'none' `transform`) — deliberately NOT adding a default
+          `position` here, since an inline `position: relative` would beat
+          the shelf's Tailwind `.absolute` class outright (inline style
+          always wins over a stylesheet class) and reintroduce the exact
+          shelf-renders-at-top bug fixed earlier. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 2,
+          boxShadow: 'inset 0 0 0 1px rgba(255,224,168,0.22)',
+          pointerEvents: 'none',
+        }}
+      />
       {children}
     </div>
   );
