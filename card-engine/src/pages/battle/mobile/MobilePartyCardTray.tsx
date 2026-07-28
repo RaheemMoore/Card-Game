@@ -148,15 +148,26 @@ function MobileHeroLane({
   /** Non-null while an ability's target picker is active. */
   picking: { pickable: boolean; onPick: () => void } | null;
 }) {
-  const [shakeKey, setShakeKey] = useState(0);
+  // One reaction slot, mirroring HeroSpriteLayer's. Until 2026-07-28 this
+  // only fired when the hero was the damage TARGET, so on mobile the party
+  // never visibly ATTACKED — a big part of why the phone build read as
+  // inert. Cards can't lunge sideways without breaking the tray grid, so the
+  // attack reaction is a vertical pop instead.
+  const [reaction, setReaction] = useState<{ key: number; type: 'hit' | 'attack' } | null>(null);
   const lastShakeBeatId = useRef<string | null>(null);
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastShakeBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
-    if (e.kind !== 'damage_dealt' || e.targetActorId !== combatant.actorId) return;
-    lastShakeBeatId.current = currentBeat.id;
-    setShakeKey((n) => n + 1);
+    if (e.kind !== 'damage_dealt') return;
+    if (e.targetActorId === combatant.actorId) {
+      lastShakeBeatId.current = currentBeat.id;
+      setReaction((cur) => ({ key: (cur?.key ?? 0) + 1, type: 'hit' }));
+    } else if (e.sourceActorId === combatant.actorId) {
+      lastShakeBeatId.current = currentBeat.id;
+      setReaction((cur) => ({ key: (cur?.key ?? 0) + 1, type: 'attack' }));
+    }
   }, [currentBeat, combatant.actorId]);
 
   const isDefeated = combatant.defeated;
@@ -201,8 +212,14 @@ function MobileHeroLane({
         }}
       >
         <div
-          key={shakeKey}
-          className={`relative mobile-hero-lane-shake ${picking?.pickable ? 'mobile-hero-lane-target-reticle' : ''}`}
+          key={reaction?.key ?? 0}
+          className={[
+            'relative',
+            reaction?.type === 'attack' ? 'mobile-hero-lane-attack' : 'mobile-hero-lane-shake',
+            picking?.pickable && 'mobile-hero-lane-target-reticle',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{
             filter: isSelected
               ? canAct
@@ -247,15 +264,28 @@ function MobileHeroLane({
           card above (see the bottom-edge overlay in the render above). */}
 
       <style>{`
+        /* Opens on 18% of hitstop, same as the desktop sprites — the numbers
+           live in services/combat/presentation/gameFeel.ts so the two trees
+           can differ in WHERE an effect lands but never in how hard it hits. */
         @keyframes mobile-hero-lane-shake {
-          0%   { transform: translate(0, 0); }
-          15%  { transform: translate(-2px, 1px); filter: brightness(1.4); }
-          30%  { transform: translate(2px, -1px); filter: brightness(1.4); }
-          45%  { transform: translate(-1px, 0); }
-          60%  { transform: translate(1px, 0); }
-          100% { transform: translate(0, 0); }
+          0%, 18% { transform: translate(0, 0); filter: brightness(2.2) saturate(0.4); }
+          32%     { transform: translate(3px, 1px); filter: brightness(1.15); }
+          48%     { transform: translate(-2px, -1px); }
+          64%     { transform: translate(1px, 0); }
+          100%    { transform: translate(0, 0); }
         }
         .mobile-hero-lane-shake { animation: mobile-hero-lane-shake 0.35s ease-out; }
+
+        /* The attack tell. A card can't lunge horizontally without tearing
+           the three-lane grid apart, so the strike reads vertically. */
+        @keyframes mobile-hero-lane-attack {
+          0%   { transform: translateY(0); }
+          20%  { transform: translateY(3px); }
+          45%  { transform: translateY(-8px); filter: brightness(1.15); }
+          60%  { transform: translateY(-8px); filter: brightness(1.15); }
+          100% { transform: translateY(0); }
+        }
+        .mobile-hero-lane-attack { animation: mobile-hero-lane-attack 380ms cubic-bezier(0.2, 0.9, 0.3, 1); }
 
         @keyframes mobile-hero-lane-target-pulse {
           0%, 100% { box-shadow: 0 0 0 2px #eb962e, 0 0 14px 3px rgba(235,150,46,0.55); }
@@ -273,6 +303,7 @@ function MobileHeroLane({
 
         @media (prefers-reduced-motion: reduce) {
           .mobile-hero-lane-shake { animation: none !important; }
+          .mobile-hero-lane-attack { animation: none !important; }
           .mobile-hero-lane-target-reticle {
             animation: none !important;
             box-shadow: 0 0 0 3px #eb962e;

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BossCombatant } from '../../../types/combat';
-import type { AnimationBeat } from '../../../services/combat/presentation/types';
+import type { AnimationBeat, BeatSeverity } from '../../../services/combat/presentation/types';
+import { getGameFeel } from '../../../services/combat/presentation/gameFeel';
+import type { MotionLevel } from '../../../vfx/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../../data/combat/arenaManifest';
 import { getBossSprite } from '../../../data/combat/bossSpriteManifest';
 import { resolveCombatAssetUrl } from '../../../data/combat/types';
@@ -9,6 +11,7 @@ import { FloatingDamage } from '../FloatingDamage';
 interface Props {
   boss: BossCombatant;
   currentBeat: AnimationBeat | null;
+  motionLevel: MotionLevel;
   /** Extra vertical emphasis when the party is in Playback Mode. */
   emphasized: boolean;
   /** Bottom reserve (px) where party cards float over the arena — used to
@@ -24,17 +27,20 @@ interface Props {
  * so the head reads at the very top of the phone screen; the lower half
  * hosts the party card tray floating over the arena.
  */
-export function MobileArenaStage({ boss, currentBeat, emphasized, cardTrayHeight }: Props) {
-  const [shakeKey, setShakeKey] = useState(0);
+export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, cardTrayHeight }: Props) {
+  const [hit, setHit] = useState<{ key: number; severity?: BeatSeverity }>({ key: 0 });
   const lastShakeBeatId = useRef<string | null>(null);
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastShakeBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
     if (e.kind !== 'damage_dealt' || e.targetActorId !== boss.actorId) return;
     lastShakeBeatId.current = currentBeat.id;
-    setShakeKey((n) => n + 1);
+    setHit((cur) => ({ key: cur.key + 1, severity: currentBeat.severity }));
   }, [currentBeat, boss.actorId]);
+
+  const feel = getGameFeel(hit.severity, motionLevel);
 
   // Charge-up — mirrors BossStage.tsx's desktop treatment. See that file for
   // the full rationale (real telegraphed heavy attack, not ambient motion).
@@ -107,12 +113,23 @@ export function MobileArenaStage({ boss, currentBeat, emphasized, cardTrayHeight
         }}
       >
         <div
-          key={shakeKey}
-          className={`mobile-boss-sprite relative ${charging ? 'mobile-boss-charging' : ''}`}
+          key={hit.key}
+          className={[
+            feel.staticFallback ? 'mobile-boss-static-hit' : 'mobile-boss-sprite',
+            'relative',
+            charging && (feel.staticFallback ? 'mobile-boss-charging-static' : 'mobile-boss-charging'),
+          ]
+            .filter(Boolean)
+            .join(' ')}
           style={{
             width: emphasized ? 'min(74vw, 320px)' : 'min(64vw, 280px)',
             height: emphasized ? 'min(42dvh, 320px)' : 'min(38dvh, 280px)',
             transition: 'width 300ms ease-out, height 300ms ease-out',
+            ...({
+              '--react-ms': `${feel.spriteShakeMs}ms`,
+              '--shake-px': `${feel.spriteShakePx}px`,
+              '--impact-flash': `${feel.impactFlash}`,
+            } as React.CSSProperties),
           }}
           aria-label={`${boss.snapshot.name}${charging ? ' — charging a heavy attack' : ''}`}
         >
@@ -149,28 +166,39 @@ export function MobileArenaStage({ boss, currentBeat, emphasized, cardTrayHeight
       </div>
 
       <style>{`
+        /* Hitstop first, same 18% as the desktop tree — see gameFeel.ts. */
         @keyframes mobile-boss-hit-shake {
-          0%   { transform: translate(0, 0); }
-          15%  { transform: translate(-4px, 1px); filter: brightness(1.4); }
-          30%  { transform: translate(4px, -1px); filter: brightness(1.4); }
-          45%  { transform: translate(-2px, 0); }
-          60%  { transform: translate(2px, 0); }
-          100% { transform: translate(0, 0); filter: brightness(1); }
+          0%, 18% { transform: translate(0, 0); filter: brightness(var(--impact-flash, 2.2)) saturate(0.5); }
+          32%     { transform: translate(calc(var(--shake-px, 4px) * -1), 1px); filter: brightness(1.2); }
+          48%     { transform: translate(var(--shake-px, 4px), -1px); }
+          64%     { transform: translate(calc(var(--shake-px, 4px) * -0.5), 0); }
+          82%     { transform: translate(calc(var(--shake-px, 4px) * 0.25), 0); }
+          100%    { transform: translate(0, 0); filter: brightness(1); }
         }
-        .mobile-boss-sprite { animation: mobile-boss-hit-shake 0.35s ease-out; }
+        .mobile-boss-sprite { animation: mobile-boss-hit-shake var(--react-ms, 350ms) ease-out; }
+
+        /* Motion off: hold the tint, move nothing. */
+        @keyframes mobile-boss-static-hit {
+          0%, 92% { filter: brightness(1.35) saturate(1.25); }
+          100%    { filter: none; }
+        }
+        .mobile-boss-static-hit { animation: mobile-boss-static-hit 900ms steps(1, end); }
 
         @keyframes mobile-boss-charge-pulse {
           0%   { filter: brightness(1) saturate(1); }
           70%  { filter: brightness(1.15) saturate(1.1); }
           100% { filter: brightness(1.55) saturate(1.35); }
         }
-        .mobile-boss-sprite.mobile-boss-charging {
+        /* Not compounded with .mobile-boss-sprite — the base class changes when
+           motion is off, and the charge tell has to survive that. */
+        .mobile-boss-charging {
           animation: mobile-boss-charge-pulse 1.4s ease-in-out infinite alternate;
         }
+        .mobile-boss-charging-static { filter: brightness(1.3) saturate(1.2); }
 
         @media (prefers-reduced-motion: reduce) {
           .mobile-boss-sprite { animation: none !important; }
-          .mobile-boss-sprite.mobile-boss-charging {
+          .mobile-boss-charging {
             animation: none !important;
             filter: brightness(1.3) saturate(1.2);
           }

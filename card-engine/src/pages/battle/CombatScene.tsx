@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Card } from '../../types/card';
 import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
+import type { MotionLevel } from '../../vfx/types';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
@@ -28,6 +29,8 @@ interface Props {
   actingActorId: string | null;
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
+  motionLevel: MotionLevel;
+  onChangeMotionLevel: (next: MotionLevel) => void;
   onSubmit: (action: PlayerAction) => void;
   onSelectActor: (actorId: string) => void;
   onExit: () => void;
@@ -55,6 +58,8 @@ export function CombatScene({
   actingActorId,
   partyCards,
   currentBeat,
+  motionLevel,
+  onChangeMotionLevel,
   onSubmit,
   onSelectActor,
   onExit,
@@ -212,7 +217,7 @@ export function CombatScene({
 
 
       {/* Layer 4 — Boss stage */}
-      <BossStage boss={boss} currentBeat={currentBeat} />
+      <BossStage boss={boss} currentBeat={currentBeat} motionLevel={motionLevel} />
 
       {/* Layer 5 — Hero pixel sprites, standing in the arena floor band
           above the shelf. Purely presentational (see HeroSpriteLayer.tsx
@@ -224,6 +229,7 @@ export function CombatScene({
         canAct={canAct}
         currentBeat={currentBeat}
         targetPickMode={needsTargetPick ? { pickableActorIds } : null}
+        motionLevel={motionLevel}
       />
 
       {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
@@ -277,6 +283,8 @@ export function CombatScene({
             canAct={canAct}
             pendingCount={state.pendingActorIds.length}
             resolvingIntentName={resolvingIntentName}
+            motionLevel={motionLevel}
+            onChangeMotionLevel={onChangeMotionLevel}
             onOpenGuide={() => setGuideOpen(true)}
           />
         </div>

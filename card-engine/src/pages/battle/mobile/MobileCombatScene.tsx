@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../../types/card';
 import type { BattleState, PlayerAction } from '../../../types/combat';
 import type { AnimationBeat } from '../../../services/combat/presentation/types';
+import type { MotionLevel } from '../../../vfx/types';
 import type { JournalEntry } from '../../../services/combat/presentation/journalSummary';
 import { targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
 import { MobileBossHeader } from './MobileBossHeader';
@@ -20,6 +21,7 @@ interface Props {
   actingActorId: string | null;
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
+  motionLevel: MotionLevel;
   journalEntries: readonly JournalEntry[];
   isPlaying: boolean;
   pendingCount: number;
@@ -55,6 +57,7 @@ export function MobileCombatScene({
   actingActorId,
   partyCards,
   currentBeat,
+  motionLevel,
   journalEntries,
   isPlaying,
   pendingCount: journalPendingCount,
@@ -167,6 +170,7 @@ export function MobileCombatScene({
         <MobileArenaStage
           boss={state.boss}
           currentBeat={currentBeat}
+          motionLevel={motionLevel}
           emphasized={isPlaybackMode}
           cardTrayHeight={cardTrayHeight}
         />
