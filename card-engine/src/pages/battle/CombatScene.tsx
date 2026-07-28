@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Card } from '../../types/card';
 import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
@@ -99,6 +99,28 @@ export function CombatScene({
     return null;
   })();
   const [guideOpen, setGuideOpen] = useState(false);
+
+  // The ability preview panel is rendered as a SIBLING of the command shelf,
+  // not a child of it — the shelf's own z-index makes it a stacking context,
+  // which capped the panel below the hero sprites (z 21) no matter how high
+  // its own z-index went, so the sprites drew straight over the preview text.
+  // As a sibling it needs the ability zone's center reported up to it; the
+  // zone's width is `flex-1` between the dock spacer and the intrinsically
+  // sized controls, so it's measured rather than recomputed.
+  const abilityZoneRef = useRef<HTMLDivElement>(null);
+  const [abilityZoneCenterX, setAbilityZoneCenterX] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = abilityZoneRef.current;
+    if (!el) return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      setAbilityZoneCenterX(rect.left + rect.width / 2);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Armed-ability + target-pick state lives here (not inside AbilityCommandBar)
   // so PartyDock's target-pick mode can share the same source of truth.
@@ -228,38 +250,14 @@ export function CombatScene({
 
         <ShelfSeam />
 
-        {/* Ability slots — the explanation popover floats above this zone,
-            only while an ability is armed or hovered. */}
+        {/* Ability slots. The explanation popover floats above this zone but
+            is rendered outside the shelf entirely (see abilityZoneRef) so the
+            hero sprites can't paint over it. */}
         <div
+          ref={abilityZoneRef}
           className="relative flex-1 flex items-center justify-center min-w-0"
           style={{ height: '100%', paddingLeft: 'clamp(8px, 1.8vw, 24px)', paddingRight: 'clamp(8px, 1.8vw, 24px)' }}
         >
-          {(pendingAbility || hoveredAbility) && (
-            <div
-              className="absolute left-1/2 -translate-x-1/2"
-              style={{ bottom: 'calc(100% + 12px)', width: '100%', maxWidth: 340, zIndex: 30 }}
-            >
-              <AbilityCodexPanel
-                hero={actingHero}
-                pendingAbility={pendingAbility}
-                pendingArtUrl={pendingArtUrl}
-                projectedDamage={projectedDamage}
-                targetName={targetName}
-                needsTargetPick={needsTargetPick && !pickedTargetActorId}
-                onConfirm={() => {
-                  if (!resolvedTargetIds || !pendingAbility) return;
-                  onSubmit({
-                    kind: 'ability',
-                    abilityDefinitionId: pendingAbility.definitionId,
-                    targetActorIds: resolvedTargetIds,
-                  });
-                  armAbility(null);
-                }}
-                onCancel={() => armAbility(null)}
-                hoveredAbility={hoveredAbility}
-              />
-            </div>
-          )}
           <AbilityCommandBar
             hero={actingHero}
             disabled={!canAct}
@@ -299,6 +297,42 @@ export function CombatScene({
           needsTargetPick ? { pickableActorIds, onPick: setPickedTargetActorId } : null
         }
       />
+
+      {/* Ability preview — a sibling of the shelf so it clears the hero
+          sprites (z 21) and the party dock (z 20), horizontally centered on
+          the shelf's ability zone via the measured center above. */}
+      {(pendingAbility || hoveredAbility) && abilityZoneCenterX !== null && (
+        <div
+          className="absolute -translate-x-1/2"
+          style={{
+            left: abilityZoneCenterX,
+            bottom: 'calc(8.5rem + 12px)',
+            width: '100%',
+            maxWidth: 340,
+            zIndex: 35,
+          }}
+        >
+          <AbilityCodexPanel
+            hero={actingHero}
+            pendingAbility={pendingAbility}
+            pendingArtUrl={pendingArtUrl}
+            projectedDamage={projectedDamage}
+            targetName={targetName}
+            needsTargetPick={needsTargetPick && !pickedTargetActorId}
+            onConfirm={() => {
+              if (!resolvedTargetIds || !pendingAbility) return;
+              onSubmit({
+                kind: 'ability',
+                abilityDefinitionId: pendingAbility.definitionId,
+                targetActorIds: resolvedTargetIds,
+              });
+              armAbility(null);
+            }}
+            onCancel={() => armAbility(null)}
+            hoveredAbility={hoveredAbility}
+          />
+        </div>
+      )}
 
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
 
