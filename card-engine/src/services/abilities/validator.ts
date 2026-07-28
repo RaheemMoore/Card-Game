@@ -101,6 +101,24 @@ export function validateAbilityVersion(
   }
 
   // Effects, triggers, conditions
+  // Lifesteal reads an accumulator of damage dealt EARLIER in the same
+  // action, so one placed before any damage effect heals exactly nothing —
+  // an ability that validates, attaches, and silently does half its job.
+  const lifestealIndex = version.effects.findIndex((e) => e.type === 'lifesteal');
+  if (lifestealIndex !== -1) {
+    const dealsDamageBefore = version.effects
+      .slice(0, lifestealIndex)
+      .some((e) => e.type === 'direct_damage' || e.type === 'multi_hit');
+    if (!dealsDamageBefore) {
+      errors.push({
+        path: `version.effects[${lifestealIndex}]`,
+        message:
+          'lifesteal has no damage effect before it — it would heal nothing. ' +
+          'Place it after a direct_damage or multi_hit effect.',
+      });
+    }
+  }
+
   version.effects.forEach((effect, i) => {
     validateEffect(effect, `version.effects[${i}]`, errors);
   });

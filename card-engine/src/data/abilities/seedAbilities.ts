@@ -10,7 +10,9 @@ import type { AbilityDefinition, AbilityVersion } from '../../types/abilities';
  * `burn` status were unimplemented.
  *
  * ── Shape ────────────────────────────────────────────────────────────────
- *   6 shared basics   — any archetype can learn them
+ *   8 shared basics   — any archetype can learn them; they cover core,
+ *                       signature AND ultimate, so a card whose archetype has
+ *                       no authored set can still fill a full loadout
  *   3 × 3 archetype   — Barbarian, Druid, Seraph
  *
  * Only three archetypes are authored, on purpose. Between them they exercise
@@ -218,6 +220,66 @@ const RALLY = ability({
       { type: 'resource_gain', resource: 'mana', amount: 1 },
       { type: 'ultimate_charge_gain', amount: 12 },
     ],
+  },
+});
+
+/**
+ * The basics above are all CORE slot, which left every unauthored archetype
+ * able to fill only one slot — a Forged Mech Pilot went into battle with a
+ * single ability and lost 100% of sweeps. These two exist so the shared pool
+ * can fill a full loadout at any rank.
+ *
+ * Kept deliberately plain. They are what you get when your archetype has no
+ * authored set, so they must be functional without being interesting enough
+ * to compete with a real signature.
+ */
+const MEASURED_STRIKE = ability({
+  id: 'ability_measured_strike',
+  slug: 'measured-strike',
+  displayName: 'Measured Strike',
+  familyIds: ['martial'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['basic', 'element'],
+  descriptionShort: 'Pick the opening, take it, and leave a mark behind.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 2,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'direct_damage', amount: 26, scaling: { stat: 'atk', coefficient: 0.55 } },
+      { type: 'apply_status', status: { statusId: 'mark', duration: 2 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.55 }],
+  },
+});
+
+const LAST_STAND = ability({
+  id: 'ability_last_stand',
+  slug: 'last-stand',
+  displayName: 'Last Stand',
+  familyIds: ['martial'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['basic', 'ultimate', 'element'],
+  descriptionShort: 'Everything left, spent at once, on whatever is still standing.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'multi_hit', hitCount: 3, amountPerHit: 15, scaling: { stat: 'atk', coefficient: 0.25 } },
+      { type: 'direct_damage', amount: 30, scaling: { stat: 'atk', coefficient: 0.5 } },
+      { type: 'apply_status', status: { statusId: 'weakened', duration: 2 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.5 }],
   },
 });
 
@@ -517,6 +579,8 @@ export const SHARED_BASIC_ABILITY_IDS: readonly string[] = [
   TAKE_THE_BLOW.definition.id,
   SECOND_WIND.definition.id,
   RALLY.definition.id,
+  MEASURED_STRIKE.definition.id,
+  LAST_STAND.definition.id,
 ];
 
 export const SEED_ABILITIES: SeedAbility[] = [
@@ -526,6 +590,8 @@ export const SEED_ABILITIES: SeedAbility[] = [
   TAKE_THE_BLOW,
   SECOND_WIND,
   RALLY,
+  MEASURED_STRIKE,
+  LAST_STAND,
   INHERITED_GUARD,
   OATHBREAKERS_ANSWER,
   THE_NAME_THEY_LEFT_ME,

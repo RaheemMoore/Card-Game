@@ -1,6 +1,7 @@
 import type { AbilityStore } from '../persistence/AbilityStore';
 import { ABILITY_FAMILIES } from '../../data/abilities/families';
 import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
+import { validateAbilityVersion } from './validator';
 import { registerPlaceholderArt } from './canonicalArtPipeline';
 
 /**
@@ -21,6 +22,8 @@ export interface SeedResult {
   skippedDefinitions: number;
   skippedVersions: number;
   placeholderArtsCreated: number;
+  /** Seeds rejected by the validator. Always 0 in DEV — it throws instead. */
+  invalidSkipped: number;
 }
 
 export async function seedAbilityLibrary(store: AbilityStore): Promise<SeedResult> {
@@ -32,6 +35,7 @@ export async function seedAbilityLibrary(store: AbilityStore): Promise<SeedResul
     skippedDefinitions: 0,
     skippedVersions: 0,
     placeholderArtsCreated: 0,
+    invalidSkipped: 0,
   };
 
   for (const family of ABILITY_FAMILIES) {
@@ -44,6 +48,26 @@ export async function seedAbilityLibrary(store: AbilityStore): Promise<SeedResul
   }
 
   for (const seed of SEED_ABILITIES) {
+    // Validate at SEED time, not only on the player-proposal path.
+    //
+    // With a hand-authored roster the traps are real and quiet: an ultimate
+    // built from two effects scores below its band floor, a lifesteal placed
+    // before any damage heals nothing, a status id typo references something
+    // that does not exist. All three produce an ability that looks fine in
+    // the Codex and does nothing in combat. Failing loudly in DEV is how they
+    // get caught at boot instead of mid-battle; in production we log and keep
+    // going rather than bricking the app over one bad row.
+    const validation = validateAbilityVersion(seed.version, seed.definition);
+    if (!validation.ok) {
+      const detail = validation.errors.map((e) => `${e.path}: ${e.message}`).join('; ');
+      const message = `[abilities] seed "${seed.definition.slug}" is invalid — ${detail}`;
+      if (import.meta.env.DEV) throw new Error(message);
+      // eslint-disable-next-line no-console
+      console.error(message);
+      result.invalidSkipped++;
+      continue;
+    }
+
     if (isSameDefinition(store.getDefinition(seed.definition.id), seed.definition)) {
       result.skippedDefinitions++;
     } else {
