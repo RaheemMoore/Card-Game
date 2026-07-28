@@ -88,6 +88,18 @@ export interface StatusApplication {
   statusId: string;
   duration: number;
   stacks?: number;
+  /**
+   * How hard this particular application bites. Set by the effect that
+   * created it, so two burns from different abilities can tick for different
+   * amounts, and read back at resolution time.
+   *
+   * Generic on purpose — these describe the STRENGTH of an application, not
+   * any one status. `STATUS_CATALOG` still owns what a status means.
+   */
+  amountPerTick?: number;
+  damageType?: DamageType;
+  /** 0..1 incoming-damage reduction, for guard-shaped statuses. */
+  reductionPercent?: number;
 }
 
 /* ---------- Effects (starter catalog: 15) ---------- */

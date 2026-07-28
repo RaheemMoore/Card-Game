@@ -58,6 +58,11 @@ function cueFor(
     case 'healing_applied':
     case 'shield_gained':
       return { cue: 'floating', durationMs: TIMINGS.floating };
+    // 'floating', deliberately NOT 'impact': a burn ticking is a number
+    // drifting up, not a blow landing. Giving it impact would shake the
+    // screen once per stack per round.
+    case 'dot_ticked':
+      return { cue: 'floating', durationMs: TIMINGS.floating };
     case 'status_applied':
     case 'status_removed':
     case 'resource_changed':

@@ -280,6 +280,18 @@ export type BattleEvent =
   | { kind: 'ultimate_charge_changed'; actorId: string; delta: number; source: string }
   | { kind: 'cooldown_started'; actorId: string; abilityDefinitionId: string; rounds: number }
   | { kind: 'cooldown_ticked'; actorId: string; abilityDefinitionId: string; remaining: number }
+  /** One damage-over-time status burning for one round. Separate from
+   *  `damage_dealt` so the view can render a quiet recurring tick rather than
+   *  a struck blow, and so the journal can group ticks per status. */
+  | {
+      kind: 'dot_ticked';
+      sourceActorId: string;
+      targetActorId: string;
+      statusId: string;
+      instanceId: string;
+      amount: number;
+      damageType: DamageType;
+    }
   | { kind: 'actor_defeated'; actorId: string }
   | { kind: 'phase_transition'; fromPhaseId: string; toPhaseId: string }
   | { kind: 'action_denied'; actorId: string; reason: ActionDenialReason }
