@@ -271,6 +271,21 @@ export const THORNS_REFLECT_SHARE = 0.2;
 export const REGENERATION_PER_STACK = 0.06;
 export const REGENERATION_MAX_STACKS = 3;
 
+/**
+ * The same status on a BOSS, which needs its own share.
+ *
+ * A percentage of max HP does not transfer between actors whose HP differs by
+ * an order of magnitude. At the hero rate, three stacks on a 1559 hp boss
+ * healed ~280 per round against a party dealing ~137 — every composition
+ * timed out at 0% win. That is not a hard fight, it is an unkillable one.
+ *
+ * At 1.5% per stack, three stacks heal ~70 per round: roughly half the
+ * party's output, so chip damage genuinely struggles and burst or
+ * damage-over-time is the answer. That is the sustain race the pressure axis
+ * is supposed to create.
+ */
+export const BOSS_REGENERATION_PER_STACK = 0.015;
+
 /* ------------------------------------------------------------------ */
 /*  Healing                                                            */
 /* ------------------------------------------------------------------ */

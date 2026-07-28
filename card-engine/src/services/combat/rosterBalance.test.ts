@@ -208,6 +208,105 @@ describe('roster balance sweep — Emberborn Wraith', () => {
     expect(wins / RUNS).toBeGreaterThan(0);
   }, 60_000);
 
+  it('each champion answers differently to different party compositions', async () => {
+    // THE design test. A champion whose win rate is flat across compositions
+    // is a stat check wearing a costume — the whole point of the tower is
+    // that ascending depends on WHICH heroes you bring, not how strong they
+    // are. If the spread across compositions collapses, the pressure axes are
+    // not actually differentiated and the floor needs redesigning.
+    // Element is part of a composition, not decoration: the core slot and
+    // Attuned Strike derive their damage type from it, so the same three
+    // archetypes carrying different elements are a different party.
+    const comps: [string, [Card['archetype'], ElementName][]][] = [
+      // No healer, no cleanse — raw output, physical and bleed.
+      ['bruisers  ', [['Barbarian', 'Storm'], ['Lycanthrope', 'Ice'], ['Vampire', 'Shadow']]],
+      // Healing, regeneration, cleanse — answers party-wide pressure.
+      ['sustain   ', [['Seraph', 'Light'], ['Druid', 'Nature'], ['Monk', 'Holy']]],
+      // Damage-over-time — meant to tick through regeneration.
+      ['attrition ', [['Necromancer', 'Bone'], ['Druid', 'Poison'], ['Beastmaster', 'Beast']]],
+      // Guard and taunt — answers single-target focus.
+      ['bulwark   ', [['Mech Pilot', 'Metal'], ['Android', 'Prism'], ['Human', 'Earth']]],
+      // Fire — the answer to anything that regenerates behind a nature guard.
+      ['kindling  ', [['Barbarian', 'Fire'], ['Monk', 'Fire'], ['Human', 'Fire']]],
+    ];
+
+    const champions = SEED_BOSSES.filter((b) => b.definition.bossKind === 'champion').sort(
+      (a, b) => (a.definition.towerFloor ?? 0) - (b.definition.towerFloor ?? 0),
+    );
+
+    const lines: string[] = [];
+    const spreads: { name: string; spread: number }[] = [];
+
+    for (const champ of champions) {
+      const boss = snapshotFromBossVersion(champ.definition, champ.version);
+      const rates: number[] = [];
+      const survRates: number[] = [];
+      const row: string[] = [];
+
+      for (const [label, archetypes] of comps) {
+        const party = await Promise.all(
+          archetypes.map(([a, element], i) =>
+            heroFromCard(
+              makeCard(
+                `${champ.definition.slug}-${label.trim()}-${i}`,
+                a,
+                statsFor(60, 60, 70, a === 'Mech Pilot' || a === 'Android' ? 'Tech' : 'Mana'),
+                element,
+              ),
+            ),
+          ),
+        );
+
+        let wins = 0;
+        let rounds = 0;
+        let survivors = 0;
+        for (let seed = 1; seed <= 60; seed++) {
+          const { result, finalState } = runBattle(
+            buildBattleSnapshot({ seed, heroes: party, boss }),
+            baselineHeroPolicy,
+          );
+          if (result.outcome === 'victory') wins++;
+          rounds += result.roundsElapsed;
+          survivors += finalState.heroes.filter((h) => !h.defeated).length;
+        }
+        const rate = wins / 60;
+        rates.push(rate);
+        survRates.push(survivors / 60);
+        row.push(
+          `${label} win=${rate.toFixed(2)} rds=${(rounds / 60).toFixed(0)} surv=${(survivors / 60).toFixed(1)}`,
+        );
+      }
+
+      // A floor differentiates either by WHO WINS or by WHAT IT COSTS. A
+      // teaching floor everyone clears is still doing its job if it clears
+      // very differently — Floor 1 lets every composition through, but a
+      // bulwark party walks out 3/3 in ten rounds where a sustain party
+      // limps out 1/3 in sixteen. Measuring win rate alone would call that
+      // undifferentiated, which is wrong.
+      const winSpread = Math.max(...rates) - Math.min(...rates);
+      const survSpread = (Math.max(...survRates) - Math.min(...survRates)) / 3;
+      const spread = Math.max(winSpread, survSpread);
+      spreads.push({ name: champ.definition.name, spread });
+      lines.push(
+        `  F${champ.definition.towerFloor} ${champ.definition.name}   (spread ${spread.toFixed(2)})\n      ` +
+          row.join('\n      '),
+      );
+    }
+
+    // eslint-disable-next-line no-console
+    console.info('\n[tower] champions vs party compositions, 60 seeds each\n' + lines.join('\n'));
+
+    expect(champions.length).toBeGreaterThan(0);
+    for (const s of spreads) {
+      // 0.15 rather than 0: a floor that varies by a rounding error is a
+      // stat check that happens to jitter, not a puzzle.
+      expect(
+        s.spread,
+        `${s.name} plays near-identically for every composition — it is a stat check, not a puzzle`,
+      ).toBeGreaterThan(0.15);
+    }
+  }, 120_000);
+
   it('an element the boss is weak to out-damages one it resists', async () => {
     // The whole reason element typing exists. If this ever stops holding, the
     // Global Element Pillar has stopped reaching combat and the boss's

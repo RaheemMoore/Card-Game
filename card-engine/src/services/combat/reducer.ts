@@ -35,6 +35,7 @@ import {
   statusDamageModifiers,
   REGENERATION_PER_STACK,
   REGENERATION_MAX_STACKS,
+  BOSS_REGENERATION_PER_STACK,
   THORNS_REFLECT_SHARE,
 } from './formulas';
 
@@ -1238,7 +1239,7 @@ function applyRegeneration(state: BattleState, events: BattleEvent[]): BattleSta
     next.boss.statuses.filter((st) => st.statusId === 'regeneration').reduce((n, st) => n + st.stacks, 0),
   );
   if (next.boss.hp > 0 && bossStacks > 0) {
-    const amount = Math.floor(next.boss.snapshot.maxHp * REGENERATION_PER_STACK * bossStacks);
+    const amount = Math.floor(next.boss.snapshot.maxHp * BOSS_REGENERATION_PER_STACK * bossStacks);
     const healed = Math.min(amount, next.boss.snapshot.maxHp - next.boss.hp);
     if (healed > 0) {
       next = { ...next, boss: { ...next.boss, hp: next.boss.hp + healed } };

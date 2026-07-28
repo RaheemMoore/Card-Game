@@ -1,4 +1,5 @@
 import type { DamageType, StatusApplication } from './abilities';
+import type { ArchetypeName } from './card';
 import type { BossIntentType } from './combat';
 
 /**
@@ -24,6 +25,25 @@ export interface BossDefinition {
   status: BossStatus;
   /** Optional single portrait id — B7 will introduce a phased-portrait catalog. */
   artAssetIds: string[];
+  /**
+   * What KIND of opponent this is.
+   *
+   * 'elemental' — a force, like the Emberborn Wraith. Not a person.
+   * 'champion'  — one of The Overreach: someone who walked an archetype's
+   *               path past its end and collapsed its central tension instead
+   *               of carrying it. A player HOLDS that tension; a champion
+   *               resolved it and could not stop.
+   */
+  bossKind?: 'elemental' | 'champion';
+  /**
+   * The archetype a champion overreached. Drives the mirror moment when a
+   * player of the same archetype fights them.
+   *
+   * Deliberately ONE generic field rather than eleven bespoke ones.
+   */
+  mirrorArchetype?: ArchetypeName;
+  /** Position in the tower. Floor 0 is the gatekeeper. */
+  towerFloor?: number;
   createdAt: string;
   updatedAt: string;
 }
