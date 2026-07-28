@@ -15,7 +15,7 @@ import { CombatFrame } from './CombatFrame';
 import { AttackVFX } from './AttackVFX';
 import { EnergyGauge } from './EnergyGauge';
 import { CombatGuideModal } from './CombatGuideModal';
-import { PaintedPanel, PARCHMENT_MUTED } from './PaintedPanel';
+import { PaintedPanel } from './PaintedPanel';
 
 interface Props {
   state: BattleState;
@@ -225,18 +225,12 @@ export function CombatScene({
           in the same band — that's what caused the "edges smear together"
           mess. Ability slots get a heavier border-width than this outer
           frame (see AbilityCommandBar.tsx) so they read as the dominant,
-          most-important element, not the empty background box. The bronze
-          frame art already carries its own corner detail (studs/rivets
-          baked into the source crop), so no separate corner-ornament
-          overlay is needed here. Parchment runs the full shelf now (not
-          just the ability slots) — a muted wash here vs. a warmer one on
-          the ability slots (AbilityCommandBar.tsx) is what keeps the
-          abilities reading as the star, not a hard light/dark split. */}
+          most-important element, not the empty background box. */}
       <PaintedPanel
         className="absolute inset-x-2 bottom-2 flex items-center gap-4 px-5"
         style={{ height: '9.5rem', zIndex: 15 }}
-        borderWidth={8}
-        background={PARCHMENT_MUTED}
+        borderWidth={10}
+        background="#060708"
       >
         {/* Zone 1 — energy counter, height-matched to the ability slot row */}
         <div className="flex items-center" style={{ height: 72 }}>

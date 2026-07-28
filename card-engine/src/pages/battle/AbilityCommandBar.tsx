@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
@@ -6,7 +6,7 @@ import { getArtCrops } from '../../types/abilities';
 import { previewAbilityDamage } from '../../services/combat/reducer';
 import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../services/combat/targeting';
 import { displayNameFor } from './journalNames';
-import { PaintedPanel, PARCHMENT_WARM } from './PaintedPanel';
+import { PaintedPanel } from './PaintedPanel';
 import { AbilityPreviewCard } from './AbilityPreviewCard';
 
 interface Props {
@@ -183,11 +183,9 @@ function AbilitySlot({
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
-  const [hovered, setHovered] = useState(false);
 
-  // Dark ink on parchment — matches the card nameplate banner's own
-  // text treatment, not the light-on-dark palette the old CSS frame used.
-  const nameColor = '#2c1c10';
+  const nameColor = pending ? '#ebd9b2' : '#e8d6b2';
+  const metaColor = pending ? '#f09c33' : '#948266';
 
   const statusText = empty
     ? 'EMPTY'
@@ -199,15 +197,12 @@ function AbilitySlot({
     ? 'LOCKED'
     : 'READY';
   const statusColor =
-    statusText === 'READY' ? '#3f7a34' : statusText === 'LOCKED' ? '#9a5f1e' : '#8a2f2f';
-  const slotBadge = { core: 'C', signature: 'S', ultimate: 'U' }[slot];
+    statusText === 'READY' ? '#8ab87d' : statusText === 'LOCKED' ? '#c88a45' : '#b06062';
 
   return (
     <button
       type="button"
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       disabled={denied}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{ background: 'transparent', border: 'none', padding: 0, cursor: denied ? 'not-allowed' : 'pointer' }}
@@ -218,54 +213,48 @@ function AbilitySlot({
       }
     >
       <PaintedPanel
-        borderWidth={pending ? 18 : hovered && !denied ? 15 : 12}
-        background={empty ? '#221913' : PARCHMENT_WARM}
+        borderWidth={pending ? 18 : 14}
+        background={pending ? '#1b1108' : '#100c08'}
         style={{
           width: 170,
           height: 72,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '0 10px',
-          transform: pending ? 'translateY(-3px)' : hovered && !denied ? 'translateY(-1px)' : 'translateY(0)',
-          transition: 'transform 150ms, border-width 150ms',
+          transform: pending ? 'translateY(-3px)' : 'translateY(0)',
+          transition: 'transform 200ms, border-width 150ms',
           filter: empty
             ? 'grayscale(0.6) brightness(0.7)'
             : denied
-            ? 'grayscale(0.35) brightness(0.85)'
+            ? 'brightness(0.75) saturate(0.7)'
             : 'none',
           boxShadow: pending
-            ? '0 0 20px rgba(235,120,46,0.55), inset 0 0 0 2px rgba(235,150,46,0.6)'
-            : hovered && !denied
-            ? '0 0 14px rgba(235,150,46,0.4)'
+            ? '0 0 18px rgba(235,150,46,0.5)'
             : !denied
-            ? '0 2px 6px rgba(0,0,0,0.35)'
+            ? '0 0 8px rgba(194,120,38,0.22)'
             : 'none',
         }}
       >
-        {/* Icon tile — fixed size, own dark frame, never fights the text
-            column for space (that's what caused the old overlap mess).
-            Slot type and cost live here as small badges instead of being
-            spelled out in the text column, which is what was overflowing
-            its box and clipping "READY"/"COOLDOWN" off entirely. */}
+        {/* Diamond icon slot — rotated 45° container, Figma 18:53 pattern */}
         <div
           aria-hidden
           style={{
-            position: 'relative',
-            flex: '0 0 auto',
-            width: 44,
-            height: 44,
+            position: 'absolute',
+            left: 12,
+            top: -4,
+            width: 45,
+            height: 45,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <div
             style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: 5,
+              transform: 'rotate(-45deg)',
+              width: 32,
+              height: 32,
               overflow: 'hidden',
+              borderRadius: 4,
               background: '#1a1210',
-              border: '1px solid #7a5530',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+              border: '1px solid #573b1f',
             }}
           >
             {artUrl ? (
@@ -274,91 +263,67 @@ function AbilitySlot({
                 alt=""
                 draggable={false}
                 aria-hidden
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: 'rotate(45deg) scale(1.4)',
+                }}
               />
             ) : (
               <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)' }} />
             )}
           </div>
-          {/* Slot-type tag */}
-          <div
-            style={{
-              position: 'absolute',
-              top: -6,
-              left: -6,
-              width: 16,
-              height: 16,
-              borderRadius: '50%',
-              background: '#2c1c10',
-              border: '1px solid #c9a15a',
-              color: '#e8d6b2',
-              fontSize: 9,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {slotBadge}
-          </div>
-          {/* Cost pip */}
-          {!empty && ability!.resourceCost > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                bottom: -6,
-                right: -6,
-                minWidth: 16,
-                height: 16,
-                padding: '0 3px',
-                borderRadius: 8,
-                background: '#0f2b3a',
-                border: '1px solid #4fa8c9',
-                color: '#bfe6f5',
-                fontSize: 9,
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {ability!.resourceCost}
-            </div>
-          )}
         </div>
 
-        {/* Text column — flex, not absolute-positioned, so it can never
-            spill past the frame's padded interior regardless of name length.
-            Just name + status now — slot/cost moved to icon badges above so
-            this never has to cram three fields into ~86px again. */}
-        <div style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <div
-            style={{
-              color: nameColor,
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {ability?.displayName ?? '—'}
-          </div>
-          <div
-            style={{
-              color: statusColor,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 0.4,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {pending ? 'SELECTED' : statusText}
-          </div>
+        {/* Ability name — Figma 18:54: Inter Semi-Bold 12px #e8d6b2 at (57,15) */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 57,
+            top: 15,
+            color: nameColor,
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            maxWidth: 108,
+          }}
+        >
+          {ability?.displayName ?? '—'}
+        </div>
+
+        {/* Meta line: SLOT • COST N — Figma 18:55: Inter Regular 9px */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 57,
+            top: 38,
+            color: metaColor,
+            fontSize: 9,
+            fontFamily: 'Inter, system-ui, sans-serif',
+            whiteSpace: 'pre',
+          }}
+        >
+          {`${SLOT_LABEL[slot]}${ability && ability.resourceCost > 0 ? `  •  COST ${ability.resourceCost}` : ''}`}
+        </div>
+
+        {/* Status line: READY / COOLDOWN (N) / etc */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 57,
+            top: 54,
+            color: statusColor,
+            fontSize: 9,
+            fontWeight: 600,
+            letterSpacing: 0.6,
+            fontFamily: 'Inter, system-ui, sans-serif',
+          }}
+        >
+          {pending ? 'SELECTED' : statusText}
         </div>
       </PaintedPanel>
     </button>

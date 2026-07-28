@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import type { PlayerAction } from '../../types/combat';
-import { PaintedPanel, PARCHMENT_MUTED } from './PaintedPanel';
 
 interface Props {
   canAct: boolean;
@@ -51,7 +49,7 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
         type="button"
         onClick={endParty}
         disabled={!canAct}
-        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45 hover:enabled:brightness-125 hover:enabled:-translate-y-px"
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
         style={{
           width: 210,
           height: 58,
@@ -67,7 +65,7 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
           fontFamily: 'Inter, system-ui, sans-serif',
           cursor: canAct ? 'pointer' : 'not-allowed',
           boxShadow: canAct ? '0 0 22px rgba(235,150,46,0.35)' : 'none',
-          transition: 'box-shadow 200ms, opacity 200ms, filter 150ms, transform 150ms',
+          transition: 'box-shadow 200ms, opacity 200ms',
         }}
         aria-label={endAria}
         title={endAria}
@@ -92,50 +90,42 @@ function UtilityChip({
   onClick?: () => void;
 }) {
   const clickable = typeof onClick === 'function';
-  const [hovered, setHovered] = useState(false);
   return (
     <button
       type="button"
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       disabled={!clickable}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{
+        width: 58,
+        height: 48,
+        background: '#0f0e0f',
+        border: '1px solid #573b1f',
+        borderRadius: 5,
+        overflow: 'hidden',
+        color: '#b8a68a',
         cursor: clickable ? 'pointer' : 'default',
         opacity: clickable ? 1 : 0.75,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
       }}
       aria-label={caption}
       title={clickable ? caption : `${caption} (coming soon)`}
     >
-      <PaintedPanel
-        borderWidth={hovered && clickable ? 10 : 7}
-        background={PARCHMENT_MUTED}
+      <span style={{ fontSize: 16, lineHeight: 1 }}>{label}</span>
+      <span
         style={{
-          width: 58,
-          height: 48,
-          color: '#3a2a1a',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 4,
-          transition: 'border-width 150ms',
-          boxShadow: hovered && clickable ? '0 0 10px rgba(220,90,50,0.4)' : 'none',
+          fontSize: 7,
+          fontWeight: 600,
+          letterSpacing: 1,
+          fontFamily: 'Inter, system-ui, sans-serif',
         }}
       >
-        <span style={{ fontSize: 16, lineHeight: 1 }}>{label}</span>
-        <span
-          style={{
-            fontSize: 7,
-            fontWeight: 600,
-            letterSpacing: 1,
-            fontFamily: 'Inter, system-ui, sans-serif',
-          }}
-        >
-          {caption}
-        </span>
-      </PaintedPanel>
+        {caption}
+      </span>
     </button>
   );
 }
