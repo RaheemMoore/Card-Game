@@ -52,6 +52,8 @@ function buildHeroForRank(rank: Rank, stats: CardStats) {
     displayName: 'Sim Hero',
     stats,
     rank,
+    // These suites assert combat MATH, not element interaction.
+    elementDamageType: 'physical',
     abilities: [
       buildAbilitySnapshot(soul.definition, soul.version),
       buildAbilitySnapshot(ember.definition, ember.version),

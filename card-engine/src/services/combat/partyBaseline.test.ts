@@ -35,6 +35,8 @@ function heroWithAbilities(id: string, name: string) {
     displayName: name,
     stats: testStats(),
     rank: 'Forged',
+    // These suites assert combat MATH, not element interaction.
+    elementDamageType: 'physical',
     abilities: [
       buildAbilitySnapshot(soulDrain.definition, soulDrain.version),
       buildAbilitySnapshot(emberCleave.definition, emberCleave.version),

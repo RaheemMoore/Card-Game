@@ -11,7 +11,7 @@ import type {
   BattleState,
   AbilityCombatSnapshot,
 } from '../../types/combat';
-import type { AbilityDefinition, AbilityVersion } from '../../types/abilities';
+import type { AbilityDefinition, AbilityVersion, DamageType } from '../../types/abilities';
 import type { CardStats, Rank } from '../../types/card';
 import type { BossVersion, BossDefinition } from '../../types/bosses';
 import {
@@ -113,6 +113,9 @@ export interface BuildHeroSnapshotInput {
   stats: CardStats;
   rank: Rank;
   abilities: AbilityCombatSnapshot[];
+  /** From `damageTypeForElement(resolveCurrentElement(card))`. Test builders
+   *  pass 'physical' when the element is irrelevant to what they assert. */
+  elementDamageType: DamageType;
 }
 
 export function buildHeroSnapshot(input: BuildHeroSnapshotInput): HeroSnapshot {
@@ -126,6 +129,7 @@ export function buildHeroSnapshot(input: BuildHeroSnapshotInput): HeroSnapshot {
     maxHp: derived.maxHp,
     maxResource: derived.maxResource,
     resourceType: input.stats.Mana ? 'mana' : 'tech',
+    elementDamageType: input.elementDamageType,
     abilities: input.abilities,
   };
 }

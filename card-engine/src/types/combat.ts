@@ -52,6 +52,21 @@ export interface HeroSnapshot {
   maxHp: number;
   maxResource: number;
   resourceType: Exclude<AbilityResourceType, 'none'>;
+  /**
+   * The damage type this hero's ELEMENT-TYPED abilities deal, resolved from
+   * the card's element once at snapshot time and frozen here.
+   *
+   * Frozen deliberately. The reducer must be a pure function of
+   * (snapshot, seed, actions) for replay to reproduce, and a card's
+   * `currentElement` MUTATES between battles — `services/tierUp.ts` rewrites
+   * it when a Fallen Seraph's Light transmutes to Infernal. Reading the card
+   * store mid-reduce would make an old event log replay to different damage.
+   *
+   * Note this is the opposite call from the VFX layer, which resolves element
+   * in the VIEW from `partyCards`. That is correct there: cosmetics may follow
+   * the live card, but combat MATH may not.
+   */
+  elementDamageType: DamageType;
   abilities: AbilityCombatSnapshot[];
 }
 

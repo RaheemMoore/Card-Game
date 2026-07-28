@@ -15,6 +15,8 @@ import {
 import { getAbilityStore } from '../abilities/registry';
 import { getCurrentBossVersion, getBossDefinition } from '../bosses/registry';
 import { getOverallRank } from '../../data/powerSystem';
+import { resolveCurrentElement } from '../elementResolver';
+import { damageTypeForElement } from '../../data/abilities/elementDamageType';
 
 /**
  * React hook that runs a battle inside a component. Wraps the pure reducer.
@@ -122,6 +124,10 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
         }
         return buildHeroSnapshot({
           cardId: card.cardId,
+          // Resolved from the LIVE card here, then frozen into the snapshot —
+          // see HeroSnapshot.elementDamageType for why combat math cannot read
+          // the card store once a battle is under way.
+          elementDamageType: damageTypeForElement(resolveCurrentElement(card)),
           archetype: card.archetype,
           displayName: card.cardName,
           stats: card.stats,

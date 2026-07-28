@@ -32,6 +32,8 @@ function buildTestHero() {
     displayName: 'Sim Hero',
     stats: testStats(),
     rank: 'Forged',
+    // These suites assert combat MATH, not element interaction.
+    elementDamageType: 'physical',
     abilities: [
       buildAbilitySnapshot(soulDrain.definition, soulDrain.version),
       buildAbilitySnapshot(emberCleave.definition, emberCleave.version),
@@ -119,6 +121,66 @@ describe('snapshot immutability', () => {
     // Both runs terminated.
     expect(beforeRun.result.outcome).toBeDefined();
     expect(afterRun.result.outcome).toBeDefined();
+  });
+});
+
+describe('element damage type is frozen into the snapshot', () => {
+  // An element-typed ability, mirroring how core-slot abilities are authored.
+  function elementTypedHero(elementDamageType: 'physical' | 'holy') {
+    const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
+    const version = {
+      ...emberCleave.version,
+      damageTypeSource: 'element' as const,
+    };
+    return buildHeroSnapshot({
+      cardId: 'card_elem',
+      archetype: 'Barbarian',
+      displayName: 'Elem Hero',
+      stats: testStats(),
+      rank: 'Forged',
+      elementDamageType,
+      abilities: [buildAbilitySnapshot(emberCleave.definition, version)],
+    });
+  }
+
+  it('is load-bearing — the boss takes more from holy than from physical', () => {
+    // The Wraith is weak to holy. If this ever stops differing, element typing
+    // has silently stopped reaching resolveDamage and the whole feature is off.
+    const physical = runBattle(
+      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('physical') }),
+      baselineHeroPolicy,
+    );
+    const holy = runBattle(
+      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('holy') }),
+      baselineHeroPolicy,
+    );
+
+    const dealt = (r: ReturnType<typeof runBattle>) =>
+      r.events
+        .filter(
+          (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> =>
+            e.kind === 'damage_dealt' && e.sourceActorId !== 'boss',
+        )
+        .reduce((sum, e) => sum + e.amount, 0);
+
+    expect(dealt(holy)).toBeGreaterThan(dealt(physical));
+  });
+
+  it('survives the card store changing mid-battle', () => {
+    // The real hazard: tierUp.ts rewrites `currentElement` when a Fallen
+    // Seraph's Light transmutes to Infernal. Because the damage type is
+    // resolved once at snapshot time, an in-flight battle — and any replay of
+    // its log — must be completely unaffected by that.
+    const snap = buildBattleSnapshot({ seed: 777, hero: elementTypedHero('holy') });
+    const first = runBattle(snap, baselineHeroPolicy);
+
+    const seed = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
+    const original = seed.definition.slug;
+    seed.definition.slug = 'mutated-underneath-us';
+    const second = runBattle(snap, baselineHeroPolicy);
+    seed.definition.slug = original;
+
+    expect(second.events).toEqual(first.events);
   });
 });
 

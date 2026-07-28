@@ -42,6 +42,8 @@ function heroFor(id: string, stats: CardStats) {
     displayName: id,
     stats,
     rank: 'Forged',
+    // These suites assert combat MATH, not element interaction.
+    elementDamageType: 'physical',
     abilities: [
       buildAbilitySnapshot(soul.definition, soul.version),
       buildAbilitySnapshot(ember.definition, ember.version),

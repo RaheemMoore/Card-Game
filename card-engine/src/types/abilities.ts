@@ -455,6 +455,21 @@ export interface AbilityVersion {
   deprecatedAt?: string;
   status: AbilityVersionStatus;
   /**
+   * Where this ability's damage type comes from.
+   *
+   * 'fixed' (the default when omitted) — each damaging effect's own
+   *   `damageType`, as authored. Signature and ultimate abilities use this, so
+   *   an archetype's defining moves read the same on every card.
+   * 'element' — the CARD's element, via `data/abilities/elementDamageType.ts`.
+   *   Used by cheap core abilities and the shared `Attuned Strike`, which is
+   *   what lets a player reach a boss's elemental weakness by choosing an
+   *   element rather than by being forced onto one archetype.
+   *
+   * Optional so existing rows need no migration. Deliberately generic — this
+   * is a property of the ability, not of any one archetype.
+   */
+  damageTypeSource?: 'fixed' | 'element';
+  /**
    * Seraph corruption arc (P8) — marks a Balanced-Seraph dual-cast ability.
    * Combat resolution of the dual-cast is a follow-up; this flag only records
    * the intent so the data model is ready. Not yet consumed by the reducer.

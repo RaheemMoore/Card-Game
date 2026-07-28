@@ -1,6 +1,6 @@
 import type {
-  AbilityEffect,
   AbilityVersion,
+  DamageType,
 } from '../../types/abilities';
 import { resolveTargetRule } from './targeting';
 import type {
@@ -268,7 +268,7 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
         next,
         hero.actorId,
         targetResolution.targetActorIds,
-        abilityRef.version.effects,
+        abilityRef,
       );
       next = outcome.state;
       events.push(...outcome.events);
@@ -596,6 +596,28 @@ function validateAbilityUsable(
 }
 
 /**
+ * The damage type one effect actually deals.
+ *
+ * The ONLY place this decision is made. `previewAbilityDamage` and
+ * `resolveAbilityEffects` must both route through here, or the number shown
+ * in the pre-commit UI drifts from the number the hit actually deals — an
+ * invariant `previewAbilityDamage`'s own doc comment depends on.
+ *
+ * `damageTypeSource: 'element'` swaps in the hero's frozen element type (see
+ * `HeroSnapshot.elementDamageType`); everything else uses the type the
+ * ability was authored with.
+ */
+function effectDamageType(
+  effect: { damageType?: DamageType },
+  version: AbilityVersion,
+  hero: HeroCombatant,
+): DamageType {
+  return version.damageTypeSource === 'element'
+    ? hero.snapshot.elementDamageType
+    : effect.damageType ?? 'physical';
+}
+
+/**
  * Preview the direct-damage total an ability would deal to the boss right
  * now, using the exact same math + resistance lookup as `resolveAbilityEffects`
  * so the pre-commit UI preview never drifts from the real outcome. Read-only —
@@ -615,7 +637,7 @@ export function previewAbilityDamage(
     any = true;
     const dmg = resolveDamage({
       baseAmount: effect.amount,
-      damageType: effect.damageType ?? 'physical',
+      damageType: effectDamageType(effect, ability.version, hero),
       scaling: effect.scaling,
       attackerStats: hero.snapshot.stats,
       targetMitigation: 0,
@@ -631,12 +653,13 @@ function resolveAbilityEffects(
   state: BattleState,
   actorId: string,
   targetActorIds: readonly string[],
-  effects: readonly AbilityEffect[],
+  ability: AbilityCombatSnapshot,
 ): StepResult {
   let next = state;
   const events: BattleEvent[] = [];
+  const version = ability.version;
 
-  for (const effect of effects) {
+  for (const effect of version.effects) {
     switch (effect.type) {
       case 'direct_damage': {
         const hero = next.heroes.find((h) => h.actorId === actorId)!;
@@ -649,7 +672,7 @@ function resolveAbilityEffects(
             target.kind === 'boss' ? 0 : Math.floor(target.actor.snapshot.stats.Def.value / 5);
           const dmg = resolveDamage({
             baseAmount: effect.amount,
-            damageType: effect.damageType ?? 'physical',
+            damageType: effectDamageType(effect, version, hero),
             scaling: effect.scaling,
             attackerStats: hero.snapshot.stats,
             targetMitigation,

@@ -21,6 +21,8 @@ function threeHeroState(seed = 1): BattleState {
       displayName: name,
       stats: testStats(),
       rank: 'Forged',
+      // These suites assert combat MATH, not element interaction.
+      elementDamageType: 'physical',
       abilities: [],
     }),
   );

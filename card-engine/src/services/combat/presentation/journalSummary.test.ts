@@ -42,6 +42,8 @@ function twoHeroState(): BattleState {
       displayName: name,
       stats: testStats(),
       rank: 'Forged',
+      // These suites assert combat MATH, not element interaction.
+      elementDamageType: 'physical',
       abilities: [buildAbilitySnapshot(emberCleave.definition, emberCleave.version)],
     }),
   );
