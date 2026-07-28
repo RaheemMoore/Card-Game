@@ -65,19 +65,77 @@ describe('rosterAssigner', () => {
     expect(a).toEqual(b);
   });
 
-  it('gives different cards different loadouts', async () => {
+  it('gives every card of an archetype that archetype\'s own kit', async () => {
     const store = await seededStore();
-    // Seeded from cardId, so two Barbarians are not obliged to be identical —
-    // which is the whole reason this replaced "always take the top score".
-    const ids = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) =>
+    // Ownership deliberately outranks family affinity, so today — with
+    // exactly ONE authored ability per archetype per slot — every Barbarian
+    // gets the same kit, and that is correct. Identity beats variety while
+    // there is only one option; variety returns the moment an archetype has
+    // a second core or signature to choose between, because the picker
+    // already selects from a band rather than taking the top score.
+    const kits = ['a', 'b', 'c', 'd'].map((id) =>
       assignAbilitiesForCard(
         store,
         makeCard({ cardId: `barb-${id}`, archetype: 'Barbarian', stats: forged() }),
-      )
-        .map((s) => s.definition.id)
-        .join('+'),
+      ).map((s) => s.definition.id),
     );
-    expect(new Set(ids).size).toBeGreaterThan(1);
+    for (const kit of kits) {
+      expect(kit).toEqual(kits[0]);
+      // And it must be the Barbarian's own, not a same-family ability
+      // borrowed from the Monk or the Beastmaster.
+      for (const id of kit) {
+        const def = store.getDefinition(id)!;
+        const owned = def.tags.includes('barbarian');
+        const basic = SHARED_BASIC_ABILITY_IDS.includes(id);
+        expect(owned || basic, `${id} belongs to neither Barbarian nor the shared pool`).toBe(true);
+      }
+    }
+  });
+
+  it('does not let one archetype draw another archetype\'s signature', async () => {
+    const store = await seededStore();
+    // The bug this guards: family scoring alone could not express ownership,
+    // so a Barbarian drew the Monk's Repeating Form and the Seraph ended up
+    // with a kit containing no damaging ability at all.
+    const pairs: [Card['archetype'], string][] = [
+      ['Barbarian', 'barbarian'],
+      ['Monk', 'monk'],
+      ['Seraph', 'seraph'],
+      ['Necromancer', 'necromancer'],
+      ['Android', 'android'],
+    ];
+    for (const [archetype, tag] of pairs) {
+      const kind = archetype === 'Android' ? 'Tech' : 'Mana';
+      const assigned = assignAbilitiesForCard(
+        store,
+        makeCard({ cardId: `own-${archetype}`, archetype, stats: forged(kind) }),
+      );
+      for (const a of assigned) {
+        if (SHARED_BASIC_ABILITY_IDS.includes(a.definition.id)) continue;
+        expect(a.definition.tags, `${archetype} drew ${a.definition.slug}`).toContain(tag);
+      }
+    }
+  });
+
+  it('always gives a hero at least one way to deal damage', async () => {
+    const store = await seededStore();
+    // A Seraph once resolved to shield + cleanse and literally could not hurt
+    // the boss — 120 of 120 sweeps hit the 30-round timeout.
+    const archetypes = Object.keys(ARCHETYPE_PREFERRED_FAMILIES) as Card['archetype'][];
+    for (const archetype of archetypes) {
+      const kind = archetype === 'Mech Pilot' || archetype === 'Android' ? 'Tech' : 'Mana';
+      const assigned = assignAbilitiesForCard(
+        store,
+        makeCard({ cardId: `dmg-${archetype}`, archetype, stats: forged(kind) }),
+      );
+      const canHurt = assigned.some((a) =>
+        a.version.effects.some(
+          (e) =>
+            e.type === 'direct_damage' || e.type === 'multi_hit' || e.type === 'damage_over_time',
+        ),
+      );
+      expect(canHurt, `${archetype} has no damaging ability`).toBe(true);
+    }
   });
 
   it('respects rank — more slots unlock as a card advances', async () => {
@@ -123,23 +181,38 @@ describe('rosterAssigner', () => {
     expect(signature?.definition.familyIds).toContain('nature');
   });
 
-  it('falls back to the shared basics for an unauthored archetype', async () => {
-    const store = await seededStore();
-    // Mech Pilot has no authored set yet — tech archetypes land in the second
-    // roster pass — so it must draw from the shared pool.
+  it('falls back to the shared basics when an archetype has no set of its own', async () => {
+    // Every archetype is authored now, so this constructs the condition
+    // explicitly rather than leaning on one being unfinished: a library
+    // containing ONLY the shared pool. That is the state the fallback exists
+    // for, and it is what the roster looked like mid-authoring.
+    const store = new InMemoryAbilityStore();
+    await seedAbilityLibrary(store);
+    for (const def of store.getAllDefinitions()) {
+      if (SHARED_BASIC_ABILITY_IDS.includes(def.id)) continue;
+      const version = store.getCurrentVersion(def.id);
+      if (version) await store.saveVersion({ ...version, status: 'deprecated' });
+    }
+
     const assigned = assignAbilitiesForCard(
       store,
       makeCard({ cardId: 'mech-1', archetype: 'Mech Pilot', stats: forged('Tech') }),
     );
-    // Asserting WHERE the abilities come from, not the internal flag: a Mech
-    // Pilot may reach the basics through family affinity (they are 'defense',
-    // which Mech Pilot prefers) rather than through the fallback branch. What
-    // matters is that nothing archetype-specific exists for it yet, so its
-    // whole kit is drawn from the shared pool.
     expect(assigned.length).toBeGreaterThan(0);
     for (const a of assigned) {
       expect(SHARED_BASIC_ABILITY_IDS).toContain(a.definition.id);
     }
+  });
+
+  it('prefers an archetype ability over a basic when one exists', async () => {
+    const store = await seededStore();
+    // The counterpart: with a full roster a Mech Pilot should reach its own
+    // tech kit rather than settling for the universal pool.
+    const assigned = assignAbilitiesForCard(
+      store,
+      makeCard({ cardId: 'mech-2', archetype: 'Mech Pilot', stats: forged('Tech') }),
+    );
+    expect(assigned.some((a) => !SHARED_BASIC_ABILITY_IDS.includes(a.definition.id))).toBe(true);
   });
 
   it('leaves an existing loadout alone unless forced', async () => {

@@ -564,6 +564,623 @@ const WHAT_THE_SUMMONS_COSTS = ability({
 });
 
 /* ══════════════════════════════════════════════════════════════════════ */
+/*  Monk — economy of motion; strength from stacking, not from one blow    */
+/*  §14: no glowing fists as the key. The payoff is repetition.            */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const REPEATING_FORM = ability({
+  id: 'ability_repeating_form',
+  slug: 'repeating-form',
+  displayName: 'Repeating Form',
+  familyIds: ['martial'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['monk', 'multi-hit', 'focus'],
+  descriptionShort: 'The same two movements, done correctly, again.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'multi_hit', hitCount: 2, amountPerHit: 11, scaling: { stat: 'atk', coefficient: 0.22 } },
+      { type: 'apply_status', status: { statusId: 'focus', duration: 2, stacks: 1 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.22 }],
+  },
+});
+
+const STILL_WATER_STANCE = ability({
+  id: 'ability_still_water_stance',
+  slug: 'still-water-stance',
+  displayName: 'Still Water Stance',
+  familyIds: ['defense', 'holy'],
+  rarity: 'common',
+  role: 'defense',
+  tags: ['monk', 'guard', 'cleanse'],
+  descriptionShort: 'Nothing lands on water that water does not let land.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'self' },
+    resourceType: 'mana',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'guard', reductionPercent: 0.45, duration: 2 },
+      { type: 'remove_status', category: 'negative', count: 2 },
+    ],
+  },
+});
+
+const TEN_THOUSAND_MORNINGS = ability({
+  id: 'ability_ten_thousand_mornings',
+  slug: 'ten-thousand-mornings',
+  displayName: 'Ten Thousand Mornings',
+  familyIds: ['martial', 'holy'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['monk', 'ultimate', 'multi-hit'],
+  descriptionShort: 'Every practice you ever did, arriving at the same instant.',
+  descriptionLong:
+    'Not a technique — an accumulation. The strike is unremarkable; there have simply been ten thousand of them.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      { type: 'multi_hit', hitCount: 6, amountPerHit: 12, damageType: 'holy', scaling: { stat: 'atk', coefficient: 0.2 } },
+      { type: 'direct_damage', amount: 28, damageType: 'holy', scaling: { stat: 'mana', coefficient: 0.4 } },
+      { type: 'apply_status', status: { statusId: 'focus', duration: 2, stacks: 2 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.2 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Human — adaptation; the only kit that reads the battle state           */
+/*  §14: NOT a blank slate and NOT a generic adventurer. Conditionals are  */
+/*  Human's mechanical signature and stay rare elsewhere.                  */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const READ_THE_ROOM = ability({
+  id: 'ability_read_the_room',
+  slug: 'read-the-room',
+  displayName: 'Read the Room',
+  familyIds: ['martial'],
+  rarity: 'rare',
+  role: 'damage',
+  tags: ['human', 'conditional'],
+  descriptionShort: 'You notice who is struggling, and you hit harder for it.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'direct_damage', amount: 15, scaling: { stat: 'atk', coefficient: 0.45 } },
+      {
+        type: 'conditional_bonus',
+        condition: { type: 'user_hp_below_threshold', percent: 0.5 },
+        effects: [{ type: 'apply_status', status: { statusId: 'rage', duration: 2, stacks: 2 } }],
+      },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.45 }],
+  },
+});
+
+const LEARNED_THE_HARD_WAY = ability({
+  id: 'ability_learned_the_hard_way',
+  slug: 'learned-the-hard-way',
+  displayName: 'Learned the Hard Way',
+  familyIds: ['martial', 'defense'],
+  rarity: 'uncommon',
+  role: 'control',
+  tags: ['human', 'mark'],
+  descriptionShort: 'You have met this before. It went badly. It will not again.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
+      { type: 'direct_damage', amount: 27, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.55 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.55 }],
+  },
+});
+
+const THE_CHOICE = ability({
+  id: 'ability_the_choice',
+  slug: 'the-choice',
+  displayName: 'The Choice',
+  familyIds: ['martial', 'holy'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['human', 'ultimate'],
+  descriptionShort: 'The moment where you stop weighing it and simply decide.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      { type: 'direct_damage', amount: 50, damageType: 'holy', scaling: { stat: 'atk', coefficient: 0.9 } },
+      { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 8, duration: 3 },
+      { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.9 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Necromancer — consequence; delayed and inevitable, never a summoner    */
+/*  §14: no green smoke, no skulls in names, no villain diction.           */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const LEDGER_OF_NAMES = ability({
+  id: 'ability_ledger_of_names',
+  slug: 'ledger-of-names',
+  displayName: 'Ledger of Names',
+  familyIds: ['necromancy'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['necromancer', 'decay'],
+  descriptionShort: 'Each stack is a name written down. Nothing is forgotten.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 1,
+    effects: [
+      { type: 'damage_over_time', statusId: 'poison', amountPerTick: 8, duration: 4 },
+      { type: 'apply_status', status: { statusId: 'weakened', duration: 2 } },
+    ],
+  },
+});
+
+const PRICE_PAID_FORWARD = ability({
+  id: 'ability_price_paid_forward',
+  slug: 'price-paid-forward',
+  displayName: 'Price Paid Forward',
+  familyIds: ['necromancy'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['necromancer', 'cost'],
+  descriptionShort: 'The debt comes due later, and not for you.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'damage_over_time', statusId: 'poison', amountPerTick: 12, duration: 4 },
+      { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
+    ],
+  },
+});
+
+const THE_LONG_ANSWER = ability({
+  id: 'ability_the_long_answer',
+  slug: 'the-long-answer',
+  displayName: 'The Long Answer',
+  familyIds: ['necromancy'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['necromancer', 'ultimate'],
+  descriptionShort: 'Everything written in the ledger, called in at once.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      // 'true' damage: a reckoning is not resisted, which is also what keeps
+      // the Necromancer useful against a boss that resists their element.
+      { type: 'direct_damage', amount: 46, damageType: 'true', scaling: { stat: 'mana', coefficient: 0.85 } },
+      { type: 'damage_over_time', statusId: 'poison', amountPerTick: 10, duration: 4 },
+      { type: 'apply_status', status: { statusId: 'weakened', duration: 3 } },
+    ],
+    scalingRules: [{ stat: 'mana', coefficient: 0.85 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Vampire — sustain under restraint; immediate, personal, self-healing   */
+/*  §14: no seduction framing, no daylight imagery. RESTRAINT is the       */
+/*  identity — blood is not the whole personality.                         */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const FIRST_RESTRAINT = ability({
+  id: 'ability_first_restraint',
+  slug: 'first-restraint',
+  displayName: 'First Restraint',
+  familyIds: ['necromancy', 'martial'],
+  rarity: 'uncommon',
+  role: 'hybrid',
+  tags: ['vampire', 'drain'],
+  descriptionShort: 'Take only what is needed. That is the discipline.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'direct_damage', amount: 15, scaling: { stat: 'mana', coefficient: 0.4 } },
+      // Ordering matters: lifesteal reads damage dealt EARLIER in the action,
+      // and the validator now rejects it if placed first.
+      { type: 'lifesteal', percentOfDamage: 0.5 },
+    ],
+    scalingRules: [{ stat: 'mana', coefficient: 0.4 }],
+  },
+});
+
+const SANGUINE_TITHE = ability({
+  id: 'ability_sanguine_tithe',
+  slug: 'sanguine-tithe',
+  displayName: 'Sanguine Tithe',
+  familyIds: ['necromancy'],
+  rarity: 'uncommon',
+  role: 'hybrid',
+  tags: ['vampire', 'drain'],
+  descriptionShort: 'What is owed, collected — and it is owed more when you are low.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'direct_damage', amount: 30, damageType: 'shadow', scaling: { stat: 'mana', coefficient: 0.6 } },
+      { type: 'lifesteal', percentOfDamage: 0.6 },
+      { type: 'apply_status', status: { statusId: 'weakened', duration: 2 } },
+    ],
+    scalingRules: [{ stat: 'mana', coefficient: 0.6 }],
+  },
+});
+
+const THE_HOUR_BEFORE_DAWN = ability({
+  id: 'ability_the_hour_before_dawn',
+  slug: 'the-hour-before-dawn',
+  displayName: 'The Hour Before Dawn',
+  familyIds: ['necromancy', 'martial'],
+  rarity: 'common',
+  role: 'hybrid',
+  tags: ['vampire', 'ultimate', 'drain'],
+  descriptionShort: 'The last hour you are permitted, spent all at once.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      { type: 'multi_hit', hitCount: 4, amountPerHit: 16, damageType: 'shadow', scaling: { stat: 'mana', coefficient: 0.25 } },
+      { type: 'lifesteal', percentOfDamage: 0.7 },
+      { type: 'shielding', amount: 24, duration: 2 },
+    ],
+    scalingRules: [{ stat: 'mana', coefficient: 0.25 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Lycanthrope — controlled release; a CHOSEN surge, then reined back     */
+/*  §14: no Alpha framing, no chains, no solitary-monster read.            */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const MOONLIT_STEP = ability({
+  id: 'ability_moonlit_step',
+  slug: 'moonlit-step',
+  displayName: 'Moonlit Step',
+  familyIds: ['beast'],
+  rarity: 'rare',
+  role: 'damage',
+  tags: ['lycanthrope', 'bleed'],
+  descriptionShort: 'One step closer than anyone expected you to be.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'direct_damage', amount: 16, scaling: { stat: 'atk', coefficient: 0.45 } },
+      { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 6, duration: 3 },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.45 }],
+  },
+});
+
+const LET_IT_RISE = ability({
+  id: 'ability_let_it_rise',
+  slug: 'let-it-rise',
+  displayName: 'Let It Rise',
+  familyIds: ['beast', 'martial'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['lycanthrope', 'rage'],
+  descriptionShort: 'You let it up as far as the leash allows, and no further.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'apply_status', status: { statusId: 'rage', duration: 3, stacks: 3 } },
+      { type: 'direct_damage', amount: 26, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.55 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.55 }],
+  },
+});
+
+const GODDESS_GIVEN_RESTRAINT = ability({
+  id: 'ability_goddess_given_restraint',
+  slug: 'goddess-given-restraint',
+  displayName: 'Goddess-Given Restraint',
+  familyIds: ['beast', 'nature'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['lycanthrope', 'ultimate'],
+  descriptionShort: 'The Goddess did not give you the strength. She gave you the stopping.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      { type: 'direct_damage', amount: 52, damageType: 'nature', scaling: { stat: 'atk', coefficient: 0.95 } },
+      { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 10, duration: 3 },
+      { type: 'apply_status', status: { statusId: 'rage', duration: 3, stacks: 2 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.95 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Beastmaster — coordination; mark the prey, everyone hits it harder     */
+/*  §14: never Command, Leash, Tame, or Master's. A partnership.           */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const TWO_SETS_OF_EYES = ability({
+  id: 'ability_two_sets_of_eyes',
+  slug: 'two-sets-of-eyes',
+  displayName: 'Two Sets of Eyes',
+  familyIds: ['beast'],
+  rarity: 'uncommon',
+  role: 'control',
+  tags: ['beastmaster', 'mark'],
+  descriptionShort: 'One of you watches. The other has already moved.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
+      { type: 'direct_damage', amount: 14, scaling: { stat: 'atk', coefficient: 0.4 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.4 }],
+  },
+});
+
+const FLANKING_TRUST = ability({
+  id: 'ability_flanking_trust',
+  slug: 'flanking-trust',
+  displayName: 'Flanking Trust',
+  familyIds: ['beast', 'martial'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['beastmaster', 'multi-hit'],
+  descriptionShort: 'Neither of you looks to check. That is the whole trick.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'mana',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'multi_hit', hitCount: 3, amountPerHit: 14, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.28 } },
+      { type: 'apply_status', status: { statusId: 'mark', duration: 2 } },
+    ],
+    scalingRules: [{ stat: 'atk', coefficient: 0.28 }],
+  },
+});
+
+const WE_MOVE_AS_ONE = ability({
+  id: 'ability_we_move_as_one',
+  slug: 'we-move-as-one',
+  displayName: 'We Move as One',
+  familyIds: ['beast', 'nature'],
+  rarity: 'uncommon',
+  role: 'support',
+  tags: ['beastmaster', 'ultimate', 'party'],
+  descriptionShort: 'Nobody gives an order. Everybody goes.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'all_allies' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      { type: 'apply_status', status: { statusId: 'focus', duration: 3, stacks: 2 } },
+      { type: 'healing', amount: 34, scaling: { stat: 'mana', coefficient: 0.5 } },
+      { type: 'apply_status', status: { statusId: 'regeneration', duration: 3, stacks: 2 } },
+    ],
+    scalingRules: [{ stat: 'mana', coefficient: 0.5 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Mech Pilot — systems under load; power now, vulnerability later        */
+/*  §14: no neon-cyberpunk names, and NO fire.                            */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const LOAD_BEARING = ability({
+  id: 'ability_load_bearing',
+  slug: 'load-bearing',
+  displayName: 'Load-Bearing',
+  familyIds: ['defense'],
+  rarity: 'uncommon',
+  role: 'defense',
+  tags: ['mech-pilot', 'taunt'],
+  descriptionShort: 'The frame was built to take this. Let it.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'self' },
+    resourceType: 'tech',
+    resourceCost: 1,
+    effects: [
+      { type: 'taunt', duration: 2 },
+      { type: 'guard', reductionPercent: 0.4, duration: 2 },
+    ],
+  },
+});
+
+const REDLINE = ability({
+  id: 'ability_redline',
+  slug: 'redline',
+  displayName: 'Redline',
+  familyIds: ['tech'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['mech-pilot', 'overload'],
+  descriptionShort: 'Past the safe band, for exactly as long as it holds.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'tech',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'direct_damage', amount: 36, damageType: 'tech', scaling: { stat: 'tech', coefficient: 0.65 } },
+      // The cost of overclocking lands on the PILOT, next round.
+      { type: 'apply_status', status: { statusId: 'weakened', duration: 1 } },
+    ],
+    scalingRules: [{ stat: 'tech', coefficient: 0.65 }],
+  },
+});
+
+const EVERYONE_WHO_SAT_HERE = ability({
+  id: 'ability_everyone_who_sat_here',
+  slug: 'everyone-who-sat-here',
+  displayName: 'Everyone Who Sat Here',
+  familyIds: ['tech', 'defense'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['mech-pilot', 'ultimate'],
+  descriptionShort: 'The machine remembers every pilot. Tonight it uses all of them.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      { type: 'multi_hit', hitCount: 4, amountPerHit: 15, damageType: 'tech', scaling: { stat: 'tech', coefficient: 0.24 } },
+      { type: 'direct_damage', amount: 30, damageType: 'tech', scaling: { stat: 'tech', coefficient: 0.5 } },
+      { type: 'apply_status', status: { statusId: 'weakened', duration: 2 } },
+    ],
+    scalingRules: [{ stat: 'tech', coefficient: 0.5 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Android — self-rewriting; reconfigures mid-fight                       */
+/*  §14: becoming more human is NOT the power-up.                          */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const RECONFIGURE = ability({
+  id: 'ability_reconfigure',
+  slug: 'reconfigure',
+  displayName: 'Reconfigure',
+  familyIds: ['tech'],
+  rarity: 'uncommon',
+  role: 'hybrid',
+  tags: ['android', 'focus'],
+  descriptionShort: 'Rewrite the approach mid-swing. You are allowed to.',
+  version: {
+    slotType: 'core',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'tech',
+    resourceCost: 1,
+    damageTypeSource: 'element',
+    effects: [
+      { type: 'apply_status', status: { statusId: 'focus', duration: 2, stacks: 1 } },
+      { type: 'direct_damage', amount: 15, scaling: { stat: 'tech', coefficient: 0.42 } },
+    ],
+    scalingRules: [{ stat: 'tech', coefficient: 0.42 }],
+  },
+});
+
+const DEVIATION_PROTOCOL = ability({
+  id: 'ability_deviation_protocol',
+  slug: 'deviation-protocol',
+  displayName: 'Deviation Protocol',
+  familyIds: ['tech'],
+  rarity: 'uncommon',
+  role: 'damage',
+  tags: ['android', 'multi-hit', 'mark'],
+  descriptionShort: 'The specification did not cover this. You proceed anyway.',
+  version: {
+    slotType: 'signature',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'tech',
+    resourceCost: 3,
+    cooldownRounds: 2,
+    effects: [
+      { type: 'multi_hit', hitCount: 3, amountPerHit: 15, damageType: 'tech', scaling: { stat: 'tech', coefficient: 0.3 } },
+      { type: 'apply_status', status: { statusId: 'mark', duration: 2 } },
+    ],
+    scalingRules: [{ stat: 'tech', coefficient: 0.3 }],
+  },
+});
+
+const NO_ONE_PROGRAMMED_THIS = ability({
+  id: 'ability_no_one_programmed_this',
+  slug: 'no-one-programmed-this',
+  displayName: 'No One Programmed This',
+  familyIds: ['tech'],
+  rarity: 'common',
+  role: 'damage',
+  tags: ['android', 'ultimate'],
+  descriptionShort: 'Not a malfunction. Not a gift. Something you worked out yourself.',
+  version: {
+    slotType: 'ultimate',
+    targetRule: { type: 'single_enemy' },
+    resourceType: 'none',
+    resourceCost: 0,
+    cooldownRounds: 3,
+    maxCharges: 1,
+    effects: [
+      // 'true' damage: an unprecedented approach has nothing to be resisted by.
+      { type: 'direct_damage', amount: 44, damageType: 'true', scaling: { stat: 'tech', coefficient: 0.8 } },
+      { type: 'multi_hit', hitCount: 3, amountPerHit: 13, damageType: 'tech', scaling: { stat: 'tech', coefficient: 0.22 } },
+      { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
+    ],
+    scalingRules: [{ stat: 'tech', coefficient: 0.8 }],
+  },
+});
+
+/* ══════════════════════════════════════════════════════════════════════ */
 
 /**
  * Learnable by every archetype.
@@ -601,4 +1218,28 @@ export const SEED_ABILITIES: SeedAbility[] = [
   BEARING_WITNESS,
   THE_VERDICT,
   WHAT_THE_SUMMONS_COSTS,
+  REPEATING_FORM,
+  STILL_WATER_STANCE,
+  TEN_THOUSAND_MORNINGS,
+  READ_THE_ROOM,
+  LEARNED_THE_HARD_WAY,
+  THE_CHOICE,
+  LEDGER_OF_NAMES,
+  PRICE_PAID_FORWARD,
+  THE_LONG_ANSWER,
+  FIRST_RESTRAINT,
+  SANGUINE_TITHE,
+  THE_HOUR_BEFORE_DAWN,
+  MOONLIT_STEP,
+  LET_IT_RISE,
+  GODDESS_GIVEN_RESTRAINT,
+  TWO_SETS_OF_EYES,
+  FLANKING_TRUST,
+  WE_MOVE_AS_ONE,
+  LOAD_BEARING,
+  REDLINE,
+  EVERYONE_WHO_SAT_HERE,
+  RECONFIGURE,
+  DEVIATION_PROTOCOL,
+  NO_ONE_PROGRAMMED_THIS,
 ];

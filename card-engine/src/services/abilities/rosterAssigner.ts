@@ -77,6 +77,11 @@ interface Candidate {
   score: number;
 }
 
+/** The tag an archetype's own abilities carry — 'Mech Pilot' → 'mech-pilot'. */
+function archetypeTag(archetype: AssignableCard['archetype']): string {
+  return archetype.toLowerCase().replace(/\s+/g, '-');
+}
+
 function slotOrder(slot: AbilitySlotType): number {
   return slot === 'core' ? 0 : slot === 'signature' ? 1 : 2;
 }
@@ -115,6 +120,19 @@ function candidatesForSlot(
       else if (affinity.secondary.includes(familyId)) score += 5;
     }
     if (restricted) continue;
+
+    // OWNERSHIP outranks family affinity, by a wide margin.
+    //
+    // Family scoring alone cannot express "this ability belongs to this
+    // archetype": Monk's Repeating Form is martial, and so is the Barbarian's
+    // own core, so they scored identically and a Barbarian could draw the
+    // Monk's kit. Worse, the Seraph — whose family-matching abilities are all
+    // defensive — could end up with NO damaging ability at all and simply
+    // never kill anything.
+    //
+    // Each archetype ability is tagged with its owner, so a card reaches for
+    // its own set first and falls back to family affinity only when it must.
+    if (def.tags.includes(archetypeTag(card.archetype))) score += 20;
 
     // A card's element nudges ties only. It must NEVER be load-bearing:
     // a Fallen Seraph's element transmutes at tier-up, and a loadout that
