@@ -20,7 +20,7 @@ import {
   pickActingHero,
   submitPlayerAction,
 } from './reducer';
-import { deriveHeroStats } from './formulas';
+import { deriveHeroStats, FIRE_ELEMENTAL_RESISTANCE } from './formulas';
 import { RandomStream } from './RandomStream';
 
 /**
@@ -164,6 +164,7 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 40,
     scalingPerRound: 0.2,
+    damageType: 'fire',
   },
   {
     id: 'act_fe_flame_burst',
@@ -175,6 +176,7 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 27,
     scalingPerRound: 0.2,
+    damageType: 'fire',
   },
 ];
 
@@ -189,6 +191,7 @@ const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 54,
     scalingPerRound: 0.2,
+    damageType: 'fire',
   },
   {
     id: 'act_fe_execute_pyre',
@@ -200,6 +203,7 @@ const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 72,
     scalingPerRound: 0,
+    damageType: 'fire',
   },
 ];
 
@@ -229,6 +233,7 @@ export function buildFireElementalBossSnapshot(maxHp = 340): BossSnapshot {
     phases: FIRE_ELEMENTAL_PHASES,
     resistanceProfileId: 'rp_fire_elemental',
     weaknessProfileId: 'wp_fire_elemental',
+    resistance: FIRE_ELEMENTAL_RESISTANCE,
   };
 }
 
@@ -260,10 +265,18 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
         interruptible: a.interruptible,
         baseDamage: a.baseDamage ?? 0,
         scalingPerRound: a.scalingPerRound ?? 0,
+        damageType: a.damageType ?? 'physical',
       })),
     })),
     resistanceProfileId: `rp_${def.slug}`,
     weaknessProfileId: `wp_${def.slug}`,
+    // Carried through, not discarded. This used to be dropped on the floor
+    // and replaced by a synthesized id nothing read, which is why an authored
+    // resistance profile had no effect on any boss but the Wraith.
+    resistance: {
+      resistant: version.resistanceProfile.resistant,
+      weak: version.resistanceProfile.weak,
+    },
   };
 }
 

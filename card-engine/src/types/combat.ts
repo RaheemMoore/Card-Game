@@ -71,6 +71,13 @@ export interface HeroSnapshot {
 }
 
 /** Snapshot of the boss at battle start. */
+/** What a combatant resists or is weak to. Mirrors formulas.ResistanceProfile,
+ *  declared here because types must not depend on services. */
+export interface ActorResistance {
+  resistant: readonly DamageType[];
+  weak: readonly DamageType[];
+}
+
 export interface BossSnapshot {
   bossId: string;
   versionId: string;
@@ -79,6 +86,17 @@ export interface BossSnapshot {
   phases: BossPhaseSnapshot[];
   resistanceProfileId: string;
   weaknessProfileId: string;
+  /**
+   * The boss's ACTUAL resistances, frozen at snapshot time.
+   *
+   * `resistanceProfileId` above is a synthesized `rp_<slug>` string that
+   * nothing ever looked up — the authored profile was discarded on the way in
+   * and the reducer fell back to a hardcoded `bossId.startsWith(...)` check,
+   * which meant every boss but the Emberborn Wraith was resistance-neutral no
+   * matter what its data said. The ids are kept for logging; this is the field
+   * combat actually reads.
+   */
+  resistance: ActorResistance;
 }
 
 export interface BossPhaseSnapshot {
@@ -101,6 +119,8 @@ export interface BossActionSnapshot {
   baseDamage: number;
   /** Extra damage added per round elapsed (linear enrage). Defaults to 0. */
   scalingPerRound: number;
+  /** Damage type this action deals. Defaults to 'physical' when unauthored. */
+  damageType: DamageType;
 }
 
 export type BossIntentType =

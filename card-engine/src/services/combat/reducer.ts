@@ -19,7 +19,6 @@ import type {
   TurnPhase,
 } from '../../types/combat';
 import {
-  FIRE_ELEMENTAL_RESISTANCE,
   NEUTRAL_RESISTANCE,
   RESOURCE_REGEN_PER_ROUND,
   clampUltimateCharge,
@@ -422,7 +421,10 @@ function doResolveBoss(state: BattleState): StepResult {
   if (bossBaseDamage > 0) {
     const dmg = resolveDamage({
       baseAmount: bossBaseDamage,
-      damageType: 'fire',
+      // Authored per action. Was hardcoded 'fire' for every boss in the game,
+      // which made hero elemental resistance meaningless and every future
+      // boss a reskin of this one.
+      damageType: action.damageType,
       targetMitigation: Math.floor(target.snapshot.stats.Def.value / 5),
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: target.shields,
@@ -1310,12 +1312,15 @@ function resolveTarget(
   return h ? { kind: 'hero', actor: h } : null;
 }
 
+/**
+ * The boss's resistances, read from its frozen snapshot.
+ *
+ * Was a `bossId.startsWith('boss_fire_elemental')` string check, which meant
+ * an authored `resistanceProfile` did nothing and every boss other than the
+ * Wraith was resistance-neutral regardless of its data.
+ */
 export function bossResistance(state: BattleState): ResistanceProfile {
-  // B2 hardcodes fire-elemental profile via bossId prefix. B3 pulls from BossDefinition.
-  if (state.boss.snapshot.bossId.startsWith('boss_fire_elemental')) {
-    return FIRE_ELEMENTAL_RESISTANCE;
-  }
-  return NEUTRAL_RESISTANCE;
+  return state.boss.snapshot.resistance ?? NEUTRAL_RESISTANCE;
 }
 
 function applyDamageToHero(

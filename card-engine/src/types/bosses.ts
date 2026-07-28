@@ -58,6 +58,15 @@ export interface BossActionDefinition {
    */
   baseDamage?: number;
   scalingPerRound?: number;
+  /**
+   * What this action deals. Omit for `physical`.
+   *
+   * Until 2026-07-28 the reducer hardcoded `'fire'` for EVERY boss action, so
+   * every boss in the game — present and future — dealt fire regardless of
+   * what it was. That made a second boss a reskin rather than a different
+   * fight, and it silently invalidated any hero's elemental resistance.
+   */
+  damageType?: DamageType;
 }
 
 export interface BossVersion {

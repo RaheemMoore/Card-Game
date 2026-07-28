@@ -61,6 +61,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 22,
           scalingPerRound: 0.2,
+          damageType: 'fire',
         },
         {
           id: 'act_fe_flame_burst',
@@ -72,6 +73,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 15,
           scalingPerRound: 0.2,
+          damageType: 'fire',
         },
       ],
     },
@@ -91,6 +93,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 30,
           scalingPerRound: 0.2,
+          damageType: 'fire',
         },
         {
           id: 'act_fe_execute_pyre',
@@ -187,6 +190,7 @@ const EMBERBORN_V3: BossVersion = {
       actions: EMBERBORN_V2.phases[0].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.4,
+        damageType: 'fire',
       })),
     },
     // Phase 2 — mechanical enrage (50% → 25%). v2 hits + heavier scaling.
@@ -196,6 +200,7 @@ const EMBERBORN_V3: BossVersion = {
       actions: EMBERBORN_V2.phases[1].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.8,
+        damageType: 'fire',
       })),
     },
     // Phase 3 — RAGE (25% → 0%). Threatens hero one-shots at high rounds.
@@ -219,6 +224,7 @@ const EMBERBORN_V3: BossVersion = {
           interruptible: false,
           baseDamage: 120,
           scalingPerRound: 1.1,
+          damageType: 'fire',
         },
         {
           id: 'act_fe_rage_pyre',
@@ -230,6 +236,7 @@ const EMBERBORN_V3: BossVersion = {
           interruptible: false,
           baseDamage: 170,
           scalingPerRound: 0.95,
+          damageType: 'fire',
         },
       ],
     },
