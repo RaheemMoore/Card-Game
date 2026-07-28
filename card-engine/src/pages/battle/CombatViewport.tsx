@@ -6,6 +6,7 @@ import {
   grantBattleReward,
   type BattleRewardOutcome,
 } from '../../services/combat/battleRewardService';
+import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
 import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
 import { summarizeJournal } from '../../services/combat/presentation/journalSummary';
 import { CombatScene } from './CombatScene';
@@ -53,8 +54,10 @@ function useIsMobileCombatLayout(): boolean {
  * to document.body, occupying 100vw × 100dvh with no shell chrome.
  *
  * Layout dispatch:
- *   - Desktop / tablet (>520px): two-column grid — CombatScene left, Combat
- *     Journal rail right. Unchanged from prior implementation.
+ *   - Desktop / tablet (>520px): one full-bleed CombatScene with the Combat
+ *     Journal overlaid as a bounded top-right corner box. (Was a two-column
+ *     grid; the journal column cost ~280px permanently and confined the
+ *     command shelf to the arena cell.)
  *   - Portrait phone (≤520px): the dedicated MobileCombatScene. No side rail;
  *     the journal collapses to a bottom strip that opens as a drawer.
  *
@@ -139,14 +142,16 @@ export function CombatViewport({
           )}
         </div>
       ) : (
-        <div className="grid h-full combat-grid">
-          {/* Arena column */}
-          <div className="relative overflow-hidden min-h-0 h-full">
-            {error ? (
-              <ErrorPanel error={error} onExit={onExit} />
-            ) : !state ? (
-              <LoadingPanel />
-            ) : (
+        /* Single full-bleed arena. The journal is an overlay sibling pinned to
+           the top-right corner, not a grid column — that's what lets the
+           CombatScene command shelf run the full width of the viewport. */
+        <div className="relative w-full h-full overflow-hidden">
+          {error ? (
+            <ErrorPanel error={error} onExit={onExit} />
+          ) : !state ? (
+            <LoadingPanel />
+          ) : (
+            <>
               <CombatScene
                 state={state}
                 actingActorId={actingActorId}
@@ -156,15 +161,16 @@ export function CombatViewport({
                 onSelectActor={onSelectActor}
                 onExit={onExit}
               />
-            )}
-          </div>
-          {/* Journal rail */}
-          <CombatJournalRail
-            journalEntries={journalEntries}
-            isPlaying={presentation.isPlaying}
-            pendingCount={presentation.pendingCount}
-            onSkip={presentation.skip}
-          />
+              <CombatJournalRail
+                journalEntries={journalEntries}
+                isPlaying={presentation.isPlaying}
+                pendingCount={presentation.pendingCount}
+                onSkip={presentation.skip}
+                round={state.round}
+                roundsRemaining={Math.max(0, TIMEOUT_ROUND_CAP - state.round)}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -179,17 +185,17 @@ export function CombatViewport({
       )}
 
       <style>{`
-        .combat-grid {
-          grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
-          grid-template-rows: minmax(0, 1fr);
-        }
-        .combat-grid > * { min-height: 0; }
-        @media (max-width: 900px) and (min-width: 521px) {
-          .combat-grid {
-            grid-template-columns: 1fr;
-            grid-template-rows: minmax(60dvh, 1fr) minmax(0, 320px);
-            overflow-y: auto;
-          }
+        /* Journal owns the top-right corner outright — the Turn Badge that
+           used to share this row was removed; its round counter and timeout
+           clock live in the journal header now, and its resolve state moved
+           next to End Turn. */
+        .combat-journal-box { top: 12px; right: 12px; width: 320px; }
+
+        /* Under ~720px the 372px Boss HUD and a 320px journal can no longer
+           share a row without overlapping, so the journal drops below the
+           Boss HUD's band. */
+        @media (max-width: 720px) {
+          .combat-journal-box { top: 216px; width: 280px; }
         }
       `}</style>
     </div>

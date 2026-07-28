@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { JOURNAL_KIND_LABEL, type JournalEntry } from '../../services/combat/presentation/journalSummary';
-import { CombatFrame } from './CombatFrame';
+import { PaintedPanel } from './PaintedPanel';
 
 interface Props {
   /** Condensed one-line-per-action view over the event stream. */
@@ -9,31 +9,52 @@ interface Props {
   isPlaying: boolean;
   pendingCount: number;
   onSkip: () => void;
+  /** Authoritative round from BattleState — the header used to derive this
+   *  from the latest entry, which lags the reducer by a beat. */
+  round: number;
+  /** Rounds left before the timeout defeat. Was the Turn Badge's third line;
+   *  the badge is gone, and this is otherwise invisible to the player. */
+  roundsRemaining: number;
 }
 
 /**
- * Right-rail Combat Journal, sourced verbatim from Figma node 17:18
- * (CombatFrame/Journal, 330×760).
+ * Combat Journal, sourced from Figma node 17:18 (CombatFrame/Journal).
  *
- * Collapsed by default — shows only the 3 most recent entries, so the
+ * Positions itself as a bounded TOP-RIGHT CORNER BOX, tucked under the Turn
+ * Badge — it is no longer the full-height right column of a two-column grid.
+ * That column permanently cost ~280px of width and boxed the command shelf
+ * into the arena cell; see `CombatViewport.tsx`.
+ *
+ * Collapsed by default — shows only the 2 most recent entries, so the
  * journal (a Secondary/Tertiary-weight surface, see CombatFrame.tsx's
- * panel-tier comment) can't outweigh the boss intent panel or command
- * shelf just by being tall. A header control expands a full-screen
- * overlay with the complete, still-scrollable history — no data is ever
- * dropped, only how much renders inline at once. Mirrors the pattern
+ * panel-tier comment) can't outweigh the Boss HUD or command shelf just by
+ * being tall. A header control expands a full-screen overlay with the
+ * complete, still-scrollable history — no data is ever dropped, only how
+ * much renders inline at once. Mirrors the pattern
  * `mobile/MobileCombatJournal.tsx` already uses for its drawer (same
  * close affordances: button, backdrop click, Escape).
+ *
+ * Since the upper-left Intent panel was removed, this is the ONLY surface
+ * carrying boss-intent detail — so a boss-intent latest entry now gets the
+ * full ACTIVE treatment (it used to be deliberately suppressed to avoid
+ * competing with that panel) plus the target + projected damage that panel
+ * uniquely showed, carried on the entry from `journalSummary.ts`.
  *
  * Layout:
  *   - Journal Header  — dark strip, gold hairline, uppercase title, round pill
  *   - Expand control  — slim row, opens the full-history overlay
  *   - Ornament Divider — a short scrollwork rule + diamond
- *   - Event cards     — 282×76, 5px radius; boss-intent variant has warm orange border
- *   - Active Event    — 282×92, 6px radius, orange border, gold ACTIVE label
- *     (suppressed to normal-history styling when it duplicates the boss
- *     intent panel's own content — see `isDuplicateIntent` below)
+ *   - Event cards     — 76px tall, 5px radius; boss-intent variant has warm orange border
+ *   - Active Event    — 92px, 6px radius, orange border, gold ACTIVE label
  */
-export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onSkip }: Props) {
+export function CombatJournalRail({
+  journalEntries,
+  isPlaying,
+  pendingCount,
+  onSkip,
+  round,
+  roundsRemaining,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const expandedScrollRef = useRef<HTMLDivElement | null>(null);
@@ -56,84 +77,63 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
   }, [expanded]);
 
   const latest = journalEntries[journalEntries.length - 1] ?? null;
-  // The upper-left BossHUDOverlay intent panel is already the detailed,
-  // authoritative source for the boss's current intent — when the most
-  // recent journal entry is that same intent, pin it with plain history
-  // styling instead of the loud "ACTIVE" orange card so it doesn't compete
-  // with (or just re-announce) that panel. Non-intent entries (action
-  // results, phase changes) keep the active treatment since they're not
-  // shown anywhere else.
-  const activeToneSuppressed = latest?.kind === 'boss_intent';
-  const currentRound = latest ? latest.round : 0;
+  // Amber inside the last 5 rounds — same threshold the Turn Badge used.
+  const timeoutNear = roundsRemaining <= 5;
 
-  // Collapsed: only the 3 most recent entries.
-  const collapsedSlice = journalEntries.slice(-3);
-  const collapsedHistory = activeToneSuppressed ? collapsedSlice : collapsedSlice.slice(0, -1);
-  // Full: everything, same active/history split.
-  const fullHistory = activeToneSuppressed ? journalEntries : journalEntries.slice(0, -1);
+  // Collapsed: only the 2 most recent entries, so the box stays corner-sized.
+  const collapsedHistory = journalEntries.slice(-2, -1);
+  const fullHistory = journalEntries.slice(0, -1);
 
   return (
     <>
-      <CombatFrame
-        preset="journal"
-        className="h-full"
-        style={{ borderRadius: 0, borderTop: 0, borderBottom: 0, borderRight: 0 }}
+      {/* Self-positioning corner box, hard right at the top. The Turn Badge
+          sits to its LEFT on the same row (see CombatScene.tsx), not above
+          it — so this owns the corner and its `top` matches the Boss HUD's.
+          Geometry lives in `.combat-journal-box` (CombatViewport.tsx) so a
+          media query can move it below the Boss HUD on narrow viewports,
+          where 360 + 320 side by side no longer fits. */}
+      <div
+        className="absolute z-30 combat-journal-box"
+        style={{ maxWidth: 'calc(100vw - 24px)' }}
+      >
+      <PaintedPanel
+        borderWidth={8}
+        cornerSize={24}
+        background="#060708"
+        style={{ position: 'relative', maxHeight: 300, boxShadow: '0px 10px 22px rgba(0,0,0,0.58)' }}
         ariaLabel="Combat Journal"
       >
-        <div className="flex flex-col h-full" style={{ padding: '2px 8px 8px 8px' }}>
-          {/* Header — Figma: dark strip with gold hairline, 64px tall */}
+        <div className="flex flex-col" style={{ maxHeight: 284, padding: '2px 4px 6px 4px' }}>
+          {/* Header — title row. The dark inset strip it used to sit on was
+              removed: inside the painted ring that was a second frame edge,
+              and the rule for these panels is one ring per panel. */}
+          {/* One flex row, not absolute-positioned children: the header used
+              to be 56px tall with the round pill and the Skip button stacked
+              on separate lines, and dropping it to a single 40px row made
+              them collide. */}
           <div
-            className="relative"
+            className="flex items-baseline"
             style={{
-              height: 56,
-              background: '#0e0c0b',
-              marginLeft: -8,
-              marginRight: -8,
-              marginTop: -2,
-              paddingLeft: 24,
-              paddingRight: 24,
-              paddingTop: 20,
-              borderBottom: '1px solid rgba(51,31,15,0.9)',
+              gap: 8,
+              padding: '10px 12px 6px 12px',
+              borderBottom: '1px solid rgba(120,80,40,0.28)',
             }}
           >
-            {/* Gold top hairline inside header */}
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                top: 8,
-                left: 18,
-                right: 18,
-                height: 2,
-                background: '#f0a840',
-                opacity: 0.6,
-                borderRadius: 1,
-              }}
-            />
             <div
               style={{
+                flex: '1 1 auto',
+                minWidth: 0,
                 color: '#ebd1a3',
                 fontSize: 15,
                 fontWeight: 600,
                 letterSpacing: 1.5,
                 fontFamily: 'Inter, system-ui, sans-serif',
                 whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               COMBAT JOURNAL
-            </div>
-            <div
-              style={{
-                position: 'absolute',
-                right: 24,
-                top: 24,
-                color: '#a88c63',
-                fontSize: 10,
-                fontFamily: 'Inter, system-ui, sans-serif',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {currentRound > 0 ? `ROUND ${currentRound}` : ''}
             </div>
             {isPlaying && (
               <button
@@ -141,16 +141,15 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
                 onClick={onSkip}
                 className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
                 style={{
-                  position: 'absolute',
-                  right: 24,
-                  bottom: 6,
+                  flex: '0 0 auto',
                   color: 'rgba(230,220,180,0.65)',
                   fontSize: 10,
                   textTransform: 'uppercase',
-                  letterSpacing: 1.5,
+                  letterSpacing: 1.2,
                   textDecoration: 'underline',
                   background: 'transparent',
                   border: 'none',
+                  padding: 0,
                   cursor: 'pointer',
                 }}
                 aria-label={`Skip ${pendingCount} pending combat beats`}
@@ -160,66 +159,90 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
             )}
           </div>
 
-          {/* Expand control — opens the full-history overlay. Kept as its
-              own slim row rather than crammed into the header, which is
-              already carrying the round pill + skip button. */}
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          {/* Sub-header row: the full-history control on the left, the turn
+              counter + timeout clock on the right. Those two readouts moved
+              here from the removed top-right Turn Badge; the title row above
+              is already carrying the Skip button and truncates if they go
+              there too. */}
+          <div
+            className="flex items-center"
             style={{
-              marginLeft: -8,
-              marginRight: -8,
-              padding: '5px 24px',
-              background: 'transparent',
-              border: 'none',
-              borderBottom: '1px solid rgba(51,31,15,0.6)',
-              color: 'rgba(216,197,163,0.6)',
-              fontSize: 9,
-              fontWeight: 600,
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
-              textAlign: 'left',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
+              gap: 8,
+              padding: '5px 12px',
+              borderBottom: '1px solid rgba(120,80,40,0.2)',
             }}
-            aria-haspopup="dialog"
-            aria-label={`Expand combat journal — view full history (${journalEntries.length} entries)`}
           >
-            <span aria-hidden style={{ fontSize: 10 }}>⤢</span>
-            Full history
-          </button>
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              style={{
+                flex: '1 1 auto',
+                minWidth: 0,
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                color: 'rgba(216,197,163,0.6)',
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+                textAlign: 'left',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+              aria-haspopup="dialog"
+              aria-label={`Expand combat journal — view full history (${journalEntries.length} entries)`}
+            >
+              <span aria-hidden style={{ fontSize: 10 }}>⤢</span>
+              Full history
+            </button>
+            <div
+              style={{
+                flex: '0 0 auto',
+                color: '#a88c63',
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: 1.1,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+              }}
+              aria-label={`Turn ${round}, ${roundsRemaining} rounds remaining before timeout defeat`}
+            >
+              TURN {round}
+              <span style={{ color: timeoutNear ? '#e6a04a' : '#6f5c44', marginLeft: 6 }}>
+                · {roundsRemaining} LEFT
+              </span>
+            </div>
+          </div>
 
           {/* Ornament divider (short scrollwork rule + diamond) */}
           <OrnamentDivider />
 
-          {/* History (scrolls) — collapsed to the 3 most recent entries */}
+          {/* History (scrolls) — collapsed to the 2 most recent entries */}
           <div
             ref={scrollRef}
-            className="flex-1 min-h-0 overflow-y-auto"
+            className="min-h-0 overflow-y-auto"
             style={{ paddingTop: 4, paddingBottom: 4 }}
             aria-live="polite"
           >
-            {collapsedHistory.map((entry, i) => (
-              <JournalEventCard
-                key={entry.id}
-                entry={entry}
-                tone="history"
-                isLatest={activeToneSuppressed && i === collapsedHistory.length - 1}
-              />
+            {collapsedHistory.map((entry) => (
+              <JournalEventCard key={entry.id} entry={entry} tone="history" />
             ))}
           </div>
 
-          {/* Active event card — pinned, unless it duplicates boss intent */}
-          {latest && !activeToneSuppressed && (
+          {/* Active event card — pinned */}
+          {latest && (
             <div style={{ marginTop: 8 }}>
               <JournalEventCard entry={latest} tone="active" />
             </div>
           )}
         </div>
-      </CombatFrame>
+      </PaintedPanel>
+      </div>
 
       {/* Full-history overlay */}
       {expanded && (
@@ -235,18 +258,20 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
             style={{ position: 'absolute', inset: 0, background: 'rgba(4,3,8,0.8)' }}
           />
           <div className="relative w-full max-w-xl mx-4" style={{ maxHeight: '82dvh' }}>
-            <CombatFrame preset="journal" style={{ maxHeight: '82dvh' }}>
-              <div className="flex flex-col" style={{ maxHeight: '82dvh', padding: '2px 8px 8px 8px' }}>
+            <PaintedPanel
+              borderWidth={8}
+              cornerSize={24}
+              background="#060708"
+              style={{ position: 'relative', maxHeight: '82dvh', boxShadow: '0px 10px 22px rgba(0,0,0,0.58)' }}
+            >
+              <div className="flex flex-col" style={{ maxHeight: 'calc(82dvh - 16px)', padding: '2px 4px 6px 4px' }}>
                 <div
                   className="relative flex items-center justify-between"
                   style={{
-                    height: 48,
-                    marginLeft: -8,
-                    marginRight: -8,
-                    marginTop: -2,
-                    paddingLeft: 24,
-                    paddingRight: 16,
-                    borderBottom: '1px solid rgba(51,31,15,0.9)',
+                    height: 44,
+                    paddingLeft: 12,
+                    paddingRight: 8,
+                    borderBottom: '1px solid rgba(120,80,40,0.28)',
                   }}
                 >
                   <span
@@ -259,11 +284,9 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
                     }}
                   >
                     COMBAT JOURNAL
-                    {currentRound > 0 && (
-                      <span style={{ marginLeft: 10, color: '#a88c63', fontSize: 10, letterSpacing: 1 }}>
-                        ROUND {currentRound}
-                      </span>
-                    )}
+                    <span style={{ marginLeft: 10, color: '#a88c63', fontSize: 10, letterSpacing: 1 }}>
+                      TURN {round}
+                    </span>
                   </span>
                   <button
                     type="button"
@@ -273,9 +296,8 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
                     style={{
                       width: 28,
                       height: 28,
-                      borderRadius: 4,
-                      border: '1px solid #573b1f',
-                      background: '#0f0e0f',
+                      border: 'none',
+                      background: 'transparent',
                       color: '#d6c7a8',
                       cursor: 'pointer',
                       fontSize: 12,
@@ -292,22 +314,17 @@ export function CombatJournalRail({ journalEntries, isPlaying, pendingCount, onS
                   style={{ paddingTop: 4, paddingBottom: 4 }}
                   aria-live="polite"
                 >
-                  {fullHistory.map((entry, i) => (
-                    <JournalEventCard
-                      key={entry.id}
-                      entry={entry}
-                      tone="history"
-                      isLatest={activeToneSuppressed && i === fullHistory.length - 1}
-                    />
+                  {fullHistory.map((entry) => (
+                    <JournalEventCard key={entry.id} entry={entry} tone="history" />
                   ))}
-                  {latest && !activeToneSuppressed && (
+                  {latest && (
                     <div style={{ marginTop: 8, marginBottom: 4 }}>
                       <JournalEventCard entry={latest} tone="active" />
                     </div>
                   )}
                 </div>
               </div>
-            </CombatFrame>
+            </PaintedPanel>
           </div>
         </div>
       )}
@@ -359,23 +376,20 @@ function OrnamentDivider() {
 }
 
 /**
- * Journal event card matching Figma nodes 17:27–17:46. Three visual variants:
- *   - active (17:47): 92px, `#160d07` bg, `#ba6e21` 1.5px border, orange ACTIVE label
- *   - highlight (17:27): 76px, `#130d08` bg, `#874f1a` border, orange category text
- *   - default (17:31/35/39/43): 76px, `#09090a` bg, `#241c14` border
+ * One journal entry, rendered as a ROW rather than a card.
+ *
+ * Was three bordered-box variants (Figma 17:27–17:46). Inside the painted
+ * panel ring those boxes read as a second, competing frame, so they were
+ * dropped entirely: entries are now separated by a hairline rule, the pinned
+ * `active` entry is marked with a gold left accent plus brighter type, and
+ * height is content-driven instead of a fixed 76/92/106.
  */
 function JournalEventCard({
   entry,
   tone,
-  isLatest = false,
 }: {
   entry: JournalEntry;
   tone: 'active' | 'history';
-  /** True when this history-toned card is still the most recent entry
-   *  (its "active" treatment was suppressed as a boss-intent duplicate).
-   *  Gets a thin gold accent instead of the full orange "ACTIVE" card, so
-   *  recency stays identifiable without re-competing with the intent panel. */
-  isLatest?: boolean;
 }) {
   // Round markers render as a slim scrollwork divider instead of a full card.
   if (entry.kind === 'round_marker' && tone === 'history') {
@@ -406,93 +420,108 @@ function JournalEventCard({
 
   const category = JOURNAL_KIND_LABEL[entry.kind];
   const isBossIntent = entry.kind === 'boss_intent';
-  const isHighlighted = tone === 'active' || isBossIntent;
+  const isActive = tone === 'active';
+  const isHighlighted = isActive || isBossIntent;
 
-  const bg = tone === 'active'
-    ? '#160d07'
-    : isHighlighted
-    ? '#130d08'
-    : '#09090a';
-  const border = tone === 'active'
-    ? '1.5px solid #ba6e21'
-    : isLatest
-    ? '1px solid #57381c'
-    : isHighlighted
-    ? '1px solid #874f1a'
-    : '1px solid #241c14';
-  const categoryColor = tone === 'active'
-    ? '#f59c30'
-    : isHighlighted
-    ? '#f0942e'
-    : '#a38763';
-  const height = tone === 'active' ? 92 : 76;
+  const categoryColor = isActive ? '#f59c30' : isHighlighted ? '#f0942e' : '#a38763';
+  // The target + projected-damage readout the removed upper-left Intent panel
+  // used to own. Only on the pinned active row — history entries are past
+  // tense, where a projection is noise.
+  const showIntentMeta =
+    isActive && isBossIntent && (entry.intentTargetLabel != null || (entry.intentDamage ?? 0) > 0);
 
   return (
     <div
-      className="relative"
+      className="flex"
       style={{
-        margin: '4px 4px',
-        height,
-        background: bg,
-        border,
-        borderLeft: isLatest && tone === 'history' ? '2px solid #d4af37' : undefined,
-        borderRadius: tone === 'active' ? 6 : 5,
-        overflow: 'hidden',
+        gap: 9,
+        padding: '8px 10px',
+        // No box: rows are separated by a hairline rule, and the pinned
+        // active row is marked by a gold left accent. One ring per panel —
+        // a bordered card here fought the painted frame around it.
+        borderBottom: '1px solid rgba(120,80,40,0.28)',
+        borderLeft: isActive ? '2px solid #d4af37' : '2px solid transparent',
       }}
     >
-      {/* Category label */}
-      <div
-        style={{
-          position: 'absolute',
-          left: tone === 'active' ? 12.5 : 51,
-          top: tone === 'active' ? 10 : 12,
-          color: categoryColor,
-          fontSize: 9,
-          fontWeight: 600,
-          letterSpacing: 1.1,
-          fontFamily: 'Inter, system-ui, sans-serif',
-          textTransform: 'uppercase',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {tone === 'active' ? 'ACTIVE' : isLatest ? `${category} · LATEST` : category}
+      <div aria-hidden style={{ flex: '0 0 auto', width: 20, height: 20, marginTop: 2 }}>
+        <IconGem kind={entry.kind} highlighted={isHighlighted} />
       </div>
 
-      {/* Icon gem — only on non-active cards; matches Figma 17:28 22px diamond at left */}
-      {tone !== 'active' && (
-        <div
-          aria-hidden
-          style={{
-            position: 'absolute',
-            left: 13,
-            top: 22,
-            width: 22,
-            height: 22,
-          }}
-        >
-          <IconGem kind={entry.kind} highlighted={isHighlighted} />
+      <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+        {/* Label row — category on the left, intent target on the right */}
+        <div className="flex items-baseline" style={{ gap: 8 }}>
+          <span
+            style={{
+              flex: '1 1 auto',
+              minWidth: 0,
+              color: categoryColor,
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: 1.1,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {isActive ? (isBossIntent ? 'INTENT' : 'ACTIVE') : category}
+          </span>
+          {showIntentMeta && (
+            <span
+              style={{
+                flex: '0 0 auto',
+                color: '#d1bd9c',
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: 1,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {`TARGET ${entry.intentTargetLabel ?? '\u2014'}`}
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Body text */}
-      <div
-        style={{
-          position: 'absolute',
-          left: tone === 'active' ? 12.5 : 51,
-          top: tone === 'active' ? 32 : 30,
-          right: 12,
-          color: tone === 'active' ? '#ebd9b2' : '#d6c7a8',
-          fontSize: tone === 'active' ? 12 : 11,
-          fontWeight: tone === 'active' ? 600 : 400,
-          fontFamily: 'Inter, system-ui, sans-serif',
-          lineHeight: 1.35,
-          overflow: 'hidden',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-        }}
-      >
-        {entry.text}
+        {/* Body row — telegraph/result text, with the damage number pulled
+            out to the right so it stays scannable at a glance. */}
+        <div className="flex items-center" style={{ gap: 10, marginTop: 3 }}>
+          <div
+            style={{
+              flex: '1 1 auto',
+              minWidth: 0,
+              color: isActive ? '#ebd9b2' : '#d6c7a8',
+              fontSize: isActive ? 12 : 11,
+              fontWeight: isActive ? 600 : 400,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              lineHeight: 1.35,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
+            {entry.text}
+          </div>
+          {showIntentMeta && (entry.intentDamage ?? 0) > 0 && (
+            <div
+              style={{
+                flex: '0 0 auto',
+                color: '#ff571f',
+                fontSize: 19,
+                fontWeight: 600,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                whiteSpace: 'nowrap',
+                textShadow: '0 1px 6px rgba(0,0,0,0.7)',
+              }}
+              aria-label={`Projected damage ${entry.intentDamage}`}
+            >
+              {entry.intentDamage}
+              {entry.intentTargetLabel === 'ALL HEROES' ? ' EACH' : ''}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,10 @@ interface Props {
   canAct: boolean;
   /** Heroes still owing a command this round. Used to size the End Turn stroke. */
   pendingCount?: number;
+  /** Boss action currently resolving, if any. Rendered as a caption over the
+   *  End Turn button so the disabled state says WHY it's disabled — this
+   *  used to be the Turn Badge's "RESOLVE · <name>" line. */
+  resolvingIntentName?: string | null;
   onExit: () => void;
   onSubmit: (action: PlayerAction) => void;
   onOpenGuide: () => void;
@@ -19,7 +23,14 @@ interface Props {
  * down from End Turn so it reads as clearly subordinate rather than a
  * fourth combat-level action sitting at the same visual weight.
  */
-export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onOpenGuide }: Props) {
+export function BattleControls({
+  canAct,
+  pendingCount = 1,
+  resolvingIntentName = null,
+  onExit,
+  onSubmit,
+  onOpenGuide,
+}: Props) {
   const [confirmingLeave, setConfirmingLeave] = useState(false);
 
   // End Turn = "every remaining hero guards + boss goes." Submitting once per
@@ -64,7 +75,33 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
       {/* End Turn button — gradient border, unchanged visual language.
           P1: one click ends the whole party turn (all pending heroes guard).
           Label + aria communicate that so users don't have to guess. */}
-      <button
+      <div className="relative">
+        {/* Resolve caption — shown while the boss's beat is animating. Sits
+            above the button so the player has somewhere to read "the boss is
+            doing X right now" after the old Turn Badge went away. */}
+        {resolvingIntentName && (
+          <div
+            aria-hidden
+            style={{
+              position: 'absolute',
+              bottom: 'calc(100% + 4px)',
+              left: 0,
+              right: 0,
+              textAlign: 'center',
+              color: '#c98a3e',
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: 1.2,
+              fontFamily: 'Inter, system-ui, sans-serif',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {`BOSS · ${resolvingIntentName.toUpperCase()}`}
+          </div>
+        )}
+        <button
         type="button"
         onClick={endParty}
         disabled={!canAct}
@@ -90,7 +127,8 @@ export function BattleControls({ canAct, pendingCount = 1, onExit, onSubmit, onO
         title={endAria}
       >
         {endLabel}
-      </button>
+        </button>
+      </div>
 
       {confirmingLeave && (
         <LeaveConfirmModal

@@ -1,25 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
-import type { BossCombatant, BattleIntent, BattleState } from '../../types/combat';
+import type { BossCombatant } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { getCurrentBossVersion } from '../../services/bosses/registry';
-import { CombatFrame } from './CombatFrame';
+import { PaintedPanel } from './PaintedPanel';
 
 interface Props {
   boss: BossCombatant;
-  intent: BattleIntent | null;
   currentBeat: AnimationBeat | null;
-  state: BattleState;
 }
 
 /**
- * Upper-left Boss HUD + attached Intent panel.
+ * Upper-left Boss HUD.
  *
- * Both surfaces render through the shared CombatFrame primitive using the
- * canonical Figma presets (`bossHud` and `intent`). Layout, stroke, and
- * typography values follow the Figma Combat Frame System spec
- * (file 9IIvc01ts7LZJ0RaCMGanf, nodes 22:39 + 22:76). Do not fork.
+ * Renders through the shared CombatFrame primitive using the canonical Figma
+ * `bossHud` preset. Layout, stroke, and typography values follow the Figma
+ * Combat Frame System spec (file 9IIvc01ts7LZJ0RaCMGanf, node 22:39). Do not
+ * fork.
+ *
+ * The attached Intent panel (Figma 22:76) that used to hang below this frame
+ * was removed — it was a second large left-hand box restating what the Turn
+ * Badge and the Combat Journal already carry. Its two unique data points
+ * (intent target + projected damage) moved onto the journal's boss-intent
+ * entry; see `journalSummary.ts`.
  */
-export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
+export function BossHUDOverlay({ boss, currentBeat }: Props) {
   // P1 pulled the wind-up shadow pulse from the intent panel per Raheem
   // 2026-07-20 (no screen motion) — `currentBeat` stayed unused since. It's
   // used now for one restrained thing: `cue === 'phase'` (phase
@@ -48,23 +52,8 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
   const version = getCurrentBossVersion(boss.snapshot.bossId);
   const resistances = version?.resistanceProfile ?? { resistant: [], weak: [] };
 
-  const currentPhase = boss.snapshot.phases.find((p) => p.id === boss.currentPhaseId);
-  const intentAction = intent ? currentPhase?.actions.find((a) => a.id === intent.actionId) : null;
-  const projectedDamage = intentAction
-    ? intentAction.baseDamage + Math.floor(intentAction.scalingPerRound * state.round)
-    : 0;
-
-  const targetHero = intent
-    ? state.heroes.find((h) => h.actorId === intent.targetActorIds[0])
-    : null;
-  const targetLabel = targetHero
-    ? targetHero.snapshot.displayName.toUpperCase()
-    : intent && intent.targetActorIds.length > 1
-    ? 'ALL HEROES'
-    : '—';
-
   return (
-    <div className="absolute top-3 left-3 z-30" style={{ width: 360 }}>
+    <div className="absolute top-3 left-3 z-30" style={{ width: 372 }}>
       {/* Localized dark radial for legibility over arena */}
       <div
         aria-hidden
@@ -78,17 +67,26 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
         }}
       />
 
-      {/* Primary HUD frame — 360×184 per Figma 22:39 */}
-      <CombatFrame
+      {/* Primary HUD frame — painted ring + filigree corners, same family as
+          the command shelf. The Figma interior is 356×180 (22:39); declared
+          size is that plus 2×borderWidth so the absolutely-positioned children
+          below keep the exact offsets they had under CombatFrame's 2px stroke.
+          Rage no longer swaps a stroke token (the ring is art now) — it reads
+          through the warm elevation shadow instead. */}
+      <PaintedPanel
         key={phaseFlashKey}
         className="boss-hud-phase-flash"
-        preset="bossHud"
-        style={{ height: 184 }}
-        tokens={
-          isRage
-            ? { outer: '#c67027', shadow: '0px 8px 22px rgba(255,120,40,0.35)' }
-            : undefined
-        }
+        borderWidth={8}
+        cornerSize={24}
+        background="#060708"
+        style={{
+          position: 'relative',
+          width: 372,
+          height: 196,
+          boxShadow: isRage
+            ? '0px 8px 22px rgba(255,120,40,0.35)'
+            : '0px 8px 18px rgba(0,0,0,0.55)',
+        }}
         role="status"
         ariaLabel={`${boss.snapshot.name}: ${boss.hp} of ${boss.snapshot.maxHp} HP, phase ${phaseLabel}`}
       >
@@ -231,113 +229,7 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
           label={`RESISTS ${resistances.resistant.length}`}
           active={resistances.resistant.length > 0}
         />
-      </CombatFrame>
-
-      {/* Intent panel — 360×112, attached below with matching visual language */}
-      {intent && (
-        <div style={{ marginTop: 6 }}>
-          <CombatFrame preset="intent" style={{ height: 112 }}>
-            {/* Small diamond gem accent — Figma left corner at y=33 */}
-            <div
-              aria-hidden
-              style={{ position: 'absolute', left: 6, top: 33, width: 20, height: 20 }}
-            >
-              <svg viewBox="0 0 14 14" style={{ width: '100%', height: '100%' }} fill="none">
-                <path
-                  d="M13 7L7 13L1 7L7 1L13 7Z"
-                  fill="#ed9133"
-                  stroke="#f5b95a"
-                  strokeWidth="0.75"
-                />
-              </svg>
-            </div>
-
-            {/* INTENT label */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 22,
-                top: 14,
-                color: '#ed9133',
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: 1.8,
-                fontFamily: 'Inter, system-ui, sans-serif',
-              }}
-            >
-              INTENT
-            </div>
-
-            {/* Big label centered vertically */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 22,
-                top: 36,
-                color: '#f0dbb5',
-                fontSize: 14,
-                fontWeight: 600,
-                fontFamily: 'Inter, system-ui, sans-serif',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {intentAction?.displayName?.toUpperCase() ?? 'ATTACK'}
-            </div>
-
-            {/* Telegraph */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 22,
-                top: 59,
-                right: 22,
-                color: '#b5a387',
-                fontSize: 11,
-                fontFamily: 'Inter, system-ui, sans-serif',
-                lineHeight: 1.35,
-              }}
-            >
-              {intent.telegraphText}
-            </div>
-
-            {/* Target label — Figma: right column at (230,23) */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 220,
-                top: 23,
-                color: '#d1bd9c',
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: 1,
-                fontFamily: 'Inter, system-ui, sans-serif',
-                whiteSpace: 'pre',
-              }}
-            >
-              {`TARGET  ${targetLabel}`}
-            </div>
-
-            {/* Damage number — Figma: right column at (244,49), Inter Semi-Bold 19px #ff571f */}
-            {projectedDamage > 0 && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 220,
-                  top: 49,
-                  color: '#ff571f',
-                  fontSize: 19,
-                  fontWeight: 600,
-                  fontFamily: 'Inter, system-ui, sans-serif',
-                  whiteSpace: 'nowrap',
-                  textShadow: '0 1px 6px rgba(0,0,0,0.7)',
-                }}
-              >
-                {projectedDamage} {intent.targetActorIds.length > 1 ? 'EACH' : ''}
-              </div>
-            )}
-          </CombatFrame>
-        </div>
-      )}
+      </PaintedPanel>
 
       <style>{`
         @keyframes boss-hud-phase-flash {
@@ -354,7 +246,15 @@ export function BossHUDOverlay({ boss, intent, currentBeat, state }: Props) {
   );
 }
 
-/** Resist tile matches Figma nodes 15:33/15:35/15:37 — 24px tall chip, 4px radius. */
+/**
+ * Resistance readout — a gem pip plus its label, with NO box of its own.
+ *
+ * Was a bordered 24px chip (Figma 15:33/15:35/15:37). Inside the painted
+ * ring that read as a second frame competing with the panel's own; the rule
+ * for these surfaces is now one ring per panel, and everything inside it is
+ * a pip, a rule, or an accent. The pip carries the active/inactive state
+ * through fill AND brightness, so it isn't color-alone.
+ */
 function ResistTile({
   x,
   w,
@@ -371,30 +271,42 @@ function ResistTile({
       style={{
         position: 'absolute',
         left: x,
-        top: 140,
+        top: 142,
         width: w,
-        height: 24,
-        background: active ? '#330d06' : '#121214',
-        border: `1px solid ${active ? '#a62e0f' : '#4f3b24'}`,
-        borderRadius: 4,
-        overflow: 'hidden',
+        height: 20,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
       }}
       aria-label={label}
     >
-      <div
+      <svg
+        viewBox="0 0 12 12"
+        fill="none"
+        aria-hidden
+        style={{ width: 11, height: 11, flex: '0 0 auto' }}
+      >
+        <path
+          d="M11.3 6L6 11.3L0.7 6L6 0.7L11.3 6Z"
+          fill={active ? '#e69c38' : '#33291a'}
+          stroke={active ? '#ffcc63' : '#5c4526'}
+          strokeWidth="1"
+        />
+      </svg>
+      <span
         style={{
-          position: 'absolute',
-          left: 7,
-          top: 5,
-          color: '#d9c7a3',
+          color: active ? '#e6d3ab' : '#8d7c60',
           fontSize: 9,
           fontWeight: 600,
+          letterSpacing: 0.8,
           fontFamily: 'Inter, system-ui, sans-serif',
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
         }}
       >
         {label}
-      </div>
+      </span>
     </div>
   );
 }

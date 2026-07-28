@@ -24,8 +24,9 @@ export function MobileCombatJournal({ journalEntries, isPlaying, pendingCount, o
   const [expanded, setExpanded] = useState(false);
 
   const latest = journalEntries[journalEntries.length - 1] ?? null;
-  // Same rule as the desktop CombatJournalRail: the boss-intent detail panel
-  // already owns that content, so don't re-announce it here as "ACTIVE".
+  // Mobile keeps its own boss-intent detail panel, which already owns that
+  // content — so don't re-announce it here as "ACTIVE". (Desktop dropped this
+  // rule along with its Intent panel; see CombatJournalRail.tsx.)
   const activeToneSuppressed = latest?.kind === 'boss_intent';
   const active = activeToneSuppressed ? null : latest;
   const history = activeToneSuppressed ? journalEntries : journalEntries.slice(0, -1);

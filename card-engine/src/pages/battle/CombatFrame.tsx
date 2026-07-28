@@ -1,14 +1,17 @@
 import type { CSSProperties, ReactNode } from 'react';
 
 /**
- * CombatFrame — canonical shared frame component sourced from the Figma
- * Combat Frame System (file 9IIvc01ts7LZJ0RaCMGanf, node 22:36).
+ * CombatFrame — CSS-drawn frame sourced from the Figma Combat Frame System
+ * (file 9IIvc01ts7LZJ0RaCMGanf, node 22:36): outer stroke, inner rail,
+ * top-edge highlight, shadow, radius, corner ornaments, gem accents.
  *
- * Every combat surface renders through this primitive with a preset that
- * pins the exact Figma tokens (outer stroke, inner rail, top-edge highlight,
- * shadow, radius, corner ornaments, gem accents).
- *
- * Design source of truth is Figma; do not fork these values.
+ * MOBILE ONLY. Every desktop combat surface moved to `PaintedPanel.tsx`'s
+ * real painted 9-slice frame art, which is what CSS gradients were
+ * approximating here. The two remaining consumers are `MobileBossHeader` and
+ * `MobileCombatJournal` — a chunky painted ring costs too many pixels at
+ * 390px wide, so mobile keeps the lighter CSS treatment until it gets its own
+ * pass. Presets are trimmed to exactly what those two use; do not add more
+ * here, add them to PaintedPanel.
  */
 
 interface EdgeHighlight {
@@ -35,26 +38,16 @@ interface FrameTokens {
 }
 
 /**
- * Panel-priority tiers — a labeling pass over presets that already existed,
- * not a new token system. Each preset already varies by cornerOrnaments /
- * edgeHighlight / shadow strength; this just names the 3 tiers that
- * grouping was implicitly encoding, so future additions/adjustments have a
- * checklist instead of guessing a panel's intended visual weight:
+ * Panel-priority tiers, as consumed by the two remaining mobile surfaces:
  *
- *   Primary   — bossHud, commandShelf: cornerOrnaments + edgeHighlight +
- *               the strongest shadow. The two surfaces combat decisions
- *               actually happen around (the threat, and the controls).
- *   Secondary — intent, journal: edgeHighlight, no corner ornaments.
- *               Detail/context surfaces — important, but not where the
- *               player's eye should land first.
- *   Tertiary  — turnBadge, utilityTray: no edgeHighlight, thinnest outer
- *               stroke, lightest shadow. Ambient/system chrome.
+ *   Primary   — bossHud: cornerOrnaments + edgeHighlight + the strongest
+ *               shadow. The surface combat decisions happen around.
+ *   Secondary — journal: edgeHighlight, no corner ornaments. Detail/context
+ *               — important, but not where the eye should land first.
  *
- * `abilitySlot`/`abilitySlotSelected` predate the command shelf's move to
- * `PaintedPanel.tsx`'s painted 9-slice frames and are no longer used by the
- * shelf's ability tiles — kept only in case another surface still renders
- * through them; do not treat their tokens as this tier system's source of
- * truth for ability-slot weight.
+ * The `turnBadge`, `utilityTray`, `commandShelf`, `abilitySlot`, and
+ * `abilitySlotSelected` presets were deleted when desktop moved to
+ * PaintedPanel — nothing referenced them any more.
  */
 export const FRAME_PRESETS = {
   bossHud: {
@@ -74,45 +67,6 @@ export const FRAME_PRESETS = {
       position: 'top',
     },
   },
-  intent: {
-    bg: '#0e0907',
-    outer: '#ad4a1a',
-    outerWidthPx: 2,
-    innerRail: '#4f210f',
-    innerRailInsetPx: 5,
-    radiusPx: 7,
-    innerRadiusPx: 5,
-    shadow: '0px 6px 14px rgba(0,0,0,0.48)',
-    cornerOrnaments: false,
-    edgeHighlight: {
-      color: '#e06e1a',
-      opacity: 0.45,
-      heightPx: 2,
-      position: 'bottom',
-    },
-  },
-  turnBadge: {
-    bg: '#0b0a0a',
-    outer: '#805221',
-    outerWidthPx: 1.5,
-    innerRail: '#301c0e',
-    innerRailInsetPx: 3.5,
-    radiusPx: 5,
-    innerRadiusPx: 3,
-    shadow: '0px 4px 5px rgba(0,0,0,0.4)',
-    cornerOrnaments: false,
-  },
-  utilityTray: {
-    bg: '#09090a',
-    outer: '#754a1f',
-    outerWidthPx: 1.5,
-    innerRail: '#2e1c0e',
-    innerRailInsetPx: 4.5,
-    radiusPx: 6,
-    innerRadiusPx: 4,
-    shadow: '0px 5px 6px rgba(0,0,0,0.42)',
-    cornerOrnaments: false,
-  },
   journal: {
     bg: '#060607',
     outer: '#875221',
@@ -129,46 +83,6 @@ export const FRAME_PRESETS = {
       heightPx: 2,
       position: 'top',
     },
-  },
-  commandShelf: {
-    bg: '#060708',
-    outer: '#804f21',
-    outerWidthPx: 2,
-    innerRail: '#301c0e',
-    innerRailInsetPx: 6,
-    radiusPx: 8,
-    innerRadiusPx: 5,
-    shadow: '0px -6px 20px rgba(0,0,0,0.62)',
-    cornerOrnaments: true,
-    edgeHighlight: {
-      color: '#ba752e',
-      opacity: 0.75,
-      heightPx: 4,
-      position: 'top',
-      glow: { color: '#f2ab47', opacity: 0.3, heightPx: 2, insetPx: 20 },
-    },
-  },
-  abilitySlot: {
-    bg: '#0d0c0e',
-    outer: '#614524',
-    outerWidthPx: 1,
-    innerRail: '#261c12',
-    innerRailInsetPx: 5,
-    radiusPx: 6,
-    innerRadiusPx: 4,
-    shadow: 'none',
-    cornerOrnaments: false,
-  },
-  abilitySlotSelected: {
-    bg: '#160f06',
-    outer: '#c27826',
-    outerWidthPx: 1.5,
-    innerRail: '#4f381f',
-    innerRailInsetPx: 4.5,
-    radiusPx: 5,
-    innerRadiusPx: 4,
-    shadow: '0px 0px 12px rgba(194,120,38,0.35)',
-    cornerOrnaments: false,
   },
 } as const satisfies Record<string, FrameTokens>;
 
