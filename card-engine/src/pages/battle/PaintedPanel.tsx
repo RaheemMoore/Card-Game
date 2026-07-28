@@ -37,14 +37,21 @@ const PARCHMENT_TILE = '/assets/combat/shelf/parchment.png';
 const PARCHMENT_TILE_SIZE = '210px 162px';
 
 /** Muted parchment fill (outer shelf, utility tray) — recedes behind the
- *  ability slots' warmer tone so the abilities still read as the star. */
+ *  ability slots' warmer tone so the abilities still read as the star.
+ *
+ *  NB: the `background` shorthand requires `<position> / <size>` together —
+ *  `repeat / <size>` with no position before the slash is invalid CSS and
+ *  gets the whole declaration dropped silently (computed style falls back
+ *  to `background: none`). Learned this the hard way: shipped it without
+ *  checking computed styles, and every shelf surface rendered fully
+ *  transparent with the boss arena bleeding through behind it. */
 export const PARCHMENT_MUTED =
-  `linear-gradient(rgba(8,6,5,0.6), rgba(8,6,5,0.6)), url(${PARCHMENT_TILE}) repeat / ${PARCHMENT_TILE_SIZE}`;
+  `linear-gradient(rgba(8,6,5,0.6), rgba(8,6,5,0.6)), url(${PARCHMENT_TILE}) left top / ${PARCHMENT_TILE_SIZE} repeat`;
 
 /** Warm parchment fill (ability slots) — same texture, amber-washed so it
  *  reads as the shelf's most important surface without a different asset. */
 export const PARCHMENT_WARM =
-  `linear-gradient(rgba(140,80,20,0.16), rgba(140,80,20,0.16)), url(${PARCHMENT_TILE}) repeat / ${PARCHMENT_TILE_SIZE}`;
+  `linear-gradient(rgba(140,80,20,0.16), rgba(140,80,20,0.16)), url(${PARCHMENT_TILE}) left top / ${PARCHMENT_TILE_SIZE} repeat`;
 
 interface Props {
   children?: ReactNode;
