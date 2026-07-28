@@ -12,6 +12,8 @@ import { getArtCrops } from '../../types/abilities';
 import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
+import { ArenaShakeLayer } from './ArenaShakeLayer';
+import { ImpactFlash } from './ImpactFlash';
 import { HeroSpriteLayer } from './HeroSpriteLayer';
 import { PartyDock, computePartyDockWidth } from './PartyDock';
 import { useViewportWidth } from './useViewportWidth';
@@ -180,20 +182,30 @@ export function CombatScene({
 
   return (
     <div className="absolute inset-0">
-      {/* Layer 1 — Arena background */}
-      <div
-        className="absolute inset-0"
-        style={
-          arenaUrl
-            ? {
-                backgroundImage: `url("${arenaUrl}")`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }
-            : { background: 'radial-gradient(ellipse at 50% 30%, #3a1c14 0%, #0a0508 70%)' }
-        }
-      />
-      {/* Layer 2 — subtle atmosphere. Top stays cool-dark for HUD legibility;
+      {/* Everything DIEGETIC lives inside the shake layer: the arena, its
+          atmosphere, the boss, and the party. Chrome (shelf, dock, HUD,
+          journal, preview) stays outside it and never moves — translating a
+          viewport-anchored frame would open a gap at the screen edge and read
+          as a broken render rather than as force. Note the wrapper's own
+          z-index is load-bearing; see ArenaShakeLayer's docstring. */}
+      <ArenaShakeLayer
+        currentBeat={currentBeat}
+        motionLevel={motionLevel}
+        backdrop={<>
+        {/* Layer 1 — Arena background */}
+        <div
+          className="absolute inset-0"
+          style={
+            arenaUrl
+              ? {
+                  backgroundImage: `url("${arenaUrl}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : { background: 'radial-gradient(ellipse at 50% 30%, #3a1c14 0%, #0a0508 70%)' }
+          }
+        />
+        {/* Layer 2 — subtle atmosphere. Top stays cool-dark for HUD legibility;
           bottom biases warm ember to match the pixel arena's lava veins so
           the foreground reads as illuminated by the arena, not fading to
           neutral black. */}
@@ -210,30 +222,41 @@ export function CombatScene({
         }}
       />
 
-      {/* Layer 3 — Boss HUD (upper-left) — CombatFrame/BossHUD. The attached
-          Intent panel was removed; boss-intent detail now lives solely in the
-          Combat Journal corner box (see CombatJournalRail.tsx). */}
-      <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
+        {/* Boss stage — inside the shake layer, so it is part of the world
+            that moves rather than part of the frame that doesn't. */}
+        <BossStage boss={boss} currentBeat={currentBeat} motionLevel={motionLevel} />
 
+        </>}
+        foreground={<>
+        {/* Hero pixel sprites, standing in the arena floor band above the
+            shelf. Purely presentational (see HeroSpriteLayer.tsx docstring) —
+            echoes the dock's acting/targetable state, doesn't own it. */}
+        <HeroSpriteLayer
+          heroes={state.heroes}
+          actingActorId={actingHero.actorId}
+          canAct={canAct}
+          currentBeat={currentBeat}
+          targetPickMode={needsTargetPick ? { pickableActorIds } : null}
+          motionLevel={motionLevel}
+        />
 
-      {/* Layer 4 — Boss stage */}
-      <BossStage boss={boss} currentBeat={currentBeat} motionLevel={motionLevel} />
-
-      {/* Layer 5 — Hero pixel sprites, standing in the arena floor band
-          above the shelf. Purely presentational (see HeroSpriteLayer.tsx
-          docstring) — echoes the dock's acting/targetable state, doesn't
-          own it. This is what AttackVFX's beams actually travel to/from. */}
-      <HeroSpriteLayer
-        heroes={state.heroes}
-        actingActorId={actingHero.actorId}
-        canAct={canAct}
-        currentBeat={currentBeat}
-        targetPickMode={needsTargetPick ? { pickableActorIds } : null}
-        motionLevel={motionLevel}
+        {/* Attack VFX (bolt + impact burst). Inside the wrapper so beams stay
+            welded to the sprites they are anchored to — outside it, a heavy
+            hit would shake the fighters out from under their own beam. */}
+        <AttackVFX state={state} currentBeat={currentBeat} />
+        </>}
       />
 
-      {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
-      <AttackVFX state={state} currentBeat={currentBeat} />
+      {/* Impact flash — a SIBLING of the shake layer, at z 14, so it never
+          translates and never touches the dock's card art. See its docstring:
+          the placement is what lets the light read as coming from behind the
+          fighters. */}
+      <ImpactFlash state={state} currentBeat={currentBeat} motionLevel={motionLevel} />
+
+      {/* Boss HUD (upper-left). Deliberately OUTSIDE the shake layer — it is
+          chrome, and its own z-30 keeps it above the world (21) and the
+          flash (14) so boss HP stays readable straight through an impact. */}
+      <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
 
       {/* Command Shelf — a real painted 9-slice frame (see PaintedPanel.tsx)
           holding just the ability bar + utility tray. Short on purpose: the

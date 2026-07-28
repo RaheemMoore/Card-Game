@@ -177,6 +177,8 @@ function HeroSprite({
   const hpPct = Math.max(0, combatant.hp / combatant.snapshot.maxHp);
   const lowHp = !isDefeated && hpPct <= 0.25;
   const shieldTotal = combatant.shields.reduce((sum, s) => sum + s.amount, 0);
+  // Scoped per hero — three sprites on screen would otherwise share one id.
+  const shieldGradientId = `shield-face-${combatant.actorId}`;
   const statuses = combatant.statuses.slice(0, 3);
   const overflowCount = combatant.statuses.length - statuses.length;
 
@@ -214,7 +216,6 @@ function HeroSprite({
               filter: isActing
                 ? 'brightness(1) saturate(1)'
                 : 'brightness(0.82) saturate(0.9)',
-              boxShadow: shieldTotal > 0 ? '0 0 0 2px rgba(190,225,255,0.65), 0 0 10px 2px rgba(140,200,255,0.35)' : 'none',
               borderRadius: 10,
               // Drive the shared keyframes per-instance. Percentages inside
               // @keyframes cannot be parameterised, so the HOLD is a fixed
@@ -235,26 +236,59 @@ function HeroSprite({
               className="w-full h-full"
               draggable={false}
             />
-            {shieldTotal > 0 && (
-              <span
-                aria-hidden
-                className="absolute -top-1 -right-1 rounded-full flex items-center justify-center"
-                style={{
-                  fontSize: 8,
-                  fontWeight: 700,
-                  minWidth: 18,
-                  height: 14,
-                  padding: '0 3px',
-                  background: 'rgba(15,43,58,0.85)',
-                  border: '1px solid rgba(140,200,255,0.6)',
-                  color: '#bfe6f5',
-                }}
-              >
-                🛡{shieldTotal}
-              </span>
-            )}
             <FloatingDamage currentBeat={currentBeat} actorId={combatant.actorId} />
           </div>
+
+          {/* Shield — a crest floating off the hero's shoulder rather than a
+              ring around the whole sprite. The full-perimeter glow it replaced
+              traced the IMAGE's bounding box, not the character, so it read as
+              a rectangle of light around a person instead of a ward they were
+              carrying. Anchored to shoulder height off the shared floor line
+              (see this file's docstring — anything positional must be, or it
+              drifts between the two art sources). */}
+          {shieldTotal > 0 && (
+            <div
+              aria-hidden
+              className={feel.staticFallback ? '' : 'hero-shield-crest'}
+              style={{
+                position: 'absolute',
+                left: 26,
+                bottom: `calc(${HERO_BODY_HEIGHT} * 0.7)`,
+                width: 30,
+                height: 34,
+              }}
+            >
+              <svg viewBox="0 0 30 34" width="30" height="34">
+                <defs>
+                  <linearGradient id={shieldGradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8fd4ff" stopOpacity="0.95" />
+                    <stop offset="55%" stopColor="#3f8fd0" stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#12395e" stopOpacity="0.9" />
+                  </linearGradient>
+                </defs>
+                {/* Heater shield: flat top, shoulders, tapering to a point. */}
+                <path
+                  d="M15 1.5 L28 6 L28 17 C28 25 21 30.5 15 32.5 C9 30.5 2 25 2 17 L2 6 Z"
+                  fill={`url(#${shieldGradientId})`}
+                  stroke="#cfeaff"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(120,200,255,0.75))' }}
+                />
+                <text
+                  x="15"
+                  y="20"
+                  textAnchor="middle"
+                  fontSize="12"
+                  fontWeight="700"
+                  fill="#f2fbff"
+                  style={{ paintOrder: 'stroke', stroke: '#0b2740', strokeWidth: 2.5 }}
+                >
+                  {shieldTotal}
+                </text>
+              </svg>
+            </div>
+          )}
 
           {/* Ground shadow — centered on the floor point, sunk slightly under
               it so the feet read as touching it rather than resting on a disc. */}
@@ -359,6 +393,16 @@ function HeroSprite({
         }
         .hero-sprite-low-hp { animation: hero-sprite-low-hp-breathe 4.2s ease-in-out infinite; }
 
+        /* The ward drifts — it is a held magical object, not part of the
+           body, so a slow bob separates it from the sprite's own motion.
+           Deliberately far slower than any reaction animation so it reads as
+           an ongoing state rather than competing for attention. */
+        @keyframes hero-shield-float {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-3px); }
+        }
+        .hero-shield-crest { animation: hero-shield-float 3s ease-in-out infinite; }
+
         /* Motion-off substitutes. steps(1, end) means the value SNAPS and
            then holds — no interpolation, so there is genuinely no movement
            on screen, only a state that is legible for long enough to read.
@@ -383,6 +427,7 @@ function HeroSprite({
           .hero-sprite-attack { animation: none !important; }
           .hero-sprite-target-pulse { animation: none !important; filter: drop-shadow(0 0 10px rgba(235,150,46,0.8)) !important; }
           .hero-sprite-low-hp { animation: none !important; filter: saturate(0.82) !important; }
+          .hero-shield-crest { animation: none !important; }
         }
       `}</style>
     </div>

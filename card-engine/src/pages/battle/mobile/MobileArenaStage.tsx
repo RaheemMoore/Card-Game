@@ -42,6 +42,31 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
 
   const feel = getGameFeel(hit.severity, motionLevel);
 
+  // World-level reaction, tracked SEPARATELY from the boss-hit reaction
+  // above. That one only fires when the boss is the target, but heavy blows
+  // run boss -> hero, so keying the arena shake off it would mean the screen
+  // never moved for exactly the hits that earned it.
+  const [world, setWorld] = useState<{ key: number; severity?: BeatSeverity } | null>(null);
+  const lastWorldBeatId = useRef<string | null>(null);
+  const lastFlashAt = useRef(0);
+  useEffect(() => {
+    if (!currentBeat) return;
+    if (currentBeat.id === lastWorldBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
+    if (currentBeat.event.kind !== 'damage_dealt') return;
+    lastWorldBeatId.current = currentBeat.id;
+    if (getGameFeel(currentBeat.severity, motionLevel).arenaShakeX === 0) return;
+    // An area attack emits one damage event per hero; without this the
+    // screen would strobe once per target.
+    const now = performance.now();
+    if (now - lastFlashAt.current < 400) return;
+    lastFlashAt.current = now;
+    setWorld((cur) => ({ key: (cur?.key ?? 0) + 1, severity: currentBeat.severity }));
+  }, [currentBeat, motionLevel]);
+
+  const worldFeel = getGameFeel(world?.severity, motionLevel);
+  const worldShaking = world !== null && worldFeel.arenaShakeX > 0;
+
   // Charge-up — mirrors BossStage.tsx's desktop treatment. See that file for
   // the full rationale (real telegraphed heavy attack, not ambient motion).
   const [charging, setCharging] = useState(false);
@@ -67,6 +92,27 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+      {/* The whole arena zone shakes as one on heavy/ultimate hits. Cheaper
+          than the desktop tree's wrapper because this element ALREADY bounds
+          exactly the diegetic content (background + atmosphere + boss) and
+          already clips — the controls dock is a flex sibling, not an overlay.
+          Overscan 1.02 is static, so displacement never exposes an edge.
+          Amplitudes come from the same gameFeel table as desktop. */}
+      <div
+        key={world?.key ?? 0}
+        className={worldShaking ? 'mobile-arena-shake' : undefined}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transform: 'scale(1.02)',
+          willChange: 'transform',
+          ...({
+            '--arena-shake-x': `${worldFeel.arenaShakeX}px`,
+            '--arena-shake-y': `${worldFeel.arenaShakeY}px`,
+            '--arena-shake-ms': `${worldFeel.arenaShakeMs}ms`,
+          } as React.CSSProperties),
+        }}
+      >
       {/* Arena background — full bleed */}
       <div
         className="absolute inset-0"
@@ -165,7 +211,45 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
             the sprite to the arena floor without a floating grey blob). */}
       </div>
 
+      </div>
+
+      {/* Impact flash — last child, so it is naturally clipped to the arena
+          zone and can never reach the card tray or the controls dock. Peak is
+          capped lower than desktop: the screen is much closer to the face. */}
+      {world && worldFeel.flashPeak > 0 && (
+        <div
+          key={`flash-${world.key}`}
+          className="absolute inset-0 mobile-impact-flash"
+          style={{
+            background: 'radial-gradient(circle 70% at 50% 30%, #fff3d9 0%, #fff3d900 62%)',
+            ...({
+              '--flash-peak': `${Math.min(worldFeel.flashPeak, 0.28)}`,
+              '--flash-ms': `${worldFeel.flashMs}ms`,
+            } as React.CSSProperties),
+          }}
+        />
+      )}
+
       <style>{`
+        @keyframes mobile-arena-shake {
+          0%   { transform: scale(1.02) translate(0, 0); }
+          12%  { transform: scale(1.02) translate(calc(var(--arena-shake-x) * -1), var(--arena-shake-y)); }
+          28%  { transform: scale(1.02) translate(var(--arena-shake-x), calc(var(--arena-shake-y) * -0.7)); }
+          46%  { transform: scale(1.02) translate(calc(var(--arena-shake-x) * -0.6), calc(var(--arena-shake-y) * 0.5)); }
+          64%  { transform: scale(1.02) translate(calc(var(--arena-shake-x) * 0.4), calc(var(--arena-shake-y) * -0.3)); }
+          82%  { transform: scale(1.02) translate(calc(var(--arena-shake-x) * -0.15), 0); }
+          100% { transform: scale(1.02) translate(0, 0); }
+        }
+        .mobile-arena-shake { animation: mobile-arena-shake var(--arena-shake-ms) cubic-bezier(0.25, 0.8, 0.35, 1); }
+
+        @keyframes mobile-impact-flash {
+          0%   { opacity: 0; }
+          22%  { opacity: var(--flash-peak); }
+          45%  { opacity: var(--flash-peak); }
+          100% { opacity: 0; }
+        }
+        .mobile-impact-flash { animation: mobile-impact-flash var(--flash-ms) ease-out forwards; }
+
         /* Hitstop first, same 18% as the desktop tree — see gameFeel.ts. */
         @keyframes mobile-boss-hit-shake {
           0%, 18% { transform: translate(0, 0); filter: brightness(var(--impact-flash, 2.2)) saturate(0.5); }
@@ -198,6 +282,8 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
 
         @media (prefers-reduced-motion: reduce) {
           .mobile-boss-sprite { animation: none !important; }
+          .mobile-arena-shake { animation: none !important; }
+          .mobile-impact-flash { animation: none !important; opacity: 0 !important; }
           .mobile-boss-charging {
             animation: none !important;
             filter: brightness(1.3) saturate(1.2);
