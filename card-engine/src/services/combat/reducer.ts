@@ -4,7 +4,7 @@ import type {
   DamageType,
   ScalingRule,
 } from '../../types/abilities';
-import { STATUS_CATALOG } from '../../data/abilities/statuses';
+import { STATUS_CATALOG, STATUS_DAMAGE_TYPE } from '../../data/abilities/statuses';
 import { resolveTargetRule } from './targeting';
 import type {
   AbilityCombatSnapshot,
@@ -884,9 +884,15 @@ function resolveAbilityEffects(
         // damage and type, resolved HERE at application time rather than at
         // tick time — the caster may be dead by the time it burns.
         const hero = next.heroes.find((h) => h.actorId === actorId)!;
-        // DoTs carry no damageType of their own, so an element-typed DoT
-        // burns as the caster's element and a fixed one falls back to fire.
-        const damageType = effectDamageType({ damageType: 'fire' }, version, hero);
+        // A DoT effect carries no damageType, so it burns as its STATUS says:
+        // burn is fire, bleed is physical, poison is nature. Defaulting to
+        // fire here meant the fire-resistant boss halved incoming BLEED.
+        // Element-typed abilities still override, per damageTypeSource.
+        const damageType = effectDamageType(
+          { damageType: STATUS_DAMAGE_TYPE[effect.statusId] ?? 'physical' },
+          version,
+          hero,
+        );
         for (const targetId of targetActorIds) {
           const instance: StatusInstance = {
             instanceId: `st_${state.step}_${effectIndex}_${effect.statusId}_${targetId}`,

@@ -17,10 +17,9 @@ import { generateCardTextWithRetry } from './claudeApi';
 import { saveCard } from './storage';
 import { emptyHiddenFate } from './hiddenFate';
 import { inferPrestige } from './prestigeInference';
-import { proposeAbility } from './abilities/proposalService';
+import { assignAbilitiesForCard } from './abilities/rosterAssigner';
+import { seededRng } from './seededRandom';
 import { getAbilityStore, saveReference, getReferencesForCard } from './abilities/registry';
-import { grantDiscoveryReward } from './abilities/discoveryLedger';
-import { getCurrentUserId } from './persistence/supabaseClient';
 
 /**
  * Bible-driven tier-up.
@@ -244,43 +243,46 @@ export async function tierUpCard(card: Card): Promise<TierUpResult> {
       });
     }
 
-    if (abilitySlotToFill && text.abilityCandidate) {
-      const outcome = proposeAbility(getAbilityStore(), {
-        candidate: text.abilityCandidate,
-        userId: getCurrentUserId() ?? 'anon',
-      });
-      if (outcome.kind === 'attached') {
+    // The newly-unlocked slot is filled from the fixed roster, seeded from
+    // cardId + the slot so a tier-up is reproducible and the ability a card
+    // gains never depends on what a model happened to invent that day.
+    //
+    // Previously this proposed a Claude-generated candidate and only attached
+    // on an EXACT library match — so a novel one was queued for moderation
+    // and the tier-up silently granted nothing at all.
+    if (abilitySlotToFill) {
+      const store = getAbilityStore();
+      const takenIds = new Set(abilitySnapshots.map((a) => a.abilityId));
+      const picks = assignAbilitiesForCard(
+        store,
+        { ...card, stats: newStats },
+        seededRng(`${card.cardId}:${abilitySlotToFill}:tierup`),
+      ).filter((a) => a.slot === abilitySlotToFill && !takenIds.has(a.definition.id));
+
+      const pick = picks[0];
+      if (pick) {
         const displayOrder = abilitySlotToFill === 'signature' ? 1 : 2;
-        const newRef: CardAbilityReference = {
+        saveReference({
           cardId: card.cardId,
-          abilityId: outcome.abilityId,
-          abilityVersionId: outcome.abilityVersionId,
+          abilityId: pick.definition.id,
+          abilityVersionId: pick.version.id,
           slotType: abilitySlotToFill,
           localTier: newOverallRank,
           displayOrder,
-        };
-        saveReference(newRef);
+        });
         abilitySnapshots.push({
-          abilityId: outcome.abilityId,
-          abilityVersionId: outcome.abilityVersionId,
+          abilityId: pick.definition.id,
+          abilityVersionId: pick.version.id,
           slotType: abilitySlotToFill,
         });
-        if (outcome.firstDiscoveryForPlayer) {
-          const reward = grantDiscoveryReward(getAbilityStore(), outcome.abilityId);
-          if (reward.kind === 'granted') {
-            const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
-            if (import.meta.env.DEV) console.debug(`[tier-up] discovery reward granted: ${summary}`);
-          }
-          const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
-          newAbilityDiscovery = {
-            abilityId: outcome.abilityId,
-            slotType: abilitySlotToFill,
-            resource:
-              version?.resourceType === 'mana' || version?.resourceType === 'tech'
-                ? version.resourceType
-                : undefined,
-          };
-        }
+        newAbilityDiscovery = {
+          abilityId: pick.definition.id,
+          slotType: abilitySlotToFill,
+          resource:
+            pick.version.resourceType === 'mana' || pick.version.resourceType === 'tech'
+              ? pick.version.resourceType
+              : undefined,
+        };
       }
     }
   } catch (err) {

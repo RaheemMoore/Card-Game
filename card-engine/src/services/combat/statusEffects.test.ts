@@ -244,6 +244,24 @@ describe('damage_over_time', () => {
   });
 });
 
+describe('damage-over-time typing', () => {
+  it('burns as its status, not as a blanket default', () => {
+    // Regression: DoTs defaulted to 'fire', so the fire-RESISTANT boss was
+    // halving bleed ticks. A cut is a cut; only fire is fire.
+    const bleed = castOnce([
+      { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 10, duration: 3 },
+    ]);
+    const burn = castOnce([
+      { type: 'damage_over_time', statusId: 'burn', amountPerTick: 10, duration: 3 },
+    ]);
+    const typeOf = (r: ReturnType<typeof castOnce>, id: string) =>
+      r.state.boss.statuses.find((s) => s.statusId === id)?.application.damageType;
+
+    expect(typeOf(bleed, 'bleed')).toBe('physical');
+    expect(typeOf(burn, 'burn')).toBe('fire');
+  });
+});
+
 describe('taunt', () => {
   it('is applied to the caster, since taunting means "hit me instead"', () => {
     const { state } = castOnce([{ type: 'taunt', duration: 2 }]);

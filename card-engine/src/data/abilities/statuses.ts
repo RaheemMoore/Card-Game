@@ -1,4 +1,4 @@
-import type { StatusDefinition } from '../../types/abilities';
+import type { DamageType, StatusDefinition } from '../../types/abilities';
 
 /**
  * Starter status catalog — 12 entries covering damage-over-time, control,
@@ -171,6 +171,23 @@ export const STATUS_CATALOG: Record<string, StatusDefinition> = {
     bossBehavior: 'normal',
     description: 'The boss attacks this hero, overriding its own target choice.',
   },
+};
+
+/**
+ * What a damage-over-time status burns AS.
+ *
+ * Without this a DoT has no damage type of its own and falls back to a
+ * default — which had the fire-resistant Emberborn Wraith halving BLEED
+ * damage, caught by actually playing a round rather than by any test.
+ * A cut is a cut; only fire is fire.
+ *
+ * An ability may still override this by declaring its own element typing;
+ * this is the floor, not a ceiling.
+ */
+export const STATUS_DAMAGE_TYPE: Record<string, DamageType> = {
+  burn: 'fire',
+  bleed: 'physical',
+  poison: 'nature',
 };
 
 export const STATUS_IDS = Object.keys(STATUS_CATALOG);
