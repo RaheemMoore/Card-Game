@@ -29,6 +29,30 @@ export const ARENA_MANIFEST: ArenaManifest = {
  * arena of its own or its arena has no art yet. Never returns undefined —
  * a missing background would render the fight on a blank void.
  */
+/**
+ * The colour the arena's own light throws up onto the fighters.
+ *
+ * This used to be hardcoded warm ember in BOTH scene trees, with a comment
+ * saying it existed "to match the pixel arena's lava veins" — true of the one
+ * arena that existed, and actively wrong for any other. Drop a grove or a
+ * bone-white sanctum under an orange floor-glow and you get a forest lit from
+ * below by a lava pool that is not there.
+ *
+ * Per-arena, so a new background cannot be sabotaged by the previous one's
+ * lighting.
+ */
+export const ARENA_GROUND_TINT: Record<string, { mid: string; low: string }> = {
+  forbidden_mountain_passage: { mid: 'rgba(60,18,8,0.30)', low: 'rgba(80,20,10,0.60)' },
+};
+
+/** Falls back to the default arena's tint, matching resolveArenaFor. */
+export function resolveGroundTint(arenaId: string | undefined) {
+  return (
+    (arenaId ? ARENA_GROUND_TINT[arenaId] : undefined) ??
+    ARENA_GROUND_TINT[DEFAULT_ARENA_ID]
+  );
+}
+
 export function resolveArenaFor(arenaId: string | undefined) {
   return (arenaId ? ARENA_MANIFEST[arenaId] : undefined) ?? ARENA_MANIFEST[DEFAULT_ARENA_ID];
 }

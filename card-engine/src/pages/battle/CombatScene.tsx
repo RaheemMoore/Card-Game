@@ -3,7 +3,7 @@ import type { Card } from '../../types/card';
 import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import type { MotionLevel } from '../../vfx/types';
-import { resolveArenaFor } from '../../data/combat/arenaManifest';
+import { resolveArenaFor, resolveGroundTint } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
 import { previewAbilityDamage } from '../../services/combat/reducer';
@@ -72,6 +72,7 @@ export function CombatScene({
   const boss = state.boss;
   const arena = resolveArenaFor(boss.snapshot.arenaId);
   const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
+  const groundTint = resolveGroundTint(boss.snapshot.arenaId);
   const actingHero =
     (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
     state.heroes.find((h) => !h.defeated) ??
@@ -217,8 +218,8 @@ export function CombatScene({
               'rgba(5,3,8,0.55) 0%, ' +
               'rgba(5,3,8,0.10) 22%, ' +
               'rgba(5,3,8,0.00) 55%, ' +
-              'rgba(60,18,8,0.30) 82%, ' +
-              'rgba(80,20,10,0.60) 100%)',
+              `${groundTint.mid} 82%, ` +
+              `${groundTint.low} 100%)`,
         }}
       />
 

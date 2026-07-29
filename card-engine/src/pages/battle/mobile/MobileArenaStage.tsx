@@ -3,7 +3,7 @@ import type { BossCombatant } from '../../../types/combat';
 import type { AnimationBeat, BeatSeverity } from '../../../services/combat/presentation/types';
 import { getGameFeel } from '../../../services/combat/presentation/gameFeel';
 import type { MotionLevel } from '../../../vfx/types';
-import { resolveArenaFor } from '../../../data/combat/arenaManifest';
+import { resolveArenaFor, resolveGroundTint } from '../../../data/combat/arenaManifest';
 import { getBossSprite } from '../../../data/combat/bossSpriteManifest';
 import { resolveCombatAssetUrl } from '../../../data/combat/types';
 import { FloatingDamage } from '../FloatingDamage';
@@ -87,6 +87,7 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
 
   const arena = resolveArenaFor(boss.snapshot.arenaId);
   const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
+  const groundTint = resolveGroundTint(boss.snapshot.arenaId);
   const sprite = getBossSprite(boss.snapshot.bossId, 'idle');
   const spriteUrl = sprite ? resolveCombatAssetUrl(sprite) : null;
 
@@ -138,7 +139,7 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
               'rgba(5,3,8,0.60) 0%, ' +
               'rgba(5,3,8,0.15) 18%, ' +
               'rgba(5,3,8,0.00) 45%, ' +
-              'rgba(60,18,8,0.20) 68%, ' +
+              `${groundTint.mid} 68%, ` +
               'rgba(20,10,12,0.55) 88%, ' +
               'rgba(6,4,10,0.85) 100%)',
         }}
