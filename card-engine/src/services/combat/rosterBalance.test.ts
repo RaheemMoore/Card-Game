@@ -226,8 +226,13 @@ describe('roster balance sweep — Emberborn Wraith', () => {
       ['attrition ', [['Necromancer', 'Bone'], ['Druid', 'Poison'], ['Beastmaster', 'Beast']]],
       // Guard and taunt — answers single-target focus.
       ['bulwark   ', [['Mech Pilot', 'Metal'], ['Android', 'Prism'], ['Human', 'Earth']]],
-      // Fire — the answer to anything that regenerates behind a nature guard.
+      // Fire — one answer to anything that regenerates behind a nature guard.
       ['kindling  ', [['Barbarian', 'Fire'], ['Monk', 'Fire'], ['Human', 'Fire']]],
+      // Tech — the OTHER answer to the same floor. Deliberately three heroes
+      // that all actually deal damage: Mech Pilot's core is a taunt, so a
+      // "tech" party built around it under-delivers on the very axis it is
+      // supposed to test.
+      ['circuitry ', [['Android', 'Nanite'], ['Human', 'Metal'], ['Monk', 'Plasma']]],
     ];
 
     const champions = SEED_BOSSES.filter((b) => b.definition.bossKind === 'champion').sort(

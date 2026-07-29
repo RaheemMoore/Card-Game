@@ -89,3 +89,21 @@ export const TOWER = {
     return Math.max(0.4, 0.85 - 0.03 * (floor - 1));
   },
 } as const;
+
+/**
+ * How many damage types should beat a given floor.
+ *
+ * A floor with ONE answer is a wall, not a puzzle: a player without that
+ * exact element is stopped cold with nothing to try. A floor with five is a
+ * stat check wearing a costume. The tower's difficulty curve is partly a
+ * NARROWING of options — early floors reward almost any sensible party, and
+ * the top of the tower demands a specific one.
+ *
+ * This is guidance for authoring a boss's `resistanceProfile.weak`, not a
+ * value the reducer reads.
+ */
+export function answerBudget(floor: number): number {
+  if (floor <= 3) return 3;
+  if (floor <= 7) return 2;
+  return 1;
+}

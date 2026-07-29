@@ -436,11 +436,14 @@ const STILL_SEASON_V1: BossVersion = {
   maxHp: TOWER.hp(2),
   // He IS the grove, so the growing world cannot be turned against him —
   // which deliberately blunts poison, the obvious damage-over-time answer.
-  // A held forest is tinder, though: fire is the change he has been
-  // preventing, and burn ticks through regeneration exactly as poison would.
-  // The lesson of this floor is bringing the RIGHT damage-over-time, not just
-  // any of it.
-  resistanceProfile: { resistant: ['nature'], weak: ['fire'] },
+  //
+  // TWO answers, not one. Fire is the change he has been preventing, and burn
+  // ticks through regeneration exactly as poison would. Tech is the other:
+  // the engineered and the sterile owe nothing to a season and are not held by
+  // it. A single-answer floor is a wall rather than a puzzle, and this is
+  // floor 2 — early floors should have several ways through and narrow as the
+  // tower rises. See TOWER_ANSWER_BUDGET in towerCurve.ts.
+  resistanceProfile: { resistant: ['nature'], weak: ['fire', 'tech'] },
   phases: [
     {
       id: 'phase_season_held',
