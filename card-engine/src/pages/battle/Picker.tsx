@@ -10,9 +10,9 @@ import { reserve, InsufficientFundsError } from '../../services/economy/walletSe
 import { CardBench } from '../minigames/CardBench';
 import type { Card } from '../../types/card';
 
-// Slots are the HARD cap; the real constraint is power. See
-// PARTY_POWER_BUDGET — a party of six Foundation cards and a party of three
-// Forged ones cost the same, which is what lets one tower serve every tier.
+// Three on the field at once. Power is the other constraint and binds first
+// for a strong roster: three Ascendant cards cost 21 and will not fit inside
+// the budget of 18, so a maxed player fields two or three, not three always.
 const MAX_PARTY = MAX_PARTY_SLOTS;
 const ENTRY_PRICE = GAMEPLAY_PRICE_CATALOG.battle_run_entry;
 
@@ -74,8 +74,8 @@ export function Picker({ onPick }: PickerProps) {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="font-fantasy text-3xl text-bone mb-2">Choose your party</h1>
       <p className="text-sm text-bone/70 mb-3">
-        Every hero costs power — stronger cards cost more. Spend your budget on a few strong
-        heroes or a wider band of weaker ones. Lanes resolve left → right.
+        Three heroes take the field. Stronger cards cost more power, so a maxed party may only
+        field two. Lanes resolve left → right.
       </p>
 
       {/* The budget is the whole mechanic, so it is stated plainly rather than

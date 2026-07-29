@@ -153,13 +153,35 @@ export function answerBudget(floor: number): number {
 export const PARTY_POWER_BUDGET = 18;
 
 /**
- * Hard cap on bodies, independent of budget.
+ * How many heroes can be ON THE FIELD at once.
  *
- * Without it the budget could be spent as twelve near-worthless heroes, and
- * turn cycles would become unmanageable. Six is where a Foundation-wide party
- * lands naturally (6 x 3 = 18).
+ * Three, and that is a deliberate ceiling rather than a budget consequence —
+ * turn cycles, lane geometry and the combat HUD are all built around three.
+ *
+ * ── This currently blunts the budget, and that is understood ─────────────
+ * The budget normalises tiers through HEADCOUNT: 18 buys six Foundation cards
+ * or three Forged ones or two Ascendant. With deployment capped at three, a
+ * Foundation player can only field 3 x 3 = 9 of their 18 and simply forfeits
+ * the rest — so the budget still stops an Ascendant roster trivialising the
+ * tower, but it does NOT yet fix the opposite end. Three Foundation cards
+ * remain unable to clear floor 1.
+ *
+ * The intended shape is a ROSTER of up to `MAX_ROSTER_SLOTS` bought with the
+ * budget, of which three are deployed at a time and the rest are swapped in
+ * mid-fight. Then wide-and-cheap becomes a deep bench and tall-and-expensive
+ * becomes no bench at all, which is the real strategic axis. Until that
+ * system exists the cap is three and the low-tier gap stays open.
  */
-export const MAX_PARTY_SLOTS = 6;
+export const MAX_PARTY_SLOTS = 3;
+
+/**
+ * How many heroes the budget may BUY, once swapping exists.
+ *
+ * Not yet enforced anywhere — recorded so the budget's sizing is legible:
+ * 18 is exactly six Foundation cards, which is what makes a wide roster a
+ * real build rather than a worse one.
+ */
+export const MAX_ROSTER_SLOTS = 6;
 
 /** The budget available at a floor. Constant today; a hook for later. */
 export function partyBudget(_floor: number): number {
