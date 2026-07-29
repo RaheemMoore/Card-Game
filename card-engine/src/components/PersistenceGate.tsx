@@ -104,9 +104,13 @@ async function seedAndBackfillAbilitiesLocal(): Promise<void> {
 async function seedBossesLocal(): Promise<void> {
   const store = getBossStore();
   try {
-    if (store.getAllDefinitions().length === 0) {
-      await seedBossLibrary(store);
-    }
+    // Always call. `seedBossLibrary` is a plain idempotent upsert, so this is
+    // cheap once seeded — and gating on "the store is completely empty" meant
+    // any boss added to SEED_BOSSES after the first-ever boot silently never
+    // reached an already-bootstrapped store. The three Overreach champions
+    // were invisible in the picker for exactly this reason. The ability seed
+    // path hit the same bug and fixed it the same way; this one was missed.
+    await seedBossLibrary(store);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[bosses] local seed failed:', err);
