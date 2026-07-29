@@ -44,6 +44,16 @@ export interface BossDefinition {
   mirrorArchetype?: ArchetypeName;
   /** Position in the tower. Floor 0 is the gatekeeper. */
   towerFloor?: number;
+  /**
+   * Which arena this boss is fought in. Falls back to the default when the
+   * art does not exist yet.
+   *
+   * Plumbed ahead of the art on purpose: every boss currently fights on the
+   * same lava dais, which actively undercuts a champion whose identity is a
+   * stopped grove or an interrupted summoning. With this field the background
+   * becomes a data change the day a new arena lands, rather than a code one.
+   */
+  arenaId?: string;
   createdAt: string;
   updatedAt: string;
 }

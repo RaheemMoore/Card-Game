@@ -3,7 +3,7 @@ import type { BossCombatant } from '../../../types/combat';
 import type { AnimationBeat, BeatSeverity } from '../../../services/combat/presentation/types';
 import { getGameFeel } from '../../../services/combat/presentation/gameFeel';
 import type { MotionLevel } from '../../../vfx/types';
-import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../../data/combat/arenaManifest';
+import { resolveArenaFor } from '../../../data/combat/arenaManifest';
 import { getBossSprite } from '../../../data/combat/bossSpriteManifest';
 import { resolveCombatAssetUrl } from '../../../data/combat/types';
 import { FloatingDamage } from '../FloatingDamage';
@@ -85,7 +85,7 @@ export function MobileArenaStage({ boss, currentBeat, motionLevel, emphasized, c
     }
   }, [currentBeat, boss.actorId]);
 
-  const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
+  const arena = resolveArenaFor(boss.snapshot.arenaId);
   const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
   const sprite = getBossSprite(boss.snapshot.bossId, 'idle');
   const spriteUrl = sprite ? resolveCombatAssetUrl(sprite) : null;

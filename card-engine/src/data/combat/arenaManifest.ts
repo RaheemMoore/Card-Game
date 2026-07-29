@@ -24,6 +24,15 @@ export const ARENA_MANIFEST: ArenaManifest = {
   },
 };
 
+/**
+ * The arena for a boss, falling back to the default when that boss has no
+ * arena of its own or its arena has no art yet. Never returns undefined —
+ * a missing background would render the fight on a blank void.
+ */
+export function resolveArenaFor(arenaId: string | undefined) {
+  return (arenaId ? ARENA_MANIFEST[arenaId] : undefined) ?? ARENA_MANIFEST[DEFAULT_ARENA_ID];
+}
+
 export function getArena(arenaId: string) {
   return ARENA_MANIFEST[arenaId];
 }

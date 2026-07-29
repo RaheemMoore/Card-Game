@@ -3,7 +3,7 @@ import type { Card } from '../../types/card';
 import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import type { MotionLevel } from '../../vfx/types';
-import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
+import { resolveArenaFor } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
 import { previewAbilityDamage } from '../../services/combat/reducer';
@@ -66,12 +66,12 @@ export function CombatScene({
   onSelectActor,
   onExit,
 }: Props) {
-  const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
-  const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
   const viewportWidth = useViewportWidth();
   const partyDockWidth = computePartyDockWidth(viewportWidth);
 
   const boss = state.boss;
+  const arena = resolveArenaFor(boss.snapshot.arenaId);
+  const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
   const actingHero =
     (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
     state.heroes.find((h) => !h.defeated) ??

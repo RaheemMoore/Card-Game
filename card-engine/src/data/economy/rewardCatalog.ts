@@ -86,9 +86,44 @@ interface BossRewardAmounts {
 }
 
 const BOSS_REWARD_AMOUNTS: Record<string, BossRewardAmounts> = {
+  // Floor 0 — the gatekeeper. Unchanged, and the only boss paying Crystals.
   boss_fire_elemental_v0: {
     firstClear: { gold: 500, crystals: 100 },
     repeat: { gold: 100, crystals: 15 },
+  },
+
+  /* ---------------- The Overreach champions ----------------
+   * GOLD ONLY. Approved by Raheem 2026-07-28: "leave it gold for now."
+   *
+   * Reason for the addition (economy plan §13): a boss with no row in this
+   * map silently pays ZERO — `bossReward` returns an empty `guaranteed` array
+   * and the grant resolves as `no_reward / zero_value`. So clearing a champion
+   * paid nothing at all, which is worse than paying too little.
+   *
+   * Player impact: the three floors together add 400 + 600 + 800 = 1,800 Gold
+   * of one-time income, roughly three and a half Forged `resistTheFall`
+   * spends (200 Gold each). Repeats pay a quarter of first clear, matching the
+   * Wraith's existing 500 → 100 shape, so grinding floor 1 is not competitive
+   * with climbing.
+   *
+   * Crystals are deliberately withheld. Crystals buy AI generation, and until
+   * the run loop exists there is no per-run sink to balance a premium faucet
+   * against — the Wraith's one-time 100 stays the only Crystal boss payout.
+   *
+   * The ladder is `200 + 200 × floor`, matching the tower curve's shape: a
+   * higher floor is worth more because it demands a better party, not because
+   * it takes longer. */
+  boss_champion_barbarian: {
+    firstClear: { gold: 400, crystals: 0 },
+    repeat: { gold: 100, crystals: 0 },
+  },
+  boss_champion_druid: {
+    firstClear: { gold: 600, crystals: 0 },
+    repeat: { gold: 150, crystals: 0 },
+  },
+  boss_champion_seraph: {
+    firstClear: { gold: 800, crystals: 0 },
+    repeat: { gold: 200, crystals: 0 },
   },
 };
 
@@ -104,9 +139,11 @@ function bossReward(bossId: string, tier: 'first_clear' | 'repeat'): RewardDefin
     };
   }
   const bucket = tier === 'first_clear' ? amounts.firstClear : amounts.repeat;
+  // Zero-amount entries are omitted rather than granted as "+0", so a
+  // gold-only boss does not show the player an empty Crystal line.
   const guaranteed: RewardItem[] = [
-    { currency: 'gameplay', amount: bucket.gold },
-    { currency: 'premium', amount: bucket.crystals },
+    ...(bucket.gold > 0 ? [{ currency: 'gameplay' as const, amount: bucket.gold }] : []),
+    ...(bucket.crystals > 0 ? [{ currency: 'premium' as const, amount: bucket.crystals }] : []),
   ];
   return {
     rewardId: `boss_${bossId}_${tier}`,

@@ -97,6 +97,8 @@ export interface BossSnapshot {
    * combat actually reads.
    */
   resistance: ActorResistance;
+  /** Arena this fight takes place in. Falls back to the default when absent. */
+  arenaId?: string;
 }
 
 export interface BossPhaseSnapshot {

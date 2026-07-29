@@ -282,6 +282,7 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
       resistant: version.resistanceProfile.resistant,
       weak: version.resistanceProfile.weak,
     },
+    ...(def.arenaId ? { arenaId: def.arenaId } : {}),
   };
 }
 
