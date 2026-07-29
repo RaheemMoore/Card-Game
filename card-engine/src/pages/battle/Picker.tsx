@@ -2,13 +2,18 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllCards } from '../../services/storage';
 import { getAllBossDefinitions } from '../../services/bosses/registry';
+import { computeRankSum } from '../../data/powerSystem';
+import { PARTY_POWER_BUDGET, MAX_PARTY_SLOTS } from '../../data/bosses/towerCurve';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { GAMEPLAY_PRICE_CATALOG } from '../../data/economy/gameplayPriceCatalog';
 import { reserve, InsufficientFundsError } from '../../services/economy/walletService';
 import { CardBench } from '../minigames/CardBench';
 import type { Card } from '../../types/card';
 
-const MAX_PARTY = 3;
+// Slots are the HARD cap; the real constraint is power. See
+// PARTY_POWER_BUDGET — a party of six Foundation cards and a party of three
+// Forged ones cost the same, which is what lets one tower serve every tier.
+const MAX_PARTY = MAX_PARTY_SLOTS;
 const ENTRY_PRICE = GAMEPLAY_PRICE_CATALOG.battle_run_entry;
 
 type PartySlots = readonly (string | null)[];
@@ -28,7 +33,9 @@ export function Picker({ onPick }: PickerProps) {
     [cards, abilityStore],
   );
 
-  const [partySlots, setPartySlots] = useState<PartySlots>([null, null, null]);
+  const [partySlots, setPartySlots] = useState<PartySlots>(
+    () => Array.from({ length: MAX_PARTY }, () => null),
+  );
   const [pickedBossId, setPickedBossId] = useState<string | null>(bosses[0]?.id ?? null);
 
   function toggleCard(cardId: string) {
@@ -41,7 +48,15 @@ export function Picker({ onPick }: PickerProps) {
         return next;
       }
       const empty = prev.indexOf(null);
-      if (empty < 0) return prev; // party full — click a picked card to remove first
+      if (empty < 0) return prev; // slots full — click a picked card to remove first
+      // Refuse a pick that would break the budget rather than letting the
+      // player assemble an illegal party and be rejected on Start.
+      const card = cards.find((c) => c.cardId === cardId);
+      const spent = prev.reduce((n, id) => {
+        const picked = id ? cards.find((c) => c.cardId === id) : undefined;
+        return n + (picked ? computeRankSum(picked.stats) : 0);
+      }, 0);
+      if (card && spent + computeRankSum(card.stats) > PARTY_POWER_BUDGET) return prev;
       const next = prev.slice();
       next[empty] = cardId;
       return next;
@@ -49,15 +64,45 @@ export function Picker({ onPick }: PickerProps) {
   }
 
   const picked = partySlots.filter((id): id is string => id !== null);
+  const powerSpent = picked.reduce((n, id) => {
+    const card = cards.find((c) => c.cardId === id);
+    return n + (card ? computeRankSum(card.stats) : 0);
+  }, 0);
   const canStart = picked.length >= 1 && !!pickedBossId;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="font-fantasy text-3xl text-bone mb-2">Choose your party</h1>
-      <p className="text-sm text-bone/70 mb-4">
-        Pick up to {MAX_PARTY} forged cards with at least one ability, then step into the boss
-        battle. Lanes resolve left → right.
+      <p className="text-sm text-bone/70 mb-3">
+        Every hero costs power — stronger cards cost more. Spend your budget on a few strong
+        heroes or a wider band of weaker ones. Lanes resolve left → right.
       </p>
+
+      {/* The budget is the whole mechanic, so it is stated plainly rather than
+          discovered by being refused on Start. */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="flex-1 h-2 rounded-full overflow-hidden bg-void/70 border border-gold/25">
+          <div
+            className="h-full transition-[width] duration-200"
+            style={{
+              width: `${Math.min(100, (powerSpent / PARTY_POWER_BUDGET) * 100)}%`,
+              background:
+                powerSpent >= PARTY_POWER_BUDGET
+                  ? 'linear-gradient(to right, #8a6a2e, #eb962e)'
+                  : 'linear-gradient(to right, #4a6a8a, #7fb2d8)',
+            }}
+          />
+        </div>
+        <span
+          className="text-sm tabular-nums"
+          style={{ color: powerSpent >= PARTY_POWER_BUDGET ? '#eb962e' : '#cbb98f' }}
+        >
+          {powerSpent} / {PARTY_POWER_BUDGET} power
+        </span>
+        <span className="text-xs text-bone/50">
+          {picked.length}/{MAX_PARTY} slots
+        </span>
+      </div>
 
       {eligibleCards.length === 0 && (
         <div className="p-4 rounded border border-gold/30 bg-void/60 text-bone/80 text-sm mb-6">
@@ -76,6 +121,14 @@ export function Picker({ onPick }: PickerProps) {
             laneCount={MAX_PARTY}
             selectedIds={picked}
             onToggle={toggleCard}
+            costOf={(card) => computeRankSum(card.stats)}
+            unaffordableIds={eligibleCards
+              .filter(
+                (c) =>
+                  !picked.includes(c.cardId) &&
+                  powerSpent + computeRankSum(c.stats) > PARTY_POWER_BUDGET,
+              )
+              .map((c) => c.cardId)}
           />
         </div>
       )}

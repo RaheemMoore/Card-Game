@@ -107,3 +107,61 @@ export function answerBudget(floor: number): number {
   if (floor <= 7) return 2;
   return 1;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Party Power Budget                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * How much party a floor lets you bring.
+ *
+ * Replaces "up to 3 heroes" as the entry constraint. Every hero costs its
+ * `computeRankSum(stats)` — a value already shipped, already capped at 7 by
+ * the power-system spec, and already reading all three stats rather than the
+ * coarse derived rank (a card with one Ascendant stat and a card with three
+ * both read "Ascendant", but they are not the same card).
+ *
+ * ── Why this exists ──────────────────────────────────────────────────────
+ * A tower cannot span Foundation and Ascendant by floor height alone. The
+ * gap between a 3-Foundation and a 3-Ascendant party is roughly 4x in output
+ * and effective HP — LARGER than the entire eleven-floor curve, which spans
+ * 3.4x HP and 2.8x damage. Measured: a 3-Foundation party deals ~65 damage a
+ * round into floor 1's 1380 hp while dying around round 11. It cannot clear
+ * the FIRST floor under any play, and a 3-Ascendant party trivialises it.
+ *
+ * ── Why 18 ───────────────────────────────────────────────────────────────
+ * Three Forged cards cost 3 x 6 = 18, which is exactly the party the tower
+ * curve was measured against (~137 damage/round). A Foundation card costs 3,
+ * so the same budget buys SIX of them — about 132 damage a round, inside
+ * noise of the Forged baseline. An Ascendant card costs 7, so a maxed roster
+ * fields two or three. Tiers are normalised through HEADCOUNT.
+ *
+ * ── Why not scale the boss to the party ──────────────────────────────────
+ * It would make tier-up cosmetic, remove the reason to spend Crystals, and
+ * turn a deliberately deterministic, learnable fight into a different one on
+ * every entry. The curve's whole premise is that climbing is answered by
+ * building a better party; a boss that grows with you deletes that.
+ *
+ * ── Why the budget does not change per floor ─────────────────────────────
+ * Constant across all eleven floors on purpose: the only way up is spending
+ * the same 18 on BETTER cards. Bringing one strong hero and two weak ones is
+ * not an exploit against a fixed floor — it is a self-imposed handicap, and
+ * nothing rescales down when you underspend.
+ *
+ * Combat data, not economy data. No §13 approval needed.
+ */
+export const PARTY_POWER_BUDGET = 18;
+
+/**
+ * Hard cap on bodies, independent of budget.
+ *
+ * Without it the budget could be spent as twelve near-worthless heroes, and
+ * turn cycles would become unmanageable. Six is where a Foundation-wide party
+ * lands naturally (6 x 3 = 18).
+ */
+export const MAX_PARTY_SLOTS = 6;
+
+/** The budget available at a floor. Constant today; a hook for later. */
+export function partyBudget(_floor: number): number {
+  return PARTY_POWER_BUDGET;
+}

@@ -14,7 +14,8 @@ import {
 } from './harness';
 import { getAbilityStore } from '../abilities/registry';
 import { getCurrentBossVersion, getBossDefinition } from '../bosses/registry';
-import { getOverallRank } from '../../data/powerSystem';
+import { getOverallRank, computeRankSum } from '../../data/powerSystem';
+import { PARTY_POWER_BUDGET, MAX_PARTY_SLOTS } from '../../data/bosses/towerCurve';
 import { resolveCurrentElement } from '../elementResolver';
 import { damageTypeForElement } from '../../data/abilities/elementDamageType';
 
@@ -100,8 +101,21 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
         throw new Error(`Boss "${input.bossId}" not found. Sign in as admin or reload.`);
       }
       const bossSnap = snapshotFromBossVersion(bossDef, bossVersion);
-      if (input.heroCards.length === 0 || input.heroCards.length > 3) {
-        throw new Error('Party must have 1..3 heroes.');
+      // Party size is capped by POWER, not headcount — see PARTY_POWER_BUDGET.
+      // A flat "up to 3" let an Ascendant roster trivialise the tower while a
+      // Foundation roster could not clear floor 1 at all.
+      if (input.heroCards.length === 0) {
+        throw new Error('Bring at least one hero.');
+      }
+      if (input.heroCards.length > MAX_PARTY_SLOTS) {
+        throw new Error(`Party cannot exceed ${MAX_PARTY_SLOTS} heroes.`);
+      }
+      const spent = input.heroCards.reduce((n, c) => n + computeRankSum(c.stats), 0);
+      if (spent > PARTY_POWER_BUDGET) {
+        throw new Error(
+          `Party power ${spent} exceeds the limit of ${PARTY_POWER_BUDGET}. ` +
+            'Stronger heroes cost more, so bring fewer of them — or more weaker ones.',
+        );
       }
       const heroes = input.heroCards.map((card) => {
         const refs = abilityStore.getReferencesForCard(card.cardId);
