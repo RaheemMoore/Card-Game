@@ -1,7 +1,10 @@
-# Overreach Arena Prompts — Leonardo Generation Guide
+# Overreach Arena + Boss Prompts — Leonardo Generation Guide
 
-Three arena backgrounds for the boss tower's first champions. Written to be
-pasted straight into the Leonardo web UI.
+Arena backgrounds AND boss sprites for the tower's first three champions.
+Written to be pasted straight into the Leonardo web UI.
+
+**Part 1 — Arenas** (below)
+**Part 2 — Boss sprites** (further down)
 
 **Status:** ready to generate. Code side is already plumbed — a new arena is a
 data change, not a code change.
@@ -186,3 +189,167 @@ designed as **biome anchors** for a 3–4 biome set with per-boss lighting
 variants, rather than as one-offs. It changes nothing about the prompts above
 — only how they are named and versioned. Eleven fully bespoke arenas is a
 different conversation and a much larger spend.
+
+---
+---
+
+# PART 2 — BOSS SPRITES
+
+## Before you start
+
+**Model:** Leonardo Phoenix 1.0, same as the arenas and same as the existing
+Emberborn Wraith sprite.
+
+**Settings:**
+- **1:1 square, 1024 × 1024**
+- Alchemy / photoreal **OFF**
+
+**Reference the existing boss.** Open
+`card-engine/public/assets/combat/bosses/emberborn-wraith/sprite-idle.png`.
+That is the target: full body head to feet, front-facing, symmetrical standing
+pose, centred, filling most of the frame, on a **pure black background**, dark
+values with one bright emissive focal point, crisp pixel clusters.
+
+**The black background is functional, not stylistic.** The sprite gets knocked
+out and composited over the arena, so the background must be flat pure black
+with no gradient, vignette, glow spill or scenery. A candidate with a
+background scene is unusable no matter how good the character is.
+
+### These are people, and that is the whole point
+
+The Emberborn Wraith is a force — armoured, faceless, non-human. **The
+champions are not.** Each is a person who walked their archetype's path past
+its end. They must read as tragic, never villainous: no snarling, no menace
+pose, no glowing evil eyes, no throne, no trophies.
+
+Two project rules apply and both are binding:
+
+- **Rank continuity / identity.** Champions are characters, so age, build and
+  physical condition are real attributes and are specified deliberately below.
+  The set deliberately includes an elder and a heavyset body. "Final floor"
+  must never come to mean "youngest and most conventionally attractive."
+- **Portrait modesty.** Armour, robes, coats, regalia. Never bras, lingerie,
+  chainmail bikinis, cleavage or midriff cutouts. This is in every negative.
+
+### Shared style anchors
+
+**Lead (start every prompt with this):**
+
+> Premium 16-bit dark-fantasy pixel-art character sprite, full body head to
+> feet, front-facing symmetrical standing pose, centred, filling the frame
+> vertically, on a pure flat black background,
+
+**Tail (end every prompt with this):**
+
+> crisp pixel clusters, dark values with one bright emissive focal point,
+> subtle ground shadow at the feet, premium RPG boss sprite, no scenery, no
+> background detail, no UI, no text, no logo, no watermark, no frame, no
+> border.
+
+**Shared negative (append to every boss negative):**
+
+> background scenery, landscape, room, floor, gradient background, white
+> background, vignette, bra, lingerie, bikini armour, cleavage cutout, midriff
+> cutout, exposed torso, sexualised pose, snarling, menacing grin, evil grin,
+> glowing evil eyes, throne, trophies, skulls underfoot, weapons floating,
+> multiple characters, text, watermark, frame, border, cropped head, cropped
+> feet, close-up, portrait crop
+
+---
+
+## 1. The Debt-Bearer — floor 1 (Barbarian)
+
+*Every technique she was given, she wrote down as something owed. The ledger
+grew longer than the life, and there was no one left to repay. She still
+counts.*
+
+**She is an older, heavyset, powerfully built woman.** Not a rage warrior —
+her strength is endurance and memory. Weathered, deliberate, still.
+
+**Prompt:**
+
+> Premium 16-bit dark-fantasy pixel-art character sprite, full body head to feet, front-facing symmetrical standing pose, centred, filling the frame vertically, on a pure flat black background. An older heavyset woman warrior with grey-streaked braided hair and a broad weathered face, standing squared and patient rather than aggressive. Heavy layered leather and dull iron armour covering shoulders, chest, arms and legs, worn smooth at the edges from decades of use, fully covered. Both forearms and the armour plates are covered edge to edge in shallow carved tally notches, hundreds of small scored counting marks. She holds a heavy plain iron mace loosely at her side, point down, resting. Muted palette of cold grey iron, oxblood leather and old bronze, with a restrained warm amber glow low at her belt. Calm tired expression, eyes lowered slightly. Crisp pixel clusters, dark values with one bright emissive focal point, subtle ground shadow at the feet, premium RPG boss sprite, no scenery, no background detail, no UI, no text, no logo, no watermark, no frame, no border.
+
+**Negative:** *(shared negative, plus)*
+
+> young, slim, athletic build, fur pelts, bare arms, horned helmet, war paint, rage, berserker, roaring, axe raised, blood, letters, numbers, runes, written words, fire, lava
+
+**Reject if:** she reads as a **generic rage barbarian** (fur, war paint,
+raised axe, roaring) — that vocabulary belongs to the Lycanthrope and the
+Bible explicitly excludes it here. Also reject if the tally marks come out as
+**letters or numerals**; they are carved notches.
+
+---
+
+## 2. The Still Season — floor 2 (Druid)
+
+*He was asked to keep the grove through a hard winter. He kept it. He is
+keeping it still — the same afternoon, held open, every leaf where it was.*
+
+**He is an elderly man, gaunt, half-become-wood.** Not a nature mage with a
+staff — he *is* the terrain, and it has stopped.
+
+**Prompt:**
+
+> Premium 16-bit dark-fantasy pixel-art character sprite, full body head to feet, front-facing symmetrical standing pose, centred, filling the frame vertically, on a pure flat black background. An elderly gaunt man whose body is half turned to living wood: bark spreading across his shoulders, forearms and one side of his face, roots growing down into his feet, moss in the seams. He wears a heavy weathered robe of undyed wool and layered leaf-litter, fully covered, hanging perfectly still. Small green leaves hang suspended in the air around him, motionless, never falling. His arms rest open and empty at his sides. Muted palette of olive, umber, grey bark and old sage, with a soft warm gold-green glow at his chest like held afternoon light. Calm sorrowful expression, eyes open and unfocused. Crisp pixel clusters, dark values with one bright emissive focal point, subtle ground shadow at the feet, premium RPG boss sprite, no scenery, no background detail, no UI, no text, no logo, no watermark, no frame, no border.
+
+**Reject if:** there is an **animal companion**, or a **face carved in bark
+that is not his own** — both collide with the Beastmaster and are §14
+violations. Also reject **snow, frost or bare winter branches**: his sin is
+that nothing dies, not that it froze.
+
+**Negative:** *(shared negative, plus)*
+
+> young, muscular, antlers, animal companion, wolf, deer, bird, owl, staff, wizard, druid hat, snow, ice, frost, winter, bare branches, autumn orange, dead tree, skull, flowers in bloom
+
+---
+
+## 3. The Unclosed Summons — floor 3 (Seraph)
+
+*She was called, and she answered, and then she was asked to choose what the
+answer meant. She has not chosen.*
+
+**She is a middle-aged woman in heavy ceremonial armour, mid-gesture, frozen
+in the act of answering.** She is **not Fallen** — she is stuck.
+
+**Prompt:**
+
+> Premium 16-bit dark-fantasy pixel-art character sprite, full body head to feet, front-facing symmetrical standing pose, centred, filling the frame vertically, on a pure flat black background. A middle-aged woman in heavy pale ceremonial plate armour, fully covered from neck to boot, plain and unornamented, the metal bone-white and cool pearl grey. She stands with both arms half raised in an unfinished gesture, palms open, caught between offering and refusing. Her mouth is slightly open as if mid-word. Thin pale gold light spills from her open hands and from the seams of her armour in every direction at once, casting no single direction of shadow. Her eyes are calm, open and tired. Palette of bone-white, pearl grey and thin pale gold with deep neutral charcoal shadow. Crisp pixel clusters, dark values with one bright emissive focal point, subtle ground shadow at the feet, premium RPG boss sprite, no scenery, no background detail, no UI, no text, no logo, no watermark, no frame, no border.
+
+**Reject if:** she has **wings, a halo, or feathers** — that is angel
+shorthand and the arena already carries the sanctum read. Reject anything
+**Fallen**: molten obsidian, black light, horns, hellfire. Infernal is
+player-exclusive and must never appear on this champion. Reject **blown-out
+white**, which loses her silhouette against the arena.
+
+**Negative:** *(shared negative, plus)*
+
+> wings, angel, halo, feathers, holy symbols, crosses, sword, spear, shield, gold filigree, ornate decoration, molten obsidian, black light, infernal, hellfire, demonic, horns, blown-out white, overexposed, young, glamorous
+
+---
+
+## Candidate expectations
+
+| Boss | Expect | Why |
+|---|---|---|
+| The Debt-Bearer | 3–5 | Closest to conventional fantasy vocabulary; lands fast. |
+| The Still Season | 4–6 | Half-wood anatomy is where models drift into "tree monster". |
+| The Unclosed Summons | 5–8 | Bright armour with dark values, and no wings, fights the model hard. |
+
+**~12–19 images for three bosses.** Combined with the arenas, the whole first
+three floors is roughly 25–37 generated images.
+
+---
+
+## What to send me
+
+Per asset:
+
+1. The **PNG** — arenas 1360 × 768, bosses 1024 × 1024
+2. The Leonardo **job / seed id** (goes into the manifest `notes`, our only provenance)
+3. Which **candidate number** won, so the losers stay on disk for reference
+
+I will wire up the manifest rows, the per-boss `arenaId`, and the ground
+tints. Boss sprites need one extra step: they must be **background-removed**
+to transparent PNG before they composite cleanly — tell me if Leonardo's
+built-in removal is available on your plan, otherwise I will handle it.
