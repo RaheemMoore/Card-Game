@@ -178,11 +178,70 @@ def boxes_from_mask(mask, grid=GRID):
     return boxes
 
 
+# Horizontal slice height for banded objects, in plate pixels.
+#
+# MUST STAY BELOW HERO_FEET.height (20). A band sorts on its slice boundary, so
+# its ground line can sit up to BAND_H below the object's actual lowest pixel in
+# a given column. The hero stops one feet-box (20px) short of a collider, so any
+# band taller than that can still draw over him after he has stopped. At 24 this
+# left two columns of the fountain rim wrong; 12 clears the margin.
+BAND_H = 12
+
+
+def slices(name, mask, plate, band):
+    """One occluder, or several horizontal bands of one.
+
+    WHY BANDS. A single ground line assumes an object's whole footprint sits at
+    one depth. True for a lamp post; false for anything with a wide base. The
+    fountain's bottom edge runs from y 621 at its sides to y 741 at its centre,
+    but one number governed the lot — so walking up to it anywhere except the
+    middle third left the hero stopped ABOVE the ground line and drawn behind.
+    Raheem: "I go under it when coming from the bottom."
+
+    Slicing horizontally gives each band its own ground line, so the parts of the
+    object below you draw in front and the parts above draw behind — which is
+    what a round basin actually looks like.
+
+    NOT for lamps and other overhangs. A lamp's ground contact is the foot of its
+    post and its head leans up-screen over floor you may stand on; banding it
+    would draw the head BEHIND a player standing behind the post. Band things you
+    walk AROUND, not things you walk BEHIND.
+    """
+    ys, xs = np.nonzero(mask)
+    x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
+
+    if not band:
+        cut = plate.crop((x0, y0, x1, y1))
+        cut.putalpha(Image.fromarray((mask[y0:y1, x0:x1] * 255).astype(np.uint8), 'L'))
+        # The bottom of an accurate silhouette IS the ground line.
+        return [({'id': name, 'x': x0, 'y': y0,
+                  'width': x1 - x0, 'height': y1 - y0, 'groundY': y1}, cut)]
+
+    out = []
+    for i, top in enumerate(range(y0, y1, BAND_H)):
+        bot = min(top + BAND_H, y1)
+        strip = mask[top:bot]
+        if not strip.any():
+            continue
+        sxs = np.nonzero(strip.any(axis=0))[0]
+        bx0, bx1 = int(sxs.min()), int(sxs.max()) + 1
+        cut = plate.crop((bx0, top, bx1, bot))
+        cut.putalpha(Image.fromarray((strip[:, bx0:bx1] * 255).astype(np.uint8), 'L'))
+        out.append(({'id': f'{name}-band{i}', 'x': bx0, 'y': top,
+                     'width': bx1 - bx0, 'height': bot - top,
+                     # Each band sorts on its OWN bottom edge.
+                     'groundY': bot}, cut))
+    return out
+
+
 def main(traces_path, plate_path, out_dir, qa_path=None):
     traces = json.load(open(traces_path))
     plate = Image.open(plate_path).convert('RGBA')
     size = plate.size
     os.makedirs(out_dir, exist_ok=True)
+
+    # Objects the player walks AROUND rather than merely behind. See BAND_H.
+    banded = set(traces.get('banded', []))
 
     manifest, qa = [], []
     print('OCCLUDERS')
@@ -190,20 +249,13 @@ def main(traces_path, plate_path, out_dir, qa_path=None):
         mask = rasterise(obj, size)
         if not mask.any():
             raise SystemExit(f'{obj["name"]}: empty mask')
-        ys, xs = np.nonzero(mask)
-        x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
 
-        cut = plate.crop((x0, y0, x1, y1))
-        cut.putalpha(Image.fromarray((mask[y0:y1, x0:x1] * 255).astype(np.uint8), 'L'))
-        cut.save(os.path.join(out_dir, f'{obj["name"]}.png'))
-
-        meta = {'id': obj['name'], 'x': x0, 'y': y0,
-                'width': x1 - x0, 'height': y1 - y0,
-                # The bottom of an accurate silhouette IS the ground line.
-                'groundY': y1}
-        manifest.append(meta)
-        qa.append((obj['name'], cut))
-        print(f'  {obj["name"]:18} {meta["width"]:>4}x{meta["height"]:<4} at ({x0},{y0})  groundY {y1}')
+        for meta, cut in slices(obj['name'], mask, plate, obj['name'] in banded):
+            cut.save(os.path.join(out_dir, f'{meta["id"]}.png'))
+            manifest.append(meta)
+            qa.append((meta['id'], cut))
+            print(f'  {meta["id"]:22} {meta["width"]:>4}x{meta["height"]:<4} '
+                  f'at ({meta["x"]},{meta["y"]})  groundY {meta["groundY"]}')
 
     with open(os.path.join(out_dir, 'occluders.json'), 'w') as f:
         json.dump({'plate': os.path.basename(plate_path),

@@ -36,6 +36,11 @@ SPAWN = (768, 830)
 # Ignored: a pocket smaller than this is a nook behind a bush, not a dead end.
 MIN_POCKET = 400
 
+# Narrow passages need their own, much lower floor: a corridor the hero cannot
+# fit through is by definition a THIN sliver. Reusing MIN_POCKET here filtered
+# out the 15px west corridor entirely and reported all clear.
+NARROW_MIN = 100
+
 
 def read_source_number(path, pattern):
     m = re.search(pattern, open(os.path.join(ROOT, path)).read())
@@ -204,7 +209,7 @@ def main(png_out=None):
                 if 0 <= ny < H and 0 <= nx < W and squeezed[ny, nx] and not seen2[ny, nx]:
                     seen2[ny, nx] = True
                     st.append((ny, nx))
-        if len(cells) >= MIN_POCKET:
+        if len(cells) >= NARROW_MIN:
             regions.append((len(cells),
                             int(sum(c[1] for c in cells) / len(cells)) + x0,
                             int(sum(c[0] for c in cells) / len(cells)) + y0))

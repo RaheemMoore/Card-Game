@@ -359,7 +359,21 @@ const DEBT_BEARER_V1: BossVersion = {
   publishedAt: NOW,
   maxHp: TOWER.hp(1),
   // Inheritance is not elemental. She is answered by defence, not by typing.
-  resistanceProfile: { resistant: [], weak: [] },
+  /**
+   * Floor 1 owes the player THREE answers (towerCurve answerBudget) and an
+   * ~85% target win rate, so this is deliberately the most forgiving profile
+   * in the tower.
+   *
+   * She resists fire because she is wreathed in it — burning the burning thing
+   * is the mistake the fight is there to teach.
+   *
+   * Physical is left NEUTRAL, not weak. It is by far the most common hero
+   * damage type, so making it weak would not reward a choice, it would just
+   * lower the floor for everyone. The three real answers are holy and shadow
+   * (both cancel a debt, from opposite directions) and tech (precision undoes
+   * brute mass).
+   */
+  resistanceProfile: { resistant: ['fire'], weak: ['holy', 'shadow', 'tech'] },
   phases: [
     {
       id: 'phase_debt_counting',
