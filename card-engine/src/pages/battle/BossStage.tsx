@@ -9,6 +9,7 @@ import { bossClipForBeat } from './bossClipState';
 import { resolveCombatAssetUrl, resolveCombatAssetPath } from '../../data/combat/types';
 import { getBossRing } from '../../data/combat/bossRingManifest';
 import { BossWeaponRing } from './BossWeaponRing';
+import { BossPlatform, getBossPlatform } from './BossPlatform';
 import { FloatingDamage } from './FloatingDamage';
 
 interface Props {
@@ -84,7 +85,10 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         key={hit.key}
         className={[
           feel.staticFallback ? 'boss-stage-static-hit' : 'boss-stage-sprite',
-          'relative',
+          // Bottom-aligned: the sprite is WIDTH-constrained inside this taller
+          // box, so without this its feet sit well above the box bottom and the
+          // platform (anchored to that bottom) lands far below him.
+          'relative flex items-end justify-center',
           charging && (feel.staticFallback ? 'boss-stage-charging-static' : 'boss-stage-charging'),
         ]
           .filter(Boolean)
@@ -100,6 +104,9 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         }}
         aria-label={`${boss.snapshot.name}${charging ? ' — charging a heavy attack' : ''}`}
       >
+        {/* The ground he stands on, drawn here rather than painted into the
+            arena so his feet meet it by construction — see BossPlatform. */}
+        <BossPlatform spec={getBossPlatform(boss.snapshot.bossId)} motionLevel={motionLevel} />
         {/* Behind the sprite: the figure occludes the arc's inner edge, which
             is what sells the pieces as orbiting rather than floating in front. */}
         {ring && (
@@ -143,24 +150,6 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         {/* Floating damage lives at boss center */}
         <FloatingDamage currentBeat={currentBeat} actorId={boss.actorId} />
       </div>
-      {/* Ground shadow — tighter contact ellipse with a warm ember bleed so
-          the sprite reads as physically standing on the lava-veined dais
-          instead of floating over a neutral grey shadow. */}
-      <div
-        aria-hidden
-        className="rounded-full mt-[-40px]"
-        style={{
-          width: 'clamp(200px, 22vw, 300px)',
-          height: 'clamp(30px, 4.2vh, 46px)',
-          background:
-            'radial-gradient(ellipse at center, ' +
-              'rgba(0,0,0,0.95) 0%, ' +
-              'rgba(80,20,10,0.55) 42%, ' +
-              'rgba(255,120,40,0.18) 72%, ' +
-              'rgba(255,120,40,0) 92%)',
-        }}
-      />
-
       <style>{`
         /* Boss is anchored to the pedestal. No idle bob, no zoom, no drift —
            translate only, so the sprite never appears to scale or leave the

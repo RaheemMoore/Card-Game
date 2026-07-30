@@ -344,6 +344,8 @@ const DEBT_BEARER_DEF: BossDefinition = {
   artAssetIds: [],
   bossKind: 'champion',
   mirrorArchetype: 'Barbarian',
+  // Her own home ground, replacing the shared fire arena she was borrowing.
+  arenaId: 'barbarian_moot_ground',
   towerFloor: 1,
   createdAt: NOW,
   updatedAt: NOW,

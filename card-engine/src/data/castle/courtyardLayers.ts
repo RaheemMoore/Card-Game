@@ -52,10 +52,13 @@ export interface GlowSpot {
  * sync, and reads better than a re-tinted crop.
  */
 export const GLOW_SPOTS: GlowSpot[] = [
-  { x: 333, y: 398, radius: 46, color: 0x8fe6ff, groundY: 493 },
-  { x: 315, y: 600, radius: 46, color: 0xc9a8ff, groundY: 684 },
-  { x: 333, y: 952, radius: 50, color: 0xffb3e6, groundY: 1042 },
-  { x: 1083, y: 948, radius: 50, color: 0x8fe6ff, groundY: 1042 },
+  // groundY values come from the traced occluders (occluders.json), so the light
+  // and the post it sits on always sort together. Do not hand-edit — re-run
+  // scripts/sprite-lab/lib/import_traces.py and copy the reported ground lines.
+  { x: 333, y: 398, radius: 46, color: 0x8fe6ff, groundY: 521 },
+  { x: 315, y: 600, radius: 46, color: 0xc9a8ff, groundY: 712 },
+  { x: 333, y: 952, radius: 50, color: 0xffb3e6, groundY: 1044 },
+  { x: 1083, y: 948, radius: 50, color: 0x8fe6ff, groundY: 1044 },
 ];
 
 /**

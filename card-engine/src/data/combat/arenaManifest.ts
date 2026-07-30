@@ -7,6 +7,21 @@ import type { ArenaManifest } from './types';
  * C6 PR body for approval. C5 ships placeholder rows only.
  */
 export const ARENA_MANIFEST: ArenaManifest = {
+  barbarian_moot_ground: {
+    id: 'barbarian_moot_ground',
+    kind: 'arena',
+    source: 'leonardo',
+    path: 'arenas/barbarian-moot-ground/base.png',
+    dimensions: { width: 1359, height: 768 },
+    approvalStatus: 'approved',
+    promptVersion: 'arena.v3',
+    notes:
+      "The Debt-Bearer's home ground — a high ancestor moot-ground above a barbarian settlement. " +
+      'Phoenix 1.0 with our own approved arena uploaded as a LOW-strength style reference (asking for ' +
+      'pixel art in words does not work; High strength imported the reference\'s lava room wholesale), ' +
+      'then pixelised deterministically by scripts/bg-harness/lib/pixelize.py. ' +
+      'Contains NO dais: the boss platform is drawn in code by BossPlatform.tsx.',
+  },
   forbidden_mountain_passage: {
     id: 'forbidden_mountain_passage',
     kind: 'arena',
@@ -42,6 +57,8 @@ export const ARENA_MANIFEST: ArenaManifest = {
  * lighting.
  */
 export const ARENA_GROUND_TINT: Record<string, { mid: string; low: string }> = {
+  // Cold dusk stone with a warm bleed from the ring's fire seams.
+  barbarian_moot_ground: { mid: 'rgba(40,44,66,0.28)', low: 'rgba(90,45,20,0.45)' },
   forbidden_mountain_passage: { mid: 'rgba(60,18,8,0.30)', low: 'rgba(80,20,10,0.60)' },
 };
 
