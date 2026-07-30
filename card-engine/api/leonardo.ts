@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyUser } from './_lib/auth.js';
 import { recordApiUsage } from './_lib/recordApiUsage.js';
+import { denyIfCannotSpend } from './_lib/spendGate.js';
 
 // Authenticated Leonardo proxy. /api/leonardo/** is routed here via a
 // vercel.json rewrite that stashes the sub-path in ?leonardoPath=.
@@ -52,6 +53,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+
+  // 401 says "who are you"; this says "you are known and not allowed to spend".
+  // Layered deliberately — see api/_lib/spendGate.ts.
+  if (await denyIfCannotSpend(res, caller, { provider: 'leonardo', operation: 'proxy' })) return;
 
   const rawPath = req.query.leonardoPath;
   const subPath = Array.isArray(rawPath) ? rawPath.join('/') : rawPath ?? '';

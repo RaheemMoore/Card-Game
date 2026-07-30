@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyUser } from './_lib/auth.js';
 import { recordApiUsage } from './_lib/recordApiUsage.js';
+import { denyIfCannotSpend } from './_lib/spendGate.js';
 
 // Server-side init-image upload relay. Leonardo's /init-image endpoint
 // returns a presigned S3 URL + form fields; the browser can't POST that
@@ -49,6 +50,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+
+  // 401 says "who are you"; this says "you are known and not allowed to spend".
+  // Layered deliberately — see api/_lib/spendGate.ts.
+  if (await denyIfCannotSpend(res, caller, { provider: 'leonardo', operation: 's3-upload' })) return;
 
   let body: S3UploadBody;
   try {

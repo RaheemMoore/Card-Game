@@ -8,6 +8,24 @@ beforeEach(() => {
   ledger.setStore(new InMemoryLedgerStore());
 });
 
+/**
+ * Seed a wallet these tests can actually spend from.
+ *
+ * They used to lean on DEMO_STARTING_BALANCES.premium being non-zero, so when
+ * that became 0 — new accounts no longer get free Forge Crystals — eleven tests
+ * about reserve/commit/refund mechanics broke at once. None of them were about
+ * the starting balance; they just borrowed it.
+ *
+ * Funding explicitly keeps the mechanics tests independent of a product knob
+ * that is expected to change.
+ */
+function fundedWallet(premium = 100) {
+  wallet.initialize();
+  if (premium > 0) {
+    wallet.grantReward({ currency: 'premium', amount: premium, rewardId: 'test_seed' });
+  }
+}
+
 describe('initialize', () => {
   it('seeds demo balances on a fresh ledger', () => {
     wallet.initialize();
@@ -24,14 +42,14 @@ describe('initialize', () => {
 
 describe('reserve → commit', () => {
   it('reserves reduce visible balance immediately', () => {
-    wallet.initialize();
+    fundedWallet();
     const before = wallet.getBalance('premium');
     wallet.reserve({ currency: 'premium', amount: 20, actionId: 'forge_card' });
     expect(wallet.getBalance('premium')).toBe(before - 20);
   });
 
   it('commit finalizes without further balance movement', () => {
-    wallet.initialize();
+    fundedWallet();
     const before = wallet.getBalance('premium');
     const txn = wallet.reserve({ currency: 'premium', amount: 20 });
     wallet.commit(txn.transactionId);
@@ -39,7 +57,7 @@ describe('reserve → commit', () => {
   });
 
   it('committed transactions cannot be committed again', () => {
-    wallet.initialize();
+    fundedWallet();
     const txn = wallet.reserve({ currency: 'premium', amount: 20 });
     wallet.commit(txn.transactionId);
     expect(() => wallet.commit(txn.transactionId)).toThrow(wallet.TransactionStateError);
@@ -48,7 +66,7 @@ describe('reserve → commit', () => {
 
 describe('reserve → refund', () => {
   it('restores the reserved amount', () => {
-    wallet.initialize();
+    fundedWallet();
     const before = wallet.getBalance('premium');
     const txn = wallet.reserve({ currency: 'premium', amount: 20 });
     wallet.refund(txn.transactionId, 'leonardo_failed');
@@ -56,7 +74,7 @@ describe('reserve → refund', () => {
   });
 
   it('appends a paired refund transaction for audit', () => {
-    wallet.initialize();
+    fundedWallet();
     const txn = wallet.reserve({ currency: 'premium', amount: 20 });
     const refundTxn = wallet.refund(txn.transactionId, 'leonardo_failed');
     expect(refundTxn.type).toBe('refund');
@@ -65,7 +83,7 @@ describe('reserve → refund', () => {
   });
 
   it('uses a deterministic refund id derived from the original — enables idempotent upsert on retry', () => {
-    wallet.initialize();
+    fundedWallet();
     const txn = wallet.reserve({ currency: 'premium', amount: 20 });
     const refundTxn = wallet.refund(txn.transactionId, 'leonardo_failed');
     // Prior implementation used a random uuid, so a retried remote
@@ -74,7 +92,7 @@ describe('reserve → refund', () => {
   });
 
   it('refunding twice is blocked locally by the state check', () => {
-    wallet.initialize();
+    fundedWallet();
     const txn = wallet.reserve({ currency: 'premium', amount: 20 });
     wallet.refund(txn.transactionId, 'leonardo_failed');
     expect(() => wallet.refund(txn.transactionId, 'again')).toThrow(wallet.TransactionStateError);
@@ -83,7 +101,7 @@ describe('reserve → refund', () => {
 
 describe('sequence field', () => {
   it('assigns strictly increasing sequence values in write order', () => {
-    wallet.initialize();
+    fundedWallet();
     const seq0 = wallet.getBalance('premium'); // just to warm state
     void seq0;
     const a = wallet.reserve({ currency: 'premium', amount: 10 });
@@ -95,7 +113,7 @@ describe('sequence field', () => {
   });
 
   it('the refund audit row gets its own sequence — later than the original', () => {
-    wallet.initialize();
+    fundedWallet();
     const spend = wallet.reserve({ currency: 'premium', amount: 20 });
     const refundTxn = wallet.refund(spend.transactionId, 'x');
     expect(refundTxn.sequence).toBeGreaterThan(spend.sequence);
@@ -104,7 +122,7 @@ describe('sequence field', () => {
 
 describe('insufficient funds', () => {
   it('rejects reservations larger than the balance', () => {
-    wallet.initialize();
+    fundedWallet();
     const balance = wallet.getBalance('premium');
     expect(() =>
       wallet.reserve({ currency: 'premium', amount: balance + 1 }),
@@ -112,7 +130,7 @@ describe('insufficient funds', () => {
   });
 
   it('back-to-back reserves cannot overspend', () => {
-    wallet.initialize();
+    fundedWallet();
     const balance = wallet.getBalance('premium');
     // First reserve consumes all funds
     wallet.reserve({ currency: 'premium', amount: balance });
@@ -125,7 +143,7 @@ describe('insufficient funds', () => {
 
 describe('grantReward', () => {
   it('increases the balance and records the rewardId', () => {
-    wallet.initialize();
+    fundedWallet();
     const before = wallet.getBalance('gameplay');
     const txn = wallet.grantReward({
       currency: 'gameplay',
@@ -140,7 +158,7 @@ describe('grantReward', () => {
 
 describe('auditBalance', () => {
   it('returns null when derived balance matches ledger sum', () => {
-    wallet.initialize();
+    fundedWallet();
     wallet.reserve({ currency: 'premium', amount: 20 });
     expect(wallet.auditBalance('premium')).toBeNull();
   });
@@ -148,7 +166,7 @@ describe('auditBalance', () => {
 
 describe('input validation', () => {
   it('rejects non-positive reserve amounts', () => {
-    wallet.initialize();
+    fundedWallet();
     expect(() => wallet.reserve({ currency: 'premium', amount: 0 })).toThrow();
     expect(() => wallet.reserve({ currency: 'premium', amount: -5 })).toThrow();
   });

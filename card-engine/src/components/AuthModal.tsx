@@ -17,12 +17,29 @@ export function AuthModal({
   defaultMode = 'sign_up',
   headline,
   body,
+  variant = 'modal',
+  footer,
 }: {
   onClose: (result?: 'signed_up' | 'signed_in' | 'password_changed') => void;
   defaultMode?: Mode;
   headline?: string;
   body?: string;
+  /**
+   * `modal` — the historical shape: fixed full-screen scrim, click-outside and
+   * a cancel button close it. Something exists behind you to go back to.
+   *
+   * `page` — the login screen. No scrim, no fixed positioning, nothing to
+   * dismiss to. A destination, not an interruption.
+   *
+   * This is a VARIANT rather than a second component on purpose. The form holds
+   * sign-in, sign-up, Google SSO, password change and their error handling; two
+   * copies would become two password-reset flows inside a month.
+   */
+  variant?: 'modal' | 'page';
+  /** Rendered under the form. Used for the closed-testing notice on /login. */
+  footer?: React.ReactNode;
 }) {
+  const isPage = variant === 'page';
   const [mode, setMode] = useState<Mode>(defaultMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,7 +93,11 @@ export function AuthModal({
       return;
     }
     onClose(mode === 'sign_up' ? 'signed_up' : 'signed_in');
-    if (mode === 'sign_in') window.location.reload();
+    // The modal variant reloads in place because the app around it is already
+    // mounted with the previous session's data. The page variant does its own
+    // navigation in `onClose`, so reloading here would fight it and bounce the
+    // player back to the login art.
+    if (mode === 'sign_in' && !isPage) window.location.reload();
   }
 
   async function handleGoogle() {
@@ -97,9 +118,17 @@ export function AuthModal({
   if (successState) {
     return (
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-        style={{ background: 'rgba(0,0,0,0.6)' }}
-        onClick={() => onClose(successState.kind === 'password_changed' ? 'password_changed' : 'signed_up')}
+        className={
+          isPage
+            ? 'w-full flex items-center justify-center p-4'
+            : 'fixed inset-0 z-[100] flex items-center justify-center p-4'
+        }
+        style={isPage ? undefined : { background: 'rgba(0,0,0,0.6)' }}
+        onClick={
+          isPage
+            ? undefined
+            : () => onClose(successState.kind === 'password_changed' ? 'password_changed' : 'signed_up')
+        }
       >
         <div
           className="w-full max-w-md p-6 rounded-lg shadow-2xl"
@@ -144,9 +173,13 @@ export function AuthModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.6)' }}
-      onClick={() => !busy && onClose()}
+      className={
+        isPage
+          ? 'w-full flex items-center justify-center p-4'
+          : 'fixed inset-0 z-[100] flex items-center justify-center p-4'
+      }
+      style={isPage ? undefined : { background: 'rgba(0,0,0,0.6)' }}
+      onClick={isPage ? undefined : () => !busy && onClose()}
     >
       <div
         className="w-full max-w-md p-6 rounded-lg shadow-2xl"
@@ -302,17 +335,22 @@ export function AuthModal({
                     ? 'Sign in'
                     : 'Update password'}
             </button>
-            <button
-              type="button"
-              onClick={() => !busy && onClose()}
-              disabled={busy}
-              className="px-3 py-2 rounded font-fantasy text-xs"
-              style={{ color: '#4a3211' }}
-            >
-              Cancel
-            </button>
+            {/* No Cancel on the login page — there is nothing behind it to
+                cancel back to, and an inert button is worse than none. */}
+            {!isPage && (
+              <button
+                type="button"
+                onClick={() => !busy && onClose()}
+                disabled={busy}
+                className="px-3 py-2 rounded font-fantasy text-xs"
+                style={{ color: '#4a3211' }}
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </form>
+        {footer}
       </div>
     </div>
   );

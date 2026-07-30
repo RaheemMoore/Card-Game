@@ -94,6 +94,11 @@ export function createAmbient(
   const emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
   // ---- Contact shadow -----------------------------------------------------
+  // A small patch under the feet, nothing more. A long directional CAST shadow
+  // was tried and removed: it tracks the hero every frame, and a hard-edged
+  // ellipse sliding across painted stone reads as a bug rather than as light.
+  // Raheem, on seeing it: "the shadow that is following the pixel guy. That is
+  // horrible." Grounding him is worth one soft patch; faking the sun is not.
   const shadow = scene.add
     .image(hero.x, hero.y, 'hero-shadow')
     .setAlpha(HERO_SHADOW.alpha)

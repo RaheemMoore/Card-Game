@@ -1,3 +1,4 @@
+import { describeProxyFailure } from './proxyErrors';
 import { getSupabaseClient } from './persistence/supabaseClient';
 
 // Phase-0 client shim. The Anthropic Messages API is no longer callable
@@ -45,7 +46,7 @@ export async function callAnthropicMessages(
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    throw new Error(`Anthropic proxy error: ${response.status}`);
+    throw new Error(await describeProxyFailure(response, 'Anthropic'));
   }
   return (await response.json()) as AnthropicMessagesResponse;
 }

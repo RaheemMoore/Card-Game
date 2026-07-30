@@ -115,5 +115,13 @@ export const AMBIENT = {
   cloudAlpha: 0.09,
 } as const;
 
-/** Contact shadow under the hero — the cheapest "he is standing there" cue. */
+/**
+ * The soft patch under the hero's feet that stops him floating.
+ *
+ * A long directional CAST shadow was built here too, measured off the plate's
+ * own lamp shadows, and removed after Raheem saw it move: a hard ellipse
+ * tracking the hero across painted stone reads as a bug, not as light. If it is
+ * ever revisited it needs to be painted per-sprite, not drawn as a primitive.
+ */
 export const HERO_SHADOW = { widthRatio: 0.5, height: 9, alpha: 0.28 } as const;
+

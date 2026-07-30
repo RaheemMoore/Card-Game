@@ -1,6 +1,7 @@
 import type { ArchetypeName, Rank } from '../types/card';
 import { generatePlaceholderPortrait } from './portraitGenerator';
 
+import { describeProxyFailure } from './proxyErrors';
 import { getSupabaseClient } from './persistence/supabaseClient';
 
 const LEONARDO_API_BASE = '/api/leonardo';
@@ -142,8 +143,9 @@ async function submitGeneration(
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Leonardo submit failed (${response.status}): ${text}`);
+    // This is the call that actually spends, so a 403 here is the one a person
+    // most needs explained rather than dumped as a status code.
+    throw new Error(await describeProxyFailure(response, 'Leonardo'));
   }
 
   const data = await response.json();

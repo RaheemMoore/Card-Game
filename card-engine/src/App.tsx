@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
+import { Landing } from './pages/Landing';
 import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { AdminShell } from './components/admin/AdminShell';
@@ -25,7 +26,7 @@ import { DevSeedBattle } from './pages/DevSeedBattle';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
-import { LoginPreview } from './pages/LoginPreview';
+import { Login } from './pages/Login';
 
 // Wallet + card-store initialization now happens inside PersistenceGate,
 // which awaits Supabase auth + migration + hydrate before the router
@@ -37,8 +38,9 @@ export default function App() {
     <PersistenceGate>
       <BrowserRouter>
         <Routes>
-          {/* Throwaway preview route — new login background art check only. */}
-          <Route path="/login" element={<LoginPreview />} />
+          {/* The real login screen. Stays a route so the art can be checked
+              directly; the session gate renders the same page when signed out. */}
+          <Route path="/login" element={<Login />} />
 
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
@@ -56,7 +58,10 @@ export default function App() {
 
           {/* Player: fantasy-themed shell (background + NavBar + offset). */}
           <Route element={<PlayerShell />}>
-            <Route path="/" element={<CardForge />} />
+            {/* `/` resolves to the castle (or the Forge on phone portrait).
+                Google SSO redirects to the bare origin, so this is what makes
+                signing in land in the courtyard rather than the Forge. */}
+            <Route path="/" element={<Landing />} />
             <Route path="/forge" element={<CardForge />} />
             <Route path="/collection" element={<Collection />} />
             <Route path="/card/:cardId" element={<CardDetail />} />

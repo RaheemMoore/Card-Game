@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { usePhaserGame } from './usePhaserGame';
 import { CourtyardOverlay } from './CourtyardOverlay';
 import { DirectoryPanel, StallPlaceholder } from './CourtyardPanels';
+import { PauseMenu } from './PauseMenu';
+import { fetchMyRole, type SessionRole } from '../../services/persistence/supabaseClient';
 import { useMotionLevel } from '../../services/combat/presentation/useMotionLevel';
 import { COURTYARD_EVENTS } from './courtyard/events';
 import type { Stall } from './courtyard/stalls';
@@ -16,11 +18,11 @@ import type { Stall } from './courtyard/stalls';
  * only through usePhaserGame's dynamic import.
  */
 
-interface Props {
-  onExit: () => void;
-}
-
-export function CourtyardViewport({ onExit }: Props) {
+/**
+ * No exit prop. The courtyard is the home surface, so "leave" is not a thing
+ * you do to it — you navigate somewhere via the pause menu, or you sign out.
+ */
+export function CourtyardViewport() {
   const containerRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const { status, game } = usePhaserGame(containerRef);
@@ -28,6 +30,14 @@ export function CourtyardViewport({ onExit }: Props) {
 
   const [openStall, setOpenStall] = useState<Stall | null>(null);
   const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [paused, setPaused] = useState(false);
+  // Only decides whether the pause menu lists Admin. Defaults to 'user', so a
+  // failed lookup hides an extra menu item rather than locking anyone out.
+  const [role, setRole] = useState<SessionRole>('user');
+  useEffect(() => {
+    void fetchMyRole().then(setRole);
+  }, []);
+  const isPrivileged = role === 'admin' || role === 'lore_director';
   const [viewport, setViewport] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -60,9 +70,14 @@ export function CourtyardViewport({ onExit }: Props) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Escape leaves the courtyard. Bound to the surface, not window, so the
-  // listener cannot outlive the component — and the panels stop propagation
-  // so closing a panel doesn't also dump the player out.
+  // Escape PAUSES. It used to leave the courtyard outright, which is a lot of
+  // destruction to bind to the key people hit when they want a way out — and
+  // it is not what Escape does in any game. Leaving now lives inside the pause
+  // menu, one deliberate click away.
+  //
+  // Bound to the surface, not window, so the listener cannot outlive the
+  // component — and the panels stop propagation so closing a panel doesn't also
+  // pause.
   //
   // Tab is trapped inside the surface. Without this the courtyard claims to
   // be a modal dialog but lets keyboard users fall straight through into the
@@ -70,7 +85,7 @@ export function CourtyardViewport({ onExit }: Props) {
   // one route that has to work for players who can't walk the hero around.
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      onExit();
+      setPaused((p) => !p);
       return;
     }
     if (e.key !== 'Tab') return;
@@ -131,25 +146,27 @@ export function CourtyardViewport({ onExit }: Props) {
         />
       )}
 
+      {/* One piece of chrome instead of two. Everything else — the nav, the
+          directory, leaving — lives behind it, the way a game does it. */}
       <button
-        onClick={() => setDirectoryOpen(true)}
-        className="absolute top-3 left-3 px-3 py-2 rounded-lg border border-white/25 bg-black/50 text-xs tracking-widest text-white/80 hover:border-white/60"
-        style={{ marginTop: 'env(safe-area-inset-top)' }}
-      >
-        DIRECTORY
-      </button>
-
-      <button
-        onClick={onExit}
+        onClick={() => setPaused(true)}
+        aria-label="Pause"
         className="absolute top-3 right-3 px-3 py-2 rounded-lg border border-white/25 bg-black/50 text-xs tracking-widest text-white/80 hover:border-white/60"
         style={{ marginTop: 'env(safe-area-inset-top)' }}
       >
-        LEAVE · ESC
+        ⏸ MENU · ESC
       </button>
 
       <p className="absolute bottom-3 left-0 right-0 text-center text-[11px] text-white/40 pb-[env(safe-area-inset-bottom)]">
         WASD or arrow keys to walk · tap to walk there · E to interact
       </p>
+
+      <PauseMenu
+        open={paused}
+        onClose={() => setPaused(false)}
+        onOpenDirectory={() => setDirectoryOpen(true)}
+        isPrivileged={isPrivileged}
+      />
 
       {directoryOpen && (
         <DirectoryPanel

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyUser } from './_lib/auth.js';
 import { recordApiUsage } from './_lib/recordApiUsage.js';
+import { denyIfCannotSpend } from './_lib/spendGate.js';
 
 // Server-side Anthropic Messages proxy. The browser used to call
 // api.anthropic.com directly with a VITE-bundled key (i.e. a leaked key).
@@ -39,6 +40,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+
+  // 401 says "who are you"; this says "you are known and not allowed to spend".
+  // Layered deliberately — see api/_lib/spendGate.ts.
+  if (await denyIfCannotSpend(res, caller, { provider: 'anthropic', operation: 'messages' })) return;
 
   const body: RequestBody =
     typeof req.body === 'string' ? JSON.parse(req.body) : (req.body as RequestBody);

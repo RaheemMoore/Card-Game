@@ -1,5 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { ensureSession, isSupabaseConfigured, type EnsureSessionReason } from '../services/persistence/supabaseClient';
+import {
+  ensureSession,
+  isCurrentUserAnonymous,
+  isSupabaseConfigured,
+  type EnsureSessionReason,
+} from '../services/persistence/supabaseClient';
+import { Login } from '../pages/Login';
 import { SupabaseCardStore } from '../services/persistence/SupabaseCardStore';
 import { SupabaseLedgerStore } from '../services/persistence/SupabaseLedgerStore';
 import { SupabaseAbilityStore } from '../services/persistence/SupabaseAbilityStore';
@@ -26,6 +32,7 @@ import { drain as drainSyncQueue, reviveDeadLetters } from '../services/persiste
 type GateState =
   | { kind: 'loading'; step: string }
   | { kind: 'ready'; mode: 'supabase' | 'local'; note?: string }
+  | { kind: 'needs_login' }
   | { kind: 'error'; reason: EnsureSessionReason | 'migration' | 'hydrate' | 'unknown'; message: string };
 
 /**
@@ -292,6 +299,23 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
         return;
       }
 
+      // ---- THE WALL --------------------------------------------------------
+      // The login screen is the landing page. An anonymous session counts as
+      // signed OUT: Supabase hands one to every visitor automatically, so
+      // treating it as signed in is exactly how "anyone can go to the main page
+      // and spend api tokens" happened.
+      //
+      // Gates on SESSION SHAPE ONLY, never on role. `fetchMyRole()` answers
+      // 'user' on a network blip, so gating the door on it would eject a
+      // legitimately signed-in operator over a dropped packet.
+      //
+      // Deliberately before hydration — a signed-out visitor should reach the
+      // login art immediately, not after their (nonexistent) cards load.
+      if (isCurrentUserAnonymous()) {
+        if (!cancelled) setState({ kind: 'needs_login' });
+        return;
+      }
+
       // Migration (idempotent, guarded by sentinel).
       setState({ kind: 'loading', step: 'Migrating your collection…' });
       const migration = await runMigrationIfNeeded();
@@ -476,6 +500,13 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  if (state.kind === 'needs_login') {
+    // The router never mounts. That is the point of putting the wall here
+    // rather than in a route guard: App.tsx has 20+ routes and a per-route
+    // guard is one forgotten route away from a hole.
+    return <Login />;
+  }
+
   if (state.kind === 'ready') {
     // Persistence-mode note is exposed via a data attribute so it's
     // discoverable without cluttering the UI.
@@ -513,14 +544,43 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Boot screen. This is the beat straight after signing in — the courtyard's
+  // Phaser chunk is ~1.2 MB and the cards are still hydrating — so it gets the
+  // courtyard plate behind it rather than a spinner on black. Landing in the
+  // world should start here, not at the moment the canvas appears.
   return (
-    <div className="min-h-dvh flex items-center justify-center">
-      <div className="text-center">
+    <div className="relative min-h-dvh flex items-center justify-center overflow-hidden">
+      <img
+        src="/assets/castle/courtyard.png"
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ filter: 'blur(3px) brightness(0.55)', transform: 'scale(1.06)' }}
+      />
+      <div className="absolute inset-0" style={{ background: 'rgba(20,14,6,0.35)' }} />
+
+      <div className="relative text-center px-6">
+        <h1
+          className="font-fantasy text-3xl md:text-4xl font-bold mb-2 tracking-wide"
+          style={{ color: '#f5d98a', textShadow: '0 2px 14px rgba(0,0,0,0.85)' }}
+        >
+          The Courtyard
+        </h1>
         <div
-          className="inline-block w-12 h-12 rounded-full border-4 border-t-transparent animate-spin mb-4"
-          style={{ borderColor: 'rgba(250,234,202,0.4)', borderTopColor: 'transparent' }}
+          className="mx-auto mb-5 h-px w-32"
+          style={{ background: 'linear-gradient(to right, transparent, #f5d98a, transparent)' }}
         />
-        <p className="font-fantasy text-bone/80 text-sm tracking-wider">{state.step}</p>
+        <div
+          className="inline-block w-10 h-10 rounded-full border-4 border-t-transparent animate-spin mb-4 motion-reduce:animate-none"
+          style={{ borderColor: 'rgba(245,217,138,0.45)', borderTopColor: 'transparent' }}
+        />
+        {/* aria-live so a screen reader hears progress rather than silence. */}
+        <p
+          className="font-fantasy text-sm tracking-wider"
+          style={{ color: '#e8d4ae', textShadow: '0 1px 8px rgba(0,0,0,0.9)' }}
+          aria-live="polite"
+        >
+          {state.step}
+        </p>
       </div>
     </div>
   );

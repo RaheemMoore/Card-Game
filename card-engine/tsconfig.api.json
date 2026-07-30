@@ -1,0 +1,19 @@
+{
+  // The Vercel functions under api/ were not covered by any tsconfig — tsc -b
+  // only builds `src` and `vite.config.ts`. That meant a type error in the
+  // server-side spend gate, the only thing standing between a stranger and a
+  // Leonardo bill, would first appear during a production deploy.
+  //
+  // Wired into `npm run build`, so it fails locally instead.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": ["node"]
+  },
+  "include": ["api/**/*.ts"]
+}
