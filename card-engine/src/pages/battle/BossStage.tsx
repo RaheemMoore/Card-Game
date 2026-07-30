@@ -6,7 +6,9 @@ import type { MotionLevel } from '../../vfx/types';
 import { getBossClip } from '../../data/combat/bossSpriteManifest';
 import { SpriteClipPlayer } from './SpriteClipPlayer';
 import { bossClipForBeat } from './bossClipState';
-import { resolveCombatAssetUrl } from '../../data/combat/types';
+import { resolveCombatAssetUrl, resolveCombatAssetPath } from '../../data/combat/types';
+import { getBossRing } from '../../data/combat/bossRingManifest';
+import { BossWeaponRing } from './BossWeaponRing';
 import { FloatingDamage } from './FloatingDamage';
 
 interface Props {
@@ -66,6 +68,7 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
   });
   const clip = getBossClip(boss.snapshot.bossId, clipState);
   const spriteUrl = clip ? resolveCombatAssetUrl(clip.asset) : null;
+  const ring = getBossRing(boss.snapshot.bossId);
 
   return (
     <div
@@ -97,6 +100,15 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         }}
         aria-label={`${boss.snapshot.name}${charging ? ' — charging a heavy attack' : ''}`}
       >
+        {/* Behind the sprite: the figure occludes the arc's inner edge, which
+            is what sells the pieces as orbiting rather than floating in front. */}
+        {ring && (
+          <BossWeaponRing
+            spec={ring}
+            resolveUrl={resolveCombatAssetPath}
+            motionLevel={motionLevel}
+          />
+        )}
         {spriteUrl && clip ? (
           <SpriteClipPlayer
             clip={clip}

@@ -55,5 +55,14 @@ export type EffectManifest = Record<string, CombatArtAsset>;
 export const COMBAT_ASSET_ROOT = '/assets/combat';
 
 export function resolveCombatAssetUrl(asset: CombatArtAsset): string {
-  return `${COMBAT_ASSET_ROOT}/${asset.path.replace(/^\/+/, '')}`;
+  return resolveCombatAssetPath(asset.path);
+}
+
+/**
+ * Same join, for assets that are a bare path rather than a full
+ * `CombatArtAsset` — effect-ring pieces, for instance, which are a list of
+ * paths in one spec rather than individually-approved assets.
+ */
+export function resolveCombatAssetPath(path: string): string {
+  return `${COMBAT_ASSET_ROOT}/${path.replace(/^\/+/, '')}`;
 }
