@@ -1,0 +1,14 @@
+{
+  "image": "horse-eating.png",
+  "frameWidth": 58,
+  "frameHeight": 59,
+  "frameCount": 1,
+  "baselineY": 211,
+  "targetBodyHeight": 208,
+  "note": "Area-averaged down to display resolution ONCE, offline, then re-quantised. Render this at ~1:1 or upscaled \u2014 never downscale pixel art at runtime.",
+  "resampledFrom": {
+    "frameWidth": 211,
+    "frameHeight": 214,
+    "colours": 59
+  }
+}

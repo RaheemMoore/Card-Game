@@ -1,0 +1,14 @@
+{
+  "image": "dwarf-breathe.png",
+  "frameWidth": 37,
+  "frameHeight": 58,
+  "frameCount": 4,
+  "baselineY": 122,
+  "targetBodyHeight": 119,
+  "note": "Area-averaged down to display resolution ONCE, offline, then re-quantised. Render this at ~1:1 or upscaled \u2014 never downscale pixel art at runtime.",
+  "resampledFrom": {
+    "frameWidth": 79,
+    "frameHeight": 125,
+    "colours": 74
+  }
+}

@@ -10,7 +10,7 @@ import type { ArchetypeName } from '../../types/card';
  * should hardcode an asset path — always resolve through a manifest.
  */
 
-export type CombatArtSource = 'leonardo' | 'figma_community' | 'code';
+export type CombatArtSource = 'leonardo' | 'figma_community' | 'code' | 'pixellab';
 
 export type CombatArtApprovalStatus = 'placeholder' | 'candidate' | 'approved';
 

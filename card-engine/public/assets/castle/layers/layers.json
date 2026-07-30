@@ -1,0 +1,40 @@
+{
+  "plate": "courtyard.png",
+  "plateSize": {
+    "width": 1536,
+    "height": 1152
+  },
+  "waterBox": {
+    "x": 655,
+    "y": 548,
+    "width": 230,
+    "height": 147
+  },
+  "glows": [
+    {
+      "x": 333,
+      "y": 398,
+      "radius": 46,
+      "color": "#8fe6ff"
+    },
+    {
+      "x": 315,
+      "y": 600,
+      "radius": 46,
+      "color": "#c9a8ff"
+    },
+    {
+      "x": 333,
+      "y": 952,
+      "radius": 50,
+      "color": "#ffb3e6"
+    },
+    {
+      "x": 1083,
+      "y": 948,
+      "radius": 50,
+      "color": "#8fe6ff"
+    }
+  ],
+  "note": "Layers are cut from the plate so they match it exactly. Re-run this if the plate is ever regenerated \u2014 the boxes are traced, not derived."
+}

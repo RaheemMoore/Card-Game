@@ -79,12 +79,65 @@ const EMBERBORN_WRAITH_CLIPS: Record<BossSpriteState, BossClip> = {
   defeat: still(WRAITH_IDLE),
 };
 
-export const BOSS_CLIP_MANIFEST: Record<string, BossClip> = Object.fromEntries(
-  Object.entries(EMBERBORN_WRAITH_CLIPS).map(([state, clip]) => [
-    spriteKey(EMBERBORN_WRAITH_ID, state as BossSpriteState),
+const DEBT_BEARER_ID = 'boss_champion_barbarian';
+
+/**
+ * First sprite off the PixelLab pipeline (`scripts/sprite-lab/create-boss-pro.mjs`).
+ *
+ * Raheem's own design, recovered from his Leonardo account and passed to
+ * `/create-character-pro` as a real `reference_image` — the only endpoint that
+ * takes concept art as an input rather than paraphrasing it into a prompt.
+ *
+ * 256² despite the endpoint capping the REQUEST at 168² — it upscales its own
+ * output. The number here is read off the API response, not the request.
+ *
+ * The rune-weapon ring from the concept is deliberately NOT in this sprite.
+ * Baked in it would be welded to the boss and could only ever spin as one
+ * piece; kept out, it becomes an effect layer whose weapons can detach and fly
+ * as attacks resolve.
+ *
+ * Still a still: animation is its own pass.
+ */
+const DEBT_BEARER_IDLE: CombatArtAsset = {
+  id: 'debt_bearer_idle',
+  kind: 'boss_sprite',
+  source: 'pixellab',
+  path: 'bosses/debt-bearer/sprite-idle.png',
+  // The 256² PixelLab canvas is ~55% transparent padding. Shipping it whole
+  // made the boss render visibly SMALLER than the dwarf hero, because the
+  // stage sizes the sprite BOX and the figure only filled the middle of it.
+  // The shipped file is cropped to the alpha bounding box (+4px so shake and
+  // lunge transforms never clip an edge pixel); these are the cropped dims.
+  dimensions: { width: 154, height: 156 },
+  approvalStatus: 'approved',
+  promptVersion: 'pixellab.pro.v1',
+  notes:
+    'PixelLab /create-character-pro, character 9e7ee0c4-4913-4c01-864f-b0604c7d7e32, ' +
+    'seed=20260730, view=low top-down, reference=Raheem edit-2 crop. Approved by Raheem ' +
+    '2026-07-30. Source 256² (the API upscaled past its own 168 request cap); shipped ' +
+    'cropped to the figure. All 8 rotations kept in scripts/sprite-lab/out/boss-debt-bearer/; ' +
+    'only south ships, the stage being frontal.',
+};
+
+const DEBT_BEARER_CLIPS: Record<BossSpriteState, BossClip> = {
+  idle: still(DEBT_BEARER_IDLE),
+  attack: still(DEBT_BEARER_IDLE),
+  hit: still(DEBT_BEARER_IDLE),
+  rage: still(DEBT_BEARER_IDLE),
+  defeat: still(DEBT_BEARER_IDLE),
+};
+
+function clipsFor(bossId: string, clips: Record<BossSpriteState, BossClip>) {
+  return Object.entries(clips).map(([state, clip]) => [
+    spriteKey(bossId, state as BossSpriteState),
     clip,
-  ]),
-);
+  ]);
+}
+
+export const BOSS_CLIP_MANIFEST: Record<string, BossClip> = Object.fromEntries([
+  ...clipsFor(EMBERBORN_WRAITH_ID, EMBERBORN_WRAITH_CLIPS),
+  ...clipsFor(DEBT_BEARER_ID, DEBT_BEARER_CLIPS),
+]);
 
 /**
  * The clip for a boss state.

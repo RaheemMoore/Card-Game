@@ -1,0 +1,127 @@
+{
+  "plate": "courtyard.png",
+  "plateSize": {
+    "width": 1536,
+    "height": 1152
+  },
+  "occluders": [
+    {
+      "id": "lamp-upper-left",
+      "x": 311,
+      "y": 372,
+      "width": 66,
+      "height": 131,
+      "groundY": 493,
+      "coverage": 0.437
+    },
+    {
+      "id": "lamp-mid-left",
+      "x": 283,
+      "y": 574,
+      "width": 69,
+      "height": 120,
+      "groundY": 684,
+      "coverage": 0.488
+    },
+    {
+      "id": "lamp-lower-left",
+      "x": 297,
+      "y": 914,
+      "width": 82,
+      "height": 131,
+      "groundY": 1042,
+      "coverage": 0.495
+    },
+    {
+      "id": "lamp-lower-right",
+      "x": 1040,
+      "y": 908,
+      "width": 89,
+      "height": 137,
+      "groundY": 1042,
+      "coverage": 0.496
+    },
+    {
+      "id": "brazier",
+      "x": 1151,
+      "y": 554,
+      "width": 49,
+      "height": 78,
+      "groundY": 626,
+      "coverage": 0.757
+    },
+    {
+      "id": "produce-table",
+      "x": 1155,
+      "y": 688,
+      "width": 97,
+      "height": 79,
+      "groundY": 772,
+      "coverage": 0.77
+    },
+    {
+      "id": "water-barrel",
+      "x": 1219,
+      "y": 771,
+      "width": 50,
+      "height": 73,
+      "groundY": 835,
+      "coverage": 0.778
+    },
+    {
+      "id": "bush-south",
+      "x": 473,
+      "y": 936,
+      "width": 184,
+      "height": 106,
+      "groundY": 1027,
+      "coverage": 0.647
+    },
+    {
+      "id": "crates-south",
+      "x": 888,
+      "y": 945,
+      "width": 128,
+      "height": 98,
+      "groundY": 1033,
+      "coverage": 0.654
+    },
+    {
+      "id": "bush-south-east",
+      "x": 1120,
+      "y": 945,
+      "width": 195,
+      "height": 109,
+      "groundY": 1020,
+      "coverage": 0.741
+    },
+    {
+      "id": "awning-tent",
+      "x": 1184,
+      "y": 135,
+      "width": 258,
+      "height": 335,
+      "groundY": 500,
+      "coverage": 0.714
+    },
+    {
+      "id": "booth",
+      "x": 1233,
+      "y": 423,
+      "width": 237,
+      "height": 267,
+      "groundY": 668,
+      "coverage": 0.733
+    },
+    {
+      "id": "fountain",
+      "x": 625,
+      "y": 462,
+      "width": 292,
+      "height": 208,
+      "groundY": 655,
+      "coverage": 0.706
+    }
+  ],
+  "note": "Cut from the plate, so they match it exactly. Draw each at (x,y) with origin (0,0) and depth = groundY. Re-run if the plate is regenerated: every box is traced by hand, not derived."
+}
