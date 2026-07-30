@@ -88,6 +88,18 @@ export interface StatusApplication {
   statusId: string;
   duration: number;
   stacks?: number;
+  /**
+   * How hard this particular application bites. Set by the effect that
+   * created it, so two burns from different abilities can tick for different
+   * amounts, and read back at resolution time.
+   *
+   * Generic on purpose — these describe the STRENGTH of an application, not
+   * any one status. `STATUS_CATALOG` still owns what a status means.
+   */
+  amountPerTick?: number;
+  damageType?: DamageType;
+  /** 0..1 incoming-damage reduction, for guard-shaped statuses. */
+  reductionPercent?: number;
 }
 
 /* ---------- Effects (starter catalog: 15) ---------- */
@@ -414,7 +426,7 @@ export interface StatusDefinition {
  */
 export interface AbilityDefinition {
   id: string;
-  /** Human-readable, stable, kebab-case (e.g. "ember-cleave"). Used in URLs + logs. */
+  /** Human-readable, stable, kebab-case (e.g. "oathbreakers-answer"). Used in URLs + logs. */
   slug: string;
   displayName: string;
   familyIds: string[];
@@ -454,6 +466,21 @@ export interface AbilityVersion {
   publishedAt?: string;
   deprecatedAt?: string;
   status: AbilityVersionStatus;
+  /**
+   * Where this ability's damage type comes from.
+   *
+   * 'fixed' (the default when omitted) — each damaging effect's own
+   *   `damageType`, as authored. Signature and ultimate abilities use this, so
+   *   an archetype's defining moves read the same on every card.
+   * 'element' — the CARD's element, via `data/abilities/elementDamageType.ts`.
+   *   Used by cheap core abilities and the shared `Attuned Strike`, which is
+   *   what lets a player reach a boss's elemental weakness by choosing an
+   *   element rather than by being forced onto one archetype.
+   *
+   * Optional so existing rows need no migration. Deliberately generic — this
+   * is a property of the ability, not of any one archetype.
+   */
+  damageTypeSource?: 'fixed' | 'element';
   /**
    * Seraph corruption arc (P8) — marks a Balanced-Seraph dual-cast ability.
    * Combat resolution of the dual-cast is a follow-up; this flag only records

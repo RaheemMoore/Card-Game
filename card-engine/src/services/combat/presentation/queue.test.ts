@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BattleEvent, BattleIntent } from '../../../types/combat';
-import { createQueueState, drainNext, skipAll, syncEvents } from './queue';
+import { createQueueState, drainNext, selectCurrentBeat, skipAll, syncEvents } from './queue';
 
 const evt = (kind: BattleEvent['kind'], round = 1): BattleEvent => {
   // Small factory covering the kinds this test needs.
@@ -200,6 +200,110 @@ describe('presentation queue', () => {
       s = syncEvents(s, [{ kind: 'boss_intent_declared', round: 1, intent: heavyIntent }, bossDamage()]);
       expect(s.pending[0].severity).toBeUndefined();
       expect(s.pending[1].severity).toBeUndefined();
+    });
+
+    describe('ultimate tagging', () => {
+      const slots = (id: string) => (id === 'ability_ult' ? ('ultimate' as const) : ('core' as const));
+      const castUltimate = (): BattleEvent => ({
+        kind: 'player_action_selected',
+        actorId: 'hero_1',
+        action: { kind: 'ability', abilityDefinitionId: 'ability_ult', targetActorIds: ['boss'] },
+      });
+      const heroDamage = (): BattleEvent => ({
+        kind: 'damage_dealt',
+        sourceActorId: 'hero_1',
+        targetActorId: 'boss',
+        amount: 45,
+        damageType: 'physical',
+        blockedByShield: 0,
+      });
+
+      it('tags an ultimate-slot cast and the damage it produces', () => {
+        let s = createQueueState();
+        s = syncEvents(s, [castUltimate(), heroDamage()], 'boss', slots);
+        expect(s.pending[0].severity).toBe('ultimate');
+        expect(s.pending[1].severity).toBe('ultimate');
+      });
+
+      it('leaves a non-ultimate cast and its damage untagged', () => {
+        let s = createQueueState();
+        s = syncEvents(
+          s,
+          [
+            {
+              kind: 'player_action_selected',
+              actorId: 'hero_1',
+              action: { kind: 'ability', abilityDefinitionId: 'ability_core', targetActorIds: ['boss'] },
+            },
+            heroDamage(),
+          ],
+          'boss',
+          slots,
+        );
+        expect(s.pending[0].severity).toBeUndefined();
+        expect(s.pending[1].severity).toBeUndefined();
+      });
+
+      it('does not let a stale ultimate bleed into a later round', () => {
+        let s = createQueueState();
+        s = syncEvents(
+          s,
+          [castUltimate(), heroDamage(), evt('round_started', 2), heroDamage()],
+          'boss',
+          slots,
+        );
+        expect(s.pending[1].severity).toBe('ultimate');
+        expect(s.pending[3].severity).toBeUndefined();
+      });
+    });
+  });
+
+  describe('selectCurrentBeat', () => {
+    it('returns the beat whose hold is running, not the one already finished', () => {
+      let s = createQueueState();
+      s = syncEvents(s, [evt('round_started', 1), evt('damage_dealt'), evt('phase_transition')]);
+
+      // Nothing drained yet: the head of the queue is what's on screen.
+      expect(selectCurrentBeat(s)?.id).toBe('beat_0');
+
+      // After its hold elapses it moves to the journal and the NEXT beat is
+      // current. The old journal-tail read would have returned beat_0 here,
+      // making every beat display for its successor's duration.
+      s = drainNext(s).state;
+      expect(selectCurrentBeat(s)?.id).toBe('beat_1');
+
+      s = drainNext(s).state;
+      expect(selectCurrentBeat(s)?.id).toBe('beat_2');
+    });
+
+    it('holds the final beat on screen once the queue drains', () => {
+      let s = createQueueState();
+      s = syncEvents(s, [evt('round_started', 1)]);
+      s = drainNext(s).state;
+      expect(s.pending).toHaveLength(0);
+      expect(selectCurrentBeat(s)?.id).toBe('beat_0');
+    });
+
+    it('returns null before anything has been queued', () => {
+      expect(selectCurrentBeat(createQueueState())).toBeNull();
+    });
+  });
+
+  describe('skipAll', () => {
+    it('marks flushed beats so effects bail but state still lands', () => {
+      let s = createQueueState();
+      s = syncEvents(s, [evt('round_started', 1), evt('damage_dealt'), evt('phase_transition')]);
+      s = skipAll(s);
+      expect(s.pending).toHaveLength(0);
+      expect(s.journal).toHaveLength(3);
+      expect(s.journal.every((b) => b.suppressEffects)).toBe(true);
+    });
+
+    it('leaves normally-drained beats unsuppressed', () => {
+      let s = createQueueState();
+      s = syncEvents(s, [evt('round_started', 1)]);
+      s = drainNext(s).state;
+      expect(s.journal[0].suppressEffects).toBeUndefined();
     });
   });
 });

@@ -52,10 +52,32 @@ export interface HeroSnapshot {
   maxHp: number;
   maxResource: number;
   resourceType: Exclude<AbilityResourceType, 'none'>;
+  /**
+   * The damage type this hero's ELEMENT-TYPED abilities deal, resolved from
+   * the card's element once at snapshot time and frozen here.
+   *
+   * Frozen deliberately. The reducer must be a pure function of
+   * (snapshot, seed, actions) for replay to reproduce, and a card's
+   * `currentElement` MUTATES between battles — `services/tierUp.ts` rewrites
+   * it when a Fallen Seraph's Light transmutes to Infernal. Reading the card
+   * store mid-reduce would make an old event log replay to different damage.
+   *
+   * Note this is the opposite call from the VFX layer, which resolves element
+   * in the VIEW from `partyCards`. That is correct there: cosmetics may follow
+   * the live card, but combat MATH may not.
+   */
+  elementDamageType: DamageType;
   abilities: AbilityCombatSnapshot[];
 }
 
 /** Snapshot of the boss at battle start. */
+/** What a combatant resists or is weak to. Mirrors formulas.ResistanceProfile,
+ *  declared here because types must not depend on services. */
+export interface ActorResistance {
+  resistant: readonly DamageType[];
+  weak: readonly DamageType[];
+}
+
 export interface BossSnapshot {
   bossId: string;
   versionId: string;
@@ -64,6 +86,19 @@ export interface BossSnapshot {
   phases: BossPhaseSnapshot[];
   resistanceProfileId: string;
   weaknessProfileId: string;
+  /**
+   * The boss's ACTUAL resistances, frozen at snapshot time.
+   *
+   * `resistanceProfileId` above is a synthesized `rp_<slug>` string that
+   * nothing ever looked up — the authored profile was discarded on the way in
+   * and the reducer fell back to a hardcoded `bossId.startsWith(...)` check,
+   * which meant every boss but the Emberborn Wraith was resistance-neutral no
+   * matter what its data said. The ids are kept for logging; this is the field
+   * combat actually reads.
+   */
+  resistance: ActorResistance;
+  /** Arena this fight takes place in. Falls back to the default when absent. */
+  arenaId?: string;
 }
 
 export interface BossPhaseSnapshot {
@@ -72,6 +107,8 @@ export interface BossPhaseSnapshot {
   healthThresholdEnd: number;
   actions: BossActionSnapshot[];
   passiveEffects: readonly string[];
+  /** Statuses applied to the boss on entering this phase. */
+  passiveStatuses?: readonly StatusApplication[];
 }
 
 export interface BossActionSnapshot {
@@ -86,6 +123,11 @@ export interface BossActionSnapshot {
   baseDamage: number;
   /** Extra damage added per round elapsed (linear enrage). Defaults to 0. */
   scalingPerRound: number;
+  /** Damage type this action deals. Defaults to 'physical' when unauthored. */
+  damageType: DamageType;
+  /** For `shield` intents — absorb granted to the boss. */
+  shieldAmount?: number;
+  shieldDurationRounds?: number;
 }
 
 export type BossIntentType =
@@ -265,6 +307,18 @@ export type BattleEvent =
   | { kind: 'ultimate_charge_changed'; actorId: string; delta: number; source: string }
   | { kind: 'cooldown_started'; actorId: string; abilityDefinitionId: string; rounds: number }
   | { kind: 'cooldown_ticked'; actorId: string; abilityDefinitionId: string; remaining: number }
+  /** One damage-over-time status burning for one round. Separate from
+   *  `damage_dealt` so the view can render a quiet recurring tick rather than
+   *  a struck blow, and so the journal can group ticks per status. */
+  | {
+      kind: 'dot_ticked';
+      sourceActorId: string;
+      targetActorId: string;
+      statusId: string;
+      instanceId: string;
+      amount: number;
+      damageType: DamageType;
+    }
   | { kind: 'actor_defeated'; actorId: string }
   | { kind: 'phase_transition'; fromPhaseId: string; toPhaseId: string }
   | { kind: 'action_denied'; actorId: string; reason: ActionDenialReason }

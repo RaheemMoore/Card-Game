@@ -91,4 +91,41 @@ describe('mapEventsToBeats', () => {
   it('returns empty array for empty input', () => {
     expect(mapEventsToBeats([])).toEqual([]);
   });
+
+  describe('severity-driven pacing', () => {
+    const always = (s: 'heavy' | 'ultimate' | 'normal') => () => s;
+
+    it('gives a heavy boss telegraph the long wind-up instead of the intent beat', () => {
+      const [beat] = mapEventsToBeats([oneOfEach[2]], 0, always('heavy'));
+      expect(beat.cue).toBe('wind_up');
+      expect(beat.durationMs).toBe(TIMINGS.windUpHeavy);
+      expect(beat.severity).toBe('heavy');
+    });
+
+    it('gives an ultimate action the ultimate cue and its full hold', () => {
+      const [beat] = mapEventsToBeats([oneOfEach[3]], 0, always('ultimate'));
+      expect(beat.cue).toBe('ultimate');
+      expect(beat.durationMs).toBe(TIMINGS.ultimate);
+    });
+
+    it('stretches impacts that resolved a heavy or ultimate action', () => {
+      const [heavy] = mapEventsToBeats([oneOfEach[4]], 0, always('heavy'));
+      const [ult] = mapEventsToBeats([oneOfEach[4]], 0, always('ultimate'));
+      expect(heavy.durationMs).toBe(TIMINGS.impactHeavy);
+      expect(ult.durationMs).toBe(TIMINGS.impactHeavy);
+    });
+
+    it("leaves 'normal' severity on the unescalated timings", () => {
+      const [intent] = mapEventsToBeats([oneOfEach[2]], 0, always('normal'));
+      const [impact] = mapEventsToBeats([oneOfEach[4]], 0, always('normal'));
+      expect(intent.cue).toBe('intent');
+      expect(intent.durationMs).toBe(TIMINGS.intent);
+      expect(impact.durationMs).toBe(TIMINGS.impact);
+    });
+
+    it('omits the severity key entirely when none is supplied', () => {
+      const [beat] = mapEventsToBeats([oneOfEach[4]]);
+      expect(beat).not.toHaveProperty('severity');
+    });
+  });
 });

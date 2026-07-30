@@ -1,0 +1,47 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "perspective, vanishing point, horizon line, eye-level view, 3d render, cgi, photorealistic, photograph, text, watermark, logo, signature, ui, hud, frame, border, blurry, dark, gloomy, grim, ruins, decay",
+  "styleHeader": "",
+  "familyLabels": {
+    "courtyard": "Castle courtyard — top-down plate (Lucid Origin)",
+    "hero": "Default hero — top-down walkable sprite"
+  },
+  "anchors": {
+    "courtyard": {
+      "line": "Create a top-down 2D fantasy courtyard in a bright, sunny, magical atmosphere, inspired by classic Pokémon-style overworld maps. The entire scene should be hand-painted with soft, colorful textures and clean tile-like detailing. The courtyard is inside the castle walls, forming a wide rectangular landscape layout that fills the full width of the image. At each of the four corners, place small guardian towers that match the fantasy style. The top of the courtyard should feature the main entrance to the Battle Tower, centered and clearly visible. In the center of the courtyard, place a large decorative water fountain with shimmering magical water. Surrounding the fountain, add several small fantasy shop stalls arranged in a loose circle, set back from the fountain so the paving between them stays open and walkable. On the right side of the courtyard, include a special crafting stall where players create their cards; this stall should stand out with unique decorations. All lightposts throughout the courtyard should be made of colorful glowing crystals instead of metal lanterns. These crystal posts should emit soft magical light that enhances the sunny, enchanted atmosphere. The castle walls should be tall, stone, and stylized, with painterly shading and clean top-down readability. The entire courtyard should feel cohesive, magical, and vibrant, with clear paths, soft shadows, and charming fantasy details."
+    },
+    "hero": {
+      "line": "A single small fantasy adventurer character sprite for a top-down 2D RPG, seen from directly above and slightly behind in classic Pokémon overworld style, facing toward the viewer. Hand-painted with soft colorful textures and clean readable shapes, bright sunny lighting. Simple practical travelling clothes, short cloak, boots and a satchel; modest fully-covering outfit. The character stands alone in the exact centre of a plain flat solid white background with absolutely no scenery, no ground, no paving, no shadow and no other objects. Small crisp readable silhouette with clean edges, suitable for cutting out as a game sprite."
+    }
+  },
+  "states": [
+    {
+      "id": "courtyard-wide-a",
+      "label": "Courtyard wide A (anchor)",
+      "family": "courtyard",
+      "isAnchor": true
+    },
+    {
+      "id": "hero-back",
+      "label": "Hero — walking away / up (anchor)",
+      "family": "hero",
+      "isAnchor": true
+    },
+    {
+      "id": "hero-front",
+      "label": "Hero — facing camera / down",
+      "family": "hero",
+      "line": "A single small fantasy adventurer character sprite for a top-down 2D RPG in classic Pokémon overworld style, viewed from a high angle looking down, FACING THE CAMERA so the face is fully visible, standing still with arms at their sides. Sandy blond spiky hair, teal-green tunic, brown leather satchel worn at the hip, dark brown boots; modest fully-covering outfit. Hand-painted soft colourful texture, clean bold readable silhouette, bright sunny lighting from above, small soft shadow directly beneath the feet. Alone in the exact centre of a completely plain flat white empty background — no ground, no paving, no scenery, no props, nothing else in the image."
+    },
+    {
+      "id": "hero-side",
+      "label": "Hero — side profile (mirrors for left/right)",
+      "family": "hero",
+      "line": "A single small fantasy adventurer character sprite for a top-down 2D RPG in classic Pokémon overworld style, viewed from a high angle looking down, shown in SIDE PROFILE facing to the right, standing still. Sandy blond spiky hair, teal-green tunic, brown leather satchel worn at the hip, dark brown boots; modest fully-covering outfit. Hand-painted soft colourful texture, clean bold readable silhouette, bright sunny lighting from above, small soft shadow directly beneath the feet. Alone in the exact centre of a completely plain flat white empty background — no ground, no paving, no scenery, no props, nothing else in the image."
+    }
+  ]
+}

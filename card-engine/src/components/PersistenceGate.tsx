@@ -10,7 +10,8 @@ import { setBossStore, getBossStore } from '../services/bosses/registry';
 import { seedAbilityLibrary } from '../services/abilities/seed';
 import { seedBossLibrary } from '../services/bosses/seed';
 import { SEED_BOSSES } from '../data/bosses/seedBosses';
-import { backfillCardAbilities } from '../services/abilities/legacyBackfill';
+import { assignAbilitiesForCards } from '../services/abilities/rosterAssigner';
+import { resetAbilityRosterIfStale } from '../services/abilities/rosterReset';
 import {
   generateCanonicalArt,
   backfillApprovedArt,
@@ -53,6 +54,11 @@ function installDevArtTools(): void {
 
 async function seedAndBackfillAbilitiesLocal(): Promise<void> {
   const store = getAbilityStore();
+  // BEFORE seeding: seedAbilityLibrary is upsert-only with no prune, so a
+  // browser that ran the old roster keeps those definitions forever unless
+  // the cache is evicted first. Returns true when it actually wiped, which
+  // is also the signal that every card needs a fresh loadout.
+  const rosterWasReset = resetAbilityRosterIfStale();
   try {
     // Always call — seedAbilityLibrary is idempotent per-item (diffs each
     // definition/version individually), so this is cheap once seeded.
@@ -77,25 +83,34 @@ async function seedAndBackfillAbilitiesLocal(): Promise<void> {
     console.warn('[abilities] approved-art backfill failed:', err);
   }
   try {
-    const result = backfillCardAbilities(store, getAllCards());
+    // `force` only after a reset: a routine boot fills cards that have no
+    // abilities, but must not reshuffle a loadout the player already has.
+    const result = assignAbilitiesForCards(store, getAllCards(), { force: rosterWasReset });
     if (result.cardsUpdated > 0 && import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.debug(
-        `[abilities] local backfill wrote ${result.referencesWritten} refs across ${result.cardsUpdated} card(s)`,
+        `[abilities] assigned ${result.referencesWritten} refs across ${result.cardsUpdated} card(s)` +
+          (result.cardsUsingFallback > 0
+            ? ` — ${result.cardsUsingFallback} used the shared basics (archetype not authored yet)`
+            : ''),
       );
     }
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.warn('[abilities] local backfill failed:', err);
+    console.warn('[abilities] roster assignment failed:', err);
   }
 }
 
 async function seedBossesLocal(): Promise<void> {
   const store = getBossStore();
   try {
-    if (store.getAllDefinitions().length === 0) {
-      await seedBossLibrary(store);
-    }
+    // Always call. `seedBossLibrary` is a plain idempotent upsert, so this is
+    // cheap once seeded — and gating on "the store is completely empty" meant
+    // any boss added to SEED_BOSSES after the first-ever boot silently never
+    // reached an already-bootstrapped store. The three Overreach champions
+    // were invisible in the picker for exactly this reason. The ability seed
+    // path hit the same bug and fixed it the same way; this one was missed.
+    await seedBossLibrary(store);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.warn('[bosses] local seed failed:', err);
@@ -339,6 +354,10 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       // diffs each definition/version individually and is a no-op once already
       // current, so gating on "empty" meant any ability added to SEED_ABILITIES
       // after the first-ever admin boot would never reach an already-seeded store.
+      // Same reason as the local path: evict a stale cached library before
+      // seeding, since seeding cannot prune. The SQL migration handles the
+      // remote rows; this only clears what this browser cached.
+      const rosterWasReset = resetAbilityRosterIfStale();
       try {
         const seedResult = await seedAbilityLibrary(abilityStore);
         if (import.meta.env.DEV) {
@@ -404,11 +423,17 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       }
 
       try {
-        const backfill = backfillCardAbilities(abilityStore, getAllCards());
+        // On this path the SQL migration owns the remote wipe; the local call
+        // above only evicted this browser's cache. Force here too so a card
+        // whose old references the migration deleted gets a new loadout
+        // instead of entering battle with none — which throws.
+        const backfill = assignAbilitiesForCards(abilityStore, getAllCards(), {
+          force: rosterWasReset,
+        });
         if (backfill.cardsUpdated > 0 && import.meta.env.DEV) {
           // eslint-disable-next-line no-console
           console.debug(
-            `[abilities] legacy backfill wrote ${backfill.referencesWritten} refs across ${backfill.cardsUpdated} card(s); ${backfill.cardsSkippedNoSeedMatch} card(s) had no seed match yet`,
+            `[abilities] assigned ${backfill.referencesWritten} refs across ${backfill.cardsUpdated} card(s); ${backfill.cardsUsingFallback} used the shared basics`,
           );
         }
       } catch (err) {

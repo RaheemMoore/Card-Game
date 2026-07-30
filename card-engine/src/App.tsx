@@ -15,6 +15,8 @@ import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
 import { MiniGamesHub } from './pages/minigames/MiniGamesHub';
+import { Castle } from './pages/castle';
+import { CourtyardSample } from './pages/castle/sample';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
 import { CodexElements } from './pages/CodexElements';
@@ -65,6 +67,8 @@ export default function App() {
             <Route path="/battle" element={<Battle />} />
             <Route path="/minigames" element={<MiniGamesHub />} />
             <Route path="/minigames/forge-strike" element={<ForgeStrike />} />
+            <Route path="/castle" element={<Castle />} />
+            <Route path="/dev/courtyard-sample" element={<CourtyardSample />} />
             <Route path="/dev/abilities" element={<DevAbilities />} />
             <Route path="/dev/seed-battle" element={<DevSeedBattle />} />
             <Route path="/m55harness" element={<M55Harness />} />

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { PlayerAction } from '../../types/combat';
+import type { MotionLevel } from '../../vfx/types';
 import { LeaveConfirmModal } from './LeaveConfirmModal';
 
 interface Props {
@@ -10,10 +11,20 @@ interface Props {
    *  End Turn button so the disabled state says WHY it's disabled — this
    *  used to be the Turn Badge's "RESOLVE · <name>" line. */
   resolvingIntentName?: string | null;
+  motionLevel: MotionLevel;
+  onChangeMotionLevel: (next: MotionLevel) => void;
   onExit: () => void;
   onSubmit: (action: PlayerAction) => void;
   onOpenGuide: () => void;
 }
+
+/** Cycle order for the Motion chip. Ascending intensity, wrapping. */
+const MOTION_CYCLE: readonly MotionLevel[] = ['off', 'subtle', 'full'];
+const MOTION_LABEL: Record<MotionLevel, string> = {
+  off: 'OFF',
+  subtle: 'LOW',
+  full: 'FULL',
+};
 
 /**
  * Utility tray (Settings/Guide/Leave) + End Turn — the right-hand zone of
@@ -27,6 +38,8 @@ export function BattleControls({
   canAct,
   pendingCount = 1,
   resolvingIntentName = null,
+  motionLevel,
+  onChangeMotionLevel,
   onExit,
   onSubmit,
   onOpenGuide,
@@ -61,7 +74,21 @@ export function BattleControls({
           borderRadius: 6,
         }}
       >
-        <UtilityChip label="⚙" caption="SETTINGS" onClick={undefined} />
+        {/* Motion intensity. A cycling chip rather than a menu: it's a
+            three-value setting players will want to A/B against themselves,
+            so the cheapest possible round trip matters more than discovering
+            all three states at once. Labelled with text, not an icon —
+            "how much does the screen move" is not a guessable glyph. */}
+        <UtilityChip
+          label={MOTION_LABEL[motionLevel]}
+          caption="MOTION"
+          onClick={() =>
+            onChangeMotionLevel(
+              MOTION_CYCLE[(MOTION_CYCLE.indexOf(motionLevel) + 1) % MOTION_CYCLE.length],
+            )
+          }
+          ariaLabel={`Motion: ${MOTION_LABEL[motionLevel]}. Activate to change.`}
+        />
         <UtilityChip label="📖" caption="GUIDE" onClick={onOpenGuide} />
         {/* Leave is deliberately the same quiet weight as Settings/Guide at
             rest — it only escalates once the confirm step is triggered — so
@@ -152,10 +179,14 @@ function UtilityChip({
   label,
   caption,
   onClick,
+  ariaLabel,
 }: {
   label: string;
   caption: string;
   onClick?: () => void;
+  /** Overrides the caption for screen readers when the chip carries state
+   *  the caption alone does not convey (e.g. the Motion level). */
+  ariaLabel?: string;
 }) {
   const clickable = typeof onClick === 'function';
   return (
@@ -180,10 +211,10 @@ function UtilityChip({
         justifyContent: 'center',
         gap: 2,
       }}
-      aria-label={caption}
-      title={clickable ? caption : `${caption} (coming soon)`}
+      aria-label={ariaLabel ?? caption}
+      title={clickable ? (ariaLabel ?? caption) : `${caption} (coming soon)`}
     >
-      <span style={{ fontSize: 13, lineHeight: 1 }}>{label}</span>
+      <span style={{ fontSize: label.length > 2 ? 9 : 13, fontWeight: label.length > 2 ? 700 : 400, lineHeight: 1 }}>{label}</span>
       <span
         style={{
           fontSize: 6,

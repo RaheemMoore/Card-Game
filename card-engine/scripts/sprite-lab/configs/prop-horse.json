@@ -1,0 +1,42 @@
+{
+  "subject": "prop-horse",
+  "label": "Grazing horse \u2014 tied at the last stall",
+  "pipeline": "v3",
+  "identity": {
+    "description": "A stocky bay horse with a dark brown coat, black mane and tail, seen from a high angle looking down. Head lowered to the ground, eating from a loose pile of golden straw hay scattered on the paving directly in front of its muzzle. A simple rope halter with the rope trailing off to one side as if tied. Standing calmly at rest. Detailed pixel art, single colour black outline, basic shading, medium detail.",
+    "avoid": "no rider, no saddle, no cart, no armour, no person, no reins held by anyone"
+  },
+  "notes": [
+    "PROBE. A top-down grazing quadruped with hay baked into the same sprite is unproven in this project. Risks: the hay comes out detached or mis-scaled, or the model renders a side view that will not sit on a top-down plate.",
+    "The hay DID come through attached to the horse's muzzle in the rotation \u2014 the main risk did not materialise, so no separate hay object is needed.",
+    "The hay is deliberately part of the HORSE's sprite rather than a separate object, so the two can never drift out of alignment when the horse is repositioned.",
+    "template_id 'horse' picks the quadruped skeleton \u2014 the others available are bear, cat, dog, lion.",
+    "SCENERY ONLY: he gets a collider so the player walks around him, but no proximity ribbon and no Tab entry. He is not an interaction.",
+    "If this fails, fall back to a separate hay object via /create-1-direction-object rather than re-rolling the horse blindly."
+  ],
+  "style": {
+    "view": "high top-down",
+    "templateId": "horse",
+    "outline": "single color black outline",
+    "detail": "medium detail",
+    "size": {
+      "width": 244,
+      "height": 244
+    }
+  },
+  "seed": 118427,
+  "animations": [
+    {
+      "id": "rest-idle",
+      "name": "rest-idle",
+      "template": "rest-idle",
+      "directions": [
+        "east"
+      ],
+      "note": "East only \u2014 he faces the stalls, so 1 generation per attempt. WHY NOT 'eating': it stalled server-side twice ('Generation stalled and was automatically failed', progress running backwards 0.4 -> 0.05 -> 0.18, nothing charged). The API splitting eat-start / eating / eat-end is the tell that 'eating' is the long looping middle, and a watchdog timeout is what that failure signature looks like. An idle is shorter and more standard. It is also NOT hay-dependent, so the resulting asset drops into a stable, a road or an inn yard instead of only working where there is a hay pile. Attempt order: rest-idle, then idle-shaking-head (a bigger, more legible motion at 84px than a jaw), then eat-end as the head-down fallback. THREE ATTEMPTS TOTAL, then ship static permanently. NOTE: animation templates are PER BODY TEMPLATE \u2014 'breathing-idle' is humanoid-only and 422s on 'horse'. Full horse set: attack, attack-back, dying, eat-end, eat-start, eating, hit-left, hit-right, idle-shaking-head, lie-down, rest-cycle, rest-idle, running-4/6/8-frames, running-headbutt, running-turn-left/right, sleep-cycle, stand-up, start-sleep, swimming, walk-4/6/8-frames, walk-turn-left/right."
+    }
+  ],
+  "directions": [
+    "east"
+  ]
+}

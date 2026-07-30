@@ -221,9 +221,22 @@ function composeActionText(events: readonly BattleEvent[], state: BattleState): 
 }
 
 function composeBossActionText(events: readonly BattleEvent[], state: BattleState): string {
-  const damage = events.find((e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> => e.kind === 'damage_dealt');
-  if (!damage) return events.map((e) => formatEvent(e)).join('; ');
-  const bossName = displayNameFor(state, damage.sourceActorId);
-  const targetName = displayNameFor(state, damage.targetActorId);
-  return `${bossName} hits ${targetName} for ${damage.amount} damage`;
+  const hits = events.filter(
+    (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> => e.kind === 'damage_dealt',
+  );
+  if (hits.length === 0) return events.map((e) => formatEvent(e)).join('; ');
+
+  const bossName = displayNameFor(state, hits[0].sourceActorId);
+
+  // An area attack emits one damage event per hero. Reporting only the first
+  // — which `.find()` did — described a party-wide sweep as a single-target
+  // hit on whoever happened to be in lane order first, so the one boss
+  // mechanic that most changes how a fight plays was invisible in the log.
+  if (hits.length > 1) {
+    const total = hits.reduce((n, h) => n + h.amount, 0);
+    const names = hits.map((h) => displayNameFor(state, h.targetActorId)).join(', ');
+    return `${bossName} sweeps ${names} for ${total} damage`;
+  }
+
+  return `${bossName} hits ${displayNameFor(state, hits[0].targetActorId)} for ${hits[0].amount} damage`;
 }

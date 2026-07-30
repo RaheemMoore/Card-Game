@@ -1,0 +1,93 @@
+[
+ {
+  "file": "medallions/glow-0.png",
+  "box": [
+   123,
+   112,
+   337,
+   326
+  ],
+  "size": [
+   214,
+   214
+  ]
+ },
+ {
+  "file": "medallions/glow-1.png",
+  "box": [
+   331,
+   5,
+   567,
+   241
+  ],
+  "size": [
+   236,
+   236
+  ]
+ },
+ {
+  "file": "medallions/glow-2.png",
+  "box": [
+   550,
+   111,
+   774,
+   335
+  ],
+  "size": [
+   224,
+   224
+  ]
+ },
+ {
+  "file": "medallions/glow-3.png",
+  "box": [
+   635,
+   341,
+   896,
+   603
+  ],
+  "size": [
+   261,
+   262
+  ]
+ },
+ {
+  "file": "medallions/glow-4.png",
+  "box": [
+   626,
+   591,
+   856,
+   821
+  ],
+  "size": [
+   230,
+   230
+  ]
+ },
+ {
+  "file": "medallions/glow-5.png",
+  "box": [
+   42,
+   589,
+   278,
+   825
+  ],
+  "size": [
+   236,
+   236
+  ]
+ },
+ {
+  "file": "medallions/glow-6.png",
+  "box": [
+   0,
+   330,
+   271,
+   606
+  ],
+  "size": [
+   271,
+   276
+  ]
+ }
+]

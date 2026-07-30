@@ -16,6 +16,16 @@ export type BeatCue =
   | 'phase'
   | 'ultimate';
 
+/**
+ * How much drama a beat has earned. Drives beat DURATION (via the adapter),
+ * effect intensity, and which game-feel tier fires — see
+ * `services/combat/presentation/gameFeel.ts`.
+ *
+ * 'heavy'    — an interruptible boss action (a real telegraphed charge).
+ * 'ultimate' — a hero spending an ultimate-slot ability.
+ */
+export type BeatSeverity = 'normal' | 'heavy' | 'ultimate';
+
 export interface AnimationBeat {
   /** Stable id — assigned by adapter, monotonic per event index. */
   id: string;
@@ -24,12 +34,17 @@ export interface AnimationBeat {
   /** How long the beat should hold before advancing (ms). */
   durationMs: number;
   cue: BeatCue;
-  /** Only set on `boss_intent_declared` and the boss's own `damage_dealt` —
-   *  'heavy' for an interruptible action (a real telegraphed "charge"),
-   *  'normal' for everything else. Drives the boss charge-up visual and
-   *  bigger AttackVFX bolt/impact sizing without re-deriving from live
-   *  state (which may have already moved past the declaring round). */
-  severity?: 'heavy' | 'normal';
+  /** Set on `boss_intent_declared`, the boss's own `damage_dealt`, and an
+   *  ultimate-slot `player_action_selected`. Derived once at queue time
+   *  rather than from live state, which may already have moved past the
+   *  declaring round. */
+  severity?: BeatSeverity;
+  /** True for beats flushed by `skip()`. Effect consumers MUST bail on these:
+   *  a skipped 12-beat boss turn would otherwise fire a full-screen flash and
+   *  an arena shake for its final damage event with no build-up at all.
+   *  State-carrying visuals (floating numbers, HP bars) still render — the
+   *  player skipped the drama, not the information. */
+  suppressEffects?: boolean;
 }
 
 /**
@@ -44,11 +59,28 @@ export const TIMINGS = {
   windUpNormal: 250,
   windUpHeavy: 900,
   impact: 400,
+  impactHeavy: 650,
   floating: 350,
   handoff: 300,
   phase: 1500,
   ultimate: 3000,
 } as const;
 
-/** Applied when prefers-reduced-motion is set. All beats collapse to this. */
-export const REDUCED_MOTION_MS = 40;
+/**
+ * Beat holds when motion is off (or the OS asks for reduced motion).
+ *
+ * Reduced motion means "no MOTION", not "no TIME" — the previous flat 40ms
+ * collapsed every beat equally, which is why the reduced-motion path felt
+ * like the animation had simply been skipped. Dramatic beats keep enough
+ * hold to read as deliberate; their MOTION is what the components drop.
+ */
+export const REDUCED_MOTION_BY_CUE: Record<BeatCue, number> = {
+  narration: 40,
+  intent: 200,
+  wind_up: 80,
+  impact: 120,
+  floating: 120,
+  handoff: 60,
+  phase: 600,
+  ultimate: 1200,
+};

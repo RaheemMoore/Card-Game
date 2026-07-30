@@ -1,0 +1,41 @@
+{
+  "subject": "keeper-archivist",
+  "label": "The Archivist — keeper of The Collection",
+
+  "pipeline": "v3",
+
+  "identity": {
+    "description": "Young adult woman with bright curly red hair and pale freckled skin, slight slender build. Chibi proportions, big head, short body. An archivist and keeper of a card collection: she wears a long dark green over-tunic with an ink-guard sleeve on her right forearm, a wide leather strap across her chest holding a thick bound ledger at her hip, a flat brass card case on her belt, and reading lenses pushed up into her hair. Standing calmly, facing the viewer. Detailed pixel art, single colour black outline, basic shading, medium detail.",
+    "avoid": "no sword, no weapons, no armour, no wizard hat, no staff, no cape, no bare midriff, no revealing clothing"
+  },
+
+  "notes": [
+    "MATCHES THE DWARF, NOT THE HERO. pipeline v3 = the pixen_v3 model that produced keeper-dwarf, which is the cast quality bar. The chibi hero is temporary and below it.",
+    "reference_image is deliberately NOT used: on /create-character-v3 it rotates a supplied sprite into 8 directions, so passing the dwarf would have regenerated HIM in her clothes. Style comes from the description plus outline/detail hints.",
+    "v3 has no `proportions` field, so 'Chibi proportions, big head, short body' is stated in prose — the same way the dwarf got his.",
+    "SEED IS SET, unlike the dwarf. She can be regenerated.",
+    "Her trade must read from a silhouette at ~60px: ledger, ink-guard sleeve, card case, lenses in hair. If it doesn't read in scene, that's the thing to fix."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "templateId": "mannequin",
+    "outline": "single color black outline",
+    "detail": "medium detail",
+    "size": { "width": 244, "height": 244 }
+  },
+
+  "seed": 640913,
+
+  "animations": [
+    {
+      "id": "breathe",
+      "name": "breathe",
+      "template": "breathing-idle",
+      "directions": ["south"],
+      "note": "South only — animation costs 1 generation per direction, and a stationary keeper shows one facing."
+    }
+  ],
+
+  "directions": ["south"]
+}

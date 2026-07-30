@@ -26,15 +26,17 @@ function testStats(atk = 55, def = 45, mana = 60): CardStats {
 }
 
 function heroWithAbilities(id: string, name: string) {
-  const soulDrain = SEED_ABILITIES.find((s) => s.definition.id === 'ability_soul_drain')!;
-  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
-  const radiantWard = SEED_ABILITIES.find((s) => s.definition.id === 'ability_radiant_ward')!;
+  const soulDrain = SEED_ABILITIES.find((s) => s.definition.id === 'ability_inherited_guard')!;
+  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
+  const radiantWard = SEED_ABILITIES.find((s) => s.definition.id === 'ability_bearing_witness')!;
   return buildHeroSnapshot({
     cardId: id,
     archetype: 'Barbarian',
     displayName: name,
     stats: testStats(),
     rank: 'Forged',
+    // These suites assert combat MATH, not element interaction.
+    elementDamageType: 'physical',
     abilities: [
       buildAbilitySnapshot(soulDrain.definition, soulDrain.version),
       buildAbilitySnapshot(emberCleave.definition, emberCleave.version),

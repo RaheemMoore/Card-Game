@@ -1,3 +1,4 @@
+import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
 import { describe, it, expect } from 'vitest';
 import { InMemoryAbilityStore } from '../persistence/AbilityStore';
 import { seedAbilityLibrary } from './seed';
@@ -53,14 +54,14 @@ describe('approveAbility', () => {
 
   it('no-ops on an already-approved ability', async () => {
     const store = await storeWithProposed();
-    const result = await approveAbility(store, 'ability_ember_cleave');
+    const result = await approveAbility(store, 'ability_oathbreakers_answer');
     expect(result.kind).toBe('no_op');
   });
 
   it('rejects approval on a merged identity', async () => {
     const store = await storeWithProposed();
     const proposed = listReviewQueue(store)[0];
-    await mergeAbility(store, proposed.id, 'ability_ember_cleave');
+    await mergeAbility(store, proposed.id, 'ability_oathbreakers_answer');
 
     const result = await approveAbility(store, proposed.id);
     expect(result.kind).toBe('invalid');
@@ -92,18 +93,18 @@ describe('mergeAbility', () => {
   it('marks source merged and links mergedIntoAbilityId', async () => {
     const store = await storeWithProposed();
     const proposed = listReviewQueue(store)[0];
-    const result = await mergeAbility(store, proposed.id, 'ability_ember_cleave', now);
+    const result = await mergeAbility(store, proposed.id, 'ability_oathbreakers_answer', now);
     expect(result.kind).toBe('ok');
     const src = store.getDefinition(proposed.id);
     expect(src?.status).toBe('merged');
-    expect(src?.mergedIntoAbilityId).toBe('ability_ember_cleave');
+    expect(src?.mergedIntoAbilityId).toBe('ability_oathbreakers_answer');
     // Target unchanged.
-    expect(store.getDefinition('ability_ember_cleave')?.status).toBe('approved');
+    expect(store.getDefinition('ability_oathbreakers_answer')?.status).toBe('approved');
   });
 
   it('rejects self-merge', async () => {
     const store = await storeWithProposed();
-    const result = await mergeAbility(store, 'ability_ember_cleave', 'ability_ember_cleave');
+    const result = await mergeAbility(store, 'ability_oathbreakers_answer', 'ability_oathbreakers_answer');
     expect(result.kind).toBe('invalid');
   });
 
@@ -127,10 +128,16 @@ describe('computeAnalytics', () => {
   it('counts by status + families', async () => {
     const store = await storeWithProposed();
     const analytics = computeAnalytics(store);
-    expect(analytics.totalDefinitions).toBe(7); // 6 seeds + 1 proposed
-    expect(analytics.approvedCount).toBe(6);
+    // Derived from the roster rather than hard-coded, so authoring more
+    // abilities does not break an unrelated analytics test.
+    const seedCount = SEED_ABILITIES.length;
+    expect(analytics.totalDefinitions).toBe(seedCount + 1); // roster + 1 proposed
+    expect(analytics.approvedCount).toBe(seedCount);
     expect(analytics.proposedCount).toBe(1);
-    expect(analytics.perFamily.find((f) => f.familyId === 'martial')?.approved).toBe(2);
+    const martialSeeds = SEED_ABILITIES.filter((a) =>
+      a.definition.familyIds.includes('martial'),
+    ).length;
+    expect(analytics.perFamily.find((f) => f.familyId === 'martial')?.approved).toBe(martialSeeds);
   });
 });
 

@@ -6,9 +6,8 @@ import { resolveNarrativePath } from '../../data/visualPillars';
 import { generateCardTextWithRetry } from '../claudeApi';
 import { generatePortraitStrict, pickAbTestModel } from '../leonardoApi';
 import { saveCard } from '../storage';
-import { proposeAbility } from '../abilities/proposalService';
 import { getAbilityStore, saveReference } from '../abilities/registry';
-import { grantDiscoveryReward } from '../abilities/discoveryLedger';
+import { assignAbilitiesForCard } from '../abilities/rosterAssigner';
 import * as wallet from '../economy/walletService';
 import * as ledger from '../economy/transactionLedger';
 import { PREMIUM_PRICE_CATALOG } from '../../data/economy/premiumPriceCatalog';
@@ -290,47 +289,34 @@ async function runForge(job: ForgeJob): Promise<void> {
     );
 
     let abilityHistorySnapshot: AbilityHistorySnapshot[] = [];
-    let relicDiscovery: ForgeRelicDiscovery | undefined;
-    if (text.abilityCandidate) {
-      try {
-        const outcome = proposeAbility(getAbilityStore(), {
-          candidate: text.abilityCandidate,
-          userId: getCurrentUserId() ?? 'anon',
-        });
-        if (outcome.kind === 'attached') {
-          const ref: CardAbilityReference = {
-            cardId: shell.cardId,
-            abilityId: outcome.abilityId,
-            abilityVersionId: outcome.abilityVersionId,
-            slotType: 'core',
-            localTier: 'Foundation',
-            displayOrder: 0,
-          };
-          saveReference(ref);
-          abilityHistorySnapshot = [{
-            abilityId: outcome.abilityId,
-            abilityVersionId: outcome.abilityVersionId,
-            slotType: 'core',
-          }];
-          if (outcome.firstDiscoveryForPlayer) {
-            const reward = grantDiscoveryReward(getAbilityStore(), outcome.abilityId);
-            if (reward.kind === 'granted' && import.meta.env.DEV) {
-              const summary = reward.items.map((i) => `+${i.amount} ${i.currency}`).join(', ');
-              console.debug(`[forge] discovery reward granted: ${summary}`);
-            }
-            const version = getAbilityStore().getCurrentVersion(outcome.abilityId);
-            const resource: ForgeResource | undefined =
-              version?.resourceType === 'mana' || version?.resourceType === 'tech'
-                ? version.resourceType
-                : undefined;
-            relicDiscovery = { abilityId: outcome.abilityId, resource };
-          }
-        } else if (outcome.kind === 'rejected') {
-          console.warn('[forge] ability candidate rejected:', outcome.errors);
-        }
-      } catch (err) {
-        console.warn('[forge] ability proposal failed, card ships without ability:', err);
-      }
+    const relicDiscovery: ForgeRelicDiscovery | undefined = undefined;
+
+    // Abilities are ASSIGNED from the fixed roster, not invented per forge.
+    //
+    // This used to call `proposeAbility` with a Claude-generated candidate.
+    // Only an EXACT match against something already in the library attached;
+    // anything novel was queued for moderation and the card shipped with no
+    // ability, no reward and no notification — a silent dead end that made
+    // "abilities that spawn" unviable in practice. Roster assignment is
+    // deterministic, always playable, and always in power band.
+    try {
+      const assigned = assignAbilitiesForCard(getAbilityStore(), shell);
+      const refs: CardAbilityReference[] = assigned.map((a) => ({
+        cardId: shell.cardId,
+        abilityId: a.definition.id,
+        abilityVersionId: a.version.id,
+        slotType: a.slot,
+        localTier: 'Foundation',
+        displayOrder: a.slot === 'core' ? 0 : a.slot === 'signature' ? 1 : 2,
+      }));
+      for (const ref of refs) saveReference(ref);
+      abilityHistorySnapshot = assigned.map((a) => ({
+        abilityId: a.definition.id,
+        abilityVersionId: a.version.id,
+        slotType: a.slot,
+      }));
+    } catch (err) {
+      console.warn('[forge] roster assignment failed, card ships without ability:', err);
     }
 
     const fullCard: Card = {

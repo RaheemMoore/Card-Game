@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { HeroCombatant } from '../../types/combat';
-import type { AnimationBeat } from '../../services/combat/presentation/types';
+import type { AnimationBeat, BeatSeverity } from '../../services/combat/presentation/types';
+import { getGameFeel } from '../../services/combat/presentation/gameFeel';
+import type { MotionLevel } from '../../vfx/types';
 import { getHeroSprite, getHeroSpriteAnchor } from '../../data/combat/heroSpriteManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { getStatus } from '../../data/abilities/statuses';
@@ -18,6 +20,14 @@ interface Props {
   canAct: boolean;
   currentBeat: AnimationBeat | null;
   targetPickMode?: TargetPickMode | null;
+  motionLevel: MotionLevel;
+}
+
+/** The boss stands dead centre; a hero's lane sits somewhere to its right.
+ *  +1 means "the boss is to my right", which is the direction an attacker
+ *  lunges and the opposite of the direction a victim is knocked. */
+function towardBoss(laneXPercent: number): 1 | -1 {
+  return laneXPercent > 50 ? -1 : 1;
 }
 
 /**
@@ -45,7 +55,7 @@ const HERO_BODY_HEIGHT = 'clamp(165px, 22vh, 265px)';
  * Leonardo ones and rendered ~40% smaller. Anything positional added here
  * must hang off the floor line too, or it will reintroduce that drift.
  */
-export function HeroSpriteLayer({ heroes, actingActorId, canAct, currentBeat, targetPickMode = null }: Props) {
+export function HeroSpriteLayer({ heroes, actingActorId, canAct, currentBeat, targetPickMode = null, motionLevel }: Props) {
   const viewportWidth = useViewportWidth();
   // Lanes sit entirely right of the reserved party-dock width (see
   // computeHeroLaneXPercents docstring) — never under the fanned mini-cards,
@@ -83,7 +93,14 @@ export function HeroSpriteLayer({ heroes, actingActorId, canAct, currentBeat, ta
             // — status pills included — can push a sprite off the baseline.
             style={{ left: `${laneXPercents[i]}%`, bottom: 0, width: 0, height: 0 }}
           >
-            <HeroSprite combatant={combatant} isActing={isActing} currentBeat={currentBeat} pickable={pickable} />
+            <HeroSprite
+              combatant={combatant}
+              isActing={isActing}
+              currentBeat={currentBeat}
+              pickable={pickable}
+              motionLevel={motionLevel}
+              facing={towardBoss(laneXPercents[i] ?? 50)}
+            />
           </div>
         );
       })}
@@ -96,11 +113,15 @@ function HeroSprite({
   isActing,
   currentBeat,
   pickable,
+  motionLevel,
+  facing,
 }: {
   combatant: HeroCombatant;
   isActing: boolean;
   currentBeat: AnimationBeat | null;
   pickable: boolean;
+  motionLevel: MotionLevel;
+  facing: 1 | -1;
 }) {
   const isDefeated = combatant.defeated;
 
@@ -108,21 +129,30 @@ function HeroSprite({
   // the shake) or 'attack' (this hero was the damage SOURCE, plays the
   // lunge). Kept mutually exclusive on one key so the two animations never
   // both fire on the same beat and layer into a muddled combined motion.
-  const [reaction, setReaction] = useState<{ key: number; type: 'hit' | 'attack' } | null>(null);
+  // Severity rides along so the reaction can be sized to the blow.
+  const [reaction, setReaction] = useState<
+    { key: number; type: 'hit' | 'attack'; severity?: BeatSeverity } | null
+  >(null);
   const lastReactionBeatId = useRef<string | null>(null);
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastReactionBeatId.current) return;
+    // Beats flushed by skip() never earned their build-up; replaying the
+    // last one's reaction in isolation just looks like a glitch.
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
     if (e.kind !== 'damage_dealt') return;
+    const severity = currentBeat.severity;
     if (e.targetActorId === combatant.actorId) {
       lastReactionBeatId.current = currentBeat.id;
-      setReaction((cur) => ({ key: (cur?.key ?? 0) + 1, type: 'hit' }));
+      setReaction((cur) => ({ key: (cur?.key ?? 0) + 1, type: 'hit', severity }));
     } else if (e.sourceActorId === combatant.actorId) {
       lastReactionBeatId.current = currentBeat.id;
-      setReaction((cur) => ({ key: (cur?.key ?? 0) + 1, type: 'attack' }));
+      setReaction((cur) => ({ key: (cur?.key ?? 0) + 1, type: 'attack', severity }));
     }
   }, [currentBeat, combatant.actorId]);
+
+  const feel = getGameFeel(reaction?.severity, motionLevel);
 
   const spriteAsset = getHeroSprite(combatant.snapshot.archetype);
   const spriteUrl = spriteAsset ? resolveCombatAssetUrl(spriteAsset) : null;
@@ -147,6 +177,8 @@ function HeroSprite({
   const hpPct = Math.max(0, combatant.hp / combatant.snapshot.maxHp);
   const lowHp = !isDefeated && hpPct <= 0.25;
   const shieldTotal = combatant.shields.reduce((sum, s) => sum + s.amount, 0);
+  // Scoped per hero — three sprites on screen would otherwise share one id.
+  const shieldGradientId = `shield-face-${combatant.actorId}`;
   const statuses = combatant.statuses.slice(0, 3);
   const overflowCount = combatant.statuses.length - statuses.length;
 
@@ -168,14 +200,34 @@ function HeroSprite({
         <>
           <div
             key={reaction?.key ?? 0}
-            className={`${reaction?.type === 'hit' ? 'hero-sprite-shake' : ''} ${reaction?.type === 'attack' ? 'hero-sprite-attack' : ''} ${pickable ? 'hero-sprite-target-pulse' : ''} ${lowHp ? 'hero-sprite-low-hp' : ''}`}
+            className={[
+              // With motion off the reaction becomes a held tint instead of
+              // being dropped. Losing movement must never mean losing the
+              // fact that something happened to this hero.
+              reaction?.type === 'hit' && (feel.staticFallback ? 'hero-sprite-static-hit' : 'hero-sprite-shake'),
+              reaction?.type === 'attack' && (feel.staticFallback ? 'hero-sprite-static-act' : 'hero-sprite-attack'),
+              pickable && 'hero-sprite-target-pulse',
+              lowHp && 'hero-sprite-low-hp',
+            ]
+              .filter(Boolean)
+              .join(' ')}
             style={{
               ...frame,
               filter: isActing
                 ? 'brightness(1) saturate(1)'
                 : 'brightness(0.82) saturate(0.9)',
-              boxShadow: shieldTotal > 0 ? '0 0 0 2px rgba(190,225,255,0.65), 0 0 10px 2px rgba(140,200,255,0.35)' : 'none',
               borderRadius: 10,
+              // Drive the shared keyframes per-instance. Percentages inside
+              // @keyframes cannot be parameterised, so the HOLD is a fixed
+              // fraction of the run and severity varies the duration instead.
+              ...({
+                '--react-ms': `${feel.spriteShakeMs}ms`,
+                '--shake-px': `${feel.spriteShakePx}px`,
+                '--knock-px': `${feel.spriteShakePx * -facing}px`,
+                '--lunge-px': `${feel.lungePx * facing}px`,
+                '--anticipate-px': `${feel.lungePx * -facing * 0.25}px`,
+                '--impact-flash': `${feel.impactFlash}`,
+              } as React.CSSProperties),
             }}
           >
             <img
@@ -184,26 +236,59 @@ function HeroSprite({
               className="w-full h-full"
               draggable={false}
             />
-            {shieldTotal > 0 && (
-              <span
-                aria-hidden
-                className="absolute -top-1 -right-1 rounded-full flex items-center justify-center"
-                style={{
-                  fontSize: 8,
-                  fontWeight: 700,
-                  minWidth: 18,
-                  height: 14,
-                  padding: '0 3px',
-                  background: 'rgba(15,43,58,0.85)',
-                  border: '1px solid rgba(140,200,255,0.6)',
-                  color: '#bfe6f5',
-                }}
-              >
-                🛡{shieldTotal}
-              </span>
-            )}
             <FloatingDamage currentBeat={currentBeat} actorId={combatant.actorId} />
           </div>
+
+          {/* Shield — a crest floating off the hero's shoulder rather than a
+              ring around the whole sprite. The full-perimeter glow it replaced
+              traced the IMAGE's bounding box, not the character, so it read as
+              a rectangle of light around a person instead of a ward they were
+              carrying. Anchored to shoulder height off the shared floor line
+              (see this file's docstring — anything positional must be, or it
+              drifts between the two art sources). */}
+          {shieldTotal > 0 && (
+            <div
+              aria-hidden
+              className={feel.staticFallback ? '' : 'hero-shield-crest'}
+              style={{
+                position: 'absolute',
+                left: 26,
+                bottom: `calc(${HERO_BODY_HEIGHT} * 0.7)`,
+                width: 30,
+                height: 34,
+              }}
+            >
+              <svg viewBox="0 0 30 34" width="30" height="34">
+                <defs>
+                  <linearGradient id={shieldGradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8fd4ff" stopOpacity="0.95" />
+                    <stop offset="55%" stopColor="#3f8fd0" stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#12395e" stopOpacity="0.9" />
+                  </linearGradient>
+                </defs>
+                {/* Heater shield: flat top, shoulders, tapering to a point. */}
+                <path
+                  d="M15 1.5 L28 6 L28 17 C28 25 21 30.5 15 32.5 C9 30.5 2 25 2 17 L2 6 Z"
+                  fill={`url(#${shieldGradientId})`}
+                  stroke="#cfeaff"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(120,200,255,0.75))' }}
+                />
+                <text
+                  x="15"
+                  y="20"
+                  textAnchor="middle"
+                  fontSize="12"
+                  fontWeight="700"
+                  fill="#f2fbff"
+                  style={{ paintOrder: 'stroke', stroke: '#0b2740', strokeWidth: 2.5 }}
+                >
+                  {shieldTotal}
+                </text>
+              </svg>
+            </div>
+          )}
 
           {/* Ground shadow — centered on the floor point, sunk slightly under
               it so the feet read as touching it rather than resting on a disc. */}
@@ -261,22 +346,35 @@ function HeroSprite({
       )}
 
       <style>{`
+        /* HITSTOP. The first 18% of the run holds the contact pose, frozen
+           and blown out, before anything moves. That pause is what gives a
+           blow weight — the motion afterwards only sells the recovery. It is
+           baked into the keyframes rather than driven by a game loop, so it
+           costs no new infrastructure and cannot desync from the beat. */
         @keyframes hero-sprite-hit-shake {
-          0%   { transform: translate(0, 0); }
-          15%  { transform: translate(-4px, 1px); filter: brightness(1.4); }
-          30%  { transform: translate(4px, -1px); filter: brightness(1.4); }
-          45%  { transform: translate(-3px, 0); }
-          60%  { transform: translate(3px, 0); }
-          100% { transform: translate(0, 0); }
+          0%, 18% { transform: translate(0, 0); filter: brightness(var(--impact-flash)) saturate(0.4); }
+          /* Knockback: the first real displacement goes AWAY from the
+             attacker, then decays into the symmetric rattle. */
+          30%     { transform: translate(var(--knock-px), 1px); filter: brightness(1.15); }
+          46%     { transform: translate(calc(var(--shake-px) * -0.7), -1px); }
+          62%     { transform: translate(calc(var(--shake-px) * 0.5), 0); }
+          80%     { transform: translate(calc(var(--shake-px) * -0.25), 0); }
+          100%    { transform: translate(0, 0); }
         }
-        .hero-sprite-shake { animation: hero-sprite-hit-shake 0.35s ease-out; }
+        .hero-sprite-shake { animation: hero-sprite-hit-shake var(--react-ms, 350ms) ease-out; }
 
+        /* A STRIKE, not a hop. This used to be translateY(-6px) scale(1.05),
+           which read as the hero jumping on the spot while the damage landed
+           somewhere else entirely. Now they pull back a frame (anticipation),
+           drive horizontally at the boss, and settle. */
         @keyframes hero-sprite-attack-lunge {
-          0%   { transform: translateY(0); }
-          40%  { transform: translateY(-6px) scale(1.05); filter: brightness(1.15); }
-          100% { transform: translateY(0) scale(1); }
+          0%   { transform: translateX(0); }
+          18%  { transform: translateX(var(--anticipate-px)); }
+          42%  { transform: translateX(var(--lunge-px)) scale(1.04); filter: brightness(1.2); }
+          58%  { transform: translateX(var(--lunge-px)) scale(1.04); filter: brightness(1.2); }
+          100% { transform: translateX(0) scale(1); }
         }
-        .hero-sprite-attack { animation: hero-sprite-attack-lunge 0.3s ease-out; }
+        .hero-sprite-attack { animation: hero-sprite-attack-lunge 380ms cubic-bezier(0.2, 0.9, 0.3, 1); }
 
         @keyframes hero-sprite-target-pulse {
           0%, 100% { filter: drop-shadow(0 0 6px rgba(235,150,46,0.6)); }
@@ -295,11 +393,41 @@ function HeroSprite({
         }
         .hero-sprite-low-hp { animation: hero-sprite-low-hp-breathe 4.2s ease-in-out infinite; }
 
+        /* The ward drifts — it is a held magical object, not part of the
+           body, so a slow bob separates it from the sprite's own motion.
+           Deliberately far slower than any reaction animation so it reads as
+           an ongoing state rather than competing for attention. */
+        @keyframes hero-shield-float {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-3px); }
+        }
+        .hero-shield-crest { animation: hero-shield-float 3s ease-in-out infinite; }
+
+        /* Motion-off substitutes. steps(1, end) means the value SNAPS and
+           then holds — no interpolation, so there is genuinely no movement
+           on screen, only a state that is legible for long enough to read.
+           This is the house rule: kill the motion, keep the information. */
+        @keyframes hero-sprite-static-hit {
+          0%, 92% { filter: brightness(1.35) saturate(1.25); }
+          100%    { filter: brightness(0.82) saturate(0.9); }
+        }
+        .hero-sprite-static-hit { animation: hero-sprite-static-hit 900ms steps(1, end); }
+
+        @keyframes hero-sprite-static-act {
+          0%, 92% { filter: brightness(1.2); }
+          100%    { filter: brightness(0.82) saturate(0.9); }
+        }
+        .hero-sprite-static-act { animation: hero-sprite-static-act 600ms steps(1, end); }
+
+        /* Safety net only. The Motion setting is the real control and it
+           already defaults to 'off' when the OS asks for reduced motion; this
+           guarantees correct behaviour even if a class slips through. */
         @media (prefers-reduced-motion: reduce) {
           .hero-sprite-shake { animation: none !important; }
           .hero-sprite-attack { animation: none !important; }
           .hero-sprite-target-pulse { animation: none !important; filter: drop-shadow(0 0 10px rgba(235,150,46,0.8)) !important; }
           .hero-sprite-low-hp { animation: none !important; filter: saturate(0.82) !important; }
+          .hero-shield-crest { animation: none !important; }
         }
       `}</style>
     </div>

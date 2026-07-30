@@ -1,7 +1,11 @@
 import type {
-  AbilityEffect,
+  AbilityCondition,
+  StatusApplication,
   AbilityVersion,
+  DamageType,
+  ScalingRule,
 } from '../../types/abilities';
+import { STATUS_CATALOG, STATUS_DAMAGE_TYPE } from '../../data/abilities/statuses';
 import { resolveTargetRule } from './targeting';
 import type {
   AbilityCombatSnapshot,
@@ -16,7 +20,6 @@ import type {
   TurnPhase,
 } from '../../types/combat';
 import {
-  FIRE_ELEMENTAL_RESISTANCE,
   NEUTRAL_RESISTANCE,
   RESOURCE_REGEN_PER_ROUND,
   clampUltimateCharge,
@@ -29,6 +32,11 @@ import {
   tickCooldowns,
   ultimateChargeGain,
   type ResistanceProfile,
+  statusDamageModifiers,
+  REGENERATION_PER_STACK,
+  REGENERATION_MAX_STACKS,
+  BOSS_REGENERATION_PER_STACK,
+  THORNS_REFLECT_SHARE,
 } from './formulas';
 
 /**
@@ -36,9 +44,12 @@ import {
  * card-engine-boss-battle-spec.md for turn phase order and §12 for the
  * snapshot-immutable rule.
  *
- * Effects supported at B2: direct_damage, healing, shielding, apply_status,
- * resource_gain, lifesteal, ultimate_charge_gain. Broader coverage lands
- * in B4 alongside the vertical slice.
+ * Effects supported: direct_damage, multi_hit, damage_over_time, healing,
+ * shielding, guard, taunt, apply_status, remove_status, resource_gain,
+ * lifesteal, ultimate_charge_gain, conditional_bonus. `summon` is
+ * deliberately out of scope — multiple enemies would change the combat
+ * contract (targeting, event log, the single-boss assumption in
+ * doResolveBoss), not just the effect switch.
  *
  * Public API:
  *   initializeBattle(snapshot) → BattleState
@@ -86,11 +97,12 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     };
   });
 
+  const openingPhase = snapshot.boss.phases[0];
   const boss: BossCombatant = {
     actorId: 'boss_0',
     snapshot: snapshot.boss,
     hp: snapshot.boss.maxHp,
-    currentPhaseId: snapshot.boss.phases[0].id,
+    currentPhaseId: openingPhase.id,
     actionCooldowns: [],
     statuses: [],
     shields: [],
@@ -98,7 +110,7 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     currentIntent: null,
   };
 
-  return {
+  const opening: BattleState = {
     snapshot,
     round: 0,
     step: 0,
@@ -112,6 +124,18 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     ],
     result: null,
   };
+
+  // Nothing TRANSITIONS into phase 0, so its passives have to be applied here
+  // or a boss whose first phase regenerates would not start doing so until it
+  // dropped into its second. Routed through the same helper as a real
+  // transition rather than hand-built, so the catalog's stacking caps apply —
+  // building the instances inline let an authored `stacks: 9` through against
+  // regeneration's maximum of 3.
+  const openingEvents: BattleEvent[] = [];
+  const withPassives = applyPhasePassives(opening, openingPhase, openingEvents);
+  return openingEvents.length > 0
+    ? { ...withPassives, log: [...withPassives.log, ...openingEvents] }
+    : withPassives;
 }
 
 /* ------------------------------------------------------------------ */
@@ -268,7 +292,7 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
         next,
         hero.actorId,
         targetResolution.targetActorIds,
-        abilityRef.version.effects,
+        abilityRef,
       );
       next = outcome.state;
       events.push(...outcome.events);
@@ -379,10 +403,16 @@ function doResolveBoss(state: BattleState): StepResult {
   // a hero pull aggro deliberately; the death-fallback removes the exploit
   // where killing the declared target skipped the boss's turn.
   const intent = state.boss.currentIntent!;
+  // Taunt outranks everything, including a hero's own Focus — that is the
+  // whole point of standing in front. Ties break on lane order, never on RNG,
+  // so the choice stays replayable.
+  let target: HeroCombatant | undefined = state.heroes.find(
+    (h) => !h.defeated && h.statuses.some((st) => st.statusId === 'taunt'),
+  );
   const focusedId = focusedActorIdThisRound(state);
-  let target: HeroCombatant | undefined = focusedId
-    ? state.heroes.find((h) => h.actorId === focusedId && !h.defeated)
-    : undefined;
+  if (!target && focusedId) {
+    target = state.heroes.find((h) => h.actorId === focusedId && !h.defeated);
+  }
   if (!target) {
     const declared = state.heroes.find((h) => h.actorId === intent.targetActorIds[0]);
     if (declared && !declared.defeated) target = declared;
@@ -396,25 +426,87 @@ function doResolveBoss(state: BattleState): StepResult {
     return transition(state, [], 'end_of_round');
   }
 
-  // B2 boss actions ship as raw parameters keyed on intentType, not full AbilityEffect
-  // arrays (BossActionSnapshot is a lighter shape than AbilityVersion). We map
-  // the small set of intent types the fire elemental uses.
+  // Boss actions ship as raw parameters keyed on intentType rather than full
+  // AbilityEffect arrays — BossActionSnapshot is a lighter shape than
+  // AbilityVersion. Until 2026-07-28 this switch did not exist at all: every
+  // intent, including `area_attack` and `execute`, fell through the same
+  // single-target damage path, so the ten declared intent types were one
+  // behaviour wearing ten names.
   const events: BattleEvent[] = [];
   let next: BattleState = state;
 
   const bossBaseDamage = action.baseDamage + Math.floor(action.scalingPerRound * state.round);
-  if (bossBaseDamage > 0) {
+
+  /** One boss hit against one hero. */
+  const strike = (hero: HeroCombatant) => {
     const dmg = resolveDamage({
       baseAmount: bossBaseDamage,
-      damageType: 'fire',
-      targetMitigation: Math.floor(target.snapshot.stats.Def.value / 5),
+      // Authored per action. Was hardcoded 'fire' for every boss in the game,
+      // which made hero elemental resistance meaningless and every future
+      // boss a reskin of this one.
+      damageType: action.damageType,
+      targetMitigation: Math.floor(hero.snapshot.stats.Def.value / 5),
       targetResistance: NEUTRAL_RESISTANCE,
-      targetShields: target.shields,
+      targetShields: hero.shields,
+      incomingMultiplier: statusDamageModifiers([], hero.statuses, action.damageType)
+        .incomingMultiplier,
     });
-    next = applyDamageToHero(next, target.actorId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+    next = applyDamageToHero(next, hero.actorId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
       sourceActorId: state.boss.actorId,
       damageType: dmg.damageType,
     });
+  };
+
+  switch (action.intentType) {
+    case 'area_attack': {
+      // Hits EVERYONE. This is the pressure that makes a party-wide healer
+      // matter and makes taunt a trap — there is no one to pull aggro from.
+      // Re-read the hero list per strike so a death mid-sweep is respected.
+      if (bossBaseDamage > 0) {
+        for (const hero of state.heroes) {
+          const live = next.heroes.find((h) => h.actorId === hero.actorId);
+          if (live && !live.defeated) strike(live);
+        }
+      }
+      break;
+    }
+    case 'shield': {
+      // `BossCombatant.shields` already existed, was already consumed by
+      // applyDamageToBoss and already expired — the only missing piece was a
+      // producer, because this intent was never implemented.
+      const amount = action.shieldAmount ?? 0;
+      if (amount > 0) {
+        next = {
+          ...next,
+          boss: {
+            ...next.boss,
+            shields: [
+              ...next.boss.shields,
+              {
+                amount,
+                types: [],
+                remainingRounds: action.shieldDurationRounds ?? 2,
+                sourceActorId: state.boss.actorId,
+              },
+            ],
+          },
+        };
+        events.push({
+          kind: 'shield_gained',
+          sourceActorId: state.boss.actorId,
+          targetActorId: state.boss.actorId,
+          amount,
+          types: [],
+        });
+      }
+      if (bossBaseDamage > 0) strike(target);
+      break;
+    }
+    default: {
+      // heavy_attack and everything not yet given its own behaviour.
+      if (bossBaseDamage > 0) strike(target);
+      break;
+    }
   }
 
   // Add the used action to the boss's cooldown table.
@@ -479,7 +571,16 @@ function doEndOfRound(state: BattleState): StepResult {
   let next = state;
   const events: BattleEvent[] = [];
 
-  // Statuses: tick DoT + duration decrement.
+  // Damage-over-time and regeneration resolve BEFORE the duration decrement,
+  // so a status with one round left still gets its final tick.
+  //
+  // One tick point per round rather than per actor turn: the boss acts once a
+  // round while heroes act up to three times, so per-turn ticking would make
+  // a DoT on the party fire three times as often as the same DoT on the boss.
+  next = applyDotTicks(next, events);
+  next = applyRegeneration(next, events);
+
+  // Statuses: duration decrement + expiry.
   next = {
     ...next,
     heroes: next.heroes.map((h) => tickHeroStatuses(h, events)),
@@ -530,6 +631,7 @@ function doCheckPhaseTransition(state: BattleState): StepResult {
       { kind: 'phase_transition', fromPhaseId: boss.currentPhaseId, toPhaseId: nextPhase.id },
     ];
     let next = { ...state, boss: { ...boss, currentPhaseId: nextPhase.id } };
+    next = applyPhasePassives(next, nextPhase, events);
     // Phase transition grants ult charge to all living heroes.
     next = {
       ...next,
@@ -585,7 +687,12 @@ function doCheckVictory(state: BattleState): StepResult {
 function validateAbilityUsable(
   hero: HeroCombatant,
   version: AbilityVersion,
-): 'insufficient_resource' | 'on_cooldown' | null {
+): 'insufficient_resource' | 'on_cooldown' | 'stunned' | 'silenced' | null {
+  // Stun costs the NEXT ACTION, not a whole round. Against a three-hero party
+  // a full-turn skip would prevent roughly an ultimate's worth of damage,
+  // which is far too much for a single status.
+  if (hero.statuses.some((st) => st.statusId === 'stunned')) return 'stunned';
+  if (hero.statuses.some((st) => st.statusId === 'silenced')) return 'silenced';
   if (hero.cooldowns.some((c) => c.abilityDefinitionId === version.abilityId)) {
     return 'on_cooldown';
   }
@@ -593,6 +700,28 @@ function validateAbilityUsable(
     return 'insufficient_resource';
   }
   return null;
+}
+
+/**
+ * The damage type one effect actually deals.
+ *
+ * The ONLY place this decision is made. `previewAbilityDamage` and
+ * `resolveAbilityEffects` must both route through here, or the number shown
+ * in the pre-commit UI drifts from the number the hit actually deals — an
+ * invariant `previewAbilityDamage`'s own doc comment depends on.
+ *
+ * `damageTypeSource: 'element'` swaps in the hero's frozen element type (see
+ * `HeroSnapshot.elementDamageType`); everything else uses the type the
+ * ability was authored with.
+ */
+function effectDamageType(
+  effect: { damageType?: DamageType },
+  version: AbilityVersion,
+  hero: HeroCombatant,
+): DamageType {
+  return version.damageTypeSource === 'element'
+    ? hero.snapshot.elementDamageType
+    : effect.damageType ?? 'physical';
 }
 
 /**
@@ -615,7 +744,7 @@ export function previewAbilityDamage(
     any = true;
     const dmg = resolveDamage({
       baseAmount: effect.amount,
-      damageType: effect.damageType ?? 'physical',
+      damageType: effectDamageType(effect, ability.version, hero),
       scaling: effect.scaling,
       attackerStats: hero.snapshot.stats,
       targetMitigation: 0,
@@ -631,49 +760,97 @@ function resolveAbilityEffects(
   state: BattleState,
   actorId: string,
   targetActorIds: readonly string[],
-  effects: readonly AbilityEffect[],
+  ability: AbilityCombatSnapshot,
 ): StepResult {
   let next = state;
   const events: BattleEvent[] = [];
+  const version = ability.version;
 
-  for (const effect of effects) {
+  /**
+   * Every point of damage this ACTION has dealt so far.
+   *
+   * `lifesteal` reads this instead of reverse-scanning the event log for the
+   * last `damage_dealt`, which it used to do. That was fragile two ways: it
+   * silently healed nothing unless authored directly after a damage effect,
+   * and after an area attack it stole from only the final target hit.
+   */
+  let damageThisAction = 0;
+
+  /**
+   * One damage instance against one target — the single path all damage takes.
+   *
+   * direct_damage, multi_hit and conditional_bonus all route through here so
+   * mitigation, resistance, shields, status multipliers, ultimate charge and
+   * the lifesteal accumulator can never drift apart between them.
+   */
+  const dealOneHit = (
+    targetId: string,
+    baseAmount: number,
+    damageType: DamageType,
+    scaling: ScalingRule | undefined,
+  ): void => {
+    const hero = next.heroes.find((h) => h.actorId === actorId);
+    if (!hero) return;
+    const target = resolveTarget(next, targetId);
+    if (!target) return;
+    const targetResistance =
+      target.kind === 'boss' ? bossResistance(next) : heroResistance(target.actor.snapshot);
+    const targetMitigation =
+      target.kind === 'boss' ? 0 : Math.floor(target.actor.snapshot.stats.Def.value / 5);
+    const mods = statusDamageModifiers(hero.statuses, target.actor.statuses, damageType);
+    const dmg = resolveDamage({
+      baseAmount,
+      damageType,
+      scaling,
+      attackerStats: hero.snapshot.stats,
+      targetMitigation,
+      targetResistance,
+      targetShields: target.actor.shields,
+      outgoingMultiplier: mods.outgoingMultiplier,
+      incomingMultiplier: mods.incomingMultiplier,
+    });
+    next =
+      target.kind === 'boss'
+        ? applyDamageToBoss(next, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+            sourceActorId: actorId,
+            damageType: dmg.damageType,
+          })
+        : applyDamageToHero(next, targetId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+            sourceActorId: actorId,
+            damageType: dmg.damageType,
+          });
+    damageThisAction += dmg.postShieldAmount;
+
+    const delta = ultimateChargeGain({ damageDealt: dmg.postShieldAmount });
+    if (delta > 0) {
+      next = mutateHero(next, actorId, (h) => ({
+        ...h,
+        ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
+      }));
+      events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'damage_dealt' });
+    }
+  };
+
+  for (const [effectIndex, effect] of version.effects.entries()) {
     switch (effect.type) {
       case 'direct_damage': {
         const hero = next.heroes.find((h) => h.actorId === actorId)!;
+        const damageType = effectDamageType(effect, version, hero);
         for (const targetId of targetActorIds) {
-          const target = resolveTarget(next, targetId);
-          if (!target) continue;
-          const targetResistance =
-            target.kind === 'boss' ? bossResistance(next) : heroResistance(target.actor.snapshot);
-          const targetMitigation =
-            target.kind === 'boss' ? 0 : Math.floor(target.actor.snapshot.stats.Def.value / 5);
-          const dmg = resolveDamage({
-            baseAmount: effect.amount,
-            damageType: effect.damageType ?? 'physical',
-            scaling: effect.scaling,
-            attackerStats: hero.snapshot.stats,
-            targetMitigation,
-            targetResistance,
-            targetShields: target.actor.shields,
-          });
-          next =
-            target.kind === 'boss'
-              ? applyDamageToBoss(next, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
-                  sourceActorId: actorId,
-                  damageType: dmg.damageType,
-                })
-              : applyDamageToHero(next, targetId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
-                  sourceActorId: actorId,
-                  damageType: dmg.damageType,
-                });
-          // Ultimate charge from damage dealt.
-          const delta = ultimateChargeGain({ damageDealt: dmg.postShieldAmount });
-          if (delta > 0) {
-            next = mutateHero(next, actorId, (h) => ({
-              ...h,
-              ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
-            }));
-            events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'damage_dealt' });
+          dealOneHit(targetId, effect.amount, damageType, effect.scaling);
+        }
+        break;
+      }
+      case 'multi_hit': {
+        const hero = next.heroes.find((h) => h.actorId === actorId)!;
+        const damageType = effectDamageType(effect, version, hero);
+        // Deliberately N separate hits rather than one aggregate: each is
+        // independently floored at 1, independently checked against shields
+        // (so a shield can break partway through a flurry), and emits its own
+        // `damage_dealt` so the VFX layer can render every strike.
+        for (let hit = 0; hit < effect.hitCount; hit++) {
+          for (const targetId of targetActorIds) {
+            dealOneHit(targetId, effect.amountPerHit, damageType, effect.scaling);
           }
         }
         break;
@@ -713,7 +890,10 @@ function resolveAbilityEffects(
       case 'apply_status': {
         for (const targetId of targetActorIds) {
           const instance: StatusInstance = {
-            instanceId: `st_${state.step}_${effect.status.statusId}_${targetId}`,
+            // Includes the effect index: two statuses applied to one target
+            // in a single step would otherwise collide on id, and instanceId
+            // is what `remove_status` and the tick key off.
+            instanceId: `st_${state.step}_${effectIndex}_${effect.status.statusId}_${targetId}`,
             statusId: effect.status.statusId,
             sourceActorId: actorId,
             application: effect.status,
@@ -721,10 +901,7 @@ function resolveAbilityEffects(
             stacks: effect.status.stacks ?? 1,
           };
           if (targetId === next.boss.actorId) {
-            next = {
-              ...next,
-              boss: { ...next.boss, statuses: [...next.boss.statuses, instance] },
-            };
+            next = addStatus(next, targetId, instance);
             // Ult charge from applying status to boss.
             const delta = ultimateChargeGain({ statusAppliedToBoss: true });
             next = mutateHero(next, actorId, (h) => ({
@@ -733,7 +910,7 @@ function resolveAbilityEffects(
             }));
             events.push({ kind: 'ultimate_charge_changed', actorId, delta, source: 'status_applied' });
           } else {
-            next = mutateHero(next, targetId, (h) => ({ ...h, statuses: [...h.statuses, instance] }));
+            next = addStatus(next, targetId, instance);
           }
           events.push({
             kind: 'status_applied',
@@ -766,12 +943,10 @@ function resolveAbilityEffects(
         break;
       }
       case 'lifesteal': {
-        // Piggybacks on preceding damage this action. We look at the last damage_dealt event.
-        const lastDamage = [...events].reverse().find((e) => e.kind === 'damage_dealt') as
-          | (BattleEvent & { kind: 'damage_dealt' })
-          | undefined;
-        if (!lastDamage) break;
-        const heal = Math.floor(lastDamage.amount * effect.percentOfDamage);
+        // Steals from everything this action dealt — across every hit of a
+        // flurry and every target of an area attack, not just the last one.
+        if (damageThisAction <= 0) break;
+        const heal = Math.floor(damageThisAction * effect.percentOfDamage);
         const hero = next.heroes.find((h) => h.actorId === actorId);
         if (!hero || heal <= 0) break;
         const healResult = resolveHeal(heal, hero.hp, hero.snapshot.maxHp);
@@ -781,13 +956,471 @@ function resolveAbilityEffects(
         }
         break;
       }
+      case 'damage_over_time': {
+        // Deals nothing now. It plants a status carrying its own per-tick
+        // damage and type, resolved HERE at application time rather than at
+        // tick time — the caster may be dead by the time it burns.
+        const hero = next.heroes.find((h) => h.actorId === actorId)!;
+        // A DoT effect carries no damageType, so it burns as its STATUS says:
+        // burn is fire, bleed is physical, poison is nature. Defaulting to
+        // fire here meant the fire-resistant boss halved incoming BLEED.
+        // Element-typed abilities still override, per damageTypeSource.
+        const damageType = effectDamageType(
+          { damageType: STATUS_DAMAGE_TYPE[effect.statusId] ?? 'physical' },
+          version,
+          hero,
+        );
+        for (const targetId of targetActorIds) {
+          const instance: StatusInstance = {
+            instanceId: `st_${state.step}_${effectIndex}_${effect.statusId}_${targetId}`,
+            statusId: effect.statusId,
+            sourceActorId: actorId,
+            application: {
+              statusId: effect.statusId,
+              duration: effect.duration,
+              stacks: 1,
+              amountPerTick: effect.amountPerTick,
+              damageType,
+            },
+            remainingRounds: effect.duration,
+            stacks: 1,
+          };
+          next = addStatus(next, targetId, instance);
+          events.push({
+            kind: 'status_applied',
+            sourceActorId: actorId,
+            targetActorId: targetId,
+            statusId: instance.statusId,
+            instanceId: instance.instanceId,
+            duration: instance.remainingRounds,
+          });
+        }
+        break;
+      }
+      case 'remove_status': {
+        for (const targetId of targetActorIds) {
+          const target = resolveTarget(next, targetId);
+          if (!target) continue;
+          const doomed = target.actor.statuses.filter((st) => {
+            const def = STATUS_CATALOG[st.statusId];
+            if (!def) return false;
+            return effect.category === 'any' || def.category === effect.category;
+          });
+          if (doomed.length === 0) continue;
+          const removed = doomed.slice(0, effect.count ?? doomed.length);
+          const removedIds = new Set(removed.map((st) => st.instanceId));
+          next = setStatuses(
+            next,
+            targetId,
+            target.actor.statuses.filter((st) => !removedIds.has(st.instanceId)),
+          );
+          for (const st of removed) {
+            events.push({
+              kind: 'status_removed',
+              targetActorId: targetId,
+              instanceId: st.instanceId,
+              reason: 'cleansed',
+            });
+          }
+        }
+        break;
+      }
+      case 'guard': {
+        // A reduction, not a shield: it scales down what lands rather than
+        // absorbing a fixed pool, so it stays useful against a big hit.
+        for (const targetId of targetActorIds) {
+          const instance: StatusInstance = {
+            instanceId: `st_${state.step}_${effectIndex}_guarded_${targetId}`,
+            statusId: 'guarded',
+            sourceActorId: actorId,
+            application: {
+              statusId: 'guarded',
+              duration: effect.duration,
+              stacks: 1,
+              reductionPercent: effect.reductionPercent,
+            },
+            remainingRounds: effect.duration,
+            stacks: 1,
+          };
+          next = addStatus(next, targetId, instance);
+          events.push({
+            kind: 'status_applied',
+            sourceActorId: actorId,
+            targetActorId: targetId,
+            statusId: 'guarded',
+            instanceId: instance.instanceId,
+            duration: instance.remainingRounds,
+          });
+        }
+        break;
+      }
+      case 'taunt': {
+        // Applied to the CASTER — taunt is "hit me instead", so it is the
+        // taunter who carries the status. `doResolveBoss` checks for it.
+        const instance: StatusInstance = {
+          instanceId: `st_${state.step}_${effectIndex}_taunt_${actorId}`,
+          statusId: 'taunt',
+          sourceActorId: actorId,
+          application: { statusId: 'taunt', duration: effect.duration, stacks: 1 },
+          remainingRounds: effect.duration,
+          stacks: 1,
+        };
+        next = addStatus(next, actorId, instance);
+        events.push({
+          kind: 'status_applied',
+          sourceActorId: actorId,
+          targetActorId: actorId,
+          statusId: 'taunt',
+          instanceId: instance.instanceId,
+          duration: instance.remainingRounds,
+        });
+        break;
+      }
+      case 'conditional_bonus': {
+        const hero = next.heroes.find((h) => h.actorId === actorId)!;
+        if (!conditionHolds(next, hero, effect.condition)) break;
+        // Nested effects, resolved inline. Only the shapes the roster
+        // actually authors are handled; anything else is ignored rather than
+        // half-applied, and the validator is where unsupported nesting should
+        // be caught.
+        for (const inner of effect.effects) {
+          if (inner.type === 'direct_damage') {
+            const damageType = effectDamageType(inner, version, hero);
+            for (const targetId of targetActorIds) {
+              dealOneHit(targetId, inner.amount, damageType, inner.scaling);
+            }
+          } else if (inner.type === 'healing') {
+            for (const targetId of targetActorIds) {
+              const target = next.heroes.find((h) => h.actorId === targetId);
+              if (!target || target.defeated) continue;
+              const heal = resolveHeal(inner.amount, target.hp, target.snapshot.maxHp);
+              if (heal.actualAmount <= 0) continue;
+              next = mutateHero(next, targetId, (h) => ({ ...h, hp: h.hp + heal.actualAmount }));
+              events.push({
+                kind: 'healing_applied',
+                sourceActorId: actorId,
+                targetActorId: targetId,
+                amount: heal.actualAmount,
+                overheal: heal.overheal,
+              });
+            }
+          }
+        }
+        break;
+      }
+      case 'summon':
+        // Out of scope deliberately: multiple enemies would change the combat
+        // contract (targeting, the event log, the whole single-boss
+        // assumption in doResolveBoss), not just this switch.
+        break;
       default:
-        // Unsupported at B2 — silently skip. B4 expands the switch.
         break;
     }
   }
 
+  // Focus is spent by the ability it sharpened, win or lose. Consumed after
+  // the whole effect list so a multi-effect ability gets one buffed action,
+  // not one buffed effect.
+  const caster = next.heroes.find((h) => h.actorId === actorId);
+  if (caster && caster.statuses.some((st) => st.statusId === 'focus')) {
+    const spent = caster.statuses.filter((st) => st.statusId === 'focus');
+    next = setStatuses(next, actorId, caster.statuses.filter((st) => st.statusId !== 'focus'));
+    for (const st of spent) {
+      events.push({
+        kind: 'status_removed',
+        targetActorId: actorId,
+        instanceId: st.instanceId,
+        reason: 'expired',
+      });
+    }
+  }
+
   return { state: next, events };
+}
+
+/**
+ * Burn, bleed, poison and friends.
+ *
+ * Ticks respect RESISTANCE — burning a fire-resistant boss is deliberately
+ * bad, which keeps the element system honest — but bypass mitigation and
+ * shields: a poison is already inside you, armour has nothing to bite on.
+ *
+ * Ultimate charge from a tick is HALVED. At full rate a stack of three DoTs
+ * would passively generate an ultimate every couple of rounds with no play
+ * behind it.
+ *
+ * Ticks CAN kill. Victory is checked immediately after end-of-round, so a
+ * boss finished off by a burn resolves cleanly rather than surviving at 3 hp.
+ */
+function applyDotTicks(state: BattleState, events: BattleEvent[]): BattleState {
+  let next = state;
+
+  const tickFor = (
+    targetId: string,
+    statuses: readonly StatusInstance[],
+    resistance: ResistanceProfile,
+    isBoss: boolean,
+  ) => {
+    for (const st of statuses) {
+      const perTick = st.application.amountPerTick;
+      if (!perTick) continue;
+      const damageType = st.application.damageType ?? 'fire';
+      const multiplier = resistance.resistant.includes(damageType)
+        ? 0.5
+        : resistance.weak.includes(damageType)
+        ? 1.5
+        : 1;
+      const amount = Math.max(1, Math.floor(perTick * st.stacks * multiplier));
+
+      next = isBoss
+        ? applyDamageToBoss(next, amount, 0, [], {
+            sourceActorId: st.sourceActorId,
+            damageType,
+          })
+        : applyDamageToHero(next, targetId, amount, 0, [], {
+            sourceActorId: st.sourceActorId,
+            damageType,
+          });
+
+      events.push({
+        kind: 'dot_ticked',
+        sourceActorId: st.sourceActorId,
+        targetActorId: targetId,
+        statusId: st.statusId,
+        instanceId: st.instanceId,
+        amount,
+        damageType,
+      });
+
+      const source = next.heroes.find((h) => h.actorId === st.sourceActorId);
+      if (source && !source.defeated) {
+        const delta = Math.floor(ultimateChargeGain({ damageDealt: amount }) / 2);
+        if (delta > 0) {
+          next = mutateHero(next, st.sourceActorId, (h) => ({
+            ...h,
+            ultimateCharge: clampUltimateCharge(h.ultimateCharge + delta),
+          }));
+          events.push({
+            kind: 'ultimate_charge_changed',
+            actorId: st.sourceActorId,
+            delta,
+            source: 'dot_tick',
+          });
+        }
+      }
+    }
+  };
+
+  // Heroes in lane order, then the boss — a fixed order, never re-sorted, so
+  // the event log replays identically.
+  for (const hero of next.heroes) {
+    if (hero.defeated) continue;
+    tickFor(hero.actorId, hero.statuses, heroResistance(hero.snapshot), false);
+  }
+  if (next.boss.hp > 0) {
+    tickFor(next.boss.actorId, next.boss.statuses, bossResistance(next), true);
+  }
+
+  return next;
+}
+
+/** Regeneration heals a share of MAX hp so it stays meaningful on a tanky
+ *  hero instead of decaying into rounding noise.
+ *
+ *  Applies to the BOSS too. That is the whole of pressure axis F: a boss that
+ *  outheals chip damage cannot be ground down, so damage-over-time — which
+ *  ticks through regardless — stops being a worse direct-damage and becomes
+ *  the answer to a specific fight. */
+function applyRegeneration(state: BattleState, events: BattleEvent[]): BattleState {
+  let next = state;
+
+  const bossStacks = Math.min(
+    REGENERATION_MAX_STACKS,
+    next.boss.statuses.filter((st) => st.statusId === 'regeneration').reduce((n, st) => n + st.stacks, 0),
+  );
+  if (next.boss.hp > 0 && bossStacks > 0) {
+    const amount = Math.floor(next.boss.snapshot.maxHp * BOSS_REGENERATION_PER_STACK * bossStacks);
+    const healed = Math.min(amount, next.boss.snapshot.maxHp - next.boss.hp);
+    if (healed > 0) {
+      next = { ...next, boss: { ...next.boss, hp: next.boss.hp + healed } };
+      events.push({
+        kind: 'healing_applied',
+        sourceActorId: next.boss.actorId,
+        targetActorId: next.boss.actorId,
+        amount: healed,
+        overheal: amount - healed,
+      });
+    }
+  }
+
+  for (const hero of next.heroes) {
+    if (hero.defeated) continue;
+    const stacks = Math.min(
+      REGENERATION_MAX_STACKS,
+      hero.statuses.filter((st) => st.statusId === 'regeneration').reduce((n, st) => n + st.stacks, 0),
+    );
+    if (stacks <= 0) continue;
+    const amount = Math.floor(hero.snapshot.maxHp * REGENERATION_PER_STACK * stacks);
+    const heal = resolveHeal(amount, hero.hp, hero.snapshot.maxHp);
+    if (heal.actualAmount <= 0) continue;
+    next = mutateHero(next, hero.actorId, (h) => ({ ...h, hp: h.hp + heal.actualAmount }));
+    events.push({
+      kind: 'healing_applied',
+      sourceActorId: hero.actorId,
+      targetActorId: hero.actorId,
+      amount: heal.actualAmount,
+      overheal: heal.overheal,
+    });
+  }
+  return next;
+}
+
+/**
+ * Apply a phase's passive statuses to the boss on entry.
+ *
+ * Routed through `addStatus` so the catalog's stacking behaviour and caps
+ * apply exactly as they do for heroes — a phase cannot stack regeneration
+ * past its own maximum just because it is a boss.
+ */
+function applyPhasePassives(
+  state: BattleState,
+  phase: { id: string; passiveStatuses?: readonly StatusApplication[] },
+  events: BattleEvent[],
+): BattleState {
+  let next = state;
+  for (const [i, application] of (phase.passiveStatuses ?? []).entries()) {
+    const instance: StatusInstance = {
+      instanceId: `st_phase_${phase.id}_${i}_${application.statusId}`,
+      statusId: application.statusId,
+      sourceActorId: next.boss.actorId,
+      application,
+      remainingRounds: application.duration,
+      stacks: application.stacks ?? 1,
+    };
+    next = addStatus(next, next.boss.actorId, instance);
+    events.push({
+      kind: 'status_applied',
+      sourceActorId: next.boss.actorId,
+      targetActorId: next.boss.actorId,
+      statusId: instance.statusId,
+      instanceId: instance.instanceId,
+      duration: instance.remainingRounds,
+    });
+  }
+  return next;
+}
+
+/**
+ * Add a status to whichever combatant owns `targetId`, honouring the
+ * catalog's `stackBehavior` and `maxStacks`.
+ *
+ * This is load-bearing, not bookkeeping. Without it every cast of a
+ * damage-over-time ability appends ANOTHER independent instance that ticks on
+ * its own, so a hero spamming one ability accumulates unbounded burn and the
+ * fight collapses. `STATUS_CATALOG` has always declared these rules; nothing
+ * read them until statuses became mechanical.
+ *
+ *   'stack'   — merge into the existing instance, up to maxStacks, and
+ *               refresh the duration so a topped-up stack does not expire on
+ *               the older application's clock.
+ *   'refresh' — keep one instance, reset its duration, take the stronger
+ *               application.
+ *   'ignore'  — first application wins; re-applying does nothing.
+ */
+function addStatus(state: BattleState, targetId: string, instance: StatusInstance): BattleState {
+  const def = STATUS_CATALOG[instance.statusId];
+  const behavior = def?.stackBehavior ?? 'stack';
+  const maxStacks = def?.maxStacks ?? 1;
+
+  const merge = (existing: StatusInstance[]): StatusInstance[] => {
+    const idx = existing.findIndex((st) => st.statusId === instance.statusId);
+    // Clamp on FIRST application too, not only when merging. The cap used to
+    // be enforced solely on the merge path, so an ability (or a boss phase
+    // passive) authored with `stacks: 9` sailed straight past a catalog
+    // maximum of 3 simply by being the first one applied.
+    const clamped: StatusInstance =
+      instance.stacks > maxStacks ? { ...instance, stacks: maxStacks } : instance;
+    if (idx === -1) return [...existing, clamped];
+
+    const current = existing[idx];
+    if (behavior === 'ignore') return existing;
+
+    const next = [...existing];
+    if (behavior === 'stack') {
+      next[idx] = {
+        ...current,
+        stacks: Math.min(maxStacks, current.stacks + clamped.stacks),
+        remainingRounds: Math.max(current.remainingRounds, instance.remainingRounds),
+        // Take the stronger tick so a weak re-application can't dilute a
+        // strong one, and keep the ORIGINAL source so kill credit is stable.
+        application: {
+          ...current.application,
+          amountPerTick: Math.max(
+            current.application.amountPerTick ?? 0,
+            clamped.application.amountPerTick ?? 0,
+          ) || undefined,
+        },
+      };
+    } else {
+      next[idx] = {
+        ...current,
+        stacks: Math.min(maxStacks, Math.max(current.stacks, clamped.stacks)),
+        remainingRounds: Math.max(current.remainingRounds, instance.remainingRounds),
+        application: clamped.application,
+      };
+    }
+    return next;
+  };
+
+  if (targetId === state.boss.actorId) {
+    return { ...state, boss: { ...state.boss, statuses: merge(state.boss.statuses) } };
+  }
+  return mutateHero(state, targetId, (h) => ({ ...h, statuses: merge(h.statuses) }));
+}
+
+/** Replace a combatant's whole status list. */
+function setStatuses(
+  state: BattleState,
+  targetId: string,
+  statuses: StatusInstance[],
+): BattleState {
+  if (targetId === state.boss.actorId) {
+    return { ...state, boss: { ...state.boss, statuses } };
+  }
+  return mutateHero(state, targetId, (h) => ({ ...h, statuses }));
+}
+
+/**
+ * Evaluate an ability condition. Unknown condition types resolve FALSE — a
+ * conditional bonus that silently always fired would be a balance hole that
+ * never surfaced as an error.
+ */
+function conditionHolds(
+  state: BattleState,
+  hero: HeroCombatant,
+  condition: AbilityCondition,
+): boolean {
+  switch (condition.type) {
+    case 'boss_hp_below_threshold':
+      return state.boss.hp / state.boss.snapshot.maxHp <= condition.percent;
+    case 'user_hp_below_threshold':
+      return hero.hp / hero.snapshot.maxHp <= condition.percent;
+    case 'target_has_status':
+      return state.boss.statuses.some((st) => st.statusId === condition.statusId);
+    case 'user_has_status':
+      return hero.statuses.some((st) => st.statusId === condition.statusId);
+    case 'resource_above_threshold':
+      return hero.resource >= condition.amount;
+    case 'shield_active':
+      return condition.on === 'target'
+        ? state.boss.shields.length > 0
+        : hero.shields.length > 0;
+    // 'summon_exists' can never hold — summoning is out of scope — and
+    // 'family_ability_used_earlier' needs per-battle usage history the state
+    // does not carry. Both resolve false rather than silently true.
+    default:
+      return false;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -820,12 +1453,15 @@ function resolveTarget(
   return h ? { kind: 'hero', actor: h } : null;
 }
 
+/**
+ * The boss's resistances, read from its frozen snapshot.
+ *
+ * Was a `bossId.startsWith('boss_fire_elemental')` string check, which meant
+ * an authored `resistanceProfile` did nothing and every boss other than the
+ * Wraith was resistance-neutral regardless of its data.
+ */
 export function bossResistance(state: BattleState): ResistanceProfile {
-  // B2 hardcodes fire-elemental profile via bossId prefix. B3 pulls from BossDefinition.
-  if (state.boss.snapshot.bossId.startsWith('boss_fire_elemental')) {
-    return FIRE_ELEMENTAL_RESISTANCE;
-  }
-  return NEUTRAL_RESISTANCE;
+  return state.boss.snapshot.resistance ?? NEUTRAL_RESISTANCE;
 }
 
 function applyDamageToHero(
@@ -861,6 +1497,21 @@ function applyDamageToHero(
     damageType: meta.damageType,
     blockedByShield: shieldAbsorbed,
   });
+
+  // Thorns. Reflected as `true` damage on purpose: it neither takes a second
+  // resistance pass nor re-triggers the attacker's own thorns into a loop.
+  // Covers ALL damage types, not just physical — the only boss in the game
+  // deals fire, so a physical-only reflect would be a dead pick.
+  const thornsStacks = hero.statuses
+    .filter((st) => st.statusId === 'thorns')
+    .reduce((n, st) => n + st.stacks, 0);
+  if (thornsStacks > 0 && amount > 0 && meta.sourceActorId === next.boss.actorId) {
+    const reflected = Math.max(1, Math.floor(amount * THORNS_REFLECT_SHARE * thornsStacks));
+    next = applyDamageToBoss(next, reflected, 0, events, {
+      sourceActorId: targetId,
+      damageType: 'true',
+    });
+  }
 
   // Ult charge for damage received.
   const total = amount + shieldAbsorbed;

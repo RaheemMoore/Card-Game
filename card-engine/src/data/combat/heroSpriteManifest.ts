@@ -16,6 +16,13 @@ import type { CombatArtAsset, HeroSpriteManifest } from './types';
  * Full-height character exports (~342×512 to ~1152×1536). Downscaled and
  * composited at battle time via HeroLane; the manifest carries the source
  * dimensions for aspect-ratio reference.
+ *
+ * ALL OF THESE ARE PLACEHOLDERS, pending replacement via the PixelLab pipeline
+ * (scripts/sprite-lab, see the create-character-sprite skill). Note that
+ * `human.png` actively contradicts the Human Bible chapter, whose
+ * `visualDNA.avoid` bans "generic adventurers, brown leather, swords as
+ * default, medieval-soldier shorthand" — it is all four. Replacements must
+ * make the archetype's chosen path readable.
  */
 
 /**

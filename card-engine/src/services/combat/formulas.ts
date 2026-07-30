@@ -11,6 +11,7 @@ import type {
   DamageResolution,
   HealResolution,
   ShieldPool,
+  StatusInstance,
 } from '../../types/combat';
 
 /**
@@ -119,6 +120,10 @@ export interface DamageInputs {
   targetMitigation: number;
   targetResistance: ResistanceProfile;
   targetShields: readonly ShieldPool[];
+  /** From `statusDamageModifiers`. Default 1 so every existing call site and
+   *  every test keeps its current numbers. */
+  outgoingMultiplier?: number;
+  incomingMultiplier?: number;
   /** If true, the damage is an execute check — bypass formula, deal current hp. */
   isExecute?: boolean;
   targetHp?: number;
@@ -161,7 +166,11 @@ export function resolveDamage(input: DamageInputs): DamageResolution {
       : input.damageType === 'true'
       ? 1.0
       : 1.0;
-  const postResistance = raw * multiplier;
+  // Status multipliers land between resistance and mitigation, so the flat
+  // mitigation subtract and the min-1 floor still apply LAST. A weakened
+  // attacker can be reduced, but never to zero.
+  const statusMultiplier = (input.outgoingMultiplier ?? 1) * (input.incomingMultiplier ?? 1);
+  const postResistance = raw * multiplier * statusMultiplier;
 
   const mitigation = input.damageType === 'true' ? 0 : input.targetMitigation;
   const postDefenseAmount = Math.max(MIN_DAMAGE_FLOOR, Math.floor(postResistance - mitigation));
@@ -187,6 +196,95 @@ export function resolveDamage(input: DamageInputs): DamageResolution {
     isExecute: false,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/*  Status damage modifiers                                            */
+/* ------------------------------------------------------------------ */
+
+/** Per-stack magnitudes. Kept here, beside resolveDamage, because these are
+ *  balance numbers rather than catalog metadata — `data/abilities/statuses.ts`
+ *  describes what a status IS, this decides what it DOES. */
+const WEAKENED_REDUCTION = 0.25;
+const RAGE_PER_STACK = 0.08;
+const RAGE_MAX_STACKS = 4;
+const FOCUS_PER_STACK = 0.15;
+const FOCUS_MAX_STACKS = 3;
+const MARK_BONUS = 0.2;
+/** `mark` is a hunter's tell — it only sharpens martial and beast damage, so
+ *  marking is a setup play for those families rather than a flat global buff. */
+const MARK_DAMAGE_TYPES: readonly DamageType[] = ['physical', 'nature'];
+
+export interface StatusDamageModifiers {
+  /** Applied for the ATTACKER's statuses (weakened, rage, focus). */
+  outgoingMultiplier: number;
+  /** Applied for the TARGET's statuses (mark). */
+  incomingMultiplier: number;
+}
+
+/**
+ * Turn the combatants' status lists into damage multipliers.
+ *
+ * This is the single place statuses touch outgoing damage. It lives in
+ * formulas.ts rather than the reducer so `previewAbilityDamage` — which shows
+ * the player a number BEFORE they commit — gets the same answer as the real
+ * hit for free, instead of needing a parallel implementation that can drift.
+ *
+ * Multiplicative, not additive, so stacking several buffs can never invert the
+ * sign or zero a hit out.
+ */
+export function statusDamageModifiers(
+  attackerStatuses: readonly StatusInstance[],
+  targetStatuses: readonly StatusInstance[],
+  damageType: DamageType,
+): StatusDamageModifiers {
+  const stacksOf = (list: readonly StatusInstance[], id: string, cap: number) =>
+    Math.min(cap, list.filter((s) => s.statusId === id).reduce((n, s) => n + s.stacks, 0));
+
+  let outgoing = 1;
+  if (stacksOf(attackerStatuses, 'weakened', 1) > 0) outgoing *= 1 - WEAKENED_REDUCTION;
+  outgoing *= 1 + RAGE_PER_STACK * stacksOf(attackerStatuses, 'rage', RAGE_MAX_STACKS);
+  outgoing *= 1 + FOCUS_PER_STACK * stacksOf(attackerStatuses, 'focus', FOCUS_MAX_STACKS);
+
+  let incoming = 1;
+  if (MARK_DAMAGE_TYPES.includes(damageType) && stacksOf(targetStatuses, 'mark', 1) > 0) {
+    incoming *= 1 + MARK_BONUS;
+  }
+  // Guard-shaped statuses carry their own reduction, so one ability can guard
+  // harder than another without a second status id.
+  for (const st of targetStatuses) {
+    const reduction = st.application.reductionPercent;
+    if (reduction) incoming *= 1 - Math.min(0.9, reduction);
+  }
+
+  return { outgoingMultiplier: outgoing, incomingMultiplier: incoming };
+}
+
+/** Thorns reflects a share of damage taken back at the attacker. Reflected as
+ *  `true` damage so it neither takes a second resistance pass nor re-triggers
+ *  the target's own thorns into a loop. Covers ALL damage types deliberately:
+ *  physical-only would make it a dead pick against the only boss in the game,
+ *  which deals fire. */
+export const THORNS_REFLECT_SHARE = 0.2;
+
+/** Regeneration heals a share of MAX hp per round, so it stays relevant on a
+ *  tanky hero instead of becoming rounding noise. */
+export const REGENERATION_PER_STACK = 0.06;
+export const REGENERATION_MAX_STACKS = 3;
+
+/**
+ * The same status on a BOSS, which needs its own share.
+ *
+ * A percentage of max HP does not transfer between actors whose HP differs by
+ * an order of magnitude. At the hero rate, three stacks on a 1559 hp boss
+ * healed ~280 per round against a party dealing ~137 — every composition
+ * timed out at 0% win. That is not a hard fight, it is an unkillable one.
+ *
+ * At 1.5% per stack, three stacks heal ~70 per round: roughly half the
+ * party's output, so chip damage genuinely struggles and burst or
+ * damage-over-time is the answer. That is the sustain race the pressure axis
+ * is supposed to create.
+ */
+export const BOSS_REGENERATION_PER_STACK = 0.015;
 
 /* ------------------------------------------------------------------ */
 /*  Healing                                                            */

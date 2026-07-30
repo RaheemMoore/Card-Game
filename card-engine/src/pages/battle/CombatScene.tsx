@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Card } from '../../types/card';
 import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
-import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
+import type { MotionLevel } from '../../vfx/types';
+import { resolveArenaFor, resolveGroundTint } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
 import { previewAbilityDamage } from '../../services/combat/reducer';
@@ -11,6 +12,9 @@ import { getArtCrops } from '../../types/abilities';
 import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
+import { ArenaShakeLayer } from './ArenaShakeLayer';
+import { ArenaAmbience } from './ArenaAmbience';
+import { ImpactFlash } from './ImpactFlash';
 import { HeroSpriteLayer } from './HeroSpriteLayer';
 import { PartyDock, computePartyDockWidth } from './PartyDock';
 import { useViewportWidth } from './useViewportWidth';
@@ -28,6 +32,8 @@ interface Props {
   actingActorId: string | null;
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
+  motionLevel: MotionLevel;
+  onChangeMotionLevel: (next: MotionLevel) => void;
   onSubmit: (action: PlayerAction) => void;
   onSelectActor: (actorId: string) => void;
   onExit: () => void;
@@ -55,16 +61,19 @@ export function CombatScene({
   actingActorId,
   partyCards,
   currentBeat,
+  motionLevel,
+  onChangeMotionLevel,
   onSubmit,
   onSelectActor,
   onExit,
 }: Props) {
-  const arena = ARENA_MANIFEST[DEFAULT_ARENA_ID];
-  const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
   const viewportWidth = useViewportWidth();
   const partyDockWidth = computePartyDockWidth(viewportWidth);
 
   const boss = state.boss;
+  const arena = resolveArenaFor(boss.snapshot.arenaId);
+  const arenaUrl = arena ? resolveCombatAssetUrl(arena) : null;
+  const groundTint = resolveGroundTint(boss.snapshot.arenaId);
   const actingHero =
     (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
     state.heroes.find((h) => !h.defeated) ??
@@ -175,20 +184,30 @@ export function CombatScene({
 
   return (
     <div className="absolute inset-0">
-      {/* Layer 1 — Arena background */}
-      <div
-        className="absolute inset-0"
-        style={
-          arenaUrl
-            ? {
-                backgroundImage: `url("${arenaUrl}")`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }
-            : { background: 'radial-gradient(ellipse at 50% 30%, #3a1c14 0%, #0a0508 70%)' }
-        }
-      />
-      {/* Layer 2 — subtle atmosphere. Top stays cool-dark for HUD legibility;
+      {/* Everything DIEGETIC lives inside the shake layer: the arena, its
+          atmosphere, the boss, and the party. Chrome (shelf, dock, HUD,
+          journal, preview) stays outside it and never moves — translating a
+          viewport-anchored frame would open a gap at the screen edge and read
+          as a broken render rather than as force. Note the wrapper's own
+          z-index is load-bearing; see ArenaShakeLayer's docstring. */}
+      <ArenaShakeLayer
+        currentBeat={currentBeat}
+        motionLevel={motionLevel}
+        backdrop={<>
+        {/* Layer 1 — Arena background */}
+        <div
+          className="absolute inset-0"
+          style={
+            arenaUrl
+              ? {
+                  backgroundImage: `url("${arenaUrl}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                }
+              : { background: 'radial-gradient(ellipse at 50% 30%, #3a1c14 0%, #0a0508 70%)' }
+          }
+        />
+        {/* Layer 2 — subtle atmosphere. Top stays cool-dark for HUD legibility;
           bottom biases warm ember to match the pixel arena's lava veins so
           the foreground reads as illuminated by the arena, not fading to
           neutral black. */}
@@ -200,34 +219,50 @@ export function CombatScene({
               'rgba(5,3,8,0.55) 0%, ' +
               'rgba(5,3,8,0.10) 22%, ' +
               'rgba(5,3,8,0.00) 55%, ' +
-              'rgba(60,18,8,0.30) 82%, ' +
-              'rgba(80,20,10,0.60) 100%)',
+              `${groundTint.mid} 82%, ` +
+              `${groundTint.low} 100%)`,
         }}
       />
+      {/* Layer 3 — ambient life. A plate is a still image and always will be,
+          so the motion goes here: embers rising off the arena's own ground
+          fire. Zero generations, no extra assets. */}
+      <ArenaAmbience motionLevel={motionLevel} />
 
-      {/* Layer 3 — Boss HUD (upper-left) — CombatFrame/BossHUD. The attached
-          Intent panel was removed; boss-intent detail now lives solely in the
-          Combat Journal corner box (see CombatJournalRail.tsx). */}
-      <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
+        {/* Boss stage — inside the shake layer, so it is part of the world
+            that moves rather than part of the frame that doesn't. */}
+        <BossStage boss={boss} currentBeat={currentBeat} motionLevel={motionLevel} />
 
+        </>}
+        foreground={<>
+        {/* Hero pixel sprites, standing in the arena floor band above the
+            shelf. Purely presentational (see HeroSpriteLayer.tsx docstring) —
+            echoes the dock's acting/targetable state, doesn't own it. */}
+        <HeroSpriteLayer
+          heroes={state.heroes}
+          actingActorId={actingHero.actorId}
+          canAct={canAct}
+          currentBeat={currentBeat}
+          targetPickMode={needsTargetPick ? { pickableActorIds } : null}
+          motionLevel={motionLevel}
+        />
 
-      {/* Layer 4 — Boss stage */}
-      <BossStage boss={boss} currentBeat={currentBeat} />
-
-      {/* Layer 5 — Hero pixel sprites, standing in the arena floor band
-          above the shelf. Purely presentational (see HeroSpriteLayer.tsx
-          docstring) — echoes the dock's acting/targetable state, doesn't
-          own it. This is what AttackVFX's beams actually travel to/from. */}
-      <HeroSpriteLayer
-        heroes={state.heroes}
-        actingActorId={actingHero.actorId}
-        canAct={canAct}
-        currentBeat={currentBeat}
-        targetPickMode={needsTargetPick ? { pickableActorIds } : null}
+        {/* Attack VFX (bolt + impact burst). Inside the wrapper so beams stay
+            welded to the sprites they are anchored to — outside it, a heavy
+            hit would shake the fighters out from under their own beam. */}
+        <AttackVFX state={state} currentBeat={currentBeat} />
+        </>}
       />
 
-      {/* Layer 6 — Attack VFX (bolt/zap + impact burst on hit) */}
-      <AttackVFX state={state} currentBeat={currentBeat} />
+      {/* Impact flash — a SIBLING of the shake layer, at z 14, so it never
+          translates and never touches the dock's card art. See its docstring:
+          the placement is what lets the light read as coming from behind the
+          fighters. */}
+      <ImpactFlash state={state} currentBeat={currentBeat} motionLevel={motionLevel} />
+
+      {/* Boss HUD (upper-left). Deliberately OUTSIDE the shake layer — it is
+          chrome, and its own z-30 keeps it above the world (21) and the
+          flash (14) so boss HP stays readable straight through an impact. */}
+      <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
 
       {/* Command Shelf — a real painted 9-slice frame (see PaintedPanel.tsx)
           holding just the ability bar + utility tray. Short on purpose: the
@@ -277,6 +312,8 @@ export function CombatScene({
             canAct={canAct}
             pendingCount={state.pendingActorIds.length}
             resolvingIntentName={resolvingIntentName}
+            motionLevel={motionLevel}
+            onChangeMotionLevel={onChangeMotionLevel}
             onOpenGuide={() => setGuideOpen(true)}
           />
         </div>

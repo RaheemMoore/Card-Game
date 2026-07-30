@@ -1,0 +1,72 @@
+{
+  "_readme": [
+    "The Debt-Bearer's arena \u2014 tower floor 1, BARBARIAN homeland.",
+    "",
+    "NO DAIS, NO STAGE FURNITURE. The platform the boss stands on is now DRAWN IN",
+    "CODE (src/pages/battle/BossPlatform.tsx). It used to be painted into every",
+    "plate, which meant each generated arena had to land a raised dais inside a",
+    "narrow band at a matching camera angle \u2014 a contract nothing enforced, so the",
+    "boss's feet met it only by luck. Moving it into code guarantees contact and",
+    "frees these prompts to describe a PLACE instead of a stage.",
+    "",
+    "BARBARIAN IDENTITY IS 'INHERITANCE', NOT FURY. The chapter's avoid list bans",
+    "'Generic Viking imagery', 'Random fur', 'Generic rage', 'Oversized axes'. So",
+    "not a longhouse-and-pelts village: a place where what you inherit is RECORDED.",
+    "The settlement should be legible so the player reads 'Barbarian' at a glance.",
+    "",
+    "HOW WE GET PIXEL ART \u2014 a style reference, not adjectives. Asking Phoenix for",
+    "pixel art fails (Alchemy on gives a 3D render, off gives a smooth painting).",
+    "`styleRefFile` uploads our already-approved arena so the register is anchored",
+    "structurally. lib/pixelize.py then finishes the grid deterministically.",
+    "",
+    "STRENGTH IS THE WHOLE GAME. At 'High' the reference imported the source's",
+    "CONTENT as well as its style \u2014 every barbarian direction came back as the same",
+    "stone-and-lava room with the ancestor stones and village gone. 'Low' carries",
+    "the register without dragging the subject across. Same lesson as bosses.json:",
+    "a style reference homogenises IDEAS, not just style.",
+    "",
+    "WHAT THE COMPOSITION STILL OWES THE CODE:",
+    "  - top-LEFT ~372x196 and top-RIGHT ~320px are HUD panels: keep them DARK",
+    "  - the lower third is where the party stands: keep it flat and LOW CONTRAST",
+    "  - bottom ~8.5rem is under the command shelf; anything there is lost",
+    "  - centre-middle is where the boss and his platform go: keep it uncluttered",
+    "NEVER describe the space by its occupants \u2014 saying a floor is somewhere",
+    "'three figures can stand' made Leonardo paint three tiny fighters on it."
+  ],
+  "styleHeader": "16-bit pixel art game background, retro SNES JRPG battle backdrop, hard-edged pixels, limited palette, no blur. Widescreen 16:9, symmetrical head-on view, empty and unoccupied. Open unobstructed flat ground across the lower third and the centre of the frame. Dark low-detail negative space in the upper-left and upper-right corners. Crisp pixel clusters, coherent lighting, atmospheric depth, strong sense of place.",
+  "width": 1360,
+  "height": 768,
+  "styleRefFile": "../../public/assets/combat/arenas/forbidden-mountain-passage/base.png",
+  "styleRefStrength": "Low",
+  "alchemy": false,
+  "negative": "characters, people, figures, humans, warriors, soldiers, creatures, monsters, silhouettes, statues of people, crowd, animals, fur, pelts, horned helmets, longships, text, letters, numbers, written words, signage, ui, hud, frame, border, watermark, logo, vignette, tilted camera, isometric view, close-up, bright upper corners, busy foreground, cluttered floor, obstacles in the lower third, photorealistic, photograph, 3d render, cgi, cel-shaded, flat vector art, cartoon, anime, blurry",
+  "familyLabels": {
+    "arena": "The Debt-Bearer \u2014 barbarian homeland"
+  },
+  "anchors": {
+    "arena": {
+      "line": "A high mountain moot-ground of the ancestors at dusk. A ring of towering weathered standing stones encircles the open ground, each stone carved base to top in dense rows of shallow tally notches recording generations. Beyond and below them a terraced settlement of low turf-roofed stone halls descends the mountainside into blue evening haze, its small hearth-fires glowing warm in the distance. Snow-streaked peaks close the horizon. The open ground in the centre and lower third is flat bare trodden earth, uncluttered. Cold slate grey and heather blue against warm distant hearth orange."
+    }
+  },
+  "states": [
+    {
+      "id": "moot-ground",
+      "label": "A \u2014 The Moot-Ground (ancestor stones above the village)",
+      "family": "arena",
+      "isAnchor": true,
+      "line": "A high mountain moot-ground of the ancestors at dusk. A ring of towering weathered standing stones encircles the open ground, each stone carved base to top in dense rows of shallow tally notches recording generations. Beyond and below them a terraced settlement of low turf-roofed stone halls descends the mountainside into blue evening haze, its small hearth-fires glowing warm in the distance. Snow-streaked peaks close the horizon. The open ground in the centre and lower third is flat bare trodden earth, uncluttered. Cold slate grey and heather blue against warm distant hearth orange."
+    },
+    {
+      "id": "hall-of-forebears",
+      "label": "B \u2014 The Hall of Forebears (inherited weapons in rows)",
+      "family": "arena",
+      "line": "The vast interior of an ancestral stone hall. Enormous smoke-blackened timber roof beams rise into darkness overhead. The long side walls are hung floor to ceiling in ordered rows with hundreds of old iron weapons and worn shields, each inherited and racked in its own place. Massive carved timber posts frame the far left and right. Deep firelight from unseen hearths washes up the walls. The centre and lower third are open swept flagstone, flat and uncluttered. Deep brown timber, cold grey iron and stone, warm hearth orange."
+    },
+    {
+      "id": "cairn-terrace",
+      "label": "C \u2014 The Cairn Terrace (grave-cairns above the valley)",
+      "family": "arena",
+      "line": "A wide windswept terrace of dark turf and stone above a mountain settlement. Rows of tall stacked grave-cairns stand across the terraced slopes to the far left and right, each topped with a small iron marker. Behind and below, the settlement's turf-roofed halls and its palisade of upright timbers descend into a cold blue valley under a heavy overcast sky. The centre and lower third are open cropped turf and bare stone, flat and uncluttered. Cold slate, moss green and heather grey."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "width": 1472,
+  "height": 1472,
+  "negative": "photorealistic, photograph, 3d render, cgi, isometric game asset, pixel art, cel-shaded, cartoon, anime, flat vector art, comic outlines, text, watermark, logo, signature, ui, hud, frame, border, fisheye, tilt-shift, blurry, low detail, grim, dark, gloomy, horror, ruins, decay, large foreground figures, character portrait",
+  "styleHeader": "Painterly hand-painted fantasy environment art, digital matte painting, soft blended brushwork, storybook warmth, cinematic depth, high-angle oblique view looking down at roughly 55 degrees.",
+  "familyLabels": {
+    "courtyard": "Castle courtyard — the bright hub",
+    "hero": "Default hero — walkable sprite plate"
+  },
+  "anchors": {
+    "courtyard": {
+      "line": "A sunlit open-air castle courtyard on market day, seen from a high oblique angle looking down. Warm honey-coloured flagstone paving fills the centre of the square. Four small wooden market stalls with bright cloth awnings and hanging banners are arranged in a wide ring around an open paved centre, each stall facing inward so its front and awning are clearly visible. Two empty stone plinths stand among them. Low garden walls, potted flowers, climbing ivy and fluttering pennants surround the square; the castle's warm stone walls and towers sit far back at the very top edge only. Tiny distant robed and armoured townsfolk walk between the stalls for scale, small in the frame. Golden-hour sunlight, drifting motes of magic light in the air, joyful and welcoming. IMPORTANT: keep all stalls, plinths and paving well inside the central square of the image; leave the far left and far right edges as simple painted garden and low wall with nothing important in them. Warm gold, honey stone, cheerful red and blue banner cloth, fresh green."
+    },
+    "hero": {
+      "line": "A single full-body fantasy adventurer standing in a neutral relaxed pose, seen from a high oblique angle looking down at roughly 55 degrees, viewed from the front. Simple practical travelling clothes, a short cloak, boots and a satchel; modest fully-covering outfit. Centred on a plain flat empty pale background with no scenery, no ground detail and no shadow. Lit by warm golden-hour sunlight from the upper left to match a sunlit courtyard. Small crisp readable silhouette, clean edges, painterly but simple, suitable for cutting out."
+    }
+  },
+  "states": [
+    {
+      "id": "courtyard-plate-a",
+      "label": "Courtyard plate A (anchor)",
+      "family": "courtyard",
+      "isAnchor": true
+    },
+    {
+      "id": "courtyard-plate-b",
+      "label": "Courtyard plate B (looser ring, more open centre)",
+      "family": "courtyard",
+      "strength": "Low",
+      "line": "A sunlit open-air castle courtyard on market day, high oblique angle looking down. A wide open circle of warm honey flagstone paving in the very centre, deliberately clear and empty. Four small wooden market stalls with bright striped awnings and banners sit back from that clear centre, one near the top, one at the left, one at the right and one at the bottom of the paved area, all facing inward. Two empty carved stone plinths between them. A ring of flower beds, low walls, leafy trees and fluttering pennants encloses the square; castle towers only at the far top edge. A few tiny distant townsfolk for scale. Bright cheerful golden-hour light, floating sparks of magic drifting in the air. IMPORTANT: nothing important near the far left or far right edges — keep those as plain painted hedge, grass and low wall. Warm gold, honey stone, cheerful banner colours, fresh green."
+    },
+    {
+      "id": "hero-front",
+      "label": "Default hero — front plate",
+      "family": "hero",
+      "isAnchor": true
+    },
+    {
+      "id": "black-gate",
+      "label": "The Black Gate — dark accent in a bright square",
+      "family": "courtyard",
+      "strength": "Low",
+      "line": "A single tall black iron gate set into a warm honey-stone archway, seen from a high oblique angle looking down, standing alone on sunlit flagstone with cheerful banners and flowers at its edges. The gate itself is grim and forbidding: dark cold iron, deep violet shadow and faint void-purple light bleeding out from between its bars, in sharp contrast to the bright warm courtyard around it. Ominous but small, a doorway to somewhere dangerous found in a happy place. Warm gold and honey stone surroundings, cold black iron and violet glow at the centre."
+    }
+  ]
+}

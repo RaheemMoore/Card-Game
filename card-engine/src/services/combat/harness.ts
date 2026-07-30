@@ -11,7 +11,7 @@ import type {
   BattleState,
   AbilityCombatSnapshot,
 } from '../../types/combat';
-import type { AbilityDefinition, AbilityVersion } from '../../types/abilities';
+import type { AbilityDefinition, AbilityVersion, DamageType } from '../../types/abilities';
 import type { CardStats, Rank } from '../../types/card';
 import type { BossVersion, BossDefinition } from '../../types/bosses';
 import {
@@ -20,7 +20,7 @@ import {
   pickActingHero,
   submitPlayerAction,
 } from './reducer';
-import { deriveHeroStats } from './formulas';
+import { deriveHeroStats, FIRE_ELEMENTAL_RESISTANCE } from './formulas';
 import { RandomStream } from './RandomStream';
 
 /**
@@ -113,6 +113,9 @@ export interface BuildHeroSnapshotInput {
   stats: CardStats;
   rank: Rank;
   abilities: AbilityCombatSnapshot[];
+  /** From `damageTypeForElement(resolveCurrentElement(card))`. Test builders
+   *  pass 'physical' when the element is irrelevant to what they assert. */
+  elementDamageType: DamageType;
 }
 
 export function buildHeroSnapshot(input: BuildHeroSnapshotInput): HeroSnapshot {
@@ -126,6 +129,7 @@ export function buildHeroSnapshot(input: BuildHeroSnapshotInput): HeroSnapshot {
     maxHp: derived.maxHp,
     maxResource: derived.maxResource,
     resourceType: input.stats.Mana ? 'mana' : 'tech',
+    elementDamageType: input.elementDamageType,
     abilities: input.abilities,
   };
 }
@@ -160,6 +164,7 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 40,
     scalingPerRound: 0.2,
+    damageType: 'fire',
   },
   {
     id: 'act_fe_flame_burst',
@@ -171,6 +176,7 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 27,
     scalingPerRound: 0.2,
+    damageType: 'fire',
   },
 ];
 
@@ -185,6 +191,7 @@ const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 54,
     scalingPerRound: 0.2,
+    damageType: 'fire',
   },
   {
     id: 'act_fe_execute_pyre',
@@ -196,6 +203,7 @@ const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 72,
     scalingPerRound: 0,
+    damageType: 'fire',
   },
 ];
 
@@ -225,6 +233,7 @@ export function buildFireElementalBossSnapshot(maxHp = 340): BossSnapshot {
     phases: FIRE_ELEMENTAL_PHASES,
     resistanceProfileId: 'rp_fire_elemental',
     weaknessProfileId: 'wp_fire_elemental',
+    resistance: FIRE_ELEMENTAL_RESISTANCE,
   };
 }
 
@@ -245,7 +254,8 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
       id: p.id,
       healthThresholdStart: p.healthThresholdStart,
       healthThresholdEnd: p.healthThresholdEnd,
-      passiveEffects: [],
+      passiveEffects: p.passiveDescriptions,
+      ...(p.passiveStatuses ? { passiveStatuses: p.passiveStatuses } : {}),
       actions: p.actions.map((a) => ({
         id: a.id,
         displayName: a.displayName,
@@ -256,10 +266,23 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
         interruptible: a.interruptible,
         baseDamage: a.baseDamage ?? 0,
         scalingPerRound: a.scalingPerRound ?? 0,
+        damageType: a.damageType ?? 'physical',
+        ...(a.shieldAmount != null ? { shieldAmount: a.shieldAmount } : {}),
+        ...(a.shieldDurationRounds != null
+          ? { shieldDurationRounds: a.shieldDurationRounds }
+          : {}),
       })),
     })),
     resistanceProfileId: `rp_${def.slug}`,
     weaknessProfileId: `wp_${def.slug}`,
+    // Carried through, not discarded. This used to be dropped on the floor
+    // and replaced by a synthesized id nothing read, which is why an authored
+    // resistance profile had no effect on any boss but the Wraith.
+    resistance: {
+      resistant: version.resistanceProfile.resistant,
+      weak: version.resistanceProfile.weak,
+    },
+    ...(def.arenaId ? { arenaId: def.arenaId } : {}),
   };
 }
 

@@ -23,15 +23,17 @@ function testStats(atk = 55, def = 45, mana = 60): CardStats {
 
 // A hero with all 5 seed abilities as a smoke test — mixes signatures + cores.
 function buildTestHero() {
-  const soulDrain = SEED_ABILITIES.find((s) => s.definition.id === 'ability_soul_drain')!;
-  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_ember_cleave')!;
-  const radiantWard = SEED_ABILITIES.find((s) => s.definition.id === 'ability_radiant_ward')!;
+  const soulDrain = SEED_ABILITIES.find((s) => s.definition.id === 'ability_inherited_guard')!;
+  const emberCleave = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
+  const radiantWard = SEED_ABILITIES.find((s) => s.definition.id === 'ability_bearing_witness')!;
   return buildHeroSnapshot({
     cardId: 'card_test',
     archetype: 'Barbarian',
     displayName: 'Sim Hero',
     stats: testStats(),
     rank: 'Forged',
+    // These suites assert combat MATH, not element interaction.
+    elementDamageType: 'physical',
     abilities: [
       buildAbilitySnapshot(soulDrain.definition, soulDrain.version),
       buildAbilitySnapshot(emberCleave.definition, emberCleave.version),
@@ -119,6 +121,70 @@ describe('snapshot immutability', () => {
     // Both runs terminated.
     expect(beforeRun.result.outcome).toBeDefined();
     expect(afterRun.result.outcome).toBeDefined();
+  });
+});
+
+describe('element damage type is frozen into the snapshot', () => {
+  // An element-typed ability, mirroring how core-slot abilities are authored.
+  function elementTypedHero(elementDamageType: 'physical' | 'holy') {
+    // Attuned Strike is the roster's element-typed basic, which is exactly
+    // what this is testing — and being a single direct_damage effect, its
+    // total is not muddied by a damage-over-time rider.
+    const attuned = SEED_ABILITIES.find((s) => s.definition.id === 'ability_attuned_strike')!;
+    const emberCleave = attuned;
+    const version = {
+      ...attuned.version,
+      damageTypeSource: 'element' as const,
+    };
+    return buildHeroSnapshot({
+      cardId: 'card_elem',
+      archetype: 'Barbarian',
+      displayName: 'Elem Hero',
+      stats: testStats(),
+      rank: 'Forged',
+      elementDamageType,
+      abilities: [buildAbilitySnapshot(emberCleave.definition, version)],
+    });
+  }
+
+  it('is load-bearing — the boss takes more from holy than from physical', () => {
+    // The Wraith is weak to holy. If this ever stops differing, element typing
+    // has silently stopped reaching resolveDamage and the whole feature is off.
+    const physical = runBattle(
+      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('physical') }),
+      baselineHeroPolicy,
+    );
+    const holy = runBattle(
+      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('holy') }),
+      baselineHeroPolicy,
+    );
+
+    const dealt = (r: ReturnType<typeof runBattle>) =>
+      r.events
+        .filter(
+          (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> =>
+            e.kind === 'damage_dealt' && e.sourceActorId !== 'boss',
+        )
+        .reduce((sum, e) => sum + e.amount, 0);
+
+    expect(dealt(holy)).toBeGreaterThan(dealt(physical));
+  });
+
+  it('survives the card store changing mid-battle', () => {
+    // The real hazard: tierUp.ts rewrites `currentElement` when a Fallen
+    // Seraph's Light transmutes to Infernal. Because the damage type is
+    // resolved once at snapshot time, an in-flight battle — and any replay of
+    // its log — must be completely unaffected by that.
+    const snap = buildBattleSnapshot({ seed: 777, hero: elementTypedHero('holy') });
+    const first = runBattle(snap, baselineHeroPolicy);
+
+    const seed = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;
+    const original = seed.definition.slug;
+    seed.definition.slug = 'mutated-underneath-us';
+    const second = runBattle(snap, baselineHeroPolicy);
+    seed.definition.slug = original;
+
+    expect(second.events).toEqual(first.events);
   });
 });
 

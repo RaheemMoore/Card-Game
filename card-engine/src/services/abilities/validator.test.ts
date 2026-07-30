@@ -19,7 +19,10 @@ describe('ability validator — seed abilities', () => {
 });
 
 describe('ability validator — rejects malformed candidates', () => {
-  const base = SEED_ABILITIES[0];
+  // Looked up by id, not position — indexing positionally meant reordering
+  // the roster silently repointed every fixture in this file. Needs an
+  // ability with a damage_over_time effect for the unknown-status case.
+  const base = SEED_ABILITIES.find((a) => a.definition.id === 'ability_oathbreakers_answer')!;
 
   it('rejects an unknown effect type', () => {
     const bad = structuredClone(base);
@@ -33,7 +36,7 @@ describe('ability validator — rejects malformed candidates', () => {
 
   it('rejects a slug that is not kebab-case', () => {
     const bad = structuredClone(base);
-    bad.definition.slug = 'Ember Cleave';
+    bad.definition.slug = "Oathbreaker's Answer";
     const result = validateAbilityVersion(bad.version, bad.definition);
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -54,7 +57,7 @@ describe('ability validator — rejects malformed candidates', () => {
 
   it('rejects a status reference to an unknown status', () => {
     const bad = structuredClone(base);
-    // Ember Cleave has a damage_over_time referencing 'burn'; swap it.
+    // Oathbreaker's Answer has a damage_over_time referencing 'burn'; swap it.
     for (const eff of bad.version.effects) {
       if (eff.type === 'damage_over_time') {
         eff.statusId = 'not_a_status';

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Card } from '../../types/card';
+import type { AbilitySlotType } from '../../types/abilities';
 import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
 import {
   grantBattleReward,
@@ -8,6 +9,7 @@ import {
 } from '../../services/combat/battleRewardService';
 import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
 import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
+import { useMotionLevel } from '../../services/combat/presentation/useMotionLevel';
 import { summarizeJournal } from '../../services/combat/presentation/journalSummary';
 import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
@@ -77,7 +79,30 @@ export function CombatViewport({
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
-  const presentation = useCombatPresentation(events, {}, state?.boss.actorId);
+
+  // Lets the presentation queue recognise an ultimate and give it its own
+  // pacing. Reads the ALREADY-FROZEN ability snapshots rather than adding a
+  // field anywhere, so nothing cosmetic leaks into the determinism payload.
+  const slotLookup = useMemo(() => {
+    const slots = new Map<string, AbilitySlotType>();
+    for (const hero of state?.heroes ?? []) {
+      for (const ability of hero.snapshot.abilities) {
+        slots.set(ability.definitionId, ability.slot);
+      }
+    }
+    return (definitionId: string) => slots.get(definitionId);
+  }, [state?.heroes]);
+
+  // Resolved ONCE for the whole battle and threaded down as a prop. Several
+  // components used to read `matchMedia` independently; every new effect
+  // would have added another copy of that read. One source, one answer.
+  const [motionLevel, setMotionLevel] = useMotionLevel();
+
+  const presentationOptions = useMemo(
+    () => ({ slotLookup, motionLevel }),
+    [slotLookup, motionLevel],
+  );
+  const presentation = useCombatPresentation(events, presentationOptions, state?.boss.actorId);
   const isMobile = useIsMobileCombatLayout();
 
   // A separate condensed view over the same event stream, purely for the
@@ -131,6 +156,7 @@ export function CombatViewport({
               actingActorId={actingActorId}
               partyCards={partyCards}
               currentBeat={presentation.currentBeat}
+              motionLevel={motionLevel}
               journalEntries={journalEntries}
               isPlaying={presentation.isPlaying}
               pendingCount={presentation.pendingCount}
@@ -157,6 +183,8 @@ export function CombatViewport({
                 actingActorId={actingActorId}
                 partyCards={partyCards}
                 currentBeat={presentation.currentBeat}
+                motionLevel={motionLevel}
+                onChangeMotionLevel={setMotionLevel}
                 onSubmit={onSubmit}
                 onSelectActor={onSelectActor}
                 onExit={onExit}

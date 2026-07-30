@@ -1,4 +1,5 @@
 import type { BossDefinition, BossVersion } from '../../types/bosses';
+import { TOWER } from './towerCurve';
 
 /**
  * Hand-authored seed bosses. Currently: the Emberborn Wraith, a fire-elemental
@@ -26,7 +27,17 @@ const EMBERBORN_DEF: BossDefinition = {
     'A spirit knotted from the ash of a burned shrine. It teaches wardens the discipline of measured strikes; those who overreach it swallows whole.',
   familyIds: ['fire'],
   currentVersionId: 'bv_fire_elemental_v0_1',
-  status: 'active',
+  /**
+   * RETIRED 2026-07-30. It was the C5-era placeholder boss and has been
+   * superseded by the Overreach champions, which are archetype-mirrored and
+   * carry the tower's difficulty curve.
+   *
+   * Kept in the seed rather than deleted: its `battleId`-keyed reward rows and
+   * any historical ledger entries still reference this id, and the Picker
+   * already filters on `status === 'active'`, so retiring is enough to remove
+   * it from play without orphaning history.
+   */
+  status: 'retired',
   artAssetIds: [],
   createdAt: NOW,
   updatedAt: NOW,
@@ -61,6 +72,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 22,
           scalingPerRound: 0.2,
+          damageType: 'fire',
         },
         {
           id: 'act_fe_flame_burst',
@@ -72,6 +84,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 15,
           scalingPerRound: 0.2,
+          damageType: 'fire',
         },
       ],
     },
@@ -91,6 +104,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 30,
           scalingPerRound: 0.2,
+          damageType: 'fire',
         },
         {
           id: 'act_fe_execute_pyre',
@@ -111,8 +125,8 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
 
 /* ---------- Emberborn Wraith v2 (B6 balance pass, 2026-07-18) ----------
  * v1 numbers were beatable in ~11 rounds at 100% by a Forged Mid Barbarian
- * spamming Ember Cleave with no risk. v2 raises each action's baseDamage by
- * ~1.8× so the hero has to actively use Radiant Ward + Guard to survive.
+ * spamming Oathbreaker's Answer with no risk. v2 raises each action's baseDamage by
+ * ~1.8× so the hero has to actively use Bearing Witness + Guard to survive.
  * v1 stays in the version table with status='deprecated' so any battle
  * snapshotted against it resolves off the frozen numbers.
  */
@@ -187,6 +201,7 @@ const EMBERBORN_V3: BossVersion = {
       actions: EMBERBORN_V2.phases[0].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.4,
+        damageType: 'fire',
       })),
     },
     // Phase 2 — mechanical enrage (50% → 25%). v2 hits + heavier scaling.
@@ -196,6 +211,7 @@ const EMBERBORN_V3: BossVersion = {
       actions: EMBERBORN_V2.phases[1].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.8,
+        damageType: 'fire',
       })),
     },
     // Phase 3 — RAGE (25% → 0%). Threatens hero one-shots at high rounds.
@@ -219,6 +235,7 @@ const EMBERBORN_V3: BossVersion = {
           interruptible: false,
           baseDamage: 120,
           scalingPerRound: 1.1,
+          damageType: 'fire',
         },
         {
           id: 'act_fe_rage_pyre',
@@ -230,6 +247,7 @@ const EMBERBORN_V3: BossVersion = {
           interruptible: false,
           baseDamage: 170,
           scalingPerRound: 0.95,
+          damageType: 'fire',
         },
       ],
     },
@@ -290,8 +308,335 @@ const EMBERBORN_DEF_V4: typeof EMBERBORN_DEF = {
   updatedAt: '2026-07-20T00:00:00.000Z',
 };
 
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  THE OVERREACH — the champion tower                                    */
+/*                                                                        */
+/*  Eleven people who walked one archetype's path PAST its end. Each       */
+/*  answered that archetype's central question by collapsing its tension   */
+/*  instead of carrying it. A player HOLDS the tension; a champion         */
+/*  resolved it and could not stop.                                       */
+/*                                                                        */
+/*  So each champion is that archetype's own Bible §14 avoid-list made     */
+/*  flesh — which is exactly why they must read as TRAGIC, never as        */
+/*  villains. Necromancer §14 forbids "automatic villainy" outright, and   */
+/*  the same restraint applies to all of them.                            */
+/*                                                                        */
+/*  "Kingdoms and their champions" was the original framing and does not   */
+/*  fit: the Bible denies archetypes polity status (Vampire §3 — lineages  */
+/*  and Houses "rather than a single nation"), and "champion of a people"  */
+/*  reads as a prestige title, which Global Rules §Prestige forbids        */
+/*  assigning outside earned narrative. The Emberborn Wraith's own lore    */
+/*  already says "those who overreach it swallows whole" — the word was    */
+/*  already canon.                                                        */
+/*                                                                        */
+/*  Each champion applies ONE pressure that a different hero tool answers, */
+/*  so ascending is about bringing the right party, not the strongest.     */
+/*  Three are authored here; the numbers come from the tower curve in      */
+/*  data/bosses/towerCurve.ts and are validated against the harness before */
+/*  the remaining eight are written.                                       */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+/* ---------- Floor 1 · The Debt-Bearer (Barbarian) ----------
+ * Pressure B — escalating single-target focus. Answered by taunt + guard.
+ * The teaching floor: one target, one growing threat, an obvious answer.
+ * §14 check: named for a LEDGER, not for fury. The Barbarian's power is
+ * memory and endurance; feral vocabulary belongs to the Lycanthrope. */
+
+const DEBT_BEARER_DEF: BossDefinition = {
+  id: 'boss_champion_barbarian',
+  slug: 'the-debt-bearer',
+  name: 'The Debt-Bearer',
+  lore:
+    'Every technique she was given, she wrote down as something owed. She meant to repay it by carrying it forward — and then the ledger grew longer than the life, and there was no one left to repay. She still counts. She will count through you.',
+  familyIds: ['martial'],
+  currentVersionId: 'bv_champion_barbarian_1',
+  status: 'active',
+  artAssetIds: [],
+  bossKind: 'champion',
+  mirrorArchetype: 'Barbarian',
+  // Her own home ground, replacing the shared fire arena she was borrowing.
+  arenaId: 'barbarian_moot_ground',
+  towerFloor: 1,
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+const DEBT_BEARER_V1: BossVersion = {
+  id: 'bv_champion_barbarian_1',
+  bossId: 'boss_champion_barbarian',
+  versionNumber: 1,
+  status: 'active',
+  publishedAt: NOW,
+  maxHp: TOWER.hp(1),
+  // Inheritance is not elemental. She is answered by defence, not by typing.
+  /**
+   * Floor 1 owes the player THREE answers (towerCurve answerBudget) and an
+   * ~85% target win rate, so this is deliberately the most forgiving profile
+   * in the tower.
+   *
+   * She resists fire because she is wreathed in it — burning the burning thing
+   * is the mistake the fight is there to teach.
+   *
+   * Physical is left NEUTRAL, not weak. It is by far the most common hero
+   * damage type, so making it weak would not reward a choice, it would just
+   * lower the floor for everyone. The three real answers are holy and shadow
+   * (both cancel a debt, from opposite directions) and tech (precision undoes
+   * brute mass).
+   */
+  resistanceProfile: { resistant: ['fire'], weak: ['holy', 'shadow', 'tech'] },
+  phases: [
+    {
+      id: 'phase_debt_counting',
+      healthThresholdStart: 1.0,
+      healthThresholdEnd: 0.45,
+      passiveDescriptions: ['She names each strike before she throws it.'],
+      actions: [
+        {
+          id: 'act_debt_owed',
+          displayName: 'What Is Owed',
+          intentType: 'heavy_attack',
+          telegraphText: 'She names a debt and steps in to collect it.',
+          priority: 20,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: TOWER.damage(1),
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+        },
+      ],
+    },
+    {
+      id: 'phase_debt_calling_in',
+      healthThresholdStart: 0.45,
+      healthThresholdEnd: 0,
+      passiveDescriptions: ['The counting stops. She has reached the total.'],
+      actions: [
+        {
+          id: 'act_debt_total',
+          displayName: 'The Whole Sum',
+          intentType: 'heavy_attack',
+          telegraphText: 'She stops counting. This one is for all of it.',
+          priority: 30,
+          cooldownRounds: 1,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(1) * 1.6),
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+        },
+      ],
+    },
+  ],
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+/* ---------- Floor 2 · The Still Season (Druid) ----------
+ * Pressure F — regeneration outheals chip damage. Answered by DoT, which
+ * ticks through healing, and by `weakened`.
+ * §14 check: nature is not decoration here and there is no companion — the
+ * Druid IS the terrain, and this one stopped it. */
+
+const STILL_SEASON_DEF: BossDefinition = {
+  id: 'boss_champion_druid',
+  slug: 'the-still-season',
+  name: 'The Still Season',
+  lore:
+    'He was asked to keep the grove through a hard winter. He kept it. He is keeping it still — the same afternoon, held open, every leaf where it was. Nothing here has died in a long time. Nothing here has grown either.',
+  familyIds: ['nature'],
+  currentVersionId: 'bv_champion_druid_1',
+  status: 'active',
+  artAssetIds: [],
+  bossKind: 'champion',
+  mirrorArchetype: 'Druid',
+  towerFloor: 2,
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+const STILL_SEASON_V1: BossVersion = {
+  id: 'bv_champion_druid_1',
+  bossId: 'boss_champion_druid',
+  versionNumber: 1,
+  status: 'active',
+  publishedAt: NOW,
+  maxHp: TOWER.hp(2),
+  // He IS the grove, so the growing world cannot be turned against him —
+  // which deliberately blunts poison, the obvious damage-over-time answer.
+  //
+  // TWO answers, not one. Fire is the change he has been preventing, and burn
+  // ticks through regeneration exactly as poison would. Tech is the other:
+  // the engineered and the sterile owe nothing to a season and are not held by
+  // it. A single-answer floor is a wall rather than a puzzle, and this is
+  // floor 2 — early floors should have several ways through and narrow as the
+  // tower rises. See TOWER_ANSWER_BUDGET in towerCurve.ts.
+  resistanceProfile: { resistant: ['nature'], weak: ['fire', 'tech'] },
+  phases: [
+    {
+      id: 'phase_season_held',
+      healthThresholdStart: 1.0,
+      healthThresholdEnd: 0.5,
+      passiveDescriptions: ['What is cut closes over before you look away.'],
+      // The pressure. A party that only chips will never finish him.
+      passiveStatuses: [{ statusId: 'regeneration', duration: 999, stacks: 2 }],
+      actions: [
+        {
+          id: 'act_season_hold',
+          displayName: 'Hold the Afternoon',
+          intentType: 'heavy_attack',
+          telegraphText: 'The light stops moving across the grove floor.',
+          priority: 20,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(2) * 0.85),
+          scalingPerRound: TOWER.scaling(2),
+          damageType: 'nature',
+        },
+      ],
+    },
+    {
+      id: 'phase_season_turning',
+      healthThresholdStart: 0.5,
+      healthThresholdEnd: 0,
+      passiveDescriptions: ['Something has begun to turn, and he is fighting it.'],
+      passiveStatuses: [{ statusId: 'regeneration', duration: 999, stacks: 3 }],
+      actions: [
+        {
+          id: 'act_season_root',
+          displayName: 'Everything Held Back',
+          intentType: 'area_attack',
+          telegraphText: 'A whole season of growth arrives at once.',
+          priority: 30,
+          cooldownRounds: 2,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(2) * 0.6),
+          scalingPerRound: TOWER.scaling(2),
+          damageType: 'nature',
+        },
+        {
+          id: 'act_season_close',
+          displayName: 'Close Over',
+          intentType: 'heavy_attack',
+          telegraphText: 'He turns his attention to the wound.',
+          priority: 20,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(2) * 0.85),
+          scalingPerRound: TOWER.scaling(2),
+          damageType: 'nature',
+        },
+      ],
+    },
+  ],
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+/* ---------- Floor 3 · The Unclosed Summons (Seraph) ----------
+ * Pressure A — hits the WHOLE party, every round. Answered by group
+ * regeneration and barrier; taunt and guard are traps, because there is
+ * nobody to pull the blow away from.
+ *
+ * BALANCED-PARALYSIS, NOT FALLEN. A Fallen champion would double-book the
+ * corruption arc and spend Infernal, which is Fallen-Seraph-exclusive TO
+ * PLAYERS. Her collapse is refusing to let the axis resolve at all — she is
+ * still standing in the summons, holding both answers, forever.
+ * §14 check: no cartoonish evil signalling. She is not fallen. She is stuck. */
+
+const UNCLOSED_SUMMONS_DEF: BossDefinition = {
+  id: 'boss_champion_seraph',
+  slug: 'the-unclosed-summons',
+  name: 'The Unclosed Summons',
+  lore:
+    'She was called, and she answered, and then she was asked to choose what the answer meant. She has not chosen. She stands in the open summons with both replies still in her mouth, and the light that came for her has nowhere to go, so it goes everywhere.',
+  familyIds: ['holy'],
+  currentVersionId: 'bv_champion_seraph_1',
+  status: 'active',
+  artAssetIds: [],
+  bossKind: 'champion',
+  mirrorArchetype: 'Seraph',
+  towerFloor: 3,
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+const UNCLOSED_SUMMONS_V1: BossVersion = {
+  id: 'bv_champion_seraph_1',
+  bossId: 'boss_champion_seraph',
+  versionNumber: 1,
+  status: 'active',
+  publishedAt: NOW,
+  maxHp: TOWER.hp(3),
+  // Unresolved light: holy passes through her without meaning anything,
+  // and the answer is the profane thing she never chose.
+  resistanceProfile: { resistant: ['holy'], weak: ['shadow'] },
+  phases: [
+    {
+      id: 'phase_summons_held',
+      healthThresholdStart: 1.0,
+      healthThresholdEnd: 0.55,
+      passiveDescriptions: ['The light does not fall on anyone in particular.'],
+      actions: [
+        {
+          id: 'act_summons_everywhere',
+          displayName: 'Nowhere To Go',
+          intentType: 'area_attack',
+          telegraphText: 'The light rises with no direction to fall in.',
+          priority: 20,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(3) * 0.55),
+          scalingPerRound: TOWER.scaling(3),
+          damageType: 'holy',
+        },
+      ],
+    },
+    {
+      id: 'phase_summons_pressing',
+      healthThresholdStart: 0.55,
+      healthThresholdEnd: 0,
+      passiveDescriptions: ['She is being asked again, and again she does not answer.'],
+      actions: [
+        {
+          id: 'act_summons_asked',
+          displayName: 'Asked Again',
+          intentType: 'shield',
+          telegraphText: 'She draws the summons closed around herself.',
+          priority: 30,
+          cooldownRounds: 3,
+          interruptible: false,
+          baseDamage: 0,
+          scalingPerRound: 0,
+          damageType: 'holy',
+          shieldAmount: Math.round(TOWER.hp(3) * 0.12),
+          shieldDurationRounds: 2,
+        },
+        {
+          id: 'act_summons_unanswered',
+          displayName: 'Still Unanswered',
+          intentType: 'area_attack',
+          telegraphText: 'The whole unspent summons breaks over the room.',
+          priority: 20,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(3) * 0.7),
+          scalingPerRound: TOWER.scaling(3),
+          damageType: 'holy',
+        },
+      ],
+    },
+  ],
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
 export const SEED_BOSSES: SeedBoss[] = [
+  // Floor 0 — the gatekeeper. Elemental, not archetypal: a force rather than
+  // a person, which is why it is not one of The Overreach. Its lore already
+  // teaches measured strikes, and it is the only boss with finished art.
   { definition: EMBERBORN_DEF_V4, version: EMBERBORN_V4 },
+  { definition: DEBT_BEARER_DEF, version: DEBT_BEARER_V1 },
+  { definition: STILL_SEASON_DEF, version: STILL_SEASON_V1 },
+  { definition: UNCLOSED_SUMMONS_DEF, version: UNCLOSED_SUMMONS_V1 },
 ];
 
 /** Legacy versions kept for admin history / snapshot integrity. */

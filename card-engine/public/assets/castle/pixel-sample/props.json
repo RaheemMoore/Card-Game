@@ -1,0 +1,22 @@
+{
+  "fountain": {
+    "file": "fountain.png",
+    "width": 114,
+    "height": 116
+  },
+  "lamppost": {
+    "file": "lamppost.png",
+    "width": 21,
+    "height": 113
+  },
+  "stall": {
+    "file": "stall.png",
+    "width": 82,
+    "height": 93
+  },
+  "barrel": {
+    "file": "barrel.png",
+    "width": 45,
+    "height": 64
+  }
+}

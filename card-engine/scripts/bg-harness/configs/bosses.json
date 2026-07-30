@@ -1,0 +1,117 @@
+{
+  "_readme": [
+    "MODESTY IS ABSOLUTE AND SEX-NEUTRAL AND SPECIES-NEUTRAL. Every figure is clothed or armoured neck to feet. This was written female-specific once ('cleavage', 'bra', 'exposed breasts') and the hole cost a whole round: concepts came back as bare-chested nude-muscular monsters because neither 'male' nor 'monster' was covered. A negative naming one sex's anatomy does not implement the rule. 'It's a monster' is not an exemption \u2014 bark or hide counts as covering only when it fully sheathes torso and hips. See CLAUDE.md M5.7. This game is for everyone.",
+    "WHY PROMPT-LEVEL MODESTY BANS KEPT FAILING: the positive prompt was describing a BODY ('leathery skin', 'sinewy limbs', 'massive barrel torso') and then asking a negative to cover it. The negative cannot outvote positive anatomy description \u2014 three rounds came back bare-chested anyway. THE RULE: name no body part except the HEAD, FACE and HANDS. Everything from the neck down is described only as garment, wrapping, plate or bark. Never write skin, torso, chest, muscular, sinewy or anatomy words at all. Coverage has to be what the image is OF, not a constraint bolted onto it.",
+    "COROLLARY LEARNED THE HARD WAY: do not name the torso even to say it is covered ('its torso is completely covered by robes' still produced a bare bone ribcage). Naming a region summons it. Describe the GARMENT's extent instead \u2014 'robes fall in unbroken layers from the chin to the floor'. And scope exposed bone to HANDS AND FACE ONLY; 'bare bone forearms' bled up into the trunk.",
+    "THE OVERCORRECTION: banning anatomy words removed the MONSTER too and left robed humans. Monstrousness must come from PROPORTION AND SILHOUETTE, not bare flesh \u2014 wrong mass, no neck, hunched shoulders far wider than hips, arms reaching the floor, a bony ridged inhuman skull, splayed clawed feet. Every surface is riveted iron, carapace, hide-plate or bark, never a human hooded robe. That gets monster AND coverage at once. ONE generation per champion while dialling this in.",
+    "WHAT FINALLY WORKED FOR MONSTER+COVERAGE: lead with the ARMOUR as the grammatical subject and hang the creature off it ('Clad head to foot in a banded iron cuirass over a mail hauberk ... worn by a hulking misshapen monster'), and use specific garment nouns \u2014 cuirass, hauberk, greaves, gorget \u2014 not the generic 'covered'. A trailing coverage clause loses to Leonardo's shirtless-brute prior every time; the armour has to be what the picture is OF.",
+    "Overreach champion CONCEPT art \u2014 Stage 0 of the animated-boss overhaul.",
+    "",
+    "V2: MONSTROUS HUMANOIDS. V1 rendered all three as tragic elderly humans and was",
+    "rejected by Raheem \u2014 they read as characters, not bosses, and several had no",
+    "V3: the Seraph champion is REPLACED by a NECROMANCER champion, 'The Unclosed Rite'. Raheem: the split-down-the-midline design is great but is not a Seraph. Renamed off 'Summons' because Necromancer Bible avoid explicitly lists 'Necromancer reduced to summoner'. Its avoid list also bans green smoke shorthand, skull overload and corpse decoration, so the split is SUBSTANCE VS ABSENCE \u2014 one half present, one half already gone \u2014 never half-rotted. Palette is bone/umber/iron/indigo with cold blue-white light. No green. seedBosses still needs mirrorArchetype Seraph->Necromancer and a matching resistance profile.",
+    "menace at all. The first batch is kept at out/bosses-v1-human/ for reference.",
+    "",
+    "Monstrous changes the BODY, not the moral read. The Overreach premise is that",
+    "each champion walked their archetype's path past its end and it consumed them,",
+    "so the transformation IS the tragedy. Bible \u00a714 bans automatic villainy, not",
+    "inhuman anatomy \u2014 these are tragic monsters, never cackling villains. No",
+    "snarling, no evil grins, no trophies.",
+    "",
+    "Constraints that did NOT change: portrait modesty (M5.7) applies to monsters",
+    "too \u2014 armour, hide, robes, carapace, never sexualised anatomy. The Seraph",
+    "champion is Balanced-paralysis and must never read Fallen: no molten obsidian,",
+    "no black light, no horns, no hellfire. Infernal is player-exclusive.",
+    "",
+    "These are NOT final assets. Each approved concept is cropped to <=168x168 and",
+    "handed to PixelLab create-character-pro as `reference_image`, which does the",
+    "pixelisation \u2014 hence painterly, not pixel art. Big bold silhouettes matter far",
+    "more than fine detail: at ~180px sprite height, fine detail is sub-pixel.",
+    "",
+    "STYLE-REF IS OFF for exploration. At Mid strength the controlnet homogenised",
+    "the IDEAS as well as the register \u2014 every champion inherited the anchor's",
+    "cowl, skirt and neutral A-pose and the distinctive concepts were flattened.",
+    "Consistency belongs on the three CHOSEN designs, not on the exploration.",
+    "",
+    "  node harness.mjs gen bosses      # all nine",
+    "  node harness.mjs sheet bosses    # contact sheet"
+  ],
+  "styleHeader": "Painterly dark-fantasy monster concept art, digital painting, soft brushwork, rich colour, imposing. Figure FULLY CLOTHED AND ARMOURED neck to feet, no bare chest or torso. Full-length wide shot, entire body from head to ground with margin above and below, single creature centred facing viewer on a plain flat dark grey background, dramatic lighting, bold readable silhouette.",
+  "width": 768,
+  "height": 1024,
+  "negative": "bare chest, bare torso, bare midriff, bare abdomen, exposed ribcage, ribs, skull face, shirtless, topless, nude, naked, nipples, loincloth, bare midriff, cleavage, boob armour, sculpted bust, large breasts, bra, lingerie, bikini armour, sexualised pose, cropped feet, cropped legs, cropped head, close-up, portrait crop, half body, zoomed in, ordinary human, normal person, handsome, pretty, green smoke, sickly green, skull mask, skeletal armour, bone armour, corpse, rotting flesh, zombie, snarling, evil grin, glowing red eyes, throne, trophies, gore, background scenery, landscape, room, horizon, multiple characters, two figures, modern clothing, pixel art, low resolution, cartoon, anime, 3d render, cgi, photorealistic, photograph, text, letters, numbers, watermark, logo, ui, frame, border",
+  "familyLabels": {
+    "cast": "The Overreach \u2014 monstrous champion concepts"
+  },
+  "anchors": {
+    "cast": {
+      "line": "Clad head to foot in a heavy banded dark-iron cuirass over a long mail hauberk, with iron gorget, vambraces and greaves and thick leather filling every gap, no skin visible anywhere \u2014 worn by a hulking misshapen monster three times the mass of a man, hunched so its shoulders rise above and wider than its hips, no neck, its head a long wedge of ridged bone and grey hide with no human features, heavy brow, wide tusked jaw. Its eyes are two burning coals of white-hot fire. Its overlong armoured arms reach the ground and end in long claws glowing red-hot like iron drawn from a forge. Bolted across its hunched back is a COLOSSAL HEAP of dozens of massive iron counting-weights piled higher than its head and wider than its body, the whole heap glowing forge-hot from within with molten orange cracks between the blocks, embers and smoke pouring off it and heat-light spilling down its dark flanks. Armour and body stay cold dark iron, oxblood and soot; only the heap, claws and eyes burn. Bowed low beneath the weight but still standing, exhausted and sorrowful, never angry."
+    }
+  },
+  "states": [
+    {
+      "id": "debt-bearer-a",
+      "label": "Debt-Bearer \u2014 fire, forge-hot burden",
+      "family": "cast",
+      "isAnchor": true,
+      "line": "A towering hunched figure completely enveloped from chin to floor in a heavy full-length hooded robe of layered ragged sackcloth, coarse woollen shrouds and boiled leather, bulky and shapeless, not one part of the figure uncovered. Only its gaunt ashen grey-green face and its long thin clawed hands are visible; a long jaw, sunken tired eyes, thin white hair in ropes under the hood. It is buried under an enormous load of iron: dozens of heavy iron counting-weights and thick chains heaped across its hunched back and shoulders, coiling down its arms and pooling in a great pile around its feet, the iron the largest shape in the picture, the figure bowed forward beneath it but still standing. Sorrowful and exhausted, never angry. Cold grey iron, ashen grey, oxblood, bronze."
+    },
+    {
+      "id": "debt-bearer-b",
+      "label": "Debt-Bearer B \u2014 Iron grown into her",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A towering hunched figure completely enveloped from chin to floor in a heavy full-length hooded robe of layered ragged sackcloth, coarse woollen shrouds and boiled leather, bulky and shapeless, not one part of the figure uncovered. Only its gaunt ashen grey-green face and its long thin clawed hands are visible; a long jaw, sunken tired eyes, thin white hair in ropes under the hood. Heavy black iron counting-weights and chain links erupt straight out through the robe along its hunched spine, shoulders and arms, fused into the cloth and whatever is beneath it, a ridge of hanging iron stones running down its back like a second spine. Hunched and patient, head low. Sorrowful and tired, never angry. Cold grey iron, ashen grey, oxblood, bronze."
+    },
+    {
+      "id": "debt-bearer-c",
+      "label": "Debt-Bearer C \u2014 Dragging the chain",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A towering hunched figure completely enveloped from chin to floor in a heavy full-length hooded robe of layered ragged sackcloth, coarse woollen shrouds and boiled leather, bulky and shapeless, not one part of the figure uncovered. Only its gaunt ashen grey-green face and its long thin clawed hands are visible; a long jaw, sunken tired eyes, thin white hair in ropes under the hood. Its impossibly long sleeved arms reach the ground, dragging behind it a vast tangle of heavy iron chain and counting-weights trailing across the floor and heaping into the distance, the chain fastened to thick iron cuffs at its wrists. Head bowed, still walking forward. Sorrowful and exhausted, never angry. Cold grey iron, ashen grey, oxblood, bronze."
+    },
+    {
+      "id": "still-season-a",
+      "label": "Still Season A \u2014 Root colossus",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A towering colossus three times the height of a man, its entire form built from thick overlapping plates of knotted grey bark and dense packed green moss like heavy natural armour, completely sheathed with nothing uncovered anywhere, vast heavy arms of braided root reaching to the ground and thick root-legs splayed and gripping the earth. Set deep in the bark near the top is one small withered ancient face, its eyes pale, calm and unfocused, not glowing. Dozens of small green leaves hang suspended and motionless in the air all around it, none falling. Sorrowful and still, never angry. Muted olive, umber, grey bark and deep moss green, with a soft warm gold-green glow deep within."
+    },
+    {
+      "id": "still-season-b",
+      "label": "Still Season B \u2014 Bloated overgrowth",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A colossal bloated humanoid mass of unstoppable growth, a swollen mound in the rough shape of a hunched giant: dense layered moss, thick knotted roots, ferns, creepers and pale fungal shelves piled over and through it until almost nothing structural is visible, two heavy root-arms hanging at its sides and a single gaunt bark-covered face pressed into the front of the mass near the top, eyes open and sorrowful. Everything is green and thriving and far too much of it. Muted olive, umber, deep moss green and grey bark, with a soft warm gold-green glow buried deep inside."
+    },
+    {
+      "id": "still-season-c",
+      "label": "Still Season C \u2014 Deadwood cage + blossom",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A tall gaunt monstrous humanoid of grey deadwood and pale blossom: a lean elongated figure whose body is a cage of bare woven branches with a hollow chest, long thin branch-limbs ending in splayed twig fingers, and a smooth featureless bark head with no eyes and no mouth. Perfect unwithered white and pink blossoms grow thickly along its shoulders, arms and ribs, and more hang suspended completely motionless in the air around it. Still and mournful. Muted grey bark, olive and umber against soft pale blossom pink and white, with a faint warm gold-green glow inside the hollow chest."
+    },
+    {
+      "id": "unclosed-a",
+      "label": "Unclosed Rite A \u2014 Shadow-shrouded",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A towering monstrous necromancer creature, NO HELMET and NO MASK: its gaunt withered face is fully visible, taut ashen grey hide drawn over the bone beneath, sharp cheekbones and a long jaw, deep-set calm sorrowful eyes, hairless. Only its long thin hands are bare ivory bone. Heavy layered robes of deep violet and black grave-cloth over dark iron shoulder plate fall in unbroken layers from its chin all the way to the floor, nothing beneath them showing anywhere. Ragged shadow streams off its shoulders and hem like dark smoke. Solemn and sorrowful, never cruel. Deep royal purple, violet, black shadow, dark iron and pale bone, cold violet glow. No green. Vast ragged wings of pure shadow spread behind it, torn darkness rather than feathers, and violet-black shadow spills from its sleeves and pools deep around it. Violet light glows from within the robes."
+    },
+    {
+      "id": "unclosed-b",
+      "label": "Unclosed Rite B \u2014 The unfinished rite",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A towering monstrous necromancer creature, NO HELMET and NO MASK: its gaunt withered face is fully visible, taut ashen grey hide drawn over the bone beneath, sharp cheekbones and a long jaw, deep-set calm sorrowful eyes, hairless. Only its long thin hands are bare ivory bone. Heavy layered robes of deep violet and black grave-cloth over dark iron shoulder plate fall in unbroken layers from its chin all the way to the floor, nothing beneath them showing anywhere. Ragged shadow streams off its shoulders and hem like dark smoke. Solemn and sorrowful, never cruel. Deep royal purple, violet, black shadow, dark iron and pale bone, cold violet glow. No green. It holds both bone hands open before it, cupping a slow-turning ring of violet light and drifting ash suspended in the air between them, a rite begun and never completed. Shadow streams upward from it."
+    },
+    {
+      "id": "unclosed-c",
+      "label": "Unclosed Rite C \u2014 Crowned in violet flame",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A towering monstrous necromancer creature, NO HELMET and NO MASK: its gaunt withered face is fully visible, taut ashen grey hide drawn over the bone beneath, sharp cheekbones and a long jaw, deep-set calm sorrowful eyes, hairless. Only its long thin hands are bare ivory bone. Heavy layered robes of deep violet and black grave-cloth over dark iron shoulder plate fall in unbroken layers from its chin all the way to the floor, nothing beneath them showing anywhere. Ragged shadow streams off its shoulders and hem like dark smoke. Solemn and sorrowful, never cruel. Deep royal purple, violet, black shadow, dark iron and pale bone, cold violet glow. No green. A tall crown of cold violet fire burns silently above its head, casting hard violet light down its gaunt face and deep purple robes. Long shadow stretches behind it. Bone hands hang open at its sides."
+    }
+  ],
+  "styleRef": false
+}
