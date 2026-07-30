@@ -1,0 +1,93 @@
+[
+ {
+  "file": "medallions/medallion-0.png",
+  "box": [
+   143,
+   132,
+   317,
+   306
+  ],
+  "size": [
+   174,
+   174
+  ]
+ },
+ {
+  "file": "medallions/medallion-1.png",
+  "box": [
+   358,
+   29,
+   540,
+   218
+  ],
+  "size": [
+   182,
+   189
+  ]
+ },
+ {
+  "file": "medallions/medallion-2.png",
+  "box": [
+   573,
+   133,
+   752,
+   314
+  ],
+  "size": [
+   179,
+   181
+  ]
+ },
+ {
+  "file": "medallions/medallion-3.png",
+  "box": [
+   662,
+   373,
+   870,
+   571
+  ],
+  "size": [
+   208,
+   198
+  ]
+ },
+ {
+  "file": "medallions/medallion-4.png",
+  "box": [
+   662,
+   614,
+   820,
+   799
+  ],
+  "size": [
+   158,
+   185
+  ]
+ },
+ {
+  "file": "medallions/medallion-5.png",
+  "box": [
+   79,
+   613,
+   242,
+   802
+  ],
+  "size": [
+   163,
+   189
+  ]
+ },
+ {
+  "file": "medallions/medallion-6.png",
+  "box": [
+   24,
+   368,
+   242,
+   568
+  ],
+  "size": [
+   218,
+   200
+  ]
+ }
+]
