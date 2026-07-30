@@ -3,7 +3,9 @@ import type { BossCombatant } from '../../types/combat';
 import type { AnimationBeat, BeatSeverity } from '../../services/combat/presentation/types';
 import { getGameFeel } from '../../services/combat/presentation/gameFeel';
 import type { MotionLevel } from '../../vfx/types';
-import { getBossSprite } from '../../data/combat/bossSpriteManifest';
+import { getBossClip } from '../../data/combat/bossSpriteManifest';
+import { SpriteClipPlayer } from './SpriteClipPlayer';
+import { bossClipForBeat } from './bossClipState';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { FloatingDamage } from './FloatingDamage';
 
@@ -55,8 +57,15 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
     }
   }, [currentBeat, boss.actorId]);
 
-  const sprite = getBossSprite(boss.snapshot.bossId, 'idle');
-  const spriteUrl = sprite ? resolveCombatAssetUrl(sprite) : null;
+  // Which pose the boss holds is a projection of the CURRENT BEAT, not of live
+  // battle state — live state has already run ahead of what the player sees.
+  const clipState = bossClipForBeat(currentBeat, {
+    bossActorId: boss.actorId,
+    bossDefeated: boss.defeated,
+    enraged: charging,
+  });
+  const clip = getBossClip(boss.snapshot.bossId, clipState);
+  const spriteUrl = clip ? resolveCombatAssetUrl(clip.asset) : null;
 
   return (
     <div
@@ -88,22 +97,25 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         }}
         aria-label={`${boss.snapshot.name}${charging ? ' — charging a heavy attack' : ''}`}
       >
-        {spriteUrl ? (
-          <img
+        {spriteUrl && clip ? (
+          <SpriteClipPlayer
+            clip={clip}
             src={spriteUrl}
+            // Restarting on the state alone would leave a second attack in a
+            // row parked on its held last frame; the beat id makes each
+            // firing a fresh play.
+            clipKey={`${clipState}:${currentBeat?.id ?? 'none'}`}
+            motion={motionLevel}
             alt={boss.snapshot.name}
-            className="w-full h-full object-contain"
             // P1: stack a warm ember rim-light on top of the existing dark
             // ground drop-shadow so the sprite reads as lit by the lava veins,
             // not pasted onto the arena.
             style={{
-              imageRendering: 'auto',
               filter:
                 'brightness(0.96) saturate(1.08) ' +
                 'drop-shadow(0 18px 18px rgba(0,0,0,0.85)) ' +
                 'drop-shadow(0 0 24px rgba(255,110,40,0.30))',
             }}
-            draggable={false}
           />
         ) : (
           <div
