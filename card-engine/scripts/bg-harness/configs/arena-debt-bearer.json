@@ -1,0 +1,68 @@
+{
+  "_readme": [
+    "The Debt-Bearer's arena \u2014 tower floor 1. Replaces the shared",
+    "forbidden-mountain-passage plate she currently borrows.",
+    "",
+    "SELF-INFLICTED BUG, FIXED: the first style header said the floor was somewhere 'three figures can stand'. That is a request for three figures, and Leonardo duly put three tiny fighters on the dais. Describe the SPACE as empty; never mention the occupants.",
+    "Phoenix ignores 'pixel art' when Alchemy is on and returns a 3D render. Alchemy is off here and the pixel language is front-loaded, which is what the existing arena needed too.",
+    "STYLE MUST MATCH THE EXISTING ARENA, which is a Phoenix 1.0 *pixel-art* pass,",
+    "not a painting. The boss is now a true pixel sprite, so a painted plate would",
+    "put a pixel actor on a matte painting. 16-bit pixel art throughout.",
+    "",
+    "COMPOSITION IS LOAD-BEARING, NOT TASTE. Code positions the boss and the party",
+    "against these bands; get them wrong and the boss floats or the party stands",
+    "inside a wall:",
+    "  - dais top surface at y 52-59%, dais width ~30-40% of frame",
+    "  - flat unobstructed hero floor at y 80-91%, full width, LOW CONTRAST",
+    "  - boss HUD safe zone top-LEFT ~372x196px: no bright detail, no busy texture",
+    "  - journal safe zone top-RIGHT ~320px wide: same rule",
+    "  - bottom ~8.5rem is covered by the command shelf; anything painted there is",
+    "    thrown away",
+    "  - keep 4-5% clear on all sides: the image is cover-cropped and edges trim",
+    "The dais needs visible step risers \u2014 they are what sell the height difference",
+    "between the boss and the party.",
+    "",
+    "Her theme is a LEDGER, not fury (Barbarian Bible \u00a714 assigns feral imagery to",
+    "the Lycanthrope). Fire is her element and the iron she carries is forge-hot,",
+    "so the room should read as a place where debts are tallied and iron is heated",
+    "\u2014 not a generic lava cave.",
+    "",
+    "Style-ref OFF: it homogenises ideas as well as register (see bosses.json).",
+    "  node harness.mjs gen arena-debt-bearer",
+    "  node harness.mjs sheet arena-debt-bearer"
+  ],
+  "styleHeader": "16-bit pixel art game background, retro SNES JRPG battle backdrop, hard-edged pixels, visible pixel grid, limited palette, no anti-aliasing, no blur. Widescreen 16:9 fixed frontal combat-stage composition, symmetrical, empty and unoccupied. A broad raised circular dais with clearly visible stepped risers in the exact centre, its flat top surface just above the middle of the frame, and a wide flat bare low-contrast floor across the lower third. Dark low-detail negative space in the upper-left and upper-right corners. Crisp pixel clusters, coherent lighting, atmospheric depth.",
+  "width": 1360,
+  "height": 768,
+  "styleRef": false,
+  "negative": "characters, people, figures, humans, warriors, soldiers, creatures, monsters, silhouettes, statues, crowd, animals, text, letters, numbers, runes, written words, signage, books, scrolls, ui, hud, health bar, frame, border, watermark, logo, vignette, tilted camera, isometric view, dutch angle, close-up, bright upper corners, busy foreground, cluttered floor, obstacles in the lower third, photorealistic, photograph, 3d render, cgi, cel-shaded, flat vector art, comic outlines, cartoon, anime, blurry, low detail, empty flat background",
+  "familyLabels": {
+    "arena": "The Debt-Bearer \u2014 floor 1 arena"
+  },
+  "anchors": {
+    "arena": {
+      "line": "A vast underground forge-hall of iron and fire. Colossal blackened iron pillars and hanging chains frame the far left and right edges, thick with soot. Behind the dais, banks of forge furnaces glow deep orange through their grates, throwing heat-light forward. The central dais is black cast iron, ringed with cooling channels of molten metal running bright orange through cut stone. The wide lower floor is dark scorched flagstone, flat and uncluttered. Heavy iron counting-weights hang on chains from the darkness overhead. Deep charcoal and soot black, cold grey iron, with molten orange and ember gold as the only light. Dark low-detail upper corners."
+    }
+  },
+  "states": [
+    {
+      "id": "forge-hall",
+      "label": "A \u2014 The Forge-Hall of Debts",
+      "family": "arena",
+      "isAnchor": true
+    },
+    {
+      "id": "counting-floor",
+      "label": "B \u2014 The Counting Floor (tally-stone, fire beneath)",
+      "family": "arena",
+      "line": "A vast cold hall of grey tally-stone. Every wall surface is covered edge to edge in shallow carved notches and scored counting marks, thousands of them, worn smooth in places. Towering stacked slabs of notched stone rise out of frame at the far left and right edges like columns of accounts. The central dais is pale scored stone with deep stepped risers. Molten orange fire burns in narrow cracks running through the floor and up the walls from beneath, as if the whole hall is heating from below. The wide lower floor is flat pale flagstone, low contrast and uncluttered. Cold blue-grey stone against molten orange seams and ember gold. Dark low-detail upper corners."
+    },
+    {
+      "id": "cooling-yard",
+      "label": "C \u2014 The Cooling Yard (open air, ash sky)",
+      "family": "arena",
+      "line": "An open-air ash yard beneath a heavy red-black sky. A towering iron gantry crosses the top of the frame with enormous chains and hanging iron counting-weights descending from it. Blackened stone quench-troughs steam at the far left and right edges, framing the stage. The central dais is cracked grey slag with stepped risers, still glowing hot in its fissures. The wide lower floor is packed grey ash and cinder, flat, low contrast and uncluttered, drifting with fine embers. Muted ash grey and iron, deep red-black sky, molten orange in the cracks. Dark low-detail upper corners."
+    }
+  ],
+  "alchemy": false
+}
