@@ -2,42 +2,33 @@
  * Courtyard spatial contract — shared by the Phaser scene and the DOM overlay
  * so the two can never disagree about where a stall is on screen.
  *
- * The courtyard is ONE FIXED SCREEN. The painted plate is a square canvas;
- * desktop and phone each see a different crop of it, rendered scale-to-cover
- * so neither ever letterboxes.
+ * The courtyard is ONE FIXED SCREEN. The painted plate is a 4:3 canvas, and it
+ * is rendered SCALE-TO-FIT: the whole plate is always visible, whatever the
+ * window shape, with the surrounding space filled by a blurred copy of the same
+ * art (see CourtyardViewport).
  *
- * Two nested regions, and the distinction matters:
+ * WHY NOT SCALE-TO-COVER, which this used to do. Cover fills the viewport and
+ * crops the overflow, which sounds strictly better — no bars. But a 4:3 plate on
+ * a wide laptop crops the axis you cannot spare: at aspect 1.91 it showed the
+ * full 1536 width and only 804 of 1152 height, losing 30% of the world. Raheem,
+ * playing it: "Bit too zoomed in on my laptop. I cant see the edges." The
+ * castle entrance was clipped, and the lower lamps, south bushes and crates were
+ * off screen entirely.
  *
- *   SAFE_BOX  — guaranteed visible on every supported device. Stalls, the
- *               hero spawn, and anything interactive must live here.
- *   WALKABLE  — larger. Desktop and tablet see well beyond the safe box, so
- *               confining movement to it would make the courtyard feel like a
- *               postage stamp on a wide screen. You may walk into scenery you
- *               can see; you just can't be required to.
+ * It also quietly broke this file's own promise. There used to be a SAFE_BOX of
+ * 1420x840 documented as "guaranteed visible on every supported device", with a
+ * worked example that reasoned about 16:9 and stopped there. Anything wider than
+ * about 1.83 showed less than 840px of height, so the guarantee failed and a
+ * stall could sit off screen. Under fit-scale that whole concept is unnecessary:
+ * everything is always visible, so there is nothing to guarantee and no second
+ * box to keep in step. SAFE_BOX had no consumers and is gone.
  *
  * TARGET DEVICES: PC and tablet, both landscape. Phone portrait is explicitly
- * deferred — an earlier revision sized everything around iPhone portrait and
- * the result was a tiny safe box that wasted most of a monitor. If phone
- * support returns, it needs its own crop, not a compromise canvas.
- *
- * Sizing rule: under cover-scale a viewport of aspect `a` sees
- * `CANVAS_H * a` of world width and `CANVAS_W / a` of world height. The
- * bounds that matter now are 4:3 tablet (a ≈ 1.33) and 16:9 desktop
- * (a ≈ 1.78), against a 4:3 canvas:
- *
- *   4:3  → the whole canvas is visible.
- *   16:9 → full width, and 1536 / 1.78 ≈ 863 of height.
- *
- * So SAFE_H must stay under ~863. 840 leaves a little slack for 16:10 and
- * odd window shapes without letterboxing.
+ * deferred — it needs its own crop of the art, not a compromise canvas.
  */
 
 export const CANVAS_W = 1536;
 export const CANVAS_H = 1152;
-
-/** Guaranteed-visible box. Interactive content only inside this. */
-export const SAFE_W = 1420;
-export const SAFE_H = 840;
 
 /**
  * The paved courtyard the hero may cross, traced onto the painted plate
@@ -48,16 +39,6 @@ export const SAFE_H = 840;
  */
 export const WALKABLE_RECT = { x: 200, y: 300, width: 1140, height: 740 } as const;
 
-function centered(width: number, height: number) {
-  return {
-    x: (CANVAS_W - width) / 2,
-    y: (CANVAS_H - height) / 2,
-    width,
-    height,
-  } as const;
-}
-
-export const SAFE_BOX = centered(SAFE_W, SAFE_H);
 export const WALKABLE = WALKABLE_RECT;
 
 export const CANVAS_CENTER = { x: CANVAS_W / 2, y: CANVAS_H / 2 } as const;
@@ -68,23 +49,26 @@ export interface Viewport {
 }
 
 /**
- * Cover scale: the larger of the two axis ratios, so the plate always fills
- * the viewport and the overflow is cropped rather than letterboxed.
+ * Fit scale: the SMALLER of the two axis ratios, so the entire plate fits and
+ * the leftover space becomes margin rather than the plate being cropped.
  */
-export function coverScale({ width, height }: Viewport): number {
-  return Math.max(width / CANVAS_W, height / CANVAS_H);
+export function fitScale({ width, height }: Viewport): number {
+  return Math.min(width / CANVAS_W, height / CANVAS_H);
 }
 
 /**
- * World point → screen pixels, using the same cover math the camera uses.
- * The DOM stall buttons are positioned with this, which is why it lives here
- * rather than inside the scene.
+ * World point → screen pixels, using the same fit math the camera uses.
+ *
+ * The DOM stall buttons are positioned with this, which is why it lives beside
+ * the camera's scale rather than inside the scene: if these two ever disagree,
+ * the focusable buttons drift off the stalls they represent and keyboard
+ * traversal starts landing on empty paving.
  */
 export function worldToScreen(
   world: { x: number; y: number },
   viewport: Viewport,
 ): { x: number; y: number } {
-  const scale = coverScale(viewport);
+  const scale = fitScale(viewport);
   return {
     x: (world.x - CANVAS_CENTER.x) * scale + viewport.width / 2,
     y: (world.y - CANVAS_CENTER.y) * scale + viewport.height / 2,

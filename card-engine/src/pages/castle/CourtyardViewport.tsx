@@ -122,8 +122,31 @@ export function CourtyardViewport() {
       aria-modal="true"
       aria-label="Castle courtyard"
       className="fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden outline-none text-bone"
-      style={{ background: '#1d2a1f' }}
+      style={{ background: '#12100c' }}
     >
+      {/*
+        The plate is rendered scale-to-FIT, so a wide window leaves margin either
+        side of it — about 300px each side at 1.91 aspect. This fills that margin
+        with the same art, scaled to COVER, blurred and dimmed.
+
+        Depth rather than emptiness: a flat letterbox announces "your screen is
+        the wrong shape", while an out-of-focus continuation of the courtyard
+        reads as distance. Same treatment as the boot screen, so arriving in the
+        world is continuous.
+
+        Done in CSS, not as a second Phaser image with preFX.addBlur() — a
+        full-viewport GPU blur every frame is real cost for a layer that never
+        changes, and the compositor does this for free. `scale(1.1)` hides the
+        soft, semi-transparent edge a large blur radius leaves behind.
+      */}
+      <img
+        src="/assets/castle/courtyard.png"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ filter: 'blur(28px) brightness(0.4) saturate(0.8)', transform: 'scale(1.1)' }}
+      />
+
       <div ref={containerRef} className="absolute inset-0" />
 
       {status === 'loading' && (

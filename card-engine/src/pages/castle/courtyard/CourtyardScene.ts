@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { keyboardVector, seekVector, type Vec2 } from './controls';
 import { COURTYARD_EVENTS } from './events';
-import { CANVAS_W, CANVAS_H, CANVAS_CENTER, WALKABLE, coverScale } from './layout';
+import { CANVAS_W, CANVAS_H, CANVAS_CENTER, WALKABLE, fitScale } from './layout';
 import { HERO_SPAWN, STALLS } from './stalls';
 import { SCENERY } from './scenery';
 import { createAmbient, type Ambient } from './ambient';
@@ -142,8 +142,8 @@ export class CourtyardScene extends Phaser.Scene {
 
     this.buildOccluders();
 
-    this.applyCameraCover();
-    this.scale.on('resize', this.applyCameraCover, this);
+    this.applyCameraFit();
+    this.scale.on('resize', this.applyCameraFit, this);
 
     // Tracing aid: /castle?colliders=1 outlines every static body over the
     // painting. Colliders here are hand-traced onto painted art, so "is this
@@ -309,10 +309,14 @@ export class CourtyardScene extends Phaser.Scene {
     this.ambient?.setMotionOff(off);
   }
 
-  private applyCameraCover() {
+  /**
+   * Fit the whole plate on screen, centred. Anything left over is margin, and
+   * the canvas is transparent there so the blurred backdrop shows through.
+   */
+  private applyCameraFit() {
     const cam = this.cameras.main;
     cam.setBounds(0, 0, CANVAS_W, CANVAS_H);
-    cam.setZoom(coverScale({ width: this.scale.width, height: this.scale.height }));
+    cam.setZoom(fitScale({ width: this.scale.width, height: this.scale.height }));
     cam.centerOn(CANVAS_CENTER.x, CANVAS_CENTER.y);
   }
 

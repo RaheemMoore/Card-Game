@@ -14,7 +14,11 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     // window listener to leak on unmount.
     scale: { mode: Phaser.Scale.RESIZE, autoCenter: Phaser.Scale.CENTER_BOTH },
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 } } },
-    backgroundColor: '#1a1922',
+    // Transparent, not a background colour. The plate is rendered scale-to-FIT,
+    // so on a wide window there is margin either side of it — and that margin
+    // has to let the blurred backdrop in CourtyardViewport show through rather
+    // than being painted over with a flat colour.
+    transparent: true,
     scene: [CourtyardScene],
   });
 
