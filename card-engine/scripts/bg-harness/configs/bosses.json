@@ -1,0 +1,105 @@
+{
+  "_readme": [
+    "Overreach champion CONCEPT art \u2014 Stage 0 of the animated-boss overhaul.",
+    "",
+    "These are NOT final assets. Each approved concept gets cropped to <=168x168 and",
+    "handed to PixelLab `create-character-pro` as `reference_image`, which does the",
+    "pixelisation. So the style header is deliberately PAINTERLY, not pixel art: a",
+    "clean, readable, well-lit full-body figure is a far better reference than a",
+    "low-res one, and asking Leonardo for pixel art here would fight PixelLab.",
+    "",
+    "Plain flat background is functional, not taste \u2014 it keeps the silhouette clean",
+    "for the reference crop and stops scenery leaking into the character's design.",
+    "",
+    "THREE DIRECTIONS PER CHAMPION. Each direction changes the IDEA \u2014 what the",
+    "tragedy looks like, what the silhouette is \u2014 never the constraints. Every",
+    "champion's Bible \u00a714 avoid list, portrait modesty (M5.7), and the deliberate",
+    "age/build specification are binding in all three.",
+    "",
+    "ORDER: generate `debt-bearer-a` alone first and LOOK at it. It is the cast",
+    "anchor and everything else style-refs off it, so a bad anchor poisons all nine.",
+    "The manifest is keyed on imageId and resumable \u2014 delete its entry to re-roll.",
+    "  node harness.mjs gen bosses debt-bearer-a   # anchor only, review it",
+    "  node harness.mjs gen bosses                 # the remaining eight",
+    "  node harness.mjs sheet bosses               # contact sheet for Raheem",
+    "",
+    "STYLE-REF IS OFF for this exploration pass. With it on at Mid, the controlnet homogenised the IDEAS as well as the register: every champion inherited the anchor's beige cowl, tattered skirt and neutral A-pose, and the distinctive concepts (the chained load, the bark body, the split-down-the-midline) were flattened out entirely. Consistency belongs on the three CHOSEN designs, not on the exploration. Re-enable styleRef only to harmonise the winners."
+  ],
+  "styleHeader": "Painterly fantasy character concept art, digital painting, soft blended brushwork, rich colour. Full-length wide shot of a single figure, the ENTIRE body visible from the top of the head to the soles of both boots, both feet flat on the ground and fully in frame, clear empty margin above the head and below the feet, figure standing centred and facing the viewer on a plain flat neutral dark grey studio background, even diffused lighting, clear readable silhouette.",
+  "width": 768,
+  "height": 1024,
+  "negative": "cropped feet, cropped legs, cropped head, close-up, portrait crop, bust, half body, waist up, knee up, zoomed in, background scenery, landscape, room, interior, floor, horizon, gradient background, busy background, multiple characters, crowd, pixel art, low resolution, cel-shaded, flat vector art, comic outlines, cartoon, anime, 3d render, cgi, photorealistic, photograph, bra, lingerie, bikini armour, cleavage cutout, midriff cutout, exposed torso, sexualised pose, snarling, menacing grin, evil grin, glowing evil eyes, throne, trophies, skulls underfoot, blood, gore, text, letters, numbers, runes, written words, signage, watermark, logo, ui, frame, border, ",
+  "familyLabels": {
+    "cast": "The Overreach \u2014 champion concepts"
+  },
+  "anchors": {
+    "cast": {
+      "line": "An older heavyset woman warrior with grey-streaked braided hair and a broad weathered face, standing squared and patient rather than aggressive, calm and tired, eyes lowered slightly. Heavy layered leather and dull iron armour over her shoulders, chest and legs, worn smooth at the edges from decades of use, fully covered and modest, but her arms are bare from the elbow down with no sleeves, vambraces or gauntlets. Her bare weathered forearms are densely covered from elbow to wrist in hundreds of shallow hand-carved tally notches, small parallel scored cuts crowded in rows and grouped in fives, like scratch marks tallied into skin, and the same crowded rows of carved notches are scored deep into the iron of her breastplate. The tally notches are the most prominent detail in the image. She holds a heavy plain iron mace loosely at her side, point down, resting. Muted palette of cold grey iron, oxblood leather and old bronze, with a restrained warm amber glow low at her belt."
+    }
+  },
+  "states": [
+    {
+      "id": "debt-bearer-a",
+      "label": "Debt-Bearer A \u2014 The Tally (CAST ANCHOR)",
+      "family": "cast",
+      "isAnchor": true
+    },
+    {
+      "id": "debt-bearer-b",
+      "label": "Debt-Bearer B \u2014 The Collector (the debt has mass)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "An older heavyset woman warrior almost buried under an enormous load of iron: dozens and dozens of heavy iron counting-weights, drilled stones and thick chains heaped across her shoulders, back and hips, coiling down her arms and pooling in a great pile around her feet, so much of it that the chains and weights are the largest shape in the picture and she is bowed forward beneath them, knees braced, still standing, enduring rather than straining. Grey-streaked braided hair, broad weathered face, calm exhausted expression, gaze level. Beneath the load, plain dull iron and worn leather armour, fully covered and modest. Muted cold grey iron, oxblood leather, old bronze."
+    },
+    {
+      "id": "debt-bearer-c",
+      "label": "Debt-Bearer C \u2014 The Last Creditor (paid herself away)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "An older heavyset woman warrior who has paid her own armour away piece by piece, standing squared and patient. Her equipment is visibly half gone: one shoulder still carries a dull iron pauldron and the other is bare cloth, one arm has a vambrace and the other nothing, empty buckles and cut straps hang loose where plates used to be, and the remaining mismatched fragments of iron are strapped over plain undyed wool. Fully covered and modest. Her bare weathered forearms are marked with rows of small carved notches. She holds the splintered wooden haft of a mace whose head is missing, gripped low and steady. Grey-streaked braided hair, broad weathered face, calm and unashamed. Muted cold grey iron, undyed wool, oxblood leather, old bronze."
+    },
+    {
+      "id": "still-season-a",
+      "label": "Still Season A \u2014 The Held Afternoon (leaves suspended)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "An elderly gaunt man more than half transformed into living wood: thick grey bark has closed over his shoulders, chest, both forearms and the entire left side of his face, gnarled woodgrain running through his skin, moss packed in the seams, and heavy roots growing out of his feet and gripping the ground. Dozens of small green leaves hang suspended and motionless in the air all around him at every height, none of them falling. He wears a heavy weathered robe of undyed wool hanging perfectly still. His arms rest open and empty at his sides. Calm sorrowful expression, eyes open and unfocused. Muted olive, umber, grey bark and old sage, with a soft warm gold-green glow at his chest."
+    },
+    {
+      "id": "still-season-b",
+      "label": "Still Season B \u2014 The Overgrowth (never stopped growing)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "An enormous swollen mound of unchecked living growth roughly the shape of a seated man but twice the bulk of a person: dense layered moss, thick knotted roots, ferns and creepers piled over and through him until almost nothing human is left, with only a gaunt elderly face, one bark-covered shoulder and one thin human hand still emerging near the top of the mass. Everything is green and thriving and far too much of it. The visible face is calm, tired and sorrowful, eyes open. Muted olive, umber, deep moss green and grey bark, with a soft warm gold-green glow deep inside the mass."
+    },
+    {
+      "id": "still-season-c",
+      "label": "Still Season C \u2014 The Gardener Who Stayed (only he aged)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A frail elderly gaunt man standing very still and stooped, deeply and visibly aged, thin and worn, the only tired thing in the picture. He wears a heavy weathered robe of undyed wool, fully covered and modest. All around him and above him hang perfect unwithered blossoms and fresh green leaves, flawless and pristine and completely motionless, suspended in the air at every height, filling the frame. Bark has closed over only his wrists and his ankles, rooting him lightly to the spot. His hands are held cupped and open in front of him, as if he set something down and never moved again. Calm sorrowful expression, eyes open and unfocused. Muted olive, umber and grey against soft pale blossom pink, with a faint warm gold-green glow."
+    },
+    {
+      "id": "unclosed-a",
+      "label": "Unclosed Summons A \u2014 The Unfinished Gesture",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A middle-aged woman in heavy pale ceremonial plate armour, fully covered from neck to boot and modest, plain and completely unornamented, the metal bone-white and cool pearl grey. She stands with both arms raised halfway in an unfinished gesture, palms open and empty, caught exactly between offering and refusing, her mouth slightly open as if stopped in the middle of a word. Thin pale gold light spills from her open palms and from every seam of her armour outward in all directions at once, casting no single direction of shadow. Her eyes are calm, open and tired. Bone-white, pearl grey and thin pale gold against deep neutral charcoal."
+    },
+    {
+      "id": "unclosed-b",
+      "label": "Unclosed Summons B \u2014 The Two Answers (split, and both good)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A middle-aged woman in heavy ceremonial plate armour divided perfectly in half down the exact vertical centre line of her body into two completely different but equally beautiful treatments that refuse to resolve into one. Her left half is cool pearl grey, rigid, precise and geometric, the plate cut in hard angular facets. Her right half is warm ivory and pale gold, soft and flowing and organic, the plate cut in smooth curves and drapery. Both halves are luminous, polished and pristine, and neither half is dark, damaged or corrupt. She stands perfectly straight and symmetrical, arms rigid at her sides, fully covered from neck to boot and modest. Her face is calm and tired, lit evenly from both sides. Pearl grey, warm ivory and pale gold against deep neutral charcoal."
+    },
+    {
+      "id": "unclosed-c",
+      "label": "Unclosed Summons C \u2014 The Long Vigil (time is the tell)",
+      "family": "cast",
+      "strength": "Mid",
+      "line": "A middle-aged woman in heavy pale bone-white ceremonial plate armour who has stood motionless in the same unfinished half-raised gesture for so long that the world has settled onto her: a thick layer of fine grey dust greying her shoulders and helm line, delicate cobwebs strung in sheets between her raised arm and her body, pale green verdigris creeping through every seam of the metal, and grey stone slowly closing up over her boots as a pedestal forms around her feet and roots her to the floor. Thin pale gold light still pours undimmed from her open palms. Fully covered and modest. Her eyes are calm, open and very tired. Bone-white, pearl grey, dust grey, verdigris green and thin pale gold against deep neutral charcoal."
+    }
+  ],
+  "styleRef": false
+}
