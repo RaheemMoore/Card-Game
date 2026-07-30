@@ -315,7 +315,22 @@ export class CourtyardScene extends Phaser.Scene {
    */
   private applyCameraFit() {
     const cam = this.cameras.main;
-    cam.setBounds(0, 0, CANVAS_W, CANVAS_H);
+
+    // NO CAMERA BOUNDS. This used to call setBounds(0, 0, CANVAS_W, CANVAS_H),
+    // which silently shoved the plate to the left edge of the window.
+    //
+    // Phaser clamps scroll to the bounds, and Camera.clampX derives its minimum
+    // as bounds.x + (displayWidth - width) / 2 — maths that assumes the world is
+    // BIGGER than the view, which is true under cover-scaling and false under
+    // fit. At 1999x1047 the camera sees 2199x1152 world units against a 1536-wide
+    // world, so centerOn asked for scrollX = -331.5 and the clamp forced +100:
+    // the plate rendered hard left with all the blurred margin piled on the right.
+    //
+    // Bounds exist to stop the camera showing the void past the edge of the
+    // world. Under fit-scaling the whole world is on screen by construction, so
+    // there is no scrolling to constrain and nothing to protect against.
+    // Physics bounds (see create) are separate and still keep the hero inside.
+    cam.removeBounds();
     cam.setZoom(fitScale({ width: this.scale.width, height: this.scale.height }));
     cam.centerOn(CANVAS_CENTER.x, CANVAS_CENTER.y);
   }
