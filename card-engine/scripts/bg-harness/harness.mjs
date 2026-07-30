@@ -29,7 +29,16 @@ const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const ENV = path.resolve(ROOT, '../../.env.local');
 const BASE = 'https://cloud.leonardo.ai/api/rest/v1';
 const PHOENIX = 'de7d3faf-762f-48e0-b3b7-9d0ac3a3fcf3';
+// Lucid Origin holds a flat top-down "game map" read far better than Phoenix,
+// which pulls hard toward perspective matte painting. The castle courtyard
+// uses it; the forge scenes stay on Phoenix.
+const LUCID_ORIGIN = '7b592283-e8a7-4c5a-9ba6-d18c31f258b9';
+const MODELS = { phoenix: PHOENIX, 'lucid-origin': LUCID_ORIGIN };
 const STYLE_REF_PREPROC = 166; // Phoenix Style Reference (per Leonardo docs)
+// Defaults suit the forge scenes (3:4 portrait). A config may override both
+// dimensions and negatives — the castle courtyard needs a square plate, and
+// its negatives differ (it *wants* distant figures for human scale, which the
+// forge negatives explicitly ban).
 const W = 768, H = 1024; // 3:4 portrait
 const NEG =
   'cel-shaded, flat vector art, comic outlines, cartoon, 3d render, cgi, ' +
@@ -46,8 +55,17 @@ const KEY = loadKey();
 const HDRS = { authorization: `Bearer ${KEY}`, 'content-type': 'application/json', accept: 'application/json' };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function submit(prompt, { styleRefId, strength } = {}) {
-  const body = { modelId: PHOENIX, prompt, negative_prompt: NEG, width: W, height: H, num_images: 1, alchemy: true, public: false };
+async function submit(prompt, { styleRefId, strength, width, height, negative, model, alchemy } = {}) {
+  const body = {
+    modelId: MODELS[model] || PHOENIX,
+    prompt,
+    negative_prompt: negative || NEG,
+    width: width || W,
+    height: height || H,
+    num_images: 1,
+    alchemy: alchemy !== false,
+    public: false,
+  };
   if (styleRefId)
     body.controlnets = [{ initImageId: styleRefId, initImageType: 'GENERATED', preprocessorId: STYLE_REF_PREPROC, strengthType: strength || 'Mid' }];
   const r = await fetch(`${BASE}/generations`, { method: 'POST', headers: HDRS, body: JSON.stringify(body) });
@@ -74,6 +92,8 @@ const outDir = (a) => { const d = path.join(ROOT, 'out', a); fs.mkdirSync(d, { r
 const manFile = (a) => path.join(outDir(a), 'manifest.json');
 const loadMan = (a) => { try { return JSON.parse(fs.readFileSync(manFile(a), 'utf8')); } catch { return { anchors: {}, states: {} }; } };
 const saveMan = (a, m) => fs.writeFileSync(manFile(a), JSON.stringify(m, null, 2));
+/** Per-config image size + negatives, falling back to the forge defaults. */
+const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy });
 const promptFor = (c, line) => [c.styleHeader, line].filter(Boolean).join(' ');
 
 async function cmdGen(arch, only) {
@@ -81,7 +101,7 @@ async function cmdGen(arch, only) {
   for (const [fam, a] of Object.entries(c.anchors)) {
     if (m.anchors[fam]?.imageId) continue;
     console.log(`> anchor ${fam}…`);
-    const res = await generate(promptFor(c, a.line));
+    const res = await generate(promptFor(c, a.line), dims(c));
     const file = `anchor-${fam}.png`;
     await download(res.url, path.join(d, file));
     m.anchors[fam] = { imageId: res.imageId, file, prompt: promptFor(c, a.line) };
@@ -96,7 +116,16 @@ async function cmdGen(arch, only) {
       saveMan(arch, m); console.log(`= state ${s.id} (reuses ${s.family} anchor)`); continue;
     }
     console.log(`> state ${s.id} (${s.family} ref, ${s.strength})…`);
-    const res = await generate(promptFor(c, s.line), { styleRefId: m.anchors[s.family].imageId, strength: s.strength });
+    // Some models (Lucid Origin / KINO) reject Phoenix's style-reference
+    // controlnet outright, so a config may opt out with "styleRef": false and
+    // pin consistency through prompt description instead.
+    const useRef = c.styleRef !== false;
+    const res = await generate(promptFor(c, s.line), {
+      ...dims(c),
+      ...(useRef
+        ? { styleRefId: m.anchors[s.family].imageId, strength: s.strength }
+        : {}),
+    });
     const file = `${s.id}.png`;
     await download(res.url, path.join(d, file));
     m.states[s.id] = { imageId: res.imageId, file, label: s.label, family: s.family, strength: s.strength, prompt: promptFor(c, s.line) };
@@ -128,6 +157,9 @@ function cmdSheet(arch) {
     }).join('');
     return `<section class="grp" style="--fam:${accents[fam] || '#d9b45b'}"><h3><span class="dot"></span>${labels[fam] || fam}</h3><div class="row">${items}</div></section>`;
   }).join('');
+  // Thumbnails follow the config's real aspect, or a square plate would be
+  // cropped to 3:4 in review — hiding the very edges we generate it to judge.
+  const sheetRatio = `${c.width || 768}/${c.height || 1024}`;
   const name = `${arch[0].toUpperCase()}${arch.slice(1)}`;
   const title = `${name} forge backgrounds`;
   const html = `<title>${title}</title>
@@ -148,7 +180,7 @@ function cmdSheet(arch) {
   .dot{width:8px;height:8px;border-radius:50%;background:var(--fam);box-shadow:0 0 10px var(--fam)}
   .row{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}
   figure{margin:0;flex:0 0 auto;width:230px;position:relative}
-  figure img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:9px;display:block;
+  figure img{width:100%;aspect-ratio:${sheetRatio};object-fit:cover;border-radius:9px;display:block;
     border:1px solid var(--edge);box-shadow:0 6px 20px rgba(0,0,0,.4)}
   .idx{position:absolute;top:9px;left:9px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
     background:rgba(10,12,7,.72);color:var(--fam);padding:3px 8px;border-radius:5px;backdrop-filter:blur(3px)}

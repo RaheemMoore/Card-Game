@@ -1,0 +1,63 @@
+{
+  "image": "cardwright.png",
+  "frameWidth": 77,
+  "frameHeight": 160,
+  "columns": 7,
+  "rows": [
+    {
+      "direction": "down",
+      "idle": 0,
+      "walk": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "direction": "up",
+      "idle": 7,
+      "walk": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "direction": "left",
+      "idle": 14,
+      "walk": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    {
+      "direction": "right",
+      "idle": 21,
+      "walk": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ]
+    }
+  ],
+  "sourceCrop": [
+    52,
+    12,
+    129,
+    172
+  ],
+  "note": "Frame index = row * columns + column. One shared crop box across all frames keeps the character from jittering."
+}

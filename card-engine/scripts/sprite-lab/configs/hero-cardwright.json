@@ -1,0 +1,48 @@
+{
+  "subject": "hero-cardwright",
+  "label": "The Card-wright — default castle hero",
+
+  "identity": {
+    "description": "Athletic middle-aged Black man, a card-wright artisan. Close-cropped black hair greying at the temples, short trimmed beard, warm dark brown skin. Wears a slate-grey canvas work apron with brass tool loops over a deep teal rolled-sleeve tunic, ink-stained forearms, dark work trousers, and a hard brass-cornered card case on his hip. An engraver's stylus tucked in the apron. Calm, capable, unhurried.",
+    "avoid": "no sword, no weapons, no shield, no brown leather adventurer gear, no armour, no wizard robe, no cape, no chosen-one insignia"
+  },
+
+  "bibleNotes": [
+    "Human's identity is CHOICE — the chosen path must be readable in the sprite (Bible §Human recognitionChecklist: 'Can the chosen path be identified?').",
+    "The chosen path here is card-wright: an artisan of the forge. Tools, not weapons.",
+    "Bible §Human visualDNA.avoid explicitly bans 'generic adventurers, brown leather, swords as default, medieval-soldier shorthand'. The avoid string above enforces that.",
+    "Bible §Rank continuity: sex, age, body type and ancestry are locked. Athletic middle-aged Black man stays that in every future frame and every regeneration."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "proportions": { "type": "preset", "name": "cartoon" },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 128, "height": 128 }
+  },
+
+  "palette": {
+    "reference": "public/assets/castle/courtyard.png",
+    "force": false,
+    "note": "Soft harmony: the courtyard is passed as a colour reference so the sprite shares the scene's warm honey/teal register, but force_colors stays off so the character keeps enough contrast to be findable on the paving."
+  },
+
+  "seed": 730294,
+
+  "animations": [
+    { "id": "walk", "template": "walking" },
+    {
+      "id": "walk-front",
+      "mode": "v3",
+      "action": "walking forward toward the viewer, facing the camera, legs alternating",
+      "frameCount": 6,
+      "directions": ["south"],
+      "startFromRotation": "south",
+      "note": "The template-mode 'south' walk came back as a back view — skeleton reconstruction lost the facing. Pinning the south rotation as the start frame forces a front-facing walk. Walking north as a back view is correct and stays on template mode."
+    }
+  ],
+
+  "directions": ["south", "north", "east", "west"]
+}

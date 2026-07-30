@@ -1,0 +1,79 @@
+{
+  "subject": "hero-chibi",
+  "label": "The Card-wright (chibi) — walking avatar",
+
+  "identity": {
+    "description": "Athletic middle-aged Black man, a card-wright artisan, drawn as a big-headed chibi game character. Close-cropped black hair greying at the temples, short trimmed beard, warm dark brown skin, friendly readable face. Wears a slate-grey canvas work apron with brass tool loops over a deep teal rolled-sleeve tunic, dark work trousers, and a hard brass-cornered card case on his hip.",
+    "avoid": "no sword, no weapons, no shield, no brown leather adventurer gear, no armour, no wizard robe, no cape, no chosen-one insignia"
+  },
+
+  "bibleNotes": [
+    "Same locked person as hero-cardwright (Bible §Rank continuity: sex, age, body type, ancestry never change). Only the art register differs — chibi for the overworld, the detailed hero-cardwright art for dialogue.",
+    "Human's identity is CHOICE; the chosen path (card-wright) must stay readable even at chibi scale — the apron and tool loops are the tell.",
+    "Bible §Human visualDNA.avoid bans generic adventurers, brown leather and swords. The avoid string enforces it."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 128, "height": 128 }
+  },
+
+  "palette": {
+    "reference": null,
+    "note": "Deliberately NO colour reference. Passing the courtyard plate as color_image dragged the chibi toward dark stone tones — his face and apron lost contrast and he read muddy against the sunlit paving. Readability of the character the player controls beats palette cohesion."
+  },
+
+  "seed": 902551,
+
+  "animations": [
+    {
+      "id": "walk-south",
+      "name": "walk",
+      "mode": "v3",
+      "action": "walking forward toward the viewer, facing the camera, legs clearly alternating",
+      "frameCount": 6,
+      "directions": ["south"],
+      "startFromRotation": "south"
+    },
+    {
+      "id": "walk-north",
+      "name": "walk",
+      "mode": "v3",
+      "action": "walking away from the viewer, seen from behind, legs clearly alternating",
+      "frameCount": 6,
+      "directions": ["north"],
+      "startFromRotation": "north"
+    },
+    {
+      "id": "walk-east",
+      "name": "walk",
+      "mode": "v3",
+      "action": "walking in side profile, legs clearly alternating, arms swinging",
+      "frameCount": 6,
+      "directions": ["east"],
+      "startFromRotation": "east"
+    },
+    {
+      "id": "walk-west",
+      "name": "walk",
+      "mode": "v3",
+      "action": "walking in side profile, legs clearly alternating, arms swinging",
+      "frameCount": 6,
+      "directions": ["west"],
+      "startFromRotation": "west"
+    }
+  ],
+
+  "animationNotes": [
+    "One v3 pass PER DIRECTION, each pinned via custom_start_frame to that direction's own clean rotation. Pinning is what forces both the facing and the identity — the two things that broke.",
+    "pro mode was tried first and failed: it produced grey background artifacts on several frames and rendered BOTH side rows facing the same way (mirror check: same=0.542 vs flipped=0.503). It cost ~186 generations for an unusable result.",
+    "template mode was tried before that and produced a rogue frame 43.7 palette units from its own cycle.",
+    "v3 + per-direction pinning is the only method that has produced a correct walk in this pipeline."
+  ],
+
+  "directions": ["south", "north", "east", "west"]
+}

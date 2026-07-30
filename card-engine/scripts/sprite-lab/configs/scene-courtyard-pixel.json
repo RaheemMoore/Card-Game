@@ -1,0 +1,65 @@
+{
+  "subject": "scene-courtyard-pixel",
+  "label": "Courtyard pixel sample — comparison against the painted plate",
+
+  "notes": [
+    "This is a DECISION ARTIFACT, not production art. It exists so Raheem can see a pixel courtyard beside the painted one, with the same hero in both, and choose by eye.",
+    "TILES CANNOT BE STYLE-ANCHORED TO A CHARACTER. For /create-tiles-pro, style_images defines the tile SHAPE AND DIMENSIONS — the docs are explicit that tile_type/tile_size/tile_view are ignored when it is supplied. Passing the 59x146 hero crop would produce 59x146 'tiles'. So tiles rely on description + outline_mode + tile_view instead, and register match is steered by wording.",
+    "OBJECTS CAN be style-anchored, and are. Note the output size is derived from the largest style image, and that size caps how many objects one call returns (<=85 -> 8, <=170 -> 4, else 1). The hero crop is 146px, so ONE call returns up to 4 objects via item_descriptions — cheaper than one call each.",
+    "Never anchor anything to courtyard.png. Using the painted plate as a colour reference already cost the hero his face contrast.",
+    "View consistency is the subtle killer: the hero was generated at 'low top-down', so tiles use tile_view 'low top-down' and objects use 'top-down'. A mismatch reads as wrong without being nameable."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "tiles": [
+    {
+      "id": "ground",
+      "seed": 771020,
+      "styleAnchor": false,
+      "params": {
+        "description": "1). warm honey sandstone flagstone courtyard floor, worn smooth, subtle cracks 2). short green grass with tiny wildflowers",
+        "tile_type": "square_topdown",
+        "tile_size": 32,
+        "tile_view": "low top-down",
+        "tile_feature": "tileset",
+        "outline_mode": "outline"
+      }
+    },
+    {
+      "id": "wall",
+      "seed": 771021,
+      "styleAnchor": false,
+      "params": {
+        "description": "castle courtyard wall kit: pale grey stone brick castle walls with honey sandstone trim, flagstone floor",
+        "tile_type": "square_topdown",
+        "tile_size": 32,
+        "tile_view": "low top-down",
+        "tile_feature": "building",
+        "building_wall_tiles": 2,
+        "building_wall_description": "pale grey stone brick castle wall with honey sandstone trim",
+        "building_floor_description": "warm honey flagstone floor",
+        "building_layout": "materials",
+        "outline_mode": "outline"
+      }
+    }
+  ],
+
+  "objects": [
+    {
+      "id": "props",
+      "seed": 771030,
+      "note": "One call returns up to 4 objects because the 146px hero style image caps the count at 4. Do NOT set `size` alongside style_images — the API rejects that combination.",
+      "params": {
+        "description": "fantasy castle courtyard props seen from directly above: 1). large round stone fountain with honey sandstone rim and bright turquoise water 2). tall slender lamppost topped with a glowing pink and cyan magic crystal 3). small wooden market stall with a red and white striped awning 4). wooden barrel with iron bands",
+        "view": "top-down",
+        "item_descriptions": [
+          "large round stone courtyard fountain, honey sandstone rim, bright turquoise water, small central spout",
+          "tall slender lamppost topped with a glowing pink and cyan magic crystal instead of a lantern, honey stone base",
+          "small wooden fantasy market stall with a red and white striped awning and a wooden counter",
+          "wooden barrel with iron bands"
+        ]
+      }
+    }
+  ]
+}
