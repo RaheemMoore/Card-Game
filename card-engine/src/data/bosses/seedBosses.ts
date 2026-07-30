@@ -27,7 +27,17 @@ const EMBERBORN_DEF: BossDefinition = {
     'A spirit knotted from the ash of a burned shrine. It teaches wardens the discipline of measured strikes; those who overreach it swallows whole.',
   familyIds: ['fire'],
   currentVersionId: 'bv_fire_elemental_v0_1',
-  status: 'active',
+  /**
+   * RETIRED 2026-07-30. It was the C5-era placeholder boss and has been
+   * superseded by the Overreach champions, which are archetype-mirrored and
+   * carry the tower's difficulty curve.
+   *
+   * Kept in the seed rather than deleted: its `battleId`-keyed reward rows and
+   * any historical ledger entries still reference this id, and the Picker
+   * already filters on `status === 'active'`, so retiring is enough to remove
+   * it from play without orphaning history.
+   */
+  status: 'retired',
   artAssetIds: [],
   createdAt: NOW,
   updatedAt: NOW,
