@@ -4,6 +4,7 @@
     "",
     "V2: MONSTROUS HUMANOIDS. V1 rendered all three as tragic elderly humans and was",
     "rejected by Raheem \u2014 they read as characters, not bosses, and several had no",
+    "V3: the Seraph champion is REPLACED by a NECROMANCER champion, 'The Unclosed Rite'. Raheem: the split-down-the-midline design is great but is not a Seraph. Renamed off 'Summons' because Necromancer Bible avoid explicitly lists 'Necromancer reduced to summoner'. Its avoid list also bans green smoke shorthand, skull overload and corpse decoration, so the split is SUBSTANCE VS ABSENCE \u2014 one half present, one half already gone \u2014 never half-rotted. Palette is bone/umber/iron/indigo with cold blue-white light. No green. seedBosses still needs mirrorArchetype Seraph->Necromancer and a matching resistance profile.",
     "menace at all. The first batch is kept at out/bosses-v1-human/ for reference.",
     "",
     "Monstrous changes the BODY, not the moral read. The Overreach premise is that",
@@ -33,13 +34,13 @@
   "styleHeader": "Painterly dark-fantasy monster concept art, digital painting, soft blended brushwork, rich colour, menacing and imposing. Full-length wide shot of a single creature, the ENTIRE body visible from the top of the head to the ground, clear empty margin above and below, standing centred and facing the viewer on a plain flat neutral dark grey studio background, dramatic even lighting, bold readable monstrous silhouette.",
   "width": 768,
   "height": 1024,
-  "negative": "cropped feet, cropped legs, cropped head, close-up, portrait crop, bust, half body, waist up, zoomed in, ordinary human, normal person, plain villager, handsome, pretty, glamorous, background scenery, landscape, room, interior, horizon, gradient background, busy background, multiple characters, two figures, crowd, modern clothing, shirt, trousers, jeans, pixel art, low resolution, cel-shaded, flat vector art, comic outlines, cartoon, anime, 3d render, cgi, photorealistic, photograph, bra, lingerie, bikini armour, cleavage cutout, midriff cutout, exposed breasts, sexualised pose, snarling, menacing grin, evil grin, throne, trophies, skulls underfoot, gore, text, letters, numbers, runes, written words, watermark, logo, ui, frame, border",
+  "negative": "cropped feet, cropped legs, cropped head, close-up, bust, half body, zoomed in, ordinary human, normal person, handsome, pretty, glamorous, boob armour, breastplate sculpted to breasts, sculpted bust, cleavage, large breasts, hourglass figure, bra, lingerie, bikini armour, midriff cutout, exposed breasts, sexualised pose, green smoke, sickly green, skulls, skeletal armour, bones, corpse, rotting flesh, zombie, snarling, evil grin, glowing red eyes, throne, trophies, gore, background scenery, landscape, room, horizon, busy background, multiple characters, two figures, modern clothing, shirt, trousers, pixel art, low resolution, cartoon, anime, 3d render, cgi, photorealistic, photograph, text, letters, numbers, watermark, logo, ui, frame, border",
   "familyLabels": {
     "cast": "The Overreach \u2014 monstrous champion concepts"
   },
   "anchors": {
     "cast": {
-      "line": "A towering monstrous hag, gaunt and hunched with unnaturally long sinewy limbs, ashen grey-green leathery skin drawn tight over a heavy misshapen frame, a long jaw, sunken luminous eyes and thin white hair hanging in ropes. She is buried under an enormous load of iron: dozens of heavy iron counting-weights and thick chains heaped across her hunched back and shoulders, coiling down her overlong arms and pooling in a great pile around her clawed feet, so much that the iron is the largest shape in the picture and she is bowed forward beneath it, still standing, enduring rather than straining. Ragged heavy sackcloth and boiled leather wrappings cover her body completely. Sorrowful exhausted expression, not angry. Muted cold grey iron, ashen grey-green hide, oxblood leather, old bronze."
+      "line": "A towering monstrous hag, gaunt and hunched with unnaturally long sinewy limbs, ashen grey-green leathery skin drawn tight over a heavy misshapen frame, a long jaw, sunken luminous eyes and thin white hair hanging in ropes. She is buried under an enormous load of iron: dozens of heavy iron counting-weights and thick chains heaped across her hunched back and shoulders, coiling down her overlong arms and pooling in a great pile around her clawed feet, so much that the iron is the largest shape in the picture and she is bowed forward beneath it, still standing, enduring rather than straining. Her chest and torso are a flat blocky slab of muscle and bone with no feminine contour at all, bulk and mass only, wrapped completely in ragged heavy sackcloth and boiled leather. Sorrowful exhausted expression, not angry. Muted cold grey iron, ashen grey-green hide, oxblood leather, old bronze."
     }
   },
   "states": [
@@ -54,21 +55,21 @@
       "label": "Debt-Bearer B \u2014 Iron grown into her",
       "family": "cast",
       "strength": "Mid",
-      "line": "A towering monstrous hag into whose body the iron has GROWN: heavy black iron counting-weights and chain links erupt directly out of her hunched spine, shoulders and forearms, fused into the flesh where metal and ashen grey-green hide have knitted together, a ridge of hanging iron stones running down her back like a second spine. Gaunt and enormous, long sinewy limbs, a long jaw, sunken luminous eyes, thin white rope-like hair. Ragged sackcloth and boiled leather wrappings cover her completely. She stands hunched and patient, head low. Sorrowful and tired, not angry. Muted cold grey iron, ashen grey-green hide, oxblood leather, old bronze."
+      "line": "A towering monstrous hag into whose body the iron has GROWN: heavy black iron counting-weights and chain links erupt directly out of her hunched spine, shoulders and forearms, fused into the flesh where metal and ashen grey-green hide have knitted together, a ridge of hanging iron stones running down her back like a second spine. Gaunt and enormous, long sinewy limbs, a long jaw, sunken luminous eyes, thin white rope-like hair. Her chest and torso are a flat blocky slab of muscle and bone with no feminine contour at all, bulk and mass only, wrapped completely in ragged heavy sackcloth and boiled leather. She stands hunched and patient, head low. Sorrowful and tired, not angry. Muted cold grey iron, ashen grey-green hide, oxblood leather, old bronze."
     },
     {
       "id": "debt-bearer-c",
       "label": "Debt-Bearer C \u2014 Dragging the chain",
       "family": "cast",
       "strength": "Mid",
-      "line": "An enormous hunched monstrous hag whose impossibly long arms reach the ground, dragging behind her a vast tangle of heavy iron chain and counting-weights that trails across the floor and heaps in the distance, the chain fastened to thick iron cuffs bolted through her wrists. Gaunt heavy frame, ashen grey-green leathery hide, long jaw, sunken luminous eyes, thin white hair in ropes. Ragged heavy sackcloth and hide wrappings cover her completely. Head bowed, still walking forward. Sorrowful and exhausted, not angry. Muted cold grey iron, ashen grey-green hide, oxblood leather, old bronze."
+      "line": "An enormous hunched monstrous hag whose impossibly long arms reach the ground, dragging behind her a vast tangle of heavy iron chain and counting-weights that trails across the floor and heaps in the distance, the chain fastened to thick iron cuffs bolted through her wrists. Gaunt heavy frame, ashen grey-green leathery hide, long jaw, sunken luminous eyes, thin white hair in ropes. Her chest and torso are a flat blocky slab of muscle and bone with no feminine contour at all, bulk and mass only, wrapped completely in ragged heavy sackcloth and boiled leather. Head bowed, still walking forward. Sorrowful and exhausted, not angry. Muted cold grey iron, ashen grey-green hide, oxblood leather, old bronze."
     },
     {
       "id": "still-season-a",
       "label": "Still Season A \u2014 Root colossus",
       "family": "cast",
       "strength": "Mid",
-      "line": "A towering monstrous humanoid grown entirely out of living wood and moss, three times the height of a man: a massive barrel torso of knotted grey bark and packed green moss, vast heavy arms of braided root reaching to the ground, thick root-legs splayed and gripping the earth. Where its head should be there is only a small withered ancient face set deep in the bark, eyes open and unfocused. Dozens of small green leaves hang suspended and completely motionless in the air all around it, none of them falling. Sorrowful and still, not angry. Muted olive, umber, grey bark and deep moss green, with a soft warm gold-green glow deep inside the chest cavity."
+      "line": "A towering monstrous humanoid grown entirely out of living wood and moss, three times the height of a man: a massive barrel torso of knotted grey bark and thick packed green moss completely sheathing the chest, waist and hips with no bare skin anywhere, vast heavy arms of braided root reaching to the ground, thick root-legs splayed and gripping the earth. Where its head should be there is only a small withered ancient face set deep in the bark, its eyes pale and calm and unfocused, not glowing. Dozens of small green leaves hang suspended and completely motionless in the air all around it, none of them falling. Sorrowful and still, never angry. Muted olive, umber, grey bark and deep moss green, with a soft warm gold-green glow deep inside the chest cavity."
     },
     {
       "id": "still-season-b",
@@ -86,24 +87,24 @@
     },
     {
       "id": "unclosed-a",
-      "label": "Unclosed A \u2014 Four pairs of arms",
+      "label": "Unclosed Rite A \u2014 Substance and absence",
       "family": "cast",
       "strength": "Mid",
-      "line": "A towering monstrous figure in heavy bone-white ceremonial plate armour with FOUR pairs of arms, every pair frozen at a different point of the same unfinished gesture, palms open and empty, caught between offering and refusing. The armour is plain, unornamented, bone-white and cool pearl grey, fully enclosing the body. Where its face should be the helm is smooth and featureless, and thin pale gold light pours out through every seam and joint of the armour in all directions at once, casting no single direction of shadow. Imposing and sorrowful, never cruel. Bone-white, pearl grey and thin pale gold against deep neutral charcoal."
+      "line": "A colossal monstrous armoured figure, far taller and broader than a person, divided perfectly in half down the exact vertical centre line of its body. It stands rigidly straight and symmetrical, arms held at its sides, wearing heavy plain unornamented plate over full-length dark grave-cloth, completely covered. Its helm is smooth and featureless with no face. Imposing, solemn and sorrowful, never cruel and never gleeful. Palette strictly bone-white, grave-earth umber, cold iron grey and deep muted indigo, lit by a cold pale blue-white light. No green anywhere. Its LEFT half is solid and materially present: real weight, real armour, real shadow. Its RIGHT half is an empty shell \u2014 the same plate armour is there in outline but there is nothing inside it, only a deep cold hollow darkness visible through the joints and the gap at the neck, as though that half of the body simply is not there any more. Cold pale blue-white light leaks from the hollow."
     },
     {
       "id": "unclosed-b",
-      "label": "Unclosed B \u2014 Split down the midline",
+      "label": "Unclosed Rite B \u2014 Solid and unravelling",
       "family": "cast",
       "strength": "Mid",
-      "line": "A colossal monstrous figure of interlocking bone-white plate armour divided perfectly in half down the exact vertical centre line of its body into two completely different but equally beautiful treatments that refuse to resolve: the left half rigid, cool pearl grey, hard angular faceted plate; the right half flowing, warm ivory and pale gold, smooth organic curves and drapery. Both halves are luminous, polished and pristine, and neither is dark, damaged or corrupt. It stands rigidly straight and perfectly symmetrical, too tall and too broad to be human, with a smooth featureless helm and pale gold light bleeding from the seam that divides it. Imposing and sorrowful. Pearl grey, warm ivory and pale gold against deep neutral charcoal."
+      "line": "A colossal monstrous armoured figure, far taller and broader than a person, divided perfectly in half down the exact vertical centre line of its body. It stands rigidly straight and symmetrical, arms held at its sides, wearing heavy plain unornamented plate over full-length dark grave-cloth, completely covered. Its helm is smooth and featureless with no face. Imposing, solemn and sorrowful, never cruel and never gleeful. Palette strictly bone-white, grave-earth umber, cold iron grey and deep muted indigo, lit by a cold pale blue-white light. No green anywhere. Its LEFT half is solid, whole and heavy. Its RIGHT half is coming apart into fine drifting grey ash and dust, the armour and the body beneath it breaking into thousands of small particles that stream slowly upward and away into the dark, thinning until the outer edge of that half has almost nothing left. The dividing line down its centre is perfectly clean."
     },
     {
       "id": "unclosed-c",
-      "label": "Unclosed C \u2014 The long vigil, immense",
+      "label": "Unclosed Rite C \u2014 The figure and its afterimage",
       "family": "cast",
       "strength": "Mid",
-      "line": "A vast monstrous figure of bone-white ceremonial plate that has stood unmoving so long the world has closed over it: thick grey dust banked on its shoulders, dense sheets of cobweb strung between its raised arms and its body, pale green verdigris flooding every seam of the metal, and grey stone grown up over its feet and lower legs into a rough pedestal that roots it to the ground. It is far taller and broader than a person, fully armoured, with a smooth featureless helm and both arms still raised halfway in an unfinished gesture, palms open. Thin pale gold light still pours undimmed from its open palms. Sorrowful and immense. Bone-white, pearl grey, dust grey, verdigris green and pale gold against deep neutral charcoal."
+      "line": "A colossal monstrous armoured figure, far taller and broader than a person, divided perfectly in half down the exact vertical centre line of its body. It stands rigidly straight and symmetrical, arms held at its sides, wearing heavy plain unornamented plate over full-length dark grave-cloth, completely covered. Its helm is smooth and featureless with no face. Imposing, solemn and sorrowful, never cruel and never gleeful. Palette strictly bone-white, grave-earth umber, cold iron grey and deep muted indigo, lit by a cold pale blue-white light. No green anywhere. Its LEFT half is solid and sharply painted. Its RIGHT half is a pale translucent echo of the same armour, ghosted and slightly out of register as though it has begun to step away from itself and stopped partway, semi-transparent so the dark background shows faintly through it. Cold pale blue-white light along the seam where the two halves fail to meet."
     }
   ],
   "styleRef": false
