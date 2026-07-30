@@ -422,3 +422,44 @@ The Debt-Bearer's 168px reference had already lost its rune work before PixelLab
 What came through the pixelisation was **mass, shoulder line, head shape and the big fire
 accents** (belt core, feet, armour cracks); what died was fine filigree. Judge boss
 concepts on silhouette and accept that detail is decoration.
+
+## The animation template list, and how to read it safely
+
+`/characters/animations` validates `template_animation_id` **against the character's
+skeleton**, and the error names the skeleton: *"Invalid template_animation_id 'attack'
+for template 'mannequin'"*. There is no catalogue endpoint — `/animation-templates`,
+`/templates`, `/animations/templates` are all 404. The list only ever arrives inside a
+validation error, and **the generic error truncates it after ten entries**; you get the
+full list only from the skeleton-specific one.
+
+For `mannequin` (what `create-character-pro` produced for the Debt-Bearer):
+
+> backflip, breathing-idle, cross-punch, crouched-walking, crouching, drinking,
+> falling-back-death, fight-stance-idle-8-frames, fireball, flying-kick, front-flip,
+> getting-up, high-kick, hurricane-kick, jumping-1, jumping-2, lead-jab, leg-sweep,
+> picking-up, pull-heavy-object, pushing, roundhouse-kick, running-4-frames,
+> running-6-frames, running-8-frames, running-jump, running-slide, sad-walk,
+> scary-walk, surprise-… *(still truncated at the tail)*
+
+**Note `attack`, `angry` and `bark` are NOT in it** despite appearing in the generic
+message. Do not assume a template exists because some other error listed it.
+
+Duelling bosses are well served: `fight-stance-idle-8-frames` (combat idle),
+`cross-punch` / `lead-jab` / `roundhouse-kick` / `high-kick` (attacks), `fireball`
+(cast), `falling-back-death` (defeat).
+
+### The unsafe probe that nearly cost real generations
+
+Probing by sending a **valid** template with a deliberately invalid `directions` value,
+on the assumption that the bad sibling field would block the request, **does not work**.
+`directions` is not validated up front: the call returned **200 and started a real
+background job**.
+
+It happened to cost nothing — balance unchanged, `animation_count` 0, job `usage` $0.00,
+because it was animating a direction that does not exist and failed downstream. That was
+luck, not design.
+
+**The rule: put the invalid value in the field you are actually testing, and nowhere
+else.** An invalid `template_animation_id` is rejected before any work starts and is
+genuinely free. An invalid value in a *neighbouring* field may sail straight through into
+a paid job.
