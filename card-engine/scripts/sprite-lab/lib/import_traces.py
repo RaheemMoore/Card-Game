@@ -214,11 +214,19 @@ def main(traces_path, plate_path, out_dir, qa_path=None):
                             'Regenerate with scripts/sprite-lab/lib/import_traces.py.')},
                   f, indent=2)
 
-    print('\nCOLLIDERS  (paste into src/pages/castle/courtyard/scenery.ts)')
+    print('\nCOLLIDERS')
+    # A solid volume you can never enter has one true shape, so let its collider
+    # BE its silhouette rather than a second drawing of the same thing that can
+    # drift. The fountain's separately-traced collider sat ~20px inside the
+    # painted stone rim, leaving a lip the player could stand on.
+    solid = set(traces.get('solidFromOccluder', []))
+    by_name = {o['name']: o for o in traces['occluders']}
+
     total = 0
     col_out = []
     for obj in traces['colliders']:
-        mask = rasterise(obj, size)
+        src = by_name[obj['name']] if obj['name'] in solid else obj
+        mask = rasterise(src, size)
         boxes = boxes_from_mask(mask)
         total += len(boxes)
         col_out.append({'id': obj['name'], 'boxes': boxes})

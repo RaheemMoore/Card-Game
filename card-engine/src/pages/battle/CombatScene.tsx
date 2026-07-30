@@ -13,6 +13,7 @@ import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { BossStage } from './BossStage';
 import { ArenaShakeLayer } from './ArenaShakeLayer';
+import { ArenaAmbience } from './ArenaAmbience';
 import { ImpactFlash } from './ImpactFlash';
 import { HeroSpriteLayer } from './HeroSpriteLayer';
 import { PartyDock, computePartyDockWidth } from './PartyDock';
@@ -222,6 +223,10 @@ export function CombatScene({
               `${groundTint.low} 100%)`,
         }}
       />
+      {/* Layer 3 — ambient life. A plate is a still image and always will be,
+          so the motion goes here: embers rising off the arena's own ground
+          fire. Zero generations, no extra assets. */}
+      <ArenaAmbience motionLevel={motionLevel} />
 
         {/* Boss stage — inside the shake layer, so it is part of the world
             that moves rather than part of the frame that doesn't. */}

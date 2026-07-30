@@ -75,9 +75,11 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
     <div
       className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
       style={{
-        // P1: dropped from 2% → 10% so the sprite's feet land on the pixel
-        // arena's central dais (candidate-4 dais sits at ~55% down the arena).
-        top: '10%',
+        // Tuned per arena art: his feet (and the scorch ring drawn at them)
+        // have to land inside the moot-ground's painted stone circle, whose
+        // near edge sits ~62% down the plate. At 10% he stood above it, on
+        // nothing.
+        top: '19%',
         pointerEvents: 'none',
       }}
     >

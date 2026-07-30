@@ -78,11 +78,19 @@ export const STALLS: Stall[] = [
     placeholder: 'Your gathered characters. Not yet connected to the Collection.',
   },
   {
+    // Traced to the west wall's benches and planters, which a paving probe puts
+    // at x < 290 (paving is 0% out to x 260, 25% by 280, 64% by 300).
+    //
+    // WAS x 185-315, AND THAT MADE A DEAD END. The upper lamps' colliders start
+    // at x 330, so the corridor between them was 15px wide — narrower than the
+    // hero's 26px feet box, so he simply could not walk down the west side.
+    // Raheem found it by trying. When two colliders face each other, the gap has
+    // to clear HERO_FEET.width or it is a wall that looks like a path.
     id: 'minigames',
     label: 'The Training Yard',
-    x: 250,
+    x: 240,
     y: 620,
-    width: 130,
+    width: 80,
     height: 320,
     placeholder: 'Training and games. Not yet connected to the minigames.',
   },
