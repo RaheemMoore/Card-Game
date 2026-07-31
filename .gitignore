@@ -98,3 +98,7 @@ ai-snapshot-output/
 
 # Working scratch, per-session.
 scratchpad/
+
+# Raheem's manual drop folder — staging, not source of truth.
+# Anything the app needs gets copied into card-engine/public/assets/.
+Card Images/ARENA/
