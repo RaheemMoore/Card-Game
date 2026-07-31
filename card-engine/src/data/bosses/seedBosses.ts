@@ -349,7 +349,7 @@ const DEBT_BEARER_DEF: BossDefinition = {
   lore:
     'Every technique he was given, he wrote down as something owed. He meant to repay it by carrying it forward — and then the ledger grew longer than the life, and there was no one left to repay. He still counts. He will count through you.',
   familyIds: ['martial'],
-  currentVersionId: 'bv_champion_barbarian_1',
+  currentVersionId: 'bv_champion_barbarian_2',
   status: 'active',
   artAssetIds: [],
   bossKind: 'champion',
@@ -361,11 +361,22 @@ const DEBT_BEARER_DEF: BossDefinition = {
   updatedAt: NOW,
 };
 
+/**
+ * v1 — the original two-action fight, one heavy attack per phase.
+ *
+ * Superseded by v2 but kept, and kept SEPARATE rather than edited in place.
+ * `PersistenceGate` only re-seeds a boss when a shipped version id is MISSING
+ * from the store, so adding actions to an existing id ships nothing: every
+ * user who has already played keeps the old row forever. The Emberborn Wraith
+ * established the convention (v1 -> v4); this version exists because the
+ * Debt-Bearer's new moveset was briefly written INTO v1 and therefore never
+ * reached the deployed preview at all.
+ */
 const DEBT_BEARER_V1: BossVersion = {
   id: 'bv_champion_barbarian_1',
   bossId: 'boss_champion_barbarian',
   versionNumber: 1,
-  status: 'active',
+  status: 'deprecated',
   publishedAt: NOW,
   maxHp: TOWER.hp(1),
   // Inheritance is not elemental. He is answered by defence, not by typing.
@@ -403,6 +414,66 @@ const DEBT_BEARER_V1: BossVersion = {
           scalingPerRound: TOWER.scaling(1),
           damageType: 'physical',
         },
+      ],
+    },
+    {
+      id: 'phase_debt_calling_in',
+      healthThresholdStart: 0.45,
+      healthThresholdEnd: 0,
+      passiveDescriptions: ['The counting stops. He has reached the total.'],
+      actions: [
+        {
+          id: 'act_debt_total',
+          displayName: 'The Whole Sum',
+          intentType: 'heavy_attack',
+          telegraphText: 'He stops counting. This one is for all of it.',
+          priority: 30,
+          cooldownRounds: 1,
+          interruptible: true,
+          baseDamage: Math.round(TOWER.damage(1) * 1.6),
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+        },
+      ],
+    },
+  ],
+  createdAt: NOW,
+  updatedAt: NOW,
+};
+
+/* ---------- The Debt-Bearer v2 (2026-07-30) — a real moveset ----------
+ * Adds the two actions that make floor 1 a fight rather than one repeated
+ * punch, and ships as a NEW VERSION so deployed users actually receive it.
+ *
+ *   Running the Tally (enrage_prep) — forfeits a turn for four rounds of rage.
+ *     Near-neutral in expected value ON PURPOSE: it teaches the player to read
+ *     the banner, because higher floors use the same intent for hits that
+ *     genuinely hurt.
+ *
+ *   The Whole Ledger (charged ultimate) — declared, then lands on the WHOLE
+ *     party two rounds later unless the party deals 18% of his max HP inside
+ *     the window. Partial progress scales the damage down, so pushing on the
+ *     bar always pays.
+ *
+ * Verified by instrumenting the balance sweep to count declared intents: Tally
+ * fires once per battle, the Ledger twice, and floor 1 lands at 5 of 6 party
+ * compositions clearing against its 0.85 target.
+ */
+const DEBT_BEARER_V2: BossVersion = {
+  ...DEBT_BEARER_V1,
+  id: 'bv_champion_barbarian_2',
+  versionNumber: 2,
+  status: 'active',
+  publishedAt: '2026-07-30T00:00:00.000Z',
+  deprecatedAt: undefined,
+  // Phase 1 gains the tally; phase 2 gains the charged ultimate. Built by
+  // extending v1's phases rather than restating them, so a later change to a
+  // shared action cannot silently apply to only one version.
+  phases: [
+    {
+      ...DEBT_BEARER_V1.phases[0],
+      actions: [
+        ...DEBT_BEARER_V1.phases[0].actions,
         {
           /**
            * He stops to add something up, and the next blows are worse for it.
@@ -434,23 +505,9 @@ const DEBT_BEARER_V1: BossVersion = {
       ],
     },
     {
-      id: 'phase_debt_calling_in',
-      healthThresholdStart: 0.45,
-      healthThresholdEnd: 0,
-      passiveDescriptions: ['The counting stops. He has reached the total.'],
+      ...DEBT_BEARER_V1.phases[1],
       actions: [
-        {
-          id: 'act_debt_total',
-          displayName: 'The Whole Sum',
-          intentType: 'heavy_attack',
-          telegraphText: 'He stops counting. This one is for all of it.',
-          priority: 30,
-          cooldownRounds: 1,
-          interruptible: true,
-          baseDamage: Math.round(TOWER.damage(1) * 1.6),
-          scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
-        },
+        ...DEBT_BEARER_V1.phases[1].actions,
         {
           /**
            * THE WHOLE LEDGER — the fight's centrepiece, and the first charged
@@ -494,10 +551,7 @@ const DEBT_BEARER_V1: BossVersion = {
       ],
     },
   ],
-  createdAt: NOW,
-  updatedAt: NOW,
 };
-
 /* ---------- Floor 2 · The Still Season (Druid) ----------
  * Pressure F — regeneration outheals chip damage. Answered by DoT, which
  * ticks through healing, and by `weakened`.
@@ -703,7 +757,7 @@ export const SEED_BOSSES: SeedBoss[] = [
   // a person, which is why it is not one of The Overreach. Its lore already
   // teaches measured strikes, and it is the only boss with finished art.
   { definition: EMBERBORN_DEF_V4, version: EMBERBORN_V4 },
-  { definition: DEBT_BEARER_DEF, version: DEBT_BEARER_V1 },
+  { definition: DEBT_BEARER_DEF, version: DEBT_BEARER_V2 },
   { definition: STILL_SEASON_DEF, version: STILL_SEASON_V1 },
   { definition: UNCLOSED_SUMMONS_DEF, version: UNCLOSED_SUMMONS_V1 },
 ];
@@ -713,4 +767,5 @@ export const SEED_BOSS_LEGACY_VERSIONS: BossVersion[] = [
   EMBERBORN_V1_DEPRECATED,
   { ...EMBERBORN_V2, status: 'deprecated', deprecatedAt: '2026-07-19T00:00:00.000Z' },
   { ...EMBERBORN_V3, status: 'deprecated', deprecatedAt: '2026-07-20T00:00:00.000Z' },
+  { ...DEBT_BEARER_V1, deprecatedAt: '2026-07-30T00:00:00.000Z' },
 ];

@@ -109,7 +109,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         style={{
           width: 44,
-          height: 104,
+          height: 88,
           borderRadius: 6,
           border: '2px solid #7a5530',
           background: canAct

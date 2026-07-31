@@ -173,11 +173,33 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
   const submit = useCallback((action: PlayerAction) => {
     setState((prev) => {
       if (!prev || prev.phase !== 'awaiting_player_action') return prev;
-      const after = submitPlayerAction(prev, action);
-      const { state: flushed, events: flushedEvents } = runToNextPause(after.state);
-      const allEvents = [...after.events, ...flushedEvents];
-      if (allEvents.length > 0) setEvents((e) => [...e, ...allEvents]);
-      return flushed;
+      try {
+        const after = submitPlayerAction(prev, action);
+        const { state: flushed, events: flushedEvents } = runToNextPause(after.state);
+        const allEvents = [...after.events, ...flushedEvents];
+        if (allEvents.length > 0) setEvents((e) => [...e, ...allEvents]);
+        return flushed;
+      } catch (err) {
+        /**
+         * A throw in here used to escape the state updater silently: no state
+         * change, no message, and — because EVERY control routes through
+         * `submit` — the entire battle became unclickable with no clue why.
+         * That is precisely how it presented in the Vercel preview: abilities
+         * would not expand, Strike did nothing, End Turn did nothing.
+         *
+         * The setup effect above has always been wrapped; this was the one
+         * path that was not. `runToNextPause` throws by design when the
+         * reducer fails to converge, so this is a reachable case, not defence
+         * against the impossible.
+         *
+         * Surfacing it beats swallowing it: the player gets a message instead
+         * of a dead screen, and the cause is named instead of guessed at.
+         */
+        // eslint-disable-next-line no-console
+        console.error('[combat] submit failed', { action, phase: prev.phase }, err);
+        setError(err instanceof Error ? err.message : String(err));
+        return prev;
+      }
     });
   }, []);
 

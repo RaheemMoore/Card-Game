@@ -103,7 +103,7 @@ export function LatticeCore({
   label,
   readout,
   width = 52,
-  height = 104,
+  height = 88,
   className,
 }: Props) {
   const pct = Math.max(0, Math.min(1, fill));
