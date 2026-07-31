@@ -2,9 +2,16 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { grantBattleReward } from './battleRewardService';
 import * as wallet from '../economy/walletService';
 import * as ledger from '../economy/transactionLedger';
+import { InMemoryLedgerStore } from '../economy/transactionLedger';
 
 beforeEach(() => {
-  ledger.resetForDev();
+  // The default LocalStorageLedgerStore reads/writes through
+  // `globalThis.localStorage?.…`, and localStorage is undefined under this
+  // vitest environment — so every append silently no-ops and the ledger
+  // always scans as empty. That breaks idempotency and first-clear/repeat
+  // detection, both of which are ledger scans. Inject the in-memory store,
+  // same as walletService.test.ts / discoveryLedger.test.ts do.
+  ledger.setStore(new InMemoryLedgerStore());
   wallet.initialize();
 });
 
