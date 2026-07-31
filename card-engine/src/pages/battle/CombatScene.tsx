@@ -22,6 +22,7 @@ import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
 import { PartyResourceVessel } from './PartyResourceVessel';
+import { abilityZoneWidth, resourceZoneWidth, controlsPaddingRight } from './shelfLayout';
 import { CombatGuideModal } from './CombatGuideModal';
 import { PaintedPanel } from './PaintedPanel';
 import { CardSheet } from '../../components/CardSheet';
@@ -296,10 +297,14 @@ export function CombatScene({
           ref={abilityZoneRef}
           className="relative flex items-center min-w-0"
           style={{
-            flex: '0 0 clamp(210px, 20vw, 280px)',
+            // Widths come from `shelfLayout`, which `shelfBudget.test.ts`
+            // sums at every breakpoint. Inline clamp() strings here are what
+            // let the shelf overflow twice without anything noticing.
+            flex: `0 0 ${abilityZoneWidth(viewportWidth)}px`,
+            minWidth: 0,
             height: '100%',
-            paddingLeft: 'clamp(8px, 1.4vw, 18px)',
-            paddingRight: 'clamp(8px, 1.4vw, 18px)',
+            paddingLeft: 'clamp(6px, 1.1vw, 14px)',
+            paddingRight: 'clamp(6px, 1.1vw, 14px)',
           }}
         >
           <AbilityCommandBar
@@ -319,13 +324,19 @@ export function CombatScene({
         <div
           className="flex items-center justify-center"
           style={{
-            flex: '0 0 clamp(140px, 14vw, 190px)',
+            flex: `0 0 ${resourceZoneWidth(viewportWidth)}px`,
+            minWidth: 0,
             height: '100%',
-            paddingLeft: 'clamp(6px, 1vw, 14px)',
-            paddingRight: 'clamp(6px, 1vw, 14px)',
+            paddingLeft: 'clamp(4px, 0.8vw, 10px)',
+            paddingRight: 'clamp(4px, 0.8vw, 10px)',
           }}
         >
-          <PartyResourceVessel state={state} motionLevel={motionLevel} />
+          <PartyResourceVessel
+            state={state}
+            motionLevel={motionLevel}
+            canAct={canAct}
+            onStrike={() => onSubmit({ kind: 'strike' })}
+          />
         </div>
 
         <ShelfSeam />
@@ -343,7 +354,7 @@ export function CombatScene({
         <ShelfSeam />
 
         {/* Utility tray + End Turn, pinned right */}
-        <div style={{ paddingRight: 'clamp(8px, 1.8vw, 24px)' }}>
+        <div style={{ paddingRight: controlsPaddingRight(viewportWidth), minWidth: 0 }}>
           <BattleControls
             onExit={onExit}
             onSubmit={onSubmit}

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { PlayerAction } from '../../types/combat';
 import type { MotionLevel } from '../../vfx/types';
 import { LeaveConfirmModal } from './LeaveConfirmModal';
+import { useViewportWidth } from './useViewportWidth';
+import { controlsGap, endTurnWidth, utilityChipWidth } from './shelfLayout';
 
 interface Props {
   canAct: boolean;
@@ -45,6 +47,10 @@ export function BattleControls({
   onOpenGuide,
 }: Props) {
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  // Widths come from `shelfLayout`, never from inline clamp() strings. That is
+  // what lets `shelfBudget.test.ts` know what this cluster costs — the shelf
+  // overflowed twice precisely because no single place knew the total.
+  const vw = useViewportWidth();
 
   // End Turn = "every remaining hero guards + boss goes." Submitting once per
   // pending hero cycles the party through in one click so users don't have to
@@ -60,7 +66,7 @@ export function BattleControls({
       ? `End party turn — guards all ${pendingCount} remaining heroes and lets the boss act`
       : 'End turn — guards this hero and lets the boss act';
   return (
-    <div className="flex items-center" style={{ gap: 'clamp(6px, 1.1vw, 12px)' }}>
+    <div className="flex items-center" style={{ gap: controlsGap(vw), minWidth: 0 }}>
       {/* Utility tray — Settings / Guide / Leave, one quiet bordered group
           instead of three individually-bordered chips, so it reads as a
           single subordinate cluster rather than three peer buttons. */}
@@ -88,49 +94,24 @@ export function BattleControls({
             )
           }
           ariaLabel={`Motion: ${MOTION_LABEL[motionLevel]}. Activate to change.`}
+          width={utilityChipWidth(vw)}
         />
-        <UtilityChip label="📖" caption="GUIDE" onClick={onOpenGuide} />
+        <UtilityChip label="📖" caption="GUIDE" onClick={onOpenGuide} width={utilityChipWidth(vw)} />
         {/* Leave is deliberately the same quiet weight as Settings/Guide at
             rest — it only escalates once the confirm step is triggered — so
             it can't be mistaken for a second primary action next to End Turn. */}
-        <UtilityChip label="✕" caption="LEAVE" onClick={() => setConfirmingLeave(true)} />
+        <UtilityChip label="✕" caption="LEAVE" onClick={() => setConfirmingLeave(true)} width={utilityChipWidth(vw)} />
       </div>
 
       {/* Seam — a thin inset rule instead of a second frame boundary */}
       <div aria-hidden style={{ width: 1, height: 44, background: 'rgba(128,79,33,0.5)' }} />
 
-      {/* STRIKE — the free basic attack, and the only way to actively refill
-          the party's resource. It needs to sit beside End Turn rather than in
-          the ability list: it is not an ability (no cost, no cooldown, no
-          slot), and burying it among things that cost resource would hide the
-          one action that GENERATES it. */}
-      <button
-        type="button"
-        onClick={() => canAct && onSubmit({ kind: 'strike' })}
-        disabled={!canAct}
-        aria-label="Strike — a free basic attack that adds to the party's resource"
-        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-        style={{
-          width: 'clamp(64px, 7vw, 88px)',
-          height: 58,
-          borderRadius: 6,
-          border: '2px solid #7a5530',
-          background: canAct
-            ? 'linear-gradient(to bottom, #2a1d12, #17100a)'
-            : 'linear-gradient(to bottom, #16120f, #0d0a08)',
-          color: canAct ? '#e8d6b2' : '#6b6058',
-          cursor: canAct ? 'pointer' : 'not-allowed',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 1,
-          marginRight: 'clamp(6px, 1.1vw, 12px)',
-        }}
-      >
-        <span style={{ fontSize: 14, letterSpacing: 1.2 }}>STRIKE</span>
-        <span style={{ fontSize: 8, letterSpacing: 1, color: '#8ab87d' }}>+RESOURCE</span>
-      </button>
+      {/* STRIKE lives beside the resource vessels now, not here. It was 88px
+          plus a 12px margin in this cluster, and that ~100px is exactly what
+          pushed End Turn off the right edge of the screen. It also belongs
+          there on merit: it is the action that FILLS the vessels, so grouping
+          "generate" with "what you generated" reads better than grouping it
+          with the turn controls. */}
 
       {/* End Turn button — gradient border, unchanged visual language.
           P1: one click ends the whole party turn (all pending heroes guard).
@@ -167,7 +148,7 @@ export function BattleControls({
         disabled={!canAct}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
         style={{
-          width: 'clamp(132px, 19vw, 210px)',
+          width: endTurnWidth(vw),
           height: 58,
           borderRadius: 6,
           border: '2px solid #eb962e',
@@ -213,9 +194,12 @@ function UtilityChip({
   caption,
   onClick,
   ariaLabel,
+  width,
 }: {
   label: string;
   caption: string;
+  /** From `shelfLayout.utilityChipWidth` — see the note in BattleControls. */
+  width: number;
   onClick?: () => void;
   /** Overrides the caption for screen readers when the chip carries state
    *  the caption alone does not convey (e.g. the Motion level). */
@@ -229,7 +213,7 @@ function UtilityChip({
       disabled={!clickable}
       className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       style={{
-        width: 'clamp(30px, 4.4vw, 46px)',
+        width,
         height: 40,
         background: 'transparent',
         border: 'none',

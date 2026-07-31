@@ -26,6 +26,9 @@ import { LatticeCore } from '../../vfx/LatticeCore';
 interface Props {
   state: BattleState;
   motionLevel: MotionLevel;
+  /** Free basic attack — the action that FILLS these vessels. */
+  onStrike: () => void;
+  canAct: boolean;
 }
 
 const MANA_PALETTE = {
@@ -42,42 +45,101 @@ const TECH_PALETTE = {
   glow: '#4aa8ef',
 };
 
-export function PartyResourceVessel({ state, motionLevel }: Props) {
+export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Props) {
   const { partyResource: cur, partyResourceMax: max } = state;
-  const showMana = max.mana > 0;
-  const showTech = max.tech > 0;
-  if (!showMana && !showTech) return null;
+
+  /**
+   * BOTH chambers always render, even at max 0.
+   *
+   * The first version hid an unused chamber, on the reasoning that a
+   * permanently empty vessel reads as "a resource you have run out of". In
+   * practice hiding it was worse: the shelf zone changed width depending on
+   * party composition, so the same slot held one vessel in one fight and two
+   * in the next, and the gap left behind read as missing UI.
+   *
+   * An unused chamber is drawn DORMANT instead — dimmed, with a dash rather
+   * than a zero — so it reads as a socket waiting to be filled rather than as
+   * a resource at empty. That is also the honest fiction: bring a Tech hero
+   * and it lights up.
+   */
+  const manaFill = max.mana > 0 ? cur.mana / max.mana : 0;
+  const techFill = max.tech > 0 ? cur.tech / max.tech : 0;
+  const manaUnused = max.mana === 0;
+  const techUnused = max.tech === 0;
 
   return (
     <div
       className="flex items-end justify-center"
-      style={{ gap: 10 }}
+      style={{ gap: 8 }}
       role="group"
       aria-label="Party resources"
     >
-      {showMana && (
-        <LiquidVessel
-          fill={cur.mana / max.mana}
-          palette={MANA_PALETTE}
-          motion={motionLevel}
-          label="Mana"
-          readout={`${cur.mana}`}
-          // aria lives on the group; the vessels are decorative renderings of
-          // a number that is also written on them.
-        />
-      )}
-      {showTech && (
+      {/* Tech sits LEFT of Mana. */}
+      <div style={{ opacity: techUnused ? 0.4 : 1, transition: 'opacity 300ms' }}>
         <LatticeCore
-          fill={cur.tech / max.tech}
+          fill={techFill}
           palette={TECH_PALETTE}
           motion={motionLevel}
           label="Tech"
-          readout={`${cur.tech}`}
+          readout={techUnused ? '—' : `${cur.tech}`}
         />
-      )}
+      </div>
+      <div style={{ opacity: manaUnused ? 0.4 : 1, transition: 'opacity 300ms' }}>
+        <LiquidVessel
+          fill={manaFill}
+          palette={MANA_PALETTE}
+          motion={motionLevel}
+          label="Mana"
+          readout={manaUnused ? '—' : `${cur.mana}`}
+        />
+      </div>
+      {/*
+        STRIKE, next to the thing it fills.
+        It used to sit beside End Turn, where its 88px + 12px margin was
+        exactly what pushed that button off the right edge of the screen. It
+        reads better here anyway: this is the action that GENERATES resource,
+        so putting it beside the vessels makes the spend/build loop legible
+        instead of filing it with the turn controls.
+      */}
+      <button
+        type="button"
+        onClick={() => canAct && onStrike()}
+        disabled={!canAct}
+        aria-label="Strike — a free basic attack that adds to the party's resource"
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        style={{
+          width: 44,
+          height: 104,
+          borderRadius: 6,
+          border: '2px solid #7a5530',
+          background: canAct
+            ? 'linear-gradient(to bottom, #2a1d12, #17100a)'
+            : 'linear-gradient(to bottom, #16120f, #0d0a08)',
+          color: canAct ? '#e8d6b2' : '#6b6058',
+          cursor: canAct ? 'pointer' : 'not-allowed',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 3,
+          padding: 2,
+          opacity: canAct ? 1 : 0.55,
+          transition: 'opacity 200ms',
+        }}
+      >
+        {/* Vertical, because the button is tall and narrow to match the
+            vessels it stands beside. */}
+        <span style={{ fontSize: 11, letterSpacing: 1.4, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+          STRIKE
+        </span>
+        <span aria-hidden style={{ fontSize: 12, color: '#8ab87d', lineHeight: 1 }}>
+          +
+        </span>
+      </button>
+
       <span className="sr-only">
-        {showMana ? `Mana ${cur.mana} of ${max.mana}. ` : ''}
-        {showTech ? `Tech ${cur.tech} of ${max.tech}.` : ''}
+        {techUnused ? 'Tech unused by this party. ' : `Tech ${cur.tech} of ${max.tech}. `}
+        {manaUnused ? 'Mana unused by this party.' : `Mana ${cur.mana} of ${max.mana}.`}
       </span>
     </div>
   );
