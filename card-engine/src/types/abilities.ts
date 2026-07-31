@@ -72,13 +72,39 @@ export interface ScalingRule {
   coefficient: number;
 }
 
+/**
+ * `tech` is the MACHINE FACTION's type and nothing else's — only Human,
+ * Android and Mech Pilot can deal it (2026-07-31, Raheem). That exclusivity is
+ * what lets a boss be built to demand a machine, so anything landing here that
+ * a mana archetype could hold breaks a whole tier of encounter design. Check
+ * `ELEMENT_TO_DAMAGE_TYPE` before adding to it.
+ *
+ * `astral` exists because of that rule: Cosmic used to resolve as `tech`, and
+ * Cosmic is Monk-exclusive. Rather than demote the Monk's culmination into
+ * someone else's family, it got its own type.
+ */
+/**
+ * NAMES DELIBERATELY SHARE NO WORD WITH ANY ELEMENT (2026-07-31, Raheem).
+ *
+ * These used to be called fire/holy/shadow/nature — the same words as four of
+ * the 29 elements — and the collision made the two layers impossible to talk
+ * about. "A Shadow card deals shadow damage, and so does a Bone card" is a
+ * true sentence that teaches nobody anything, because `Shadow` the element and
+ * `shadow` the damage type are different layers wearing one word.
+ *
+ * So each name now says what the damage IS, not which element feeds it. Nine
+ * elements resolve as `umbral`; only one resolves as `searing`. Keep it that
+ * way — the moment a damage type is named after an element, the confusion
+ * comes back and the guide has to apologise for the vocabulary again.
+ */
 export const DAMAGE_TYPES = [
-  'physical',
-  'fire',
-  'holy',
-  'shadow',
-  'nature',
+  'kinetic',
+  'searing',
+  'radiant',
+  'umbral',
+  'primal',
   'tech',
+  'astral',
   'true',
 ] as const;
 export type DamageType = typeof DAMAGE_TYPES[number];

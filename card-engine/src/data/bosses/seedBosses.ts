@@ -52,8 +52,8 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
   deprecatedAt: NOW,
   maxHp: 320,
   resistanceProfile: {
-    resistant: ['fire'],
-    weak: ['holy', 'nature'],
+    resistant: ['searing'],
+    weak: ['radiant', 'primal'],
   },
   phases: [
     {
@@ -72,7 +72,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 22,
           scalingPerRound: 0.2,
-          damageType: 'fire',
+          damageType: 'searing',
         },
         {
           id: 'act_fe_flame_burst',
@@ -84,7 +84,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 15,
           scalingPerRound: 0.2,
-          damageType: 'fire',
+          damageType: 'searing',
         },
       ],
     },
@@ -104,7 +104,7 @@ const EMBERBORN_V1_DEPRECATED: BossVersion = {
           interruptible: false,
           baseDamage: 30,
           scalingPerRound: 0.2,
-          damageType: 'fire',
+          damageType: 'searing',
         },
         {
           id: 'act_fe_execute_pyre',
@@ -201,7 +201,7 @@ const EMBERBORN_V3: BossVersion = {
       actions: EMBERBORN_V2.phases[0].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.4,
-        damageType: 'fire',
+        damageType: 'searing',
       })),
     },
     // Phase 2 — mechanical enrage (50% → 25%). v2 hits + heavier scaling.
@@ -211,7 +211,7 @@ const EMBERBORN_V3: BossVersion = {
       actions: EMBERBORN_V2.phases[1].actions.map((a) => ({
         ...a,
         scalingPerRound: 0.8,
-        damageType: 'fire',
+        damageType: 'searing',
       })),
     },
     // Phase 3 — RAGE (25% → 0%). Threatens hero one-shots at high rounds.
@@ -235,7 +235,7 @@ const EMBERBORN_V3: BossVersion = {
           interruptible: false,
           baseDamage: 120,
           scalingPerRound: 1.1,
-          damageType: 'fire',
+          damageType: 'searing',
         },
         {
           id: 'act_fe_rage_pyre',
@@ -247,7 +247,7 @@ const EMBERBORN_V3: BossVersion = {
           interruptible: false,
           baseDamage: 170,
           scalingPerRound: 0.95,
-          damageType: 'fire',
+          damageType: 'searing',
         },
       ],
     },
@@ -394,7 +394,7 @@ const DEBT_BEARER_V1: BossVersion = {
    * (both cancel a debt, from opposite directions) and tech (precision undoes
    * brute mass).
    */
-  resistanceProfile: { resistant: ['fire'], weak: ['holy', 'shadow', 'tech'] },
+  resistanceProfile: { resistant: ['searing'], weak: ['radiant', 'umbral', 'tech'] },
   phases: [
     {
       id: 'phase_debt_counting',
@@ -412,7 +412,7 @@ const DEBT_BEARER_V1: BossVersion = {
           interruptible: true,
           baseDamage: TOWER.damage(1),
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
         },
       ],
     },
@@ -432,7 +432,7 @@ const DEBT_BEARER_V1: BossVersion = {
           interruptible: true,
           baseDamage: Math.round(TOWER.damage(1) * 1.6),
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
         },
       ],
     },
@@ -499,7 +499,7 @@ const DEBT_BEARER_V2: BossVersion = {
           interruptible: false,
           baseDamage: 0,
           scalingPerRound: 0,
-          damageType: 'physical',
+          damageType: 'kinetic',
           selfStatuses: [{ statusId: 'rage', duration: 4, stacks: 2 }],
         },
       ],
@@ -541,7 +541,7 @@ const DEBT_BEARER_V2: BossVersion = {
           targetScope: 'all_heroes',
           baseDamage: 55,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           charge: {
             rounds: 2,
             break: { kind: 'damage', percentOfMaxHp: 0.18 },
@@ -622,7 +622,7 @@ const DEBT_BEARER_V3: BossVersion = {
           interruptible: true,
           baseDamage: 58,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           weight: 3,
         },
         {
@@ -640,9 +640,9 @@ const DEBT_BEARER_V3: BossVersion = {
           targetScope: 'all_heroes',
           baseDamage: 38,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           statusApplications: [
-            { statusId: 'bleed', duration: 2, stacks: 1, amountPerTick: 7, damageType: 'physical' },
+            { statusId: 'bleed', duration: 2, stacks: 1, amountPerTick: 7, damageType: 'kinetic' },
           ],
           weight: 2,
         },
@@ -661,7 +661,7 @@ const DEBT_BEARER_V3: BossVersion = {
           targetScope: 'lowest_hp',
           baseDamage: 78,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           statusApplications: [{ statusId: 'weakened', duration: 2, stacks: 1 }],
           weight: 2,
         },
@@ -678,7 +678,7 @@ const DEBT_BEARER_V3: BossVersion = {
           interruptible: false,
           baseDamage: 0,
           scalingPerRound: 0,
-          damageType: 'physical',
+          damageType: 'kinetic',
           selfStatuses: [{ statusId: 'rage', duration: 3, stacks: 2 }],
           // 2, not 1: at weight 1 the sweep showed it declared 0.21 times per
           // battle — a move the player would essentially never meet, and so
@@ -702,7 +702,7 @@ const DEBT_BEARER_V3: BossVersion = {
           targetScope: 'all_heroes',
           baseDamage: 120,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           charge: {
             rounds: 2,
             break: { kind: 'party_action', action: 'guard', heroCount: 2 },
@@ -730,7 +730,7 @@ const DEBT_BEARER_V3: BossVersion = {
           interruptible: true,
           baseDamage: 88,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           weight: 3,
         },
         {
@@ -748,7 +748,7 @@ const DEBT_BEARER_V3: BossVersion = {
           interruptible: true,
           baseDamage: 34,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           shieldAmount: 165,
           shieldDurationRounds: 2,
         },
@@ -766,7 +766,7 @@ const DEBT_BEARER_V3: BossVersion = {
           targetScope: 'all_heroes',
           baseDamage: 135,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           charge: {
             rounds: 2,
             // 0.28, not v2's 0.18. At 18% the bar was 248 damage across a
@@ -796,7 +796,7 @@ const DEBT_BEARER_V3: BossVersion = {
           targetScope: 'lowest_hp',
           baseDamage: 130,
           scalingPerRound: TOWER.scaling(1),
-          damageType: 'physical',
+          damageType: 'kinetic',
           executeThresholdPercent: 0.35,
           executeMultiplier: 2.2,
         },
@@ -845,7 +845,7 @@ const STILL_SEASON_V1: BossVersion = {
   // it. A single-answer floor is a wall rather than a puzzle, and this is
   // floor 2 — early floors should have several ways through and narrow as the
   // tower rises. See TOWER_ANSWER_BUDGET in towerCurve.ts.
-  resistanceProfile: { resistant: ['nature'], weak: ['fire', 'tech'] },
+  resistanceProfile: { resistant: ['primal'], weak: ['searing', 'tech'] },
   phases: [
     {
       id: 'phase_season_held',
@@ -865,7 +865,7 @@ const STILL_SEASON_V1: BossVersion = {
           interruptible: true,
           baseDamage: Math.round(TOWER.damage(2) * 0.85),
           scalingPerRound: TOWER.scaling(2),
-          damageType: 'nature',
+          damageType: 'primal',
         },
       ],
     },
@@ -886,7 +886,7 @@ const STILL_SEASON_V1: BossVersion = {
           interruptible: true,
           baseDamage: Math.round(TOWER.damage(2) * 0.6),
           scalingPerRound: TOWER.scaling(2),
-          damageType: 'nature',
+          damageType: 'primal',
         },
         {
           id: 'act_season_close',
@@ -898,7 +898,7 @@ const STILL_SEASON_V1: BossVersion = {
           interruptible: true,
           baseDamage: Math.round(TOWER.damage(2) * 0.85),
           scalingPerRound: TOWER.scaling(2),
-          damageType: 'nature',
+          damageType: 'primal',
         },
       ],
     },
@@ -944,7 +944,7 @@ const UNCLOSED_SUMMONS_V1: BossVersion = {
   maxHp: TOWER.hp(3),
   // Unresolved light: holy passes through her without meaning anything,
   // and the answer is the profane thing she never chose.
-  resistanceProfile: { resistant: ['holy'], weak: ['shadow'] },
+  resistanceProfile: { resistant: ['radiant'], weak: ['umbral'] },
   phases: [
     {
       id: 'phase_summons_held',
@@ -962,7 +962,7 @@ const UNCLOSED_SUMMONS_V1: BossVersion = {
           interruptible: true,
           baseDamage: Math.round(TOWER.damage(3) * 0.55),
           scalingPerRound: TOWER.scaling(3),
-          damageType: 'holy',
+          damageType: 'radiant',
         },
       ],
     },
@@ -982,7 +982,7 @@ const UNCLOSED_SUMMONS_V1: BossVersion = {
           interruptible: false,
           baseDamage: 0,
           scalingPerRound: 0,
-          damageType: 'holy',
+          damageType: 'radiant',
           shieldAmount: Math.round(TOWER.hp(3) * 0.12),
           shieldDurationRounds: 2,
         },
@@ -996,7 +996,7 @@ const UNCLOSED_SUMMONS_V1: BossVersion = {
           interruptible: true,
           baseDamage: Math.round(TOWER.damage(3) * 0.7),
           scalingPerRound: TOWER.scaling(3),
-          damageType: 'holy',
+          damageType: 'radiant',
         },
       ],
     },

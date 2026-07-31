@@ -43,7 +43,7 @@ function twoHeroState(): BattleState {
       stats: testStats(),
       rank: 'Forged',
       // These suites assert combat MATH, not element interaction.
-      elementDamageType: 'physical',
+      elementDamageType: 'kinetic',
       abilities: [buildAbilitySnapshot(emberCleave.definition, emberCleave.version)],
     }),
   );
@@ -62,7 +62,7 @@ describe('summarizeJournal', () => {
       { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_oathbreakers_answer', targetActorIds: [boss] } },
       { kind: 'resource_changed', actorId: seojin.actorId, delta: -3, source: 'ability_cost' },
       { kind: 'cooldown_started', actorId: seojin.actorId, abilityDefinitionId: 'ability_oathbreakers_answer', rounds: 2 },
-      { kind: 'damage_dealt', sourceActorId: seojin.actorId, targetActorId: boss, amount: 49, damageType: 'fire', blockedByShield: 0 },
+      { kind: 'damage_dealt', sourceActorId: seojin.actorId, targetActorId: boss, amount: 49, damageType: 'searing', blockedByShield: 0 },
       { kind: 'ultimate_charge_changed', actorId: seojin.actorId, delta: 2, source: 'damage_dealt' },
     ];
 
@@ -122,7 +122,7 @@ describe('summarizeJournal', () => {
     const boss = state.boss.actorId;
 
     const events: BattleEvent[] = [
-      { kind: 'damage_dealt', sourceActorId: boss, targetActorId: seojin.actorId, amount: 27, damageType: 'fire', blockedByShield: 0 },
+      { kind: 'damage_dealt', sourceActorId: boss, targetActorId: seojin.actorId, amount: 27, damageType: 'searing', blockedByShield: 0 },
     ];
     const entries = summarizeJournal(events, state);
     expect(entries).toHaveLength(1);
@@ -137,8 +137,8 @@ describe('summarizeJournal', () => {
 
     const events: BattleEvent[] = [
       { kind: 'player_action_selected', actorId: seojin.actorId, action: { kind: 'ability', abilityDefinitionId: 'ability_oathbreakers_answer', targetActorIds: [boss] } },
-      { kind: 'damage_dealt', sourceActorId: seojin.actorId, targetActorId: boss, amount: 49, damageType: 'fire', blockedByShield: 0 },
-      { kind: 'damage_dealt', sourceActorId: boss, targetActorId: seojin.actorId, amount: 27, damageType: 'fire', blockedByShield: 0 },
+      { kind: 'damage_dealt', sourceActorId: seojin.actorId, targetActorId: boss, amount: 49, damageType: 'searing', blockedByShield: 0 },
+      { kind: 'damage_dealt', sourceActorId: boss, targetActorId: seojin.actorId, amount: 27, damageType: 'searing', blockedByShield: 0 },
     ];
     const entries = summarizeJournal(events, state);
     expect(entries).toHaveLength(2);

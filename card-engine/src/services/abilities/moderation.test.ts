@@ -30,7 +30,7 @@ async function storeWithProposed(): Promise<InMemoryAbilityStore> {
     cooldownRounds: 1,
     targetRule: { type: 'single_enemy' },
     effects: [
-      { type: 'direct_damage', amount: 15, damageType: 'physical' },
+      { type: 'direct_damage', amount: 15, damageType: 'kinetic' },
       { type: 'apply_status', status: { statusId: 'mark', duration: 2 } },
     ],
     triggers: [{ type: 'on_use' }],

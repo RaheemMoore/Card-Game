@@ -335,7 +335,7 @@ const OATHBREAKERS_ANSWER = ability({
       {
         type: 'direct_damage',
         amount: 30,
-        damageType: 'physical',
+        damageType: 'kinetic',
         scaling: { stat: 'atk', coefficient: 0.6 },
       },
       { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 7, duration: 3 },
@@ -367,7 +367,7 @@ const THE_NAME_THEY_LEFT_ME = ability({
         type: 'multi_hit',
         hitCount: 5,
         amountPerHit: 14,
-        damageType: 'physical',
+        damageType: 'kinetic',
         scaling: { stat: 'atk', coefficient: 0.22 },
       },
       { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 8, duration: 3 },
@@ -451,7 +451,7 @@ const THE_GROVE_REMEMBERS = ability({
       {
         type: 'direct_damage',
         amount: 48,
-        damageType: 'nature',
+        damageType: 'primal',
         scaling: { stat: 'mana', coefficient: 0.9 },
       },
       { type: 'damage_over_time', statusId: 'poison', amountPerTick: 9, duration: 4 },
@@ -516,14 +516,14 @@ const THE_VERDICT = ability({
       {
         type: 'direct_damage',
         amount: 34,
-        damageType: 'holy',
+        damageType: 'radiant',
         scaling: { stat: 'mana', coefficient: 0.6 },
       },
       { type: 'apply_status', status: { statusId: 'mark', duration: 2 } },
       {
         type: 'conditional_bonus',
         condition: { type: 'boss_hp_below_threshold', percent: 0.5 },
-        effects: [{ type: 'direct_damage', amount: 18, damageType: 'holy' }],
+        effects: [{ type: 'direct_damage', amount: 18, damageType: 'radiant' }],
       },
     ],
     scalingRules: [{ stat: 'mana', coefficient: 0.6 }],
@@ -553,7 +553,7 @@ const WHAT_THE_SUMMONS_COSTS = ability({
       {
         type: 'direct_damage',
         amount: 52,
-        damageType: 'holy',
+        damageType: 'radiant',
         scaling: { stat: 'mana', coefficient: 0.95 },
       },
       { type: 'apply_status', status: { statusId: 'weakened', duration: 2 } },
@@ -632,8 +632,8 @@ const TEN_THOUSAND_MORNINGS = ability({
     cooldownRounds: 3,
     maxCharges: 1,
     effects: [
-      { type: 'multi_hit', hitCount: 6, amountPerHit: 12, damageType: 'holy', scaling: { stat: 'atk', coefficient: 0.2 } },
-      { type: 'direct_damage', amount: 28, damageType: 'holy', scaling: { stat: 'mana', coefficient: 0.4 } },
+      { type: 'multi_hit', hitCount: 6, amountPerHit: 12, damageType: 'radiant', scaling: { stat: 'atk', coefficient: 0.2 } },
+      { type: 'direct_damage', amount: 28, damageType: 'radiant', scaling: { stat: 'mana', coefficient: 0.4 } },
       { type: 'apply_status', status: { statusId: 'focus', duration: 2, stacks: 2 } },
     ],
     scalingRules: [{ stat: 'atk', coefficient: 0.2 }],
@@ -690,7 +690,7 @@ const LEARNED_THE_HARD_WAY = ability({
     cooldownRounds: 2,
     effects: [
       { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
-      { type: 'direct_damage', amount: 27, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.55 } },
+      { type: 'direct_damage', amount: 27, damageType: 'kinetic', scaling: { stat: 'atk', coefficient: 0.55 } },
     ],
     scalingRules: [{ stat: 'atk', coefficient: 0.55 }],
   },
@@ -713,7 +713,7 @@ const THE_CHOICE = ability({
     cooldownRounds: 3,
     maxCharges: 1,
     effects: [
-      { type: 'direct_damage', amount: 50, damageType: 'holy', scaling: { stat: 'atk', coefficient: 0.9 } },
+      { type: 'direct_damage', amount: 50, damageType: 'radiant', scaling: { stat: 'atk', coefficient: 0.9 } },
       { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 8, duration: 3 },
       { type: 'apply_status', status: { statusId: 'mark', duration: 3 } },
     ],
@@ -843,7 +843,7 @@ const SANGUINE_TITHE = ability({
     resourceCost: 3,
     cooldownRounds: 2,
     effects: [
-      { type: 'direct_damage', amount: 30, damageType: 'shadow', scaling: { stat: 'mana', coefficient: 0.6 } },
+      { type: 'direct_damage', amount: 30, damageType: 'umbral', scaling: { stat: 'mana', coefficient: 0.6 } },
       { type: 'lifesteal', percentOfDamage: 0.6 },
       { type: 'apply_status', status: { statusId: 'weakened', duration: 2 } },
     ],
@@ -868,7 +868,7 @@ const THE_HOUR_BEFORE_DAWN = ability({
     cooldownRounds: 3,
     maxCharges: 1,
     effects: [
-      { type: 'multi_hit', hitCount: 4, amountPerHit: 16, damageType: 'shadow', scaling: { stat: 'mana', coefficient: 0.25 } },
+      { type: 'multi_hit', hitCount: 4, amountPerHit: 16, damageType: 'umbral', scaling: { stat: 'mana', coefficient: 0.25 } },
       { type: 'lifesteal', percentOfDamage: 0.7 },
       { type: 'shielding', amount: 24, duration: 2 },
     ],
@@ -921,7 +921,7 @@ const LET_IT_RISE = ability({
     cooldownRounds: 2,
     effects: [
       { type: 'apply_status', status: { statusId: 'rage', duration: 3, stacks: 3 } },
-      { type: 'direct_damage', amount: 26, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.55 } },
+      { type: 'direct_damage', amount: 26, damageType: 'kinetic', scaling: { stat: 'atk', coefficient: 0.55 } },
     ],
     scalingRules: [{ stat: 'atk', coefficient: 0.55 }],
   },
@@ -944,7 +944,7 @@ const GODDESS_GIVEN_RESTRAINT = ability({
     cooldownRounds: 3,
     maxCharges: 1,
     effects: [
-      { type: 'direct_damage', amount: 52, damageType: 'nature', scaling: { stat: 'atk', coefficient: 0.95 } },
+      { type: 'direct_damage', amount: 52, damageType: 'primal', scaling: { stat: 'atk', coefficient: 0.95 } },
       { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 10, duration: 3 },
       { type: 'apply_status', status: { statusId: 'rage', duration: 3, stacks: 2 } },
     ],
@@ -996,7 +996,7 @@ const FLANKING_TRUST = ability({
     resourceCost: 3,
     cooldownRounds: 2,
     effects: [
-      { type: 'multi_hit', hitCount: 3, amountPerHit: 14, damageType: 'physical', scaling: { stat: 'atk', coefficient: 0.28 } },
+      { type: 'multi_hit', hitCount: 3, amountPerHit: 14, damageType: 'kinetic', scaling: { stat: 'atk', coefficient: 0.28 } },
       { type: 'apply_status', status: { statusId: 'mark', duration: 2 } },
     ],
     scalingRules: [{ stat: 'atk', coefficient: 0.28 }],

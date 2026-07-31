@@ -35,7 +35,7 @@ function hero(id: string): HeroSnapshot {
     displayName: id,
     stats: STATS,
     rank: 'Forged',
-    elementDamageType: 'physical',
+    elementDamageType: 'kinetic',
     abilities: [buildAbilitySnapshot(attuned.definition, attuned.version)],
   });
 }
@@ -62,7 +62,7 @@ function bossWith(action: Partial<BossSnapshot['phases'][number]['actions'][numb
             interruptible: false,
             baseDamage: 30,
             scalingPerRound: 0,
-            damageType: 'physical',
+            damageType: 'kinetic',
             ...action,
           },
         ],

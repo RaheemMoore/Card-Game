@@ -258,7 +258,7 @@ const MARK_BONUS = 0.2;
 const AMPLIFICATION_CAP = 0.6;
 /** `mark` is a hunter's tell — it only sharpens martial and beast damage, so
  *  marking is a setup play for those families rather than a flat global buff. */
-const MARK_DAMAGE_TYPES: readonly DamageType[] = ['physical', 'nature'];
+const MARK_DAMAGE_TYPES: readonly DamageType[] = ['kinetic', 'primal'];
 
 export interface StatusDamageModifiers {
   /** Applied for the ATTACKER's statuses (weakened, rage, focus). */
@@ -463,8 +463,8 @@ export function deriveChamberMax(
 /* ------------------------------------------------------------------ */
 
 export const FIRE_ELEMENTAL_RESISTANCE: ResistanceProfile = {
-  resistant: ['fire'],
-  weak: ['holy', 'nature'],
+  resistant: ['searing'],
+  weak: ['radiant', 'primal'],
 };
 
 /** Neutral resistance for heroes in the first slice. */

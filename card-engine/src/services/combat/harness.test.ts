@@ -33,7 +33,7 @@ function buildTestHero() {
     stats: testStats(),
     rank: 'Forged',
     // These suites assert combat MATH, not element interaction.
-    elementDamageType: 'physical',
+    elementDamageType: 'kinetic',
     abilities: [
       buildAbilitySnapshot(soulDrain.definition, soulDrain.version),
       buildAbilitySnapshot(emberCleave.definition, emberCleave.version),
@@ -126,7 +126,7 @@ describe('snapshot immutability', () => {
 
 describe('element damage type is frozen into the snapshot', () => {
   // An element-typed ability, mirroring how core-slot abilities are authored.
-  function elementTypedHero(elementDamageType: 'physical' | 'holy') {
+  function elementTypedHero(elementDamageType: 'kinetic' | 'radiant') {
     // Attuned Strike is the roster's element-typed basic, which is exactly
     // what this is testing — and being a single direct_damage effect, its
     // total is not muddied by a damage-over-time rider.
@@ -151,11 +151,11 @@ describe('element damage type is frozen into the snapshot', () => {
     // The Wraith is weak to holy. If this ever stops differing, element typing
     // has silently stopped reaching resolveDamage and the whole feature is off.
     const physical = runBattle(
-      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('physical') }),
+      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('kinetic') }),
       baselineHeroPolicy,
     );
     const holy = runBattle(
-      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('holy') }),
+      buildBattleSnapshot({ seed: 4242, hero: elementTypedHero('radiant') }),
       baselineHeroPolicy,
     );
 
@@ -175,7 +175,7 @@ describe('element damage type is frozen into the snapshot', () => {
     // Seraph's Light transmutes to Infernal. Because the damage type is
     // resolved once at snapshot time, an in-flight battle — and any replay of
     // its log — must be completely unaffected by that.
-    const snap = buildBattleSnapshot({ seed: 777, hero: elementTypedHero('holy') });
+    const snap = buildBattleSnapshot({ seed: 777, hero: elementTypedHero('radiant') });
     const first = runBattle(snap, baselineHeroPolicy);
 
     const seed = SEED_ABILITIES.find((s) => s.definition.id === 'ability_oathbreakers_answer')!;

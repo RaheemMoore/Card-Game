@@ -48,8 +48,8 @@ describe('starting roster', () => {
     const types = new Set(
       SEED_ABILITIES.flatMap((s) => s.version.effects.flatMap((e) => ('damageType' in e && e.damageType ? [e.damageType] : []))),
     );
-    expect(types.has('holy')).toBe(true);
-    expect(types.has('nature')).toBe(true);
+    expect(types.has('radiant')).toBe(true);
+    expect(types.has('primal')).toBe(true);
   });
 });
 

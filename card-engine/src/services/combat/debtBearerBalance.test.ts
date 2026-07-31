@@ -54,7 +54,7 @@ function heroFor(id: string, stats: CardStats) {
     displayName: id,
     stats,
     rank: 'Forged',
-    elementDamageType: 'physical',
+    elementDamageType: 'kinetic',
     abilities: [
       buildAbilitySnapshot(soul.definition, soul.version),
       buildAbilitySnapshot(ember.definition, ember.version),
