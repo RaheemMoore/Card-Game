@@ -339,7 +339,10 @@ function DockCardVisual({
         // of shudder, but this animation lifts the card 24px and holds it, so
         // on mount all three cards would rise and flinch at nothing before the
         // first round begins.
-        shakeKey > 0 ? 'card-struck' : '',
+        // ...and never on the blow that kills. The strike animation and the
+        // death flip both drive `transform`/`filter` on this same element, so
+        // running them together means one of them silently loses. Death wins.
+        shakeKey > 0 && !isDefeated ? 'card-struck' : '',
         tappable ? 'cursor-pointer' : '',
         pickable ? 'dock-card-target-reticle' : '',
         // Order matters: death outranks everything, and a dead card must not
@@ -351,9 +354,15 @@ function DockCardVisual({
       style={{
         width: cardW,
         height: cardH,
-        filter: isActing
-          ? 'drop-shadow(0 10px 18px rgba(0,0,0,0.85)) drop-shadow(0 0 16px rgba(212,175,55,0.55))'
-          : 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))',
+        // An inline `filter` outranks any stylesheet rule that is not part of a
+        // running animation, so leaving a drop-shadow here would repaint a dead
+        // card in full colour the moment its flip animation settles. Death is
+        // painted by `.card-defeated` instead — see CardCombatFx.
+        filter: isDefeated
+          ? undefined
+          : isActing
+            ? 'drop-shadow(0 10px 18px rgba(0,0,0,0.85)) drop-shadow(0 0 16px rgba(212,175,55,0.55))'
+            : 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))',
         // Defeat is now carried by the flip animation's own grayscale, not by
         // fading the card out — a 45%-opacity card reads as a rendering bug,
         // whereas a face-down card reads as dead.

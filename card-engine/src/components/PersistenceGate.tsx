@@ -244,27 +244,32 @@ function extractErrorMessage(err: unknown): string {
 //   6. Seeding demo wallet balances if the ledger is fresh.
 //   7. Running auditBalance() to detect drift and warn.
 /**
- * The single, deliberately narrow exception to the wall above.
+ * The deliberately narrow exceptions to the wall above.
  *
  * `/dev/sprite-preview` is an art tool: it reads sprite manifests and PNGs the
  * operator picks off their own disk, renders them, and talks to nothing else.
- * There is no player data on it to protect, and requiring a signed-in session
- * to look at a sprite sheet is friction with nothing behind it.
+ * `/dev/boss-readout` reads the shipped boss definitions and runs the combat
+ * reducer in memory to measure them. Neither has player data on it to protect,
+ * and requiring a signed-in session to look at a sprite sheet — or to print a
+ * boss writeup for the team — is friction with nothing behind it.
  *
  * Two properties keep this from becoming the hole the comment above warns
  * about:
  *
  *   1. `import.meta.env.DEV` is statically replaced at build time, so in a
- *      production bundle this function's body is dead code and the route is
+ *      production bundle this function's body is dead code and the routes are
  *      unreachable no matter what path a visitor types.
- *   2. It matches ONE exact pathname rather than a `/dev/` prefix. A prefix
- *      would silently exempt every future dev route, including any that DOES
- *      touch player data — which is precisely how a narrow exception turns
- *      into a general one.
+ *   2. It matches EXACT pathnames from a fixed list rather than a `/dev/`
+ *      prefix. A prefix would silently exempt every future dev route,
+ *      including any that DOES touch player data — which is precisely how a
+ *      narrow exception turns into a general one. Adding a route here has to
+ *      be a decision, not an accident of naming.
  */
+const DEV_ONLY_UNGATED_ROUTES = ['/dev/sprite-preview', '/dev/boss-readout'];
+
 function isDevOnlyArtRoute(): boolean {
   if (!import.meta.env.DEV) return false;
-  return window.location.pathname === '/dev/sprite-preview';
+  return DEV_ONLY_UNGATED_ROUTES.includes(window.location.pathname);
 }
 
 /** Storage key for the local-dev auth bypass. */

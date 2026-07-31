@@ -349,7 +349,7 @@ const DEBT_BEARER_DEF: BossDefinition = {
   lore:
     'Every technique he was given, he wrote down as something owed. He meant to repay it by carrying it forward — and then the ledger grew longer than the life, and there was no one left to repay. He still counts. He will count through you.',
   familyIds: ['martial'],
-  currentVersionId: 'bv_champion_barbarian_2',
+  currentVersionId: 'bv_champion_barbarian_3',
   status: 'active',
   artAssetIds: [],
   bossKind: 'champion',
@@ -552,6 +552,259 @@ const DEBT_BEARER_V2: BossVersion = {
     },
   ],
 };
+/* ---------- The Debt-Bearer v3 (2026-07-31) — the fight becomes a puzzle ----
+ * v2 had four actions but played as one. Two reasons, both fixed in this pass:
+ * the reducer always declared against party slot 0 (so one card absorbed the
+ * entire fight), and it always took the highest-priority action off cooldown
+ * (so the rotation never varied). With `heroesInScope` and the weighted picker
+ * in place, an authored moveset can finally be felt.
+ *
+ * NINE actions, split 5/4 across the phases: a basic, three regular moves, a
+ * self power-up, a shield, and three ultimates. Selection is hybrid — anything
+ * at priority >= 30 (the three ultimates, and only those) fires the moment it
+ * is available, so the party can plan against the moves that end fights;
+ * everything below, the shield included, is a weighted seeded draw, so the
+ * rest of the rotation never settles into a loop. The shield sits at 28
+ * deliberately: it is the one big move that should be able to surprise you,
+ * because its whole job is arriving when the party has committed to burst.
+ *
+ * SIZING. Party pool 960 HP across three Forged heroes, ~137 damage/round out,
+ * flat per-hit mitigation averaging 11.3. Two consequences drive every number
+ * below:
+ *   - Mitigation is FLAT and PER HIT, so an AoE splitting 62 three ways
+ *     delivers 3 x (21 - 11) = 30 net, losing over half the budget. Every
+ *     sweep here is grossed up for that; they are not "62 shared out".
+ *   - The interrupt bar is 15% of 1380 = 207 in ONE round, and the Ledger's
+ *     charge break is 18% = 248 across two. Both sit just inside what the
+ *     party can produce, which is what makes them decisions rather than
+ *     formalities.
+ *
+ * Floor 1 is deliberately tuned HOTTER than towerCurve's 0.85: Raheem approved
+ * a 0.65-0.70 target so the first floor teaches by threatening. The curve still
+ * owns floors 2+.
+ *
+ * THREE WINNING LINES, and the numbers must support each on its own:
+ *   1. Taunt-and-outlast — a tank holds taunt on the rounds Seize and Final
+ *      Demand are live; taunt outranks `lowest_hp` in the retarget chain.
+ *   2. Burst-and-interrupt — clear 207 in a round to deny, 248 over two to
+ *      break the Ledger. The shield is this line's deliberate counter-puzzle:
+ *      for two rounds, burst buys nothing.
+ *   3. Control-and-sustain — two heroes guard on one round to break First
+ *      Notice outright, healing keeps everyone above the 35% execute floor,
+ *      cleanse strips bleed and weakened.
+ */
+const DEBT_BEARER_V3: BossVersion = {
+  ...DEBT_BEARER_V2,
+  id: 'bv_champion_barbarian_3',
+  versionNumber: 3,
+  status: 'active',
+  publishedAt: '2026-07-31T00:00:00.000Z',
+  deprecatedAt: undefined,
+  phases: [
+    {
+      id: 'phase_debt_counting',
+      // Moved from 0.45 to 0.55 so phase 1 is long enough to run a full
+      // Tally -> First Notice arc before the floor changes under the player.
+      healthThresholdStart: 1.0,
+      healthThresholdEnd: 0.55,
+      passiveDescriptions: ['He names each strike before he throws it.'],
+      actions: [
+        {
+          /** The basic. Deliberately UNDER budget — it is the thing that
+           *  happens when nothing more interesting is off cooldown, and it
+           *  should feel like a reprieve. */
+          id: 'act_debt_collect',
+          displayName: 'What Is Owed',
+          intentType: 'heavy_attack',
+          telegraphText: 'He names a debt and steps in to collect it.',
+          priority: 5,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: 58,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          weight: 3,
+        },
+        {
+          /** Interest accrues on everyone. The sweep itself is small; the
+           *  bleed behind it is the actual pressure, and it ticks through
+           *  healing the way a debt accrues through good intentions.
+           *  Answered by cleanse, or by outpacing it. */
+          id: 'act_debt_interest',
+          displayName: 'Interest Accrues',
+          intentType: 'curse',
+          telegraphText: 'He adds to what each of you already owes.',
+          priority: 20,
+          cooldownRounds: 3,
+          interruptible: true,
+          targetScope: 'all_heroes',
+          baseDamage: 38,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          statusApplications: [
+            { statusId: 'bleed', duration: 2, stacks: 1, amountPerTick: 7, damageType: 'physical' },
+          ],
+          weight: 2,
+        },
+        {
+          /** Goes for the hero least able to take it, and leaves them less
+           *  able to answer. `lowest_hp` is honoured by the retarget chain
+           *  ONLY when nobody is taunting — standing in front of this is the
+           *  whole counterplay, and the reason the tank line works. */
+          id: 'act_debt_seize',
+          displayName: 'Seize the Weakest Claim',
+          intentType: 'heavy_attack',
+          telegraphText: 'He looks for whoever is least able to pay.',
+          priority: 15,
+          cooldownRounds: 2,
+          interruptible: true,
+          targetScope: 'lowest_hp',
+          baseDamage: 78,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          statusApplications: [{ statusId: 'weakened', duration: 2, stacks: 1 }],
+          weight: 2,
+        },
+        {
+          /** The self power-up, unchanged from v2 in shape but now genuinely
+           *  a read: it forfeits a turn, so its value depends entirely on
+           *  whether the party lets it land inside an ultimate window. */
+          id: 'act_debt_tally',
+          displayName: 'Running the Tally',
+          intentType: 'enrage_prep',
+          telegraphText: 'He pauses, and adds something up.',
+          priority: 25,
+          cooldownRounds: 4,
+          interruptible: false,
+          baseDamage: 0,
+          scalingPerRound: 0,
+          damageType: 'physical',
+          selfStatuses: [{ statusId: 'rage', duration: 3, stacks: 2 }],
+          // 2, not 1: at weight 1 the sweep showed it declared 0.21 times per
+          // battle — a move the player would essentially never meet, and so
+          // never learn to read before floors 4+ start using the same intent
+          // to set up hits that hurt.
+          weight: 2,
+        },
+        {
+          /** ULTIMATE 1. Charged like the Ledger, but broken by BEHAVIOUR
+           *  rather than damage: two heroes guarding in the same round. A
+           *  party that can only answer with damage cannot answer this one,
+           *  which is exactly why it is here — it is the reason the
+           *  control-and-sustain line exists at all. */
+          id: 'act_debt_first_notice',
+          displayName: 'First Notice',
+          intentType: 'ultimate',
+          telegraphText: 'He reads the first name aloud. There is time to brace, and only time to brace.',
+          priority: 30,
+          cooldownRounds: 5,
+          interruptible: false,
+          targetScope: 'all_heroes',
+          baseDamage: 120,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          charge: {
+            rounds: 2,
+            break: { kind: 'party_action', action: 'guard', heroCount: 2 },
+            partialMitigationMax: 0.6,
+          },
+        },
+      ],
+    },
+    {
+      id: 'phase_debt_calling_in',
+      healthThresholdStart: 0.55,
+      healthThresholdEnd: 0,
+      passiveDescriptions: ['The counting stops. He has reached the total.'],
+      actions: [
+        {
+          /** v1's action, retuned DOWN from 1.6x budget to 1.0x. At 1.6x it
+           *  was the entire phase; now it is the filler the phase falls back
+           *  to between the shield and the two ultimates. */
+          id: 'act_debt_whole_sum',
+          displayName: 'The Whole Sum',
+          intentType: 'heavy_attack',
+          telegraphText: 'He stops counting. This one is for all of it.',
+          priority: 12,
+          cooldownRounds: 1,
+          interruptible: true,
+          baseDamage: 88,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          weight: 3,
+        },
+        {
+          /** THE SHIELD, and the counter-puzzle to the burst line. 165 absorb
+           *  is 12% of his max HP: while it holds, the party cannot clear the
+           *  207 interrupt bar underneath it, so for two rounds interrupts
+           *  simply do not exist. It carries chip damage so it is not a free
+           *  turn for either side. */
+          id: 'act_debt_shield',
+          displayName: 'Close the Books',
+          intentType: 'shield',
+          telegraphText: 'He closes the ledger around himself. Nothing is getting through the cover.',
+          priority: 28,
+          cooldownRounds: 5,
+          interruptible: true,
+          baseDamage: 34,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          shieldAmount: 165,
+          shieldDurationRounds: 2,
+        },
+        {
+          /** ULTIMATE 2 — v2's centrepiece, base cut 55 -> 44. At 55 it landed
+           *  ~132 net in a single round, 14% of the party's whole pool, and
+           *  that was before this version gave him eight other things to do. */
+          id: 'act_debt_ledger',
+          displayName: 'The Whole Ledger',
+          intentType: 'ultimate',
+          telegraphText: 'He opens the ledger at the first page. Every name is going to be read.',
+          priority: 35,
+          cooldownRounds: 4,
+          interruptible: false,
+          targetScope: 'all_heroes',
+          baseDamage: 135,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          charge: {
+            rounds: 2,
+            // 0.28, not v2's 0.18. At 18% the bar was 248 damage across a
+            // window in which the party freely produces ~300, so it broke
+            // EVERY time: instrumenting a 300-battle sweep found the Ledger
+            // dealing 1.1% of all boss damage and killing nobody, while being
+            // declared twice per fight. The centrepiece of the fight was a
+            // free turn. 0.28 is 386 — more than the party makes while also
+            // healing, so stopping it now costs them the rounds it should.
+            break: { kind: 'damage', percentOfMaxHp: 0.28 },
+            partialMitigationMax: 0.6,
+          },
+        },
+        {
+          /** ULTIMATE 3 — the closer. ~35 net against a healthy hero, but
+           *  2.2x below 35% HP, which is lethal to anyone the party left
+           *  wounded. `interruptible: true` ON PURPOSE: unlike the two charged
+           *  ultimates, this one CAN be answered with raw burst, so the three
+           *  ultimates between them demand three different answers. */
+          id: 'act_debt_final_demand',
+          displayName: 'Final Demand',
+          intentType: 'execute',
+          telegraphText: 'He finds the name with the smallest balance left, and closes the account.',
+          priority: 32,
+          cooldownRounds: 3,
+          interruptible: true,
+          targetScope: 'lowest_hp',
+          baseDamage: 130,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          executeThresholdPercent: 0.35,
+          executeMultiplier: 2.2,
+        },
+      ],
+    },
+  ],
+};
+
 /* ---------- Floor 2 · The Still Season (Druid) ----------
  * Pressure F — regeneration outheals chip damage. Answered by DoT, which
  * ticks through healing, and by `weakened`.
@@ -757,7 +1010,7 @@ export const SEED_BOSSES: SeedBoss[] = [
   // a person, which is why it is not one of The Overreach. Its lore already
   // teaches measured strikes, and it is the only boss with finished art.
   { definition: EMBERBORN_DEF_V4, version: EMBERBORN_V4 },
-  { definition: DEBT_BEARER_DEF, version: DEBT_BEARER_V2 },
+  { definition: DEBT_BEARER_DEF, version: DEBT_BEARER_V3 },
   { definition: STILL_SEASON_DEF, version: STILL_SEASON_V1 },
   { definition: UNCLOSED_SUMMONS_DEF, version: UNCLOSED_SUMMONS_V1 },
 ];
@@ -768,4 +1021,5 @@ export const SEED_BOSS_LEGACY_VERSIONS: BossVersion[] = [
   { ...EMBERBORN_V2, status: 'deprecated', deprecatedAt: '2026-07-19T00:00:00.000Z' },
   { ...EMBERBORN_V3, status: 'deprecated', deprecatedAt: '2026-07-20T00:00:00.000Z' },
   { ...DEBT_BEARER_V1, deprecatedAt: '2026-07-30T00:00:00.000Z' },
+  { ...DEBT_BEARER_V2, status: 'deprecated', deprecatedAt: '2026-07-31T00:00:00.000Z' },
 ];

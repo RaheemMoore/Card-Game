@@ -60,18 +60,17 @@ Every economy proposal names old and new values, the reason for the change, and 
 
 ## Specialist Agents
 
-Four initial specialists live in `.claude/agents/`. Each:
+Specialists live in `.claude/agents/`. Each:
 - Reads only the canonical doc(s) relevant to its domain.
 - Returns recommendations.
 - Never edits project files.
 - Never creates canonical truth.
 
-| Agent | Domain | Primary reading |
-|---|---|---|
-| `game-systems-designer` | Stats, ranks, economy math, balance | power-system-spec, economy-plan |
-| `art-prompt-director` | Portrait prompts, modifier pools, Leonardo pipeline | archetype-prompt-library, modifier-pools |
-| `ui-ux-director` | Card renderer, forge flow, whisper wheel, economy UI | CLAUDE.md (Card Renderer section), Figma reference |
-| `technical-architect` | Cross-cutting code review, data model, migration paths, test strategy | CLAUDE.md, code |
+**The current roster is in [PRODUCTION.md §6](PRODUCTION.md)** — who each one is, what they
+own, and the specific failure each exists to prevent. It lived here once as a table of four
+and drifted: it went out of date as agents were added, and cited two docs that have since
+been archived. The charter owns the *rules* below; the roster changes too often to live in a
+constitution.
 
 ### When to invoke a specialist
 
@@ -81,7 +80,7 @@ Four initial specialists live in `.claude/agents/`. Each:
 
 ## Skills
 
-Seven workflows live in `.claude/skills/`. Each defines: inputs, workflow steps, which specialists to consult, human approval gates, validation, expected outputs.
+Workflows live in `.claude/skills/`. Each defines: inputs, workflow steps, which specialists to consult, human approval gates, validation, expected outputs. **The current list is in [PRODUCTION.md §6](PRODUCTION.md)**; a representative sample follows.
 
 | Skill | Purpose |
 |---|---|

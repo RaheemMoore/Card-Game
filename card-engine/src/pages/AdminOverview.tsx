@@ -87,7 +87,7 @@ export function AdminOverview() {
       ]);
       const rows: InboxRow[] = [];
       for (const p of (openProps.data ?? []) as Array<{ id: string; archetype: string; failure_type: string; created_at: string }>) {
-        rows.push({ kind: 'proposal', id: p.id, summary: `${p.archetype} — ${failureLabel(p.failure_type)}`, createdAt: p.created_at, href: `/admin/workshop?archetype=${encodeURIComponent(p.archetype)}&proposal=${p.id}` });
+        rows.push({ kind: 'proposal', id: p.id, summary: `${p.archetype} — ${failureLabel(p.failure_type)}`, createdAt: p.created_at, href: `/admin/proposals?archetype=${encodeURIComponent(p.archetype)}&proposal=${p.id}` });
       }
       for (const j of (judgments.data ?? []) as Array<{ id: string; disposition: string; created_at: string }>) {
         rows.push({ kind: 'judgment', id: j.id, summary: j.disposition.replace(/_/g, ' '), createdAt: j.created_at, href: '/admin/prompt-lab' });

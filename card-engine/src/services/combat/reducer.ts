@@ -7,8 +7,10 @@ import type {
 } from '../../types/abilities';
 import { STATUS_CATALOG, STATUS_DAMAGE_TYPE } from '../../data/abilities/statuses';
 import { resolveTargetRule } from './targeting';
+import { RandomStream } from './RandomStream';
 import type {
   AbilityCombatSnapshot,
+  BossActionSnapshot,
   BattleEvent,
   BattleIntent,
   BossTargetScope,
@@ -392,6 +394,99 @@ function doStartOfRound(state: BattleState): StepResult {
   return transition({ ...state, round: newRound }, events, 'boss_intent_reveal');
 }
 
+/**
+ * At or above this priority, an action fires the instant it is off cooldown
+ * rather than entering the weighted draw. Reserved for ultimates, charges and
+ * the shield — the moves the party is supposed to be able to plan around.
+ */
+const DETERMINISTIC_PRIORITY = 30;
+
+/**
+ * Who an action reaches. `area_attack` still sweeps without authoring a scope,
+ * because seed actions predating `targetScope` rely on the intent NAME meaning
+ * that; new actions should say what they mean.
+ */
+function scopeOf(action: BossActionSnapshot): BossTargetScope {
+  return action.targetScope ?? (action.intentType === 'area_attack' ? 'all_heroes' : 'single');
+}
+
+/**
+ * Resolve an action's scope against the living party.
+ *
+ * Shared by intent reveal and boss resolution so the telegraph cannot lie
+ * about who is about to be hit. It used to exist only at resolution time,
+ * while reveal declared `heroes.find(h => !h.defeated)` — the first living
+ * hero, every single round, whatever the action's scope said. That is why the
+ * boss appeared to attack party slot 0 forever: not a targeting preference,
+ * just an unconditional array index.
+ *
+ * `anchorActorId` is the already-resolved single target (taunt > focus >
+ * declared). `lowest_hp` deliberately honours it: a tank standing in front
+ * answers an execute, and letting the snipe reach past a taunt would make the
+ * party's one counterplay useless.
+ */
+function heroesInScope(
+  heroes: readonly HeroCombatant[],
+  scope: BossTargetScope,
+  anchorActorId: string | null,
+): HeroCombatant[] {
+  const alive = heroes.filter((h) => !h.defeated);
+  if (alive.length === 0) return [];
+  const anchored = anchorActorId ? alive.find((h) => h.actorId === anchorActorId) : undefined;
+  switch (scope) {
+    case 'all_heroes':
+      return alive;
+    case 'lowest_hp':
+      return [anchored ?? [...alive].sort((a, b) => a.hp - b.hp)[0]];
+    case 'highest_hp':
+      return [[...alive].sort((a, b) => b.hp - a.hp)[0]];
+    case 'single':
+    default:
+      return [anchored ?? alive[0]];
+  }
+}
+
+/**
+ * Pick this round's action.
+ *
+ * Two tiers, on purpose. Anything at `DETERMINISTIC_PRIORITY` or above fires
+ * as soon as it is available, so the ultimates and the shield arrive on a
+ * rhythm the party can learn and build against. Everything below is a weighted
+ * seeded draw, so the filler between them never settles into a loop.
+ *
+ * Returns the chosen action and the cursor the roll consumed. Selecting off
+ * the seeded stream keeps replay determinism: same seed, same fight.
+ */
+function chooseBossAction(
+  candidates: readonly BossActionSnapshot[],
+  seed: number,
+  rngCursor: number,
+): { action: BossActionSnapshot | null; nextRngCursor: number } {
+  if (candidates.length === 0) return { action: null, nextRngCursor: rngCursor };
+
+  const scripted = candidates
+    .filter((a) => a.priority >= DETERMINISTIC_PRIORITY)
+    .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+  if (scripted.length > 0) return { action: scripted[0], nextRngCursor: rngCursor };
+
+  // Sorted before drawing so the candidate order — and therefore which action
+  // a given roll maps to — never depends on authoring order in the seed file.
+  const filler = [...candidates].sort((a, b) => a.id.localeCompare(b.id));
+  const weights = filler.map((a) => Math.max(0, a.weight ?? 1));
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  if (total <= 0) {
+    return { action: filler[0], nextRngCursor: rngCursor };
+  }
+
+  const rng = new RandomStream(seed, rngCursor);
+  let roll = rng.next() * total;
+  for (const [i, action] of filler.entries()) {
+    roll -= weights[i];
+    if (roll < 0) return { action, nextRngCursor: rng.cursor };
+  }
+  return { action: filler[filler.length - 1], nextRngCursor: rng.cursor };
+}
+
 function doBossIntentReveal(state: BattleState): StepResult {
   const currentPhase = state.boss.snapshot.phases.find((p) => p.id === state.boss.currentPhaseId);
   if (!currentPhase) {
@@ -408,27 +503,33 @@ function doBossIntentReveal(state: BattleState): StepResult {
       ? state.boss.pendingCharge
       : null;
 
-  const availableActions = currentPhase.actions
+  let availableActions = currentPhase.actions
     .filter((a) => !state.boss.actionCooldowns.some((c) => c.abilityDefinitionId === a.id))
     // Never start a second charge while one is already running. Two
     // overlapping charges would give the player two bars to read and no way
     // to tell which telegraph belonged to which.
-    .filter((a) => !(a.charge && state.boss.pendingCharge))
-    .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+    .filter((a) => !(a.charge && state.boss.pendingCharge));
 
   if (availableActions.length === 0) {
-    // Default fallback: use the highest-priority action even if on cooldown to avoid dead turn.
-    availableActions.push(
-      ...currentPhase.actions
-        .slice()
-        .filter((a) => !(a.charge && state.boss.pendingCharge))
-        .sort((a, b) => b.priority - a.priority),
-    );
+    // Default fallback: everything is on cooldown, so reuse the full list
+    // rather than burning the turn on nothing.
+    availableActions = currentPhase.actions.filter((a) => !(a.charge && state.boss.pendingCharge));
   }
 
-  const chosen = maturedCharge
-    ? (currentPhase.actions.find((a) => a.id === maturedCharge.actionId) ?? availableActions[0])
-    : availableActions[0];
+  let rngCursor = state.rngCursor;
+  let chosen: BossActionSnapshot | null;
+  if (maturedCharge) {
+    // A charge whose action has vanished (a phase transition swapped the list
+    // out from under it) still must not strand the boss on a null turn.
+    chosen =
+      currentPhase.actions.find((a) => a.id === maturedCharge.actionId) ??
+      availableActions[0] ??
+      null;
+  } else {
+    const pick = chooseBossAction(availableActions, state.snapshot.seed, rngCursor);
+    chosen = pick.action;
+    rngCursor = pick.nextRngCursor;
+  }
   const pendingActorIds = state.heroes
     .filter((h) => !h.defeated)
     .map((h) => h.actorId);
@@ -436,11 +537,24 @@ function doBossIntentReveal(state: BattleState): StepResult {
   // Every action in the phase is a charge that is already running. Rare, but
   // reachable on a single-action phase — the boss simply keeps charging.
   if (!chosen) {
-    return transition({ ...state, pendingActorIds }, [], 'awaiting_player_action');
+    return transition({ ...state, rngCursor, pendingActorIds }, [], 'awaiting_player_action');
   }
 
-  const livingHero = state.heroes.find((h) => !h.defeated);
-  const targetActorIds = livingHero ? [livingHero.actorId] : [];
+  // Declare against the action's real scope. For a single-target action the
+  // victim is drawn off the seeded stream rather than taken as "whoever is
+  // first in the party array" — the old behaviour, which meant one hero
+  // absorbed the entire fight while the other two were never threatened.
+  const scope = scopeOf(chosen);
+  const living = state.heroes.filter((h) => !h.defeated);
+  let anchorActorId: string | null = null;
+  if (scope === 'single' && living.length > 0) {
+    const rng = new RandomStream(state.snapshot.seed, rngCursor);
+    anchorActorId = rng.pick(living).actorId;
+    rngCursor = rng.cursor;
+  }
+  const targetActorIds = heroesInScope(state.heroes, scope, anchorActorId).map(
+    (h) => h.actorId,
+  );
 
   const intent: BattleIntent = {
     actionId: chosen.id,
@@ -471,6 +585,7 @@ function doBossIntentReveal(state: BattleState): StepResult {
   return transition(
     {
       ...state,
+      rngCursor,
       boss: { ...state.boss, currentIntent: intent, pendingCharge: nextPendingCharge },
       pendingActorIds,
     },
@@ -640,43 +755,14 @@ function doResolveBoss(state: BattleState): StepResult {
     });
   };
 
-  /**
-   * Who this action actually hits.
-   *
-   * `area_attack` keeps sweeping the party without authoring `targetScope`,
-   * because eight existing seed actions rely on the intent name meaning that.
-   * New actions should say what they mean with `targetScope` instead — the
-   * intent is what the action IS, the scope is who it reaches, and those were
-   * conflated for as long as sweeping was reachable only by being named
-   * "area_attack".
-   */
-  const scope: BossTargetScope =
-    action.targetScope ?? (action.intentType === 'area_attack' ? 'all_heroes' : 'single');
-
-  const livingHeroes = () => next.heroes.filter((h) => !h.defeated);
-  const resolveScopeTargets = (): HeroCombatant[] => {
-    const alive = livingHeroes();
-    if (alive.length === 0) return [];
-    switch (scope) {
-      case 'all_heroes':
-        return alive;
-      case 'lowest_hp':
-        // Taunt deliberately still outranks this — `target` was already
-        // resolved through the taunt > focus > declared chain above, so a
-        // tank standing in front answers an execute. That is the whole
-        // lesson of the mechanic; letting it snipe past a taunt would make
-        // the party's one counterplay useless.
-        return [
-          next.heroes.find((h) => h.actorId === target!.actorId && !h.defeated) ??
-            [...alive].sort((a, b) => a.hp - b.hp)[0],
-        ];
-      case 'highest_hp':
-        return [[...alive].sort((a, b) => b.hp - a.hp)[0]];
-      case 'single':
-      default:
-        return [next.heroes.find((h) => h.actorId === target!.actorId && !h.defeated) ?? alive[0]];
-    }
-  };
+  // Who this action actually hits. Same helper the intent reveal used, so the
+  // telegraph and the blow agree. `target` here is the post-retarget anchor
+  // (taunt > focus > declared > highest-HP), which `lowest_hp` deliberately
+  // honours — a tank standing in front answers an execute.
+  const scope: BossTargetScope = scopeOf(action);
+  // Re-read `next.heroes` on every call: earlier hits in the same sweep can
+  // kill a hero, and a corpse must not take the rest of the volley.
+  const resolveScopeTargets = () => heroesInScope(next.heroes, scope, target!.actorId);
 
   /** Apply an action's `statusApplications` to one hero — curse/vulnerability. */
   const applyActionStatuses = (heroId: string) => {

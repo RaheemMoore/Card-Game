@@ -1,6 +1,10 @@
-# Card Engine — Fantasy TCG
+# Card Engine — an adventure game with characters you made yourself
 
-A collectible fantasy card game where users forge unique character cards through an interactive ritual (archetype > dice roll > Story Pillars > element + bond > AI-generated text). Built as a standalone web app — Phase 1 of a 4-phase project.
+Yu-Gi-Oh, Pokémon, and fantasy adventure. Players forge characters through an interactive ritual (archetype > dice roll > Story Pillars > element + bond > image-first generation), then grow them across game modes. **The card is the FORMAT a character comes in — it is not the point.** This distinction is load-bearing: it is why the forge is a ritual rather than a slot machine, and why identity fields are locked so advancement can never make someone younger, thinner, or less disabled.
+
+The shape is a **hub with doors** — the castle courtyard is where you hang out before you go somewhere, and every game mode (the tower, the board game, the mine) is a door off it. **The tower is the main feature and the gate:** beating it unlocks the rest of the game.
+
+> **Read [PRODUCTION.md](PRODUCTION.md) at the start of every session.** It is the living record of what the game is, what's in flight, what got started and abandoned, and why every decision was made — the things this file cannot carry because they change weekly. Update it via the `production-log` skill whenever work lands, a decision is made, or a question needs Raheem's ruling.
 
 **Canonical creative source:** [Character_Generation_Bible_Canonical_v1.md](Character_Generation_Bible_Canonical_v1.md) governs every aspect of character generation, archetype identity, story pillars, element compatibility, hidden fate, prestige inference, and future narrative content. When the Bible conflicts with implementation, the Bible wins. The [Lore & Fantasy Director](.claude/agents/lore-fantasy-director.md) agent is the standing authority for interpretive questions.
 
@@ -183,7 +187,9 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 - **Card type (Dominance):** `1:182` — use this as the positioning reference
 - **Icons section:** `1:72` — ATK uses HandFist (`1:94`), DEF uses CastleTurret (`1:120`)
 
-## Phase Status
+## Subsystem Reference
+
+> **[PRODUCTION.md](PRODUCTION.md) §3 owns current status. When it disagrees with the status words below, PRODUCTION.md wins** — it is updated every session and this section is not. What follows is kept for the durable architecture it records (table names, RPC names, project ids, which decision retired what), not for its phase labels. Open work lives in [PRODUCTION.md §4](PRODUCTION.md), not here.
 
 - **Phase 1: Card Engine** — CORE COMPLETE. Forge flow, collection, power system, Leonardo portraits, tier-up evolution + history viewer, and two-currency economy are all working. Character generation runs the Bible-driven pipeline (Story Pillars + element bond → Bible §Claude Generation Pipeline 14 steps → HiddenFate → Leonardo). The retired whisper-wheel + modifier-pool system was replaced 2026-07-19; see [card-engine-character-generation-bible-integration.md](card-engine-character-generation-bible-integration.md).
 - **Phase 1.5: Economy hardening + polish** — IN PROGRESS. Governance rules for the economy live in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md). Any change to prices, rewards, bundles, or exchange rules requires explicit Raheem approval — see charter.
@@ -213,19 +219,23 @@ Architecture is catalog-driven: `data/economy/` holds the source-of-truth catalo
 
 ## Known Limitations / Next Steps
 
-- `Card Images/` folder holds portrait sources but they're not integrated into the app pipeline yet — Leonardo is the live path.
-- Dice animation uses CSS 3D cubes — functional but could be polished.
-- Rank-sum cap of 7 is enforced in the data model but the trade-demotion UI is deferred (needs minigames to drive it).
-- Promotion/demotion flow, Very Low difficulty modifier, and Tech vs organic combat modifier are deferred to Phase 3/4.
-- Economy now persists to Supabase (Card-Game project) under an anonymous session — real-money bundle sales still need §9 production-security prerequisites (server-side generation calls, receipt verification, idempotency keys) in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md).
-- The legacy 6-stat docs (`card-engine-development-plan.md`, `card-engine-project-knowledge.md`) have been moved to [docs/archive/](docs/archive/) — do not consult them as source of truth.
+**Moved to [PRODUCTION.md §4 Open Threads](PRODUCTION.md).** Every unfinished thread in the
+project — 42 of them, categorized, each with a `file:line` and what would unblock it — is
+tracked there and updated every session. Keeping a second list here is how the first one
+went stale.
+
+Two standing rules that are not "limitations" and stay in this file:
+
+- The legacy 6-stat docs (`card-engine-development-plan.md`, `card-engine-project-knowledge.md`) live in [docs/archive/](docs/archive/) — do not consult them as source of truth.
+- Real-money bundle sales require the §9 production-security prerequisites in [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md) — server-authoritative wallet, receipt verification, idempotency keys. Not negotiable.
 
 ## Studio Structure
 
 This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER.md)). I am the Studio Lead — I do all implementation. Specialist subagents advise, skills define reusable workflows.
 
-- `.claude/agents/` — specialists: game-systems-designer, art-prompt-director, ui-ux-director, technical-architect, minigame-designer, **lore-fantasy-director** (Bible authority — consulted for any new narrative content, archetype identity questions, prestige eligibility, element compatibility), **pixel-sprite-director** (PixelLab character sprites — generation mode, direction mapping, packing, the quality gate; keeps [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) current). Invoke only for open-ended design questions.
-- `.claude/skills/` — workflows: design-feature, ship-approved-plan, create-archetype, design-archetype-emblem, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only), design-minigame, ship-minigame, **create-character-sprite**, **place-character-in-scene**.
+- `.claude/agents/` — specialists: game-systems-designer, art-prompt-director, ui-ux-director, technical-architect, minigame-designer, **lore-fantasy-director** (Bible authority — consulted for any new narrative content, archetype identity questions, prestige eligibility, element compatibility), **environment-art-director** (places and things — arenas, plates, floors, scenery layers, props; owns the composition contracts, the bg-harness configs and the "solve framing in code, not in generation" rule), **pixel-sprite-director** (PixelLab character sprites — generation mode, direction mapping, packing, the quality gate; keeps [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) current). Invoke only for open-ended design questions.
+- `.claude/skills/` — workflows: design-feature, ship-approved-plan, create-archetype, design-archetype-emblem, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only), design-minigame, ship-minigame, **create-character-sprite**, **place-character-in-scene**, **create-arena**, **create-boss**, **create-prop**, trace-environment.
+- **[HARNESS_INDEX.md](HARNESS_INDEX.md) — the catalogue of every reusable harness, readout, library script, review sheet and registration point.** Read it BEFORE any art, boss, arena, sprite or prop work, and **name the relevant tools to Raheem before starting** — the harnesses are how he and the team see what is happening, and a run that does not offer them is a miss. Every new harness or readout is added here in the same commit that builds it.
 - **Art playbooks** — [LEONARDO_PLAYBOOK.md](LEONARDO_PLAYBOOK.md) (portraits, environment plates) and [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) (character sprites). Both are running records of what actually worked and what it cost; append after every run. `card-engine/scripts/sprite-lab/test-validator.sh` guards the sprite quality gate against regression.
 - `.claude/verify/card-engine.sh` — project verify script the built-in `verify` skill bootstraps.
 - `.claude/launch.json` — dev-server preview config (`card-engine-dev` on :5173).

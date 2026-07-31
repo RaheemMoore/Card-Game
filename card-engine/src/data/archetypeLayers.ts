@@ -7,10 +7,26 @@ import type {
 import type { ArchetypeName } from '../types/card';
 
 /**
- * The four layers where lore/art change actually happens. This copy is
- * what makes the Archetype Workshop understandable — a lore director opens
- * the page, reads a layer card, and knows what changing it does. Keep the
- * language plain; no code references.
+ * ── INTERNAL COARSE TAG ONLY — do not show these to a director. ──────────
+ *
+ * A/B/C/D predate the engine-first model and no longer describe the game.
+ * Directors pick an ENGINE (image | lore) and then an AREA; `areaToLayer()`
+ * derives the letter for the DB column and nothing else. Three ways this copy
+ * had rotted before it was demoted on 2026-07-31:
+ *
+ *   - B is UNREACHABLE. The 2026-07-21 decoupling orphaned the powerSystem
+ *     visual motifs (see types/archetypeProposal.ts); `AREAS_BY_ENGINE` can
+ *     only ever produce A, C and D. The Workshop nonetheless rendered B as a
+ *     permanent empty "no change" row on every proposal.
+ *   - D is OVERLOADED across both engines — four image areas plus lore_writing
+ *     all collapse into it, so the letter says nothing useful.
+ *   - D's copy was FACTUALLY WRONG: it claimed Claude Haiku composes the image
+ *     prompt. Portrait assembly is deterministic and, per
+ *     services/imageEngine/README.md, "never sees the lore text."
+ *
+ * Retiring the column, the payload keys and the work-proposal skill's step 6
+ * is a migration against a live table with existing rows — tracked as an open
+ * thread in PRODUCTION.md §4, deliberately not attempted here.
  */
 export interface LayerCopy {
   id: ProposalLayer;
@@ -89,13 +105,13 @@ export const ARCHETYPE_LAYERS: Record<ProposalLayer, LayerCopy> = {
     accentBg: 'rgba(176, 106, 112, 0.10)',
     accentBorder: 'rgba(176, 106, 112, 0.60)',
     controls:
-      "How Claude Haiku composes A + B + C into the final image prompt. Includes locked-identity handling, lore-portrait alignment rules, and per-archetype escalation blocks (like the Lycanthrope wolf-anatomy mandate).",
+      "The deterministic assembler's global rules — segment order, style leads, the shared negative, escalation blocks, and how strongly each clause weighs. NOTE: this layer does NOT describe a Claude call. Portrait assembly is deterministic and never sees the lore text; an earlier version of this copy said otherwise and was wrong from the 2026-07-21 decoupling onward.",
     affects:
       "Every future generation of this archetype. Doesn't touch canon or pools — changes HOW they get combined and how strongly each clause weighs.",
     changeWhen:
       "Tier evolution looks wrong. Same character breaks across ranks. Lore mentions X but the portrait doesn't show it. Forged/Ascendant art looks like a totally different person. MOST FORGED/ASCENDANT PROBLEMS LIVE HERE.",
     whereItLives:
-      "claudeApi.ts (the big template around lines 225–410)",
+      "services/portraitAssembler.ts + services/imageEngine/imageConstants.ts",
     example: (a) =>
       `Adding a Lycanthrope-style escalation block for ${a} — a hard mandate about what MUST be visible at Forged/Ascendant, placed early in the prompt so Leonardo can't down-weight it.`,
   },

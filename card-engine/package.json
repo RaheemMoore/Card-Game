@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs:engines": "GEN_DOCS=1 vitest run src/services/engineReference/generateEngineReference.test.ts",
-    "snapshot:ai": "node ../scripts/create-ai-snapshot.mjs"
+    "snapshot:ai": "node ../scripts/create-ai-snapshot.mjs",
+    "production:page": "node scripts/production-page/build.mjs"
   },
   "dependencies": {
     "@fontsource/dm-sans": "^5.3.0",

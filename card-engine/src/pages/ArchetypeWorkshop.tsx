@@ -36,7 +36,6 @@ import { ELEMENT_COMPATIBILITY, elementsAvailableToArchetype } from '../data/ele
 import {
   ARCHETYPE_LAYERS,
   FAILURE_TYPES,
-  LAYER_ORDER,
   ENGINES,
   AREAS,
   AREAS_BY_ENGINE,
@@ -203,8 +202,8 @@ export function ArchetypeWorkshop() {
 
   return (
     <AdminPage
-      title="Archetype Workshop"
-      description="File lore/art change proposals against a specific archetype and card, mapped to the layer where change actually happens (A Canon / B Rank & Stat Visuals / C Story Pillars & Elements / D Meta-Prompt & Escalation)."
+      title="Proposals"
+      description="File a lore or art change against a specific archetype and card. Pick the engine that's wrong — Image (how the picture is built) or Lore (canon, pillars, writing) — then the area inside it, and say what to keep, what to change, and what would make the result a reject."
       actions={
         <label className="flex items-center gap-2 text-xs uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
           Archetype
@@ -662,38 +661,40 @@ function VerifyReview({ evidence, affectsImage }: { evidence?: VerifyEvidence; a
 
 // The per-layer change summary — the 4 primary areas of the character, each
 // with what actually changed. Untouched layers are shown as "no change".
+/**
+ * Renders ONLY what actually changed.
+ *
+ * This used to iterate LAYER_ORDER and print an A/B/C/D row for every letter,
+ * marking the untouched ones "no change". That was three kinds of wrong: layer
+ * B is unreachable so its row could never be anything but "no change", layer D
+ * carries four image areas plus lore writing so its label said nothing, and the
+ * whole A/B/C/D vocabulary contradicts the engine/area language the rest of the
+ * page speaks. See the header comment in data/archetypeLayers.ts.
+ */
 function LayerChangeSummary({ changes }: { changes?: { layer: ProposalLayer; summary: string }[] }) {
-  const byLayer = new Map((changes ?? []).map((c) => [c.layer, c.summary]));
+  const real = (changes ?? []).filter((c) => c.summary?.trim());
+  if (!real.length) return null;
   return (
     <div className="space-y-1">
       <div className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
-        What changed (by layer)
+        What changed
       </div>
       <ul className="space-y-1">
-        {LAYER_ORDER.map((id) => {
-          const copy = ARCHETYPE_LAYERS[id];
-          const summary = byLayer.get(id);
+        {real.map((c) => {
+          const copy = ARCHETYPE_LAYERS[c.layer];
           return (
-            <li key={id} className="flex gap-2">
+            <li key={c.layer} className="flex gap-2">
               <span
-                className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold shrink-0 mt-0.5"
-                style={{ background: copy.color, color: '#111' }}
-              >
-                {id}
-              </span>
+                className="w-1.5 h-1.5 rounded-full shrink-0 mt-[7px]"
+                style={{ background: copy?.color ?? 'var(--admin-accent)' }}
+              />
               <div className="min-w-0">
                 <div className="text-[11px] font-semibold" style={{ color: 'var(--admin-text)' }}>
-                  {copy.name}
+                  {copy?.name ?? 'Change'}
                 </div>
-                {summary ? (
-                  <div className="text-[11px] whitespace-pre-wrap" style={{ color: 'var(--admin-text-muted)' }}>
-                    {summary}
-                  </div>
-                ) : (
-                  <div className="text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
-                    no change
-                  </div>
-                )}
+                <div className="text-[11px] whitespace-pre-wrap" style={{ color: 'var(--admin-text-muted)' }}>
+                  {c.summary}
+                </div>
               </div>
             </li>
           );
@@ -1626,7 +1627,7 @@ function ProposalsList({
     if (nowOpen) fetchPayload(id);
   }
 
-  // Deep-link support: /admin/workshop?...&proposal=<id> auto-expands that
+  // Deep-link support: /admin/proposals?...&proposal=<id> auto-expands that
   // row once the proposals for this archetype have loaded (the archetype
   // filter is already applied upstream via the ?archetype= param).
   useEffect(() => {

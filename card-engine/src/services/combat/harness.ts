@@ -300,6 +300,7 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
           : {}),
         ...(a.executeMultiplier != null ? { executeMultiplier: a.executeMultiplier } : {}),
         ...(a.charge ? { charge: a.charge } : {}),
+        ...(a.weight != null ? { weight: a.weight } : {}),
       })),
     })),
     resistanceProfileId: `rp_${def.slug}`,
