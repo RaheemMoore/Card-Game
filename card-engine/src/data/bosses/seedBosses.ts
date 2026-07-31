@@ -403,6 +403,34 @@ const DEBT_BEARER_V1: BossVersion = {
           scalingPerRound: TOWER.scaling(1),
           damageType: 'physical',
         },
+        {
+          /**
+           * He stops to add something up, and the next blows are worse for it.
+           *
+           * Deliberately near-neutral in expected value: he forfeits a turn
+           * (~62 damage) to gain four rounds at +30% (~+74). It is not here to
+           * raise the difficulty of floor 1 — it is here to teach the player
+           * to READ THE BANNER, because floors 4+ use the same intent to set
+           * up hits that genuinely hurt.
+           *
+           * `enrage_prep` was one of the six intents that did nothing until
+           * this pass; it also needed the `strike()` fix, because the boss's
+           * own statuses were being discarded when its damage was computed.
+           */
+          id: 'act_debt_tally',
+          displayName: 'Running the Tally',
+          intentType: 'enrage_prep',
+          telegraphText: 'He pauses, and adds something up.',
+          priority: 25,
+          // Long, so it is a rhythm the player learns rather than a state he
+          // sits in permanently.
+          cooldownRounds: 5,
+          interruptible: false,
+          baseDamage: 0,
+          scalingPerRound: 0,
+          damageType: 'physical',
+          selfStatuses: [{ statusId: 'rage', duration: 4, stacks: 2 }],
+        },
       ],
     },
     {
@@ -422,6 +450,46 @@ const DEBT_BEARER_V1: BossVersion = {
           baseDamage: Math.round(TOWER.damage(1) * 1.6),
           scalingPerRound: TOWER.scaling(1),
           damageType: 'physical',
+        },
+        {
+          /**
+           * THE WHOLE LEDGER — the fight's centrepiece, and the first charged
+           * action in the game.
+           *
+           * He spends a turn declaring it, then it lands two rounds later on
+           * the WHOLE party. The forfeited turn is its price; without that it
+           * would be strictly better than attacking.
+           *
+           * The break is cumulative damage, not a single burst: 18% of his max
+           * HP over the two-round window. Against a party doing roughly
+           * 137/round that is ~248 needed out of ~274 available — reachable,
+           * but only by spending BOTH rounds attacking rather than healing.
+           * That choice is the mechanic.
+           *
+           * `partialMitigationMax: 0.6` is what stops it being a coin flip: a
+           * party that gets most of the way there takes meaningfully less,
+           * so pushing on the bar always pays even when it does not break.
+           *
+           * `interruptible: false` on purpose — that flag is the SINGLE-round
+           * burst check, and an action carrying both collapses to whichever is
+           * weaker.
+           */
+          id: 'act_debt_ledger',
+          displayName: 'The Whole Ledger',
+          intentType: 'ultimate',
+          telegraphText: 'He opens the ledger at the first page. Every name is going to be read.',
+          priority: 35,
+          cooldownRounds: 4,
+          interruptible: false,
+          targetScope: 'all_heroes',
+          baseDamage: 55,
+          scalingPerRound: TOWER.scaling(1),
+          damageType: 'physical',
+          charge: {
+            rounds: 2,
+            break: { kind: 'damage', percentOfMaxHp: 0.18 },
+            partialMitigationMax: 0.6,
+          },
         },
       ],
     },
@@ -448,6 +516,7 @@ const STILL_SEASON_DEF: BossDefinition = {
   artAssetIds: [],
   bossKind: 'champion',
   mirrorArchetype: 'Druid',
+  arenaId: 'still_season_colosseum',
   towerFloor: 2,
   createdAt: NOW,
   updatedAt: NOW,

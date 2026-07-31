@@ -6,6 +6,9 @@ import { SEED_BOSSES } from '../../data/bosses/seedBosses';
 import { ARENA_MANIFEST, DEFAULT_ARENA_ID } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { BossStage } from '../battle/BossStage';
+import { SpriteClipPlayer } from '../battle/SpriteClipPlayer';
+import { getBossClip, type BossSpriteState } from '../../data/combat/bossSpriteManifest';
+import { resolveCombatAssetUrl as clipUrl } from '../../data/combat/types';
 import { CardRenderer } from '../../components/CardRenderer';
 import { CardCracks, CardShieldPane, CardTargetMark, CardCombatFxStyles } from '../battle/CardCombatFx';
 import type { MotionLevel } from '../../vfx/types';
@@ -269,6 +272,8 @@ export function SpritePreview() {
         Renders the game&apos;s own BossStage at fight speed. Every clip comes from the sprite
         manifest, so whatever plays here is exactly what the battle will show.
       </p>
+
+      <ClipGallery bossId={bossId} />
 
       <CardStatePreview />
 
@@ -547,6 +552,89 @@ function ResourceVesselPreview() {
             glow: '#4aa8ef',
           }}
         />
+      </div>
+    </section>
+  );
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  Every clip, played directly                                           */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+const ALL_STATES: BossSpriteState[] = [
+  'idle',
+  'windup',
+  'attack',
+  'hit',
+  'rage',
+  'defeat',
+  'ultimate',
+];
+
+/**
+ * Each sprite state played on its own, side by side.
+ *
+ * The scripted run-through above goes through the real beat machine, which is
+ * the honest test — but it only reaches the states a normal round produces.
+ * `rage` needs the boss below its phase threshold and `ultimate` needs a
+ * charged action to come due, so judging either one meant playing until the
+ * fight happened to get there. This plays them on demand.
+ *
+ * Deliberately renders through `SpriteClipPlayer`, the same player the arena
+ * uses, at each clip's real fps and loop setting — so what you see here is the
+ * clip as configured, not as re-timed for a gallery.
+ */
+function ClipGallery({ bossId }: { bossId: string }) {
+  const [replay, setReplay] = useState(0);
+
+  return (
+    <section className="space-y-3 pt-4 border-t border-amber-900/30">
+      <div className="flex items-center gap-3 flex-wrap">
+        <h2 className="font-fantasy text-xl text-amber-200">Every clip</h2>
+        <button
+          onClick={() => setReplay((n) => n + 1)}
+          className="px-3 py-1 rounded text-sm bg-amber-900/40 border border-amber-700/50 hover:bg-amber-900/60"
+        >
+          ↻ Replay one-shots
+        </button>
+      </div>
+
+      <div className="flex flex-wrap gap-4">
+        {ALL_STATES.map((st) => {
+          const clip = getBossClip(bossId, st);
+          if (!clip) return null;
+          const ms = clip.frameCount > 1 ? Math.round((clip.frameCount / clip.fps) * 1000) : 0;
+          return (
+            <div key={st} className="flex flex-col items-center gap-1">
+              <div
+                style={{
+                  width: 150,
+                  height: 150,
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'center',
+                  background: 'radial-gradient(ellipse at 50% 100%, #1b1420 0%, #0d0b10 70%)',
+                  borderRadius: 6,
+                  border: '1px solid rgba(128,79,33,0.4)',
+                }}
+              >
+                <SpriteClipPlayer
+                  clip={clip}
+                  src={clipUrl(clip.asset)}
+                  clipKey={`${st}:${replay}`}
+                  motion="full"
+                  alt={st}
+                  style={{ imageRendering: 'pixelated' }}
+                />
+              </div>
+              <span className="text-xs text-amber-200">{st}</span>
+              <span className="text-[10px] text-bone/45">
+                {clip.frameCount}f · {clip.fps}fps · {ms}ms · {clip.loop ? 'loop' : 'once'}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

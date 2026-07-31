@@ -57,7 +57,14 @@ export function bossClipForBeat(
 
   // Cue-level fallback: a boss wind-up is an attack pose even when the event
   // underneath it isn't damage (a shield or a curse still needs a gesture).
-  if (beat.cue === 'wind_up' || beat.cue === 'ultimate') {
+  // An ultimate is its OWN pose, not a louder wind-up. A charged action is the
+  // boss spending rounds building something the party is meant to try to stop;
+  // showing the ordinary swing's telegraph for it would make the fight's
+  // biggest moment look like its most routine one.
+  if (beat.cue === 'ultimate') {
+    return isBossEvent(e, ctx.bossActorId) ? 'ultimate' : resting;
+  }
+  if (beat.cue === 'wind_up') {
     return isBossEvent(e, ctx.bossActorId) ? 'windup' : resting;
   }
   return resting;

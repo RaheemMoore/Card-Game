@@ -60,8 +60,8 @@ export function LiquidVessel({
   motion,
   label,
   readout,
-  width = 74,
-  height = 102,
+  width = 52,
+  height = 104,
   className,
 }: Props) {
   const pct = Math.max(0, Math.min(1, fill));

@@ -1,9 +1,7 @@
 {
   "subject": "boss-debt-bearer",
   "label": "The Debt-Bearer — Barbarian champion, tower floor 1, fire",
-
   "referenceImage": "../bg-harness/refs/debt-bearer/character-ref-168sq.png",
-
   "provenance": [
     "Design is Raheem's. He took my Leonardo concept and edited it through eight",
     "passes in the Leonardo web app; the final one ('Pull the weapons and halo",
@@ -16,15 +14,14 @@
     "",
     "Approved by Raheem 2026-07-30 before any generation was spent."
   ],
-
   "description": "A hulking misshapen monster in heavy dark iron plate armour covering it completely from neck to feet, with enormous hunched shoulders far wider than its hips, no neck, a heavy grey brute head with a wide tusked jaw and burning white-hot eyes, long thick arms and clawed hands. Molten orange fire glows through cracks in its armour plates, a burning fire core at its belt, and flames burn around its feet. Dark iron grey, soot black and oxblood with bright orange fire. Standing, facing the viewer.",
-
   "view": "low top-down",
-  "size": { "width": 168, "height": 168 },
+  "size": {
+    "width": 168,
+    "height": 168
+  },
   "seed": 20260730,
-
   "characterId": "9e7ee0c4-4913-4c01-864f-b0604c7d7e32",
-
   "animationNotes": [
     "v3, not pro and not template.",
     "",
@@ -53,13 +50,14 @@
     "no 'armour breaking away', no bare-torso 'unleashed' phase-2 silhouette —",
     "those are standard generator drift for charge and enrage poses."
   ],
-
   "animations": [
     {
       "id": "idle",
       "name": "idle",
       "mode": "v3",
-      "directions": ["south"],
+      "directions": [
+        "south"
+      ],
       "startFromRotation": "south",
       "frameCount": 4,
       "action": "standing still, breathing slowly, heavy shoulders in dark iron plate armour rising and falling, arms hanging at its sides, feet planted, facing the viewer",
@@ -69,7 +67,9 @@
       "id": "windup",
       "name": "windup",
       "mode": "v3",
-      "directions": ["south"],
+      "directions": [
+        "south"
+      ],
       "startFromRotation": "south",
       "frameCount": 6,
       "action": "slowly lifting both long clawed arms upward and back above its head, elbows bending, heavy iron plate shoulders rotating up, body leaning back, ending with both fists raised high overhead, facing the viewer",
@@ -79,7 +79,9 @@
       "id": "smash",
       "name": "smash",
       "mode": "v3",
-      "directions": ["south"],
+      "directions": [
+        "south"
+      ],
       "startFromFile": "anim-windup-south-06.png",
       "frameCount": 6,
       "action": "swinging both raised fists downward through a wide arc and striking the ground in front of it, arms ending low and crossed near the ground, body hunched forward over the impact, facing the viewer",
@@ -89,13 +91,77 @@
       "id": "attack",
       "name": "attack",
       "mode": "v3",
-      "directions": ["south"],
+      "directions": [
+        "south"
+      ],
       "startFromRotation": "south",
       "frameCount": 8,
       "skip": true,
       "supersededBy": "windup + smash",
       "action": "raising both long clawed arms high overhead and smashing them down forward toward the viewer, heavy iron plate armour shifting with the swing, then recovering to a planted stance, facing the viewer",
       "note": "frame_count must be EVEN and >= 4 (4,6,8,10,12,14,16) — 7 was rejected 422 before any spend. ~8 frames at 12fps = 667ms, which fits windUpNormal(250) + impact(400) = 650ms with slack. Sized to the NORMAL beat: sizing to the heavy beat would truncate every ordinary attack mid-swing. MEASURE the returned frame count, do not assume it equals what was asked."
+    },
+    {
+      "id": "hit",
+      "name": "hit",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 4,
+      "action": "recoiling backward from a heavy blow to the chest, head snapping back, shoulders twisting, heavy iron plate armour absorbing the impact, feet planted, facing the viewer",
+      "note": "5 frames at 8fps = 625ms against a 400ms impact beat; it lands the flinch and holds the recovery."
+    },
+    {
+      "id": "rage",
+      "name": "rage",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 4,
+      "action": "standing more heavily and more still, shoulders lowered, head raised, the fire in the cracks of its dark iron plate armour burning brighter and steadier, arms hanging loose at its sides, facing the viewer",
+      "note": "RETIRED. Measured 7.65 peak mean-abs-diff between frames — LESS than idle's 8.22, i.e. a differently-named idle. The description ('more still, fire steadier') gave the model nothing to move.",
+      "skip": true,
+      "supersededBy": "ablaze"
+    },
+    {
+      "id": "defeat",
+      "name": "defeat",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 6,
+      "action": "staggering backward, then dropping heavily onto one knee with its head bowed, fire dimming in the cracks of its armour, facing the viewer",
+      "note": "Ends on one knee rather than prone — a ledger-keeper stops, he does not sprawl."
+    },
+    {
+      "id": "ultimate",
+      "name": "ultimate",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 6,
+      "action": "hunching forward and drawing both long clawed arms inward across its chest as fire gathers and brightens in the burning core at its belt, heavy iron plate armour fully covering it, gathering power, facing the viewer",
+      "note": "LOOPS under the 3000ms ultimate beat — a one-shot would freeze the boss for two seconds at the most dramatic moment in the fight. Armour explicitly named as staying ON: 'gathering power' poses are exactly where generators try to strip a figure (M5.7)."
+    },
+    {
+      "id": "ablaze",
+      "name": "ablaze",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 6,
+      "action": "standing squared and motionless with its head raised and arms loose at its sides, while bright fire pours upward out of every crack in its heavy dark iron plate armour and burns fiercely around its shoulders and arms, armour fully covering it from neck to feet, facing the viewer",
+      "note": "Phase-2 resting pose, replacing 'rage'. The change has to be in the FIRE, not the stance: the lore is 'the counting stops, he has reached the total', so he goes blazing and STILL rather than thrashing — which is also how it avoids Barbarian §14's ban on generic-rage vocabulary. Names the armour as covering because 'fire pours out of him' is exactly the phrasing that makes a generator strip a figure (M5.7)."
     }
   ]
 }
