@@ -24,6 +24,7 @@ import { CodexElements } from './pages/CodexElements';
 import { DevAbilities } from './pages/DevAbilities';
 import { DevSeedBattle } from './pages/DevSeedBattle';
 import { SpritePreview } from './pages/dev/SpritePreview';
+import { BossReadout } from './pages/dev/BossReadout';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
@@ -49,6 +50,13 @@ export default function App() {
               needing a signed-in session to look at a sprite sheet is friction
               with nothing behind it. */}
           <Route path="/dev/sprite-preview" element={<SpritePreview />} />
+
+          {/* Boss readout — the fight on paper, for review and for showing
+              people. Same reasoning as above: it reads the shipped boss
+              definitions and runs the combat reducer in-memory, so it touches
+              no player data and gating it behind a login would only add
+              friction to sharing it. */}
+          <Route path="/dev/boss-readout" element={<BossReadout />} />
 
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
