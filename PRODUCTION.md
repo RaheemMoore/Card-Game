@@ -13,6 +13,11 @@
 
 ## Contents
 
+The guide is in two parts. **Infrastructure** is how the project is built and run.
+**Game Mechanics** is how the game itself works.
+
+**Infrastructure**
+
 | | Section | What it answers |
 |---|---|---|
 | 0 | [What I'd work on next](#0-what-id-work-on-next) | What should I do today? |
@@ -26,7 +31,16 @@
 | 8 | [Decision log](#8-decision-log) | Why did we do it that way? |
 | 9 | [Ideas raised, not committed](#9-ideas-raised-not-committed) | What did we say out loud but not promise? |
 
+**Game Mechanics** — how the game itself works.
+
+| | Section | What it answers |
+|---|---|---|
+| 1 | [How the game works](#1-how-the-game-works) | Archetypes, elements, mana vs tech |
+| 2 | [What we still need to decide](#2-what-we-still-need-to-decide) | What is the game waiting on us for? |
+
 ---
+
+# Infrastructure
 
 <!-- updated: 2026-07-31 -->
 ## 0. What I'd work on next
@@ -808,3 +822,150 @@ start tracking hooks is an open question in §0.
 **The rule that keeps it honest:** if I'm not sure something is true, this guide says so
 rather than guessing. A backlog that lies is worse than no backlog — the moment you catch it
 being wrong, you stop reading it, and then it's dead.
+
+
+---
+
+# Game Mechanics
+
+<!-- updated: 2026-07-31 -->
+## 1. How the game works
+
+*Everything in Infrastructure describes how the project is built. This part describes the
+**game** — the abilities, the elements, the bosses, and how a character actually gets stronger.*
+
+**This part is young.** It was started 2026-07-31 and most of it is still being designed, so it
+opens with what we haven't decided rather than pretending to be finished.
+
+### The eleven archetypes
+
+Every character is one of these. The emblems below are the real selection art — ten approved,
+with the Lycanthrope still on a placeholder.
+
+<!-- gallery: emblems -->
+
+### The twenty-nine elements
+
+Each character carries one. The element decides how the character looks, what their damage
+resolves as in a fight, and — for the fifteen elements only a single archetype can reach — what
+they can do that nobody else can. Every crystal below was made for this game.
+
+<!-- gallery: elements -->
+
+**Twenty-eight crystals for twenty-nine elements** — Time has no art, because no archetype can
+reach it yet. Storm was in the same position until 2026-07-31, when it became the Barbarian's.
+
+**Nine of these are exclusive to one archetype and mechanically identical to a shared one right
+now.** Nature is the Druid's alone, Nocturne and Sanguine are the Vampire's, Nanite is the
+Android's — and none of them do anything a shared element doesn't. That's the largest open
+question in this part.
+
+### Mana and Tech — the same damage, opposite riders
+
+Every card runs on Mana or on Tech, never both, and that choice decides three things: what your
+damage leaves behind, what kind of creature you are, and which fights you are the wrong answer
+for.
+
+**Mana lingers.** Statuses stick, stack and outlast. It is slow, it compounds, and it wins long
+fights. Eight archetypes run on it.
+
+**Tech pierces.** It ignores a share of shields and armour — enchantment does not stop a piston.
+It is immediate and flat, and it wins against defence. Only Human, Android and Mech Pilot run on
+it, and **only they can deal tech damage** — which is what lets a boss be built that simply
+cannot be beaten without a machine in the party.
+
+**Your resource also decides your body.** A tech card has no body: it cannot be frozen,
+poisoned, bled or frightened. It pays for that by breaking under tech damage — machines break
+machines — and by being unhealable. The only thing that restores a machine is a Human.
+
+### Why there are no dwarves
+
+The Human is the answer to "why is a human useful in a fantasy world." They have no powers and
+no elements — only Metal — and what they have instead is *building*. They are the machine
+faction's builder, its only revive, and the reason an Android or Mech Pilot can fire the full
+version of an ultimate. Weak alone by design; their stat line is the flattest in the game and
+stays that way. They are never indispensable because of a number.
+
+### A note on the art
+
+The emblems and element crystals above were made for this game and are the best-looking thing
+the project owns. **Not everything is at that standard yet** — bosses and abilities still run on
+placeholders, the Lycanthrope emblem is unfinished, and the plan is custom art for abilities too.
+Every one of those is a chance to make the game more beautiful, and the pipelines to do it
+already exist: see the workshops in Infrastructure §6.
+
+---
+
+<!-- updated: 2026-07-31 -->
+## 2. What we still need to decide
+
+**Read this first, not last.** A question buried at the bottom of a design doc is a question
+nobody answers. These are the ones where the game is waiting on a ruling — and the ones where
+there's room to invent something.
+
+### Blocking — 4 items
+
+*The game is not functional until these are answered.*
+
+- **What does each of the 15 exclusive elements actually do?** Every archetype now owns at
+  least one element nobody else can reach — Nature is the Druid's, Nocturne and Sanguine are
+  the Vampire's, Nanite is the Android's. Mechanically they do nothing special yet, so an
+  exclusive element is currently identical to a shared one. *Unblocked by:* the element deep
+  dive, deliberately deferred to its own project.
+- **What does Void do, and is it `true` damage?** Void is the one element that is rare for
+  everyone who can reach it, priced for an effect that doesn't exist yet — "cuts through the
+  other elements." That maps almost exactly onto the existing `true` damage type, which
+  bypasses both resistance *and* armour. That may be right, or far too much. *Unblocked by:*
+  Raheem ruling on how far it cuts.
+- **Does an all-machine party get any sustain?** Tech cards can't be healed, only repaired by a
+  Human. A party of Android and Mech Pilot with no Human currently has no healing at all.
+  Either that's the lesson, or machines get a weak self-repair. *Unblocked by:* a ruling.
+- **What is the magic-warded boss, concretely?** The fight that proves the tech gate — a
+  creature every element slides off, where ten archetypes are useless and a hammer is not. It's
+  the floor that sends someone back to level a Human. Nothing is designed. *Unblocked by:* a
+  boss design pass.
+
+### Improving — 6 items
+
+*It works. These would make it better.*
+
+- **The Mana stat is worth about a quarter of what Def is worth.** Measured: Def 100 vs 20 is
+  roughly 430 effective HP; Mana 100 vs 20 is 30–60 damage. Roughly 8:1. The riders should
+  bring it to about 2:1. *Unblocked by:* one line decoupling mitigation from Def's raw value,
+  then the balance sim. Target is under 3:1.
+- **Rider magnitudes are starting numbers, not playtested ones.** `floor(mana/34)` bonus rounds
+  and `tech/167` pierce came from the systems designer's first pass.
+- **Druid and Human have no rare element at all.** Both are narrow by design, so this may be
+  correct — but nobody has said so on purpose.
+- **Time is held by nobody.** It has a name, art and a damage type, and no archetype can reach
+  it. Seed material for a future archetype, or cut? Storm was in the same position until it
+  became the Barbarian's.
+- **`umbral` carries nine elements; `searing` carries one.** Lopsided, and it will look strange
+  the moment the eight damage types are printed side by side.
+- **What does each stat mean per game mode?** Def buying HP in a boss fight is not the same as
+  Def in a zone-control board game, and the design has never said what it is instead.
+
+### Open ground — 4 items
+
+*Nobody has committed to these. This is where the exciting ideas go.*
+
+- **Mode-exclusive prizes.** Power up in the tower, take those cards to the board game, and
+  each mode holds rewards the other cannot give. Needs a rule for *what class of thing* is
+  exclusive — cosmetics? abilities? element access? *Note:* reward changes need Raheem's
+  explicit approval under the economy plan §13.
+- **Do elements combine, and only in the board game?** The Genshin-style reaction system from
+  the warband draft may be the honest answer to "why is the card game a different game" — the
+  tower is about reading one enemy and bringing the right answer; the board game is chemistry.
+- **Special forms for rare elements.** Raheem's note that rare elements will later get forms
+  that do special things. Its own project, deliberately.
+- **Mana flows, tech banks.** Mana draws from the world and regenerates; tech runs on what you
+  built before the fight. Held back because the mana/tech split works without it, but it's a
+  real difference in how the two feel to play.
+
+### The rule for this section
+
+A question that gets answered **moves to the decision log in §8 with its ruling** — it is never
+just deleted. The answer is the valuable part, and the reason behind it is what stops the same
+question being re-asked in three months.
+
+---
