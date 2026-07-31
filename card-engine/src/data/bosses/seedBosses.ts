@@ -347,14 +347,14 @@ const DEBT_BEARER_DEF: BossDefinition = {
   slug: 'the-debt-bearer',
   name: 'The Debt-Bearer',
   lore:
-    'Every technique she was given, she wrote down as something owed. She meant to repay it by carrying it forward — and then the ledger grew longer than the life, and there was no one left to repay. She still counts. She will count through you.',
+    'Every technique he was given, he wrote down as something owed. He meant to repay it by carrying it forward — and then the ledger grew longer than the life, and there was no one left to repay. He still counts. He will count through you.',
   familyIds: ['martial'],
   currentVersionId: 'bv_champion_barbarian_1',
   status: 'active',
   artAssetIds: [],
   bossKind: 'champion',
   mirrorArchetype: 'Barbarian',
-  // Her own home ground, replacing the shared fire arena she was borrowing.
+  // His own home ground, replacing the shared fire arena he was borrowing.
   arenaId: 'barbarian_moot_ground',
   towerFloor: 1,
   createdAt: NOW,
@@ -368,13 +368,13 @@ const DEBT_BEARER_V1: BossVersion = {
   status: 'active',
   publishedAt: NOW,
   maxHp: TOWER.hp(1),
-  // Inheritance is not elemental. She is answered by defence, not by typing.
+  // Inheritance is not elemental. He is answered by defence, not by typing.
   /**
    * Floor 1 owes the player THREE answers (towerCurve answerBudget) and an
    * ~85% target win rate, so this is deliberately the most forgiving profile
    * in the tower.
    *
-   * She resists fire because she is wreathed in it — burning the burning thing
+   * He resists fire because he is wreathed in it — burning the burning thing
    * is the mistake the fight is there to teach.
    *
    * Physical is left NEUTRAL, not weak. It is by far the most common hero
@@ -389,13 +389,13 @@ const DEBT_BEARER_V1: BossVersion = {
       id: 'phase_debt_counting',
       healthThresholdStart: 1.0,
       healthThresholdEnd: 0.45,
-      passiveDescriptions: ['She names each strike before she throws it.'],
+      passiveDescriptions: ['He names each strike before he throws it.'],
       actions: [
         {
           id: 'act_debt_owed',
           displayName: 'What Is Owed',
           intentType: 'heavy_attack',
-          telegraphText: 'She names a debt and steps in to collect it.',
+          telegraphText: 'He names a debt and steps in to collect it.',
           priority: 20,
           cooldownRounds: 0,
           interruptible: true,
@@ -409,13 +409,13 @@ const DEBT_BEARER_V1: BossVersion = {
       id: 'phase_debt_calling_in',
       healthThresholdStart: 0.45,
       healthThresholdEnd: 0,
-      passiveDescriptions: ['The counting stops. She has reached the total.'],
+      passiveDescriptions: ['The counting stops. He has reached the total.'],
       actions: [
         {
           id: 'act_debt_total',
           displayName: 'The Whole Sum',
           intentType: 'heavy_attack',
-          telegraphText: 'She stops counting. This one is for all of it.',
+          telegraphText: 'He stops counting. This one is for all of it.',
           priority: 30,
           cooldownRounds: 1,
           interruptible: true,

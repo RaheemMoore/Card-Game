@@ -22,7 +22,15 @@ import type { BossCardManifest, CombatArtAsset } from './types';
  * the scale mismatch that `heroSpriteManifest` already had to solve once.
  */
 
-export type BossSpriteState = 'idle' | 'attack' | 'hit' | 'rage' | 'defeat';
+/**
+ * `windup` and `attack` are deliberately SEPARATE states.
+ *
+ * They used to be one: `bossClipForBeat` mapped both the telegraph and the
+ * blow to `attack`, so the same clip played twice and the wind-up and the
+ * strike were visually identical — the player had no way to see a hit coming,
+ * only to be told. A telegraph the player cannot READ is not a telegraph.
+ */
+export type BossSpriteState = 'idle' | 'windup' | 'attack' | 'hit' | 'rage' | 'defeat';
 
 export interface BossClip {
   asset: CombatArtAsset;
@@ -73,6 +81,7 @@ const WRAITH_IDLE: CombatArtAsset = {
  */
 const EMBERBORN_WRAITH_CLIPS: Record<BossSpriteState, BossClip> = {
   idle: still(WRAITH_IDLE),
+  windup: still(WRAITH_IDLE),
   attack: still(WRAITH_IDLE),
   hit: still(WRAITH_IDLE),
   rage: still(WRAITH_IDLE),
@@ -103,28 +112,129 @@ const DEBT_BEARER_IDLE: CombatArtAsset = {
   kind: 'boss_sprite',
   source: 'pixellab',
   path: 'bosses/debt-bearer/sprite-idle.png',
-  // The 256² PixelLab canvas is ~55% transparent padding. Shipping it whole
-  // made the boss render visibly SMALLER than the dwarf hero, because the
-  // stage sizes the sprite BOX and the figure only filled the middle of it.
-  // The shipped file is cropped to the alpha bounding box (+4px so shake and
-  // lunge transforms never clip an edge pixel); these are the cropped dims.
-  dimensions: { width: 154, height: 156 },
-  approvalStatus: 'approved',
-  promptVersion: 'pixellab.pro.v1',
+  // A 5-frame STRIP, not a still. Was a 154x156 crop of the south ROTATION
+  // until 2026-07-30; that asset is retired.
+  //
+  // Mixing a rotation-sourced still with animation-sourced clips is what
+  // produced a 25-33% scale jump in `heroSpriteManifest` — the two sources do
+  // not agree on body scale, so standing and moving were different sizes.
+  // Frame 0 of this clip IS the resting pose now, and it comes from the same
+  // generation as the motion.
+  dimensions: { width: 216 * 5, height: 198 },
+  approvalStatus: 'candidate',
+  promptVersion: 'pixellab.v3.anim.v1',
   notes:
-    'PixelLab /create-character-pro, character 9e7ee0c4-4913-4c01-864f-b0604c7d7e32, ' +
-    'seed=20260730, view=low top-down, reference=Raheem edit-2 crop. Approved by Raheem ' +
-    '2026-07-30. Source 256² (the API upscaled past its own 168 request cap); shipped ' +
-    'cropped to the figure. All 8 rotations kept in scripts/sprite-lab/out/boss-debt-bearer/; ' +
-    'only south ships, the stage being frontal.',
+    'PixelLab POST /characters/animations, mode v3, character ' +
+    '9e7ee0c4-4913-4c01-864f-b0604c7d7e32, directions ["south"], custom_start_frame pinned ' +
+    'to rot-south.png. Asked frame_count 4 (the API minimum — 3 was rejected 422), ' +
+    'RETURNED 5. Pinning every clip to the SAME rotation is what anchors identity across ' +
+    'the set and makes frame 0 of each clip checkable against that one file. All 8 ' +
+    'rotations kept in scripts/sprite-lab/out/boss-debt-bearer/; only south ships, the ' +
+    'stage being frontal. NOT yet approved by Raheem in a real fight.',
+};
+
+/**
+ * The shared frame box for EVERY Debt-Bearer clip.
+ *
+ * `SpriteClipPlayer` sets its aspect ratio from this, so two clips with
+ * different boxes make her change size the instant she stops idling and
+ * swings. `lib/pack_boss_clips.py` computes it as the union of every frame's
+ * alpha bounds across every clip and packs them all to it — which is why this
+ * is one constant and not a per-clip number.
+ *
+ * Measured off the packed sheets, not requested: the source frames are 256²
+ * and this is the figure's actual extent within them.
+ */
+const DEBT_BEARER_FRAME = { width: 178, height: 165 };
+
+const DEBT_BEARER_WINDUP: CombatArtAsset = {
+  id: 'debt_bearer_windup',
+  kind: 'boss_sprite',
+  source: 'pixellab',
+  path: 'bosses/debt-bearer/sprite-windup.png',
+  dimensions: { width: DEBT_BEARER_FRAME.width * 7, height: DEBT_BEARER_FRAME.height },
+  approvalStatus: 'candidate',
+  promptVersion: 'pixellab.v3.anim.v2',
+  notes:
+    'PixelLab v3, 6 generations, pinned to rot-south.png. Arms rise to both fists overhead ' +
+    'by frame 5. Its LAST frame is the chained start of the smash clip.',
+};
+
+const DEBT_BEARER_SMASH: CombatArtAsset = {
+  id: 'debt_bearer_smash',
+  kind: 'boss_sprite',
+  source: 'pixellab',
+  path: 'bosses/debt-bearer/sprite-smash.png',
+  dimensions: { width: DEBT_BEARER_FRAME.width * 7, height: DEBT_BEARER_FRAME.height },
+  approvalStatus: 'candidate',
+  promptVersion: 'pixellab.v3.anim.v2',
+  notes:
+    'PixelLab v3, 6 generations. custom_start_frame CHAINED to anim-windup-south-06.png ' +
+    'rather than the shared rotation — the strike has to begin from the raised-fists pose ' +
+    'the wind-up ends on, or it snaps back to standing before it swings. One hop only. ' +
+    'Replaces a v1 "attack" clip that asked for raise + smash + recover in ONE clip and ' +
+    'returned no arm motion at all, just a fire eruption, plus a rogue frame with ' +
+    'wing-shaped artifacts. Splitting the motion into two clips is what fixed it.',
 };
 
 const DEBT_BEARER_CLIPS: Record<BossSpriteState, BossClip> = {
-  idle: still(DEBT_BEARER_IDLE),
-  attack: still(DEBT_BEARER_IDLE),
-  hit: still(DEBT_BEARER_IDLE),
-  rage: still(DEBT_BEARER_IDLE),
-  defeat: still(DEBT_BEARER_IDLE),
+  // 5 frames at 3fps = 1667ms. Slow on purpose — something this heavy should
+  // breathe slower than a person, and the dwarf's 5fps loop read as ~75
+  // breaths/min and looked wrong.
+  idle: {
+    asset: DEBT_BEARER_IDLE,
+    frameCount: 5,
+    fps: 3,
+    frame: DEBT_BEARER_FRAME,
+    loop: true,
+  },
+  // LOOPS, and that is load-bearing. A telegraph stays on screen for however
+  // many hero turns the party takes to answer it, so a one-shot would finish
+  // in half a second and then freeze on a raised-fists pose for the rest of
+  // the round. Looping, he keeps straining at the top of the swing.
+  windup: {
+    asset: DEBT_BEARER_WINDUP,
+    frameCount: 7,
+    fps: 8,
+    frame: DEBT_BEARER_FRAME,
+    loop: true,
+  },
+  // 7 frames at 11fps = 636ms, inside windUpNormal(250) + impact(400) = 650ms.
+  // One-shot: the blow lands and holds its finish, which is what reads as
+  // weight. Looping a strike would make him flail.
+  attack: {
+    asset: DEBT_BEARER_SMASH,
+    frameCount: 7,
+    fps: 11,
+    frame: DEBT_BEARER_FRAME,
+    loop: false,
+  },
+  // Not yet generated. They fall back to the idle LOOP rather than to a frozen
+  // still, so an ungenerated state is a boss who is at least breathing. Each
+  // becomes a data change here the day its clip lands.
+  hit: {
+    asset: DEBT_BEARER_IDLE,
+    frameCount: 5,
+    fps: 3,
+    frame: DEBT_BEARER_FRAME,
+    loop: true,
+  },
+  rage: {
+    asset: DEBT_BEARER_IDLE,
+    frameCount: 5,
+    // Faster than idle: the same art reading as a different state costs
+    // nothing and makes enrage legible before the rage clip exists.
+    fps: 6,
+    frame: DEBT_BEARER_FRAME,
+    loop: true,
+  },
+  defeat: {
+    asset: DEBT_BEARER_IDLE,
+    frameCount: 5,
+    fps: 3,
+    frame: DEBT_BEARER_FRAME,
+    loop: true,
+  },
 };
 
 function clipsFor(bossId: string, clips: Record<BossSpriteState, BossClip>) {

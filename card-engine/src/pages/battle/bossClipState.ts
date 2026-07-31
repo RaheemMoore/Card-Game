@@ -45,8 +45,11 @@ export function bossClipForBeat(
     case 'dot_ticked':
       return resting;
 
+    // The TELEGRAPH, not the blow. These were both 'attack' until 2026-07-30,
+    // which meant the warning and the strike looked identical and the player
+    // could only read an incoming hit from the banner text.
     case 'boss_intent_declared':
-      return 'attack';
+      return 'windup';
 
     default:
       break;
@@ -55,7 +58,7 @@ export function bossClipForBeat(
   // Cue-level fallback: a boss wind-up is an attack pose even when the event
   // underneath it isn't damage (a shield or a curse still needs a gesture).
   if (beat.cue === 'wind_up' || beat.cue === 'ultimate') {
-    return isBossEvent(e, ctx.bossActorId) ? 'attack' : resting;
+    return isBossEvent(e, ctx.bossActorId) ? 'windup' : resting;
   }
   return resting;
 }

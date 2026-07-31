@@ -463,3 +463,72 @@ luck, not design.
 else.** An invalid `template_animation_id` is rejected before any work starts and is
 genuinely free. An invalid value in a *neighbouring* field may sail straight through into
 a paid job.
+
+## `/characters/animations` v3 — the constraints the docs did not mention
+
+Run: Debt-Bearer animation set, 2026-07-30. 20 generations total (idle 0*, attack 8,
+windup 6, smash 6). *idle landed in a partial earlier run.
+
+**`frame_count` must be EVEN and >= 4** (4, 6, 8, 10, 12, 14, 16). Asking 3 and asking 7
+were both rejected `422` — before any generation was charged, so probing this is free.
+
+**v3 returns `frame_count + 1`.** Measured, twice: asked 4 -> 5 frames, asked 8 -> 9.
+Frame 0 is the pinned `custom_start_frame` pose. Size clips against the returned count,
+not the requested one, or every clip runs one frame longer than the manifest claims.
+
+**Frames are named by `slug(display_name)` and nothing else.** The character detail's
+`animations[]` entries carry no `name` or `animation_name` field. Matching on the name you
+requested silently finds nothing and downloads zero files.
+
+## ONE clip = ONE action. Compound descriptions return no motion at all
+
+The first Debt-Bearer attack asked for *"raising both clawed arms high overhead and
+smashing them down forward, then recovering to a planted stance"* — three actions in one
+clip. What came back had **no arm movement whatsoever**: the figure stood nearly still
+while fire erupted around it, then returned to standing. One frame also contained a large
+brown wing-shaped artifact belonging to nothing in the design.
+
+Splitting it into two clips fixed it completely on the first retry:
+
+- `windup` — *"slowly lifting both long clawed arms upward and back above its head ...
+  ending with both fists raised high overhead"* -> arms genuinely raise.
+- `smash` — *"swinging both raised fists downward through a wide arc and striking the
+  ground"* -> arms genuinely come down, with motion streaks.
+
+**The heuristic: if the action description contains "and then", it is two clips.** The
+model appears to average a compound instruction into ambient motion plus an effect.
+
+## Chaining a start frame — when the anchor rule should be broken
+
+Standing rule (still correct): pin every clip's `custom_start_frame` to the SAME rotation,
+so one image anchors the whole set's identity.
+
+The exception is CONTINUITY between two clips that must join. A downward strike has to
+begin from the raised-fists pose the wind-up ended on; pinned to the shared rotation it
+begins standing and visibly snaps back before swinging. So `smash` chains
+`startFromFile: anim-windup-south-06.png`.
+
+**One hop only.** Chaining a chain compounds drift generation over generation. And the
+frames of the clip being chained FROM must be on disk when the next request is built —
+the bulk download at the end of a run is too late, which cost two failed runs before
+`pullAnimationFrames()` was added to fetch each clip as it completes.
+
+## The packer's ground line is NOT part of the union box
+
+Every clip must share one frame box or the figure changes size when clips switch. But the
+box's BOTTOM must come from the resting clip alone, not from the union.
+
+The Debt-Bearer's attack throws flame **29px below his own soles**. Including that in the
+union pushed the box bottom down, and since the stage anchors the platform to the box
+bottom, the standing pose then hovered **33px above the ground he stands on** — the exact
+"the boss is floating" complaint the animation work existed to fix, reintroduced by the
+packer. `lib/pack_boss_clips.py` now takes the ground line from a nominated clip and clips
+below it: on a flat stage, fire beneath the soles is fire underneath the floor.
+
+## Wind-up and strike must be different clips, or the telegraph is unreadable
+
+`bossClipForBeat` mapped both `boss_intent_declared` and the boss's `damage_dealt` to
+`attack`, so the warning and the blow played the identical animation. A telegraph the
+player can only read in the banner text is not a telegraph. `windup` is now its own state
+and LOOPS — a charge stays on screen for however many hero turns the party takes, so a
+one-shot would freeze on a raised-fists pose for the rest of the round.

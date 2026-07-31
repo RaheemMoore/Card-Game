@@ -21,5 +21,81 @@
 
   "view": "low top-down",
   "size": { "width": 168, "height": 168 },
-  "seed": 20260730
+  "seed": 20260730,
+
+  "characterId": "9e7ee0c4-4913-4c01-864f-b0604c7d7e32",
+
+  "animationNotes": [
+    "v3, not pro and not template.",
+    "",
+    "  pro    — the only mode whose mechanism prevents cross-frame drift, but it",
+    "           cost ~46 generations PER DIRECTION on hero-chibi v1 and still",
+    "           returned corrupt frames. ~280 generations for one boss.",
+    "  template — cheap, but it LOST THE SOUTH FACING on a previous run and",
+    "           returned the back of the head. For a frontal boss that is total",
+    "           loss. The mannequin template list also has no 'attack'.",
+    "  v3     — ~3 generations per direction, passed the gate first try.",
+    "",
+    "Every clip pins custom_start_frame to the SAME rot-south.png. That makes one",
+    "rotation the single identity anchor for the whole set, so the clips cannot",
+    "drift away from each other, and it gives a free exact check: frame 0 of every",
+    "clip must come back near-identical to that file.",
+    "",
+    "frameCount is what we ASK for; v3 returns frameCount + 1, frame 0 being the",
+    "pinned pose. So 3 -> 4 frames, 7 -> 8 frames. Getting this wrong does not",
+    "error, it just makes every clip one frame longer than the manifest claims.",
+    "",
+    "Costume nouns are repeated verbatim from the character description on purpose",
+    "— saying 'armour' in one clip and 'iron plate' in another invites the model to",
+    "redecorate between clips.",
+    "",
+    "M5.7: every pose keeps the figure covered neck to feet. No 'chest heaving',",
+    "no 'armour breaking away', no bare-torso 'unleashed' phase-2 silhouette —",
+    "those are standard generator drift for charge and enrage poses."
+  ],
+
+  "animations": [
+    {
+      "id": "idle",
+      "name": "idle",
+      "mode": "v3",
+      "directions": ["south"],
+      "startFromRotation": "south",
+      "frameCount": 4,
+      "action": "standing still, breathing slowly, heavy shoulders in dark iron plate armour rising and falling, arms hanging at its sides, feet planted, facing the viewer",
+      "note": "4 is the API MINIMUM (frame_count >= 4, rejected 3 with a 422 before spending anything), so this returns 5 frames. At fps 3 that is a 1667ms breath cycle — slow, which is right for something this heavy. The single most important clip: a boss that never breathes reads as floating, which is the whole reason this work exists."
+    },
+    {
+      "id": "windup",
+      "name": "windup",
+      "mode": "v3",
+      "directions": ["south"],
+      "startFromRotation": "south",
+      "frameCount": 6,
+      "action": "slowly lifting both long clawed arms upward and back above its head, elbows bending, heavy iron plate shoulders rotating up, body leaning back, ending with both fists raised high overhead, facing the viewer",
+      "note": "LOOPS and HOLDS while the telegraph is on screen — a charge can span several hero turns, so this has to be watchable for an unknown length of time. Ends on the raised-fists pose that 'smash' begins from."
+    },
+    {
+      "id": "smash",
+      "name": "smash",
+      "mode": "v3",
+      "directions": ["south"],
+      "startFromFile": "anim-windup-south-06.png",
+      "frameCount": 6,
+      "action": "swinging both raised fists downward through a wide arc and striking the ground in front of it, arms ending low and crossed near the ground, body hunched forward over the impact, facing the viewer",
+      "note": "ONE action, not three. The first attempt asked for 'raising AND smashing down AND recovering' in a single clip and the model rendered none of the arm motion — it just erupted in fire and returned to standing. Splitting the raise into 'windup' leaves this clip a single unambiguous arc. Chained from the wind-up's last frame so the strike starts with the arms already up."
+    },
+    {
+      "id": "attack",
+      "name": "attack",
+      "mode": "v3",
+      "directions": ["south"],
+      "startFromRotation": "south",
+      "frameCount": 8,
+      "skip": true,
+      "supersededBy": "windup + smash",
+      "action": "raising both long clawed arms high overhead and smashing them down forward toward the viewer, heavy iron plate armour shifting with the swing, then recovering to a planted stance, facing the viewer",
+      "note": "frame_count must be EVEN and >= 4 (4,6,8,10,12,14,16) — 7 was rejected 422 before any spend. ~8 frames at 12fps = 667ms, which fits windUpNormal(250) + impact(400) = 650ms with slack. Sized to the NORMAL beat: sizing to the heavy beat would truncate every ordinary attack mid-swing. MEASURE the returned frame count, do not assume it equals what was asked."
+    }
+  ]
 }
