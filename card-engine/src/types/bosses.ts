@@ -127,6 +127,8 @@ export interface BossActionDefinition {
   executeMultiplier?: number;
   /** Multi-round telegraph. See BossChargeSpec in types/combat.ts. */
   charge?: BossChargeSpec;
+  /** Relative pick likelihood among filler actions. See BossActionSnapshot.weight. */
+  weight?: number;
 }
 
 export interface BossVersion {

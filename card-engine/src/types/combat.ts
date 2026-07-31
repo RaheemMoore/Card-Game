@@ -146,6 +146,17 @@ export interface BossActionSnapshot {
   executeMultiplier?: number;
   /** Present on actions that take multiple rounds to land. See BossChargeSpec. */
   charge?: BossChargeSpec;
+  /**
+   * Relative likelihood of being picked among the boss's FILLER actions.
+   * Defaults to 1. Ignored for actions at or above `DETERMINISTIC_PRIORITY`,
+   * which always fire the moment they come off cooldown.
+   *
+   * The split exists because a boss that is random about everything cannot be
+   * planned against, and a boss that is deterministic about everything is
+   * solved after one fight. The moves that END fights stay learnable; the
+   * moment-to-moment rotation stays unpredictable.
+   */
+  weight?: number;
 }
 
 /**
