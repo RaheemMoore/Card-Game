@@ -396,8 +396,22 @@ export function CardCombatFxStyles() {
         45%  { transform: translateY(-10px) rotateY(90deg) rotate(-4deg); filter: grayscale(0.5) brightness(0.8); }
         100% { transform: translateY(14px) rotateY(180deg) rotate(-9deg); filter: grayscale(1) brightness(0.42); }
       }
-      .card-defeated {
+      /* The doubled class is deliberate: it raises specificity to (0,2,0) so
+         this rule outranks .card-struck below, which is declared LATER at
+         equal specificity and would otherwise win the animation shorthand
+         outright. That is exactly what used to happen — the killing blow
+         applied both classes, card-take-hit took the animation slot, and the
+         death flip never played at all. The card just flinched and stayed
+         face-up, with only the "Fallen" label to say it had died.
+
+         The transform/filter are ALSO stated as a resting state rather than
+         being left to the animation's fill mode alone, so a dead card stays
+         face-down and grey even if its animation is cancelled by a re-render
+         or a class change. Death is a state, not an animation that ran once. */
+      .card-defeated.card-defeated {
         animation: card-fall-facedown 850ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+        transform: translateY(14px) rotateY(180deg) rotate(-9deg);
+        filter: grayscale(1) brightness(0.42);
         transform-style: preserve-3d;
       }
 
@@ -489,7 +503,14 @@ export function CardCombatFxStyles() {
         .card-acting   { transform: translateY(-18px) scale(1.06); }
         .card-ignited  { box-shadow: 0 0 16px 2px rgba(255,205,90,0.9); border-radius: 6px; }
         .card-marked   { box-shadow: 0 0 16px 3px rgba(255,70,60,0.9); border-radius: 6px; }
-        .card-defeated { filter: grayscale(1) brightness(0.42); transform: rotate(-9deg); }
+        /* Doubled to match the specificity of the rule it is overriding. With
+           the flip animation suppressed the card cannot turn over, so the
+           face-down rotateY is dropped and death reads from the greyscale and
+           the tilt instead. */
+        .card-defeated.card-defeated {
+          filter: grayscale(1) brightness(0.42);
+          transform: rotate(-9deg);
+        }
       }
     `}</style>
   );
