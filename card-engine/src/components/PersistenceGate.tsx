@@ -243,6 +243,68 @@ function extractErrorMessage(err: unknown): string {
 //   5. Hydrating both caches from Supabase.
 //   6. Seeding demo wallet balances if the ledger is fresh.
 //   7. Running auditBalance() to detect drift and warn.
+/**
+ * The single, deliberately narrow exception to the wall above.
+ *
+ * `/dev/sprite-preview` is an art tool: it reads sprite manifests and PNGs the
+ * operator picks off their own disk, renders them, and talks to nothing else.
+ * There is no player data on it to protect, and requiring a signed-in session
+ * to look at a sprite sheet is friction with nothing behind it.
+ *
+ * Two properties keep this from becoming the hole the comment above warns
+ * about:
+ *
+ *   1. `import.meta.env.DEV` is statically replaced at build time, so in a
+ *      production bundle this function's body is dead code and the route is
+ *      unreachable no matter what path a visitor types.
+ *   2. It matches ONE exact pathname rather than a `/dev/` prefix. A prefix
+ *      would silently exempt every future dev route, including any that DOES
+ *      touch player data — which is precisely how a narrow exception turns
+ *      into a general one.
+ */
+function isDevOnlyArtRoute(): boolean {
+  if (!import.meta.env.DEV) return false;
+  return window.location.pathname === '/dev/sprite-preview';
+}
+
+/** Storage key for the local-dev auth bypass. */
+const DEV_AUTH_KEY = 'cardEngine.dev.bypassLogin';
+
+/**
+ * Local-development escape from the login wall.
+ *
+ * The wall rejects anonymous sessions, and everything downstream of it —
+ * migration, ability seeding, BOSS seeding, hydration — is skipped when it
+ * trips. So working on combat means either signing in on every reload, or
+ * being unable to open the battle at all. This lets the anonymous session
+ * Supabase already handed us continue through the full startup path, which is
+ * exactly how the app behaved before the login screen became the front door.
+ *
+ * Three things keep it from being the hole the wall exists to close:
+ *
+ *   1. `import.meta.env.DEV` is replaced at build time, so in a production
+ *      bundle this function is dead code and always returns false.
+ *   2. It is OPT-IN, not the default. A plain `npm run dev` still shows the
+ *      login screen, so the real front door stays testable locally.
+ *   3. It grants nothing but an anonymous session — the same one any visitor
+ *      already gets. It does not fabricate a role, and `is_admin()` on the
+ *      server is unaffected.
+ *
+ * Enable with `?devauth=1` (persists), disable with `?devauth=0`.
+ */
+function devAuthBypassEnabled(): boolean {
+  if (!import.meta.env.DEV) return false;
+  try {
+    const param = new URLSearchParams(window.location.search).get('devauth');
+    if (param === '1') localStorage.setItem(DEV_AUTH_KEY, '1');
+    if (param === '0') localStorage.removeItem(DEV_AUTH_KEY);
+    return localStorage.getItem(DEV_AUTH_KEY) === '1';
+  } catch {
+    // Private mode / storage disabled — fail CLOSED, never open.
+    return false;
+  }
+}
+
 export function PersistenceGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GateState>({ kind: 'loading', step: 'Awakening the forge…' });
 
@@ -311,8 +373,37 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
       //
       // Deliberately before hydration — a signed-out visitor should reach the
       // login art immediately, not after their (nonexistent) cards load.
-      if (isCurrentUserAnonymous()) {
+      if (isCurrentUserAnonymous() && !devAuthBypassEnabled()) {
         if (!cancelled) setState({ kind: 'needs_login' });
+        return;
+      }
+
+      // Dev bypass takes the LOCAL path, not the Supabase one.
+      //
+      // Letting an anonymous session continue into the normal startup ran
+      // straight into `new row violates row-level security policy for table
+      // "cards"` — the migration tries to push localStorage rows up, and RLS
+      // is keyed on a real signed-in uid. That is the policy working
+      // correctly; the bypass has no business arguing with it.
+      //
+      // So this mirrors the existing `anon_disabled` fallback — everything
+      // stays on localStorage — plus the boss seed that fallback is missing.
+      // Without bosses the battle picker is empty, which is the one thing this
+      // bypass exists to let us look at.
+      if (isCurrentUserAnonymous()) {
+        setState({ kind: 'loading', step: 'Dev mode — seeding locally…' });
+        initializeWallet();
+        reconcileForgeJobs();
+        await seedAndBackfillAbilitiesLocal();
+        await seedBossesLocal();
+        installDevArtTools();
+        if (!cancelled) {
+          setState({
+            kind: 'ready',
+            mode: 'local',
+            note: 'DEV LOGIN BYPASS — anonymous session on localStorage. Append ?devauth=0 to disable.',
+          });
+        }
         return;
       }
 
@@ -504,7 +595,13 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
     // The router never mounts. That is the point of putting the wall here
     // rather than in a route guard: App.tsx has 20+ routes and a per-route
     // guard is one forgotten route away from a hole.
-    return <Login />;
+    //
+    // The one exception mounts the router WITHOUT waiting for persistence to
+    // come up, because the art tool does not read any of it. Returning
+    // `children` here rather than falling through matters: every branch below
+    // this point assumes a resolved session, so a fallthrough lands on the
+    // loading state and the tool never renders.
+    return isDevOnlyArtRoute() ? <>{children}</> : <Login />;
   }
 
   if (state.kind === 'ready') {

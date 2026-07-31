@@ -23,6 +23,7 @@ import { CodexAbility } from './pages/CodexAbility';
 import { CodexElements } from './pages/CodexElements';
 import { DevAbilities } from './pages/DevAbilities';
 import { DevSeedBattle } from './pages/DevSeedBattle';
+import { SpritePreview } from './pages/dev/SpritePreview';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
@@ -41,6 +42,13 @@ export default function App() {
           {/* The real login screen. Stays a route so the art can be checked
               directly; the session gate renders the same page when signed out. */}
           <Route path="/login" element={<Login />} />
+
+          {/* Art tooling. Deliberately OUTSIDE PlayerShell and the session
+              gate: it reads only manifests and locally-picked PNGs, touches no
+              player data, and is used while iterating on generated sprites —
+              needing a signed-in session to look at a sprite sheet is friction
+              with nothing behind it. */}
+          <Route path="/dev/sprite-preview" element={<SpritePreview />} />
 
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
