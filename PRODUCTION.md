@@ -37,6 +37,7 @@ The guide is in two parts. **Infrastructure** is how the project is built and ru
 |---|---|---|
 | 1 | [How the game works](#1-how-the-game-works) | Archetypes, elements, mana vs tech |
 | 2 | [What we still need to decide](#2-what-we-still-need-to-decide) | What is the game waiting on us for? |
+| 3 | [The two engines](#3-the-two-engines--how-a-character-gets-a-face-and-a-story) | How does a character get a face and a story? |
 
 ---
 
@@ -903,9 +904,14 @@ already exist: see the workshops in Infrastructure §6.
 nobody answers. These are the ones where the game is waiting on a ruling — and the ones where
 there's room to invent something.
 
-### Blocking — 4 items
+### Blocking — 5 items
 
 *The game is not functional until these are answered.*
+
+- **The lore engine has never been specified.** Every card's story is written from 42 words of
+  instruction, with no voice, no examples, no banned tropes and no check afterward — while names
+  and images each have a whole apparatus. The lore on the cards is bad and this is why. *Unblocked
+  by:* §3's six-step route, starting with a voice per archetype authored with the Lore Director.
 
 - **What does each of the 15 exclusive elements actually do?** Every archetype now owns at
   least one element nobody else can reach — Nature is the Druid's, Nocturne and Sanguine are
@@ -925,9 +931,13 @@ there's room to invent something.
   the floor that sends someone back to level a Human. Nothing is designed. *Unblocked by:* a
   boss design pass.
 
-### Improving — 6 items
+### Improving — 7 items
 
 *It works. These would make it better.*
+
+- **The player's answers usually don't reach their picture.** `storyMotifs` is the only channel
+  carrying Story Pillar choices into the portrait, and it sits third from last in a prompt capped
+  at 1450 characters — so it is normally truncated away. See §3. Small fix, likely large effect.
 
 - **The Mana stat is worth about a quarter of what Def is worth.** Measured: Def 100 vs 20 is
   roughly 430 effective HP; Mana 100 vs 20 is 30–60 damage. Roughly 8:1. The riders should
@@ -969,3 +979,163 @@ just deleted. The answer is the valuable part, and the reason behind it is what 
 question being re-asked in three months.
 
 ---
+
+<!-- updated: 2026-07-31 -->
+## 3. The two engines — how a character gets a face and a story
+
+*Every card is made by two systems. One writes who the character is; the other paints them. They
+were deliberately split apart, one of them has been rebuilt, and the other has never been touched.*
+
+### The split, and why it exists
+
+Card generation used to be **one** Claude call that returned the name, the title, the lore *and*
+the Leonardo prompt in a single JSON blob, assembled from a ~1200-line braided prompt. Neither half
+could be improved without risking the other — every image fix threatened the name and the story,
+and every lore fix threatened the picture.
+
+They are now two engines with a typed contract between them:
+
+- **The Lore Engine** — one Claude call. Writes *who this character is*: name, title, lore, and the
+  structured `hiddenFate` (fashion, hair, skin, weather).
+- **The Image Engine** — pure, deterministic TypeScript. Reads that description and produces the
+  Leonardo prompt. It invents no identity.
+
+**The seam is one deliberate omission.** The object passed between them carries no `cardName`, no
+`nameAndTitle`, and no `lore`. From `types/characterSheet.ts:21`:
+
+> The Image Engine physically never receives them, so it cannot corrupt the character's name or
+> story by trying to stage a better picture. That omission is the guarantee.
+
+This is not a convention anyone has to remember. It is enforced by the type system — the prose
+*cannot* reach Leonardo.
+
+### Which way the influence runs
+
+**The image decides, and the lore follows.** This is the part worth internalising, because it is
+the opposite of how it worked before.
+
+Before Claude is called at all, code rolls the actual person — sex, build, age, distinguishing mark
+— deterministically, seeded on the card's id (`services/imageEngine/identityRoller.ts:134`). That
+roll is then handed to Claude as a locked constraint:
+
+> ROLLED IDENTITY (LOCKED — the name + lore MUST match this EXACT person, do not drift, do not
+> soften)
+
+and again, in the diversity block: *"cardName + lore MUST fit a person with this attribute. Do not
+soften it. Do not skip it."* After Claude replies, those values are **overwritten with the rolled
+ones anyway** (`claudeApi.ts:1186-1211`), so drift is impossible.
+
+That inversion is what killed the old problem where every generated character drifted toward the
+same young, conventionally attractive body. The code picks the person; the writing has to fit them.
+
+**One detail tells you where the attention went:** the body and age descriptions handed to the lore
+writer are the `leoDescription` fields — strings written for Leonardo, an image API. The lore is
+being conditioned on phrasing authored for a picture.
+
+### The image engine — rebuilt
+
+It has a real home at `services/imageEngine/` and a deterministic assembler at
+`services/portraitAssembler.ts`. What exists today:
+
+- **Complete per-archetype pools, 11 of 11** — weapons, poses, and environments, all rank-scaled so
+  a Foundation card and an Ascendant card of the same archetype don't share a background.
+- **Companions for 5 of 11, by design** — Necromancer, Beastmaster, Vampire, Mech Pilot, Android.
+  The other six have none deliberately: their allies are people, not equipment.
+- **Bespoke scene builders** for ten archetypes and the three Seraph paths.
+- **Ordered assembly.** Segments are emitted in priority order because Leonardo weights early
+  tokens and truncation drops from the end, with a reserved closer that can never be truncated.
+- **Three-layer modesty enforcement**, naming the actual closed garment as a noun rather than
+  hoping a negative prompt holds.
+
+### The lore engine — never started
+
+`services/imageEngine/` contains five modules. **`services/loreEngine/` contains a README and no
+code.** The directory layout is an honest map of where the effort went.
+
+Here is the entire specification for a card's lore, in full, from `claudeApi.ts:954`:
+
+```
+"lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the
+mood WITHOUT quoting them literally. Reflect the emotional throughline you
+identified."
+```
+
+Forty-two words. No system prompt at all. Temperature 1. Running on Haiku — chosen, per the comment
+above the call, because it reliably emits *short image prompts*; lore quality was never a criterion.
+Roughly 300 of that prompt's 355 lines are about bodies, skin, hair, fashion, pose and element
+visuals.
+
+**Compare what the three outputs actually get:**
+
+| | Names | Images | Lore |
+|---|---|---|---|
+| Specification | a naming bible per archetype | a 5-module engine | **42 words** |
+| Banned material | 25 banned tropes, injected | 265 negative terms | none |
+| Per-archetype voice | yes | yes | **none — all 11 identical** |
+| Anti-repetition | rotation, history, collision detection | seeded rolls | none |
+| Checked afterward | hard lock + collision warning | pure, truncation-ordered | **presence check only** |
+| Milestone markers | M4.5 | M4.6, M4.7, M4.0, image-first | **never had one** |
+
+A Necromancer and a Mech Pilot receive **identical** instructions for how to write their story. The
+Bible chapters carry no voice, tone, or prose-guidance field of any kind. And nothing inspects the
+lore after it comes back — no length check, no trope filter, no repetition tracking — even though
+that exact machinery already exists and runs for names.
+
+That is why the lore is bad. Not because the model is weak: because nobody has ever told it what
+good looks like.
+
+### The one leak worth knowing about
+
+Lore prose never reaches the image. But lore-*derived* data does, through `storyMotifs` — 4 to 8
+concrete objects and symbols Claude infers from the player's Story Pillar answers. It is the only
+channel carrying the player's choices into their picture.
+
+**It sits third from last in the prompt**, inside a block whose own comment reads *"lower-priority
+tail — truncates harmlessly."* The prompt is capped at 1450 characters, with the element palette,
+identity, pose, weapon, companion, wardrobe and background all ahead of it.
+
+**So the thing the player actually chose is usually cut before it reaches Leonardo.** If the cards
+have ever felt disconnected from the answers that made them, this is the most likely reason, and
+it is a small fix rather than a rewrite.
+
+### How we fix the lore
+
+The route is not "write a better sentence." Names already solved this problem, and lore was simply
+never given the same apparatus. Give it that apparatus.
+
+1. **A voice per archetype.** Tense, register, and what this archetype's prose is *about* —
+   Necromancers speak in elegy, Androids in clipped declaratives. Added as a field on the Bible
+   chapter, which today has no such field. The Seraph path anchors already prove per-archetype
+   narrative anchoring works; it was never generalised to the other ten. **Authored with the Lore
+   Director**, not invented in code.
+2. **Banned tropes and worked examples.** Names get 25 banned tropes and a four-point self-check.
+   Two good and two bad examples per archetype will do more than any amount of adjective.
+3. **Get lore out of the image prompt.** Its own call with a real system prompt, or at minimum a
+   system prompt and a lower temperature. One line riding inside a 355-line prompt about faces, at
+   temperature 1, is the current arrangement.
+4. **Reconsider the model for this call.** Haiku was picked to keep image prompts short. That
+   reason does not apply to prose.
+5. **Check the lore after it is written** — length, tropes, and repetition across cards, reusing
+   the tracking that already runs for names.
+6. **Give `services/loreEngine/` some code.**
+
+### Where this is going — questions that build the character
+
+Right now the forge asks two visibly different kinds of question. Story Pillars — 45 hand-authored
+questions about who you are — come at one stage. The visual questions, generated from the weapon
+and companion pools, come at another. **You can feel the seam**, and the seam is what makes it feel
+like filling in a form rather than making someone.
+
+**The direction: one flow, where you cannot tell which is which.** Every question reads as story.
+Some quietly pin the picture, some feed the writing, and many do both. The player is answering
+questions about a person, and a character is assembling itself behind the answers.
+
+**The prototype already exists.** `data/imageQuestionScaffold.ts` holds 30 questions and 100 options
+across all 11 archetypes, and every option carries a hidden image directive — the text reads as
+story, the directive silently pins the portrait. Nothing imports it except its own test. It was
+built as an idea-starter and it proves the shape works.
+
+**What it would actually take**, honestly: merging 30 scaffold questions against 45 live Story
+Pillars plus the generated visual set. The Story Pillar answers also feed the rare-element
+eligibility gate, so they cannot simply be replaced. It is a real design pass, not a wiring job.
+
