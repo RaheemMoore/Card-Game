@@ -1,5 +1,5 @@
 import type { BattleState } from '../../types/combat';
-import { computeHeroLaneXPercents } from './PartyDock';
+import { computeDockCardXPercents, DOCK_CARD_POINT_Y } from './PartyDock';
 
 /**
  * Where things are on the battlefield, as percentages of the combat viewport.
@@ -9,9 +9,13 @@ import { computeHeroLaneXPercents } from './PartyDock';
  * consumer had no option but to copy them — and a copied anchor drifts off
  * the sprites the moment either side is tweaked.
  *
- * Hero X is NOT a constant: lanes sit right of the party dock and the dock's
- * width is fluid, so it must come from `computeHeroLaneXPercents()` — the
- * same function HeroSpriteLayer positions with.
+ * Hero X is NOT a constant: the cards sit in a fanned dock whose card width is
+ * fluid, so it must come from `computeDockCardXPercents()` — the same layout
+ * maths PartyDock itself positions with.
+ *
+ * The hero anchor moved from the arena FLOOR to the DOCK when the pixel hero
+ * sprites were removed. Blows now travel to the card, which rises to meet
+ * them; a beam still aimed at the old floor lanes would land on empty stone.
  */
 export interface Point {
   x: number;
@@ -21,8 +25,14 @@ export interface Point {
 /** Boss sprite's approximate centre of mass. */
 export const BOSS_POINT: Point = { x: 50, y: 34 };
 
-/** Hero chest height — where a blow reads as landing, not the floor line. */
-export const HERO_POINT_Y = 74;
+/**
+ * Where a blow lands on a hero, vertically.
+ *
+ * Re-exported from PartyDock rather than declared here so the dock owns its
+ * own geometry — this file describes RELATIONSHIPS between points, not where
+ * the dock happens to sit.
+ */
+export const HERO_POINT_Y = DOCK_CARD_POINT_Y;
 
 export interface ImpactAnchors {
   from: Point;
@@ -48,8 +58,8 @@ export function resolveImpactAnchors(
   const heroIndex = state.heroes.findIndex((h) => h.actorId === heroActorId);
   if (heroIndex === -1) return null;
 
-  const laneX = computeHeroLaneXPercents(viewportWidth);
-  const heroPoint: Point = { x: laneX[heroIndex] ?? 50, y: HERO_POINT_Y };
+  const cardX = computeDockCardXPercents(viewportWidth);
+  const heroPoint: Point = { x: cardX[heroIndex] ?? 50, y: HERO_POINT_Y };
 
   return {
     from: sourceIsBoss ? BOSS_POINT : heroPoint,

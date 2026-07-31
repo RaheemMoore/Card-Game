@@ -99,6 +99,39 @@ export function BattleControls({
       {/* Seam — a thin inset rule instead of a second frame boundary */}
       <div aria-hidden style={{ width: 1, height: 44, background: 'rgba(128,79,33,0.5)' }} />
 
+      {/* STRIKE — the free basic attack, and the only way to actively refill
+          the party's resource. It needs to sit beside End Turn rather than in
+          the ability list: it is not an ability (no cost, no cooldown, no
+          slot), and burying it among things that cost resource would hide the
+          one action that GENERATES it. */}
+      <button
+        type="button"
+        onClick={() => canAct && onSubmit({ kind: 'strike' })}
+        disabled={!canAct}
+        aria-label="Strike — a free basic attack that adds to the party's resource"
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        style={{
+          width: 'clamp(64px, 7vw, 88px)',
+          height: 58,
+          borderRadius: 6,
+          border: '2px solid #7a5530',
+          background: canAct
+            ? 'linear-gradient(to bottom, #2a1d12, #17100a)'
+            : 'linear-gradient(to bottom, #16120f, #0d0a08)',
+          color: canAct ? '#e8d6b2' : '#6b6058',
+          cursor: canAct ? 'pointer' : 'not-allowed',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+          marginRight: 'clamp(6px, 1.1vw, 12px)',
+        }}
+      >
+        <span style={{ fontSize: 14, letterSpacing: 1.2 }}>STRIKE</span>
+        <span style={{ fontSize: 8, letterSpacing: 1, color: '#8ab87d' }}>+RESOURCE</span>
+      </button>
+
       {/* End Turn button — gradient border, unchanged visual language.
           P1: one click ends the whole party turn (all pending heroes guard).
           Label + aria communicate that so users don't have to guess. */}

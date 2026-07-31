@@ -3,7 +3,9 @@ import type { HeroCombatant, AbilityCombatSnapshot } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
+import { AbilityCommandStrip } from '../../components/abilities';
 import { PaintedPanel } from './PaintedPanel';
+import type { AbilityCommandState, AbilityTier } from '../../components/abilities/types';
 
 interface Props {
   hero: HeroCombatant;
@@ -25,17 +27,36 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
 };
 
 /**
- * Ability Command Bar — three fixed slots, 170×72, rendered through
- * `PaintedPanel.tsx`'s painted 9-slice frame. Selected state is driven by
- * `pending` (border width, lift, glow) rather than a preset swap.
+ * Ability Command Bar — ONE framed button that opens the hero's ability list.
  *
- * The armed-ability preview + Confirm/Cancel used to expand as a popover
- * above the clicked slot; that content now lives in the persistent
- * AbilityCodexPanel (a shelf zone of its own) so it never occludes the
- * arena and stays visible even while just hovering, not arming.
+ * ── Why a button and not a row of tiles ──────────────────────────────────
+ * This was three large tiles side by side: the widest, heaviest thing on the
+ * command shelf, while the hero CARDS — which are the characters — were the
+ * smallest thing on screen. The shelf is now cards-centre / abilities-left,
+ * and abilities pay for that in room.
+ *
+ * A stacked list was tried first and rejected on sight: three rows crammed
+ * into the shelf read as a debug dump, and growing the shelf to fit them
+ * wrecked the frame's proportions. So the resting state is a single control
+ * wearing the SAME `PaintedPanel` treatment the old tiles had, and the detail
+ * opens upward over the arena. The shelf's height never changes.
+ *
+ * The list rows are `components/abilities/AbilityCommandStrip`, the
+ * Figma-canonical (node 11:143) row that already existed and that
+ * `CodexFamily` already stacks. Battle used to re-implement the same control
+ * with its own tile, its own state ladder, and private copies of
+ * `isDenied`/`artUrl` — so a state added to the canonical component never
+ * reached combat, and vice versa.
+ *
+ * The armed-ability preview + Confirm/Cancel still live in the persistent
+ * AbilityCodexPanel, which is why the rows here carry a status line rather
+ * than a full description.
  */
 export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbility }: Props) {
   const store = getAbilityStore();
+  /** Resting state is the slim list; expanding lifts a fuller list above the
+   *  shelf. Collapsed by default so a turn costs no extra click. */
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if (!pendingId) return;
@@ -46,7 +67,12 @@ export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbi
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onArm(null);
+      if (e.key !== 'Escape') return;
+      // Escape already cancelled an armed ability; it now also closes the
+      // expanded list, which is the convention every other disclosure in the
+      // battle UI follows.
+      onArm(null);
+      setExpanded(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -62,44 +88,199 @@ export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbi
     [hero],
   );
 
+  const rows = () =>
+    slots.map(({ slot, ability }) => (
+      <AbilityRow
+        key={slot}
+        slot={slot}
+        ability={ability}
+        hero={hero}
+        disabled={disabled}
+        pending={ability ? pendingId === ability.definitionId : false}
+        artUrl={ability ? artUrl(store, ability) : null}
+        onClick={() => {
+          if (!ability) return;
+          if (isDenied(hero, ability, disabled)) return;
+          onArm(pendingId === ability.definitionId ? null : ability.definitionId);
+        }}
+        onHover={(hovered) => onHoverAbility(hovered ? ability ?? null : null)}
+      />
+    ));
+
+  const armed = pendingId
+    ? hero.snapshot.abilities.find((a) => a.definitionId === pendingId) ?? null
+    : null;
+  const readyCount = hero.snapshot.abilities.filter((a) => !isDenied(hero, a, disabled)).length;
+  const armedArt = armed ? artUrl(store, armed) : null;
+
   return (
-    <div className="relative" style={{ zIndex: 25 }}>
-      <div
-        className={`flex items-center transition-opacity duration-200 ${
-          disabled ? 'opacity-45' : 'opacity-100'
-        }`}
-        style={{ gap: 'clamp(10px, 2.2vw, 24px)' }}
-        aria-label="Ability command bar"
-        aria-hidden={disabled}
-      >
-        {slots.map(({ slot, ability }) => (
-          <AbilitySlot
-            key={slot}
-            slot={slot}
-            ability={ability}
-            hero={hero}
-            disabled={disabled}
-            pending={ability ? pendingId === ability.definitionId : false}
-            artUrl={ability ? artUrl(store, ability) : null}
-            onClick={() => {
-              if (!ability) return;
-              if (isDenied(hero, ability, disabled)) return;
-              onArm(pendingId === ability.definitionId ? null : ability.definitionId);
-            }}
-            onHover={(hovered) => onHoverAbility(hovered ? ability ?? null : null)}
+    <div
+      className={`relative flex items-center transition-opacity duration-200 ${
+        disabled ? 'opacity-45' : 'opacity-100'
+      }`}
+      aria-label="Ability command bar"
+      aria-hidden={disabled}
+    >
+      {/*
+        The LIST — an overlay that opens UPWARD out of the shelf rather than
+        making the shelf taller. The shelf height is fixed; stretching it to
+        fit a list wrecked the frame's proportions.
+
+        Rendered inside the (relative) ability zone rather than as a sibling of
+        the shelf: it only has to clear the shelf's own chrome, and the zone is
+        on the far left while the dock is centred, so there is nothing above it
+        for it to occlude.
+      */}
+      {expanded && (
+        <>
+          {/* Click-away. Covers the viewport beneath the panel so choosing
+              "not this" costs one click anywhere, which is how every other
+              disclosure in this UI behaves. */}
+          <div
+            className="fixed inset-0"
+            style={{ zIndex: 4 }}
+            onClick={() => setExpanded(false)}
+            aria-hidden
           />
-        ))}
-      </div>
+          <div
+            id="ability-expanded-list"
+            role="dialog"
+            aria-label="Abilities"
+            className="absolute flex flex-col"
+            style={{
+              left: 0,
+              // Wider than the trigger. The explanations are the point of
+              // opening this, and they do not fit the button's width.
+              width: 'clamp(300px, 30vw, 380px)',
+              bottom: 'calc(100% + 10px)',
+              gap: 6,
+              zIndex: 5,
+              // Opaque backing — this floats over the arena, and the strips are
+              // translucent enough that lava read straight through them.
+              background: 'rgba(6,7,8,0.94)',
+              border: '1px solid rgba(128,79,33,0.55)',
+              borderRadius: 8,
+              padding: 8,
+              boxShadow: '0 -8px 24px rgba(0,0,0,0.7)',
+            }}
+          >
+            {rows()}
+          </div>
+        </>
+      )}
+
+      {/* The trigger — ONE painted frame, the same treatment the three ability
+          tiles used to have. Three stacked rows crammed into the shelf looked
+          like a debug list; a single framed control reads as part of the
+          chrome, and the detail lives behind a click. */}
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="ability-expanded-list"
+        aria-haspopup="dialog"
+        aria-label={
+          armed
+            ? `Abilities — ${armed.displayName} selected. Opens the ability list.`
+            : `Abilities — ${readyCount} ready. Opens the ability list.`
+        }
+        onClick={() => setExpanded((v) => !v)}
+        disabled={disabled}
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        style={{
+          background: 'transparent',
+          border: 'none',
+          padding: 0,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }}
+      >
+        <PaintedPanel
+          borderWidth={expanded || armed ? 10 : 7}
+          background={armed ? '#1b1108' : '#100c08'}
+          corners={false}
+          style={{
+            width: 'clamp(150px, 15vw, 200px)',
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '0 10px',
+            // A non-`none` transform is what gives PaintedPanel's absolutely
+            // positioned hairline and corners a containing block — it sets no
+            // `position` of its own by design. Same trick the old tiles used.
+            transform: expanded ? 'translateY(-2px)' : 'translateY(0)',
+            transition: 'transform 180ms, border-width 150ms, box-shadow 150ms',
+            boxShadow: armed
+              ? '0 0 18px rgba(235,150,46,0.5)'
+              : expanded
+                ? '0 0 12px rgba(235,150,46,0.35)'
+                : '0 0 8px rgba(194,120,38,0.22)',
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              flex: '0 0 auto',
+              width: 34,
+              height: 34,
+              borderRadius: 5,
+              border: '1px solid #7a5530',
+              overflow: 'hidden',
+              display: 'block',
+              background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)',
+            }}
+          >
+            {armedArt && (
+              <img
+                src={armedArt}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            )}
+          </span>
+
+          <span className="flex flex-col items-start" style={{ minWidth: 0, flex: 1 }}>
+            <span
+              style={{
+                fontSize: 13,
+                color: '#e8d6b2',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+              }}
+            >
+              {armed ? armed.displayName : 'Abilities'}
+            </span>
+            <span
+              style={{
+                fontSize: 9,
+                letterSpacing: 1.2,
+                color: armed ? '#eb962e' : readyCount > 0 ? '#8ab87d' : '#b06062',
+              }}
+            >
+              {armed ? 'SELECTED' : `${readyCount} READY`}
+            </span>
+          </span>
+
+          <span
+            aria-hidden
+            style={{
+              flex: '0 0 auto',
+              fontSize: 10,
+              color: '#c9884a',
+              transform: expanded ? 'rotate(180deg)' : 'none',
+              transition: 'transform 180ms',
+            }}
+          >
+            ▲
+          </span>
+        </PaintedPanel>
+      </button>
     </div>
   );
 }
 
-/**
- * A single ability slot — 170×72 per Figma (CommandShelf spec). The 220×82
- * standalone spec from CombatFrame/AbilitySlot is the "detail" variant used
- * for the palette board; the in-shelf variant is more compact.
- */
-function AbilitySlot({
+function AbilityRow({
   slot,
   ability,
   hero,
@@ -107,7 +288,7 @@ function AbilitySlot({
   pending,
   onClick,
   onHover,
-  artUrl,
+  artUrl: art,
 }: {
   slot: AbilitySlotType;
   ability: AbilityCombatSnapshot | undefined;
@@ -118,6 +299,7 @@ function AbilitySlot({
   onHover: (hovered: boolean) => void;
   artUrl: string | null;
 }) {
+  const [hovered, setHovered] = useState(false);
   const empty = !ability;
   const cooldownEntry = !empty
     ? hero.cooldowns.find((c) => c.abilityDefinitionId === ability!.definitionId)
@@ -126,234 +308,100 @@ function AbilitySlot({
   const short = !empty && hero.resource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
-  const [hovered, setHovered] = useState(false);
 
-  const nameColor = pending ? '#ebd9b2' : '#e8d6b2';
+  // Map combat state onto the canonical strip's state machine. `cooldown` is
+  // its own surface in the Figma matrix, distinct from plain `disabled`, so a
+  // recharging ability does not read the same as one you simply cannot afford.
+  const state: AbilityCommandState = pending
+    ? 'selected'
+    : onCd
+      ? 'cooldown'
+      : denied
+        ? 'disabled'
+        : hovered
+          ? 'hover'
+          : 'ready';
 
   const statusText = empty
     ? 'EMPTY'
     : onCd
-    ? `COOLDOWN (${cooldownEntry!.remainingRounds})`
-    : short
-    ? 'NO RESOURCE'
-    : notCharged
-    ? 'LOCKED'
-    : 'READY';
-  const statusColor =
-    statusText === 'READY' ? '#8ab87d' : statusText === 'LOCKED' ? '#c88a45' : '#b06062';
-  const slotBadge = { core: 'C', signature: 'S', ultimate: 'U' }[slot];
+      ? `COOLDOWN (${cooldownEntry!.remainingRounds})`
+      : short
+        ? 'NO RESOURCE'
+        : notCharged
+          ? 'LOCKED'
+          : 'READY';
+
+
+  const label = empty
+    ? `${SLOT_LABEL[slot]} slot — empty`
+    : `${SLOT_LABEL[slot]}: ${ability!.displayName}${
+        pending
+          ? ' — selected, use the ability panel to confirm or cancel'
+          : notCharged
+            ? ' — locked'
+            : denied
+              ? ` — unavailable: ${statusText}`
+              : ''
+      }`;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => {
-        setHovered(true);
-        if (!empty) onHover(true);
-      }}
-      onMouseLeave={() => {
-        setHovered(false);
-        onHover(false);
-      }}
-      onFocus={() => {
-        if (!empty) onHover(true);
-      }}
-      onBlur={() => onHover(false)}
-      disabled={denied}
-      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-      style={{ background: 'transparent', border: 'none', padding: 0, cursor: denied ? 'not-allowed' : 'pointer' }}
-      aria-label={
-        empty
-          ? `${SLOT_LABEL[slot]} slot — empty`
-          : `${SLOT_LABEL[slot]}: ${ability!.displayName}${pending ? ' — selected, use the ability panel to confirm or cancel' : notCharged ? ' — locked' : denied ? ` — unavailable: ${statusText}` : ''}`
-      }
-    >
-      {/* Thinner border (was 14/18px — too heavy for a 170×72 tile, it was
-          visually eating into the icon/text area) and a flex layout instead
-          of hand-tuned absolute offsets, so content can never sit under the
-          painted ring or spill past the tile regardless of border width. */}
-      <PaintedPanel
-        borderWidth={pending ? 10 : hovered && !denied ? 8 : 7}
-        background={pending ? '#1b1108' : '#100c08'}
-        style={{
-          width: 'clamp(112px, 16vw, 170px)',
-          height: 72,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '0 10px',
-          transform: pending ? 'translateY(-3px)' : 'translateY(0)',
-          transition: 'transform 200ms, border-width 150ms, box-shadow 150ms',
-          filter: empty
-            ? 'grayscale(0.6) brightness(0.7)'
-            : denied
-            ? 'brightness(0.75) saturate(0.7)'
-            : 'none',
-          boxShadow: pending
-            ? '0 0 18px rgba(235,150,46,0.5)'
-            : hovered && !denied
-            ? '0 0 12px rgba(235,150,46,0.35)'
-            : !denied
-            ? '0 0 8px rgba(194,120,38,0.22)'
-            : 'none',
-        }}
-      >
-        {/* Icon tile — fixed size, own dark frame, sits fully inside the
-            padded interior so it never overlaps the border ring. Slot type
-            and cost live here as small badges instead of a third text row,
-            which is what was cramming/overflowing the text column before. */}
-        <div aria-hidden style={{ position: 'relative', flex: '0 0 auto', width: 42, height: 42 }}>
-          <div
-            style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: 5,
-              overflow: 'hidden',
-              background: '#1a1210',
-              border: '1px solid #7a5530',
-              // Icon dims on its own opacity, not only the tile-wide filter —
-              // "do not rely on color alone" means the shape/brightness change
-              // has to read even if the amber/gray hue shift doesn't.
-              opacity: denied && !empty ? 0.5 : 1,
-            }}
-          >
-            {artUrl ? (
-              <img
-                src={artUrl}
-                alt=""
-                draggable={false}
-                aria-hidden
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)' }} />
-            )}
-          </div>
-          {/* Locked overlay — a real padlock glyph over the icon, not just a
-              text label, so "locked" reads as a distinct blocked state at a
-              glance rather than a dimmer flavor of "unavailable." */}
-          {notCharged && (
-            <div
+    <div aria-label={label} className="relative w-full">
+      <AbilityCommandStrip
+        size="compact"
+        tier={slot as AbilityTier}
+        state={empty ? 'disabled' : state}
+        displayName={empty ? '—' : ability!.displayName}
+        // Not rendered at compact density, but the prop is required and the
+        // value is the honest one, so switching this list back to the full
+        // strip needs no other change.
+        effectText={empty ? 'Empty slot' : statusText}
+        iconSlot={
+          art ? (
+            <img
+              src={art}
+              alt=""
               aria-hidden
               style={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: 5,
-                background: 'rgba(10,6,3,0.6)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 16,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: 'rotate(45deg) scale(1.45)',
+                opacity: denied ? 0.5 : 1,
               }}
-            >
-              🔒
-            </div>
-          )}
-          {/* Slot-type tag */}
-          <div
-            style={{
-              position: 'absolute',
-              top: -6,
-              left: -6,
-              width: 15,
-              height: 15,
-              borderRadius: '50%',
-              background: '#2c1c10',
-              border: '1px solid #c9a15a',
-              color: '#e8d6b2',
-              fontSize: 8,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {slotBadge}
-          </div>
-          {/* Cooldown badge — shape-based signal (a distinct amber ring with
-              the round count) instead of leaving cooldown to the status text
-              and color shift alone. */}
-          {onCd && (
+            />
+          ) : (
             <div
               style={{
-                position: 'absolute',
-                top: -6,
-                right: -6,
-                width: 15,
-                height: 15,
-                borderRadius: '50%',
-                background: '#2c1c0c',
-                border: '1px solid #b5792a',
-                color: '#f0c07a',
-                fontSize: 8,
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(135deg, #3a2612 0%, #1a1210 100%)',
               }}
-            >
-              {cooldownEntry!.remainingRounds}
-            </div>
-          )}
-          {/* Cost pip */}
-          {!empty && ability!.resourceCost > 0 && (
-            <div
-              style={{
-                position: 'absolute',
-                bottom: -6,
-                right: -6,
-                minWidth: 15,
-                height: 15,
-                padding: '0 3px',
-                borderRadius: 8,
-                background: '#0f2b3a',
-                border: '1px solid #4fa8c9',
-                color: '#bfe6f5',
-                fontSize: 8,
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {ability!.resourceCost}
-            </div>
-          )}
-        </div>
+            />
+          )
+        }
+        resource={
+          empty ? undefined : ability!.resourceType === 'mana' ? 'mana' : 'tech'
+        }
+        resourceCost={empty ? undefined : ability!.resourceCost}
+        onActivate={onClick}
+        onHoverChange={(h) => {
+          setHovered(h);
+          if (!empty) onHover(h);
+        }}
+      />
+      {/*
+        `AbilityCommandStateOverlay` is deliberately NOT used here.
 
-        {/* Text column — name + status only. Flex, not absolute-positioned,
-            so it can't spill past the tile no matter how long the name is. */}
-        <div style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <div
-            style={{
-              color: nameColor,
-              fontSize: 12,
-              fontWeight: 600,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {ability?.displayName ?? '—'}
-          </div>
-          <div
-            style={{
-              color: statusColor,
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: 0.6,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {pending ? 'SELECTED' : statusText}
-          </div>
-        </div>
-      </PaintedPanel>
-    </button>
+        It is a full-bleed veil sized for the canonical 360×92 strip, and over a
+        52px row it covered the icon and the ability's NAME — so a locked slot
+        read as an anonymous "LOCKED" bar and the player could not tell which
+        ability they were waiting on. The strip's own `disabled` / `cooldown`
+        surfaces already tint the row, and the status line below the name spells
+        the reason out in words, so the veil added a colour and removed the
+        information.
+      */}
+    </div>
   );
 }
 

@@ -15,13 +15,13 @@ import { BossStage } from './BossStage';
 import { ArenaShakeLayer } from './ArenaShakeLayer';
 import { ArenaAmbience } from './ArenaAmbience';
 import { ImpactFlash } from './ImpactFlash';
-import { HeroSpriteLayer } from './HeroSpriteLayer';
 import { PartyDock, computePartyDockWidth } from './PartyDock';
 import { useViewportWidth } from './useViewportWidth';
 import { AbilityCommandBar } from './AbilityCommandBar';
 import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
+import { PartyResourceVessel } from './PartyResourceVessel';
 import { CombatGuideModal } from './CombatGuideModal';
 import { PaintedPanel } from './PaintedPanel';
 import { CardSheet } from '../../components/CardSheet';
@@ -50,11 +50,13 @@ interface Props {
  * shelf's bottom-left corner. The card art rises above the shelf's own top
  * edge into the arena (a hand of cards peeking up from behind the frame) —
  * only the HP/MP/ultimate readout underneath stays inside the shelf band.
- * A separate HeroSpriteLayer stands in the arena floor band above the
- * shelf as the actual combat-reactive presence (shake/lunge/floating-damage/
- * shield-ring/low-HP tint/status pills) — it's purely presentational and
- * echoes the dock's acting/targetable state rather than owning any of it;
- * the dock cards remain the only click targets.
+ * The CARD IS THE CHARACTER. There is no hero sprite on the arena floor any
+ * more — a `HeroSpriteLayer` used to stand there as the combat-reactive
+ * presence while the real painted portrait sat inert in the dock, which meant
+ * two representations of the same hero competing on screen and the worse one
+ * doing the acting. The dock card now carries all of it: it rises to act,
+ * rises again to take a blow, cracks as it loses HP, and turns face-down when
+ * it falls.
  */
 export function CombatScene({
   state,
@@ -234,21 +236,21 @@ export function CombatScene({
 
         </>}
         foreground={<>
-        {/* Hero pixel sprites, standing in the arena floor band above the
-            shelf. Purely presentational (see HeroSpriteLayer.tsx docstring) —
-            echoes the dock's acting/targetable state, doesn't own it. */}
-        <HeroSpriteLayer
-          heroes={state.heroes}
-          actingActorId={actingHero.actorId}
-          canAct={canAct}
-          currentBeat={currentBeat}
-          targetPickMode={needsTargetPick ? { pickableActorIds } : null}
-          motionLevel={motionLevel}
-        />
+        {/* The hero pixel sprites that used to stand on the arena floor are
+            GONE. The hero's card in the dock is the character now: it rises
+            when it acts, rises again to take a blow, cracks as it loses HP,
+            and turns face-down when it falls. Two representations of the same
+            hero competing on screen was the problem — and the painted card
+            portrait is far better art than a 32px chibi ever was.
+
+            Consequences handled elsewhere, worth knowing about from here:
+              - combatAnchors now aims hero-side VFX at the DOCK, not the floor.
+              - the boss's target is shown by brackets on the named card
+                (PartyDock), which is the job the sprites used to do. */}
 
         {/* Attack VFX (bolt + impact burst). Inside the wrapper so beams stay
-            welded to the sprites they are anchored to — outside it, a heavy
-            hit would shake the fighters out from under their own beam. */}
+            welded to what they are anchored to — outside it, a heavy hit would
+            shake the combatants out from under their own beam. */}
         <AttackVFX state={state} currentBeat={currentBeat} />
         </>}
       />
@@ -272,26 +274,33 @@ export function CombatScene({
           nothing overlaps down to tablet-landscape widths. */}
       <PaintedPanel
         className="absolute inset-x-0 bottom-0 flex items-center"
-        style={{ height: '8.5rem', zIndex: 15, boxShadow: '0px -8px 24px rgba(0,0,0,0.55)' }}
+        style={{
+          // 8.5rem / 136px, unchanged and NOT to be grown. Briefly taken to
+          // 11.5rem to fit a stacked ability list; that ruined the proportions
+          // of the frame. The ability list is responsible for fitting inside
+          // this height and expanding UPWARD as an overlay when it needs more
+          // room — the shelf does not stretch for it.
+          height: '8.5rem',
+          zIndex: 15,
+          boxShadow: '0px -8px 24px rgba(0,0,0,0.55)',
+        }}
         borderWidth={10}
         background="#060708"
       >
-        {/* Reserves the horizontal space the (absolutely-positioned) party
-            dock occupies, so the ability bar/controls never sit under it.
-            MUST use the same computePartyDockWidth() call PartyDock itself
-            uses — that's the single source of truth keeping the two in
-            sync (see PartyDock.tsx docstring). */}
-        <div aria-hidden style={{ flex: `0 0 ${partyDockWidth}px` }} />
-
-        <ShelfSeam />
-
-        {/* Ability slots. The explanation popover floats above this zone but
-            is rendered outside the shelf entirely (see abilityZoneRef) so the
-            hero sprites can't paint over it. */}
+        {/* Abilities, LEFT. A compact vertical list — the cards are the
+            characters now and get the centre; the ability menu gives up the
+            width for them. The explanation popover floats above this zone but
+            is rendered outside the shelf entirely (see abilityZoneRef) so
+            nothing in the arena can paint over it. */}
         <div
           ref={abilityZoneRef}
-          className="relative flex-1 flex items-center justify-center min-w-0"
-          style={{ height: '100%', paddingLeft: 'clamp(8px, 1.8vw, 24px)', paddingRight: 'clamp(8px, 1.8vw, 24px)' }}
+          className="relative flex items-center min-w-0"
+          style={{
+            flex: '0 0 clamp(210px, 20vw, 280px)',
+            height: '100%',
+            paddingLeft: 'clamp(8px, 1.4vw, 18px)',
+            paddingRight: 'clamp(8px, 1.4vw, 18px)',
+          }}
         >
           <AbilityCommandBar
             hero={actingHero}
@@ -301,6 +310,35 @@ export function CombatScene({
             onHoverAbility={setHoveredAbility}
           />
         </div>
+
+        <ShelfSeam />
+
+        {/* The party's shared resource, in the gap that used to be empty
+            between the ability control and the cards. Deliberately adjacent to
+            the abilities: it is the thing they are paid for with. */}
+        <div
+          className="flex items-center justify-center"
+          style={{
+            flex: '0 0 clamp(140px, 14vw, 190px)',
+            height: '100%',
+            paddingLeft: 'clamp(6px, 1vw, 14px)',
+            paddingRight: 'clamp(6px, 1vw, 14px)',
+          }}
+        >
+          <PartyResourceVessel state={state} motionLevel={motionLevel} />
+        </div>
+
+        <ShelfSeam />
+
+        {/* Centre — reserves the horizontal space the (absolutely-positioned)
+            party dock occupies so nothing sits under it. The two flexible
+            gutters either side are what actually CENTRE the reservation, and
+            the dock computes its own `left` from the same viewport width, so
+            the two agree without either measuring the other.
+            MUST use the same computePartyDockWidth() PartyDock uses. */}
+        <div aria-hidden style={{ flex: '1 1 0', minWidth: 0 }} />
+        <div aria-hidden style={{ flex: `0 0 ${partyDockWidth}px` }} />
+        <div aria-hidden style={{ flex: '1 1 0', minWidth: 0 }} />
 
         <ShelfSeam />
 

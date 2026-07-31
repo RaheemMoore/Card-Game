@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { BattleState } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import type { DamageType } from '../../types/abilities';
-import { computeHeroLaneXPercents } from './PartyDock';
+import { resolveImpactAnchors } from './combatAnchors';
 import { useViewportWidth } from './useViewportWidth';
 
 interface Props {
@@ -15,15 +15,9 @@ interface Point {
   y: number;
 }
 
-/** Approximate anchor points (% of the arena container) matching where
- *  BossStage and HeroSpriteLayer actually render their sprites. Not
- *  pixel-perfect — this is a stylized arcade zap, not a physics sim.
- *  Hero X lanes are NOT static — they must match
- *  `computeHeroLaneXPercents()` (the same function HeroSpriteLayer uses),
- *  since the lanes shift right of the party dock and the dock's width is
- *  itself fluid. See that function's docstring in `PartyDock.tsx`. */
-const BOSS_POINT: Point = { x: 50, y: 34 };
-const HERO_POINT_Y = 74;
+/* Anchor points used to live here as local constants. They now come from
+ * `combatAnchors.ts`, which is the single source both this layer and the
+ * impact flash read — see `resolveImpactAnchors`. */
 
 const ELEMENT_COLOR: Record<DamageType, string> = {
   physical: '#e8d6b2',
@@ -66,13 +60,12 @@ export function AttackVFX({ state, currentBeat }: Props) {
     if (e.kind !== 'damage_dealt') return;
     lastBeatId.current = currentBeat.id;
 
-    const heroLaneX = computeHeroLaneXPercents(viewportWidth);
-    const sourceIsBoss = e.sourceActorId === state.boss.actorId;
-    const heroActorId = sourceIsBoss ? e.targetActorId : e.sourceActorId;
-    const heroIndex = state.heroes.findIndex((h) => h.actorId === heroActorId);
-    const heroPoint: Point = { x: heroLaneX[heroIndex] ?? 50, y: HERO_POINT_Y };
-    const from = sourceIsBoss ? BOSS_POINT : heroPoint;
-    const to = sourceIsBoss ? heroPoint : BOSS_POINT;
+    // Shared resolver rather than a second copy of the anchor maths. This file
+    // used to recompute the hero point itself, which is exactly how an anchor
+    // drifts off its target when one side is tweaked.
+    const anchors = resolveImpactAnchors(state, e.sourceActorId, e.targetActorId, viewportWidth);
+    if (!anchors) return;
+    const { from, to, sourceIsBoss } = anchors;
     const color = ELEMENT_COLOR[e.damageType] ?? ELEMENT_COLOR.physical;
     const heavy = sourceIsBoss && currentBeat.severity === 'heavy';
 

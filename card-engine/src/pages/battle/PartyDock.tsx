@@ -4,6 +4,7 @@ import type { HeroCombatant } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import { CardRenderer } from '../../components/CardRenderer';
 import { useViewportWidth, clampNum } from './useViewportWidth';
+import { CardCracks, CardTargetMark, CardCombatFxStyles } from './CardCombatFx';
 
 interface TargetPickMode {
   pickableActorIds: string[];
@@ -37,44 +38,100 @@ const NATIVE_H = 470;
  *  helper and the shared `useViewportWidth()` hook (same idiom `useIsMobileCombatLayout`
  *  already uses in `CombatViewport.tsx`). */
 function cardWidth(viewportWidth: number): number {
-  return clampNum(96, 0.115, 168, viewportWidth);
+  // Grown from clamp(96, 0.115, 168). The cards are the characters now — they
+  // rise, tilt, crack and flip — and they were the SMALLEST element on screen
+  // while three ability tiles were the largest. The ability bar gave up the
+  // width for this (see AbilityCommandBar).
+  //
+  // The CAP is held down deliberately. Card height is width × 470/326, and the
+  // dock is now centred directly beneath a centre-anchored boss — at a 204px
+  // cap the fan stood ~294px tall and crossed his feet and dais. 176 keeps the
+  // top of the fan below that line.
+  return clampNum(112, 0.125, 176, viewportWidth);
 }
 /** Fan overlap, kept at the same ~0.357 ratio to card width as the original
  *  fixed 60/168 so the fan's proportions don't change shape as it shrinks. */
 function cardOverlap(viewportWidth: number): number {
-  return clampNum(34, 0.041, 60, viewportWidth);
+  // Loosened from clamp(34, 0.041, 60). The old fan was tuned for cards that
+  // never moved; at that overlap the third card was almost entirely hidden and
+  // a card rising to act or to take a blow travelled THROUGH its neighbours.
+  // A hand of cards still reads as a fan at this spacing, and all three stay
+  // legible.
+  return clampNum(20, 0.024, 38, viewportWidth);
 }
 
-/** Horizontal space CombatScene reserves so the ability bar / controls never
- *  sit under the (absolutely-positioned) fanned cards. MUST be called with
- *  the same `viewportWidth` PartyDock itself uses — CombatScene and
- *  PartyDock sharing this one function is what keeps the reserved spacer
- *  and the dock's actual rendered width in sync; if they ever compute this
- *  independently, the ability bar will slide back under the dock. */
+/** Width of the fanned card row itself, ignoring slack. */
+export function fanWidth(viewportWidth: number): number {
+  return Math.round(3 * cardWidth(viewportWidth) - 2 * cardOverlap(viewportWidth));
+}
+
 export function computePartyDockWidth(viewportWidth: number): number {
-  const w = cardWidth(viewportWidth);
-  const overlap = cardOverlap(viewportWidth);
-  return Math.round(3 * w - 2 * overlap) + 36;
+  // The slack is NOT decoration. Three things push the cards past their layout
+  // box and none of them are visible to flex:
+  //   - the fan tilt, `rotate(±6deg)`, grows the visual bbox by ~(h·sin6)/2
+  //     per side — about 13px at these card heights;
+  //   - the acting card's `drop-shadow(0 0 16px …)` gold bloom;
+  //   - `.card-acting` / `.card-struck`, which lift and lean the card.
+  // With the old 36px of slack the fan visibly crossed into the ability tiles.
+  // Do not trim this back to "the cards fit" — they fit, and then they move.
+  return fanWidth(viewportWidth) + 56;
 }
 
-/** Hero-sprite lane center-points, as a percentage of the full arena width
- *  (the arena is full-viewport, so `viewportWidth` doubles as the arena's
- *  own width). The sprites live entirely to the right of the reserved dock
- *  width so they never sit behind/overlap the fanned mini-cards — the
- *  lanes fill the open floor space to the right of the dock, not the whole
- *  arena width. `AttackVFX.tsx`'s beam anchors MUST call this same
- *  function (with the same `viewportWidth`) rather than hardcoding their
- *  own percentages, or the bolts will drift off the sprites the moment
- *  either side changes independently. */
-export function computeHeroLaneXPercents(viewportWidth: number): [number, number, number] {
-  const dockRight = computePartyDockWidth(viewportWidth) + 16; // dock + a small gutter
-  const rightGutter = 16;
-  const regionLeft = dockRight;
-  const regionRight = viewportWidth - rightGutter;
-  const regionWidth = Math.max(0, regionRight - regionLeft);
-  const centers = [regionLeft + regionWidth / 6, regionLeft + (regionWidth * 3) / 6, regionLeft + (regionWidth * 5) / 6];
+/**
+ * Left edge of the card fan, in px — CENTRED in the viewport.
+ *
+ * The dock used to be pinned to `left: 24`. The cards are the characters now,
+ * so they take the middle of the shelf and the ability list moved left.
+ *
+ * The shelf centres its matching reservation with two flexible gutters rather
+ * than measuring this, and both derive from the same `viewportWidth`, so they
+ * agree without either one observing the other.
+ */
+export function dockLeft(viewportWidth: number): number {
+  return Math.round((viewportWidth - fanWidth(viewportWidth)) / 2);
+}
+
+/**
+ * Centre of each hero CARD in the dock, as a percentage of arena width.
+ *
+ * This replaces `computeHeroLaneXPercents` as the hero-side anchor for combat
+ * VFX. The floor sprites those lanes described are gone — the card in the dock
+ * IS the hero now, so a blow has to travel to the card, and it must be the
+ * card the player watches rise to meet it.
+ *
+ * Derived from the dock's own layout constants rather than eyeballed, so the
+ * anchors cannot drift when the fluid card width changes: the container sits
+ * at `left: DOCK_LEFT`, cards are laid out in a row from there, and each
+ * subsequent card is inset by the fan overlap.
+ */
+export function computeDockCardXPercents(viewportWidth: number): [number, number, number] {
+  const w = cardWidth(viewportWidth);
+  const step = w - cardOverlap(viewportWidth);
+  // Reads `dockLeft()` rather than a constant, so re-positioning the dock
+  // re-aims every hero-side VFX beam automatically. `combatAnchors.ts`
+  // consumes this; if it ever disagrees with the dock's actual left edge, the
+  // boss's attacks land on empty floor.
+  const left = dockLeft(viewportWidth);
+  const centers = [0, 1, 2].map((i) => left + i * step + w / 2);
   return centers.map((px) => (px / viewportWidth) * 100) as [number, number, number];
 }
+
+/**
+ * Vertical anchor for a blow landing on a card, as a percentage of arena
+ * height — the card's face once it has RISEN to take the hit, not where it
+ * rests in the fan.
+ *
+ * A constant rather than a measurement, matching the convention the old
+ * `HERO_POINT_Y` used: the dock is bottom-anchored and the card art is a fixed
+ * proportion of it, so this only needs re-tuning if the dock's own geometry
+ * changes. Aimed slightly high on purpose — an impact reads better on the
+ * portrait than on the stat band at the card's foot.
+ */
+export const DOCK_CARD_POINT_Y = 76;
+
+/* `computeHeroLaneXPercents` lived here — the floor lanes the hero sprites
+ * stood in. Removed with the sprites themselves; `computeDockCardXPercents`
+ * above is its replacement, and it points at the cards instead. */
 
 /**
  * Docked party — real cards (fanned, overlapped) anchored to the left of
@@ -99,7 +156,19 @@ export function PartyDock({
   const cardH = Math.round((cardW / NATIVE_W) * NATIVE_H);
   const cardScale = cardW / NATIVE_W;
   const overlap = cardOverlap(viewportWidth);
-  const dockWidth = computePartyDockWidth(viewportWidth);
+
+  /**
+   * Who the boss has named this round.
+   *
+   * Once the hero sprites come off the floor, NOTHING else on screen shows who
+   * is about to be hit — the attack used to visibly travel to a specific
+   * chibi. Read off the telegraph beat rather than live state so the mark
+   * appears with the warning the player is being given, not before it.
+   */
+  const markedActorIds =
+    currentBeat?.event.kind === 'boss_intent_declared'
+      ? currentBeat.event.intent.targetActorIds
+      : [];
 
   return (
     <div
@@ -107,7 +176,16 @@ export function PartyDock({
       role="group"
       aria-label="Party"
       className="absolute flex flex-col justify-end"
-      style={{ left: 24, bottom: 14, zIndex: 20, width: dockWidth - 24 }}
+      style={{
+        left: dockLeft(viewportWidth),
+        bottom: 14,
+        // Above the arena's world content (z 21). The player's hand belongs in
+        // FRONT of the scene — now that the cards are centred they overlap the
+        // boss's lower body, and at the old z 20 he painted over them, which
+        // read as a rendering bug rather than as depth.
+        zIndex: 22,
+        width: fanWidth(viewportWidth),
+      }}
       onKeyDown={(e) => {
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
         const buttons = Array.from(
@@ -120,9 +198,13 @@ export function PartyDock({
         buttons[next]?.focus();
       }}
     >
+      <CardCombatFxStyles />
       {/* Row 1 — fanned card art. Overlap is purely visual (a hand of
-          cards); it rises above the shelf's top edge on purpose. */}
-      <div className="flex items-end">
+          cards); it rises above the shelf's top edge on purpose.
+          `dock-stage` carries the shared perspective: set per card instead,
+          every card gets its own vanishing point and the fan stops reading as
+          one hand. */}
+      <div className="flex items-end dock-stage">
         {heroes.map((combatant, i) => {
           const card = partyCards[i];
           if (!card) return null;
@@ -135,7 +217,11 @@ export function PartyDock({
               style={{
                 marginLeft: i === 0 ? 0 : -overlap,
                 zIndex: isActing ? 10 : i,
-                transform: isActing ? 'translateY(-14px) rotate(0deg)' : `translateY(0) rotate(${tilt}deg)`,
+                // Fan tilt ONLY. The lift used to live here too, but
+                // `.card-acting` now owns rising and leaning into the arena —
+                // keeping both would translate the card twice and it would
+                // float above its own glow.
+                transform: `rotate(${isActing ? 0 : tilt}deg)`,
                 transition: 'transform 250ms ease-out',
               }}
             >
@@ -149,6 +235,7 @@ export function PartyDock({
                 canAct={canAct}
                 currentBeat={currentBeat}
                 pickable={pickable}
+                marked={markedActorIds.includes(combatant.actorId)}
                 onSelect={() => onSelectActor(combatant.actorId)}
                 onPick={targetPickMode ? () => targetPickMode.onPick(combatant.actorId) : null}
                 onOpen={() => onOpenCard(card, combatant)}
@@ -164,7 +251,20 @@ export function PartyDock({
       <div className="flex justify-center" style={{ gap: 6, marginTop: 4 }}>
         {heroes.map((combatant, i) => {
           if (!partyCards[i]) return null;
-          return <DockStats key={combatant.actorId} combatant={combatant} currentBeat={currentBeat} />;
+          return (
+            <DockStats
+              key={combatant.actorId}
+              combatant={combatant}
+              currentBeat={currentBeat}
+              // Derived from the card, not a fixed 108. Three fixed columns
+              // plus gaps came to 336px inside a 326px dock at narrow
+              // viewports, and because the row is `justify-center` with
+              // non-shrinkable children it spilled ~5px out each side — the
+              // one genuine layout overflow behind the "cards overlap the
+              // abilities" report.
+              width={Math.max(72, Math.floor((fanWidth(viewportWidth) - 12) / 3))}
+            />
+          );
         })}
       </div>
     </div>
@@ -178,6 +278,7 @@ function DockCardVisual({
   canAct,
   currentBeat,
   pickable,
+  marked,
   onSelect,
   onPick,
   onOpen,
@@ -191,6 +292,9 @@ function DockCardVisual({
   canAct: boolean;
   currentBeat: AnimationBeat | null;
   pickable: boolean;
+  /** The boss's telegraph names this hero — the only "who is about to be hit"
+   *  signal left once the floor sprites are gone. */
+  marked: boolean;
   onSelect: () => void;
   onPick: (() => void) | null;
   onOpen: () => void;
@@ -225,14 +329,35 @@ function DockCardVisual({
       role="button"
       tabIndex={0}
       aria-label={ariaLabel}
-      className={`relative dock-card-shake ${tappable ? 'cursor-pointer' : ''} ${pickable ? 'dock-card-target-reticle' : ''}`}
+      className={[
+        'relative',
+        // `card-struck` replaces the old in-place flinch: the card now rises
+        // to meet the blow rather than shuddering where it sits.
+        //
+        // Gated on having actually been hit. The old class was applied
+        // unconditionally and so fired once on mount too — harmless at 350ms
+        // of shudder, but this animation lifts the card 24px and holds it, so
+        // on mount all three cards would rise and flinch at nothing before the
+        // first round begins.
+        shakeKey > 0 ? 'card-struck' : '',
+        tappable ? 'cursor-pointer' : '',
+        pickable ? 'dock-card-target-reticle' : '',
+        // Order matters: death outranks everything, and a dead card must not
+        // keep pulsing as a live target.
+        isDefeated ? 'card-defeated' : isActing ? 'card-acting card-ignited' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       style={{
         width: cardW,
         height: cardH,
         filter: isActing
           ? 'drop-shadow(0 10px 18px rgba(0,0,0,0.85)) drop-shadow(0 0 16px rgba(212,175,55,0.55))'
           : 'drop-shadow(0 6px 10px rgba(0,0,0,0.6))',
-        opacity: isDefeated ? 0.45 : 1,
+        // Defeat is now carried by the flip animation's own grayscale, not by
+        // fading the card out — a 45%-opacity card reads as a rendering bug,
+        // whereas a face-down card reads as dead.
+        transformStyle: 'preserve-3d',
       }}
       onClick={() => {
         if (tappable) handleTap();
@@ -249,9 +374,48 @@ function DockCardVisual({
         }
       }}
     >
-      <div style={{ width: NATIVE_W, height: NATIVE_H, transform: `scale(${cardScale})`, transformOrigin: 'top left' }}>
+      <div
+        style={{
+          width: NATIVE_W,
+          height: NATIVE_H,
+          transform: `scale(${cardScale})`,
+          transformOrigin: 'top left',
+          // Hidden once the flip passes 90deg, which is what reveals the back
+          // plate beneath. Without this the portrait shows through mirrored
+          // and the card looks inside-out rather than face-down.
+          backfaceVisibility: 'hidden',
+        }}
+      >
         <CardRenderer card={card} size="full" />
       </div>
+
+      {/* Aimed at, not hurt — brackets outside the art, no red. */}
+      {!isDefeated && marked && <CardTargetMark />}
+
+      {/* Damage, drawn on the face. The cracks ARE the health bar. */}
+      <CardCracks
+        hpFraction={combatant.snapshot.maxHp > 0 ? combatant.hp / combatant.snapshot.maxHp : 1}
+        seed={card.cardId}
+        width={100}
+        height={144}
+      />
+
+      {/* The back of the card, sitting behind the face and only ever seen once
+          the flip has turned past square. */}
+      {isDefeated && (
+        <div
+          aria-hidden
+          className="absolute inset-0 rounded"
+          style={{
+            transform: 'rotateY(180deg)',
+            backfaceVisibility: 'hidden',
+            background:
+              'repeating-linear-gradient(45deg, #241a12 0 6px, #2e2418 6px 12px)',
+            border: '2px solid rgba(212,175,55,0.35)',
+            boxShadow: 'inset 0 0 24px rgba(0,0,0,0.9)',
+          }}
+        />
+      )}
       {isDefeated && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className="font-fantasy uppercase tracking-widest text-crimson bg-void/90 px-2 py-0.5 rounded text-xs">
@@ -282,15 +446,11 @@ function DockCardVisual({
       </button>
 
       <style>{`
-        @keyframes dock-card-hit-shake {
-          0%   { transform: translate(0, 0); }
-          15%  { transform: translate(-4px, 1px); filter: brightness(1.4); }
-          30%  { transform: translate(4px, -1px); filter: brightness(1.4); }
-          45%  { transform: translate(-3px, 0); }
-          60%  { transform: translate(3px, 0); }
-          100% { transform: translate(0, 0); }
-        }
-        .dock-card-shake { animation: dock-card-hit-shake 0.35s ease-out; }
+        /* The in-place hit shudder that used to live here is gone — taking a
+           blow is now .card-struck in CardCombatFx (rise, hold, flinch,
+           return). Two hit animations on the same element would fight over
+           the transform property, and the shorter one would win by finishing
+           first. */
 
         @keyframes dock-card-target-pulse {
           0%, 100% { filter: drop-shadow(0 0 8px rgba(235,150,46,0.6)); }
@@ -299,7 +459,6 @@ function DockCardVisual({
         .dock-card-target-reticle { animation: dock-card-target-pulse 1.1s ease-in-out infinite; }
 
         @media (prefers-reduced-motion: reduce) {
-          .dock-card-shake { animation: none !important; }
           .dock-card-target-reticle { animation: none !important; filter: drop-shadow(0 0 12px rgba(235,150,46,0.8)) !important; }
         }
       `}</style>
@@ -307,7 +466,16 @@ function DockCardVisual({
   );
 }
 
-function DockStats({ combatant, currentBeat }: { combatant: HeroCombatant; currentBeat: AnimationBeat | null }) {
+function DockStats({
+  combatant,
+  currentBeat,
+  width,
+}: {
+  combatant: HeroCombatant;
+  currentBeat: AnimationBeat | null;
+  /** Column width, derived from the card fan so three always fit. */
+  width: number;
+}) {
   const isDefeated = combatant.defeated;
 
   const [hpFlash, setHpFlash] = useState<{ key: number; color: string } | null>(null);
@@ -342,7 +510,7 @@ function DockStats({ combatant, currentBeat }: { combatant: HeroCombatant; curre
   const uPct = Math.max(0, Math.min(1, combatant.ultimateCharge / 100));
 
   return (
-    <div className="text-[9px] leading-tight" style={{ width: 108 }}>
+    <div className="text-[9px] leading-tight" style={{ width }}>
       <DockBar
         label="HP"
         value={combatant.hp}

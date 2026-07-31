@@ -19,6 +19,18 @@ interface Props {
   /** State overlays (Targeting, Insufficient, Focus…) rendered on top. */
   children?: ReactNode;
   className?: string;
+  /**
+   * Density.
+   *
+   * 'default' is the canonical Figma strip (360×92) — used by the Codex, where
+   * there is a whole page to spend.
+   *
+   * 'compact' (52px) is the combat shelf's expanded ability list, where three
+   * rows plus their explanations have to fit in a panel floating above a
+   * fixed-height shelf. It keeps `effectText` — that line is the whole reason
+   * opening the list is worth a click — and drops only `metaText`.
+   */
+  size?: 'default' | 'compact';
 }
 
 /**
@@ -44,7 +56,9 @@ export function AbilityCommandStrip({
   onHoverChange,
   children,
   className,
+  size = 'default',
 }: Props) {
+  const compact = size === 'compact';
   const isDisabled = state === 'disabled' || state === 'cooldown';
   const isSelected = state === 'selected';
   const isCooldown = state === 'cooldown';
@@ -102,11 +116,11 @@ export function AbilityCommandStrip({
       }`}
       style={{
         width: '100%',
-        maxWidth: 360,
-        height: 92,
-        padding: 10,
-        gap: 10,
-        borderRadius: 10,
+        maxWidth: compact ? undefined : 360,
+        height: compact ? 52 : 92,
+        padding: compact ? 6 : 10,
+        gap: compact ? 8 : 10,
+        borderRadius: compact ? 8 : 10,
         background,
         border,
         boxShadow,
@@ -118,11 +132,11 @@ export function AbilityCommandStrip({
       <div
         className="relative shrink-0"
         style={{
-          width: 64,
-          height: 64,
+          width: compact ? 40 : 64,
+          height: compact ? 40 : 64,
           background: 'var(--surface-icon-well, #0f0c0a)',
           border: '1px solid var(--border-default, #4a382f)',
-          borderRadius: 10,
+          borderRadius: compact ? 6 : 10,
           overflow: 'hidden',
         }}
       >
@@ -130,21 +144,21 @@ export function AbilityCommandStrip({
           className="absolute inset-0 flex items-center justify-center"
           style={{ transform: 'rotate(-45deg)' }}
         >
-          <div style={{ width: 40, height: 40 }}>{iconSlot}</div>
+          <div style={{ width: compact ? 26 : 40, height: compact ? 26 : 40 }}>{iconSlot}</div>
         </div>
       </div>
 
       {/* Content column — flexes to fill; caps at 208 within the 360 strip */}
       <div
         className="flex flex-col overflow-hidden"
-        style={{ flex: 1, minWidth: 0, height: 64, gap: 2 }}
+        style={{ flex: 1, minWidth: 0, height: compact ? 40 : 64, gap: 2, justifyContent: 'center' }}
       >
         <div
           style={{
             fontFamily: 'var(--font-ability-name)',
             color: 'var(--text-primary, #f4e8d2)',
-            fontSize: 18,
-            lineHeight: '22px',
+            fontSize: compact ? 14 : 18,
+            lineHeight: compact ? '17px' : '22px',
             letterSpacing: '0.01em',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -153,20 +167,22 @@ export function AbilityCommandStrip({
         >
           {displayName}
         </div>
-        <div
-          style={{
-            fontFamily: 'Inter, system-ui, sans-serif',
-            color: 'var(--text-secondary, #e8d7b0)',
-            fontSize: 13,
-            lineHeight: '18px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {effectText}
-        </div>
-        {metaText && (
+        {(
+          <div
+            style={{
+              fontFamily: 'Inter, system-ui, sans-serif',
+              color: 'var(--text-secondary, #e8d7b0)',
+              fontSize: 13,
+              lineHeight: '18px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {effectText}
+          </div>
+        )}
+        {metaText && !compact && (
           <div
             style={{
               fontFamily: 'Inter, system-ui, sans-serif',
@@ -188,10 +204,13 @@ export function AbilityCommandStrip({
 
       {/* Resource slot — 48×48; badge + overlaid cost */}
       {resource && (
-        <div className="relative shrink-0" style={{ width: 48, height: 48 }}>
+        <div
+          className="relative shrink-0"
+          style={{ width: compact ? 34 : 48, height: compact ? 34 : 48 }}
+        >
           <AbilityResourceBadge
             resource={resource}
-            size="combat"
+            size={compact ? 'compact' : 'combat'}
             cost={resourceCost}
             state={isDisabled && typeof resourceCost === 'number' ? 'insufficient' : 'ready'}
           />
