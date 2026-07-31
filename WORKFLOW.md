@@ -124,11 +124,12 @@ I only raise these at design or delivery gates — not mid-implementation, unles
 
 | Thing | Location |
 |---|---|
+| **What's happening right now** | **[PRODUCTION.md](PRODUCTION.md)** — status, open threads, decisions, what to do next |
 | The full project context | [CLAUDE.md](CLAUDE.md) |
 | How the studio works | [STUDIO_CHARTER.md](STUDIO_CHARTER.md) |
+| Every art tool and readout | [HARNESS_INDEX.md](HARNESS_INDEX.md) |
 | Stat / rank system spec | [card-engine-power-system-spec.md](card-engine-power-system-spec.md) |
-| Modifier pool spec | [card-engine-modifier-pools.md](card-engine-modifier-pools.md) |
-| Archetype prompt library | [card-engine-archetype-prompt-library.md](card-engine-archetype-prompt-library.md) |
+| Character generation canon | [Character_Generation_Bible_Canonical_v1.md](Character_Generation_Bible_Canonical_v1.md) |
 | Economy plan + governance | [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md) |
 | Specialist agent definitions | `.claude/agents/` |
 | Skill (workflow) definitions | `.claude/skills/` |
@@ -138,16 +139,14 @@ I only raise these at design or delivery gates — not mid-implementation, unles
 
 You don't need to memorize this table. If you're not sure where something is, ask me.
 
-## What's staged for immediate work
+## What to work on next
 
-Based on the Phase 0 audit, here are the near-term candidates. Not a plan — just what's ready to pick up when you want to.
+**In [PRODUCTION.md §0](PRODUCTION.md)** — my ranked recommendations, refreshed every
+session, plus the questions I need you to rule on.
 
-1. **Leonardo Character Reference tuning** — commit `e105036` integrated Leonardo but the character-continuity behavior across tier-ups hasn't been visually reviewed against a real playthrough.
-2. **Portrait art positioning polish** — the CLAUDE.md renderer table is exact but the Ascendant bloom effect washes out the stat number (my hypothesis; needs your visual judgment).
-3. **Economy UX pass** — wallet popover, cost badges, insufficient-funds modal are implemented but Figma frames haven't been reviewed against the fantasy aesthetic per economy-plan §12.
-4. **Sync canonical docs after any Phase 1.5 work** — `sync-project-knowledge` skill.
-
-*(The TypeScript build baseline was cleaned up as the first real task using the new studio structure — all 5 verify checks now pass.)*
+This section used to hold a hand-written list. It went stale in two weeks and started citing
+docs that had been archived, which is exactly why the production guide exists and why a
+pre-push hook now warns when it falls behind.
 
 ## First test drive
 

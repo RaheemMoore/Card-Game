@@ -2,12 +2,32 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Layers, Sparkles, FlaskConical, Hammer,
   Receipt, Activity, PanelLeftClose, PanelLeftOpen, LogOut, ArrowLeft,
+  BookOpen, ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 
+/**
+ * The published production guide — status, open threads, the workshops, and the
+ * decision log. Hosted rather than rebuilt in-app on purpose: one page, one
+ * source (PRODUCTION.md), linked from here so nobody has to remember the URL.
+ *
+ * The URL is STABLE across updates — `npm run production:page` regenerates the
+ * file and it republishes to this same address. If it ever changes, this
+ * constant and PRODUCTION.md's own reference are the two places to update.
+ */
+const PRODUCTION_GUIDE_URL = 'https://claude.ai/code/artifact/d6c9c64f-1342-43cc-9b5f-6fdd87d98852';
+
 // `directorOk` marks the surfaces a lore_director may reach. Everything
-// else is admin-only; a director sees a Workshop-only sidebar.
-interface NavItem { label: string; to: string; icon: LucideIcon; end?: boolean; directorOk?: boolean }
+// else is admin-only; a director sees a Proposals-only sidebar.
+// `href` marks an item that leaves the app — rendered as an anchor, not a
+// NavLink, since react-router cannot route to another origin.
+// A plain union of two full shapes, not an intersection with a union — the
+// latter does not narrow on a truthiness check, so `item.to` stayed
+// `string | undefined` after the external-link branch returned.
+interface NavBase { label: string; icon: LucideIcon; directorOk?: boolean }
+interface NavRoute extends NavBase { to: string; end?: boolean; href?: undefined }
+interface NavExternal extends NavBase { href: string; to?: undefined; end?: undefined }
+type NavItem = NavRoute | NavExternal;
 interface NavGroup { label: string; items: NavItem[] }
 
 const GROUPS: readonly NavGroup[] = [
@@ -24,7 +44,7 @@ const GROUPS: readonly NavGroup[] = [
     label: 'AI Studio',
     items: [
       { label: 'Prompt Lab', to: '/admin/prompt-lab', icon: FlaskConical },
-      { label: 'Workshop', to: '/admin/workshop', icon: Hammer, directorOk: true },
+      { label: 'Proposals', to: '/admin/proposals', icon: Hammer, directorOk: true },
     ],
   },
   {
@@ -32,6 +52,12 @@ const GROUPS: readonly NavGroup[] = [
     items: [
       { label: 'Costs', to: '/admin/costs', icon: Receipt },
       { label: 'Diagnostics', to: '/admin/diagnostics', icon: Activity },
+    ],
+  },
+  {
+    label: 'Studio',
+    items: [
+      { label: 'Production Guide', href: PRODUCTION_GUIDE_URL, icon: BookOpen, directorOk: true },
     ],
   },
 ];
@@ -92,6 +118,39 @@ export function AdminSidebar({ compact, onToggleCompact, userEmail, onSignOut, o
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const Icon = item.icon;
+
+                // Leaves the app — a plain anchor, opened in a new tab so the
+                // admin session is never navigated away from.
+                //
+                // `!== undefined`, not a truthiness check: `href` is `string`,
+                // which includes `''`, so `if (item.href)` cannot exclude the
+                // external variant from the else branch and `item.to` stays
+                // possibly-undefined there.
+                if (item.href !== undefined) {
+                  return (
+                    <li key={item.href}>
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={onNavigate}
+                        title={compact ? `${item.label} (opens in a new tab)` : undefined}
+                        aria-label={`${item.label} (opens in a new tab)`}
+                        className={`group flex items-center gap-3 rounded-[10px] min-h-[44px] px-2.5 text-sm transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)] ${compact ? 'justify-center' : ''}`}
+                        style={{ color: 'var(--admin-text-muted)' }}
+                      >
+                        <Icon size={18} className="shrink-0" />
+                        {!compact && (
+                          <>
+                            <span className="truncate flex-1">{item.label}</span>
+                            <ExternalLink size={13} className="shrink-0 opacity-60" aria-hidden="true" />
+                          </>
+                        )}
+                      </a>
+                    </li>
+                  );
+                }
+
                 return (
                   <li key={item.to}>
                     <NavLink

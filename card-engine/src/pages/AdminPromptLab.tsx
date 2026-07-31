@@ -881,7 +881,7 @@ function SendBatchToWorkshop({ session }: { session: SessionSummary }) {
       portraitPrompt: primary.portraitPrompt,
       negativePrompt: primary.negativePrompt,
     });
-    navigate(`/admin/workshop?archetype=${encodeURIComponent(session.archetype)}&from=lab`);
+    navigate(`/admin/proposals?archetype=${encodeURIComponent(session.archetype)}&from=lab`);
   };
 
   return (

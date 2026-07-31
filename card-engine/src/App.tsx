@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
 import { Landing } from './pages/Landing';
 import { Collection } from './pages/Collection';
@@ -35,6 +35,17 @@ import { Login } from './pages/Login';
 // mounts. On the legacy path (no VITE_SUPABASE_URL) PersistenceGate
 // falls through immediately with the same initializeWallet() call.
 
+/**
+ * Preserves the query string when the retired /admin/workshop path redirects to
+ * /admin/proposals. A bare <Navigate to="/admin/proposals"> would drop
+ * ?archetype=&proposal=, so a bookmarked link to one specific proposal would
+ * silently land on the page with nothing selected.
+ */
+function WorkshopRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={{ pathname: '/admin/proposals', search }} replace />;
+}
+
 export default function App() {
   return (
     <PersistenceGate>
@@ -69,7 +80,13 @@ export default function App() {
             <Route path="abilities" element={<AdminAbilities />} />
             <Route path="diagnostics" element={<AdminDiagnostics />} />
             <Route path="prompt-lab" element={<AdminPromptLab />} />
-            <Route path="workshop" element={<ArchetypeWorkshop />} />
+            <Route path="proposals" element={<ArchetypeWorkshop />} />
+            {/* Renamed 2026-07-31: the page is a proposal desk, and "Workshop"
+                now means a working mode (see PRODUCTION.md §6). Tori has this
+                path bookmarked and deep links carry ?archetype=&proposal=, so
+                the old route redirects WITH its query string rather than 404ing
+                or silently dropping which proposal was being opened. */}
+            <Route path="workshop" element={<WorkshopRedirect />} />
           </Route>
 
           {/* Player: fantasy-themed shell (background + NavBar + offset). */}

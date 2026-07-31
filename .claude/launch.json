@@ -7,6 +7,22 @@
       "runtimeArgs": ["run", "dev", "--prefix", "card-engine"],
       "port": 5173,
       "autoPort": true
+    },
+    {
+      "//": "Static server for sprite-lab review sheets. The browser pane refuses file:// URLs, and boss clip sheets must be WATCHED to be reviewed — stills cannot show drift, and every defect this repo has shipped was found by looking at motion.",
+      "name": "sprite-lab-sheets",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8777", "--directory", "card-engine/scripts/sprite-lab"],
+      "port": 8777,
+      "autoPort": true
+    },
+    {
+      "//": "Static server for the production guide. The published Artifact is private and the browser pane is not signed in, so layout has to be checked against the generated file locally before publishing.",
+      "name": "production-guide",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8778", "--directory", "docs/production"],
+      "port": 8778,
+      "autoPort": true
     }
   ]
 }
