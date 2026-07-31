@@ -100,6 +100,18 @@ export interface StatusApplication {
   damageType?: DamageType;
   /** 0..1 incoming-damage reduction, for guard-shaped statuses. */
   reductionPercent?: number;
+  /**
+   * 0..n incoming-damage AMPLIFICATION, the exact mirror of
+   * `reductionPercent` — 0.3 means the target takes 30% more.
+   *
+   * Added for the boss `vulnerability` intent, which had nothing to stand on:
+   * the type system could express "takes less" and not "takes more", so the
+   * intent could only ever have been implemented as a bigger number on the
+   * attacker, which is not the same mechanic and is not inspectable by the
+   * player. Generic on purpose — any status id can carry it at any strength,
+   * exactly like its sibling.
+   */
+  amplificationPercent?: number;
 }
 
 /* ---------- Effects (starter catalog: 15) ---------- */

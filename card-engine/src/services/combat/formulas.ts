@@ -39,7 +39,42 @@ const RESOURCE_RANK_BONUS: Record<Rank, number> = {
   Forged: 1,
   Ascendant: 2,
 };
+/**
+ * Flat resource returned to the party at end of round.
+ *
+ * Kept after the shared-chamber rework as a FLOOR, not as the main supply —
+ * a party that spends a round entirely on Guard should not be stranded with an
+ * empty pool. The real supply is `strike` (see below).
+ */
 export const RESOURCE_REGEN_PER_ROUND = 1;
+
+/* ---- Basic attack ------------------------------------------------- */
+
+/**
+ * Resource a `strike` puts into the caster's chamber.
+ *
+ * This is the number that decides the whole rhythm. At +2 per strike against
+ * a core cost of 1 and a signature of 3, one strike buys two cores or two
+ * strikes buy a signature — so the loop is "hit, hit, spend" rather than the
+ * old slow drain of +1/round against costs of up to 3.
+ *
+ * Provisional. `partyBalancePass` is the arbiter, not this comment.
+ */
+export const STRIKE_RESOURCE_GAIN = 2;
+
+/** Divisor on Atk for a basic strike's damage. */
+const STRIKE_ATK_DIVISOR = 4;
+
+/**
+ * Damage of a free basic attack.
+ *
+ * Deliberately weak — a strike is how you PAY for abilities, not how you win.
+ * If it ever out-damages a core ability per turn, the ability list stops
+ * mattering and the fight becomes "press strike".
+ */
+export function strikeDamage(atkValue: number): number {
+  return Math.max(1, Math.floor(atkValue / STRIKE_ATK_DIVISOR));
+}
 
 const DEFENSE_MITIGATION_DIVISOR = 5;
 
@@ -210,6 +245,17 @@ const RAGE_MAX_STACKS = 4;
 const FOCUS_PER_STACK = 0.15;
 const FOCUS_MAX_STACKS = 3;
 const MARK_BONUS = 0.2;
+/**
+ * Ceiling on a single application's `amplificationPercent`.
+ *
+ * Deliberately tighter than `reductionPercent`'s 0.9 cap, and not symmetric
+ * with it on purpose: reduction saturating means "you are very well defended",
+ * which is a fine place for a player to end up, whereas amplification
+ * saturating means "you now die to a chip hit", which is a fight the player
+ * cannot read. Applications still MULTIPLY, so stacking several is stronger
+ * than one — this caps each one, not the total.
+ */
+const AMPLIFICATION_CAP = 0.6;
 /** `mark` is a hunter's tell — it only sharpens martial and beast damage, so
  *  marking is a setup play for those families rather than a flat global buff. */
 const MARK_DAMAGE_TYPES: readonly DamageType[] = ['physical', 'nature'];
@@ -254,6 +300,11 @@ export function statusDamageModifiers(
   for (const st of targetStatuses) {
     const reduction = st.application.reductionPercent;
     if (reduction) incoming *= 1 - Math.min(0.9, reduction);
+    // The mirror. Capped so a stack of vulnerabilities cannot turn a chip hit
+    // into a one-shot — the cap is what keeps `vulnerability` a pressure the
+    // player answers rather than a coin flip they lose.
+    const amplification = st.application.amplificationPercent;
+    if (amplification) incoming *= 1 + Math.min(AMPLIFICATION_CAP, amplification);
   }
 
   return { outgoingMultiplier: outgoing, incomingMultiplier: incoming };
@@ -384,6 +435,25 @@ export function primaryResourceType(stats: CardStats): 'mana' | 'tech' {
   if (stats.Mana) return 'mana';
   if (stats.Tech) return 'tech';
   throw new Error('primaryResourceType: card has neither Mana nor Tech');
+}
+
+/**
+ * Capacity of each shared chamber — the sum of the contributing heroes'
+ * individual `maxResource`.
+ *
+ * Summing rather than picking a flat party number keeps the existing stat and
+ * rank progression meaningful: a party of Ascendants carries a visibly bigger
+ * pool than a party of Foundations, exactly as it did when the resource was
+ * per-hero. A chamber with no heroes of that type has a max of 0, and callers
+ * should HIDE it rather than render an empty vessel.
+ */
+export function deriveChamberMax(
+  heroes: readonly { maxResource: number; resourceType: 'mana' | 'tech' }[],
+): { mana: number; tech: number } {
+  return heroes.reduce(
+    (acc, h) => ({ ...acc, [h.resourceType]: acc[h.resourceType] + h.maxResource }),
+    { mana: 0, tech: 0 },
+  );
 }
 
 /* ------------------------------------------------------------------ */

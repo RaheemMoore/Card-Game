@@ -179,3 +179,277 @@ describe('phase passive statuses', () => {
     expect(regen?.stacks).toBeLessThanOrEqual(3);
   });
 });
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/*  The intents that had no behaviour at all until 2026-07-30.            */
+/*                                                                        */
+/*  `enrage_prep`, `curse`, `vulnerability`, `execute` and `ultimate`     */
+/*  were declared in the type system and fell through to the single-      */
+/*  target damage path, so authoring one produced an ordinary punch with  */
+/*  a different name in the log. Each test below asserts the intent does  */
+/*  something no other intent does.                                       */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+describe('enrage_prep', () => {
+  it('buffs the boss instead of attacking, and the buff actually raises damage', () => {
+    // The bug this guards: `strike()` passed `[]` as the attacker's statuses,
+    // so a boss could hold a full stack of rage and hit for exactly the same
+    // amount. The buff existed in state and did nothing.
+    const plain = play(bossWith({ intentType: 'heavy_attack', baseDamage: 30 }));
+
+    const base = bossWith({});
+    const enraging: BossSnapshot = {
+      ...base,
+      phases: [
+        {
+          ...base.phases[0],
+          actions: [
+            {
+              ...base.phases[0].actions[0],
+              id: 'act_prep',
+              intentType: 'enrage_prep',
+              priority: 99,
+              cooldownRounds: 99, // once, at the top of the fight
+              baseDamage: 0,
+              selfStatuses: [{ statusId: 'rage', duration: 99, stacks: 4 }],
+            },
+            { ...base.phases[0].actions[0], baseDamage: 30, priority: 10 },
+          ],
+        },
+      ],
+    };
+    const raged = play(enraging);
+
+    expect(raged.finalState.boss.statuses.some((s) => s.statusId === 'rage')).toBe(true);
+
+    const meanHit = (r: ReturnType<typeof play>) => {
+      const hits = r.events.filter(
+        (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> =>
+          e.kind === 'damage_dealt' && e.sourceActorId === 'boss_0' && e.amount > 0,
+      );
+      return hits.reduce((n, e) => n + e.amount, 0) / Math.max(1, hits.length);
+    };
+    expect(meanHit(raged)).toBeGreaterThan(meanHit(plain));
+  });
+});
+
+describe('curse / vulnerability', () => {
+  it('applies its authored status to the target', () => {
+    const cursed = play(
+      bossWith({
+        intentType: 'curse',
+        baseDamage: 0,
+        statusApplications: [{ statusId: 'weakened', duration: 99 }],
+      }),
+    );
+    const applied = cursed.events.filter(
+      (e) => e.kind === 'status_applied' && e.statusId === 'weakened',
+    );
+    expect(applied.length).toBeGreaterThan(0);
+  });
+
+  it('vulnerability makes the target take MORE damage — the mirror of guard', () => {
+    // `amplificationPercent` did not exist before this work: the type system
+    // could say "takes less" and not "takes more", so this intent had nothing
+    // to stand on and could only have been faked with a bigger baseDamage.
+    const plain = play(bossWith({ intentType: 'heavy_attack', baseDamage: 30 }));
+
+    const base = bossWith({});
+    const vulnBoss: BossSnapshot = {
+      ...base,
+      phases: [
+        {
+          ...base.phases[0],
+          actions: [
+            {
+              ...base.phases[0].actions[0],
+              id: 'act_vuln',
+              intentType: 'vulnerability',
+              priority: 99,
+              cooldownRounds: 99,
+              baseDamage: 0,
+              targetScope: 'all_heroes',
+              statusApplications: [
+                { statusId: 'mark', duration: 99, amplificationPercent: 0.5 },
+              ],
+            },
+            { ...base.phases[0].actions[0], baseDamage: 30, priority: 10 },
+          ],
+        },
+      ],
+    };
+    const vuln = play(vulnBoss);
+
+    const meanHit = (r: ReturnType<typeof play>) => {
+      const hits = r.events.filter(
+        (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> =>
+          e.kind === 'damage_dealt' && e.sourceActorId === 'boss_0' && e.amount > 0,
+      );
+      return hits.reduce((n, e) => n + e.amount, 0) / Math.max(1, hits.length);
+    };
+    expect(meanHit(vuln)).toBeGreaterThan(meanHit(plain));
+  });
+});
+
+describe('execute', () => {
+  it('hits harder once the target is below the threshold', () => {
+    // Threshold 1.0 means "always low", which isolates the multiplier from
+    // the question of whether anyone actually got low during the fight.
+    const normal = play(bossWith({ intentType: 'execute', baseDamage: 30 }));
+    const executing = play(
+      bossWith({
+        intentType: 'execute',
+        baseDamage: 30,
+        executeThresholdPercent: 1.0,
+        executeMultiplier: 3,
+      }),
+    );
+
+    const total = (r: ReturnType<typeof play>) =>
+      r.events
+        .filter(
+          (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> =>
+            e.kind === 'damage_dealt' && e.sourceActorId === 'boss_0',
+        )
+        .reduce((n, e) => n + e.amount, 0);
+
+    expect(total(executing)).toBeGreaterThan(total(normal));
+  });
+});
+
+describe('charge-up', () => {
+  /** A boss whose only real threat is a charged party-wide hit. */
+  function chargedBoss(overrides: Record<string, unknown> = {}): BossSnapshot {
+    const base = bossWith({});
+    return {
+      ...base,
+      phases: [
+        {
+          ...base.phases[0],
+          actions: [
+            {
+              ...base.phases[0].actions[0],
+              id: 'act_charged',
+              displayName: 'The Whole Ledger',
+              intentType: 'ultimate',
+              priority: 99,
+              cooldownRounds: 2,
+              interruptible: false,
+              baseDamage: 60,
+              targetScope: 'all_heroes',
+              charge: {
+                rounds: 2,
+                break: { kind: 'damage', percentOfMaxHp: 0.18 },
+                partialMitigationMax: 0.6,
+              },
+              ...overrides,
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  it('deals no damage on the wind-up round — the forfeited turn is its price', () => {
+    const r = play(chargedBoss());
+    // Walk the log and find the round the charge was FIRST declared in, then
+    // assert the boss dealt nothing in that specific round. Counting hits
+    // across the whole fight is not enough: the boss goes on to attack in
+    // later rounds, so a loose total passes even when the wind-up is free.
+    let round = 0;
+    let declaredRound = -1;
+    const damageByRound = new Map<number, number>();
+    for (const e of r.events) {
+      if (e.kind === 'round_started') round = e.round;
+      if (e.kind === 'boss_intent_declared' && declaredRound === -1) declaredRound = round;
+      if (e.kind === 'damage_dealt' && e.sourceActorId === 'boss_0') {
+        damageByRound.set(round, (damageByRound.get(round) ?? 0) + e.amount);
+      }
+    }
+    expect(declaredRound).toBeGreaterThan(0);
+    expect(damageByRound.get(declaredRound) ?? 0).toBe(0);
+  });
+
+  it('lands on the round it promised, not the round it was declared', () => {
+    const r = play(chargedBoss());
+    let declaredRound = -1;
+    let firstHitRound = -1;
+    let round = 0;
+    for (const e of r.events) {
+      if (e.kind === 'round_started') round = e.round;
+      if (e.kind === 'boss_intent_declared' && declaredRound === -1) declaredRound = round;
+      if (
+        e.kind === 'damage_dealt' &&
+        e.sourceActorId === 'boss_0' &&
+        e.amount > 0 &&
+        firstHitRound === -1
+      ) {
+        firstHitRound = round;
+      }
+    }
+    expect(declaredRound).toBeGreaterThan(0);
+    // Declared at N, resolves at N+2 for `rounds: 2`.
+    expect(firstHitRound).toBeGreaterThanOrEqual(declaredRound + 2);
+  });
+
+  it('is cancelled outright when the party meets the break condition', () => {
+    // An unreachably small break threshold — any chip at all breaks it.
+    const trivial = play(chargedBoss({
+      charge: {
+        rounds: 2,
+        break: { kind: 'damage', percentOfMaxHp: 0.0001 },
+        partialMitigationMax: 0.6,
+      },
+    }));
+    const denied = trivial.events.filter(
+      (e) => e.kind === 'action_denied' && e.actorId === 'boss_0',
+    );
+    expect(denied.length).toBeGreaterThan(0);
+  });
+
+  it('scales damage down linearly with partial progress rather than all-or-nothing', () => {
+    // The whole reason progress is a fraction: a party that gets most of the
+    // way there must take meaningfully less, or pushing the bar is pointless
+    // unless you finish it.
+    const unbreakable = play(chargedBoss({
+      charge: {
+        rounds: 2,
+        break: { kind: 'damage', percentOfMaxHp: 99 }, // progress ~0
+        partialMitigationMax: 0.6,
+      },
+    }));
+    const nearlyBroken = play(chargedBoss({
+      charge: {
+        rounds: 2,
+        // Small enough that the party accumulates real progress without
+        // reaching 1.0 — mitigation should bite.
+        break: { kind: 'damage', percentOfMaxHp: 0.25 },
+        partialMitigationMax: 0.6,
+      },
+    }));
+
+    const biggestHit = (r: ReturnType<typeof play>) =>
+      Math.max(
+        0,
+        ...r.events
+          .filter(
+            (e): e is Extract<BattleEvent, { kind: 'damage_dealt' }> =>
+              e.kind === 'damage_dealt' && e.sourceActorId === 'boss_0',
+          )
+          .map((e) => e.amount),
+      );
+
+    expect(biggestHit(nearlyBroken)).toBeLessThan(biggestHit(unbreakable));
+  });
+
+  it('never runs two charges at once', () => {
+    const r = play(chargedBoss());
+    // pendingCharge is a single slot; the guard is that the reveal phase
+    // filters charge-carrying actions while one is live. If that filter broke,
+    // the countdown would keep resetting and the hit would never land.
+    const bossHits = r.events.filter(
+      (e) => e.kind === 'damage_dealt' && e.sourceActorId === 'boss_0' && e.amount > 0,
+    );
+    expect(bossHits.length).toBeGreaterThan(0);
+  });
+});

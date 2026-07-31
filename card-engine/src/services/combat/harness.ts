@@ -78,15 +78,31 @@ export function runBattle(snapshot: BattleSnapshot, policy: HeroPolicy): RunResu
 /* ------------------------------------------------------------------ */
 
 /**
- * Baseline hero policy for balance sims: use ultimate when charged, then
- * signature when affordable, then core, else focus if low resource, else guard.
+ * Baseline hero policy for balance sims: ultimate when charged, then signature
+ * when affordable, then core, else STRIKE to refill the chamber, else guard.
+ *
+ * ── Affordability reads the PARTY chamber ────────────────────────────────
+ * Not `hero.resource`. Since the shared-pool rework the reducer pays ability
+ * costs out of `state.partyResource[resourceType]`, so a policy still checking
+ * the hero's own pool proposes actions the reducer refuses.
+ *
+ * That matters more than it used to: a refused action no longer consumes the
+ * hero's turn (it used to, which meant a misclick burned a round). The upside
+ * for players is that a scripted policy which keeps proposing the same refused
+ * action now loops forever instead of losing turns — `runBattle`'s safety break
+ * catches it, but the fix is for the policy to be honest about affordability.
+ *
+ * `strike` replaces `focus` as the fallback because it both generates resource
+ * AND deals damage; a sim that spent its empty turns on focus would understate
+ * party DPS and make every boss look harder than it is.
  */
 export const baselineHeroPolicy: HeroPolicy = {
   chooseAction(state, hero) {
     const abilities = hero.snapshot.abilities;
+    const chamber = state.partyResource[hero.snapshot.resourceType];
     const usable = (a: AbilityCombatSnapshot) =>
       !hero.cooldowns.some((c) => c.abilityDefinitionId === a.definitionId) &&
-      hero.resource >= a.resourceCost;
+      chamber >= a.resourceCost;
 
     const ult = abilities.find((a) => a.slot === 'ultimate' && usable(a) && hero.ultimateCharge >= 100);
     if (ult) return { kind: 'ability', abilityDefinitionId: ult.definitionId, targetActorIds: [state.boss.actorId] };
@@ -97,7 +113,8 @@ export const baselineHeroPolicy: HeroPolicy = {
     const core = abilities.find((a) => a.slot === 'core' && usable(a));
     if (core) return { kind: 'ability', abilityDefinitionId: core.definitionId, targetActorIds: [state.boss.actorId] };
 
-    if (hero.resource < hero.snapshot.maxResource) return { kind: 'focus' };
+    // Nothing affordable — build the pool back up while still contributing.
+    if (chamber < state.partyResourceMax[hero.snapshot.resourceType]) return { kind: 'strike' };
     return { kind: 'guard' };
   },
 };
@@ -271,6 +288,18 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
         ...(a.shieldDurationRounds != null
           ? { shieldDurationRounds: a.shieldDurationRounds }
           : {}),
+        // Every field below is dropped silently if it is not copied here —
+        // the failure mode is an authored action that simply does nothing,
+        // with no type error and no log line. That is exactly how the
+        // resistance profile went missing above.
+        ...(a.targetScope ? { targetScope: a.targetScope } : {}),
+        ...(a.selfStatuses ? { selfStatuses: a.selfStatuses } : {}),
+        ...(a.statusApplications ? { statusApplications: a.statusApplications } : {}),
+        ...(a.executeThresholdPercent != null
+          ? { executeThresholdPercent: a.executeThresholdPercent }
+          : {}),
+        ...(a.executeMultiplier != null ? { executeMultiplier: a.executeMultiplier } : {}),
+        ...(a.charge ? { charge: a.charge } : {}),
       })),
     })),
     resistanceProfileId: `rp_${def.slug}`,

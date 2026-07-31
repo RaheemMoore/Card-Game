@@ -11,6 +11,9 @@ import type {
   AbilityCombatSnapshot,
   BattleEvent,
   BattleIntent,
+  BossTargetScope,
+  BossChargeSpec,
+  PendingCharge,
   BattleSnapshot,
   BattleState,
   BossCombatant,
@@ -27,6 +30,10 @@ import {
   guardShieldAmount,
   heroResistance,
   FOCUS_RESOURCE_GAIN,
+  STRIKE_RESOURCE_GAIN,
+  strikeDamage,
+  deriveChamberMax,
+  ULTIMATE_CHARGE_MAX,
   resolveDamage,
   resolveHeal,
   tickCooldowns,
@@ -108,6 +115,7 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     shields: [],
     defeated: false,
     currentIntent: null,
+    pendingCharge: null,
   };
 
   const opening: BattleState = {
@@ -119,6 +127,21 @@ export function initializeBattle(snapshot: BattleSnapshot): BattleState {
     boss,
     phase: 'start_of_round',
     pendingActorIds: [],
+    // Chambers start FULL, matching the old per-hero rule (`resource:
+    // derived.maxResource`). Opening a fight with an empty pool would force a
+    // wasted first round of nothing but strikes.
+    partyResource: deriveChamberMax(
+      heroes.map((h) => ({
+        maxResource: h.snapshot.maxResource,
+        resourceType: h.snapshot.resourceType,
+      })),
+    ),
+    partyResourceMax: deriveChamberMax(
+      heroes.map((h) => ({
+        maxResource: h.snapshot.maxResource,
+        resourceType: h.snapshot.resourceType,
+      })),
+    ),
     log: [
       { kind: 'battle_started', at: snapshot.createdAt, snapshotId: snapshot.battleId },
     ],
@@ -232,6 +255,46 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
       events.push({ kind: 'ultimate_charge_changed', actorId: hero.actorId, delta: 3, source: 'focus' });
       break;
     }
+    case 'strike': {
+      // The generator. Light damage into the boss, resource into the caster's
+      // chamber. Routed through the same `resolveDamage` path as everything
+      // else so mitigation, resistance and shields all still apply — a basic
+      // attack that ignored the defensive layer would be a second damage
+      // system.
+      const chamber = hero.snapshot.resourceType;
+      const mods = statusDamageModifiers(hero.statuses, next.boss.statuses, 'physical');
+      const dmg = resolveDamage({
+        baseAmount: strikeDamage(hero.snapshot.stats.Atk.value),
+        damageType: 'physical',
+        targetMitigation: 0,
+        targetResistance: bossResistance(next),
+        targetShields: next.boss.shields,
+        outgoingMultiplier: mods.outgoingMultiplier,
+        incomingMultiplier: mods.incomingMultiplier,
+      });
+      next = applyDamageToBoss(next, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
+        sourceActorId: hero.actorId,
+        damageType: dmg.damageType,
+        sourceActionId: 'strike',
+      });
+
+      const room = Math.max(0, next.partyResourceMax[chamber] - next.partyResource[chamber]);
+      const gained = Math.min(STRIKE_RESOURCE_GAIN, room);
+      next = {
+        ...next,
+        partyResource: { ...next.partyResource, [chamber]: next.partyResource[chamber] + gained },
+      };
+      next = mutateHero(next, hero.actorId, (h) => ({
+        ...h,
+        ultimateCharge: clampUltimateCharge(
+          h.ultimateCharge + ultimateChargeGain({ damageDealt: dmg.postShieldAmount }),
+        ),
+      }));
+      if (gained > 0) {
+        events.push({ kind: 'resource_changed', actorId: hero.actorId, delta: gained, source: 'strike' });
+      }
+      break;
+    }
     case 'inspect': {
       // No mechanical effect at B2 — UI-only reveal added in B4.
       break;
@@ -244,17 +307,32 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
         events.push({ kind: 'action_denied', actorId: hero.actorId, reason: 'invalid_target' });
         break;
       }
-      const denial = validateAbilityUsable(hero, abilityRef.version);
+      const denial = validateAbilityUsable(hero, abilityRef, next);
       if (denial) {
         events.push({ kind: 'action_denied', actorId: hero.actorId, reason: denial });
-        break;
+        // The hero KEEPS their turn. Falling through to the pendingActorIds
+        // drain below meant a refused action still burned the round — and with
+        // a shared pool that is far worse than it was per-hero, because
+        // another hero can empty the chamber between deciding and clicking.
+        return { state: { ...next, log: [...next.log, ...events] }, events };
       }
       const resourceCost = abilityRef.version.resourceCost;
       const isUltimate = abilityRef.slot === 'ultimate';
+      const chamber = hero.snapshot.resourceType;
 
+      // Cost comes out of the PARTY chamber. `hero.resource` is mirrored down
+      // in step with it so the per-hero readouts and
+      // `resource_above_threshold` conditions keep telling the truth.
+      next = {
+        ...next,
+        partyResource: {
+          ...next.partyResource,
+          [chamber]: Math.max(0, next.partyResource[chamber] - resourceCost),
+        },
+      };
       next = mutateHero(next, hero.actorId, (h) => ({
         ...h,
-        resource: h.resource - resourceCost,
+        resource: Math.max(0, h.resource - resourceCost),
         ultimateCharge: isUltimate ? 0 : h.ultimateCharge,
         cooldowns: [
           ...h.cooldowns,
@@ -320,16 +398,47 @@ function doBossIntentReveal(state: BattleState): StepResult {
     return transition(state, [], 'awaiting_player_action');
   }
 
+  // A charge that has finished counting down PRE-EMPTS the normal action
+  // pick — it was declared rounds ago and the party has been playing against
+  // it since, so it must land on the round it promised to land on. Resolving
+  // it as "the intent this round" also means it flows through the existing
+  // intent → telegraph → resolve path rather than needing a second one.
+  const maturedCharge =
+    state.boss.pendingCharge && state.boss.pendingCharge.roundsRemaining <= 0
+      ? state.boss.pendingCharge
+      : null;
+
   const availableActions = currentPhase.actions
     .filter((a) => !state.boss.actionCooldowns.some((c) => c.abilityDefinitionId === a.id))
+    // Never start a second charge while one is already running. Two
+    // overlapping charges would give the player two bars to read and no way
+    // to tell which telegraph belonged to which.
+    .filter((a) => !(a.charge && state.boss.pendingCharge))
     .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
 
   if (availableActions.length === 0) {
     // Default fallback: use the highest-priority action even if on cooldown to avoid dead turn.
-    availableActions.push(...currentPhase.actions.slice().sort((a, b) => b.priority - a.priority));
+    availableActions.push(
+      ...currentPhase.actions
+        .slice()
+        .filter((a) => !(a.charge && state.boss.pendingCharge))
+        .sort((a, b) => b.priority - a.priority),
+    );
   }
 
-  const chosen = availableActions[0];
+  const chosen = maturedCharge
+    ? (currentPhase.actions.find((a) => a.id === maturedCharge.actionId) ?? availableActions[0])
+    : availableActions[0];
+  const pendingActorIds = state.heroes
+    .filter((h) => !h.defeated)
+    .map((h) => h.actorId);
+
+  // Every action in the phase is a charge that is already running. Rare, but
+  // reachable on a single-action phase — the boss simply keeps charging.
+  if (!chosen) {
+    return transition({ ...state, pendingActorIds }, [], 'awaiting_player_action');
+  }
+
   const livingHero = state.heroes.find((h) => !h.defeated);
   const targetActorIds = livingHero ? [livingHero.actorId] : [];
 
@@ -345,12 +454,26 @@ function doBossIntentReveal(state: BattleState): StepResult {
     { kind: 'boss_intent_declared', round: state.round, intent },
   ];
 
-  const pendingActorIds = state.heroes
-    .filter((h) => !h.defeated)
-    .map((h) => h.actorId);
+  // Beginning a charge. The boss spends this whole turn winding up and deals
+  // no damage — that forfeited turn IS the price of the charge, and it is
+  // what stops a charged ultimate from being strictly better than attacking.
+  const startingCharge = chosen.charge && !state.boss.pendingCharge;
+  const nextPendingCharge: PendingCharge | null = startingCharge
+    ? {
+        actionId: chosen.id,
+        roundsRemaining: chosen.charge!.rounds,
+        progress: 0,
+        targetActorIds,
+        startedRound: state.round,
+      }
+    : state.boss.pendingCharge;
 
   return transition(
-    { ...state, boss: { ...state.boss, currentIntent: intent }, pendingActorIds },
+    {
+      ...state,
+      boss: { ...state.boss, currentIntent: intent, pendingCharge: nextPendingCharge },
+      pendingActorIds,
+    },
     events,
     'awaiting_player_action',
   );
@@ -359,6 +482,19 @@ function doBossIntentReveal(state: BattleState): StepResult {
 function doResolveBoss(state: BattleState): StepResult {
   if (state.boss.defeated || !state.boss.currentIntent) {
     return transition(state, [], 'end_of_round');
+  }
+
+  const charging = state.boss.pendingCharge;
+  // The wind-up turn itself. The charge was declared this round and has not
+  // matured, so the boss does nothing else — no damage, no cooldown consumed.
+  // `currentIntent` is cleared so the next round's reveal is free to pick a
+  // normal action while the charge keeps counting in the background.
+  if (charging && charging.startedRound === state.round && charging.roundsRemaining > 0) {
+    return transition(
+      { ...state, boss: { ...state.boss, currentIntent: null } },
+      [],
+      'end_of_round',
+    );
   }
 
   const currentPhase = state.boss.snapshot.phases.find((p) => p.id === state.boss.currentPhaseId);
@@ -435,12 +571,51 @@ function doResolveBoss(state: BattleState): StepResult {
   const events: BattleEvent[] = [];
   let next: BattleState = state;
 
-  const bossBaseDamage = action.baseDamage + Math.floor(action.scalingPerRound * state.round);
+  // A charge that has come due. Progress toward the break condition either
+  // cancels it outright or scales its damage down linearly — see
+  // BossChargeSpec.partialMitigationMax for why "almost" has to be worth
+  // something.
+  const resolvingCharge =
+    action.charge && charging && charging.actionId === action.id && charging.roundsRemaining <= 0
+      ? charging
+      : null;
+  let chargeMultiplier = 1;
+  if (resolvingCharge && action.charge) {
+    const progress = evaluateChargeProgress(state, resolvingCharge, action.charge);
+    if (progress >= 1) {
+      // Broken. The action is spent and deals nothing.
+      const brokenEvents: BattleEvent[] = [
+        { kind: 'action_denied', actorId: state.boss.actorId, reason: 'interrupted' },
+      ];
+      return transition(
+        {
+          ...state,
+          boss: {
+            ...state.boss,
+            pendingCharge: null,
+            currentIntent: null,
+            actionCooldowns: [
+              ...state.boss.actionCooldowns,
+              { abilityDefinitionId: action.id, remainingRounds: action.cooldownRounds + 1 },
+            ],
+          },
+        },
+        brokenEvents,
+        'end_of_round',
+      );
+    }
+    chargeMultiplier = 1 - progress * action.charge.partialMitigationMax;
+  }
 
-  /** One boss hit against one hero. */
-  const strike = (hero: HeroCombatant) => {
+  const bossBaseDamage = Math.round(
+    (action.baseDamage + Math.floor(action.scalingPerRound * state.round)) * chargeMultiplier,
+  );
+
+  /** One boss hit against one hero. `multiplier` carries the execute bonus. */
+  const strike = (hero: HeroCombatant, multiplier = 1) => {
+    const mods = statusDamageModifiers(next.boss.statuses, hero.statuses, action.damageType);
     const dmg = resolveDamage({
-      baseAmount: bossBaseDamage,
+      baseAmount: Math.round(bossBaseDamage * multiplier),
       // Authored per action. Was hardcoded 'fire' for every boss in the game,
       // which made hero elemental resistance meaningless and every future
       // boss a reskin of this one.
@@ -448,26 +623,154 @@ function doResolveBoss(state: BattleState): StepResult {
       targetMitigation: Math.floor(hero.snapshot.stats.Def.value / 5),
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: hero.shields,
-      incomingMultiplier: statusDamageModifiers([], hero.statuses, action.damageType)
-        .incomingMultiplier,
+      // The boss's OWN statuses, which until now were passed as `[]` — so
+      // every buff a boss could give itself (rage from `enrage_prep`, any
+      // phase `passiveStatuses` that touched damage) was silently discarded
+      // and the whole self-buff half of the status system did nothing on the
+      // boss side. `outgoingMultiplier` is likewise now actually applied;
+      // reading the boss's statuses and then dropping the result on the floor
+      // would have been the same bug wearing a longer argument list.
+      incomingMultiplier: mods.incomingMultiplier,
+      outgoingMultiplier: mods.outgoingMultiplier,
     });
     next = applyDamageToHero(next, hero.actorId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
       sourceActorId: state.boss.actorId,
       damageType: dmg.damageType,
+      sourceActionId: action.id,
     });
   };
 
+  /**
+   * Who this action actually hits.
+   *
+   * `area_attack` keeps sweeping the party without authoring `targetScope`,
+   * because eight existing seed actions rely on the intent name meaning that.
+   * New actions should say what they mean with `targetScope` instead — the
+   * intent is what the action IS, the scope is who it reaches, and those were
+   * conflated for as long as sweeping was reachable only by being named
+   * "area_attack".
+   */
+  const scope: BossTargetScope =
+    action.targetScope ?? (action.intentType === 'area_attack' ? 'all_heroes' : 'single');
+
+  const livingHeroes = () => next.heroes.filter((h) => !h.defeated);
+  const resolveScopeTargets = (): HeroCombatant[] => {
+    const alive = livingHeroes();
+    if (alive.length === 0) return [];
+    switch (scope) {
+      case 'all_heroes':
+        return alive;
+      case 'lowest_hp':
+        // Taunt deliberately still outranks this — `target` was already
+        // resolved through the taunt > focus > declared chain above, so a
+        // tank standing in front answers an execute. That is the whole
+        // lesson of the mechanic; letting it snipe past a taunt would make
+        // the party's one counterplay useless.
+        return [
+          next.heroes.find((h) => h.actorId === target!.actorId && !h.defeated) ??
+            [...alive].sort((a, b) => a.hp - b.hp)[0],
+        ];
+      case 'highest_hp':
+        return [[...alive].sort((a, b) => b.hp - a.hp)[0]];
+      case 'single':
+      default:
+        return [next.heroes.find((h) => h.actorId === target!.actorId && !h.defeated) ?? alive[0]];
+    }
+  };
+
+  /** Apply an action's `statusApplications` to one hero — curse/vulnerability. */
+  const applyActionStatuses = (heroId: string) => {
+    for (const [i, application] of (action.statusApplications ?? []).entries()) {
+      const instance: StatusInstance = {
+        instanceId: `st_boss_${action.id}_${state.round}_${heroId}_${i}`,
+        statusId: application.statusId,
+        sourceActorId: state.boss.actorId,
+        application,
+        remainingRounds: application.duration,
+        stacks: application.stacks ?? 1,
+      };
+      next = addStatus(next, heroId, instance);
+      events.push({
+        kind: 'status_applied',
+        sourceActorId: state.boss.actorId,
+        targetActorId: heroId,
+        statusId: instance.statusId,
+        instanceId: instance.instanceId,
+        duration: instance.remainingRounds,
+      });
+    }
+  };
+
+  /** Apply an action's `selfStatuses` to the boss — the whole of `enrage_prep`. */
+  const applySelfStatuses = () => {
+    for (const [i, application] of (action.selfStatuses ?? []).entries()) {
+      const instance: StatusInstance = {
+        instanceId: `st_bossself_${action.id}_${state.round}_${i}`,
+        statusId: application.statusId,
+        sourceActorId: state.boss.actorId,
+        application,
+        remainingRounds: application.duration,
+        stacks: application.stacks ?? 1,
+      };
+      next = addStatus(next, next.boss.actorId, instance);
+      events.push({
+        kind: 'status_applied',
+        sourceActorId: state.boss.actorId,
+        targetActorId: next.boss.actorId,
+        statusId: instance.statusId,
+        instanceId: instance.instanceId,
+        duration: instance.remainingRounds,
+      });
+    }
+  };
+
   switch (action.intentType) {
-    case 'area_attack': {
-      // Hits EVERYONE. This is the pressure that makes a party-wide healer
-      // matter and makes taunt a trap — there is no one to pull aggro from.
+    case 'enrage_prep': {
+      // Spends the turn entirely. It deals no damage BY DESIGN — the cost of
+      // the buff is the hit the boss didn't take, which is what keeps it a
+      // readable telegraph ("the next ones hurt more") rather than a free
+      // strictly-better attack.
+      applySelfStatuses();
+      break;
+    }
+    case 'curse':
+    case 'vulnerability': {
+      // Both are "apply a status, maybe chip"; they differ only in WHICH
+      // status the data carries, so they share one implementation rather
+      // than two identical branches wearing different names.
+      for (const hero of resolveScopeTargets()) {
+        applyActionStatuses(hero.actorId);
+        const live = next.heroes.find((h) => h.actorId === hero.actorId);
+        if (bossBaseDamage > 0 && live && !live.defeated) strike(live);
+      }
+      break;
+    }
+    case 'execute': {
+      // Damage multiplied against a target already below the threshold. The
+      // multiplier is applied to the shared base so mitigation, resistance
+      // and shields all still run — an execute is a heavier blow, never a
+      // bypass of the defensive layer.
+      for (const hero of resolveScopeTargets()) {
+        const live = next.heroes.find((h) => h.actorId === hero.actorId);
+        if (!live || live.defeated) continue;
+        const threshold = action.executeThresholdPercent ?? 0;
+        const maxHp = live.snapshot.maxHp;
+        const isLow = maxHp > 0 && live.hp / maxHp <= threshold;
+        strike(live, isLow ? (action.executeMultiplier ?? 1) : 1);
+      }
+      break;
+    }
+    case 'area_attack':
+    case 'ultimate': {
       // Re-read the hero list per strike so a death mid-sweep is respected.
+      applySelfStatuses();
       if (bossBaseDamage > 0) {
-        for (const hero of state.heroes) {
+        for (const hero of resolveScopeTargets()) {
           const live = next.heroes.find((h) => h.actorId === hero.actorId);
           if (live && !live.defeated) strike(live);
         }
       }
+      for (const hero of resolveScopeTargets()) applyActionStatuses(hero.actorId);
       break;
     }
     case 'shield': {
@@ -503,8 +806,20 @@ function doResolveBoss(state: BattleState): StepResult {
       break;
     }
     default: {
-      // heavy_attack and everything not yet given its own behaviour.
-      if (bossBaseDamage > 0) strike(target);
+      // heavy_attack, cleanse, and `summon`.
+      //
+      // `summon` is DELIBERATELY not implemented here. Giving it a behaviour
+      // in this switch would mean faking it — a damage spike or a self-shield
+      // wearing the name of a mechanic that is supposed to put a second actor
+      // on the field. A real summon changes the combat contract (targeting,
+      // turn order, the party's action economy, the whole view layer), not
+      // this function. Better an honest fallthrough than a lie in the data.
+      for (const hero of resolveScopeTargets()) {
+        const live = next.heroes.find((h) => h.actorId === hero.actorId);
+        if (bossBaseDamage > 0 && live && !live.defeated) strike(live);
+      }
+      applySelfStatuses();
+      for (const hero of resolveScopeTargets()) applyActionStatuses(hero.actorId);
       break;
     }
   }
@@ -522,10 +837,79 @@ function doResolveBoss(state: BattleState): StepResult {
         },
       ],
       currentIntent: null,
+      // Spent. Cleared only when THIS action was the charge that just landed —
+      // a normal action resolving mid-charge must leave the countdown alone,
+      // or every charge would be cancelled by the boss's own next attack.
+      pendingCharge: resolvingCharge ? null : next.boss.pendingCharge,
     },
   };
 
   return transition(next, events, 'end_of_round');
+}
+
+/**
+ * How far the party got toward breaking a charge, as 0..1. 1 means broken.
+ *
+ * Returned as a FRACTION rather than a boolean because partial progress has
+ * to pay — a charge that is 70% broken should hit meaningfully softer. A
+ * boolean here would make every charge a coin flip the party either wins or
+ * eats whole, which is the difference between a puzzle and a tax.
+ *
+ * Each break kind is a genuinely different question, which is the point: it
+ * means knowing the boss is not enough, you need the right party.
+ */
+function evaluateChargeProgress(
+  state: BattleState,
+  charge: PendingCharge,
+  spec: BossChargeSpec,
+): number {
+  switch (spec.break.kind) {
+    case 'damage': {
+      // Cumulative across the whole window, not per round — so the party can
+      // choose between spreading pressure and burst.
+      const needed = Math.max(1, state.boss.snapshot.maxHp * spec.break.percentOfMaxHp);
+      let dealt = 0;
+      let round = 0;
+      for (const e of state.log) {
+        if (e.kind === 'round_started') round = e.round;
+        if (round < charge.startedRound) continue;
+        if (e.kind === 'damage_dealt' && e.targetActorId === state.boss.actorId) dealt += e.amount;
+      }
+      return Math.min(1, dealt / needed);
+    }
+    case 'status': {
+      // Needs the RIGHT party rather than a bigger one — no amount of damage
+      // substitutes for landing the status.
+      const stacks = state.boss.statuses
+        .filter((st) => st.statusId === (spec.break as { statusId: string }).statusId)
+        .reduce((n, st) => n + st.stacks, 0);
+      return Math.min(1, stacks / Math.max(1, spec.break.stacks));
+    }
+    case 'party_action': {
+      // Coordinated behaviour during the window. This is the condition the
+      // hero ability schema cannot express at all — `AbilityCondition` reads
+      // self/boss state and has no notion of what the party DID.
+      const wanted = spec.break.action;
+      const actors = new Set<string>();
+      let round = 0;
+      for (const e of state.log) {
+        if (e.kind === 'round_started') round = e.round;
+        if (round < charge.startedRound) continue;
+        if (e.kind === 'player_action_selected' && e.action.kind === wanted) actors.add(e.actorId);
+      }
+      return Math.min(1, actors.size / Math.max(1, spec.break.heroCount));
+    }
+    case 'dispel': {
+      // Binary by nature: the charge carries a status and removing it ends
+      // the charge. No partial credit exists to give.
+      const cleansed = state.log.some(
+        (e) => e.kind === 'status_removed' && e.reason === 'dispelled',
+      );
+      return cleansed ? 1 : 0;
+    }
+    default:
+      return 0;
+  }
 }
 
 /** Sum damage dealt to the boss between the most recent `boss_intent_declared`
@@ -594,6 +978,22 @@ function doEndOfRound(state: BattleState): StepResult {
     boss: { ...next.boss, actionCooldowns: tickCooldowns(next.boss.actionCooldowns) },
   };
 
+  // A charge counts down here, alongside cooldowns, so it advances exactly
+  // once per round no matter how many hero turns that round contained. Floored
+  // at 0 rather than going negative: `roundsRemaining <= 0` is the maturity
+  // test in two places, and a value drifting to -3 would still satisfy it
+  // while making the state harder to read in a replay.
+  if (next.boss.pendingCharge) {
+    const remaining = Math.max(0, next.boss.pendingCharge.roundsRemaining - 1);
+    next = {
+      ...next,
+      boss: {
+        ...next.boss,
+        pendingCharge: { ...next.boss.pendingCharge, roundsRemaining: remaining },
+      },
+    };
+  }
+
   // Shields expire.
   next = {
     ...next,
@@ -602,17 +1002,36 @@ function doEndOfRound(state: BattleState): StepResult {
   };
 
   // Resource regen (mana/tech).
+  //
+  // Feeds BOTH the party chamber and the hero's own mirror. Only the hero
+  // mirror was updated when the shared pool landed, which silently deleted the
+  // party's entire passive income: the chamber could then be refilled only by
+  // `strike`, so parties spent turns generating instead of casting and every
+  // fight ran several rounds longer. The balance sweep caught it as floors 2
+  // and 3 flipping from winnable to unwinnable.
+  //
+  // One point per LIVING CONTRIBUTING hero, so a three-hero party's income is
+  // unchanged from when each of them regenerated privately.
+  const regenByChamber = { mana: 0, tech: 0 };
   next = {
     ...next,
     heroes: next.heroes.map((h) => {
       if (h.defeated) return h;
       const room = Math.max(0, h.snapshot.maxResource - h.resource);
       const gained = Math.min(RESOURCE_REGEN_PER_ROUND, room);
+      regenByChamber[h.snapshot.resourceType] += RESOURCE_REGEN_PER_ROUND;
       if (gained > 0) {
         events.push({ kind: 'resource_changed', actorId: h.actorId, delta: gained, source: 'regen' });
       }
       return { ...h, resource: h.resource + gained };
     }),
+  };
+  next = {
+    ...next,
+    partyResource: {
+      mana: Math.min(next.partyResourceMax.mana, next.partyResource.mana + regenByChamber.mana),
+      tech: Math.min(next.partyResourceMax.tech, next.partyResource.tech + regenByChamber.tech),
+    },
   };
 
   return transition(next, events, 'checking_phase_transition');
@@ -686,8 +1105,10 @@ function doCheckVictory(state: BattleState): StepResult {
 
 function validateAbilityUsable(
   hero: HeroCombatant,
-  version: AbilityVersion,
+  ability: AbilityCombatSnapshot,
+  state: BattleState,
 ): 'insufficient_resource' | 'on_cooldown' | 'stunned' | 'silenced' | null {
+  const version = ability.version;
   // Stun costs the NEXT ACTION, not a whole round. Against a three-hero party
   // a full-turn skip would prevent roughly an ultimate's worth of damage,
   // which is far too much for a single status.
@@ -696,8 +1117,19 @@ function validateAbilityUsable(
   if (hero.cooldowns.some((c) => c.abilityDefinitionId === version.abilityId)) {
     return 'on_cooldown';
   }
-  if (version.resourceCost > hero.resource) {
+  // Against the PARTY chamber, not the hero's own pool.
+  if (version.resourceCost > state.partyResource[hero.snapshot.resourceType]) {
     return 'insufficient_resource';
+  }
+  // Ultimates are gated on charge, and that gate now lives in the ENGINE.
+  // It was previously enforced only by the ability bar and the harness policy,
+  // so `submitPlayerAction` with an uncharged ultimate succeeded and silently
+  // reset an already-zero meter — boss-battle-spec §8 says the reducer owns
+  // this. Reported as 'on_cooldown': it is the existing "not available yet"
+  // reason, and inventing a new one would change a union every consumer
+  // switches on.
+  if (ability.slot === 'ultimate' && hero.ultimateCharge < ULTIMATE_CHARGE_MAX) {
+    return 'on_cooldown';
   }
   return null;
 }
@@ -814,10 +1246,12 @@ function resolveAbilityEffects(
         ? applyDamageToBoss(next, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
             sourceActorId: actorId,
             damageType: dmg.damageType,
+            sourceActionId: ability.definitionId,
           })
         : applyDamageToHero(next, targetId, dmg.postShieldAmount, dmg.shieldAbsorbed, events, {
             sourceActorId: actorId,
             damageType: dmg.damageType,
+            sourceActionId: ability.definitionId,
           });
     damageThisAction += dmg.postShieldAmount;
 
@@ -1470,7 +1904,13 @@ function applyDamageToHero(
   amount: number,
   shieldAbsorbed: number,
   events: BattleEvent[],
-  meta: { sourceActorId: string; damageType: import('../../types/abilities').DamageType },
+  meta: {
+    sourceActorId: string;
+    damageType: import('../../types/abilities').DamageType;
+    /** Boss action id or hero ability id — carried so the view can draw THIS
+     *  attack rather than a generic bolt. See `damage_dealt` in types/combat. */
+    sourceActionId?: string;
+  },
 ): BattleState {
   let next = state;
   const hero = next.heroes.find((h) => h.actorId === targetId);
@@ -1496,6 +1936,7 @@ function applyDamageToHero(
     amount,
     damageType: meta.damageType,
     blockedByShield: shieldAbsorbed,
+    ...(meta.sourceActionId ? { sourceActionId: meta.sourceActionId } : {}),
   });
 
   // Thorns. Reflected as `true` damage on purpose: it neither takes a second
@@ -1535,7 +1976,13 @@ function applyDamageToBoss(
   amount: number,
   shieldAbsorbed: number,
   events: BattleEvent[],
-  meta: { sourceActorId: string; damageType: import('../../types/abilities').DamageType },
+  meta: {
+    sourceActorId: string;
+    damageType: import('../../types/abilities').DamageType;
+    /** Boss action id or hero ability id — carried so the view can draw THIS
+     *  attack rather than a generic bolt. See `damage_dealt` in types/combat. */
+    sourceActionId?: string;
+  },
 ): BattleState {
   const boss = state.boss;
   const newHp = Math.max(0, boss.hp - amount);
@@ -1555,6 +2002,7 @@ function applyDamageToBoss(
     amount,
     damageType: meta.damageType,
     blockedByShield: shieldAbsorbed,
+    ...(meta.sourceActionId ? { sourceActionId: meta.sourceActionId } : {}),
   });
   if (newHp <= 0) events.push({ kind: 'actor_defeated', actorId: boss.actorId });
   return next;

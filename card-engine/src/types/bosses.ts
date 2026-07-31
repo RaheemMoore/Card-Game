@@ -1,6 +1,6 @@
 import type { DamageType, StatusApplication } from './abilities';
 import type { ArchetypeName } from './card';
-import type { BossIntentType } from './combat';
+import type { BossIntentType, BossTargetScope, BossChargeSpec } from './combat';
 
 /**
  * Boss library types (Master Plan §33). These are the persistence shapes
@@ -111,6 +111,22 @@ export interface BossActionDefinition {
   shieldAmount?: number;
   /** Rounds that shield lasts. Defaults to 2. */
   shieldDurationRounds?: number;
+  /**
+   * Who the action hits. Defaults to 'single'.
+   *
+   * Authoring mirror of `BossActionSnapshot.targetScope` — see that field for
+   * why sweeping the party is a scope rather than an intent name.
+   */
+  targetScope?: BossTargetScope;
+  /** Statuses the boss applies to itself — `enrage_prep`. */
+  selfStatuses?: readonly StatusApplication[];
+  /** Statuses applied to targets — `curse`, `vulnerability`. */
+  statusApplications?: readonly StatusApplication[];
+  /** For `execute` — below this fraction of max HP, damage is multiplied. */
+  executeThresholdPercent?: number;
+  executeMultiplier?: number;
+  /** Multi-round telegraph. See BossChargeSpec in types/combat.ts. */
+  charge?: BossChargeSpec;
 }
 
 export interface BossVersion {
