@@ -5,6 +5,8 @@ import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
 import { AbilityCommandStrip } from '../../components/abilities';
 import { PaintedPanel } from './PaintedPanel';
+import { useViewportWidth } from './useViewportWidth';
+import { abilityTriggerWidth } from './shelfLayout';
 import type { AbilityCommandState, AbilityTier } from '../../components/abilities/types';
 
 interface Props {
@@ -57,6 +59,19 @@ export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbi
   /** Resting state is the slim list; expanding lifts a fuller list above the
    *  shelf. Collapsed by default so a turn costs no extra click. */
   const [expanded, setExpanded] = useState(false);
+  // Derived from the zone, never declared beside it — a control sized
+  // independently of its container breaks out of the frame at some width.
+  const vw = useViewportWidth();
+  const triggerWidth = abilityTriggerWidth(vw);
+  /**
+   * The icon well is the first thing to go when the zone gets tight.
+   *
+   * Fitting inside the zone is not the whole job — at 1024 the label
+   * truncated to "A…" while the 34px well kept its full size, so the control
+   * was contained and unreadable. The NAME is what the control is for; the
+   * icon is decoration that repeats information the panel already shows.
+   */
+  const showIcon = triggerWidth >= 150;
 
   useEffect(() => {
     if (!pendingId) return;
@@ -198,7 +213,7 @@ export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbi
           background={armed ? '#1b1108' : '#100c08'}
           corners={false}
           style={{
-            width: 'clamp(150px, 15vw, 200px)',
+            width: triggerWidth,
             height: 64,
             display: 'flex',
             alignItems: 'center',
@@ -216,6 +231,7 @@ export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbi
                 : '0 0 8px rgba(194,120,38,0.22)',
           }}
         >
+          {showIcon && (
           <span
             aria-hidden
             style={{
@@ -237,6 +253,7 @@ export function AbilityCommandBar({ hero, disabled, pendingId, onArm, onHoverAbi
               />
             )}
           </span>
+          )}
 
           <span className="flex flex-col items-start" style={{ minWidth: 0, flex: 1 }}>
             <span

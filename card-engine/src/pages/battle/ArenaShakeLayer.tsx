@@ -70,12 +70,40 @@ export function ArenaShakeLayer({ currentBeat, motionLevel, backdrop, foreground
     '--arena-shake-ms': `${feel.arenaShakeMs}ms`,
   } as React.CSSProperties;
 
+  /**
+   * One shakeable layer.
+   *
+   * ── Both wrappers MUST be pointer-events: none ───────────────────────────
+   * These are presentation only — they exist to translate the world on impact
+   * and nothing inside them is meant to be clicked. But they are full-arena
+   * `inset: 0` boxes, and the FOREGROUND slot sits at z-21, above the command
+   * shelf's z-15. With default `pointer-events: auto` they therefore swallowed
+   * every click aimed at the shelf: Strike, End Turn and the ability list all
+   * looked enabled and did nothing.
+   *
+   * That bug survived a preview deploy because it is invisible to scripted
+   * testing — `element.click()` dispatches straight at the node and bypasses
+   * hit-testing entirely, so the buttons "worked" in every automated check and
+   * failed for every human. Only a real cursor reproduces it.
+   *
+   * Interactive content placed in a slot must re-enable pointer events on
+   * itself. Nothing does today: the foreground holds only `AttackVFX`, which is
+   * decorative and already `aria-hidden`.
+   */
   const slot = (content: ReactNode, zIndex: number) => (
-    <div className="absolute inset-0" style={{ zIndex, transform: 'scale(1.02)', willChange: 'transform' }}>
+    <div
+      className="absolute inset-0"
+      style={{
+        zIndex,
+        transform: 'scale(1.02)',
+        willChange: 'transform',
+        pointerEvents: 'none',
+      }}
+    >
       <div
         key={shake?.key ?? 0}
         className={shaking ? 'arena-shake' : undefined}
-        style={{ position: 'absolute', inset: 0, ...vars }}
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none', ...vars }}
       >
         {content}
       </div>

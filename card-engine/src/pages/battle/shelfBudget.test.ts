@@ -2,8 +2,14 @@ import { describe, it, expect } from 'vitest';
 import {
   SHELF_BREAKPOINTS,
   SHELF_MIN_SPARE,
+  RESOURCE_GAP,
+  STRIKE_WIDTH,
   abilityZoneWidth,
+  abilityZonePadding,
+  abilityTriggerWidth,
   resourceZoneWidth,
+  resourceZonePadding,
+  vesselWidth,
   controlsWidth,
   shelfContentWidth,
   shelfSpare,
@@ -37,6 +43,32 @@ describe('command shelf width budget', () => {
         `resource ${resourceZoneWidth(vw)}, dock ${computePartyDockWidth(vw)}, ` +
         `controls ${controlsWidth(vw)}.`,
     ).toBeGreaterThanOrEqual(SHELF_MIN_SPARE);
+  });
+
+  /**
+   * The shelf is divided by seam rules, and a control that renders wider than
+   * its own zone visibly breaks out of the frame and crosses that seam. Total
+   * budget alone does not catch it: the shelf can fit overall while a single
+   * control spills across a divider, which is exactly what happened to the
+   * ability trigger (41px past its zone at 1280) and the resource vessels
+   * (32px at 1024).
+   *
+   * The rule: a control's width is DERIVED from its zone, never declared
+   * beside it.
+   */
+  it.each(SHELF_BREAKPOINTS)('keeps every control inside its own zone at %ipx', (vw) => {
+    const abilityUsable = abilityZoneWidth(vw) - abilityZonePadding(vw) * 2;
+    expect(
+      abilityTriggerWidth(vw),
+      `ability trigger breaks out of its zone at ${vw}px`,
+    ).toBeLessThanOrEqual(abilityUsable);
+
+    const resourceUsable = resourceZoneWidth(vw) - resourceZonePadding(vw) * 2;
+    const resourceContent = vesselWidth(vw) * 2 + STRIKE_WIDTH + RESOURCE_GAP * 2;
+    expect(
+      resourceContent,
+      `vessels + strike break out of the resource zone at ${vw}px`,
+    ).toBeLessThanOrEqual(resourceUsable);
   });
 
   it('never lets a zone collapse to nothing', () => {

@@ -22,7 +22,13 @@ import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
 import { PartyResourceVessel } from './PartyResourceVessel';
-import { abilityZoneWidth, resourceZoneWidth, controlsPaddingRight } from './shelfLayout';
+import {
+  abilityZoneWidth,
+  abilityZonePadding,
+  resourceZoneWidth,
+  resourceZonePadding,
+  controlsPaddingRight,
+} from './shelfLayout';
 import { CombatGuideModal } from './CombatGuideModal';
 import { PaintedPanel } from './PaintedPanel';
 import { CardSheet } from '../../components/CardSheet';
@@ -303,8 +309,8 @@ export function CombatScene({
             flex: `0 0 ${abilityZoneWidth(viewportWidth)}px`,
             minWidth: 0,
             height: '100%',
-            paddingLeft: 'clamp(6px, 1.1vw, 14px)',
-            paddingRight: 'clamp(6px, 1.1vw, 14px)',
+            paddingLeft: abilityZonePadding(viewportWidth),
+            paddingRight: abilityZonePadding(viewportWidth),
           }}
         >
           <AbilityCommandBar
@@ -327,8 +333,8 @@ export function CombatScene({
             flex: `0 0 ${resourceZoneWidth(viewportWidth)}px`,
             minWidth: 0,
             height: '100%',
-            paddingLeft: 'clamp(4px, 0.8vw, 10px)',
-            paddingRight: 'clamp(4px, 0.8vw, 10px)',
+            paddingLeft: resourceZonePadding(viewportWidth),
+            paddingRight: resourceZonePadding(viewportWidth),
           }}
         >
           <PartyResourceVessel

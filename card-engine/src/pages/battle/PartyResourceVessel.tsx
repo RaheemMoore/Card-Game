@@ -2,6 +2,8 @@ import type { BattleState } from '../../types/combat';
 import type { MotionLevel } from '../../vfx/types';
 import { LiquidVessel } from '../../vfx/LiquidVessel';
 import { LatticeCore } from '../../vfx/LatticeCore';
+import { useViewportWidth } from './useViewportWidth';
+import { RESOURCE_GAP, STRIKE_WIDTH, vesselWidth } from './shelfLayout';
 
 /**
  * The party's shared resource, as two vessels.
@@ -47,6 +49,8 @@ const TECH_PALETTE = {
 
 export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Props) {
   const { partyResource: cur, partyResourceMax: max } = state;
+  const vw = useViewportWidth();
+  const vessel = vesselWidth(vw);
 
   /**
    * BOTH chambers always render, even at max 0.
@@ -70,7 +74,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
   return (
     <div
       className="flex items-end justify-center"
-      style={{ gap: 8 }}
+      style={{ gap: RESOURCE_GAP }}
       role="group"
       aria-label="Party resources"
     >
@@ -81,6 +85,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
           palette={TECH_PALETTE}
           motion={motionLevel}
           label="Tech"
+          width={vessel}
           readout={techUnused ? '—' : `${cur.tech}`}
         />
       </div>
@@ -90,6 +95,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
           palette={MANA_PALETTE}
           motion={motionLevel}
           label="Mana"
+          width={vessel}
           readout={manaUnused ? '—' : `${cur.mana}`}
         />
       </div>
@@ -108,7 +114,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
         aria-label="Strike — a free basic attack that adds to the party's resource"
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         style={{
-          width: 44,
+          width: STRIKE_WIDTH,
           height: 88,
           borderRadius: 6,
           border: '2px solid #7a5530',

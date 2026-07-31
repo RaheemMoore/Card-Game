@@ -53,9 +53,58 @@ export function abilityZoneWidth(vw: number): number {
   return clampNum(132, 0.140, 240, vw);
 }
 
+/** Inner padding of the ability zone, one side. */
+export function abilityZonePadding(vw: number): number {
+  return clampNum(6, 0.011, 14, vw);
+}
+
+/**
+ * The ability trigger button itself — DERIVED from its zone, never guessed.
+ *
+ * It used to carry its own `clamp(150px, 15vw, 200px)`, which had no
+ * relationship to the zone containing it. At 1280 the zone was 179px and the
+ * button computed 192px, so the painted frame visibly broke out of its own
+ * slot and crossed the seam — at every width except 1920, by up to 41px.
+ *
+ * This is the same class of drift `shelfLayout` exists to stop, and it slipped
+ * through because the zone moved here while the control's own width stayed an
+ * inline clamp at its call site. A child sized independently of its parent
+ * will disagree with it eventually.
+ */
+export function abilityTriggerWidth(vw: number): number {
+  return abilityZoneWidth(vw) - abilityZonePadding(vw) * 2;
+}
+
 /** The resource zone — both vessels AND the strike button that fills them. */
 export function resourceZoneWidth(vw: number): number {
   return clampNum(148, 0.145, 196, vw);
+}
+
+/** Inner padding of the resource zone, one side. */
+export function resourceZonePadding(vw: number): number {
+  return clampNum(4, 0.008, 10, vw);
+}
+
+/** Gap between the two vessels and the strike button. */
+export const RESOURCE_GAP = 6;
+
+/** Strike sits beside the vessels and is the narrowest of the three. */
+export const STRIKE_WIDTH = 40;
+
+/**
+ * One vessel, DERIVED from what its zone can actually hold.
+ *
+ * Fixed 52px vessels plus a 44px strike overflowed the zone by 32px at 1024 —
+ * the same defect as the ability trigger, in a different slot. Anything sized
+ * independently of its container disagrees with it at some width; the only
+ * reliable fix is to divide up what the container has.
+ */
+export function vesselWidth(vw: number): number {
+  const usable = resourceZoneWidth(vw) - resourceZonePadding(vw) * 2;
+  const forVessels = usable - STRIKE_WIDTH - RESOURCE_GAP * 2;
+  // Floor keeps two of them inside the zone after rounding; the minimum stops
+  // a narrow viewport from collapsing them to slivers.
+  return Math.max(38, Math.floor(forVessels / 2));
 }
 
 /* ---- Right-hand controls ------------------------------------------- */
