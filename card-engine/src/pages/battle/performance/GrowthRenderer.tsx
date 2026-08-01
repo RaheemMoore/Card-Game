@@ -2,6 +2,14 @@ import type { MotionLevel } from '../../../vfx/types';
 import type { ResolvedPerformance } from '../../../services/combat/performance/types';
 import type { Point } from '../combatAnchors';
 import { thicknessAt } from './materialStyle';
+import {
+  assetAvailable,
+  assetKitIdFor,
+  getAssetKit,
+  performanceAssetUrl,
+} from '../../../data/combat/performance/assetKits';
+import { resolveCombatAssetPath } from '../../../data/combat/types';
+import { AssetFrames } from './AssetFrames';
 
 /**
  * The growth family — Rootgrasp's staged emergence and restraint.
@@ -90,6 +98,17 @@ export function GrowthRenderer({
 
   const baseWidth = perf.intensity === 'ultimate' ? 1.4 : 1;
   const drawMs = Math.max(120, manifestMs);
+
+  /*
+   * Growth's two art slots, resolved through the manifest gate like every
+   * other renderer. `stream` is reused as the WRAP band — it is a tileable
+   * strip of roots, and wrapping a target is the same problem as running along
+   * a path: repeat a texture over an arbitrary span. `impact` is the plant
+   * that forms on the boss.
+   */
+  const kitAssets = getAssetKit(assetKitIdFor('growth', kit.element));
+  const wrapAsset = assetAvailable(kitAssets?.stream) ? kitAssets.stream : undefined;
+  const bloomAsset = assetAvailable(kitAssets?.impact) ? kitAssets.impact : undefined;
 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>
@@ -197,9 +216,10 @@ export function GrowthRenderer({
           </g>
         )}
 
-        {/* The bind. Persists through aftermath so `weakened` reads as a
-            condition the target is still in, not a moment that passed. */}
-        {bound && (
+        {/* Procedural bind, drawn only when there is no wrap art. Persists
+            through aftermath so `weakened` reads as a condition the target is
+            still in, not a moment that passed. */}
+        {bound && !wrapAsset && (
           <ellipse
             cx={to.x}
             cy={to.y}
@@ -214,9 +234,84 @@ export function GrowthRenderer({
           />
         )}
       </svg>
+
+      {/*
+        The wraparound — a band of roots tiled ACROSS the target rather than
+        along a path. Same tile as everything else, laid horizontally over the
+        boss so it reads as bound rather than merely touched. Mirror-flipped
+        per tile, exactly as the streams are, so the seams cannot show.
+      */}
+      {wrapAsset && (gripping || bound) && (
+        <div
+          className={still ? undefined : 'perf-wrap-grip'}
+          style={{
+            position: 'absolute',
+            left: `${to.x}%`,
+            top: `${to.y}%`,
+            width: WRAP_W,
+            height: WRAP_H,
+            marginLeft: -WRAP_W / 2,
+            marginTop: -WRAP_H / 2,
+            display: 'flex',
+            overflow: 'hidden',
+            zIndex: 1,
+          }}
+        >
+          {Array.from({ length: WRAP_TILES }, (_, i) => (
+            <AssetFrames
+              key={i}
+              src={performanceAssetUrl(wrapAsset)}
+              frames={wrapAsset.frames?.map(resolveCombatAssetPath)}
+              fps={wrapAsset.fps}
+              loop={wrapAsset.loop}
+              motionLevel={motionLevel}
+              playKey={`${perf.id}_wrap`}
+              style={{
+                width: WRAP_W / WRAP_TILES,
+                height: WRAP_H,
+                flex: '0 0 auto',
+                transform: i % 2 === 1 ? 'scaleX(-1)' : undefined,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/*
+        The plant that forms ON the boss — a tangle of vines with a flower
+        opening at its centre. This is the payoff beat: the ability does not
+        merely damage the target, it colonises it.
+      */}
+      {bloomAsset && (gripping || bound) && (
+        <AssetFrames
+          src={performanceAssetUrl(bloomAsset)}
+          frames={bloomAsset.frames?.map(resolveCombatAssetPath)}
+          fps={bloomAsset.fps}
+          loop={bloomAsset.loop}
+          motionLevel={motionLevel}
+          playKey={perf.id}
+          className={still ? undefined : 'perf-impact-art'}
+          style={{
+            position: 'absolute',
+            left: `${to.x}%`,
+            top: `${to.y}%`,
+            width: BLOOM_PX,
+            height: BLOOM_PX,
+            marginLeft: -BLOOM_PX / 2,
+            marginTop: -BLOOM_PX / 2,
+            zIndex: 2,
+          }}
+        />
+      )}
     </div>
   );
 }
+
+/** Wraparound band geometry, in px on the arena overlay. */
+const WRAP_W = 150;
+const WRAP_H = 34;
+const WRAP_TILES = 4;
+const BLOOM_PX = 76;
 
 /**
  * One root, from ground origin to tip.

@@ -72,9 +72,18 @@ export function PerformanceView({
     stageName === 'charge' || stageName === 'cast' || stageName === 'travel' ||
     stageName === 'manifest' || stageName === 'impact' || stageName === 'return' ||
     stageName === 'arrival';
+  /*
+   * The charge tell belongs to the CARD, not to the delivery's origin.
+   *
+   * For most abilities those are the same point. For Rootgrasp they are not:
+   * the plant blooms on the card while the roots erupt from the ground around
+   * the boss. Anchoring the tell to `castAnchor` put the plant at the boss's
+   * feet, which reads as the boss growing it. Charging is something the caster
+   * does, so it is always drawn at the caster.
+   */
   const chargeTell = chargeVisible ? (
     <ChargeTell
-      at={resolveAnchor(perf.castAnchor, anchorContext)}
+      at={resolveAnchor('caster_card_edge', anchorContext)}
       kit={perf.material}
       motionLevel={motionLevel}
       chargeMs={chargeMs}
@@ -287,6 +296,16 @@ export function PerformanceStyles() {
         from { stroke-dashoffset: 140; }
         to   { stroke-dashoffset: 0; }
       }
+
+      /* The wraparound cinching in. Overshoots slightly then settles, so it
+         reads as something tightening around the target rather than a band
+         being pasted on. */
+      @keyframes perf-wrap-cinch {
+        0%   { opacity: 0; transform: scaleX(0.35) scaleY(1.4); }
+        45%  { opacity: 1; transform: scaleX(1.06) scaleY(0.94); }
+        100% { opacity: 1; transform: scaleX(1) scaleY(1); }
+      }
+      .perf-wrap-grip { animation: perf-wrap-cinch 300ms cubic-bezier(0.2,0.8,0.3,1) forwards; }
 
       @keyframes perf-barrier-arrive {
         0%   { opacity: 0; transform: scale(0.9); }

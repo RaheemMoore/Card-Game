@@ -265,10 +265,19 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
     particle: placeholder('lash_water_spray', 'still', 'effects/lash/water/spray.png', 16, 16, ['lash'], ['Water']),
   },
   /*
-   * Fire — Batch D, 2026-08-01. Third element, same 4-generation recipe, still
-   * no code. The one kit whose core is BRIGHTER than its edge: everything else
-   * here is darker in the middle, and that inversion is most of why a fire
-   * stream is legible as fire in greyscale.
+   * Fire — Batch E, 2026-08-01, and a re-brief rather than a first attempt.
+   *
+   * The first "Fire" set came back as lava and became Infernal below. Raheem's
+   * correction: "this one is a fire, not a liquid ... more of a wind flowing
+   * looking beam, more airy, more wispy than watery," and an impact that is
+   * "a little spread of flames instead of a firecracker."
+   *
+   * So this kit is deliberately the opposite of Infernal in every structural
+   * field except family: `chargeForm: 'flame'` rather than a pool,
+   * `streamFlow: 'wisp'` rather than a jet, a low spreading impact rather than
+   * a starburst. Two elements in the same damage family sharing none of their
+   * behaviour is the clearest proof the material axis does real work rather
+   * than tinting.
    */
   lash_fire: {
     id: 'lash_fire',
@@ -280,7 +289,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       path: 'effects/lash/fire/stream.png',
       frames: Array.from({ length: 9 }, (_, i) => `effects/lash/fire/stream-f${i}.png`),
       frameCount: 9,
-      fps: 18,
+      fps: 20,
       loop: true,
       dimensions: { width: 128, height: 32 },
       pivot: { x: 0, y: 16 },
@@ -290,14 +299,15 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: '3eaf75f7-e992 (still) / ff35770c-ca40 (animation)',
+        jobOrObjectId: '98af3835-58f6 (still) / ef54825c-a406 (animation)',
         seed: 7331,
         generationCost: 2,
-        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#fire_stream_strip',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#fire_stream_wispy',
       },
       notes:
-        'Jagged tongues licking upward along the top edge — against Water rounded foam ' +
-        'crests and Blood smooth beads. Fastest fps of the three: fire is the least coherent.',
+        'Thin feathery streamers, generated with outline `lineless` — the outline setting ' +
+        'that made every other tile solid is a large part of why fire looked like a hose. ' +
+        'Rendered with the wisp flow: translucent, glowing, per-tile undulation.',
     },
     impact: {
       id: 'lash_fire_impact',
@@ -305,7 +315,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       path: 'effects/lash/fire/impact.png',
       frames: Array.from({ length: 9 }, (_, i) => `effects/lash/fire/impact-f${i}.png`),
       frameCount: 9,
-      fps: 18,
+      fps: 16,
       loop: false,
       dimensions: { width: 64, height: 64 },
       pivot: { x: 32, y: 32 },
@@ -315,21 +325,150 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'de0b4445-63e8 (still) / 8c09a86e-e823 (animation)',
+        seed: 4412,
+        generationCost: 3,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt (674c60bc) came back as a radial starburst — the firecracker read ' +
+          'that was rejected. The reroll needed explicit negations: NOT a star, NOT radial, ' +
+          'NOT symmetrical, wider than it is tall.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#fire_impact_spread',
+      },
+      notes:
+        'A low wide sheet of flame with tongues licking up — fire spreads along a surface ' +
+        'rather than detonating off it.',
+    },
+    particle: placeholder('lash_fire_ember', 'still', 'effects/lash/fire/ember.png', 16, 16, ['lash'], ['Fire']),
+  },
+
+  /*
+   * Infernal — the lava set. Was generated as "Fire" and rehomed here; see the
+   * Infernal entry in materialKits.ts for the full story.
+   */
+  lash_infernal: {
+    id: 'lash_infernal',
+    form: 'lash',
+    element: 'Infernal',
+    stream: {
+      id: 'lash_infernal_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/infernal/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/infernal/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Infernal'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '3eaf75f7-e992 (still) / ff35770c-ca40 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#infernal_stream_strip',
+      },
+      notes:
+        'Jagged tongues licking upward along the top edge — against Water rounded foam ' +
+        'crests and Blood smooth beads. Fastest fps of the three: fire is the least coherent.',
+    },
+    impact: {
+      id: 'lash_infernal_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/infernal/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/infernal/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Infernal'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
         jobOrObjectId: 'b8626cb3-7305 (still) / e0b8333f-01e0 (animation)',
         seed: 7331,
         generationCost: 2,
-        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#fire_impact',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#infernal_impact',
       },
       notes:
         'A spiked starburst — against Water upward crown and Blood flat splatter. Three ' +
         'impacts, three silhouettes, no colour required to tell them apart.',
     },
-    particle: placeholder('lash_fire_ember', 'still', 'effects/lash/fire/ember.png', 16, 16, ['lash'], ['Fire']),
+    particle: placeholder('lash_infernal_ember', 'still', 'effects/lash/infernal/ember.png', 16, 16, ['lash'], ['Fire']),
   },
+  /*
+   * Nature — Batch F, 2026-08-01, and the only element that does not travel.
+   *
+   * Roots erupt from the ground around the boss rather than being fired at it.
+   * Raheem reversed onto this deliberately: "that's kinda different — it would
+   * make this element stand out from the other elements a lot."
+   *
+   * Note the slots are reused rather than renamed. `stream` is a tileable band
+   * of roots, and it is used here as the WRAP around the target — wrapping is
+   * the same problem as running along a path, a texture repeated over an
+   * arbitrary span, so it needs no new contract. `impact` is the plant that
+   * forms on the boss.
+   */
   growth_nature: {
     id: 'growth_nature',
     form: 'growth',
     element: 'Nature',
+    stream: {
+      id: 'growth_nature_wrap',
+      kind: 'flipbook',
+      path: 'effects/growth/nature/wrap.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/growth/nature/wrap-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['growth'],
+      intendedMaterials: ['Nature'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '5cbe54bc-b052 (still) / 5f6125dc-3522 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nature_wrap',
+      },
+      notes:
+        'Interwoven roots with leaves. Slowest fps in the set — vines writhe, they do not ' +
+        'churn. Tiled horizontally ACROSS the target rather than along a path.',
+    },
+    impact: {
+      id: 'growth_nature_bloom',
+      kind: 'flipbook',
+      path: 'effects/growth/nature/bloom.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/growth/nature/bloom-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['growth'],
+      intendedMaterials: ['Nature'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '8e0fe3c1-0625 (still) / b5dfd8a8-cb49 (animation)',
+        seed: 4412,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nature_bloom',
+      },
+      notes:
+        'A tangle of vines splaying outward with a flower opening at its centre — the ' +
+        'ability does not merely damage the target, it colonises it.',
+    },
     // A state set rather than a flipbook on purpose: staged emergence reads
     // better as curated condition changes than as continuous motion, and it is
     // far cheaper to generate and to reject.

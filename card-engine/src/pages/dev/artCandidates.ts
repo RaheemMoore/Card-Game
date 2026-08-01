@@ -232,17 +232,17 @@ export const BATCH_C: readonly ArtCandidate[] = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Batch D — Fire, completing the three-way comparison                */
+/*  Batch D — became Infernal (generated as Fire, rehomed)             */
 /* ------------------------------------------------------------------ */
 
 const ROOT_D = '/assets/combat/effects/_candidates/batch-d';
 
 export const BATCH_D: readonly ArtCandidate[] = [
   {
-    id: 'fire_stream_strip',
-    file: `${ROOT_D}/fire-stream.png`,
+    id: 'infernal_stream_strip',
+    file: `${ROOT_D}/infernal-stream.png`,
     size: 128,
-    label: 'Fire stream tile — Pixen, 128×32',
+    label: 'Infernal stream tile — Pixen, 128×32',
     what: 'The third stream tile. Same code, same tiling, same scroll — different substance.',
     testing: 'Third element on the same recipe: is this now a reliable process rather than luck?',
     verdict: 'recommend',
@@ -256,10 +256,10 @@ export const BATCH_D: readonly ArtCandidate[] = [
     tileable: true,
   },
   {
-    id: 'fire_impact',
-    file: `${ROOT_D}/fire-impact.png`,
+    id: 'infernal_impact',
+    file: `${ROOT_D}/infernal-impact.png`,
     size: 64,
-    label: 'Fire burst — Pixen, 64×64',
+    label: 'Infernal burst — Pixen, 64×64',
     what: 'The burst where the jet lands, animated over 9 frames as a one-shot.',
     testing: 'Three impacts on one page — do they survive being seen together?',
     verdict: 'recommend',
@@ -269,6 +269,92 @@ export const BATCH_D: readonly ArtCandidate[] = [
       'events, which is the whole claim the material axis was built to make. Nothing here is ' +
       'carried by hue.',
     provenance: { tool: 'create_image_pixen + animate_image', jobId: 'b8626cb3 / e0b8333f', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Batch E — Fire, re-briefed as something that is not a liquid       */
+/* ------------------------------------------------------------------ */
+
+const ROOT_E = '/assets/combat/effects/_candidates/batch-e';
+
+export const BATCH_E: readonly ArtCandidate[] = [
+  {
+    id: 'fire_stream_wispy',
+    file: `${ROOT_E}/fire-stream.png`,
+    size: 128,
+    label: '2 · Stream — the blast',
+    what: 'Fire’s beam: thin feathery streamers blown sideways, not a pressurised jet.',
+    testing: 'Can a stream read as AIRY when the technique was built for liquids?',
+    verdict: 'recommend',
+    why:
+      'The fix turned out to be one parameter. Every previous tile was generated with a ' +
+      'selective outline, which is what made them solid and hose-like; asking for lineless ' +
+      'gave translucent feathery streamers instead. Paired with the new wisp flow — reduced ' +
+      'opacity, a glow, and a per-tile vertical wobble so the band undulates rather than ' +
+      'running dead flat — it reads as blown flame rather than orange water.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '98af3835 / ef54825c', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'fire_impact_spread',
+    file: `${ROOT_E}/fire-impact.png`,
+    size: 64,
+    label: '3 · Impact — the spread',
+    what: 'A low wide sheet of flame with tongues licking up, spreading along the surface.',
+    testing: 'Getting away from the firecracker read.',
+    verdict: 'recommend',
+    why:
+      'Took two attempts, and the first is worth recording: asking for "a burst of flame ' +
+      'spreading outward" produced another radial starburst, because burst and outward both ' +
+      'point the model at a firework. The reroll only worked with explicit negations — NOT a ' +
+      'star, NOT radial, NOT symmetrical, wider than it is tall. Fire spreads ALONG a surface ' +
+      'rather than detonating off it, which is now what separates it from Infernal.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'de0b4445 / 8c09a86e', seed: 4412, generationCost: 3 },
+    tileable: false,
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Batch F — Nature, the element that does not travel                 */
+/* ------------------------------------------------------------------ */
+
+const ROOT_F = '/assets/combat/effects/_candidates/batch-f';
+
+export const BATCH_F: readonly ArtCandidate[] = [
+  {
+    id: 'nature_wrap',
+    file: `${ROOT_F}/nature-wrap.png`,
+    size: 128,
+    label: '2 · Wrap — roots binding the target',
+    what:
+      'A tileable band of roots, laid ACROSS the boss rather than along a path — the same ' +
+      'tile technique, turned ninety degrees.',
+    testing: 'Does the tiling trick work for wrapping a target, not just crossing a gap?',
+    verdict: 'recommend',
+    why:
+      'Wrapping turned out to be the same problem as streaming — a texture repeated over an ' +
+      'arbitrary span — so it needed no new contract, just the existing band tiled ' +
+      'horizontally over the target with the same mirror-flip. Slowest fps in the set on ' +
+      'purpose: vines writhe, they do not churn.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '5cbe54bc / 5f6125dc', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'nature_bloom',
+    file: `${ROOT_F}/nature-bloom.png`,
+    size: 64,
+    label: '3 · Bloom — a plant forms on the boss',
+    what: 'A tangle of vines splaying outward with a flower opening at its centre.',
+    testing: 'Can an impact read as something GROWING rather than something detonating?',
+    verdict: 'recommend',
+    why:
+      'This is the beat that makes Nature different from everything else: the ability does ' +
+      'not merely hurt the target, it colonises it. Every other impact in the set is an event ' +
+      'that happens and fades — this one leaves a living thing behind, which is exactly what ' +
+      '"weakened" should look like.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '8e0fe3c1 / b5dfd8a8', seed: 4412, generationCost: 2 },
     tileable: false,
   },
 ];
@@ -290,7 +376,7 @@ export const BATCH_D: readonly ArtCandidate[] = [
  * gallery renders it as its own card.
  */
 export interface KeptElement {
-  element: 'Blood' | 'Water' | 'Fire';
+  element: 'Blood' | 'Water' | 'Fire' | 'Infernal' | 'Nature';
   /** One line on what this element brought that the others did not. */
   note: string;
   generations: number;
@@ -332,13 +418,32 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
   {
     element: 'Fire',
     note:
-      'Third on the same recipe, so this is a process now rather than luck. The only kit ' +
-      'whose core is brighter than its edge — the strongest no-colour cue of the three.',
+      'Re-briefed after the first attempt came back as lava (which became Infernal). Fire is ' +
+      'not a liquid: it catches rather than pools, blows rather than sprays, and spreads along ' +
+      'a surface rather than detonating off it.',
+    generations: 5,
+    candidates: BATCH_E,
+  },
+  {
+    element: 'Infernal',
+    note:
+      'The lava set, generated as "Fire" and rehomed. Kept its liquid behaviour — it pools ' +
+      'and pours where Fire catches and blows, which is why two elements in the same damage ' +
+      'family share none of their movement.',
     generations: 4,
     candidates: [
-      { ...pick(BATCH_D, 'fire_stream_strip'), label: '2 · Stream — the blast' },
-      { ...pick(BATCH_D, 'fire_impact'), label: '3 · Impact — the splash' },
+      { ...pick(BATCH_D, 'infernal_stream_strip'), label: '2 · Stream — the pour' },
+      { ...pick(BATCH_D, 'infernal_impact'), label: '3 · Impact — the spark' },
     ],
+  },
+  {
+    element: 'Nature',
+    note:
+      'The only element that does not travel. Roots erupt from the ground AROUND the boss and ' +
+      'wrap it, rather than being fired at it — a different sentence from every other ability, ' +
+      'which is the point.',
+    generations: 4,
+    candidates: BATCH_F,
   },
 ];
 
@@ -348,11 +453,13 @@ function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D];
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F];
 const KEPT_IDS = new Set([
   'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
   'water_stream_strip', 'water_impact',
-  'fire_stream_strip', 'fire_impact',
+  'infernal_stream_strip', 'infernal_impact',
+  'fire_stream_wispy', 'fire_impact_spread',
+  'nature_wrap', 'nature_bloom',
 ]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;

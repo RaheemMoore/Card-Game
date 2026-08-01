@@ -6,6 +6,7 @@ import {
   REJECTED_COUNT,
   TOTAL_GENERATIONS,
   type ArtCandidate,
+  type KeptElement,
 } from './artCandidates';
 import { MATERIAL_KITS } from '../../data/combat/performance/materialKits';
 
@@ -94,7 +95,7 @@ export function ArtCandidatePanel() {
  * three parts, and because "this one was free and always will be" is the most
  * useful fact on the page.
  */
-function ChargeCard({ element }: { element: 'Blood' | 'Water' | 'Fire' }) {
+function ChargeCard({ element }: { element: KeptElement['element'] }) {
   const kit = MATERIAL_KITS[element];
   const [core, edge, accent] = kit.palette;
   const drips = kit.residue === 'dripping';

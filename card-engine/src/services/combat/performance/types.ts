@@ -91,6 +91,26 @@ export interface MaterialKit {
   /** What is left behind afterwards, if anything. */
   residue: MaterialResidue;
   /**
+   * How the material GATHERS at the cast point before firing.
+   *
+   * Added after the charge tell shipped drawing a pool for everything, which
+   * was a liquid assumption hiding in what looked like a generic component.
+   * Fire does not puddle — it catches and flickers. Nature does not puddle —
+   * the ground stirs. Getting this wrong makes every element feel like the
+   * same substance in a different colour, which is the exact failure this
+   * whole axis exists to prevent.
+   */
+  chargeForm: ChargeForm;
+  /**
+   * How the delivery BODY behaves along its length.
+   *
+   * `jet` is pressurised and coherent — blood, water, lava. `wisp` is airy and
+   * blown, undulating and semi-transparent, layered rather than solid — fire
+   * and wind. The same tiled texture reads completely differently under the
+   * two, which is what stops every stream looking like a hose.
+   */
+  streamFlow: StreamFlow;
+  /**
    * Core / edge / accent. Reinforces identity; never establishes it.
    * Ordered dark-to-light is NOT guaranteed — fire is bright-cored and
    * dark-edged, blood is the reverse.
@@ -114,6 +134,51 @@ export type MaterialFamily =
   | 'tech'
   | 'astral'
   | 'kinetic';
+
+/**
+ * What appears at the cast point while an ability is being held.
+ *
+ * `pool` was the original and only option, which is why Fire briefly charged
+ * with a puddle of flame. A material that is not a liquid must not gather like
+ * one.
+ */
+export type ChargeForm =
+  /** Liquid collects and hangs. Blood, water, lava. */
+  | 'pool'
+  /** A flame catches and flickers upward. Fire. */
+  | 'flame'
+  /** The ground stirs and cracks. Earth. */
+  | 'ground'
+  /**
+   * A plant grows and opens. Nature.
+   *
+   * Raheem's brief, 2026-08-01: "a plant blooms, and then the roots reach out
+   * of the plant, go toward the boss, and spread." So Nature's tell is a thing
+   * that GREW, and the delivery visibly comes out of it — which is a stronger
+   * causal read than any other element has, and worth keeping distinct from
+   * `ground` (soil stirring, which belongs to Earth).
+   */
+  | 'bloom'
+  /** Light assembles into a ring. Holy, light. */
+  | 'halo'
+  /** Motes converge on a point. The neutral fallback. */
+  | 'motes';
+
+/** How the travelling body behaves along its length. */
+export type StreamFlow =
+  /** Pressurised and coherent — a hose. Blood, water, lava. */
+  | 'jet'
+  /** Airy, blown, undulating and layered — windswept. Fire. */
+  | 'wisp'
+  /**
+   * Grows along its path and stays. Nature.
+   *
+   * The distinction that matters: a jet and a wisp both have material moving
+   * THROUGH a body that is already there, so they scroll. A root does not
+   * flow — it IS the reaching. So a creep barely scrolls at all; what changes
+   * is how much of it exists, and once grown it holds rather than streaming.
+   */
+  | 'creep';
 
 export type MaterialSilhouette =
   | 'coiling_ribbon'
@@ -145,7 +210,17 @@ export type MaterialImpact =
   | 'ember_burst'
   | 'splintering'
   | 'refracting_flare'
-  | 'radial_burst';
+  | 'radial_burst'
+  /**
+   * A low, wide sheet that spreads ALONG the surface it hits. Fire.
+   *
+   * Added because Fire and Infernal were otherwise structurally identical —
+   * same silhouette, edge, particle, impact and residue — which meant the only
+   * thing telling them apart was hue, the one thing the Bible says must never
+   * carry identity. They are genuinely different events: flame crawls outward
+   * across a surface, molten rock detonates off it.
+   */
+  | 'spreading_sheet';
 
 export type MaterialResidue =
   | 'dripping'

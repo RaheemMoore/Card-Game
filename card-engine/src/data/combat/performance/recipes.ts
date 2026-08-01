@@ -263,6 +263,25 @@ export const BY_ABILITY: Record<string, AbilityPerformanceRecipe> = {
     fallbackRecipeId: 'form_lash',
   }),
 
+  /*
+   * The one ability that does NOT travel across the arena.
+   *
+   * Raheem considered a reaching beam and then reversed himself, correctly
+   * (2026-08-01): "I kinda like the roots reaching out of the ground and
+   * affecting the boss. That's kinda different — it would make this element
+   * stand out from the other elements a lot."
+   *
+   * He is right, and it is worth saying why: every other ability is a thing
+   * fired from a card at a target. Nature acting on the terrain AROUND its
+   * target is a different sentence, and a roster where every ability is the
+   * same sentence in a different colour is exactly the failure this system was
+   * built to escape. The variety is worth more than the consistency here.
+   *
+   * The sequence: a plant blooms on the CARD (the charge tell), and then roots
+   * erupt from the ground around the boss and wrap it. Note the charge and the
+   * delivery are in two different places, which is why the charge tell is
+   * anchored to the caster independently of `castAnchor` — see PerformanceView.
+   */
   ability_rootgrasp: base('recipe_rootgrasp', 'growth', GROWTH_STAGES, {
     abilityDefinitionId: 'ability_rootgrasp',
     castAnchor: 'boss_ground',

@@ -66,6 +66,8 @@ const BLOOD: MaterialKit = {
   particle: 'droplet',
   impact: 'wet_splash',
   residue: 'dripping',
+  chargeForm: 'pool',
+  streamFlow: 'jet',
   palette: ['#7d1220', '#c8203a', '#f2b8bd'],
   provisional: false,
   citesVisualLanguage: 'BLOOD',
@@ -88,6 +90,8 @@ const WATER: MaterialKit = {
   particle: 'spray',
   impact: 'foam_fan',
   residue: 'misting',
+  chargeForm: 'pool',
+  streamFlow: 'jet',
   palette: ['#0e5a72', '#2aa6c4', '#eaf7fb'],
   provisional: false,
   citesVisualLanguage: 'WATER',
@@ -107,8 +111,15 @@ const FIRE: MaterialKit = {
   silhouette: 'jagged_tongue',
   edgeProfile: 'tapering_forks',
   particle: 'ember',
-  impact: 'ember_burst',
+  // Fire CRAWLS across what it hits; Infernal detonates off it. Both were
+  // 'ember_burst' until Infernal was authored, at which point the two kits
+  // became structurally identical and separable only by hue — which the
+  // no-colour guard caught immediately.
+  impact: 'spreading_sheet',
   residue: 'smouldering',
+  // Fire does not puddle. It catches, and it is blown rather than sprayed.
+  chargeForm: 'flame',
+  streamFlow: 'wisp',
   palette: ['#ffd88a', '#e8541c', '#3a1408'],
   provisional: false,
   citesVisualLanguage: 'FIRE',
@@ -131,6 +142,10 @@ const NATURE: MaterialKit = {
   particle: 'leaf',
   impact: 'splintering',
   residue: 'binding',
+  // A plant that blooms on the card, with the roots reaching out of it —
+  // Raheem's brief. Earth keeps the soil-stirring 'ground' tell.
+  chargeForm: 'bloom',
+  streamFlow: 'creep',
   palette: ['#1e3d1a', '#4a7c2f', '#c9a227'],
   provisional: false,
   citesVisualLanguage: 'NATURE',
@@ -153,6 +168,8 @@ const HOLY: MaterialKit = {
   particle: 'mote',
   impact: 'refracting_flare',
   residue: 'lingering_glow',
+  chargeForm: 'halo',
+  streamFlow: 'jet',
   palette: ['#f7e7a8', '#d9a625', '#fffdf2'],
   provisional: false,
   citesVisualLanguage: 'HOLY',
@@ -178,6 +195,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'ember',
     impact: 'ember_burst',
     residue: 'smouldering',
+    chargeForm: 'flame',
+    streamFlow: 'wisp',
     palette: ['#ffd88a', '#e8541c', '#3a1408'],
     provisional: true,
   },
@@ -188,6 +207,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'leaf',
     impact: 'splintering',
     residue: 'binding',
+    chargeForm: 'ground',
+    streamFlow: 'jet',
     palette: ['#1e3d1a', '#4a7c2f', '#c9a227'],
     provisional: true,
   },
@@ -198,6 +219,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'mote',
     impact: 'refracting_flare',
     residue: 'lingering_glow',
+    chargeForm: 'halo',
+    streamFlow: 'jet',
     palette: ['#f7e7a8', '#d9a625', '#fffdf2'],
     provisional: true,
   },
@@ -208,6 +231,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'mote',
     impact: 'radial_burst',
     residue: 'misting',
+    chargeForm: 'motes',
+    streamFlow: 'wisp',
     palette: ['#2a1b3d', '#6d4aa8', '#d9c8f2'],
     provisional: true,
   },
@@ -218,6 +243,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'shard',
     impact: 'radial_burst',
     residue: 'lingering_glow',
+    chargeForm: 'motes',
+    streamFlow: 'jet',
     palette: ['#0b3a4a', '#38bdf8', '#e0f7ff'],
     provisional: true,
   },
@@ -228,6 +255,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'mote',
     impact: 'refracting_flare',
     residue: 'lingering_glow',
+    chargeForm: 'motes',
+    streamFlow: 'wisp',
     palette: ['#3b1152', '#c026d3', '#fce7ff'],
     provisional: true,
   },
@@ -238,6 +267,8 @@ const FAMILY_DEFAULT: Record<MaterialFamily, Omit<MaterialKit, 'element' | 'cite
     particle: 'shard',
     impact: 'radial_burst',
     residue: 'none',
+    chargeForm: 'motes',
+    streamFlow: 'jet',
     provisional: true,
     palette: ['#4a4a52', '#c8c2b4', '#f5f2ea'],
   },
@@ -296,14 +327,34 @@ export const MATERIAL_KITS: Record<ElementName, MaterialKit> = {
   Sanguine: fromFamily('Sanguine', 'umbral'),
   Dream: fromFamily('Dream', 'umbral'),
   Psychic: fromFamily('Psychic', 'umbral'),
-  // Damage-typed `umbral`, but visually molten obsidian and BLACK light — the
-  // one place the damage family and the visual family genuinely part company.
-  // Given `searing`'s silhouette (it is molten) and never its palette.
+  /**
+   * Infernal — molten rock, and the one element whose art arrived by accident.
+   *
+   * A "Fire" set was generated that came back as lava: a solid black-and-orange
+   * band, a spiked starburst, heavy and mineral. Raheem's call on seeing it
+   * (2026-08-01): "that is Inferno — lava, rocks, a lava puddle that pops up,
+   * a black and orange stream, then it hits with a spark." So it was rehomed
+   * here rather than discarded, and Fire was re-briefed as something airy.
+   *
+   * That history is why this is a LIQUID (`pool`, `jet`) while Fire is not:
+   * lava pools and pours, flame catches and blows. Damage-typed `umbral` per
+   * Seraph Bible §14, which keeps fire-orange from reaching it through the
+   * mechanics — the material is visibly molten, so it takes the searing
+   * silhouette but keeps its own darker, mineral colour.
+   */
   Infernal: {
-    ...FAMILY_DEFAULT.searing,
     element: 'Infernal',
-    palette: ['#1a1016', '#4a1f3d', '#8c6f7d'],
-    citesVisualLanguage: 'INFERNAL (not yet authored — searing silhouette, obsidian palette)',
+    family: 'searing',
+    silhouette: 'jagged_tongue',
+    edgeProfile: 'tapering_forks',
+    particle: 'ember',
+    impact: 'ember_burst',
+    residue: 'smouldering',
+    chargeForm: 'pool',
+    streamFlow: 'jet',
+    palette: ['#ffb347', '#7a2408', '#1a0f0a'],
+    provisional: false,
+    citesVisualLanguage: 'INFERNAL',
   },
 
   Metal: fromFamily('Metal', 'tech'),

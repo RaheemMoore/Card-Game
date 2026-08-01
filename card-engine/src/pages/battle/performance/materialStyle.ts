@@ -141,6 +141,10 @@ export function impactShape(kit: MaterialKit): {
       return { radiusScale: 0.8, roundness: 0.5, lobes: 6 };
     case 'refracting_flare':
       return { radiusScale: 1.1, roundness: 0.95, lobes: 4 };
+    case 'spreading_sheet':
+      // Wide and very low — flame crawls ALONG a surface. The flattest
+      // roundness in the set, which is what stops it reading as an explosion.
+      return { radiusScale: 1.25, roundness: 0.18, lobes: 0 };
     case 'radial_burst':
     default:
       return { radiusScale: 1, roundness: 1, lobes: 0 };

@@ -105,6 +105,23 @@ export function StreamBody({
   // texture is never squashed — a stretched tile stops reading as a material.
   const tileW = Math.max(8, Math.round(tile.width * (thickness / tile.height)));
   const still = motionLevel === 'off';
+  /*
+   * A wisp is airy, blown and translucent; a jet is pressurised and coherent.
+   * Same tiled texture, completely different read — this is what stops fire
+   * looking like an orange water cannon, which is exactly what it looked like
+   * before this existed.
+   */
+  const wisp = kit.streamFlow === 'wisp';
+  /*
+   * A creep grows along its path and stays; it does not flow.
+   *
+   * So the scroll is switched off. A jet and a wisp both have material moving
+   * THROUGH a body that already exists, which is what scrolling depicts — a
+   * root has nothing moving through it, and scrolling one makes it read as a
+   * conveyor belt of bark. What changes for a creep is only how much of it
+   * exists, which the extend clip already handles.
+   */
+  const creep = kit.streamFlow === 'creep';
 
   useEffect(() => {
     if (!geo || still) return;
@@ -121,8 +138,10 @@ export function StreamBody({
         const p = progressRef.current ?? 0;
         // The stream reaches the target fast and then holds while the impact
         // resolves — a jet arrives, it does not creep across.
-        const extend = Math.min(1, p / 0.4);
-        const offset = scrollOffset(performance.now() - startedAt, speed, tileW);
+        // A creep reaches slowly and deliberately — it is growing, not being
+        // fired — so it uses the whole travel stage rather than snapping out.
+        const extend = Math.min(1, p / (creep ? 0.62 : 0.4));
+        const offset = creep ? 0 : scrollOffset(performance.now() - startedAt, speed, tileW);
         // One transform on the row, not per tile. The negative X is the flow
         // travelling toward the target; the row is over-long by one tile so the
         // scroll never exposes its tail.
@@ -136,7 +155,7 @@ export function StreamBody({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [geo?.length, still, kit, tileW, progressRef]);
+  }, [geo?.length, still, kit, tileW, progressRef, creep]);
 
   /*
    * Churn. One interval for the whole row, not one per tile — every tile shows
@@ -188,6 +207,12 @@ export function StreamBody({
               display: 'flex',
               height: '100%',
               width: n * tileW,
+              // A wisp is not a solid body. Dropping it below full opacity and
+              // letting it glow rather than sit lets the arena read through it,
+              // which is most of the difference between "blown flame" and
+              // "orange hose".
+              opacity: wisp ? 0.82 : 1,
+              filter: wisp ? `drop-shadow(0 0 6px ${kit.palette[1]}aa)` : undefined,
               // Static variant holds the full connection; see the motion note
               // in the docstring.
               clipPath: still ? undefined : 'inset(0 100% 0 0)',
@@ -204,7 +229,21 @@ export function StreamBody({
                   flex: '0 0 auto',
                   // Mirror-tiling: every other copy is flipped, so each seam
                   // meets its own mirror image and cannot show a discontinuity.
-                  transform: i % 2 === 1 ? 'scaleX(-1)' : undefined,
+                  /*
+                   * Mirror-tiling, plus — for a wisp — a per-tile vertical
+                   * offset and slight scale wobble. That breaks the dead-flat
+                   * ruler edge a jet is supposed to have and a blown flame is
+                   * not, so the band undulates along its length instead of
+                   * reading as a pipe. Derived from the tile index rather than
+                   * from time, so it stays stable while the row scrolls.
+                   */
+                  transform: [
+                    i % 2 === 1 ? 'scaleX(-1)' : '',
+                    wisp ? `translateY(${Math.sin(i * 1.7) * thickness * 0.16}px)` : '',
+                    wisp ? `scaleY(${0.86 + Math.sin(i * 2.3) * 0.14})` : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ') || undefined,
                   imageRendering: 'pixelated',
                 }}
               />

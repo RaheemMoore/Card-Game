@@ -674,3 +674,42 @@ follows `approvalStatus`, never a truthy path — and it can no longer go stale.
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Effects batch D (Fire) | stream + churn, splash + animation | 4 | all 4 kept |
+
+## Materials are not all liquids — the assumption hiding in a "generic" component
+
+Two elements landed this round and both exposed the same design bug: the shared pieces had a
+LIQUID assumption baked into them under a generic-sounding name.
+
+- The charge tell drew a **pool** for every material, so Fire charged with a puddle of flame.
+- The stream body **scrolled** for every material, so anything non-liquid read as a hose.
+
+Fixed by making both an explicit axis on the material kit — `chargeForm`
+(pool / flame / ground / bloom / halo / motes) and `streamFlow` (jet / wisp / creep) — rather
+than a hardcoded default. The lesson generalises: when a shared renderer has exactly one
+behaviour and a generic name, check whether that behaviour is actually generic or is just the
+first case that was written.
+
+**Fire needed a different generation parameter, not a different prompt.** Every tile until now
+used `outline: 'selective outline'`, which is what made them all solid and hose-like. Asking
+for `lineless` returned translucent feathery streamers immediately. Outline is the single
+biggest lever on whether a piece reads as a substance or an object.
+
+**Explicit negations are how you escape a strong prior.** "A burst of flame spreading outward"
+returned a radial starburst twice, because *burst* and *outward* both point at a firework. The
+reroll only worked with "NOT a star, NOT radial, NOT symmetrical, wider than it is tall".
+
+**An accident became an element.** A Fire set came back as lava — solid, black-and-orange,
+mineral. Rather than discard it, it was rehomed as **Infernal**, and Fire was re-briefed as
+something airy. Two elements sharing a damage family and no movement at all is the strongest
+evidence so far that the material axis does real work.
+
+**And the no-colour guard earned its keep.** Authoring Infernal made it structurally identical
+to Fire — same silhouette, edge, particle, impact, residue — and the test failed immediately,
+correctly, because at that moment the only thing separating them was hue. Fire's impact became
+`spreading_sheet` (flame crawls along a surface) against Infernal's `ember_burst` (molten rock
+detonates off it). Without that test the collision would have shipped.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch E (Fire, re-briefed) | wispy stream + churn, spread impact + animation | 5 | 4 kept, 1 rejected starburst |
+| Effects batch F (Nature) | root wrap + churn, bloom + animation | 4 | all 4 kept |

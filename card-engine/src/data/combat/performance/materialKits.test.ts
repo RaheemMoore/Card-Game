@@ -23,9 +23,21 @@ describe('MATERIAL_KITS', () => {
   it('makes every authored kit distinguishable WITHOUT colour', () => {
     // The Bible's rule, enforced: "Every element should be recognizable even
     // without color." Two kits that differ only in palette are not finished.
+    // `chargeForm` and `streamFlow` count as shape: how a material GATHERS and
+    // how it FLOWS are both silhouette information, and they are what separate
+    // Fire (a flame that blows) from Infernal (a pool that pours) — two
+    // elements that share a damage family and nearly everything else.
     const authored = Object.values(MATERIAL_KITS).filter((k) => !k.provisional);
     const shapeSignatures = authored.map((k) =>
-      [k.silhouette, k.edgeProfile, k.particle, k.impact, k.residue].join('|'),
+      [
+        k.silhouette,
+        k.edgeProfile,
+        k.particle,
+        k.impact,
+        k.residue,
+        k.chargeForm,
+        k.streamFlow,
+      ].join('|'),
     );
 
     expect(new Set(shapeSignatures).size).toBe(authored.length);
