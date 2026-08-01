@@ -355,6 +355,68 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
   },
 
   /*
+   * Shadow — Batch G, 2026-08-01. Authored to be the structural opposite of
+   * Blood, because the two share the `umbral` damage type and would otherwise
+   * be separable only by hue. See the Shadow entry in materialKits.ts.
+   */
+  lash_shadow: {
+    id: 'lash_shadow',
+    form: 'lash',
+    element: 'Shadow',
+    stream: {
+      id: 'lash_shadow_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/shadow/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/shadow/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 12,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Shadow'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '929a61ee-1122 (still) / 2794ecc6-884b (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#shadow_stream',
+      },
+      notes:
+        'Generated `lineless` like Fire — the setting that stops a tile reading as a solid ' +
+        'object. Near-black with almost no specular, which is what separates it from Blood ' +
+        'in greyscale where hue cannot help.',
+    },
+    impact: {
+      id: 'lash_shadow_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/shadow/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/shadow/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 13,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Shadow'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '74c32545-4936 (still) / 24fcc13c-f53c (animation)',
+        seed: 4412,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#shadow_impact',
+      },
+      notes:
+        'A billowing cloud with tendrils hanging from it. Every other impact in the set is ' +
+        'an event that resolves; this one arrives and hangs over the target.',
+    },
+  },
+
+  /*
    * Infernal — the lava set. Was generated as "Fire" and rehomed here; see the
    * Infernal entry in materialKits.ts for the full story.
    */

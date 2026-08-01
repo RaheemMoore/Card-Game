@@ -198,7 +198,14 @@ export type MaterialSilhouette =
   | 'jagged_tongue'
   | 'fibrous_bundle'
   | 'faceted_plane'
-  | 'smooth_bolt';
+  | 'smooth_bolt'
+  /**
+   * Soft, formless, with an edge that frays into nothing. Shadow.
+   *
+   * The point of it is that it has no edge at all, which is the one thing no
+   * other silhouette here does — everything else is defined by its outline.
+   */
+  | 'fraying_smoke';
 
 export type MaterialEdgeProfile =
   | 'heavy_rounded'
@@ -206,7 +213,9 @@ export type MaterialEdgeProfile =
   | 'tapering_forks'
   | 'barbed'
   | 'bevelled'
-  | 'clean';
+  | 'clean'
+  /** Frays and thins into nothing rather than terminating. Shadow. */
+  | 'dissolving';
 
 export type MaterialParticle =
   | 'droplet'
@@ -232,7 +241,15 @@ export type MaterialImpact =
    * carry identity. They are genuinely different events: flame crawls outward
    * across a surface, molten rock detonates off it.
    */
-  | 'spreading_sheet';
+  | 'spreading_sheet'
+  /**
+   * Billows outward and hangs, swallowing what it covers. Shadow.
+   *
+   * Every other impact here is an EVENT that resolves. This one is a thing
+   * that arrives and stays over the target, which is the read Shadow needs
+   * and the reason it does not simply reuse `radial_burst`.
+   */
+  | 'engulfing';
 
 export type MaterialResidue =
   | 'dripping'

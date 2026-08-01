@@ -322,7 +322,40 @@ export const MATERIAL_KITS: Record<ElementName, MaterialKit> = {
   Spirit: fromFamily('Spirit', 'radiant'),
   Prism: fromFamily('Prism', 'radiant'),
 
-  Shadow: fromFamily('Shadow', 'umbral'),
+  /**
+   * Shadow — the hardest no-colour test in the game so far.
+   *
+   * Blood, Shadow, Void, Bone, Nocturne, Sanguine, Dream, Psychic and Infernal
+   * ALL resolve as `umbral` damage. If any two of them are separable only by
+   * hue, the whole material axis is decoration. So Shadow is authored as the
+   * structural opposite of Blood, the one it is most likely to be confused
+   * with:
+   *
+   *   Blood  — defined glossy edge, heavy beads, wet specular highlights, drips
+   *   Shadow — no edge at all, frays into nothing, near-zero specular, hangs
+   *
+   * The distinguishing cue is therefore VALUE and EDGE rather than colour:
+   * blood is a mid-tone with bright highlights, shadow is near-black with
+   * almost none. That survives greyscale; hue would not.
+   *
+   * Cites Bible SHADOW — fear-dark and absence, distinct from Nocturne's
+   * blood-moon night and Void's nothing.
+   */
+  Shadow: {
+    element: 'Shadow',
+    family: 'umbral',
+    silhouette: 'fraying_smoke',
+    edgeProfile: 'dissolving',
+    particle: 'mote',
+    impact: 'engulfing',
+    residue: 'misting',
+    chargeForm: 'motes',
+    // Smoke is air, not liquid — it billows rather than pours.
+    streamFlow: 'wisp',
+    palette: ['#1a1424', '#4a3a63', '#9d8fb5'],
+    provisional: false,
+    citesVisualLanguage: 'SHADOW',
+  },
   Void: fromFamily('Void', 'umbral'),
   Bone: fromFamily('Bone', 'umbral'),
   Nocturne: fromFamily('Nocturne', 'umbral'),

@@ -35,6 +35,23 @@ import { MATERIAL_KITS } from '../../data/combat/performance/materialKits';
 export function ArtCandidatePanel() {
   const [zoom, setZoom] = useState(2);
   const [showTiling, setShowTiling] = useState(true);
+  /*
+   * Defaults to the NEWEST element, not to "all".
+   *
+   * The complaint that prompted this was not really about filtering — it was
+   * "I have to scroll all the way to the bottom to see what you're generating
+   * now." A filter alone would not have fixed that; opening on the most recent
+   * element does. `All` is one click away for comparing across materials,
+   * which is the other thing this page is for.
+   */
+  const [filter, setFilter] = useState<string>(
+    KEPT_BY_ELEMENT[KEPT_BY_ELEMENT.length - 1]?.element ?? 'all',
+  );
+
+  const shown =
+    filter === 'all'
+      ? KEPT_BY_ELEMENT
+      : KEPT_BY_ELEMENT.filter((g) => g.element === filter);
 
   return (
     <div>
@@ -47,10 +64,10 @@ export function ArtCandidatePanel() {
           candidates rejected along the way and not shown.
         </p>
         <p className="text-sm mt-3 max-w-3xl border-l-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 rounded-r text-bone/90">
-          Turn <strong>Hide colour</strong> on in the Performances tab and compare the three
-          streams and the three splashes. If they are still three different things in greyscale,
-          the material axis is doing its job and colour is only reinforcing it — which is the
-          Bible rule this was all built to satisfy.
+          Switch to <strong>All</strong> above, turn <strong>Hide colour</strong> on in the
+          Performances tab, and compare the streams and splashes against each other. If they are
+          still distinct things in greyscale, the material axis is doing its job and colour is
+          only reinforcing it — which is the Bible rule this was all built to satisfy.
         </p>
       </div>
 
@@ -66,7 +83,26 @@ export function ArtCandidatePanel() {
         </button>
       </div>
 
-      {KEPT_BY_ELEMENT.map((group, i) => (
+      <div className="flex gap-2 items-center mb-5 flex-wrap">
+        <span className="text-xs text-bone/50">Element</span>
+        {KEPT_BY_ELEMENT.map((g, i) => (
+          <button
+            key={g.element}
+            onClick={() => setFilter(g.element)}
+            className={filter === g.element ? btnOn : btn}
+          >
+            {g.element}
+            {i === KEPT_BY_ELEMENT.length - 1 && (
+              <span className="text-amber-300/80"> · newest</span>
+            )}
+          </button>
+        ))}
+        <button onClick={() => setFilter('all')} className={filter === 'all' ? btnOn : btn}>
+          All ({KEPT_BY_ELEMENT.length}) — compare
+        </button>
+      </div>
+
+      {shown.map((group, i) => (
         <section key={group.element} className={i === 0 ? '' : 'mt-10 pt-6 border-t border-bone/15'}>
           <h2 className="font-fantasy text-lg text-parchment">
             {group.element} — the three parts of a performance
@@ -95,6 +131,17 @@ export function ArtCandidatePanel() {
  * three parts, and because "this one was free and always will be" is the most
  * useful fact on the page.
  */
+/** How each gathering form is described in prose. Keeps the copy honest as
+ *  new charge forms are added — a flame does not "pool". */
+const GATHER_VERB: Record<string, string> = {
+  pool: 'pools',
+  flame: 'catches and flickers',
+  ground: 'stirs the ground',
+  bloom: 'grows and blooms',
+  halo: 'gathers into a ring',
+  motes: 'condenses',
+};
+
 function ChargeCard({ element }: { element: KeptElement['element'] }) {
   const kit = MATERIAL_KITS[element];
   const [core, edge, accent] = kit.palette;
@@ -106,8 +153,9 @@ function ChargeCard({ element }: { element: KeptElement['element'] }) {
         <div>
           <h3 className="font-fantasy text-base text-parchment">1 · Charge — the gathering</h3>
           <p className="text-sm text-bone/80 mt-1 max-w-2xl">
-            {element} pools at the card's edge before anything fires, and the stream then shoots
-            through it. It also holds indefinitely while other cards are still choosing.
+            {element} {GATHER_VERB[kit.chargeForm]} at the card's edge before anything fires, and
+            the delivery then comes out of it. It also holds indefinitely while the other cards
+            are still choosing.
           </p>
         </div>
         <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-emerald-400/20 text-emerald-100">

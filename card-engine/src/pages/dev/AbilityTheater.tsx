@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../types/card';
+import type { ElementName } from '../../types/bible';
 import type { MotionLevel } from '../../vfx/types';
 import { compileActionScopes } from '../../services/combat/performance/actionScope';
 import { resolvePerformance } from '../../services/combat/performance/resolvePerformance';
@@ -49,6 +50,25 @@ import { ArtCandidatePanel } from './ArtCandidatePanel';
 const STAGE_W = 900;
 const STAGE_H = 560;
 
+/**
+ * Every element, split by how finished it is.
+ *
+ * Derived from the kits rather than hand-listed, so a newly authored element
+ * appears in the picker the moment it is authored and nobody has to remember
+ * to add it here. Shadow was missing from the theater for exactly that reason
+ * — it existed in the manifest and nowhere in the UI.
+ */
+const ALL_ELEMENTS = Object.values(MATERIAL_KITS);
+const AUTHORED_ELEMENTS = ALL_ELEMENTS.filter((k) => !k.provisional).map((k) => k.element);
+const PROVISIONAL_ELEMENTS = ALL_ELEMENTS.filter((k) => k.provisional).map((k) => k.element);
+
+/** Authored elements that also have generated art behind them. */
+const ELEMENTS_WITH_ART = new Set(
+  ALL_PERFORMANCE_ASSETS.filter(
+    (a) => a.approvalStatus === 'candidate' || a.approvalStatus === 'approved',
+  ).flatMap((a) => a.intendedMaterials),
+);
+
 export function AbilityTheater() {
   const [tab, setTab] = useState<'performances' | 'art'>('performances');
   const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
@@ -71,11 +91,32 @@ export function AbilityTheater() {
    * this has been retuned twice by description already.
    */
   const [tempo, setTempo] = useState(PERFORMANCE_TEMPO);
+  /*
+   * Element is its own control, not a property of the scenario.
+   *
+   * Adding a scenario per element would have been the obvious fix when Shadow
+   * was missing from the dropdown, and it would have been wrong: form and
+   * material are INDEPENDENT axes, which is the entire premise of the system.
+   * Exposing them as two pickers means every ability can be seen in every
+   * material — 8 scenarios x 29 elements — instead of me hand-writing the
+   * combinations somebody happens to ask for.
+   */
+  const [elementOverride, setElementOverride] = useState<ElementName | null>(null);
 
   const scenario = SCENARIOS.find((s) => s.id === scenarioId) ?? SCENARIOS[0];
   const viewportWidth = tablet ? 900 : 1440;
 
-  const base = useResolvedPerformance(scenario, viewportWidth, motionLevel, missingAssets);
+  const effectiveScenario = useMemo(
+    () => (elementOverride ? { ...scenario, forcedElement: elementOverride } : scenario),
+    [scenario, elementOverride],
+  );
+
+  const base = useResolvedPerformance(
+    effectiveScenario,
+    viewportWidth,
+    motionLevel,
+    missingAssets,
+  );
   const resolved = useMemo(() => (base ? retempo(base, tempo) : null), [base, tempo]);
 
   const lashTrio = useMemo(
@@ -309,6 +350,45 @@ export function AbilityTheater() {
               ))}
             </select>
             <p className="text-xs text-bone/60 mt-2 leading-relaxed">{scenario.proves}</p>
+
+            {/*
+              The second axis. Any ability can be cast in any material, because
+              that is what the system does — the caster's element decides the
+              substance, not the ability. Authored kits are listed first; the
+              rest still render on a family default, which is exactly what a
+              player holding an un-authored element sees today.
+            */}
+            <label className="block mt-3">
+              <span className="text-xs text-bone/50">Cast as element</span>
+              <select
+                value={elementOverride ?? ''}
+                onChange={(e) => {
+                  setElementOverride((e.target.value || null) as ElementName | null);
+                  setPinnedStage(undefined);
+                  setReplayKey((k) => k + 1);
+                }}
+                className="w-full mt-1 bg-void/60 border border-bone/25 rounded px-2 py-1.5 text-sm"
+              >
+                <option value="">
+                  — scenario default ({scenario.forcedElement ?? 'none'}) —
+                </option>
+                <optgroup label="Authored">
+                  {AUTHORED_ELEMENTS.map((el) => (
+                    <option key={el} value={el}>
+                      {el}
+                      {ELEMENTS_WITH_ART.has(el) ? ' — with art' : ' — procedural'}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Family default — not yet authored">
+                  {PROVISIONAL_ELEMENTS.map((el) => (
+                    <option key={el} value={el}>
+                      {el}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            </label>
           </Panel>
 
           {resolved && <ResolutionPanel performance={resolved} scenario={scenario} />}

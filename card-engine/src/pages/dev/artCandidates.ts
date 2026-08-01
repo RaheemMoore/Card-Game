@@ -360,6 +360,50 @@ export const BATCH_F: readonly ArtCandidate[] = [
 ];
 
 /* ------------------------------------------------------------------ */
+/*  Batch G — Shadow, the hardest no-colour test                       */
+/* ------------------------------------------------------------------ */
+
+const ROOT_G = '/assets/combat/effects/_candidates/batch-g';
+
+export const BATCH_G: readonly ArtCandidate[] = [
+  {
+    id: 'shadow_stream',
+    file: `${ROOT_G}/shadow-stream.png`,
+    size: 128,
+    label: '2 · Stream — the pull',
+    what: 'A band of smoke with an edge that frays into nothing rather than terminating.',
+    testing:
+      'Blood and Shadow share the `umbral` damage type. Can they be told apart with the ' +
+      'colour off?',
+    verdict: 'recommend',
+    why:
+      'Nine elements resolve as umbral — Blood, Shadow, Void, Bone, Nocturne, Sanguine, ' +
+      'Dream, Psychic, Infernal — so if any two are separable only by hue the whole material ' +
+      'axis is decoration. This is authored as Blood\'s structural opposite: Blood has a ' +
+      'defined glossy edge with heavy beads and bright specular; this has no edge at all and ' +
+      'almost no highlight. The cue is VALUE and EDGE, both of which survive greyscale.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '929a61ee / 2794ecc6', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'shadow_impact',
+    file: `${ROOT_G}/shadow-impact.png`,
+    size: 64,
+    label: '3 · Impact — the smothering',
+    what: 'A billowing cloud with thin tendrils hanging from it.',
+    testing: 'Can an impact read as something that ARRIVES AND STAYS rather than resolves?',
+    verdict: 'recommend',
+    why:
+      'The best impact in the set so far, and the most distinct: every other one is an event ' +
+      'that happens and clears — a splash, a crown, a spread, a starburst. This one unfurls ' +
+      'and hangs over the target, which is exactly the read Shadow needs and the reason it ' +
+      'does not simply reuse the generic burst.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '74c32545 / 24fcc13c', seed: 4412, generationCost: 2 },
+    tileable: false,
+  },
+];
+
+/* ------------------------------------------------------------------ */
 /*  What actually shipped                                              */
 /* ------------------------------------------------------------------ */
 
@@ -376,7 +420,7 @@ export const BATCH_F: readonly ArtCandidate[] = [
  * gallery renders it as its own card.
  */
 export interface KeptElement {
-  element: 'Blood' | 'Water' | 'Fire' | 'Infernal' | 'Nature';
+  element: 'Blood' | 'Water' | 'Fire' | 'Infernal' | 'Nature' | 'Shadow';
   /** One line on what this element brought that the others did not. */
   note: string;
   generations: number;
@@ -445,6 +489,15 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
     generations: 4,
     candidates: BATCH_F,
   },
+  {
+    element: 'Shadow',
+    note:
+      'The hardest no-colour test yet: nine elements resolve as umbral damage, so Shadow is ' +
+      'authored as Blood’s structural opposite — no edge at all where Blood has a glossy one, ' +
+      'and an impact that hangs over the target rather than resolving.',
+    generations: 4,
+    candidates: BATCH_G,
+  },
 ];
 
 function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
@@ -453,13 +506,14 @@ function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F];
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G];
 const KEPT_IDS = new Set([
   'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
   'water_stream_strip', 'water_impact',
   'infernal_stream_strip', 'infernal_impact',
   'fire_stream_wispy', 'fire_impact_spread',
   'nature_wrap', 'nature_bloom',
+  'shadow_stream', 'shadow_impact',
 ]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;
