@@ -339,6 +339,27 @@ export function render(md, { assetsDir, docsDir }) {
       continue;
     }
 
+    /* ONE chosen image, with a caption that says why it is here.
+       `sprite:` keeps alpha and the pixel grid; `plate:` is a photographic
+       background. Curated rather than dumped: a folder gallery shows twenty
+       strips and teaches nothing, where one wind-up beside a sentence about
+       what a wind-up IS teaches the whole idea. */
+    const one = ln.match(/^<!--\s*(sprite|plate):\s*([^|]+?)\s*(?:\|\s*(.*?))?\s*-->\s*$/);
+    if (one) {
+      const isSprite = one[1] === 'sprite';
+      const uri = inlineImage(one[2], isSprite ? 660 : 760, assetsDir, isSprite);
+      if (uri) {
+        const cap = one[3] ? `<figcaption>${inline(one[3])}</figcaption>` : '';
+        out.push(
+          isSprite
+            ? `<figure class="strip-row solo">${cap}<img src="${uri}" alt="" loading="lazy"></figure>`
+            : `<figure class="wc solo"><img src="${uri}" alt="" loading="lazy">${cap}</figure>`,
+        );
+      }
+      i++;
+      continue;
+    }
+
     if (/^<!--/.test(ln)) {
       i++;
       continue;

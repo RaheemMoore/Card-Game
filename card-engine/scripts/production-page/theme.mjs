@@ -173,6 +173,12 @@ tbody tr:hover{background:rgba(42,42,62,.4)}
   background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
 .strip-row img{display:block;width:100%;height:auto;image-rendering:pixelated}
 .strip-row figcaption{padding:.35rem .6rem;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--bronze);background:var(--obsidian);border-bottom:1px solid var(--slate)}
+/* A single chosen image sits in the prose, so it gets breathing room and a
+   sentence-case caption rather than the gallery's shouty label. */
+.solo{margin:0 0 1.5rem}
+.strip-row.solo figcaption{text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--ash);line-height:1.5;padding:.55rem .8rem}
+.wc.solo figcaption{text-align:left;font-size:.8rem;line-height:1.5;padding:.55rem .8rem}
+.wc.solo{max-width:none}
 
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:.6rem;margin:0 0 2rem;max-width:none}
 .gc{margin:0;border:1px solid var(--slate);border-radius:8px;overflow:hidden;background:var(--obsidian)}

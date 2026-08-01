@@ -13,8 +13,9 @@
 
 ## Contents
 
-The guide is in two parts. **Infrastructure** is how the project is built and run.
-**Game Mechanics** is how the game itself works.
+The guide is in four parts. **Infrastructure** is how the project is built and run.
+**Game Mechanics** is how the game itself works. **Making Things** is how to make art
+yourself. **Lore** is Tori's.
 
 **Infrastructure**
 
@@ -43,12 +44,15 @@ The guide is in two parts. **Infrastructure** is how the project is built and ru
 
 | | Section | What it answers |
 |---|---|---|
-| 1 | [Read this before you spend anything](#1-read-this-before-you-spend-anything) | How do I not waste generations? |
-| 2 | [PixelLab — people and monsters](#2-pixellab--people-and-monsters) | Sizes, directions, modes, animation |
-| 3 | [Making a new boss](#3-making-a-new-boss) | Step by step |
-| 4 | [Making a new character](#4-making-a-new-character) | Step by step |
-| 5 | [Leonardo — places](#5-leonardo--places) | Backdrops, arenas and maps |
-| 6 | [Ideas worth making](#6-ideas-worth-making) | What should we make next? |
+| 1 | [PixelLab — people and monsters](#1-pixellab--people-and-monsters) | Characters, bosses, animation, what it costs |
+| 2 | [Leonardo — places](#2-leonardo--places) | Backdrops, arenas and maps |
+| 3 | [Ideas worth making](#3-ideas-worth-making) | What should we make next? |
+
+**Lore** — Tori's part. What is written, what is invented, what needs her.
+
+| | Section | What it answers |
+|---|---|---|
+| 1 | [Tori's desk](#1-toris-desk) | What is waiting for me, and in what order? |
 
 ---
 
@@ -1150,108 +1154,53 @@ built as an idea-starter and it proves the shape works.
 Pillars plus the generated visual set. The Story Pillar answers also feed the rare-element
 eligibility gate, so they cannot simply be replaced. It is a real design pass, not a wiring job.
 
-
 ---
 
 # Making Things
 
 <!-- updated: 2026-07-31 -->
-## 1. Read this before you spend anything
+## 1. PixelLab — people and monsters
 
-*This part is for Raheem and Tori. It is how to make characters, monsters and places
-yourself — without Claude — using the two tools we pay for.*
+*The tool for anything that moves. This is the one worth getting genuinely good at,
+and the skill that carries into every game after this one.*
 
-**The point is to get good at this.** Not to follow a checklist. Everything below was
-learned by spending generations and getting it wrong, and the failures are the valuable
-part — each one is a rule that will still be true in the next game.
+**The point is to get good at this, not to follow a checklist.** Everything below was
+learned by spending generations and getting it wrong. The failures are the valuable part
+— each one is a rule that will still be true in the next project.
 
-### What you can actually make
+### What a finished boss actually is
 
-Here is what has come out of these two tools so far. All of it was made with the
-instructions in this part.
+A boss is not one picture. It is a handful of short animations — **clips** — that the game
+plays at different moments in a fight. Each clip is a strip of frames sharing one crop box,
+so he never changes size mid-fight.
 
-<!-- gallery: arenas -->
+<!-- sprite: combat/bosses/debt-bearer/sprite-windup.png | The Debt-Bearer's **wind-up** — 7 frames. This one loops, because he can be charging for several of your turns and a clip that plays once would freeze on raised fists. -->
 
-### Nothing here is expensive if you go one image at a time
+That is the whole idea. The rest is choosing which clips to make.
 
-The single habit that separates a good session from a wasted one: **generate one image,
-look at it, then generate the rest.** Both tools support this directly.
+### The seven states, and which ones you actually need
 
-```bash
-# Leonardo — one plate first
-node scripts/bg-harness/harness.mjs gen arena-<name> <state-id>
+| State | When it plays | Skip it? |
+|---|---|---|
+| `idle` | Between moves | **Never.** Everything falls back to it |
+| `windup` | The telegraph, a round before the blow | Worth having — it's how the fight reads |
+| `attack` | The blow landing | Yes |
+| `defeat` | He loses | Yes |
+| `hit` | He takes damage | **Cut this first.** A CSS flash covers it |
+| `rage` | Phase two | Reuse something |
+| `ultimate` | The big one | Reuse something |
 
-# PixelLab — mark every clip but the first with "skip": true
-```
+**The Still Season only has four generated clips.** Its `rage` is the first three frames of
+its ultimate on a loop. Its `ultimate` is a *rejected* hit animation — the scream was wrong
+for taking damage and perfect for a boss losing its temper. Two states, zero extra
+generations.
 
-Look at the first one. If it is wrong, the prompt is wrong, and eight more images will be
-wrong in the same way. That is exactly how ten images disappeared into an arena that never
-shipped.
+<!-- sprite: combat/bosses/still-season/sprite-ultimate.png | The Still Season's **ultimate** — which began life as a rejected `hit`. Before you throw a generation away, check whether it is right for a different state. -->
 
-### What is free — and it is more than you think
-
-| Free | Why it matters |
-|---|---|
-| A rejected request (`422`) | PixelLab validates before it generates. A bad frame count costs nothing. |
-| A stalled job | Auto-fails, charges nothing. The tell is progress running *backwards*. |
-| Re-running a generate command | Both harnesses skip work already done. Re-running is safe. |
-| `sprite-lab.mjs recover` | Rebuilds from jobs you already paid for. Twice we nearly re-bought finished work. |
-| Every image fix-up script | Crops, tints, vignettes, pixelisation — all free, all re-runnable. |
-| Anchor reuse in Leonardo | A state marked `isAnchor` reuses an image instead of buying one. |
-
-### What things actually cost
-
-Measured, not estimated. PixelLab's plan gives **2,000 generations a month**.
-
-| What | Generations |
-|---|---|
-| A character the player walks around (4 directions, full walk) | **~25** |
-| A boss with a full set of clips | **~20–31** |
-| A shopkeeper who stands still | **~10–15** |
-| A dialogue portrait | **25** |
-| One tile set, or one wall kit | **20 each** |
-| A single animation clip | roughly 1 per frame |
-
-**Stationary characters cost about a third of what walkers do.** The walk cycle is where
-the money and nearly every defect live. Only generate one for someone the player steers.
-
-### Four rules that have each saved a weekend
-
-**Write down the seed.** Every time. We lost a character permanently — the archivist — because
-nobody recorded hers. She cannot be rebuilt, only replaced.
-
-**When the model refuses twice, stop pushing.** Six increasingly detailed prompts failed to
-produce a see-through colonnade in the tower. The seventh attempt was *shorter* — the
-invariants plus "be inventive and surprising with the architecture" — and it worked first
-try, and fixed two other problems nobody had mentioned. A completely open brief gives you
-brown brick. It needs a direction, just not a dictated one.
-
-**Ask whether code can do it before you buy another round.** Ten images could not remove a
-sky. A crop did it for nothing. Leaves suspended in the air failed six times out of six;
-they ship as fixed sprites that never move, which looks better anyway because everything
-else on screen does.
-
-**Read your prompt back as one sentence and hunt for the part that cancels.** One brief
-asked for a centre that was both "densest and most rotten" and "flat, unbroken and
-uncluttered". The model split the difference by moving the rot to the edges — the exact
-opposite of what we wanted.
-
----
-
-<!-- updated: 2026-07-31 -->
-## 2. PixelLab — people and monsters
-
-*The tool for anything that moves. This is the one worth getting genuinely good at.*
-
-### What we have made with it
-
-<!-- gallery: bosses -->
-
-Those strips are what a finished boss looks like: one row per clip, every frame sharing a
-single crop box so he never changes size mid-fight. Below is the castle cast — the walk
-sheets are four rows, one per direction, with the idle frame first.
-
-<!-- gallery: cast -->
+**So: should we make more animations for the other bosses?** The Emberborn Wraith has one
+static frame and nothing else — it is the oldest boss and it shows. Adding `idle` and
+`windup` alone (~10 generations) would bring it up to the standard of the other two. That's
+the cheapest visible improvement available in the whole project.
 
 ### The size you ask for is not the size you get
 
@@ -1261,311 +1210,357 @@ sheets are four rows, one per direction, with the idle frame first.
 |---|---|
 | 128 × 128 | 180 × 180 |
 | 168 × 168 (the documented maximum) | 256 × 256 |
-| 244 × 244 | 244 × 244, and 256 × 256 on a different call |
 
-Treat size as a hint, then read back what actually arrived. It matters because of the one
-rule you cannot break: **never shrink pixel art to fit.** Both castle characters shipped at
-46% of the size they were drawn at, and Raheem's reaction was *"he doesn't feel like he's
-from the same game"* — which was exactly right. Resize once, before it ever reaches the game,
-and then display it at full size or larger. Pixel art tolerates being scaled up. It does not
-survive being scaled down.
+Treat size as a hint, then read back what arrived. It matters because of the one rule you
+cannot break: **never shrink pixel art to fit.** Both castle characters shipped at 46% of
+the size they were drawn at, and the reaction was *"he doesn't feel like he's from the same
+game"* — which was exactly right. Resize once, before it reaches the game, then display at
+full size or larger. Pixel art tolerates being scaled up. It does not survive scaling down.
 
 ### Which way is which
 
 Get this backwards and your character moonwalks. It shipped backwards once.
 
-- **`south`** = facing you, the front
-- **`north`** = the back of their head
-- **`east`** = screen **right**
-- **`west`** = screen **left**
+**`south`** = facing you · **`north`** = their back · **`east`** = screen **right** ·
+**`west`** = screen **left**
 
-**And the only way to confirm facing is to walk them around in the game and look.** We
-"verified" it twice with clever pixel analysis and both methods gave confident, wrong, and
-mutually contradictory answers. Raheem spotted the real problem in two seconds of play.
+**The only way to confirm facing is to walk them around in the game and look.** We
+"verified" it twice with clever pixel analysis; both methods were confident, wrong, and
+disagreed with each other. Raheem spotted the real problem in two seconds of play.
 
-### How many directions
+### How many directions, and the three modes
 
-| Who | Directions | Why |
-|---|---|---|
-| Someone the player steers | **4** | south, north, east, west |
-| A shopkeeper, an NPC, a boss | **1** — `south` | They never turn around |
-
-Eight directions is a mistake we made once, on a stationary dwarf who will never show six of
-them. The real cost is not the rotations — it is that **an animation costs one generation per
-direction**, so a breathing idle across eight directions costs eight instead of one.
-
-### The three modes, and the one that cost us 186 generations
-
-| Mode | Use it? |
+| Who | Directions |
 |---|---|
-| **`v3` with pinning** | **Yes. This is the default for everything.** ~25 generations for a full walking character, and it passed our quality check on the first attempt. |
-| `template` | Only for a gentle idle on someone who stands still. It redraws each direction from scratch, and a costume visibly changed halfway through a walk cycle. |
-| `pro` | **No.** ~186 generations for one character — a tenth of the monthly allowance — and the result was unusable: corrupt frames, and both side views facing the same way. |
+| Someone the player steers | **4** |
+| A shopkeeper, an NPC, a boss | **1** — `south` |
+
+Eight is a mistake we made once, on a stationary dwarf who will never show six of them. The
+real cost isn't the rotations — **an animation costs one generation per direction**, so an
+idle across eight directions costs eight instead of one.
+
+| Mode | Verdict |
+|---|---|
+| **`v3` with pinning** | **The default for everything.** ~25 generations for a full walking character, passed the quality check first try |
+| `template` | Only a gentle idle for someone who stands still. It redraws each direction from scratch and a costume visibly changed halfway through a walk |
+| `pro` | **Never.** ~186 generations for one character — a tenth of the monthly allowance — and the result was unusable |
 
 **"Pinning" is the whole trick.** You hand each animation a starting frame — the character's
 own rotation for that direction — so every clip begins from the same person. Without it the
-model reinvents them slightly each time, and that is what costume drift is.
+model reinvents them slightly each time. That is what costume drift is.
 
-### Making them move — the part that matters
+### Making them move
 
-Frame counts have hard rules that are easy to trip over:
-
-- **`frame_count` must be even, and at least 4.** Asking for 3 or 7 is simply rejected.
-- **You get back one more frame than you asked for.** Ask for 6, receive 7. Frame 0 is the
-  pose you pinned.
-
-A boss has **seven states**: `idle`, `windup`, `attack`, `hit`, `rage`, `defeat`, `ultimate`.
-
-**Speed is chosen against the fight, not by eye.** An ordinary attack in our combat is 650
-milliseconds from wind-up to impact. Clips are timed to fit that. Time them to the *big*
-attack instead and every normal hit gets cut off halfway.
-
-**Which clips loop matters.** `windup` loops, because a boss can be charging for several of
-your turns and a one-shot clip freezes on raised fists. `attack`, `hit` and `defeat` play
-once.
+- **`frame_count` must be even and at least 4.** Asking for 3 or 7 is simply rejected, for free.
+- **You get back one more frame than you asked for.** Ask 6, receive 7. Frame 0 is your pinned pose.
+- **Speed is chosen against the fight.** An ordinary attack is 650ms from wind-up to impact
+  (250 + 400). Time clips to *that*, not to the big attack, or every normal hit gets cut off.
 
 ### Four things the model will do to you
 
-**One action per clip.** We asked for *"raising both arms overhead and smashing them down,
-then recovering"* and got no arm movement at all, plus a large brown wing that belonged to
-nothing. Split into "wind up" and "smash" and it worked immediately. **If your description
-contains "and then", it is two clips.**
+**One action per clip.** *"Raising both arms overhead and smashing them down, then
+recovering"* returned no arm movement at all, plus a large brown wing belonging to nothing.
+Split into "wind up" and "smash" and it worked immediately. **If your description contains
+"and then", it is two clips.**
 
 **Name every part of the costume, every time, and say it does not change.** Anything you
-leave out is treated as optional. A glowing ribcage went from 225 lit pixels to 7 over five
-frames because the clip description did not mention it. The fix is to list them — *"its
-ribcage full of steady yellow-green light, pink flowers on its shoulders, bare branches on
-its skull, no change in any of them."*
+leave out is optional to the model. A glowing ribcage went from 225 lit pixels to 7 across
+five frames because the clip description didn't mention it.
 
-**Never ask a clip to animate a glow.** We asked for a glow that brightened and dimmed. It
-dimmed and never came back. **A glow is a code layer** — it costs no generations and cannot
-be lost.
+**Never ask a clip to animate a glow.** We asked for one that brightened and dimmed. It
+dimmed and never came back. **A glow is a code layer** — free, and impossible to lose.
 
-**Keep motion small and contained.** *"Recoiling sharply, head snapping back"* came back
-wearing an invented cyan crown. *"Tipping back a little and settling"* worked.
+**Keep motion small.** *"Recoiling sharply, head snapping back"* came back wearing an
+invented cyan crown. *"Tipping back a little and settling"* worked.
 
-### Before you throw a generation away
+### Making a boss — the actual steps
 
-Check whether it is right for a *different* state. A rejected "hit" — the boss screaming —
-became his `ultimate` and his `rage`. Two clips, zero extra generations.
+*~20–31 generations, and an evening.*
 
-And if you re-shoot a clip, **give it a new name** (`idle-v2`). Names are not unique, and
-re-shooting under the same name silently hands you back the old one. It reported success,
-wrote files, and produced a byte-identical result.
+Decide first: whose fight it is, what it looks like standing still (bosses never turn
+around), **what colour its attacks are** — that colour must be quiet in the backdrop or the
+attack stops reading as an event — and whether you have a picture already. Both our bosses
+came from concept art, and it shows.
 
-### What you can do entirely in the browser
+1. Copy `configs/boss-still-season.json` — the most recent and most correct.
+2. Set every clip except `idle` to `"skip": true`. **One clip, then look.**
+3. `node scripts/sprite-lab/create-boss-pro.mjs configs/boss-<name>.json`
+4. If the idle is right, unskip the rest.
+5. Pack the clips into one shared crop box.
+6. **Watch it play**: `node scripts/sprite-lab/boss-sheet.mjs <folder>`. Watching *is* the
+   review — numbers cannot tell you a boss looks wrong.
+7. Register it in `bossSpriteManifest.ts`, or it will not appear at all.
 
-Quite a lot, and this is the important part for working without Claude:
+**Two mistakes both bosses made.** His feet ended up 33 pixels above his own platform,
+because his attack throws flame below his soles and the crop box included it — **the bottom
+of the box is the ground line, taken from his resting pose alone.** And the attack should
+start from the last frame of the wind-up so his fists are already raised — worth doing, and
+**only ever one hop**, because chaining a chain compounds drift.
 
-- Create a character start to finish — every setting is a form field
-- Add template animations
-- Make props, tiles and objects
-- Download frames
-- **Judge whether it looks good, which is the only test that has ever really mattered**
-
-**A character you make on the website drops straight into the game** — the
-`/create-character/<id>` link is all that is needed. No exporting.
-
-What still needs the scripts: pinning, packing frames into sheets, the quality checks, and
-resizing for display.
-
----
-
-<!-- updated: 2026-07-31 -->
-## 3. Making a new boss
-
-*Roughly 20–31 generations, and an evening.*
-
-### Decide these before you spend anything
-
-- **Whose fight is it?** Which archetype's floor, which element.
-- **What does it look like standing still?** Bosses face you. They never turn around.
-- **What colour are its attacks?** That colour must be *quiet* in the arena behind it, or
-  the attack stops reading as an event.
-- **Is there a picture already?** A design reference produces a far better boss. Both of ours
-  came from concept art, not from a description alone.
-
-### Then
-
-1. **Copy an existing config.** `configs/boss-still-season.json` is the one to copy — it is
-   the most recent and the most correct.
-2. **Set every clip except `idle` to `"skip": true`.** One clip, then look.
-3. **Generate.** `node scripts/sprite-lab/create-boss-pro.mjs configs/boss-<name>.json`
-4. **Look at it.** If the idle is right, unskip the rest.
-5. **Pack the clips.** One shared crop box, so he never changes size.
-6. **Watch it play.** `node scripts/sprite-lab/boss-sheet.mjs <folder>` plays the strips at
-   real speed. **Watching is the review.** Numbers cannot tell you a boss looks wrong.
-7. **Register it.** In `bossSpriteManifest.ts`, or he will not appear in the game at all.
-
-### The two mistakes both bosses made
-
-**The floating boss.** His feet ended up 33 pixels above his own platform, because his attack
-throws flame below his soles and the crop box included it. **The bottom of the box is the
-ground line, taken from his resting pose alone.** Anything below it is cut on purpose — on a
-flat stage, fire under the feet is fire under the floor.
-
-**Chaining clips.** The attack should begin with his fists already raised, so it starts from
-the last frame of the wind-up rather than from his resting pose. This is worth doing — and
-**only ever one hop.** Chaining a chain compounds the drift.
-
----
-
-<!-- updated: 2026-07-31 -->
-## 4. Making a new character
+### Making a character — the actual steps
 
 *A walking character is ~25 generations. A shopkeeper is ~10–15.*
 
-### First, the honest question: does anyone steer them?
+**First, the honest question: does anyone steer them?** If not, **do not generate a walk
+cycle.** That is two thirds of the cost and nearly every defect.
 
-If not, **do not generate a walk cycle.** That is where two thirds of the cost and nearly
-every defect lives. A shopkeeper needs one direction, one gentle idle, and nothing else.
+<!-- sprite: castle/hero/chibi.png | A finished walking character: four rows, one per direction, each starting with the standing frame. That standing frame is frame 0 of the walk itself — take it from anywhere else and he changes size when he stops. -->
 
-### For someone who stands still
+**Standing still:** make them on the PixelLab website, one direction, add a `breathing-idle`
+(one generation), **write down the seed**, and hand over the character link — it drops
+straight in.
 
-1. Make them on the PixelLab website. Every setting is a form field.
-2. Give them **one** direction — `south`.
-3. Add a `breathing-idle`. One generation.
-4. **Write down the seed and every setting.**
-5. Hand the character link over; it drops straight in.
+**Walking:** copy `configs/hero-chibi.json`, four directions, one walk clip per direction
+each pinned to its own rotation. **No colour reference** — we fed the courtyard in once for
+"harmony" and the character sank into the background. A character the player controls must be
+readable first and harmonious second.
 
-### For someone who walks
+### What you can do entirely in the browser
 
-1. Copy `configs/hero-chibi.json`.
-2. Four directions. Chibi proportions read better small.
-3. **No colour reference.** We once fed the courtyard in for "harmony" and the character
-   sank into the background. **A character the player controls must be readable first and
-   harmonious second.**
-4. One walk clip per direction, each pinned to *its own* rotation.
-5. Pack, check, and then **walk them around and look at them.**
+Quite a lot, and this is the part that matters for working alone: create a character start to
+finish (every setting is a form field), add template animations, make props and tiles,
+download frames, and **judge whether it looks good — the only test that has ever really
+mattered.**
 
-### The bug that will happen to you
+**A character you make on the website drops straight into the game.** The
+`/create-character/<id>` link is all that's needed. No exporting.
 
-**A character who changes size when they stop walking.** It happens when the standing frame
-comes from one place and the walking frames from another — they are drawn by different parts
-of the tool and only loosely agree on scale. Ours grew 33% on stopping and shrank 25% walking
-left.
+What still needs the scripts: pinning, packing, the quality checks, and resizing for display.
 
-**Use frame 0 of the walk as the standing frame.** Same source, same size, always.
+### Costs, so "a few generations" stops being the unit
+
+The plan gives **2,000 generations a month.**
+
+| What | Generations |
+|---|---|
+| A character the player walks around | **~25** |
+| A boss with a full clip set | **~20–31** |
+| A shopkeeper who stands still | **~10–15** |
+| A dialogue portrait | **25** |
+| One animation clip | roughly 1 per frame |
+
+**And a lot is free:** a rejected request, a stalled job, re-running a generate command
+(it skips finished work), and `sprite-lab.mjs recover`, which rebuilds from jobs you already
+paid for. **Write down the seed every time** — we lost a character permanently because
+nobody recorded hers.
 
 ---
 
 <!-- updated: 2026-07-31 -->
-## 5. Leonardo — places
+## 2. Leonardo — places
 
-*Backdrops, arenas and maps. Slower to get right than characters, and more of it is
+*Backdrops, arenas and maps. Slower to get right than characters, and far more of it is
 fixable afterwards for free.*
+
+### What an arena has to do
+
+<!-- plate: combat/arenas/still-season-grove/base.png | A shipped arena. Note what the composition is doing: dark uneventful top corners where the health panels sit, an open middle for the boss, and a flat low-contrast lower third so your party reads against it. -->
+
+An arena is a stage with furniture on it, and the furniture is not optional:
+
+- **Top corners dark and uneventful** — the health panels go there
+- **Middle open** — the boss stands there
+- **Lower third flat and low-contrast** — your party stands there and must stay readable
+- **Bottom of frame gets cut** — the command bar covers it
+- **Nobody in the picture.** Ever. Describing a space by who stands in it once painted three
+  tiny fighters into the floor.
+
+**And check it on a phone.** Portrait crops away everything but the middle quarter, where
+the carefully darkened corners contribute nothing at all.
+
+**Sizes:** arenas are **1360 × 768**. Tower and courtyard plates are **1536 × 1152**.
 
 ### Two models, and they are not interchangeable
 
-- **Phoenix** — anything you look at head-on. Arenas, battle backdrops, forge scenes.
+- **Phoenix** — anything seen head-on. Arenas, battle backdrops, forge scenes.
 - **Lucid Origin** — anything seen from above. The courtyard, tower floors, maps.
 
 Phoenix pulls hard toward being a dramatic painting and cannot hold a flat map look. Lucid
 Origin can. **Do not switch models partway through a set** — the texture is the most visible
 sign that two places belong to the same world.
 
-**Sizes:** arenas are **1360 × 768**. Tower and courtyard plates are **1536 × 1152**.
-
-### Where things have to go
-
-An arena is a stage with furniture on it, and the furniture is not optional:
-
-- **Top corners dark and uneventful** — the health panels sit there
-- **Middle open** — the boss stands there
-- **Lower third flat and low-contrast** — your party stands there and must be readable
-- **Bottom of the frame gets cut** — the command bar covers it
-- **Nobody in the picture.** Ever. Describing a space by who stands in it once painted three
-  tiny fighters into the floor.
-
-**And check it on a phone.** Portrait crops away everything but the middle quarter — the
-careful dark corners contribute nothing there. That has to be measured separately.
-
 ### Four lessons that each cost real money
 
 **Name the thing you want. Never ask for an absence.** *"No sky"* asks the model to render
 nothing in the most important part of the frame, and it will not. Ten images across four
-rounds failed this way. What worked was making the top of the frame *a thing*: tiers of stone
-rising all the way to the top edge.
+rounds failed this way. What worked was making the top of the frame *a thing* — tiers of
+stone rising to the top edge.
 
 **A style reference brings the content with it, not just the style.** We pointed a green
 forest brief at a shipped stone arena for consistency and got that arena's lava floor,
-recoloured, on every single attempt — even at the weakest setting. **Consistency comes from
-using the same model, the same size and the same opening description.**
+recoloured, every single time — even at the weakest setting. **Consistency comes from the
+same model, the same size, and the same opening description.**
 
-**A colour grade cannot add a subject.** Raheem, exactly right: *"Making the stone the colour
-of moss doesn't make the environment more nature-like. That would be including more plants."*
+**A colour grade cannot add a subject.** Raheem, exactly right: *"Making the stone the
+colour of moss doesn't make the environment more nature-like. That would be including more
+plants."*
 
-**Fix framing in code, not by regenerating.** The sky was cropped. The platform the boss
-stands on is drawn by the game. Suspended leaves are code sprites. All free, all adjustable,
-none of it re-rolls the picture you already liked.
+**Fix framing in code, not by regenerating.** The sky got cropped. The platform the boss
+stands on is drawn by the game. Suspended leaves are code sprites — they failed six times
+out of six in generation, and look better as sprites anyway, because everything else on
+screen moves and they conspicuously don't.
+
+### The one-image rule
+
+**Generate one plate, look at it, then generate the rest.**
+
+```bash
+node scripts/bg-harness/harness.mjs gen arena-<name> <state-id>
+```
+
+If the first is wrong the prompt is wrong, and eight more will be wrong the same way. That
+is exactly how ten images disappeared into an arena that never shipped.
+
+**And read your prompt back as one sentence, hunting for the part that cancels.** One brief
+asked for a centre that was both "densest and most rotten" and "flat, unbroken and
+uncluttered." The model split the difference by moving the rot to the edges — the exact
+opposite of the brief.
 
 ### You can just make it yourself
 
-**This is a real path, not a fallback.** The Still Season arena — one of the three above —
-was generated by hand after Leonardo failed ten times, then run through one command:
+**This is a real path, not a fallback.** The Still Season arena above was generated by hand
+after Leonardo failed ten times, then run through one command:
 
 ```bash
 python3 lib/finish_arena.py <your-image.png> \
   ../../public/assets/combat/arenas/<name>/base.png
 ```
 
-That single script crops the sky, warms the colour, darkens the corners for the HUD, flattens
-the lower third and pixelises it. It is free and you can run it as many times as you like.
+That script crops the sky, warms the colour, darkens the corners for the HUD, flattens the
+lower third and pixelises it. Free, and re-runnable as many times as you like.
 
-**If you paint or generate a plate anywhere — Leonardo, Gemini, by hand — and it roughly fits
-the layout above, it can be in the game in about a minute.**
+**If you make a plate anywhere — Leonardo, Gemini, by hand — and it roughly fits the layout
+above, it can be in the game in about a minute.**
 
 ---
 
 <!-- updated: 2026-07-31 -->
-## 6. Ideas worth making
+## 3. Ideas worth making
 
-*Somewhere to put ideas so they stop evaporating. Add to this freely — an idea costs
-nothing, and this is the page that decides what the generations get spent on.*
+*Somewhere to put ideas so they stop evaporating. Add freely — an idea costs nothing, and
+this is the page that decides where the generations go.*
 
-**These are not invented from nothing.** Each one is something the game has already told us it
+**These are not invented from nothing.** Each is something the game has already told us it
 needs, which is the difference between a generation worth spending and a wasted one.
 
-### Bosses the game is actually asking for — 3 items
+### Bosses the game is asking for — 4 items
 
-**The thing magic doesn't work on.** Game Mechanics says we need a boss that every element
-slides off — an anti-magic field, or something from outside the world entirely. Ten of the
-eleven archetypes are useless against it and a Human with a hammer is not. This is the fight
-that makes people go and level a Human, and it is the single most valuable boss we could
+**The thing magic doesn't work on.** Game Mechanics says we need a boss every element slides
+off. Ten of the eleven archetypes are useless against it; a Human with a hammer is not. This
+is the fight that makes people go and level a Human, and it's the most valuable boss we could
 build. *~25 generations. Needs a look first: what does "magic doesn't apply here" look like?*
 
-**The thing you cannot hit.** The mirror of the above — something with no body, where machines
-swing straight through. Stops the tech faction from being simply better and teaches the same
-lesson from the other side. *~25 generations. Tori: what is it, and why is it here?*
+**The thing you cannot hit.** The mirror — something with no body, where machines swing
+straight through. Stops the tech faction being simply better. *~25 generations.*
+
+**Finish the Emberborn Wraith.** It has one static frame while the other two bosses have full
+clip sets. `idle` + `windup` would bring it level. *~10 generations — the cheapest visible
+improvement in the project.*
 
 **A boss for an element with no fight.** Fifteen elements belong to exactly one archetype and
-most have never been the subject of anything. Lunar is the Lycanthrope's alone. Sanguine and
-Nocturne are the Vampire's. Any of them is a boss nobody has seen. *~20–31 each.*
+most have never been the subject of anything — Lunar is the Lycanthrope's alone, Sanguine and
+Nocturne the Vampire's. *~20–31 each.*
 
 ### Characters — 3 items
 
 **The Lycanthrope emblem.** Ten of eleven archetypes have their selection art. This is the
-missing one, and it has been pending since 2026-07-17. *Leonardo, one square image.*
+missing one, pending since 2026-07-17. *Leonardo, one square image.*
 
-**Replace the placeholder hero.** `human.png` breaks all four of its own art rules and we know
-it. *~25 generations.*
+**Replace the placeholder hero.** `human.png` breaks all four of its own art rules and we
+know it. *~25 generations.*
 
-**Fill the courtyard.** Stationary NPCs are about a third the price of walkers — roughly 10–15
-generations each. A blacksmith, a herbalist, someone sitting on the fountain. **This is the
-cheapest way to make the game feel inhabited**, and the best place to practise. *~10–15 each.*
+**Fill the courtyard.** Stationary NPCs cost about a third of walkers. A blacksmith, a
+herbalist, someone sitting on the fountain. **The cheapest way to make the game feel
+inhabited**, and the best place to practise. *~10–15 each.*
 
 ### Places — 2 items
 
 **Tower floors.** Every floor needs a backdrop, and the tower's length is still undecided —
-that ruling is the thing blocking the whole queue. *~1360×768 each, and the hand-made path
-works fine here.*
+that ruling blocks the whole queue. *The hand-made path works fine here.*
 
-**The four unopened stalls.** The courtyard has four doors that go nowhere. Each one is a
-place. *Backdrop each, plus whoever stands in it.*
+**The four unopened stalls.** The courtyard has four doors that go nowhere. *A backdrop each,
+plus whoever stands in it.*
 
 ### How to add an idea
 
-Write it here with four things: what it is, why it would be good, roughly what it costs, and
-what it is waiting on. **When one gets built it moves out of this list**, and leaves a line
-saying what it became — the same rule the open questions follow.
+Four things: what it is, why it would be good, roughly what it costs, and what it's waiting
+on. **When one gets built it moves out of this list**, leaving a line saying what it became.
+
+
+---
+
+# Lore
+
+<!-- updated: 2026-07-31 -->
+## 1. Tori's desk
+
+*This part belongs to Tori. It is the record of what is written, what is invented and
+waiting on her, and what order it is worth doing in.*
+
+**The short version: the bosses have no real story.** Everything currently written about
+them was invented by Claude to fill the field, has never been reviewed, and is not canon.
+It reads like lore, which is precisely the problem — nobody looking at the game can tell
+the difference between what was decided and what was improvised.
+
+**The art and the animation stay.** The bosses look how they look. What changes is who they
+are, why they are in the tower, and what they say.
+
+### What is actually made up
+
+All of it, in `data/bosses/seedBosses.ts`:
+
+| What | How much | Status |
+|---|---|---|
+| Boss names | **4** | Invented |
+| Lore paragraphs | **4** | Invented |
+| Named moves | **39** | Invented |
+| Telegraph lines — what the boss "says" before a move | **39** | Invented |
+| Passive descriptions | **14** | Invented |
+
+The four are the **Emberborn Wraith**, **The Debt-Bearer**, **The Still Season** and **The
+Unclosed Summons**. Some of it may be worth keeping — that is Tori's call, not a default.
+
+**There are also no story pillar questions for bosses.** Characters get a guided set of
+questions that make them specific. Bosses got nothing equivalent, so there is no structure
+behind any of it.
+
+### Where to put your energy first
+
+1. **The two bosses that are actually in the game** — the Debt-Bearer and the Still Season.
+   They are what a player meets. The other two are further off.
+2. **The telegraph lines**, because they are the only boss writing a player reads *during* a
+   fight, once per move, every fight. They do more work than the lore paragraph nobody opens.
+3. **The two unbuilt bosses** in Making Things §3 — the one magic doesn't work on, and the
+   one you cannot hit. **These have no story at all yet, which makes them the easiest to get
+   right**: nothing has to be undone.
+4. **The move names.** 39 of them. Lower priority than the above, but they are the flavour
+   that carries a fight.
+
+### What is already canon, and what isn't
+
+**Canon — do not treat as provisional:**
+
+- The Character Generation Bible. It governs archetype identity, story pillars, element
+  compatibility and prestige. Where the Bible and the code disagree, the Bible wins.
+- The eleven archetypes and their chapters.
+- The twenty-nine elements and what each one means.
+
+**Not canon, invented to fill a gap:**
+
+- Everything about the bosses, as above.
+- The card lore the game writes at the forge. See Game Mechanics §3 — the entire instruction
+  for it is 42 words, with no voice, no examples and no guidance per archetype. **That is the
+  other place a Lore Director changes everything**, and it affects every card a player ever
+  makes rather than four bosses.
+
+### The thing that would help most
+
+Game Mechanics §3 lists what it would take to make the card lore good, and the first item
+needs Tori specifically: **a voice per archetype.** Right now a Necromancer and a Mech Pilot
+receive *identical* instructions for how their story is written. There is no field anywhere
+for tone, register, or what a given archetype's prose is even about.
+
+One or two sentences per archetype — *Necromancers speak in elegy; Androids in clipped
+declaratives* — plus a good and a bad example each, would do more for how the game reads than
+anything else on this page.
 
