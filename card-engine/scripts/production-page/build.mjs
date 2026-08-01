@@ -134,6 +134,7 @@ ${title}
   <span class="acts">
     <input id="q" type="search" placeholder="Search the guide…" aria-label="Search the guide">
     <button id="xall" aria-expanded="false">Expand all</button>
+    <button id="refresh">Refresh</button>
   </span>
 </div>
 ${lede}

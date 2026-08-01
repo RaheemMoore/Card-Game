@@ -223,10 +223,11 @@ tbody tr:hover{background:rgba(42,42,62,.4)}
 <div class="wrap">
 <h1>Card Engine — Production Guide</h1>
 <div class="bar">
-  <span>Last generated 2026-08-01 01:19 · source PRODUCTION.md</span>
+  <span>Last generated 2026-08-01 16:38 · source PRODUCTION.md</span>
   <span class="acts">
     <input id="q" type="search" placeholder="Search the guide…" aria-label="Search the guide">
     <button id="xall" aria-expanded="false">Expand all</button>
+    <button id="refresh">Refresh</button>
   </span>
 </div>
 
@@ -797,6 +798,16 @@ identified."</code></pre>
   var results=document.getElementById('results');
   var q=document.getElementById('q');
   var xall=document.getElementById('xall');
+  var refreshBtn=document.getElementById('refresh');
+
+  /* This is a PUBLISHED, static document — reload fetches whatever was last
+     published to this URL, not a live view of the repo. A plain reload can
+     still serve a browser-cached copy of that same publish, so this forces a
+     network fetch instead of trusting the cache. */
+  refreshBtn.addEventListener('click',function(){
+    location.href=location.pathname+location.search.replace(/[?&]_r=d+/,'')+
+      (location.search?'&':'?')+'_r='+Date.now()+location.hash;
+  });
 
   /* Nothing is hidden until this line. Before it, a no-JS reader has the whole
      document in front of them, and so does print. */
