@@ -71,6 +71,23 @@ export function PerformanceView({
   const manifestMs =
     perf.stages.find((s) => s.stage === 'manifest')?.durationMs ?? 260;
   const chargeMs = perf.stages.find((s) => s.stage === 'charge')?.durationMs ?? 260;
+  const impactStage = perf.stages.find((s) => s.stage === 'impact');
+  const impactMs = impactStage?.durationMs ?? 400;
+
+  /*
+   * The exact fraction of the performance at which the beam touches the target.
+   *
+   * Derived from the plan, not guessed. It used to be a hardcoded 0.4, while
+   * the impact stage actually began at ~0.49 — so the beam arrived, and then
+   * nothing happened for a beat before the splash appeared. Raheem caught it:
+   * "as soon as the beam makes contact with the boss, we want the impact frame
+   * to generate right then."
+   *
+   * Deriving it means the two can never drift apart again, whatever the stage
+   * durations or the tempo are later retuned to.
+   */
+  const contactProgress =
+    impactStage && perf.totalMs > 0 ? impactStage.startMs / perf.totalMs : 0.4;
 
   /*
    * The charge tell is drawn for EVERY form, not per renderer.
@@ -85,6 +102,28 @@ export function PerformanceView({
     stageName === 'charge' || stageName === 'cast' || stageName === 'travel' ||
     stageName === 'manifest' || stageName === 'impact' || stageName === 'return' ||
     stageName === 'arrival';
+
+  /*
+   * The three pieces do NOT leave together.
+   *
+   * Raheem's note, and it is the difference between a sequence and a switch
+   * being flipped: "there should be a moment where the charge, the beam and the
+   * impact are all present, but they should not disappear at the same time. The
+   * charge should disappear first to show the card stopped shooting. Then the
+   * beam. Then the one on the boss."
+   *
+   * So during the impact stage all three overlap, and then they release in
+   * order — card, beam, target. That reads as a causal chain: the card stops
+   * pushing, so the stream runs out, so only the mark it left remains. All
+   * three vanishing at once reads as the effect being switched off.
+   *
+   * Expressed as fractions of the impact stage so it stays correct at any
+   * tempo.
+   */
+  const releasing = stageName === 'impact';
+  const chargeReleaseMs = Math.round(impactMs * 0.34);
+  const beamReleaseDelayMs = Math.round(impactMs * 0.4);
+  const beamReleaseMs = Math.round(impactMs * 0.45);
   /*
    * Authored charge art, when the kit has it. Drawn smaller than the version
    * the ability produces at the target — same object, two sizes, which is what
@@ -118,6 +157,8 @@ export function PerformanceView({
       // the beat between gathering and delivery, which is exactly the moment
       // the card should look like it is about to let go.
       flaring={stageName === 'cast' || stageName === 'manifest'}
+      releasing={releasing}
+      releaseMs={chargeReleaseMs}
       art={chargeArt}
       intensity={perf.intensity}
     />
@@ -147,6 +188,10 @@ export function PerformanceView({
           motionLevel={motionLevel}
           progressRef={clock.progressRef}
           stageName={stageName}
+          contactProgress={contactProgress}
+          releasing={releasing}
+          releaseDelayMs={beamReleaseDelayMs}
+          releaseMs={beamReleaseMs}
         />
       );
 
@@ -326,6 +371,23 @@ export function PerformanceStyles() {
       @keyframes perf-root-draw {
         from { stroke-dashoffset: 140; }
         to   { stroke-dashoffset: 0; }
+      }
+
+      /* ── The release, in order ─────────────────────────────────────────
+         Card, then beam, then target. All three overlap at contact and then
+         leave one at a time, which reads as a causal chain rather than as the
+         effect being switched off. Durations come from the impact stage, so
+         the order survives any tempo change. */
+      @keyframes perf-release-out {
+        from { opacity: 1; }
+        to   { opacity: 0; }
+      }
+      .perf-charge-release {
+        animation: perf-release-out var(--release-ms, 140ms) ease-in forwards;
+      }
+      .perf-beam-release {
+        animation: perf-release-out var(--release-ms, 160ms) ease-in
+                   var(--release-delay, 0ms) forwards;
       }
 
       /* The wraparound cinching in. Overshoots slightly then settles, so it

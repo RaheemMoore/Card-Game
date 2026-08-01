@@ -173,6 +173,12 @@ interface Props {
    */
   flaring?: boolean;
   /**
+   * The card lets go. First of the three pieces to leave, so the player reads
+   * "the card stopped" before "the stream ran out".
+   */
+  releasing?: boolean;
+  releaseMs?: number;
+  /**
    * Optional art for the gathered material, when it should be visibly the same
    * object the ability later produces. Falls back to the procedural shape.
    */
@@ -188,6 +194,8 @@ export function ChargeTell({
   armed = false,
   firing = false,
   flaring = false,
+  releasing = false,
+  releaseMs = 140,
   art,
   intensity,
 }: Props) {
@@ -204,7 +212,9 @@ export function ChargeTell({
 
   return (
     <div
-      className="absolute pointer-events-none"
+      className={`absolute pointer-events-none${
+        releasing && !still ? ' perf-charge-release' : ''
+      }`}
       style={{
         left: `${at.x}%`,
         top: `${at.y}%`,
@@ -214,6 +224,7 @@ export function ChargeTell({
         marginTop: -h / 2,
         zIndex: 21,
         ['--charge-ms' as string]: `${Math.max(120, chargeMs)}ms`,
+        ['--release-ms' as string]: `${Math.max(80, releaseMs)}ms`,
       }}
       aria-hidden
     >

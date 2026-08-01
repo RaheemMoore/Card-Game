@@ -40,25 +40,24 @@ import type {
  * number, not thirty — which matters because this has already been retuned
  * twice and will be again.
  *
- * **2.85 (Raheem, 2026-08-01).** He reviewed the Ability Theater at several
- * playback speeds and landed on it directly: "the only one that's close to
- * being the correct speed is the 0.25 slow-mo ... I think 0.35 maybe should be
- * the actual speed of the abilities. Everything is way too fast. We're making
- * nice art, I want people to see it." 1 / 0.35 ≈ 2.85, so full speed now
- * reproduces what 0.35x looked like during that review.
+ * **3.25 (Raheem, 2026-08-01).** Settled on the dial after two rounds. He first
+ * described it as "0.35 of the old speed" (≈2.85), then found the exact value
+ * himself once the slider existed: "I really like tempo of 3.25x because it
+ * just fits all of them very well." That is the whole reason the dial was
+ * built — a number found by watching beats a number argued about in prose.
  *
  * Applied uniformly on purpose. The RATIOS between stages were tuned
  * separately and he liked them — impact stays proportionally short so contact
  * snaps, travel and aftermath stay long. Scaling everything by one factor
  * preserves the shape he approved rather than inventing a new one.
  *
- * **The consequence, stated plainly:** a basic attack now runs ~4.7s instead
- * of ~1.7s. With three heroes acting in sequence that is roughly 14s of hero
+ * **The consequence, stated plainly:** a basic attack now runs ~5.4s instead
+ * of ~1.7s. With three heroes acting in sequence that is roughly 16s of hero
  * performance per round before the boss moves. That is a deliberate choice to
  * make combat a thing you watch; if rounds start feeling long in real play,
  * this is the one number to turn down.
  */
-export const PERFORMANCE_TEMPO = 2.85;
+export const PERFORMANCE_TEMPO = 3.25;
 
 /** Apply the global tempo to an authored stage list. */
 function paced(stages: readonly StageRecipe[]): readonly StageRecipe[] {
@@ -88,7 +87,7 @@ function paced(stages: readonly StageRecipe[]): readonly StageRecipe[] {
  *  - **aftermath is long.** The splash sits on the boss and is looked at.
  *
  * These are BASE numbers — `paced()` multiplies them by `PERFORMANCE_TEMPO`,
- * so the shipped attack runs ~4.7s. Edit the ratios here; edit the overall
+ * so the shipped attack runs ~5.4s. Edit the ratios here; edit the overall
  * speed with the tempo constant.
  *
  * ## The coupling to watch
@@ -96,7 +95,7 @@ function paced(stages: readonly StageRecipe[]): readonly StageRecipe[] {
  * The presentation queue has its own beat budget (`TIMINGS` in
  * `presentation/types.ts` — an impact beat holds 400ms). Nothing is truncated
  * TODAY because the performance layer is not yet wired into live combat, but
- * when it is, a ~4.7s performance inside a 400ms beat would be cut off almost
+ * when it is, a ~5.4s performance inside a 400ms beat would be cut off almost
  * immediately. Those timings have to grow to match at that point, and the gap
  * is now an order of magnitude rather than a rounding error — this is the
  * single biggest thing to get right when combat integration lands. The Ability

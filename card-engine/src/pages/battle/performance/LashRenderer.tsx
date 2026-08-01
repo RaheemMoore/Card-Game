@@ -59,6 +59,19 @@ interface Props {
   motionLevel: MotionLevel;
   progressRef: React.RefObject<number>;
   stageName: string | null;
+  /**
+   * Fraction of the performance at which the head reaches the target.
+   *
+   * Derived from the stage plan by the layer rather than assumed here, so the
+   * beam finishes travelling on exactly the frame the impact stage begins and
+   * the splash fires. A constant would drift the moment any duration changed.
+   */
+  contactProgress?: number;
+  /** True during the impact stage, when the three pieces release in order. */
+  releasing?: boolean;
+  /** How long after contact the beam starts fading — the card releases first. */
+  releaseDelayMs?: number;
+  releaseMs?: number;
 }
 
 /** How many points the spline is sampled at. */
@@ -71,6 +84,10 @@ export function LashRenderer({
   motionLevel,
   progressRef,
   stageName,
+  contactProgress = 0.4,
+  releasing = false,
+  releaseDelayMs = 0,
+  releaseMs = 160,
 }: Props) {
   const pathRef = useRef<SVGPathElement | null>(null);
   const corePathRef = useRef<SVGPathElement | null>(null);
@@ -106,10 +123,11 @@ export function LashRenderer({
     const tick = () => {
       if (cancelled) return;
       const p = progressRef.current ?? 0;
-      // The head races out and then holds while the impact resolves, rather
-      // than crawling across the whole performance. Extension is fast; the
-      // dwell is what makes contact feel like contact.
-      const extend = Math.min(1, p / 0.45);
+      // Reaches full extension exactly at contact, which is the frame the
+      // impact stage begins and the splash appears. Previously a hardcoded
+      // 0.45 against a real contact point near 0.49 — the beam arrived and
+      // then waited, which is the gap Raheem spotted.
+      const extend = Math.min(1, p / Math.max(0.05, contactProgress));
       const phase = p * Math.PI * 4;
       write(buildPath(origin, destination, kit, extend, phase, perf.trajectory));
       raf = requestAnimationFrame(tick);
@@ -120,7 +138,7 @@ export function LashRenderer({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [origin, destination, kit, progressRef, still, perf.trajectory]);
+  }, [origin, destination, kit, progressRef, still, perf.trajectory, contactProgress]);
 
   const [core, edge, accent] = kit.palette;
   const decoration = edgeDecoration(kit);
@@ -160,7 +178,23 @@ export function LashRenderer({
     (perf.intensity === 'ultimate' ? 1.6 : perf.intensity === 'heavy' ? 1.3 : 1);
 
   return (
-    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: 22 }}
+      aria-hidden
+    >
+      {/* The beam's release. Fades AFTER the card has stopped, so the order
+          reads as cause and effect: the card lets go, then the stream runs
+          out, then only the mark on the target is left. */}
+      <div
+        className={releasing && !still ? 'perf-beam-release' : undefined}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          ['--release-ms' as string]: `${releaseMs}ms`,
+          ['--release-delay' as string]: `${releaseDelayMs}ms`,
+        }}
+      >
       {streamAsset ? (
         (streaming || still) && <StreamBody
           from={origin}
@@ -215,7 +249,10 @@ export function LashRenderer({
         )}
       </svg>
       )}
+      </div>
 
+      {/* OUTSIDE the release wrapper on purpose — the splash is the last thing
+          to go, and it outlives the beam by the whole aftermath. */}
       {impactAsset && (stageName === 'impact' || stageName === 'aftermath') && (
         <AssetFrames
           src={performanceAssetUrl(impactAsset)}
