@@ -194,7 +194,9 @@ describe('buildLeonardoPrompt', () => {
     const fireFamily = store.getFamily('fire');
 
     const tech = buildLeonardoPrompt({ def, version, family: techFamily });
-    expect(tech.prompt).toContain('cobalt');
+    // Tech's cool-light vocabulary was widened from 'clean cobalt luminance'
+    // to circuit-cyan/hologram-teal in the M4.5–M5.7 Bible pipeline pass.
+    expect(tech.prompt).toContain('circuit-cyan');
     expect(tech.prompt).not.toMatch(/warm ember|forged metal accents/);
     expect(tech.negativePrompt).toContain('steampunk gears');
     expect(tech.negativePrompt).not.toContain('sci-fi panels');

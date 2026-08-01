@@ -1,0 +1,267 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "solid outer wall, continuous unbroken wall, enclosed room, sealed rampart, battlement parapet, drop shadow, cast shadow outside the building, vignette, perspective, vanishing point, horizon line, eye-level view, isometric, 3d render, cgi, photorealistic, photograph, text, watermark, logo, signature, ui, hud, frame, border, blurry, people, characters, figures, humans, creatures, statues of people, sky, clouds, landscape beyond the room, ceiling, roof, water channel, canal",
+  "styleHeader": "",
+  "familyLabels": {
+    "peristyle": "A — The Open Peristyle",
+    "brokencrown": "B — The Broken Crown",
+    "astronomer": "C — The Astronomer's Ring (recommended)",
+    "hangingtier": "D — The Hanging Tier",
+    "hall": "R2 — Astronomer's floor + open colonnade",
+    "free": "R3 — loose brief, Leonardo's own invention",
+    "floors": "Archetype floor discs (ring + pedestal stay constant)",
+    "floors2": "Archetype floors v2 — lived-in, walkable, flat markings only",
+    "floors3": "Archetype floors v3 — final pass",
+    "rings": "Ring + pedestal — the constant plate (generated once)",
+    "rings2": "Ring + pedestal v2 — pedestal sized by proportion",
+    "dais": "Pedestal as its own object — low top-down, cut out and placed"
+  },
+  "anchors": {
+    "peristyle": {
+      "line": "A top-down 2D fantasy game map of a single circular tower chamber, seen from directly above in classic Pokemon overworld style, hand-painted with soft colourful textures and clean tile-like detailing, bright warm sunlight from above. The chamber is a perfect circle centred in the image and filling most of the frame. Its entire perimeter is a ring of warm honey-gold and terracotta sandstone columns joined by rounded arches, with a low carved balustrade running between every pair of columns. Two heavier dark slate-grey stone columns stand at the top centre of the ring. The floor inside the ring is a wide open sweep of warm cream flagstones, completely clear and empty, with a raised round stepped stone plinth at the exact centre, its top surface bare. A wide arched doorway breaks the ring at the bottom centre and a narrow stone stair opening breaks it at the top centre. EVERYTHING OUTSIDE THE CIRCULAR RING IS PLAIN FLAT SOLID PURE WHITE — the four corners of the image are pure white emptiness, and the openings between the columns and beneath the arches are pure white, with no sky, no clouds, no ground and no scenery of any kind beyond the stonework. Clean readable top-down shapes, soft painted shadows falling straight down."
+    },
+    "brokencrown": {
+      "line": "A top-down 2D fantasy game map of a single circular tower chamber, seen from directly above in classic Pokemon overworld style, hand-painted with soft colourful textures and clean tile-like detailing, bright warm sunlight from above. The chamber is a perfect circle centred in the image and filling most of the frame. Its perimeter is a ring of weathered granite columns joined by arches, with a low balustrade between them, but the ring is broken: on the left and lower-right, two arches have fallen and lie as tumbled blocks and cracked masonry across the floor edge, leaving open gaps in the perimeter. Two intact heavy dark slate-grey columns stand at the top centre of the ring. The floor inside is a wide open sweep of pale grey flagstones, mostly clear and empty, with a raised round stepped stone plinth at the exact centre, its top surface bare. A wide arched doorway breaks the ring at the bottom centre and a narrow stone stair opening at the top centre. EVERYTHING OUTSIDE THE CIRCULAR RING IS PLAIN FLAT SOLID PURE WHITE — the four corners of the image are pure white emptiness, and every gap between the columns, every fallen arch and every opening is pure white, with no sky, no clouds, no ground and no scenery beyond the stonework. Clean readable top-down shapes, soft painted shadows falling straight down."
+    },
+    "astronomer": {
+      "line": "A top-down 2D fantasy game map of a single circular observatory chamber at the top of a tower, seen from directly above in classic Pokemon overworld style, hand-painted with soft colourful textures and clean tile-like detailing, bright warm sunlight from above. The chamber is a perfect circle centred in the image and filling most of the frame. Its entire perimeter is a ring of deep indigo-blue and bronze stone columns joined by rounded arches, with a low carved balustrade between every pair of columns. Two heavier dark slate-blue columns stand at the top centre of the ring. The floor is a magnificent inlaid mosaic: concentric circular bands of lapis-blue tile, cream marble and polished brass radiating outward from the centre like the rings of an orrery, with fine engraved brass constellation lines and small star studs set into the bands. The mosaic bands are clean, wide and completely clear of any objects. At the exact centre stands a raised round stepped stone plinth ringed in brass, its top surface bare. A wide arched doorway breaks the ring at the bottom centre and a narrow stone stair opening at the top centre. EVERYTHING OUTSIDE THE CIRCULAR RING IS PLAIN FLAT SOLID PURE WHITE — the four corners of the image are pure white emptiness, and the openings between the columns and beneath the arches are pure white, with no sky, no clouds, no ground and no scenery beyond the stonework. Clean readable top-down shapes, soft painted shadows falling straight down."
+    },
+    "hangingtier": {
+      "line": "A top-down 2D fantasy game map of a single circular garden terrace at the top of a tower, seen from directly above in classic Pokemon overworld style, hand-painted with soft colourful textures and clean tile-like detailing, bright warm sunlight from above. The chamber is a perfect circle centred in the image and filling most of the frame. Its entire perimeter is a ring of warm grey stone columns joined by rounded arches with a low balustrade between them, softened by trailing green vines and small carved stone planters of blue and violet flowers tucked against the column bases. Two heavier dark slate-grey columns stand at the top centre of the ring. Inside the columns a narrow shallow channel of clear running water follows the curve of the wall. The floor is a wide open sweep of moss-veined pale flagstones, completely clear and empty, with a raised round stepped stone plinth at the exact centre, its top surface bare. A wide arched doorway breaks the ring at the bottom centre and a narrow stone stair opening at the top centre. EVERYTHING OUTSIDE THE CIRCULAR RING IS PLAIN FLAT SOLID PURE WHITE — the four corners of the image are pure white emptiness, and the openings between the columns and beneath the arches are pure white, with no sky, no clouds, no ground and no scenery beyond the stonework. Clean readable top-down shapes, soft painted shadows falling straight down."
+    },
+    "hall": {
+      "line": "A top-down 2D fantasy game map of an OPEN-AIR circular observatory terrace atop a tall tower, seen from directly above, classic Pokemon overworld style, hand-painted soft colourful texture, bright warm sunlight from above. THE TERRACE HAS NO OUTER WALL. Its edge is a ring of about fourteen separate free-standing indigo-blue and bronze columns spaced WIDE APART with large empty gaps between them, joined overhead by tall slender arches and at floor level only by a low carved balustrade. You see straight through every gap; it is open to the air on all sides. Two heavier dark slate-blue columns stand together at top centre. The floor is a magnificent inlaid mosaic of wide concentric bands — lapis-blue tile, cream marble, polished brass — radiating from the centre like an orrery, with engraved constellation lines and gold star studs; the bands are wide, clean, clear of objects. At the exact centre stands a LARGE raised circular pale-stone dais with three broad shallow steps up to it, ringed in brass, its flat top completely bare. A wide arched doorway breaks the ring at bottom centre; a narrow stair rises at top centre. EVERYTHING BEYOND THE COLUMNS IS PLAIN FLAT SOLID PURE WHITE, and every gap between columns and under every arch is that same PURE WHITE showing straight through, nothing at all beyond the stonework. The four image corners are pure white emptiness. Clean readable top-down shapes, soft shadows falling straight down onto the floor only."
+    },
+    "free": {
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular chamber at the top of a wizard's tower, floating alone in the middle of the image with clear white margin all around it so the whole circle fits inside the frame. Ring the edge with beautiful stone columns and arches of your own invention. Fill the floor with a spectacular decorative pattern of your own invention. At the exact centre place one large raised round dais, its flat top completely bare and empty. Everything beyond the building is plain flat solid pure white, and the gaps between the columns are pure white too. Be inventive and surprising with the architecture, the materials and the floor design."
+    },
+    "floors": {
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular decorative FLOOR laid flat on the ground, centred in the image with clear white margin all around it. This is FLOOR ONLY - a flat paved surface and nothing else. No walls, no columns, no arches, no pedestal, no railings, no furniture and no objects of any kind stand on it. Keep the outer third of the circle calmer and simpler, in quiet mid-tone colours, so a character can stand there and read clearly; save the strongest pattern and colour for the middle. Nothing pure black and nothing pure white. Everything beyond the circle is plain flat solid pure white. The floor is a great moot-ground of split slate and hammered iron: heavy irregular grey flagstones bound by dark iron straps and rivets, with a deep-cut ring of tally marks and notched counting scores scored into the stone around the centre, stained rust-red in the grooves."
+    },
+    "floors2": {
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular decorative FLOOR laid flat on the ground, centred in the image with clear white margin all around it. FLOOR ONLY - a flat paved surface. No walls, columns, arches, pedestal, railings, furniture, tents, or objects of any kind stand on it; everything is flat markings worn into the surface. Worn walking paths are trodden across it in a ring and toward the centre, so it clearly looks walked-on and lived-in. Keep the outer third calm and simple in quiet MID-TONE colours - not pale, not washed out, not bright - so a character standing there reads clearly; save the strongest pattern for the middle. Nothing pure black and nothing pure white. Everything beyond the circle is plain flat solid pure white. Heavy split slate bound with iron straps. Flat markings only: trodden dirt tracks worn pale through the stone, dark scorch rings where cook-fires burned, old bones and antler fragments trodden flat into the flags, and a deep-cut ring of tally scores stained rust-red around the centre."
+    },
+    "floors3": {
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular decorative FLOOR laid flat on the ground, centred with clear white margin all around it. FLOOR ONLY - a flat paved surface; no walls, columns, arches, pedestal, railings or objects stand on it, only flat markings worn into the surface. Pale worn walking paths are trodden across it, ringing the floor and running toward the centre, so it clearly looks walked-on. Colours are RICH and SATURATED mid-tones - no bleached white stone, no pale washed-out highlights, no grey gloom. Everything beyond the circle is plain flat solid pure white. A moot ground of heavy split slate in warm ochre, moss green and deep slate blue, bound with dark iron straps. Flat markings only: trodden dirt tracks, dark scorch rings where cook-fires burned, old bones and antler fragments trodden flat into the flags, and a ring of deep-cut tally scores stained rust-red around the centre. Warm and sunlit, never bleached and never grim."
+    },
+    "rings": {
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular open-air chamber at the top of a tall tower, floating alone in the middle of the image with generous white margin all around so the whole circle fits inside the frame. Its edge is a ring of about twelve tall free-standing columns spaced WIDE APART with big empty openings between them, arches overhead and a low balustrade at floor level; you see straight through every gap. The columns REPEAT in a calm regular rhythm - they are the quiet frame, not the subject. At the exact centre stands the hero of the image: a LARGE, tall, elaborate raised PEDESTAL, the single most detailed, brightest and most eye-catching thing in the picture, with a wide flat BARE empty top big enough to stand on. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white. The columns are ancient trees grown into carved stone, bark and pale wood spiralling up into branching arches. The pedestal is a colossal golden stump-throne ringed with glowing amber sap and carved animal faces."
+    },
+    "rings2": {
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright cheerful adventure-game mood, rich saturated mid-tone colour with no bleached white or washed-out pale areas. A single perfectly circular open-air chamber at the top of a tall tower, alone in the middle of the image with generous white margin all around so the whole circle fits in frame. Its edge is a ring of twelve tall free-standing columns spaced WIDE APART with big empty openings between them and arches overhead; you see straight through every gap. The columns repeat in a calm regular rhythm - they are the quiet frame, not the subject. THE PEDESTAL AT THE CENTRE IS ENORMOUS: a broad circular stepped platform whose diameter is a FULL THIRD OF THE WIDTH OF THE WHOLE CHAMBER, rising on three wide steps, dominating the room and impossible to miss. Its flat top is COMPLETELY BARE AND EMPTY - no statue, no crystal, no ornament, no object stands on it. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white, with no shadow cast outside the building. The columns are enormous faceted crystals in teal and violet glowing softly from within, with crystalline arches. The vast pedestal is pale stone banded in white and gold crystal, its wide bare top glowing faintly at the rim."
+    },
+    "dais": {
+      "line": "A single fantasy game object alone in the centre of a completely plain flat pure white empty background - no room, no floor, no walls, no columns, no scenery, no shadow cast onto anything. Hand-painted 2D game art with soft colourful texture, rich saturated mid-tone colour, bright cheerful adventure-game mood, clean readable shapes. LOW TOP-DOWN VIEW like a classic Pokemon overworld object - the camera is above and tilted forward, so you clearly see BOTH the flat top surface as an ellipse AND the FRONT FACE of the object below it. The object is a grand raised circular PLATFORM - a wide stepped dais built to be STOOD ON. Its flat elliptical top is COMPLETELY BARE AND EMPTY: no statue, no crystal, no orb, no ornament, nothing on it at all. Three broad steps lead up the FRONT of it. All the carving and decoration is on the FRONT FACE, the step risers and the rim - the top stays plain, because a character will stand there. Wide and solid and low, not a tall pillar or a column. Warm honey sandstone banded with polished bronze, engraved star-glyphs and zodiac script running around the rim and step risers."
+    }
+  },
+  "states": [
+    {
+      "id": "room-a-peristyle",
+      "label": "A — The Open Peristyle (anchor)",
+      "family": "peristyle",
+      "isAnchor": true
+    },
+    {
+      "id": "room-b-brokencrown",
+      "label": "B — The Broken Crown (anchor)",
+      "family": "brokencrown",
+      "isAnchor": true
+    },
+    {
+      "id": "room-c-astronomer",
+      "label": "C — The Astronomer's Ring (anchor)",
+      "family": "astronomer",
+      "isAnchor": true
+    },
+    {
+      "id": "room-d-hangingtier",
+      "label": "D — The Hanging Tier (anchor)",
+      "family": "hangingtier",
+      "isAnchor": true
+    },
+    {
+      "id": "room-r2-hall-1",
+      "label": "R2 candidate 1 — open colonnade + orrery floor",
+      "family": "hall",
+      "isAnchor": true
+    },
+    {
+      "id": "room-r2-hall-2",
+      "label": "R2 candidate 2 — warmer stone, taller arches",
+      "family": "hall",
+      "line": "A top-down 2D fantasy game map of an OPEN-AIR circular observatory terrace atop a tall tower, seen from directly above, classic Pokemon overworld style, hand-painted soft colourful texture, bright warm sunlight from above. THE TERRACE IS A RING OF COLUMNS WITH NOTHING BETWEEN THEM — no outer wall anywhere. Around the edge stand about twelve tall slender widely-spaced free-standing columns of warm honey sandstone and bronze, with very large empty openings between them spanned high by graceful arches, joined at floor level only by a low carved balustrade. Every opening shows straight through. Two heavier dark slate columns stand together at top centre. The floor is a rich inlaid mosaic of wide concentric bands — deep lapis blue, warm cream marble, polished brass — radiating from the centre like an orrery, with engraved constellation lines and gold star studs; the bands are wide, clean and clear of objects. At the exact centre is a LARGE raised circular stone dais with three broad shallow steps up to it, ringed in brass, its flat top bare. A wide arched doorway breaks the ring at bottom centre; a narrow stair rises at top centre. EVERYTHING BEYOND THE COLUMNS IS PLAIN FLAT SOLID PURE WHITE, and every gap between columns and under every arch is that same PURE WHITE showing straight through, nothing at all beyond the stonework. The four image corners are pure white emptiness. Clean readable top-down shapes, soft shadows falling straight down onto the floor only."
+    },
+    {
+      "id": "room-r3-free",
+      "label": "R3-1 - Free rein, surprise me",
+      "family": "free",
+      "isAnchor": true
+    },
+    {
+      "id": "room-r3-glass",
+      "label": "R3-2 - Stained-glass rose window floor",
+      "family": "free",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular chamber at the top of a tall tower, floating alone in the middle of the image with clear white margin all around it so the whole circle fits inside the frame. At the exact centre place one large raised round dais, its flat top completely bare and empty. Everything beyond the building is plain flat solid pure white, and the gaps between the columns are pure white too. Ring the edge with slender columns and pointed gothic arches. The floor is an enormous stained-glass rose window laid flat and lit from beneath - jewel-toned petals of ruby, emerald and sapphire glass radiating from the centre in leaded tracery. Be inventive with the tracery pattern. Be inventive and surprising with the architecture and materials."
+    },
+    {
+      "id": "room-r3-orrery",
+      "label": "R3-3 - Working brass orrery machinery",
+      "family": "free",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular chamber at the top of a tall tower, floating alone in the middle of the image with clear white margin all around it so the whole circle fits inside the frame. At the exact centre place one large raised round dais, its flat top completely bare and empty. Everything beyond the building is plain flat solid pure white, and the gaps between the columns are pure white too. Ring the edge with dark iron columns and heavy riveted arches. The floor is a colossal working brass machine - concentric rotating rings, toothed gear tracks, engraved zodiac dials and inlaid copper channels set flush into dark stone. Be inventive with the mechanism. Be inventive and surprising with the architecture and materials."
+    },
+    {
+      "id": "room-r3-obsidian",
+      "label": "R3-4 - Obsidian and molten gold",
+      "family": "free",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular chamber at the top of a tall tower, floating alone in the middle of the image with clear white margin all around it so the whole circle fits inside the frame. At the exact centre place one large raised round dais, its flat top completely bare and empty. Everything beyond the building is plain flat solid pure white, and the gaps between the columns are pure white too. Ring the edge with thick black obsidian columns and low heavy arches. The floor is polished black volcanic glass veined with rivers of molten gold that glow from within, forming a great radiating sunburst. Be inventive with the veining pattern. Be inventive and surprising with the architecture and materials."
+    },
+    {
+      "id": "room-r3-verdant",
+      "label": "R3-5 - Overgrown temple, roots and jade",
+      "family": "free",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular chamber at the top of a tall tower, floating alone in the middle of the image with clear white margin all around it so the whole circle fits inside the frame. At the exact centre place one large raised round dais, its flat top completely bare and empty. Everything beyond the building is plain flat solid pure white, and the gaps between the columns are pure white too. Ring the edge with weathered pale columns and rounded arches wrapped in creeping ivy. The floor is a sunken jade and moss mosaic, cracked by old tree roots that trace great spirals across the stone, with small wildflowers in the seams. Be inventive with the root pattern. Be inventive and surprising with the architecture and materials."
+    },
+    {
+      "id": "floor-barbarian",
+      "label": "Floor 1 · Barbarian — the Debt-Bearer",
+      "family": "floors",
+      "isAnchor": true
+    },
+    {
+      "id": "floor-druid",
+      "label": "Floor 2 · Druid — the Still Season",
+      "family": "floors",
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular decorative FLOOR laid flat on the ground, centred in the image with clear white margin all around it. This is FLOOR ONLY - a flat paved surface and nothing else. No walls, no columns, no arches, no pedestal, no railings, no furniture and no objects of any kind stand on it. Keep the outer third of the circle calmer and simpler, in quiet mid-tone colours, so a character can stand there and read clearly; save the strongest pattern and colour for the middle. Nothing pure black and nothing pure white. Everything beyond the circle is plain flat solid pure white. The floor is a sunken jade and moss mosaic in soft greens, cracked by old pale tree roots that trace great slow spirals outward from the centre, with tiny dried wildflowers and fallen leaves caught in the seams between tiles."
+    },
+    {
+      "id": "floor-seraph",
+      "label": "Floor 3 · Seraph — the Unclosed Summons",
+      "family": "floors",
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular decorative FLOOR laid flat on the ground, centred in the image with clear white margin all around it. This is FLOOR ONLY - a flat paved surface and nothing else. No walls, no columns, no arches, no pedestal, no railings, no furniture and no objects of any kind stand on it. Keep the outer third of the circle calmer and simpler, in quiet mid-tone colours, so a character can stand there and read clearly; save the strongest pattern and colour for the middle. Nothing pure black and nothing pure white. Everything beyond the circle is plain flat solid pure white. The floor is pale marble inlaid with a vast radiant halo of soft gold leaf: concentric feathered bands, fine engraved rays, and a ring of stylised wings worked in warm ivory and muted gold around the centre."
+    },
+    {
+      "id": "floor-barbarian-v2",
+      "label": "Floor 1 v2 · Barbarian — lived-in moot ground",
+      "family": "floors2",
+      "isAnchor": true
+    },
+    {
+      "id": "floor-druid-v2",
+      "label": "Floor 2 v2 · Druid — root-cracked jade",
+      "family": "floors2",
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular decorative FLOOR laid flat on the ground, centred in the image with clear white margin all around it. FLOOR ONLY - a flat paved surface. No walls, columns, arches, pedestal, railings, furniture, tents, or objects of any kind stand on it; everything is flat markings worn into the surface. Worn walking paths are trodden across it in a ring and toward the centre, so it clearly looks walked-on and lived-in. Keep the outer third calm and simple in quiet MID-TONE colours - not pale, not washed out, not bright - so a character standing there reads clearly; save the strongest pattern for the middle. Nothing pure black and nothing pure white. Everything beyond the circle is plain flat solid pure white. Sunken jade and moss mosaic in soft mid-greens. Flat markings only: pale tree roots grown flat along the surface and cracking the tiles in slow spirals, worn earth paths trodden bare between them, drifts of fallen leaves and tiny dried wildflowers caught in the seams."
+    },
+    {
+      "id": "floor-seraph-v2",
+      "label": "Floor 3 v2 · Seraph — the contested spark",
+      "family": "floors2",
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture. A single perfectly circular decorative FLOOR laid flat on the ground, centred in the image with clear white margin all around it. FLOOR ONLY - a flat paved surface. No walls, columns, arches, pedestal, railings, furniture, tents, or objects of any kind stand on it; everything is flat markings worn into the surface. Worn walking paths are trodden across it in a ring and toward the centre, so it clearly looks walked-on and lived-in. Keep the outer third calm and simple in quiet MID-TONE colours - not pale, not washed out, not bright - so a character standing there reads clearly; save the strongest pattern for the middle. Nothing pure black and nothing pure white. Everything beyond the circle is plain flat solid pure white. The floor is CONTESTED and split between two halves that meet at the centre. One half is warm honey-gold leaf inlaid into mid-tone stone with fine engraved feathered rays. The other half is dark molten obsidian veined with deep violet-black light, never orange and never fiery. They interlock along a jagged seam through the middle. Worn pale walking paths cross both halves."
+    },
+    {
+      "id": "floor-barbarian-v3",
+      "label": "Floor 1 v3 · Barbarian — warm and lived-in",
+      "family": "floors3",
+      "isAnchor": true
+    },
+    {
+      "id": "floor-druid-v3",
+      "label": "Floor 2 v3 · Druid — the roots return",
+      "family": "floors3",
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular decorative FLOOR laid flat on the ground, centred with clear white margin all around it. FLOOR ONLY - a flat paved surface; no walls, columns, arches, pedestal, railings or objects stand on it, only flat markings worn into the surface. Pale worn walking paths are trodden across it, ringing the floor and running toward the centre, so it clearly looks walked-on. Colours are RICH and SATURATED mid-tones - no bleached white stone, no pale washed-out highlights, no grey gloom. Everything beyond the circle is plain flat solid pure white. A jade and moss mosaic in rich mid-greens with pale carved stone spokes radiating from the centre. Growing ACROSS the tiles, clearly visible and unmistakable, are THICK PALE TREE ROOTS - they wander and sprawl in irregular natural curves, split and crack the tiles they cross, and must NOT follow the symmetrical spoke pattern. Also drifts of fallen leaves and tiny wildflowers in the seams."
+    },
+    {
+      "id": "floor-seraph-v3",
+      "label": "Floor 3 v3 · Seraph — lava and black iron",
+      "family": "floors3",
+      "line": "Top-down 2D fantasy game map tile, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular decorative FLOOR laid flat on the ground, centred with clear white margin all around it. FLOOR ONLY - a flat paved surface; no walls, columns, arches, pedestal, railings or objects stand on it, only flat markings worn into the surface. Pale worn walking paths are trodden across it, ringing the floor and running toward the centre, so it clearly looks walked-on. Colours are RICH and SATURATED mid-tones - no bleached white stone, no pale washed-out highlights, no grey gloom. Everything beyond the circle is plain flat solid pure white. The floor is CONTESTED, split between two interlocking halves meeting at a jagged seam through the centre. One half is warm honey-gold leaf inlaid in cream stone with engraved feathered rays. The other half is BLACK IRON AND BASALT cracked by rivers of MOLTEN LAVA glowing deep crimson and gold-red in the fissures - real molten rock and dark metal, NOT purple, NOT magenta, NOT nebula or galaxy patterns. Pale worn walking paths cross both halves and ring the whole floor."
+    },
+    {
+      "id": "ring-worldtree",
+      "label": "Ring A · Living stone — worldtree",
+      "family": "rings",
+      "isAnchor": true
+    },
+    {
+      "id": "ring-armillary",
+      "label": "Ring B · Celestial armillary",
+      "family": "rings",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular open-air chamber at the top of a tall tower, floating alone in the middle of the image with generous white margin all around so the whole circle fits inside the frame. Its edge is a ring of about twelve tall free-standing columns spaced WIDE APART with big empty openings between them, arches overhead and a low balustrade at floor level; you see straight through every gap. The columns REPEAT in a calm regular rhythm - they are the quiet frame, not the subject. At the exact centre stands the hero of the image: a LARGE, tall, elaborate raised PEDESTAL, the single most detailed, brightest and most eye-catching thing in the picture, with a wide flat BARE empty top big enough to stand on. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white. The columns are polished bronze pillars set with lenses. The pedestal is the core of a giant brass armillary sphere - great engraved rings and zodiac bands encircling a warm glowing centre."
+    },
+    {
+      "id": "ring-crystal",
+      "label": "Ring C · Geode crown",
+      "family": "rings",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular open-air chamber at the top of a tall tower, floating alone in the middle of the image with generous white margin all around so the whole circle fits inside the frame. Its edge is a ring of about twelve tall free-standing columns spaced WIDE APART with big empty openings between them, arches overhead and a low balustrade at floor level; you see straight through every gap. The columns REPEAT in a calm regular rhythm - they are the quiet frame, not the subject. At the exact centre stands the hero of the image: a LARGE, tall, elaborate raised PEDESTAL, the single most detailed, brightest and most eye-catching thing in the picture, with a wide flat BARE empty top big enough to stand on. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white. The columns are enormous growing crystals in teal and violet, faceted and glowing softly from within, with crystalline arches. The pedestal is a broad seat of cut white and gold crystal on a stepped base."
+    },
+    {
+      "id": "ring-leviathan",
+      "label": "Ring D · Leviathan ribs",
+      "family": "rings",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular open-air chamber at the top of a tall tower, floating alone in the middle of the image with generous white margin all around so the whole circle fits inside the frame. Its edge is a ring of about twelve tall free-standing columns spaced WIDE APART with big empty openings between them, arches overhead and a low balustrade at floor level; you see straight through every gap. The columns REPEAT in a calm regular rhythm - they are the quiet frame, not the subject. At the exact centre stands the hero of the image: a LARGE, tall, elaborate raised PEDESTAL, the single most detailed, brightest and most eye-catching thing in the picture, with a wide flat BARE empty top big enough to stand on. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white. The columns are the colossal pale curved ribs of some vast ancient beast, sun-bleached and carved with scrimshaw patterns, meeting overhead. The pedestal is a great skull-crown dais of pale bone and gold inlay, warm and majestic, not gruesome."
+    },
+    {
+      "id": "ring-stormforge",
+      "label": "Ring E · Storm-forge",
+      "family": "rings",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular open-air chamber at the top of a tall tower, floating alone in the middle of the image with generous white margin all around so the whole circle fits inside the frame. Its edge is a ring of about twelve tall free-standing columns spaced WIDE APART with big empty openings between them, arches overhead and a low balustrade at floor level; you see straight through every gap. The columns REPEAT in a calm regular rhythm - they are the quiet frame, not the subject. At the exact centre stands the hero of the image: a LARGE, tall, elaborate raised PEDESTAL, the single most detailed, brightest and most eye-catching thing in the picture, with a wide flat BARE empty top big enough to stand on. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white. The columns are riveted black iron pylons hung with heavy chain, crackling with soft blue light along their arches. The pedestal is a monumental anvil-throne of dark steel banded in bright brass, glowing warm at its heart."
+    },
+    {
+      "id": "ring-sunspire",
+      "label": "Ring F · Sun-spire",
+      "family": "rings",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright and cheerful adventure-game mood. A single perfectly circular open-air chamber at the top of a tall tower, floating alone in the middle of the image with generous white margin all around so the whole circle fits inside the frame. Its edge is a ring of about twelve tall free-standing columns spaced WIDE APART with big empty openings between them, arches overhead and a low balustrade at floor level; you see straight through every gap. The columns REPEAT in a calm regular rhythm - they are the quiet frame, not the subject. At the exact centre stands the hero of the image: a LARGE, tall, elaborate raised PEDESTAL, the single most detailed, brightest and most eye-catching thing in the picture, with a wide flat BARE empty top big enough to stand on. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white. The columns are slender white marble spires capped in gold leaf, joined by delicate fretwork arches. The pedestal is a great tiered sundial of gold and cream stone, its gnomon rising from a ring of engraved rays."
+    },
+    {
+      "id": "ring2-crystal",
+      "label": "Ring 2A · Geode crown, huge dais",
+      "family": "rings2",
+      "isAnchor": true
+    },
+    {
+      "id": "ring2-armillary",
+      "label": "Ring 2B · Celestial bronze, huge dais",
+      "family": "rings2",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright cheerful adventure-game mood, rich saturated mid-tone colour with no bleached white or washed-out pale areas. A single perfectly circular open-air chamber at the top of a tall tower, alone in the middle of the image with generous white margin all around so the whole circle fits in frame. Its edge is a ring of twelve tall free-standing columns spaced WIDE APART with big empty openings between them and arches overhead; you see straight through every gap. The columns repeat in a calm regular rhythm - they are the quiet frame, not the subject. THE PEDESTAL AT THE CENTRE IS ENORMOUS: a broad circular stepped platform whose diameter is a FULL THIRD OF THE WIDTH OF THE WHOLE CHAMBER, rising on three wide steps, dominating the room and impossible to miss. Its flat top is COMPLETELY BARE AND EMPTY - no statue, no crystal, no ornament, no object stands on it. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white, with no shadow cast outside the building. The columns are warm honey sandstone set with polished bronze lenses and engraved star-glyphs. The vast pedestal is cream stone ringed with great engraved brass zodiac bands, its wide bare top plain and inviting."
+    },
+    {
+      "id": "ring2-sunspire",
+      "label": "Ring 2C · Sun-spire marble, huge dais",
+      "family": "rings2",
+      "line": "Top-down 2D fantasy game map, seen from directly above, classic Pokemon overworld style, hand-painted with soft colourful texture, bright cheerful adventure-game mood, rich saturated mid-tone colour with no bleached white or washed-out pale areas. A single perfectly circular open-air chamber at the top of a tall tower, alone in the middle of the image with generous white margin all around so the whole circle fits in frame. Its edge is a ring of twelve tall free-standing columns spaced WIDE APART with big empty openings between them and arches overhead; you see straight through every gap. The columns repeat in a calm regular rhythm - they are the quiet frame, not the subject. THE PEDESTAL AT THE CENTRE IS ENORMOUS: a broad circular stepped platform whose diameter is a FULL THIRD OF THE WIDTH OF THE WHOLE CHAMBER, rising on three wide steps, dominating the room and impossible to miss. Its flat top is COMPLETELY BARE AND EMPTY - no statue, no crystal, no ornament, no object stands on it. The plain floor between the columns and the pedestal is SIMPLE and undecorated. Everything beyond the columns, and every gap between them, is plain flat solid pure white, with no shadow cast outside the building. The columns are slender marble spires capped in gold leaf joined by delicate fretwork arches. The vast pedestal is warm cream and gold tiered stone with engraved sun-rays radiating out across its steps, its wide top completely bare."
+    },
+    {
+      "id": "dais-bronze",
+      "label": "Dais A · Celestial bronze",
+      "family": "dais",
+      "isAnchor": true
+    },
+    {
+      "id": "dais-runestone",
+      "label": "Dais B · Runed granite",
+      "family": "dais",
+      "line": "A single fantasy game object alone in the centre of a completely plain flat pure white empty background - no room, no floor, no walls, no columns, no scenery, no shadow cast onto anything. Hand-painted 2D game art with soft colourful texture, rich saturated mid-tone colour, bright cheerful adventure-game mood, clean readable shapes. LOW TOP-DOWN VIEW like a classic Pokemon overworld object - the camera is above and tilted forward, so you clearly see BOTH the flat top surface as an ellipse AND the FRONT FACE of the object below it. The object is a grand raised circular PLATFORM - a wide stepped dais built to be STOOD ON. Its flat elliptical top is COMPLETELY BARE AND EMPTY: no statue, no crystal, no orb, no ornament, nothing on it at all. Three broad steps lead up the FRONT of it. All the carving and decoration is on the FRONT FACE, the step risers and the rim - the top stays plain, because a character will stand there. Wide and solid and low, not a tall pillar or a column. Heavy blue-grey granite with deep-carved runes glowing soft amber in the grooves, iron corner brackets at the steps."
+    },
+    {
+      "id": "dais-goldmarble",
+      "label": "Dais C · Gold and marble",
+      "family": "dais",
+      "line": "A single fantasy game object alone in the centre of a completely plain flat pure white empty background - no room, no floor, no walls, no columns, no scenery, no shadow cast onto anything. Hand-painted 2D game art with soft colourful texture, rich saturated mid-tone colour, bright cheerful adventure-game mood, clean readable shapes. LOW TOP-DOWN VIEW like a classic Pokemon overworld object - the camera is above and tilted forward, so you clearly see BOTH the flat top surface as an ellipse AND the FRONT FACE of the object below it. The object is a grand raised circular PLATFORM - a wide stepped dais built to be STOOD ON. Its flat elliptical top is COMPLETELY BARE AND EMPTY: no statue, no crystal, no orb, no ornament, nothing on it at all. Three broad steps lead up the FRONT of it. All the carving and decoration is on the FRONT FACE, the step risers and the rim - the top stays plain, because a character will stand there. Wide and solid and low, not a tall pillar or a column. Cream marble with warm gold inlay, a laurel band around the rim and fluted step risers."
+    },
+    {
+      "id": "dais-obsidian",
+      "label": "Dais D · Obsidian and lava",
+      "family": "dais",
+      "line": "A single fantasy game object alone in the centre of a completely plain flat pure white empty background - no room, no floor, no walls, no columns, no scenery, no shadow cast onto anything. Hand-painted 2D game art with soft colourful texture, rich saturated mid-tone colour, bright cheerful adventure-game mood, clean readable shapes. LOW TOP-DOWN VIEW like a classic Pokemon overworld object - the camera is above and tilted forward, so you clearly see BOTH the flat top surface as an ellipse AND the FRONT FACE of the object below it. The object is a grand raised circular PLATFORM - a wide stepped dais built to be STOOD ON. Its flat elliptical top is COMPLETELY BARE AND EMPTY: no statue, no crystal, no orb, no ornament, nothing on it at all. Three broad steps lead up the FRONT of it. All the carving and decoration is on the FRONT FACE, the step risers and the rim - the top stays plain, because a character will stand there. Wide and solid and low, not a tall pillar or a column. Black basalt cracked with thin glowing crimson-gold molten seams, banded in dark iron."
+    },
+    {
+      "id": "dais-rootstone",
+      "label": "Dais E · Root-wrapped stone",
+      "family": "dais",
+      "line": "A single fantasy game object alone in the centre of a completely plain flat pure white empty background - no room, no floor, no walls, no columns, no scenery, no shadow cast onto anything. Hand-painted 2D game art with soft colourful texture, rich saturated mid-tone colour, bright cheerful adventure-game mood, clean readable shapes. LOW TOP-DOWN VIEW like a classic Pokemon overworld object - the camera is above and tilted forward, so you clearly see BOTH the flat top surface as an ellipse AND the FRONT FACE of the object below it. The object is a grand raised circular PLATFORM - a wide stepped dais built to be STOOD ON. Its flat elliptical top is COMPLETELY BARE AND EMPTY: no statue, no crystal, no orb, no ornament, nothing on it at all. Three broad steps lead up the FRONT of it. All the carving and decoration is on the FRONT FACE, the step risers and the rim - the top stays plain, because a character will stand there. Wide and solid and low, not a tall pillar or a column. Mossy pale stone wrapped with thick living roots and creeping ivy along the steps, small wildflowers at the base."
+    }
+  ]
+}

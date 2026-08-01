@@ -1,0 +1,55 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "sky, clouds, landscape, ground, grass, floor tiles, paving, room interior, whole building, circular building, dome, roof, ceiling, figure, person, creature, statue of a person, pedestal, dais, altar, cast shadow on the ground, drop shadow, plan view, seen from directly above, flat lay, 3d render, cgi, photorealistic, photograph, text, watermark, logo, signature, ui, hud, frame, border, blurry, bleached white, washed out, grim, gloomy, ruins, decay, rubble, broken, dark",
+  "styleHeader": "",
+  "familyLabels": {
+    "seg": "Colonnade bays — cut one clean bay from the middle and repeat around the ring"
+  },
+  "anchors": {
+    "seg": {
+      "line": "A straight row of FOUR identical stone colonnade bays, standing alone on a completely plain flat pure white empty background with nothing else in the picture - no ground, no floor, no sky, no building around them. Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful fantasy adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW like a classic Pokemon overworld object: the camera is above and tilted forward, so the FRONT FACES of the columns are clearly visible below their tops. The four bays are IDENTICAL and evenly spaced so the row could repeat forever. Each bay is a tall pale limestone column carrying a rounded arch, and BETWEEN each pair of columns is a shallow recessed ALCOVE - a niche in the back wall deep enough to stand something in. TWO MATERIALS for value separation: the columns and arches are pale warm limestone, and the low base band they all stand on is much DARKER blue-grey granite. This is a fighting-tower built for champions: the column shafts carry deep-carved vertical relief panels of crossed blades and laurel, the arch spandrels carry carved glyph bands of angular fantasy runes, and thin inlaid bands of warm aged bronze run along the base and the arch springing. Ornate, ancient and proud, never grim and never ruined. Everything around and behind the bays is plain flat solid pure white."
+    }
+  },
+  "states": [
+    {
+      "id": "seg-back",
+      "label": "1 · BACK run — columns face-on (anchor)",
+      "family": "seg",
+      "isAnchor": true
+    },
+    {
+      "id": "seg-diagonal",
+      "label": "2 · DIAGONAL run — three-quarter turn (mirror for the other side)",
+      "family": "seg",
+      "line": "A straight row of FOUR identical stone colonnade bays, standing alone on a completely plain flat pure white empty background with nothing else in the picture - no ground, no floor, no sky, no building around them. Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful fantasy adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW, and the row is turned THREE-QUARTERS AWAY to the left, so each column is seen at an angle - you see both its front face and its left flank, and the arches foreshorten as they recede. The four bays are IDENTICAL and evenly spaced so the row could repeat. Each bay is a tall pale limestone column carrying a rounded arch, with a shallow recessed ALCOVE between each pair. TWO MATERIALS: pale warm limestone columns and arches, on a much DARKER blue-grey granite base band. A fighting-tower built for champions: deep-carved relief panels of crossed blades and laurel on the shafts, carved angular fantasy rune bands in the arch spandrels, thin inlaid bands of warm aged bronze. Ornate, ancient and proud, never grim and never ruined. Everything around and behind the bays is plain flat solid pure white."
+    },
+    {
+      "id": "seg-side",
+      "label": "3 · SIDE run — full profile (mirror for the other side)",
+      "family": "seg",
+      "line": "A straight row of FOUR identical stone colonnade bays seen in near PROFILE from the side, standing alone on a completely plain flat pure white empty background with nothing else in the picture - no ground, no floor, no sky, no building around them. Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful fantasy adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW with the row running away from the camera to the left, so the columns are seen edge-on and strongly foreshortened, their side flanks facing the viewer. The four bays are IDENTICAL and evenly spaced so the row could repeat. Each bay is a tall pale limestone column carrying a rounded arch, with a shallow recessed ALCOVE between each pair. TWO MATERIALS: pale warm limestone columns and arches, on a much DARKER blue-grey granite base band. A fighting-tower built for champions: deep-carved relief panels of crossed blades and laurel, carved angular fantasy rune bands, thin inlaid warm aged bronze. Ornate, ancient and proud, never grim and never ruined. Everything around and behind the bays is plain flat solid pure white."
+    },
+    {
+      "id": "seg-front-rim",
+      "label": "4 · FRONT rim — low balustrade you see over",
+      "family": "seg",
+      "line": "A straight run of LOW carved stone balustrade, standing alone on a completely plain flat pure white empty background with nothing else in the picture - no ground, no floor, no sky, no columns, no building. Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful fantasy adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW like a classic Pokemon overworld object: the camera is above and tilted forward, so you see the flat top rail AND the FRONT FACE of the balustrade below it. The balustrade is LOW - about waist height on a person - so you can easily see over it. It runs as a repeating rhythm of short turned stone balusters between heavier square posts, so the run could repeat forever. TWO MATERIALS: pale warm limestone rail and balusters, on a much DARKER blue-grey granite plinth band beneath. A fighting-tower built for champions: the square posts carry small deep-carved relief panels of crossed blades and laurel, an angular fantasy rune band runs along the plinth, and thin inlaid bands of warm aged bronze catch the light. Ornate, ancient and proud, never grim and never ruined. Everything around and behind is plain flat solid pure white."
+    },
+    {
+      "id": "seg-terrace",
+      "label": "5 · TERRACE floor — the ground the room stands on",
+      "family": "seg",
+      "line": "A single large circular stone TERRACE FLOOR seen from directly above, lying alone in the middle of a completely plain flat pure white empty background with clear white margin all around it - nothing else in the picture, no walls, no columns, no railings, no pedestal, no objects standing on it. Hand-painted 2D game art, soft painterly texture, warm sunlight, bright cheerful fantasy adventure-game mood, rich saturated warm mid-tone colour. It is a wide open paved circle of large warm honey-cream flagstones laid in gentle concentric rings, worn smooth, with fine joint lines and a few soft cracks. A broad band of DARKER blue-grey granite paving runs around the very outer edge as a border. The paving is SIMPLE, PLAIN and evenly lit across the whole circle - no mosaic, no inlay, no pattern, no medallion, no decoration in the middle, because other things will be placed on top of it. Everything beyond the circle is plain flat solid pure white."
+    },
+    {
+      "id": "seg-rail-curved",
+      "label": "6 · CURVED balustrade arc",
+      "family": "seg",
+      "line": "A single CURVED run of low carved stone balustrade, bending in a smooth arc like a section of a circular balcony, standing alone on a completely plain flat pure white empty background with nothing else in the picture - no ground, no floor, no sky, no columns, no building. Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful fantasy adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW: the camera is above and tilted forward, so you see the flat top rail AND the FRONT FACE of the balustrade below it, and the arc curves away to the left and right. The balustrade is LOW - waist height on a person - so you can easily see over it. It is a repeating rhythm of short turned stone balusters between heavier square posts. TWO MATERIALS: pale warm limestone rail and balusters on a much DARKER blue-grey granite plinth band. A fighting-tower built for champions: small deep-carved relief panels of crossed blades and laurel on the posts, an angular fantasy rune band along the plinth, thin inlaid warm aged bronze. Ornate, ancient and proud, never grim and never ruined. Everything around and behind is plain flat solid pure white."
+    }
+  ]
+}

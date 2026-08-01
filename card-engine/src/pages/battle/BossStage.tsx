@@ -8,7 +8,16 @@ import { SpriteClipPlayer } from './SpriteClipPlayer';
 import { bossClipForBeat } from './bossClipState';
 import { resolveCombatAssetUrl, resolveCombatAssetPath } from '../../data/combat/types';
 import { getBossRing } from '../../data/combat/bossRingManifest';
+import {
+  getBossSignature,
+  layersForAction,
+  type SignatureLayerId,
+} from '../../data/combat/bossSignatureManifest';
 import { BossWeaponRing, type RingPhase } from './BossWeaponRing';
+import { BossRuneHalo } from './BossRuneHalo';
+import { BossFlowerBed } from './BossFlowerBed';
+import { BossSceneDressing } from './BossSceneDressing';
+import { BossSummonedFlowers } from './BossSummonedFlowers';
 import { BossPlatform, getBossPlatform } from './BossPlatform';
 import { FloatingDamage } from './FloatingDamage';
 
@@ -45,6 +54,18 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
   // idle motion Raheem pulled from the intent panel on 2026-07-20 — that
   // was decorative; this is tied to an actual imminent hit.
   const [charging, setCharging] = useState(false);
+  /**
+   * WHICH action is charging, not merely that one is.
+   *
+   * `charging` alone tells the player something is coming but not what — every
+   * heavy intent lights up identically, which is the same defect the wind-up
+   * clip work fixed at the sprite level ("a telegraph the player can only read
+   * in the banner text is not a telegraph"), repeating one level up. Holding the
+   * action id lets each attack power up its OWN signature layer, so the Still
+   * Season's two moves announce themselves in different colours in different
+   * parts of the screen. See `bossSignatureManifest`.
+   */
+  const [chargingActionId, setChargingActionId] = useState<string | undefined>();
   const lastChargeBeatId = useRef<string | null>(null);
   useEffect(() => {
     if (!currentBeat) return;
@@ -53,6 +74,7 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
     const e = currentBeat.event;
     if (e.kind === 'boss_intent_declared' && currentBeat.severity === 'heavy') {
       setCharging(true);
+      setChargingActionId(e.intent.actionId);
     } else if (e.kind === 'damage_dealt' && e.sourceActorId === boss.actorId) {
       setCharging(false);
     } else if (e.kind === 'action_denied' && e.actorId === boss.actorId && e.reason === 'interrupted') {
@@ -99,7 +121,99 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
   // Stable per-beat, so the same blow always throws the same weapon.
   const firingIndex = hashToIndex(currentBeat?.id ?? '');
 
+  /**
+   * Signature layers, and which of them this particular action owns.
+   *
+   * The action id comes from the charge while a telegraph is up, and from the
+   * landing blow's `sourceActionId` at impact — so a layer that lit up during
+   * the wind-up is the same one that flashes when the hit connects. Reading only
+   * the charge would leave the flash unattributed on the frame that matters.
+   */
+  const signature = getBossSignature(boss.snapshot.bossId);
+  const impactActionId =
+    ringEvent?.kind === 'damage_dealt' && ringEvent.sourceActorId === boss.actorId
+      ? ringEvent.sourceActionId
+      : undefined;
+  const activeLayers = layersForAction(
+    boss.snapshot.bossId,
+    bossIsDealingDamage ? impactActionId : chargingActionId,
+  );
+  /**
+   * A layer only advances past `idle` when the CURRENT action owns it — EXCEPT
+   * on an ultimate, which outranks ownership.
+   *
+   * The ultimate is read off `clipState`, the same projection the sprite uses,
+   * so the halo's swell and the boss's scream are driven by one value and cannot
+   * drift apart. Deriving it independently from the event is how a telegraph and
+   * a pose end up a frame out of step.
+   */
+  const phaseFor = (layer: SignatureLayerId): RingPhase | 'ultimate' =>
+    boss.defeated
+      ? 'defeated'
+      : clipState === 'ultimate'
+        ? 'ultimate'
+        : !activeLayers.includes(layer)
+          ? 'idle'
+          : bossIsDealingDamage && !currentBeat?.suppressEffects
+            ? 'firing'
+            : charging
+              ? 'charging'
+              : 'idle';
+
   return (
+    <>
+      {/* The flower bed is a SIBLING of the sprite box, not a child of it. The
+          box below is width-constrained to the figure (clamp(300px, 32vw,
+          440px)); a floor-wide bed nested inside it would be clipped to his
+          shoulders. As a sibling it shares the arena's coordinate space and
+          spans the whole floor, which is the point — it is the area-attack
+          tell, so it has to cover the ground the party is standing on. */}
+      {/* Atmosphere, behind everything: overgrowth, the light he throws into
+          the room, shafts and motes. Answers "it doesn't feel very druid" with
+          CONTENT rather than with a tint on the arena — see BossSceneDressing. */}
+      {signature?.dressing && (
+        <BossSceneDressing
+          spec={signature.dressing}
+          resolveUrl={resolveCombatAssetPath}
+          motionLevel={motionLevel}
+          // An ULTIMATE also lights the ground. `charging` is only set by a
+          // heavy intent, so keying the ground effects off it alone left the
+          // floor completely dark during the biggest move in the fight — every
+          // other layer escalated and the ground sat out.
+          charging={charging || clipState === 'ultimate'}
+          defeated={boss.defeated}
+        />
+      )}
+      {/* PixelLab flower props that grow out of the floor, tear free and rise
+          as he charges. A sibling of the sprite box for the same reason the
+          flower bed is: they scatter across the whole arena floor, and the
+          sprite box is width-clamped to the figure. */}
+      {signature?.dressing?.summonProps && (
+        <BossSummonedFlowers
+          paths={signature.dressing.summonProps}
+          resolveUrl={resolveCombatAssetPath}
+          motionLevel={motionLevel}
+          phase={
+            boss.defeated
+              ? 'off'
+              : clipState === 'ultimate'
+                ? 'ultimate'
+                : charging
+                  ? 'charging'
+                  : 'off'
+          }
+          bloomKey={chargingActionId ?? currentBeat?.id ?? 0}
+        />
+      )}
+      {signature?.flowers && (
+        <BossFlowerBed
+          spec={signature.flowers}
+          resolveUrl={resolveCombatAssetPath}
+          motionLevel={motionLevel}
+          phase={phaseFor('flower_bed')}
+          fireKey={currentBeat?.id ?? 0}
+        />
+      )}
     <div
       className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center"
       style={{
@@ -126,6 +240,11 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
           // platform (anchored to that bottom) lands far below him.
           'relative flex items-end justify-center',
           charging && (feel.staticFallback ? 'boss-stage-charging-static' : 'boss-stage-charging'),
+          // The ultimate gets its own escalation on the SPRITE BOX, on top of
+          // whatever the clip is doing. The clip alone was legible but small —
+          // it is a 200px figure screaming, and the fight's biggest moment
+          // should be felt at the scale of the stage, not the sprite.
+          clipState === 'ultimate' && !feel.staticFallback && 'boss-stage-ultimate',
           // Death. Listed last so it wins on source order over the charge and
           // hit rules — nothing outranks the fight being over.
           boss.defeated && 'boss-stage-defeated',
@@ -152,6 +271,40 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         <BossPlatform spec={getBossPlatform(boss.snapshot.bossId)} motionLevel={motionLevel} />
         {/* Behind the sprite: the figure occludes the arc's inner edge, which
             is what sells the pieces as orbiting rather than floating in front. */}
+        {/* The seat he is actually sitting on. Inside the sprite box, not out
+            at arena level, because it has to register against the FIGURE — he
+            is cross-legged, so his sprite's ground line is his own shins and
+            the throne is what puts a floor under them. Anchored to the box
+            bottom, the same edge the platform uses. */}
+        {signature?.dressing?.throne && (
+          <img
+            src={resolveCombatAssetPath(signature.dressing.throne.path)}
+            alt=""
+            aria-hidden
+            draggable={false}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: `${signature.dressing.throne.bottomOffset * 100}%`,
+              width: `${signature.dressing.throne.scale * 100}%`,
+              height: 'auto',
+              translate: '-50% 0',
+              zIndex: 0,
+              filter: 'drop-shadow(0 10px 14px rgba(0,0,0,0.7))',
+            }}
+          />
+        )}
+        {/* Signature layers. The halo sits behind the sprite so he occludes its
+            lower inner edge — that overlap is what reads as "behind him". */}
+        {signature?.halo && (
+          <BossRuneHalo
+            spec={signature.halo}
+            resolveUrl={resolveCombatAssetPath}
+            motionLevel={motionLevel}
+            phase={phaseFor('rune_halo')}
+            fireKey={currentBeat?.id ?? 0}
+          />
+        )}
         {ring && (
           <BossWeaponRing
             spec={ring}
@@ -174,14 +327,20 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
             clipKey={`${clipState}:${currentBeat?.id ?? 'none'}`}
             motion={motionLevel}
             alt={boss.snapshot.name}
-            // P1: stack a warm ember rim-light on top of the existing dark
-            // ground drop-shadow so the sprite reads as lit by the lava veins,
-            // not pasted onto the arena.
+            // Stack a rim-light on the dark ground drop-shadow so the sprite
+            // reads as lit by its own arena rather than pasted onto it.
+            //
+            // The colour is PER BOSS. It was hardcoded to the Debt-Bearer's
+            // ember `rgba(255,110,40,0.30)`, with a comment noting it matched
+            // her lava veins — true of the only boss that existed, and wrong
+            // for every other. That is exactly the bug `ARENA_GROUND_TINT` was
+            // split out to fix: a skeletal druid in a forest colosseum lit by
+            // an orange rim is lit by a fire that is not there.
             style={{
               filter:
                 'brightness(0.96) saturate(1.08) ' +
                 'drop-shadow(0 18px 18px rgba(0,0,0,0.85)) ' +
-                'drop-shadow(0 0 24px rgba(255,110,40,0.30))',
+                `drop-shadow(0 0 24px ${signature?.rimLight ?? 'rgba(255,110,40,0.30)'})`,
             }}
           />
         ) : (
@@ -248,6 +407,43 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
         }
         .boss-stage-charging-static { filter: brightness(1.3) saturate(1.2); }
 
+        /* ULTIMATE — exaggerate the scream at stage scale.
+           Declared AFTER .boss-stage-charging so it wins on source order: an
+           ultimate that fires mid-charge is the bigger read, the same
+           precedence the charge takes over a hit.
+
+           Three things at once, because one alone was not enough. He GROWS
+           (a screaming thing swells), he RECOILS from his own noise on a fast
+           offbeat shudder, and he BLOOMS. The scale is what carries it — a
+           200px figure at a fixed size cannot own the frame no matter how good
+           the pixels are. Kept under 1.09 because his ground line is his seat,
+           so scaling him up also lifts him off it. */
+        .boss-stage-ultimate {
+          animation:
+            boss-stage-ult-swell 1.25s ease-in-out infinite alternate,
+            boss-stage-ult-shudder 0.11s steps(2, end) infinite !important;
+          transform-origin: 50% 92%;
+        }
+        @keyframes boss-stage-ult-swell {
+          from {
+            scale: 1;
+            filter: brightness(1.15) saturate(1.25)
+                    drop-shadow(0 0 18px rgba(190,255,120,0.55));
+          }
+          to {
+            scale: 1.085;
+            filter: brightness(1.85) saturate(1.7)
+                    drop-shadow(0 0 46px rgba(220,255,140,0.95))
+                    drop-shadow(0 0 90px rgba(150,255,90,0.5));
+          }
+        }
+        /* Sub-pixel would do nothing under NEAREST filtering — the sprite is
+           chunky, so the shudder has to be whole pixels to register at all. */
+        @keyframes boss-stage-ult-shudder {
+          0%   { translate: -2px 0; }
+          100% { translate: 2px 1px; }
+        }
+
         /* DEFEAT — the fire goes out of her.
            The sprite manifest claimed this was already handled ("grayscale on
            defeat ... produced in CSS by the battle view"); it was not, and a
@@ -280,9 +476,19 @@ export function BossStage({ boss, currentBeat, motionLevel }: Props) {
             animation: none !important;
             filter: brightness(1.3) saturate(1.2);
           }
+          /* Motion stops; the READ does not. An ultimate still has to look
+             different from an ordinary turn, so it keeps the bloom and the
+             size — it just holds them instead of pulsing. */
+          .boss-stage-ultimate {
+            animation: none !important;
+            scale: 1.06;
+            filter: brightness(1.6) saturate(1.5)
+                    drop-shadow(0 0 34px rgba(200,255,130,0.8));
+          }
         }
       `}</style>
     </div>
+    </>
   );
 }
 

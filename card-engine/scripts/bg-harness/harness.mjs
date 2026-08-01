@@ -89,7 +89,7 @@ async function uploadInitImage(absPath) {
   return u.id;
 }
 
-async function submit(prompt, { styleRefId, styleRefType, strength, width, height, negative, model, alchemy } = {}) {
+async function submit(prompt, { styleRefId, styleRefType, strength, width, height, negative, model, alchemy, presetStyle } = {}) {
   const body = {
     modelId: MODELS[model] || PHOENIX,
     prompt,
@@ -100,6 +100,12 @@ async function submit(prompt, { styleRefId, styleRefType, strength, width, heigh
     alchemy: alchemy !== false,
     public: false,
   };
+  // Leonardo applies a server-side default preset (cinematic/dynamic) when this
+  // is omitted, which pulls toward smooth matte painting — the opposite of a
+  // pixel plate. It was invisible while a style reference was fighting it;
+  // removing the reference on arena-still-season exposed it immediately.
+  // `presetStyle: "NONE"` is a zero-generation lever, so set it explicitly.
+  if (presetStyle) body.presetStyle = presetStyle;
   if (styleRefId)
     body.controlnets = [{ initImageId: styleRefId, initImageType: styleRefType || 'GENERATED', preprocessorId: STYLE_REF_PREPROC, strengthType: strength || 'Mid' }];
   const r = await fetch(`${BASE}/generations`, { method: 'POST', headers: HDRS, body: JSON.stringify(body) });
@@ -127,8 +133,22 @@ const manFile = (a) => path.join(outDir(a), 'manifest.json');
 const loadMan = (a) => { try { return JSON.parse(fs.readFileSync(manFile(a), 'utf8')); } catch { return { anchors: {}, states: {} }; } };
 const saveMan = (a, m) => fs.writeFileSync(manFile(a), JSON.stringify(m, null, 2));
 /** Per-config image size + negatives, falling back to the forge defaults. */
-const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy });
-const promptFor = (c, line) => [c.styleHeader, line].filter(Boolean).join(' ');
+const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy, presetStyle: c.presetStyle });
+// Leonardo's hard caps: prompt 1500 chars, negative_prompt 1000. Both are
+// enforced at submit, i.e. AFTER a run has already started and possibly after
+// earlier states in the batch have been paid for. Check locally so a too-long
+// brief fails on the first line of the run instead of part-way through it.
+const PROMPT_MAX = 1500;
+const promptFor = (c, line) => {
+  const p = [c.styleHeader, line].filter(Boolean).join(' ');
+  if (p.length > PROMPT_MAX) {
+    throw new Error(
+      `prompt is ${p.length} chars, over Leonardo's ${PROMPT_MAX} limit ` +
+        `(styleHeader ${c.styleHeader?.length ?? 0} + line ${line.length}). Shorten one of them.`,
+    );
+  }
+  return p;
+};
 
 async function cmdGen(arch, only) {
   const c = cfg(arch), d = outDir(arch), m = loadMan(arch);
@@ -142,7 +162,14 @@ async function cmdGen(arch, only) {
     saveMan(arch, m);
   }
   for (const [fam, a] of Object.entries(c.anchors)) {
-    if (m.anchors[fam]?.imageId) continue;
+    // Resume only if the PROMPT still matches. Skipping on "has an imageId"
+    // alone is right for cost and wrong for iteration: rewriting a brief and
+    // re-running then silently returns round 1, which is indistinguishable
+    // from the model ignoring the edit. That cost a full review cycle on
+    // arena-still-season — three rejected plates were re-examined as if they
+    // were round 2. Compare the prompt and regenerate when it changes.
+    if (m.anchors[fam]?.imageId && m.anchors[fam]?.prompt === promptFor(c, a.line)) continue;
+    if (m.anchors[fam]?.imageId) console.log(`~ anchor ${fam}: prompt changed, regenerating`);
     console.log(`> anchor ${fam}…`);
     const res = await generate(promptFor(c, a.line), {
       ...dims(c),
@@ -157,7 +184,12 @@ async function cmdGen(arch, only) {
   }
   for (const s of c.states) {
     if (only && s.id !== only) continue;
-    if (m.states[s.id]?.imageId && !only) continue;
+    // Same prompt-aware resume as the anchors above. An anchor-backed state is
+    // compared against the anchor's CURRENT prompt, so a rewritten brief
+    // refreshes the whole family rather than leaving one stale plate behind.
+    const wantPrompt = s.isAnchor ? promptFor(c, c.anchors[s.family].line) : promptFor(c, s.line);
+    if (m.states[s.id]?.imageId && m.states[s.id]?.prompt === wantPrompt && !only) continue;
+    if (m.states[s.id]?.imageId && !only) console.log(`~ state ${s.id}: prompt changed, regenerating`);
     if (s.isAnchor) {
       const a = m.anchors[s.family];
       m.states[s.id] = { imageId: a.imageId, file: a.file, label: s.label, family: s.family, isAnchor: true, prompt: a.prompt };

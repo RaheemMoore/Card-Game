@@ -2,9 +2,16 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { grantBattleReward } from './battleRewardService';
 import * as wallet from '../economy/walletService';
 import * as ledger from '../economy/transactionLedger';
+import { InMemoryLedgerStore } from '../economy/transactionLedger';
 
+// The ledger's default store is localStorage-backed, and vitest runs without
+// localStorage — every write silently no-ops, so the ledger always reads back
+// empty. That made both idempotency and first-clear/repeat unobservable here:
+// grantBattleReward scans the ledger for a prior battleId, found nothing, and
+// re-granted first_clear forever. Inject the in-memory store like the other
+// economy tests do.
 beforeEach(() => {
-  ledger.resetForDev();
+  ledger.setStore(new InMemoryLedgerStore());
   wallet.initialize();
 });
 

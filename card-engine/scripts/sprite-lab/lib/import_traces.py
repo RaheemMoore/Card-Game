@@ -243,6 +243,16 @@ def main(traces_path, plate_path, out_dir, qa_path=None):
     # Objects the player walks AROUND rather than merely behind. See BAND_H.
     banded = set(traces.get('banded', []))
 
+    # Shapes traced as the WALKABLE HOLE rather than the solid.
+    #
+    # A collider marks area the player cannot enter. Outside a room that area is
+    # effectively unbounded, and a human cannot draw unbounded. Tracing the floor
+    # you CAN stand on is easy and unambiguous, so those shapes are named in
+    # `invert` and flipped here. Raheem asked the obvious question — "what goes
+    # between the two rings?" — and the honest answer was nothing, which is what
+    # this replaces.
+    invert = set(traces.get('invert', []))
+
     manifest, qa = [], []
     print('OCCLUDERS')
     for obj in traces['occluders']:
@@ -279,6 +289,9 @@ def main(traces_path, plate_path, out_dir, qa_path=None):
     for obj in traces['colliders']:
         src = by_name[obj['name']] if obj['name'] in solid else obj
         mask = rasterise(src, size)
+        if obj['name'] in invert:
+            # Traced as the WALKABLE HOLE, so the solid is its complement.
+            mask = ~mask
         boxes = boxes_from_mask(mask)
         total += len(boxes)
         col_out.append({'id': obj['name'], 'boxes': boxes})

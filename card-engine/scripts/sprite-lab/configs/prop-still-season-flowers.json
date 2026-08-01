@@ -1,0 +1,71 @@
+{
+  "subject": "prop-still-season-flowers",
+  "label": "The Still Season — summoned blight flowers (ultimate VFX props)",
+  "_readme": [
+    "Pink blight flowers that FADE INTO EXISTENCE around the boss when he ults,",
+    "then fade back out. Raheem's idea, and it is the right use of PixelLab.",
+    "",
+    "WHY THESE ARE OBJECTS AND NOT AN ANIMATION. PixelLab returns objects as",
+    "STILL IMAGES — there is no object-animation endpoint, and asking for one is",
+    "a dead end I already talked us out of once. But that was answering the wrong",
+    "question. A still is exactly what is wanted here: CODE does the fading, the",
+    "scaling and the positioning, and a still prop can be reused, re-placed and",
+    "re-timed for free forever. A generated animation could not.",
+    "",
+    "WHY NOT JUST MORE CSS DOTS. The charge already spawns glowing dots and they",
+    "read fine as sparks. They cannot read as FLOWERS — a circle with a blur is a",
+    "circle with a blur at every size. The plate's own blossoms are painted and",
+    "cannot move. These are the only way to get flowers that are simultaneously",
+    "art-directed, consistent, and free to animate.",
+    "",
+    "ONE CALL, FOUR ITEMS. /create-1-direction-object takes `item_descriptions`",
+    "and returns one image per entry, so four variants cost about what one does.",
+    "Four is also the minimum for a believable scatter: with one prop repeated,",
+    "the eye immediately reads the repetition and the whole effect turns into",
+    "wallpaper.",
+    "",
+    "",
+    "STYLE-ANCHORED TO THE BOSS HIMSELF. cmdScene requires a styleReference, and its own rule is right: anchor to the CHARACTER the player watches, never to the painted plate — anchoring courtyard scenery to the plate once dragged the hero toward dark stone and cost him face contrast. The ref is his idle crop fitted under 170px, which is also exactly the band that keeps the returned object count at 4. `size` is dropped because the API rejects it alongside `style_images`.",
+    "size (<=85px -> 8, <=170 -> 4, else 1) and `size` may not be sent alongside",
+    "`style_images`. These are small, bright, self-lit props composited over a",
+    "pixelised plate; explicit size is worth more here than a borrowed register.",
+    "",
+    "M5.7 is not in play — these are plants, no figures.",
+    "",
+    "OBJECT `view` USES A DIFFERENT VOCABULARY FROM CHARACTER `view`, and that is",
+    "not documented anywhere. Characters take 'low top-down' / 'high top-down' /",
+    "'side'. Objects reject all three: /create-1-direction-object accepts ONLY",
+    "'top-down' or 'sidescroller'. Passing the boss's own view verbatim — the",
+    "obvious move, since the point is to match him — is a 422.",
+    "",
+    "'sidescroller' rather than 'top-down': the arena is a FRONTAL stage and the",
+    "boss is drawn upright facing the viewer, so flowers beside him have to stand",
+    "up too. A top-down plan view would lie flat on a floor nobody is looking down",
+    "at.",
+    "",
+    "`no_background` is also rejected on objects (it is a character field). Objects",
+    "come back with alpha regardless.",
+    "",
+    "Both rejections were 422s BEFORE billing, so probing this cost nothing — the",
+    "standing rule holds: put the questionable value in the field under test and",
+    "nowhere else."
+  ],
+  "objects": [
+    {
+      "id": "blight-flowers",
+      "seed": 20260731,
+      "note": "Four variants so a scatter does not read as one asset repeated. Deliberately at different stages of opening, so code can imply growth by swapping variant rather than by scaling one sprite.",
+      "params": {
+        "description": "glowing magenta blight flowers growing from cracked stone, seen at a low top-down angle: 1). a single wide-open star-shaped bloom 2). a tight cluster of three smaller blooms 3). a closed bud on a short stem 4). a low spray of tiny blossoms",
+        "view": "sidescroller",
+        "item_descriptions": [
+          "a single wide open star shaped flower with bright magenta petals and a pale glowing centre, growing from a crack in grey stone, softly self-lit",
+          "a tight cluster of three small magenta blossoms on dark thin stems, growing from grey stone, softly self-lit",
+          "a single closed magenta flower bud on a short dark stem, not yet opened, growing from grey stone, faintly self-lit",
+          "a low spreading spray of many tiny bright magenta blossoms and dark creeping tendrils across grey stone, softly self-lit"
+        ]
+      }
+    }
+  ],
+  "styleReference": "style-ref-boss.png"
+}

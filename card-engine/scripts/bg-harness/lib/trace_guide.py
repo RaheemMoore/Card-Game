@@ -48,7 +48,8 @@ KIND = {
     "skip":     ((130, 138, 154), "SKIP"),
 }
 WASH = 150          # how far the plate is faded toward white, 0-255
-PANEL_W = 430
+PANEL_BASE = 430    # panel width at the 1536px reference plate
+REF_W = 1536        # every size below is authored against this and scaled up
 
 
 def font(size, bold=False):
@@ -66,13 +67,15 @@ def font(size, bold=False):
     return ImageFont.load_default()
 
 
-def badge(draw, x, y, n, colour, r=21):
+def badge(draw, x, y, n, colour, r=21, k=1.0):
     """Numbered disc. Drawn last so it always sits above its own outline."""
-    draw.ellipse((x - r, y - r, x + r, y + r), fill=colour + (255,), outline=(255, 255, 255, 255), width=3)
-    f = font(22, bold=True)
+    r = r * k
+    draw.ellipse((x - r, y - r, x + r, y + r), fill=colour + (255,),
+                 outline=(255, 255, 255, 255), width=max(3, round(3 * k)))
+    f = font(round(22 * k), bold=True)
     t = str(n)
     tw = draw.textlength(t, font=f)
-    draw.text((x - tw / 2, y - 15), t, font=f, fill=(255, 255, 255, 255))
+    draw.text((x - tw / 2, y - 15 * k), t, font=f, fill=(255, 255, 255, 255))
 
 
 def main():
@@ -82,6 +85,9 @@ def main():
 
     plate = Image.open(plate_path).convert("RGBA")
     W, H = plate.size
+    k = W / REF_W                     # scale factor for every drawn size
+    PANEL_W = round(PANEL_BASE * k)
+    F = lambda n, b=False: font(max(9, round(n * k)), bold=b)
 
     # Fade the art so the marks read on top of it without hiding what to trace.
     wash = Image.new("RGBA", (W, H), (255, 255, 255, WASH))
@@ -111,7 +117,7 @@ def main():
         ld = ImageDraw.Draw(layer, "RGBA")
         fill = colour + (46,) if tinted else None
         shape = ld.ellipse if it["shape"] == "ellipse" else ld.rectangle
-        shape((x0, y0, x1, y1), fill=fill, outline=colour + (255,), width=5)
+        shape((x0, y0, x1, y1), fill=fill, outline=colour + (255,), width=max(4, round(5 * k)))
         canvas.alpha_composite(layer)
 
     # Badges last, so a number is never hidden under a later mark. Big shapes
@@ -123,44 +129,46 @@ def main():
             bx, by = x0 + (x1 - x0) / 2, y0 + (y1 - y0) / 2
         else:
             bx, by = x0 + (x1 - x0) / 2, y1 - 4     # bottom edge of the ring
-        badge(d, bx, by, i, colour)
+        badge(d, bx, by, i, colour, k=k)
 
     # ── side panel: legend, then the numbered worklist in order ──────────
-    px = W + 26
-    d.text((px, 30), spec.get("title", "Trace guide"), font=font(28, bold=True), fill=(28, 34, 48, 255))
-    y = 70
+    px = W + round(26 * k)
+    d.text((px, 30 * k), spec.get("title", "Trace guide"), font=F(28, True), fill=(28, 34, 48, 255))
+    y = 70 * k
     if spec.get("note"):
-        d.text((px, y), spec["note"], font=font(15), fill=(96, 104, 120, 255))
-        y += 34
+        d.text((px, y), spec["note"], font=F(15), fill=(96, 104, 120, 255))
+        y += 34 * k
 
-    y += 10
-    d.text((px, y), "LEGEND", font=font(13, bold=True), fill=(120, 128, 144, 255))
-    y += 26
+    y += 10 * k
+    d.text((px, y), "LEGEND", font=F(13, True), fill=(120, 128, 144, 255))
+    y += 26 * k
     for kind, (colour, name) in KIND.items():
-        d.rectangle((px, y, px + 26, y + 16), fill=colour + (60,), outline=colour + (255,), width=3)
-        d.text((px + 38, y - 1), name, font=font(15, bold=True), fill=colour + (255,))
-        y += 28
+        d.rectangle((px, y, px + 26 * k, y + 16 * k), fill=colour + (60,),
+                    outline=colour + (255,), width=max(2, round(3 * k)))
+        d.text((px + 38 * k, y - 1), name, font=F(15, True), fill=colour + (255,))
+        y += 28 * k
 
-    y += 18
-    d.line((px, y, px + PANEL_W - 52, y), fill=(214, 210, 200, 255), width=1)
-    y += 18
-    d.text((px, y), "DO THEM IN THIS ORDER", font=font(13, bold=True), fill=(120, 128, 144, 255))
-    y += 28
+    y += 18 * k
+    d.line((px, y, px + PANEL_W - 52 * k, y), fill=(214, 210, 200, 255), width=max(1, round(k)))
+    y += 18 * k
+    d.text((px, y), "DO THEM IN THIS ORDER", font=F(13, True), fill=(120, 128, 144, 255))
+    y += 28 * k
 
-    fl = font(15, bold=True)
-    fn = font(14)
+    fl = F(15, True)
+    fn = F(14)
     for i, it in enumerate(items, 1):
         colour, _ = KIND[it["kind"]]
-        d.ellipse((px, y + 1, px + 20, y + 21), fill=colour + (255,))
+        d.ellipse((px, y + k, px + 20 * k, y + 21 * k), fill=colour + (255,))
         n = str(i)
-        d.text((px + 10 - d.textlength(n, font=font(12, bold=True)) / 2, y + 4), n,
-               font=font(12, bold=True), fill=(255, 255, 255, 255))
-        d.text((px + 30, y), it["label"], font=fl, fill=(28, 34, 48, 255))
+        fnum = F(12, True)
+        d.text((px + 10 * k - d.textlength(n, font=fnum) / 2, y + 4 * k), n,
+               font=fnum, fill=(255, 255, 255, 255))
+        d.text((px + 30 * k, y), it["label"], font=fl, fill=(28, 34, 48, 255))
         if it.get("note"):
-            d.text((px + 30, y + 19), it["note"], font=fn, fill=(110, 118, 134, 255))
-            y += 42
+            d.text((px + 30 * k, y + 19 * k), it["note"], font=fn, fill=(110, 118, 134, 255))
+            y += 42 * k
         else:
-            y += 26
+            y += 26 * k
 
     canvas.convert("RGB").save(out_path)
     print(f"{out_path}  {canvas.size[0]}x{canvas.size[1]}  {len(items)} items")

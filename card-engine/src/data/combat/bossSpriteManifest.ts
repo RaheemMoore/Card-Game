@@ -226,7 +226,7 @@ const STILL_SEASON_ID = 'boss_champion_druid';
  * plate lands, IT defines the floor and the sprite registers against it — do
  * not anchor `BossPlatform` to this box bottom and expect a floor.
  */
-const STILL_SEASON_FRAME = { width: 155, height: 170 };
+const STILL_SEASON_FRAME = { width: 200, height: 189 };
 
 function seasonClip(
   file: string,
@@ -303,15 +303,61 @@ const STILL_SEASON_CLIPS: Record<BossSpriteState, BossClip> = {
   // box. A standing boss's fall would have wrecked both.
   defeat: seasonClip('defeat', 7, 6, false, 'Head bows onto the chest, arms fold INWARD. Inward and not downward on purpose: pack_boss_clips.py clips everything below the ground line, so a downward fold would have been silently cut.'),
 
-  // Reuses idle. See the note above — the generated clip invented a crown.
-  hit: seasonClip('idle', 5, 3, true, 'REUSES IDLE. The generated hit clip was discarded for inventing a crown and sparkles; CSS flash + hit-shake carry this beat.'),
+  /**
+   * A real flinch, at last — head tips back and settles, shoulders jerk, arms
+   * stay planted on the knees.
+   *
+   * Took three attempts. v1 came back as the scream and now ships as `ultimate`.
+   * v2 asked for a SMALL, CONTAINED motion rather than "recoiling sharply, head
+   * snapping back", because the pattern across both bosses is that the clips
+   * demanding the largest, fastest displacement are the ones that invent
+   * decoration — give the model a big gesture and it fills the space with
+   * something that was never in the brief.
+   *
+   * 5 frames at 13fps = 385ms, against a 400ms impact beat.
+   */
+  hit: seasonClip('hit', 5, 13, false, 'Head tips back from the blow and settles; shoulders jerk once; the arms never leave the knees. 385ms against the 400ms impact beat.'),
 
-  // Idle at 2x. Phase 2 reads through the core glow in code, not through art.
-  rage: seasonClip('idle', 5, 6, true, 'REUSES IDLE at double speed. Phase 2 is carried by the ribcage core pulse (a code layer) plus a tint — no rage art was generated, and the Debt-Bearer showed that prompting a "more still" rage returns a renamed idle.'),
+  /**
+   * RAGE IS THE FIRST HALF OF THE SCREAM.
+   *
+   * It used to be the idle at double speed, which meant phase 2 looked exactly
+   * like phase 1 — Raheem's note was that hit and rage "aren't quite
+   * functioning", and he was right: both were the idle clip wearing a different
+   * name.
+   *
+   * The scream has a natural break in it. Frames 0–2 are the BUILD — the core
+   * brightens and the mouth opens, arms still down, no crown. Frames 3–4 are the
+   * PAYOFF — arms fling wide and the crown ignites. So rage is the build looping
+   * on its own: unmistakably the same threat as the ultimate, visibly short of
+   * it. His phrasing was "the rage animation could just be a smaller version of
+   * it", which is exactly what a shared arc buys, for zero generations.
+   *
+   * 3 frames at 5fps = 600ms — faster than the 1667ms idle, because the whole
+   * point is that the thing that would not move has started to.
+   */
+  rage: seasonClip('rage', 3, 5, true, 'Phase-2 resting pose: the first three frames of the scream, looping. Core brightens and the mouth opens, but the arms stay down and the crown never ignites — that is held back for `ultimate`. Same frames, so rage and ultimate are provably the same character doing the same thing at two intensities.'),
 
-  // Wind-up at 2/3 speed = 1313ms, so it cycles a little over twice inside the
-  // 3000ms ultimate beat rather than freezing.
-  ultimate: seasonClip('windup', 7, 5, true, 'REUSES WIND-UP, slowed. A gathering pose is the honest stand-in for a gathering action; idle would flatten the fight\'s biggest moment into its most ordinary one.'),
+  /**
+   * THE SCREAM. Mouth opens, arms fling wide, a crown of flame ignites on the
+   * skull, eyes blaze, sparks come off.
+   *
+   * This clip was generated as `hit` and I THREW IT AWAY, logged as the
+   * "invented decoration" failure — the crown and sparks are in no reference and
+   * were never asked for. Raheem spotted it in the preview gallery and called
+   * it: as a flinch it is nonsense, because nobody grows a crown when they are
+   * punched, but as an ultimate it is the best clip in the set.
+   *
+   * The lesson is worth more than the clip. "The model added something I did not
+   * ask for" is a defect ONLY relative to the state it was requested for. Before
+   * discarding an off-brief generation, check whether it is on-brief for a
+   * DIFFERENT state — the cost of looking is zero and the cost of re-shooting is
+   * not. This one was already paid for and was sitting on disk marked as waste.
+   *
+   * 5 frames at 4fps = 1250ms, looping inside the 3000ms ultimate beat so it
+   * cycles rather than freezing on the blazing last frame.
+   */
+  ultimate: seasonClip('ultimate', 5, 4, true, 'The scream: mouth opens, arms fling wide, a crown of flame ignites on the skull. Generated as `hit`, discarded as an invented-artifact defect, recovered by Raheem from the preview gallery. Zero extra generations.'),
 };
 
 function clipsFor(bossId: string, clips: Record<BossSpriteState, BossClip>) {

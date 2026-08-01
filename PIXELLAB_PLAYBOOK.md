@@ -371,6 +371,7 @@ A well-posed still reads fine at 84px; the grazing pose carried the courtyard on
 own and nobody noticed until they were told to look.
 | pixel courtyard sample: ground tileset 20 + wall kit 20 + 4 props 25 | 65 | ❌ **Painting won** — see the verdict section above. Cheap answer to a months-long question |
 | hero-chibi v2: character + 4× v3 pinned walk (3 gen each) | ~25 | ✅ **Passed the gate first try** — drift 5.2–9.3, heights identical, baselines aligned, correct mirror, and verified facing correctly in game |
+| **Still Season** (boss 2): create 1 + idle v1 4 + idle v2 4 + windup 6 + attack 6 + defeat 6 + hit 4 | **31** | ✅ **4 of 5 clips shipped.** Seated pose held across all 31 frames (bbox bottom y=208 throughout); packer reported zero clipped frames and one clean 155×170 shared box. idle v1 wasted 4 gens by asking a glow to animate and not naming the flowers. `hit` dropped — invented a crown and sparkles |
 
 **The comparison that matters:** `pro` cost **~186 generations** and produced an unusable sheet (drift 191, both sides facing the same way). `v3` with per-direction pinning cost **~25** and passed the gate on the first attempt. Cheaper *and* better — do not reach for `pro` again without a specific reason.
 
@@ -524,6 +525,144 @@ bottom, the standing pose then hovered **33px above the ground he stands on** �
 "the boss is floating" complaint the animation work existed to fix, reintroduced by the
 packer. `lib/pack_boss_clips.py` now takes the ground line from a nominated clip and clips
 below it: on a flat stage, fire beneath the soles is fire underneath the floor.
+
+## THE MANNEQUIN SKELETON CAN HOLD A SEATED POSE
+
+The open question before the Still Season was whether a cross-legged boss was viable at all:
+`create-character-pro` builds a `mannequin` skeleton, v3 drives that skeleton, and a lotus pose gives
+it no standing leg chain to find. The expected failure was not an error but a boss that quietly
+**stands up out of his chair**, discovered ~28 generations later.
+
+**It held.** Across all 31 frames of five clips, the alpha bbox bottom sat at **y=208** — he never
+rose, and the ground line was already consistent before the packer touched it. `pack_boss_clips.py`
+then reported **zero clipped frames** and a clean shared box.
+
+So throned, mounted and kneeling bosses are all on the table. Two things bought it, and both are
+cheap enough to just always do:
+
+- **The word `seated` in EVERY action string**, not only the description. The clip prompt is the
+  model's most recent instruction and it drifts to a standing default without it.
+- **A reference cropped to a genuinely seated figure.** Silhouette drives the rig.
+
+The prepared fallback was never needed but is worth keeping: if a seated figure does stand, re-crop
+the reference **from mid-thigh up** and let a throne plate cover the lower body — a skeleton cannot
+stand out of a chair it has no legs in.
+
+## NEVER ask a clip to animate a glow, and NAME EVERY FEATURE IN EVERY CLIP
+
+The Still Season's first idle cost 4 generations and came back with the character's entire signature
+deleted. Measured, per frame, on the same clip before and after the prompt fix:
+
+| | f0 | f1 | f2 | f3 | f4 |
+|---|---|---|---|---|---|
+| core-glow px, v1 | 225 | 32 | 10 | 7 | **8** |
+| core-glow px, v2 | 225 | 234 | 290 | 281 | **282** |
+| flower px, v1 | 107 | 2 | 4 | 2 | **3** |
+| flower px, v2 | 107 | 83 | 84 | 90 | **86** |
+
+Two separate mistakes, both of which already had rules in this file:
+
+1. The action asked for the ribcage light **"brightening and dimming"**. The model dimmed it and
+   never brought it back — by frame 2 the ribcage was plain white bone. **A glow is a code layer**
+   (alpha/scale sine, zero generations, cannot lose the feature). Asking a sprite to pulse does not
+   buy a pulse; it buys a coin flip on keeping the feature at all.
+2. The action **did not name the flowers**, so they dissolved into green moss blobs. This is the
+   same "repeat the costume nouns verbatim" rule the Debt-Bearer config already carried, and it is
+   stronger than it looks: **anything not named in the clip action is treated as optional.**
+
+The fix was to give every clip the identical feature clause and ask for **no change** in any of it.
+All four later clips then held both features across every frame.
+
+### The check this implies: named-feature retention
+
+Counting pixels that match a signature colour, per frame, and failing if any drops below ~40% of
+frame 0 is a **two-line test that would have caught this before a human looked**. `lib/validate.py`'s
+palette drift cannot: it is whole-frame and deliberately robust to a feature *moving*, which is the
+identical blind spot that passed the archivist's teleporting ledger. Worth adding as a boss gate.
+
+## Invented artifacts scale with how much motion you ask for
+
+The Still Season's `hit` clip — *"recoiling sharply backward, head snapping back"* — came back with a
+**cyan/yellow crown on the skull and magenta sparkles** belonging to nothing in the design. Same
+class as the Debt-Bearer's "large brown wing-shaped artifact". The pattern across both bosses: the
+clips asking for the largest, fastest displacement are the ones that hallucinate decoration.
+
+It was dropped rather than re-shot. `getBossClip` already falls back to the boss's own idle for any
+missing state, and a CSS flash plus the existing hit-shake carries the beat — so `hit` is the
+correct clip to cut first when a run misbehaves, and should be generated last for that reason.
+
+## RE-SHOOTING A CLIP UNDER THE SAME NAME SILENTLY RETURNS THE OLD ONE
+
+Animations accumulate on the character and **display names are not unique**. After
+re-shooting the Still Season's `hit`, `GET /characters/{id}` listed **two entries
+both named `hit`** (and two named `idle` from an earlier re-shoot).
+
+`pullAnimationFrames` matches on `slug(display_name)` and nothing else — the only
+name the API returns — so it downloaded the **first** match, which is the OLD clip.
+The run reported `1/1 done · 4 generation(s)`, wrote files, and produced a sheet
+byte-identical to the version being replaced. Nothing errored. The tell was that
+the new frames had the *same alpha bboxes* as the old ones.
+
+**Give a re-shot clip a NEW `name`.** Clearing the local manifest record is not
+enough: that makes the job re-submit, but it does nothing about the collision on
+the character. Deleting the local record and reusing the name is the exact recipe
+for paying for a generation you can never address.
+
+### Recovering a clip you cannot address by name
+
+The frames are on the JOB, so this costs nothing:
+
+```
+GET /background-jobs/{id} -> last_response.images[]
+```
+
+**`last_response.images[]` on an animation job is `type: "rgba_bytes"` — RAW RGBA
+PIXEL DATA, not a PNG.** Writing those bytes to a `.png` produces a 262144-byte
+file (256×256×4) that every image tool rejects as corrupt. Rebuild it:
+
+```python
+Image.frombytes('RGBA', (im['width'], im['height']), base64.b64decode(im['base64']))
+```
+
+That is a **fifth** result shape on top of the four already recorded here, and the
+same class of trap: the work was finished and paid for, and only the decoding was
+wrong. `last_response.storage_urls.frames[]` carries the same frames as real PNGs
+if you would rather download them.
+
+## Two more result-shape traps, found by shipping the second boss
+
+Both were **already documented in this file and still not handled in the code**, which is its own
+lesson: a playbook entry is not a fix.
+
+- **`rotation_urls` was never actually read.** `create-boss-pro.mjs` looked only at
+  `detail.rotations ?? detail.images`, so a completed, paid job printed `NO IMAGES EXTRACTED`. The
+  first boss must have been downloaded by hand. Now handled, with retry/backoff for the CDN's
+  transient 503s.
+- **`failed` is NOT terminal on character creation.** The Still Season went
+  `pending → failed → failed (9 consecutive polls) → completed`, with all 8 rotations present. The
+  old code threw on the first `failed` and would have thrown away a job that was still working.
+  Require a sustained streak before giving up. (Note this is the *opposite* of the animation-job
+  behaviour recorded above, where a failed job must have its record cleared — check which endpoint
+  you are polling.)
+- Rotations were also being written as `<dir>.png` while `startFromRotation` looks up
+  `rot-<dir>.png`, so files had to be renamed by hand before any clip could be pinned.
+
+Second data point on sizing: requested **168²**, received **256²** again. It always upscales.
+
+## Review a boss by WATCHING the packed strips
+
+`sprite-lab.mjs sheet` is the walker reviewer — it reads `manifest.frames[].trail`, which a boss
+manifest does not have, so it throws. It also only shows stills, and **stills cannot answer the
+question a boss review asks.** Every defect this repo has shipped was found by watching motion.
+
+`boss-sheet.mjs <packed_dir>` plays the **packed strips** at manifest cadence, on a checkerboard so
+baked-in backgrounds show up. Reviewing the packed output rather than the raw frames matters: it is
+what the game actually mounts, so a sheet the packer broke cannot pass. It also re-derives the frame
+box from each PNG header and fails loudly if any strip is not a whole number of shared cells — the
+"boss changes size mid-fight" bug, caught before the manifest instead of after the player.
+
+The browser pane refuses `file://`, so there is a `sprite-lab-sheets` static server in
+`.claude/launch.json` for it.
 
 ## Wind-up and strike must be different clips, or the telegraph is unreadable
 

@@ -29,6 +29,25 @@ export function bossClipForBeat(
   if (!beat) return resting;
 
   const e = beat.event;
+
+  // AN ULTIMATE CUE OUTRANKS THE EVENT UNDERNEATH IT, and this has to be
+  // checked BEFORE the switch below.
+  //
+  // The switch returns early on `boss_intent_declared` with 'windup', so an
+  // ultimate that is ANNOUNCED — which is how a charged action is meant to
+  // arrive, since the party is supposed to see it coming and try to stop it —
+  // could never reach the `cue === 'ultimate'` branch at the bottom. It played
+  // the ordinary wind-up pose instead.
+  //
+  // That is exactly the defect the comment on that branch says it exists to
+  // prevent: "showing the ordinary swing's telegraph for it would make the
+  // fight's biggest moment look like its most routine one." The branch was
+  // right; it was just unreachable for the one event kind that matters most.
+  //
+  // Found because the Still Season's ultimate — his scream, with every
+  // signature layer at full — rendered as a plain wind-up in the boss preview.
+  if (beat.cue === 'ultimate' && isBossEvent(e, ctx.bossActorId)) return 'ultimate';
+
   switch (e.kind) {
     case 'actor_defeated':
       return e.actorId === ctx.bossActorId ? 'defeat' : resting;

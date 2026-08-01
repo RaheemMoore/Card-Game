@@ -818,12 +818,12 @@ const STILL_SEASON_DEF: BossDefinition = {
   lore:
     'He was asked to keep the grove through a hard winter. He kept it. He is keeping it still — the same afternoon, held open, every leaf where it was. Nothing here has died in a long time. Nothing here has grown either.',
   familyIds: ['nature'],
-  currentVersionId: 'bv_champion_druid_1',
+  currentVersionId: 'bv_champion_druid_2',
   status: 'active',
   artAssetIds: [],
   bossKind: 'champion',
   mirrorArchetype: 'Druid',
-  arenaId: 'still_season_colosseum',
+  arenaId: 'still_season_grove',
   towerFloor: 2,
   createdAt: NOW,
   updatedAt: NOW,
@@ -833,7 +833,7 @@ const STILL_SEASON_V1: BossVersion = {
   id: 'bv_champion_druid_1',
   bossId: 'boss_champion_druid',
   versionNumber: 1,
-  status: 'active',
+  status: 'deprecated',
   publishedAt: NOW,
   maxHp: TOWER.hp(2),
   // He IS the grove, so the growing world cannot be turned against him —
@@ -905,6 +905,400 @@ const STILL_SEASON_V1: BossVersion = {
   ],
   createdAt: NOW,
   updatedAt: NOW,
+};
+
+/* ---------- The Still Season v2 (fight design pass, 2026-07-31) ------------
+ *
+ * v1 was a stub and it played like one: phase 1 held a SINGLE action on a
+ * zero cooldown against a single target, so the first half of the fight was
+ * one button pressed at one hero. Raheem's note — "I don't want to just hit
+ * play repeatedly", "I don't want the boss to just target one character the
+ * whole time", "a move set that confuses people and encourages people to try
+ * new things" — is the brief this version answers.
+ *
+ * FOUR THINGS IN v1's OWN COMMENTS WERE FACTUALLY WRONG, and finding them is
+ * why this took a design pass rather than an edit:
+ *
+ *  1. It claimed fire/burn was an answer. NOTHING IN THE GAME APPLIES `burn`.
+ *     `searing` is reachable only through an element-typed core ability on a
+ *     Fire-element Barbarian or Monk.
+ *  2. It claimed damage-over-time was the answer his regeneration invited.
+ *     The only shipped DoTs are `bleed` (kinetic, neutral) and `poison` —
+ *     which is `primal`, and therefore HALVED by his own resistance. The
+ *     stated counterplay was the one thing he was immune to.
+ *  3. A "he heals less as he breaks" arc is IMPOSSIBLE with phase passives.
+ *     `applyPhasePassives` never clears the previous phase's statuses, and
+ *     `regeneration` refreshes with Math.max on both stacks and duration, so
+ *     a passive can only ever ratchet UP. Hence: this version runs ZERO
+ *     passives and makes healing an ACTION HE SPENDS A TURN ON.
+ *  4. `weakened` does not blunt regeneration — it is a −25% OUTGOING modifier
+ *     and never touches `applyRegeneration`.
+ *
+ * WHAT MAKES HIM HARDER THAN FLOOR 1 IN KIND, NOT DEGREE.
+ * The Debt-Bearer is a damage race with two brace checks: out-DPS her. Every
+ * mechanic there answers "more output". The Still Season is a TEMPO race —
+ * his effective HP is not a number, it is `maxHp + 23 × stacks × (the rounds
+ * you let him keep the heal)`. Every mechanic asks WHEN, not HOW MUCH. It
+ * invalidates all three of floor 1's winning lines in turn: taunt fails
+ * against `highest_hp`, burst fails against the shield window, and sustain
+ * fails because healing a hero to full paints them as the next target.
+ *
+ * THREE SECRETS, all readable from telegraph text without a wiki:
+ *
+ *  A. POISON CHOKES WHAT ITS DAMAGE CANNOT HURT. He halves primal DAMAGE, but
+ *     `evaluateChargeProgress` for a `status` break counts STACKS, not damage.
+ *     So the archetypes his resistance otherwise walls out are exactly the
+ *     ones who can break his ultimate. That is the compensating hook that
+ *     stops `resistant: ['primal']` being a flat wall for a third of the
+ *     roster.
+ *  B. HE HEALS ON HIS OWN TURN, AND THAT TURN IS STEALABLE. `act_season_close`
+ *     is `interruptible`, so 15% of his max HP in the declare round denies the
+ *     heal outright and puts it on cooldown. `act_season_thicket` exists to
+ *     make that impossible for two rounds, so burst has to be banked.
+ *  C. THERE IS NO SAFE HP BAND. `act_season_prune` hunts the HIGHEST hp hero
+ *     and — this is engine behaviour, see the note on that action — CANNOT be
+ *     intercepted by taunt. Deadfall and Last Leaf hunt the lowest. The right
+ *     play is keeping the party LEVEL, which is the opposite of what floor 1
+ *     teaches. A fourth, unstated: phase 3 has no heal in its list at all, so
+ *     a party losing the attrition race wins by surviving into it.
+ *
+ * APPROVED BY RAHEEM 2026-07-31, as deliberate deviations from the curve:
+ *   - 11–14 rounds vs TOWER_TARGET_ROUNDS = 10 (this is the attrition floor).
+ *   - 0.55–0.68 win rate vs TOWER.targetWinRate(2) = 0.82. NOTE: this is the
+ *     SECOND consecutive floor to deviate, so `targetWinRate` is drifting out
+ *     of touch with what we actually ship and wants re-basing before floor 5.
+ *   - `umbral` as the third answer over `astral`. VERIFIED REACHABLE before
+ *     authoring — nine elements map to umbral (Shadow, Void, Blood, Bone,
+ *     Nocturne, Sanguine, Dream, Psychic, Infernal) and two seeded abilities
+ *     deal it directly. Astral is Monk-exclusive and would have handed a rare
+ *     element a tower key. Checking reachability is the direct lesson of
+ *     mistakes 1 and 2 above.
+ *
+ * NOT AUTHORED, because the reducer does not implement them: `cleanse` and
+ * `summon` intents fall through to plain heavy_attack, boss-side `thorns` is
+ * hero-only, and a `dispel` charge break is unbeatable because every shipped
+ * remove_status effect is category 'negative' (self-cleanse only).
+ */
+
+const SEASON_SCALING = TOWER.scaling(2);
+
+/**
+ * THE SINGLE DIFFICULTY DIAL for this fight, and it is deliberately one number.
+ *
+ * The win-rate cliff here is violently steep: at 1.00 the simulated baseline
+ * party won 4.7% of 300 battles, and at 0.73 it won 97.7% — a ~27% damage swing
+ * covering essentially the entire outcome space. With eleven separately-tuned
+ * damage numbers that cliff is invisible and every retune is a guess across
+ * eleven dimensions at once.
+ *
+ * So the per-action multipliers below encode the fight's SHAPE (which move
+ * hurts more than which), and this constant encodes its PRESSURE. Retune this
+ * first, alone, and only touch an individual multiplier when one specific move
+ * is wrong relative to the others.
+ *
+ * If the fight ever needs to be made longer rather than harder, the lever is
+ * `act_season_close`'s regeneration stacks, not this and not maxHp — his
+ * effective HP is a function of how many heal turns the party lets him keep.
+ */
+const SEASON_PRESSURE = 0.86;
+
+const seasonDmg = (mult: number) => Math.round(TOWER.damage(2) * mult * SEASON_PRESSURE);
+
+const STILL_SEASON_V2: BossVersion = {
+  id: 'bv_champion_druid_2',
+  bossId: 'boss_champion_druid',
+  versionNumber: 2,
+  status: 'active',
+  publishedAt: '2026-07-31T00:00:00.000Z',
+  maxHp: TOWER.hp(2),
+  /**
+   * THREE answers, because `answerBudget(2) === 3` and v1 only had two real
+   * ones. `kinetic` is deliberately NOT weak — it is the most common type in
+   * the game and rewards no choice at all, the same reasoning the Debt-Bearer
+   * records.
+   *
+   * searing — fire is the change he has been preventing.
+   * tech    — the engineered owes nothing to a season and is not held by one.
+   * umbral  — decay and endings, against a man who refuses to let anything end.
+   */
+  resistanceProfile: { resistant: ['primal'], weak: ['searing', 'tech', 'umbral'] },
+  phases: [
+    {
+      id: 'phase_season_held',
+      healthThresholdStart: 1.0,
+      healthThresholdEnd: 0.62,
+      // NO passives. See note 3 above — a phase passive can never be taken
+      // away, so all of his healing is an action he has to spend a turn on.
+      passiveStatuses: [],
+      passiveDescriptions: ['What is cut closes over before you look away.'],
+      actions: [
+        {
+          id: 'act_season_hold',
+          displayName: 'Hold the Afternoon',
+          intentType: 'heavy_attack',
+          telegraphText: 'The light stops moving across the grove floor.',
+          priority: 5,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: seasonDmg(0.95),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+        },
+        {
+          id: 'act_season_stillness',
+          displayName: 'The Air Does Not Move',
+          intentType: 'curse',
+          telegraphText: 'Nothing in the grove is moving. Neither are you.',
+          priority: 18,
+          cooldownRounds: 3,
+          interruptible: true,
+          baseDamage: seasonDmg(0.38),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'all_heroes',
+          statusApplications: [{ statusId: 'weakened', duration: 2 }],
+        },
+        {
+          /**
+           * HUNTS THE HEALTHIEST HERO, AND TAUNT CANNOT STOP IT.
+           * `heroesInScope` ignores the taunt anchor for `highest_hp`
+           * (reducer.ts) — that is pre-existing engine behaviour, and this
+           * action is the first thing in the game to make it load-bearing, so
+           * it is written down here rather than left as a surprise.
+           *
+           * This is what breaks floor 1's "the tank stands in front of
+           * everything" heuristic: topping a hero to full PAINTS them, and the
+           * hit carries a stun that costs their next ability action.
+           */
+          id: 'act_season_prune',
+          displayName: 'What Grew Too Fast',
+          intentType: 'heavy_attack',
+          telegraphText: 'He looks for whatever has grown since he last looked.',
+          priority: 15,
+          cooldownRounds: 2,
+          interruptible: true,
+          baseDamage: seasonDmg(1.30),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'highest_hp',
+          statusApplications: [{ statusId: 'stunned', duration: 1 }],
+        },
+        {
+          /**
+           * THE HEAL, AND THE FIGHT'S CENTRAL DECISION.
+           * Interruptible on purpose: 15% of his max HP during the declare
+           * round denies it outright and puts it on cooldown. His effective HP
+           * is therefore a function of how many of these turns the party is
+           * willing to spend burst on, rather than a fixed number.
+           */
+          id: 'act_season_close',
+          displayName: 'Close Over',
+          intentType: 'enrage_prep',
+          telegraphText: 'He turns his attention to the wound.',
+          priority: 22,
+          cooldownRounds: 3,
+          interruptible: true,
+          selfStatuses: [{ statusId: 'regeneration', duration: 3, stacks: 2 }],
+        },
+        {
+          /**
+           * The ultimate — and the scream clip in bossSpriteManifest finally
+           * has an action driving it. Broken by poison STACKS, not damage:
+           * see secret A. `partialMitigationMax` means one stack still buys
+           * a real reduction, so the answer is graded rather than binary.
+           */
+          id: 'act_season_hold_open',
+          displayName: 'Hold It Open',
+          intentType: 'ultimate',
+          telegraphText:
+            'He takes hold of the whole afternoon and refuses to let it end. Only something already rotting slips out of it.',
+          priority: 32,
+          cooldownRounds: 4,
+          interruptible: false,
+          baseDamage: seasonDmg(1.28),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'all_heroes',
+          charge: {
+            rounds: 2,
+            break: { kind: 'status', statusId: 'poison', stacks: 3 },
+            partialMitigationMax: 0.7,
+          },
+        },
+      ],
+    },
+    {
+      id: 'phase_season_turning',
+      healthThresholdStart: 0.62,
+      healthThresholdEnd: 0.28,
+      passiveStatuses: [],
+      passiveDescriptions: ['Something has begun to turn, and he is fighting it.'],
+      actions: [
+        {
+          id: 'act_season_root',
+          displayName: 'Everything Held Back',
+          intentType: 'area_attack',
+          telegraphText: 'A whole season of growth arrives at once.',
+          priority: 20,
+          cooldownRounds: 2,
+          interruptible: true,
+          baseDamage: seasonDmg(0.64),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'all_heroes',
+          statusApplications: [
+            { statusId: 'bleed', duration: 2, stacks: 1, amountPerTick: 8 },
+          ],
+        },
+        {
+          // Hunts the WEAKEST — and unlike `prune`, this one DOES honour
+          // taunt. The party has to learn that two similar-looking snipes
+          // answer to different tools.
+          id: 'act_season_deadfall',
+          displayName: 'The Weight of What Was Kept',
+          intentType: 'heavy_attack',
+          telegraphText: 'Everything he never let fall comes down at once.',
+          priority: 12,
+          cooldownRounds: 1,
+          interruptible: true,
+          baseDamage: seasonDmg(1.38),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'lowest_hp',
+          statusApplications: [{ statusId: 'weakened', duration: 2 }],
+        },
+        {
+          id: 'act_season_close',
+          displayName: 'Close Over',
+          intentType: 'enrage_prep',
+          telegraphText: 'He turns his attention to the wound.',
+          priority: 22,
+          cooldownRounds: 3,
+          interruptible: true,
+          selfStatuses: [{ statusId: 'regeneration', duration: 3, stacks: 2 }],
+        },
+        {
+          // Exists to make the heal un-stealable for two rounds, so burst has
+          // to be BANKED for the right window instead of spammed on cooldown.
+          id: 'act_season_thicket',
+          displayName: 'Let the Grove Close',
+          intentType: 'shield',
+          telegraphText: 'The grove draws in around him. There is nothing left to reach.',
+          priority: 28,
+          cooldownRounds: 5,
+          interruptible: true,
+          baseDamage: seasonDmg(0.44),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          shieldAmount: 190,
+          shieldDurationRounds: 2,
+        },
+        {
+          id: 'act_season_hold_open',
+          displayName: 'Hold It Open',
+          intentType: 'ultimate',
+          telegraphText:
+            'He takes hold of the whole afternoon and refuses to let it end. Only something already rotting slips out of it.',
+          priority: 32,
+          cooldownRounds: 4,
+          interruptible: false,
+          baseDamage: seasonDmg(1.28),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'all_heroes',
+          charge: {
+            rounds: 2,
+            break: { kind: 'status', statusId: 'poison', stacks: 3 },
+            partialMitigationMax: 0.7,
+          },
+        },
+      ],
+    },
+    {
+      /**
+       * NO HEAL IN THIS PHASE'S ACTION LIST AT ALL.
+       *
+       * This is how the "he heals less as he breaks" arc gets authored without
+       * touching the reducer — by simply not offering `act_season_close` here.
+       * A party losing the attrition race wins by surviving into this phase,
+       * and nothing tells them that except playing it.
+       */
+      id: 'phase_season_breaking',
+      healthThresholdStart: 0.28,
+      healthThresholdEnd: 0.0,
+      passiveStatuses: [],
+      passiveDescriptions: ['He is not holding it any more.'],
+      actions: [
+        {
+          id: 'act_season_hold',
+          displayName: 'Hold the Afternoon',
+          intentType: 'heavy_attack',
+          telegraphText: 'The light stops moving across the grove floor.',
+          priority: 5,
+          cooldownRounds: 0,
+          interruptible: true,
+          baseDamage: seasonDmg(1.07),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+        },
+        {
+          id: 'act_season_root',
+          displayName: 'Everything Held Back',
+          intentType: 'area_attack',
+          telegraphText: 'A whole season of growth arrives at once.',
+          priority: 20,
+          cooldownRounds: 2,
+          interruptible: true,
+          baseDamage: seasonDmg(0.72),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'all_heroes',
+          statusApplications: [
+            { statusId: 'bleed', duration: 2, stacks: 1, amountPerTick: 8 },
+          ],
+        },
+        {
+          id: 'act_season_last_leaf',
+          displayName: 'The Last Green Thing',
+          intentType: 'execute',
+          telegraphText: 'He reaches for the last living thing in the grove.',
+          priority: 33,
+          cooldownRounds: 3,
+          interruptible: true,
+          baseDamage: seasonDmg(2.03),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'lowest_hp',
+          executeThresholdPercent: 0.35,
+          executeMultiplier: 2.1,
+        },
+        {
+          // The scream, at full. Broken by raw damage rather than poison —
+          // by this phase the party has had two chances to learn the poison
+          // lesson, and the finisher should test whether they can still hit
+          // hard while everything is falling apart.
+          id: 'act_season_break',
+          displayName: 'The Season Breaks',
+          intentType: 'ultimate',
+          telegraphText: 'Everything he has been holding since the winter lets go at once.',
+          priority: 35,
+          cooldownRounds: 4,
+          interruptible: false,
+          baseDamage: seasonDmg(1.71),
+          scalingPerRound: SEASON_SCALING,
+          damageType: 'primal',
+          targetScope: 'all_heroes',
+          charge: {
+            rounds: 2,
+            break: { kind: 'damage', percentOfMaxHp: 0.26 },
+            partialMitigationMax: 0.6,
+          },
+        },
+      ],
+    },
+  ],
+  createdAt: NOW,
+  updatedAt: '2026-07-31T00:00:00.000Z',
 };
 
 /* ---------- Floor 3 · The Unclosed Summons (Seraph) ----------
@@ -1011,7 +1405,7 @@ export const SEED_BOSSES: SeedBoss[] = [
   // teaches measured strikes, and it is the only boss with finished art.
   { definition: EMBERBORN_DEF_V4, version: EMBERBORN_V4 },
   { definition: DEBT_BEARER_DEF, version: DEBT_BEARER_V3 },
-  { definition: STILL_SEASON_DEF, version: STILL_SEASON_V1 },
+  { definition: STILL_SEASON_DEF, version: STILL_SEASON_V2 },
   { definition: UNCLOSED_SUMMONS_DEF, version: UNCLOSED_SUMMONS_V1 },
 ];
 
@@ -1022,4 +1416,9 @@ export const SEED_BOSS_LEGACY_VERSIONS: BossVersion[] = [
   { ...EMBERBORN_V3, status: 'deprecated', deprecatedAt: '2026-07-20T00:00:00.000Z' },
   { ...DEBT_BEARER_V1, deprecatedAt: '2026-07-30T00:00:00.000Z' },
   { ...DEBT_BEARER_V2, status: 'deprecated', deprecatedAt: '2026-07-31T00:00:00.000Z' },
+  // The Still Season's stub. Retired rather than edited: PersistenceGate only
+  // re-seeds when a version id is MISSING, so editing v1 in place would have
+  // shipped nothing to anyone who had already played, and snapshot immutability
+  // means in-flight v1 battles must still resolve off the frozen v1 numbers.
+  { ...STILL_SEASON_V1, status: 'deprecated', deprecatedAt: '2026-07-31T00:00:00.000Z' },
 ];

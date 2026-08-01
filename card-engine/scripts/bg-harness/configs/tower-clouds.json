@@ -1,0 +1,37 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "building, tower, columns, arches, architecture, ground, land, fields, mountains, horizon line, people, characters, creatures, birds, text, watermark, logo, signature, ui, hud, frame, border, vignette, blurry, 3d render, cgi, photorealistic, photograph, dark, gloomy, grim, storm, lightning, rain",
+  "styleHeader": "",
+  "familyLabels": {
+    "cloud": "Moving cloud layers — drift over and in front of the tower"
+  },
+  "anchors": {
+    "cloud": {
+      "line": "A long horizontal band of soft painted fantasy clouds filling the whole image edge to edge, hand-painted 2D game art with soft painterly texture, bright cheerful adventure-game mood, warm sunlight from the upper left catching the cloud tops in cream and gold with soft lilac-grey undersides. A gentle drifting cumulus layer seen from slightly above, thinning toward the top of the image into clear warm sky. IT MUST TILE SEAMLESSLY LEFT TO RIGHT: the far LEFT edge and the far RIGHT edge match each other exactly so the band can repeat end to end forever with no visible seam, and no cloud is cut off at either edge in a way that would not continue. Even, calm, evenly-lit across the whole width with no single focal point. Nothing else in the image at all - no ground, no horizon, no buildings, no birds."
+    }
+  },
+  "states": [
+    {
+      "id": "cloud-strip-mid",
+      "label": "1 · Tileable mid cloud band — scrolls slowly behind the tower (anchor)",
+      "family": "cloud",
+      "isAnchor": true
+    },
+    {
+      "id": "cloud-puffs-near",
+      "label": "2 · Near cloud puffs on black — cut apart, drift IN FRONT",
+      "family": "cloud",
+      "line": "SIX separate individual fantasy clouds, well spaced apart with clear empty space between every one, arranged across a completely plain flat SOLID PURE BLACK background - the background is pure black everywhere and nothing else is in the image. Hand-painted 2D game art, soft painterly texture, bright cheerful adventure-game mood. Each cloud is a distinct soft billowing cumulus puff with a clearly defined silhouette and softly feathered wispy edges, lit warmly from the upper left so the tops are cream and gold and the undersides are soft lilac-grey. They vary in size and shape - some tall and stacked, some long and low, some small and torn. Each one is complete and self-contained with black all around it so it can be cut out as an individual game sprite. No ground, no sky gradient, no horizon, no buildings, no birds, no text."
+    },
+    {
+      "id": "cloud-wisps-high",
+      "label": "3 · High wisps on black — fastest layer, thin cirrus",
+      "family": "cloud",
+      "line": "FIVE separate thin wispy streaks of high cirrus cloud, well spaced apart with clear empty space between them, arranged across a completely plain flat SOLID PURE BLACK background - the background is pure black everywhere and nothing else is in the image. Hand-painted 2D game art, soft painterly texture, delicate and translucent. Each streak is a long feathered horizontal wisp, pale cream and soft warm pink, very thin and airy with softly fading torn edges, the kind of high cloud that streaks across a bright sky. They vary in length and thickness. Each one is complete and self-contained with black all around it so it can be cut out as an individual game sprite. No ground, no sky gradient, no horizon, no buildings, no birds, no text."
+    }
+  ]
+}

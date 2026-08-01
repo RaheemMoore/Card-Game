@@ -236,3 +236,151 @@ The scene override dominates the init at these strengths. Existing init_strength
 - **2026-07-22** — APPLIED: `buildElementPrefix`/`buildElementScenePalette` now lead with `materials` + `textures` (order materials→textures→motion→lighting→colors). Reworked Fire/Blood/Water/Void content (Blood sharpened to wet/dripping/DOWNWARD to split from Fire's dry/rising). Remaining 21 elements to rewrite from the matrix above (not yet applied).
 - **2026-07-22 — VALIDATED in Leonardo (Phoenix 1.0, 768², same Vampire × Fire/Blood/Water).** RESULT: Fire = dry rising flame; Blood = wet crimson (blood-slick blade, spatter, blood-tear, red mist) — clearly distinct from Fire despite identical red family; Water = teal crashing waves. The materials+textures enrichment fixes the Fire≈Blood failure. Identity held across all three (same face/hair/coat/rapier). Confirms: **concrete material nouns + wet-vs-dry texture/lighting are what separate same-color elements** — color alone did not. Proceed with the 21 remaining elements from the matrix.
 - **2026-07-22 — Element rework COMPLETE.** Audit found most elements were already richly distinct from a prior "extrapolated elements" pass (Wind/Storm/Beast/Nature/Poison/Spirit/Light/Sound/Ash/Holy/Time/Cosmic/Tech/Psychic/Moon/Dream/Infernal). Only 4 "Bible-verbatim" elements were still generic — **Earth, Ice, Shadow, Metal** — now reworked to matrix quality (Ice→faceted/crystallizing-outward, Shadow→velvet ink-smoke/light-drinking, Metal→bladed/whirling, Earth→adopted Stone's chunky-plate content ahead of the merge). Lightning/Stone left untouched (merging into Storm/Earth). Whole element set now consistent.
+
+## Battle Tower room plate: Lucid Origin will NOT paint an open colonnade (2026-07-31)
+
+Six generations across two rounds, `configs/tower.json`, Lucid Origin 1536×1152, alchemy off, no style-ref. Brief: a circular top-down tower chamber whose perimeter is an OPEN arcade — columns with see-through gaps, sky and clouds beyond — reused as the shared room for all eleven Battle Tower floors.
+
+- **The transparency risk is dead, first try.** All six returned pure-white corners (255,255,255) and `lib/cutout.py`'s border flood keyed them cleanly (astronomer → 1074×1080 RGBA, alpha extrema 0–255). Generating a plate against a flat white void and cutting it is a reliable path for any "room floating in nothing" asset. No hand-masking needed for the *outer* silhouette.
+- **But Lucid Origin will not leave the perimeter open.** All six came back with a continuous solid outer wall behind the columns, across three escalating prompt attempts — `THE TERRACE HAS NO OUTER WALL` in caps, `A RING OF COLUMNS WITH NOTHING BETWEEN THEM`, "you see straight through every gap", plus negatives `solid outer wall, continuous unbroken wall, enclosed room, sealed rampart`. The model's prior that a circular top-down building is a closed ring is stronger than any of it. **Do not spend a fourth round on this** — the openings get cut in Figma during the collider/occluder trace that was happening anyway, which also buys exact control over where each pier lands (load-bearing here: two dark piers must fall behind the plinth or the boss sprite silhouettes against bright sky and reads as mud).
+- **It also will not paint a raised central dais.** Every candidate rendered the plinth as a flat floor medallion regardless of "LARGE raised circular dais with three broad shallow steps". Same conclusion: build it in Figma, or draw it in code.
+- **Two recurring defects to negative-prompt or crop out:** an outer drop shadow falling outside the building (keys badly — `drop shadow, cast shadow outside the building` did not fully suppress it), and the circle cropping off the top frame edge on the richest candidate.
+- **What it paints beautifully, unprompted:** concentric inlaid mosaic floors. The "Astronomer's Ring" concept (lapis/cream-marble/brass orrery bands, constellation inlay) came back gorgeous and is the chosen base plate. Worth knowing generally — **Lucid Origin is strong at symmetrical radial floor pattern and weak at negative space.** Ask it for the pattern, cut the holes yourself.
+- **Prompt-length wall:** three separate 1500-char rejections before this landed. The harness's `promptFor` guard caught every one *before* spending — the cheapest error in the pipeline. Budget ~1450 chars and drop redundant tails: anything already in `negative` (sky/clouds/wall/shadow) does not need restating in the positive.
+
+### Correction (same day, round 3): over-specification was suppressing the feature
+
+The conclusion above — "Lucid Origin will not paint an open colonnade, cut it in Figma" — **was wrong**, and the way it was wrong is the reusable lesson.
+
+Round 3 replaced the ~1450-char dictated brief with a ~800-char loose one: keep only the load-bearing invariants (circle centred with white margin all round, columns at the edge, large bare dais dead centre, pure white beyond, no figures), name a single evocative direction (stained glass / brass orrery / obsidian and molten gold / overgrown temple), and end with *"be inventive and surprising with the architecture and materials."*
+
+- **The overgrown-temple plate came back with genuine see-through gaps between the piers** — the exact feature six escalating prompts, four negatives and the instruction in capitals had failed to produce.
+- **Two other defects also fixed themselves unasked:** every round-3 plate sits with clean white margin (no more crop off the top edge), and the centre is a proper large raised dais instead of a flat floor medallion.
+- **Diagnosis:** past a certain density, extra clauses compete rather than accumulate. The prompt was so full of prescribed columns, counts, materials and named colours that the compositional instruction had nothing left to bind to. Shouting the requirement louder made it worse, not better.
+- **Rule of thumb:** when the model refuses a feature twice, do not escalate the prompt a third time — **strip the prompt back to the invariants and give it one evocative direction instead.** Escalation was the wrong move on every axis: it cost more, it stayed broken, and it produced a false "the tool can't do this" finding that nearly sent a Figma masking job downstream for no reason.
+- **Null result worth keeping:** a *totally* open brief ("ring the edge with columns of your own invention, fill the floor with a pattern of your own invention") returned monotone brown brick. It needs **a** direction — just not a dictated one. One vivid noun-phrase of art direction is the sweet spot.
+- **Bonus finding:** all five round-3 plates are the same geometry wearing different skins (circle, ring, central dais identical). So a "one room, N floors" plan can re-skin the FLOOR per floor as cheaply as the backdrop — same collider trace, no code.
+
+## Battle Tower floors: one room, N swappable floor discs (2026-07-31)
+
+Nine floor plates across three rounds. **Approved by Raheem: Barbarian v2 (`anchor-floors2.png`), Druid v2 (`floor-druid-v2.png`), Seraph v3 (`floor-seraph-v3.png`).**
+
+The architecture that made this cheap: all collision lives in the ring and the pedestal, which are generated **once**. The inner floor disc has no gameplay meaning — you walk on every inch of it — so swapping it per archetype costs zero collider work. Layer order is sky → ring plate (outside keyed to transparent, centre cut as one circle in Figma) → floor disc → pedestal → props → characters. The ring's inner lip covers the disc's seam, so no floor ever has to align precisely.
+
+- **Measure the walkable band; never eyeball it.** Eleven floors by eleven prompts will drift wildly in value, and one hero sprite has to read on all of them. Mean luminance of the exposed walkable annulus (0.42R–0.72R, i.e. *excluding* the outer rim the ring's lip hides) is the metric; target 100–130. Caught a Seraph v1 at 187 that would have made a pale hero vanish. **Measure the exposed band, not the whole disc** — a first pass including the rim reported Seraph v3 at 164 and nearly triggered a needless re-fire.
+- **"Too bright" is usually blown highlights, not overall brightness.** Barbarian v2 measured 140 with a 95th percentile of 255 — bleached white stone. Raheem rejected "make it darker" (the game is a cheerful adventure, not a dirge) and he was right: asking for *rich saturated mid-tones, no bleached highlights, no grey gloom* brought it to 107 while making it warmer and more inviting.
+- **Height decides paint vs prop.** Anything with height (tents, carcasses, braziers, chests) must be a PixelLab prop — a painted object can never be interacted with, still needs a per-floor collider trace, and the hero would walk over it instead of behind it. Anything flat (scorch rings, bones trodden into flags, worn paths) gets painted in free.
+- **Worn walking paths are the cheapest "this is a place" signal.** Raheem's diagnosis of a floor that "doesn't look walkable or enjoyable" was exactly right — nothing had ever walked on it. Named in the shared spec clause, though Lucid Origin honours it only weakly.
+- **Roots refused three times** — named verbatim, symmetry explicitly forbidden, still returned a formal spoke pattern. This is the same refusal pattern as the open colonnade, and the correction logged above applied: after two refusals, stop prompting. Roots move to PixelLab props, which is better anyway (per-floor placement, depth sorting, later interactivity).
+- **Naming the anti-reference works.** "Real molten rock and dark metal, NOT purple, NOT magenta, NOT nebula or galaxy patterns" fixed a Seraph infernal half that had come back as a purple nebula. Naming what it *drifted into* beat any amount of describing what was wanted.
+- **Canon flag, unresolved:** `ELEMENT_VISUAL_LANGUAGE` defines Infernal as "molten obsidian and black light, **never fire-orange**". The approved Seraph v3 floor is lava-orange on black basalt at Raheem's explicit direction. Either that entry or this floor should move so cards and rooms agree.
+
+## Battle Tower ring, pedestal and sky — the asset set (2026-07-31)
+
+48 generations total. **Approved:** ring `out/tower-ring/anchor-ring.png`, pedestal `out/tower-dais/dais-ashlar.png`, floors (Barbarian `anchor-floors2`, Druid `floor-druid-v2`, Seraph `floor-seraph-v3`), skies `out/tower-sky/*`.
+
+Three failures each cost 10+ images, and each had the same shape — **the prompt was asking for something that could not be satisfied, and the model resolved the contradiction by giving up the feature.**
+
+1. **Camera.** Every early prompt said "seen from directly above". A plan view has NO front face, so a pedestal drawn that way reads as a rug, not a platform. The bosses were generated at `"view": "low top-down"` (`sprite-lab/configs/boss-*.json`) — the tilted Pokémon overworld camera. **Two cameras exist in this project: `low top-down` for anything with height, true plan view ONLY for flat ground.** Never mix them in one image; generate objects separately and composite.
+2. **A negative written for one asset family silently sabotages the next.** `tower.json` banned `perspective, vanishing point, eye-level view, isometric` — correct for flat room plates, and a direct contradiction of "show me the front face". Negatives are per-config (`harness.mjs:136` `dims()`), so **fork the config when the subject changes**. `tower-dais.json`, `tower-ring.json` and `tower-sky.json` all exist for this reason.
+3. **A closed ring of columns viewed from above cannot be drawn** — it would block the room, so Lucid Origin flattened it into a wall band, 45 images running. **Every top-down game room cuts away its near wall.** Asking for tall columns across the BACK and SIDES with the front dropped to a low balustrade produced a real open colonnade with see-through gaps on the first try.
+
+Other findings:
+- **Material beats value.** "The drum is deep charcoal" returned an all-cream object, because "the stone is pale bone-cream limestone" won. "The top slab is limestone, the drum beneath is a COMPLETELY DIFFERENT, MUCH DARKER stone: dark blue-black granite" worked immediately — top/drum luminance gap 45 → 107. Concrete material nouns beat abstract value adjectives, the same lesson the element rework learned.
+- **Numbers beat adjectives.** "Large, elaborate, eye-catching pedestal" produced six tiny floor medallions. "A FULL THIRD OF THE WIDTH OF THE WHOLE CHAMBER" produced a dais that dominates the room.
+- **Don't waste generation on what you will cover.** Telling the ring prompt "the centre is completely empty, the floor is plain and undecorated" is free quality — the archetype floor disc and the pedestal both render on top of it.
+- **`presetStyle` was never set on any tower config**, so everything through 2026-07-31 carried Leonardo's cinematic default. Setting `"NONE"` explicitly made the result flatter and more vector-like — **the cinematic default is doing real work for this painterly register.** Leave it unset.
+- **A numeric gate can be worse than the eye.** A top/drum luminance gate scored the pedestal Raheem preferred *below* the failure it was meant to catch. Measure to catch outliers (the 187-luminance Seraph floor was a genuine save), not to approve.
+
+## ARENA PLATES — dark corners is a LANDSCAPE-ONLY contract (2026-07-31)
+
+The HUD contract says "keep top-left ~372×196 and top-right ~320px dark", and
+`bg-harness/lib/finish_arena.py` enforced it with two corner ellipses. On the
+Still Season's arena those corners measured **mean L 38.8 and 24.7 — a
+comfortable pass.**
+
+It would still have shipped broken on iPhone. **Portrait cover-crop discards the
+corners entirely and promotes the CENTRE** — only the middle ~26% of the plate's
+width survives, so whatever sits at top-centre becomes the top of the phone
+screen. That band measured **mean L 144, p95 212**, and the corner ellipses
+contribute *exactly zero* at x = 0.5, so nothing was guarding it.
+
+Fixed with `--top-vignette`: full-width darkening rather than a crop, so shafts
+and canopy silhouettes survive as readable shape. Two sub-lessons:
+
+- **Reach beats strength.** The first vignette faded out by y = 0.24h, *inside*
+  the 0–0.23h band being measured, so only its top edge darkened — sweeping
+  strength 0.42→0.82 moved p95 by **nine points**. Widening the falloff to 0.45h
+  at the same strength moved it forty. If a correction is not landing, check its
+  extent before turning it up.
+- **A knockdown must be feathered.** Darkening a rectangular box to suppress a
+  too-bright feature put a hard-edged dark RECTANGLE mid-frame — instantly
+  readable as a bug, because nothing in a painting has a straight vertical edge
+  in mid-air. Smoothstep radial falloff reads as light not reaching.
+
+**Measure the portrait crop (`x 0.368–0.632, y 0–0.23`) on every plate.** iPhone
+portrait is a must-work launch platform and the desktop check will not catch it.
+
+Related: **`detect_sky` is warm-biased** (`r>200 … r>=g`). A teal sky returns 0 and
+the crop silently no-ops. Pass `--cut 0 --no-canopy` explicitly when that is what
+you want, so a later tweak to the detector cannot start eating a plate that was
+relying on the no-op.
+
+## A colour grade cannot add a subject — and the reverse is also true (2026-07-31)
+
+`finish_arena.py` damps magenta so a plate's blight stays a dull stain and the
+boss's bright VFX bloom reads as an *event*. Correct when the pink is a stain,
+**wrong when the pink is painted content**: run flat over an arena whose flowers
+are its greenery and it strips them out — the "tinting stone green doesn't make it
+natural" rule running in reverse.
+
+The conflict was never brightness. Plate magenta peaked at L 133 against the VFX's
+~137, with 25° of hue separation already (295° vs 320°). It was **quantity in one
+band** — 15.2% coverage across the floor third, exactly where the flower-bed VFX
+fires. `--damp-ramp` damps by height: tiers keep their flowers, the floor loses
+about a third of its chroma.
+
+Then check nothing paints it straight back. `ARENA_GROUND_TINT.low` was a bruised
+magenta washing over the same band the damp had just cleared — two passes aimed at
+one strip, pulling opposite ways, netting out to nothing.
+
+## Arena cohesion is `--scale 3 --colors 128`, verified by block uniformity (2026-07-31)
+
+`barbarian-moot-ground` is **100% uniform at 3×3 blocks**, 112 colours; scale 4
+fits it at only 30%. Pixel-cluster density is the most visible cue that a tower is
+one building — match the measurement, not the tool default.
+
+`forbidden-mountain-passage` is **not** the target: 98,413 colours, run length 1 —
+it never went through `pixelize.py`. It is a Leonardo "pixel art" render and the
+outlier in the set.
+
+The pixeliser is itself lossy on sparse fine detail: tier flowers measuring 1.4%
+coverage pre-pixelise fell below a strict saturation threshold afterwards. Judge
+that content by looking, or with a looser test — not with the same mask the
+damping pass uses.
+
+## A non-Leonardo generator cleared a brief ten Leonardo images could not (2026-07-31)
+
+Four rounds of Leonardo prompting could not stop putting a bright band across the
+upper middle of the Still Season's arena. Raheem generated it in **Gemini** and one
+image cleared it: its framing trees deliver the dark corners that "name the object,
+don't negate the absence" had been trying to buy.
+
+The failure modes did not vanish, they **moved**. The new plate gave framing and
+dark corners for free, and cost a **lit gate sitting exactly where the boss's
+code-drawn rune halo goes, in the same green**, plus 15% magenta on the one band a
+VFX layer fires into. Both fixed in deterministic post for zero spend.
+
+When a generator is fighting you on one axis, changing generator is a real option —
+just re-measure everything, because the new one will be wrong somewhere else.
+
+## "No dais" was over-broad — the real contract is 66–70% (2026-07-31)
+
+Arena briefs banned painted daises because `BossPlatform.tsx` draws the ground in
+code. That was too strong: `BossPlatform` draws a **contact shadow, not a slab**,
+and a painted floor plus a code contact ring is the *good* case.
+
+The real rule is **no raised platform the sprite must stand on top of**, and the
+measurable contract is that the boss sprite box's bottom edge lands at a stable
+**66–70% of viewport height** across every supported size. Whatever the boss sits
+on must be flat and continuous through that band.

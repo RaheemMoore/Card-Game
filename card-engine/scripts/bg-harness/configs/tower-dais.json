@@ -1,0 +1,37 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "statue, orb, crystal, sculpture, ornament on top, object on top, figure, person, creature, room, floor, walls, columns, arches, scenery, background detail, cast shadow, drop shadow, glow, magic, runes, lava, roots, vines, moss, ivy, flowers, ice, snow, flat lay, plan view, seen from directly above, top face only, medallion, coin, disc lying flat, seal, emblem, isometric grid, 3d render, cgi, photorealistic, photograph, text, watermark, logo, signature, ui, hud, frame, border, blurry, bleached white highlights, washed out",
+  "styleHeader": "",
+  "familyLabels": {
+    "dais": "Battle Tower pedestal — two-stone value split"
+  },
+  "anchors": {
+    "dais": {
+      "line": "A single fantasy game object alone on a completely plain flat pure white empty background - nothing else in the picture. Hand-painted 2D game art, soft painterly texture, warm sunlight from the upper left, bright cheerful adventure-game mood. LOW TOP-DOWN VIEW like a classic Pokemon overworld object: the camera is above and tilted forward, so the flat top reads as a SHALLOW ellipse and the tall FRONT FACE below it is clearly visible - about as much front face as top. The object is a grand raised circular PLATFORM built to be STOOD ON, wide, never a pillar. THE OBJECT IS MADE OF TWO DIFFERENT STONES. The top slab is pale warm travertine, almost colourless, and its flat elliptical top surface is COMPLETELY BARE AND EMPTY - no statue, orb, crystal or ornament stands on it. Beneath it the tall drum is a COMPLETELY DIFFERENT, MUCH DARKER stone: near-black weathered basalt, deep charcoal. The join between the pale top slab and the dark drum is sharp and obvious. Three broad shallow steps come forward and down at the front, in the pale stone. All ornament sits on the rim, the step risers and the drum: a fine carved egg-and-dart moulding at the rim and slender fluted pilasters around the drum, with thin bands of dark aged bronze. No glow, no runes, no magic, no plants."
+    }
+  },
+  "states": [
+    {
+      "id": "dais-classical",
+      "label": "A · Classical — travertine on basalt",
+      "family": "dais",
+      "isAnchor": true
+    },
+    {
+      "id": "dais-ashlar",
+      "label": "B · Masonic — limestone on dark granite",
+      "family": "dais",
+      "line": "A single fantasy game object alone on a completely plain flat pure white empty background - nothing else in the picture. Hand-painted 2D game art, soft painterly texture, warm sunlight from the upper left, bright cheerful adventure-game mood. LOW TOP-DOWN VIEW like a classic Pokemon overworld object: the camera is above and tilted forward, so the flat top reads as a SHALLOW ellipse and the tall FRONT FACE below it is clearly visible - about as much front face as top. The object is a grand raised circular PLATFORM built to be STOOD ON, wide, never a pillar. THE OBJECT IS MADE OF TWO DIFFERENT STONES. The top slab is pale bone-cream dressed limestone, and its flat elliptical top surface is COMPLETELY BARE AND EMPTY - no statue, orb, crystal or ornament stands on it. Beneath it the tall drum is a COMPLETELY DIFFERENT, MUCH DARKER stone: dark blue-black granite in massive rough ashlar blocks. The join between the pale top slab and the dark drum is sharp and obvious. Three broad shallow steps come forward and down at the front, in the pale stone. All ornament sits on the rim, the step risers and the drum: a heavy chamfered rim, deep-cut joint lines between the drum blocks, and aged bronze corner straps. No glow, no runes, no magic, no plants."
+    },
+    {
+      "id": "dais-celestial",
+      "label": "C · Celestial — marble on slate, bronze band",
+      "family": "dais",
+      "line": "A single fantasy game object alone on a completely plain flat pure white empty background - nothing else in the picture. Hand-painted 2D game art, soft painterly texture, warm sunlight from the upper left, bright cheerful adventure-game mood. LOW TOP-DOWN VIEW like a classic Pokemon overworld object: the camera is above and tilted forward, so the flat top reads as a SHALLOW ellipse and the tall FRONT FACE below it is clearly visible - about as much front face as top. The object is a grand raised circular PLATFORM built to be STOOD ON, wide, never a pillar. THE OBJECT IS MADE OF TWO DIFFERENT STONES. The top slab is pale cream polished marble, and its flat elliptical top surface is COMPLETELY BARE AND EMPTY - no statue, orb, crystal or ornament stands on it. Beneath it the tall drum is a COMPLETELY DIFFERENT, MUCH DARKER stone: dark charcoal slate. The join between the pale top slab and the dark drum is sharp and obvious. Three broad shallow steps come forward and down at the front, in the pale stone. All ornament sits on the rim, the step risers and the drum: one broad engraved band of dark aged bronze around the drum carrying concentric circles and small star studs, and a plain moulded rim. No glow, no runes, no magic, no plants."
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useBattle } from '../../services/combat/useBattle';
 import type { Card } from '../../types/card';
 import { commit, refund, reserve } from '../../services/economy/walletService';
@@ -21,6 +22,18 @@ import { CombatViewport } from './CombatViewport';
 const ENTRY_PRICE = GAMEPLAY_PRICE_CATALOG.battle_run_entry;
 
 export function Battle() {
+  /**
+   * THE TOWER'S HANDOFF. `/battle?boss=<bossId>` locks the opponent and skips
+   * the foe-selection step, so walking up to a champion in the tower and
+   * speaking to him opens straight into HIS fight.
+   *
+   * A search param rather than a route param on purpose: it is optional, the
+   * bare /battle route keeps working unchanged for free play, and an unknown
+   * id degrades to the normal picker instead of dead-ending.
+   */
+  const [searchParams] = useSearchParams();
+  const lockedBossId = searchParams.get('boss');
+
   const [party, setParty] = useState<Card[] | null>(null);
   const [bossId, setBossId] = useState<string | null>(null);
   const [entryTxnId, setEntryTxnId] = useState<string | null>(null);
@@ -48,6 +61,7 @@ export function Battle() {
   if (!party || !bossId) {
     return (
       <Picker
+        lockedBossId={lockedBossId}
         onPick={(cards, boss, txnId) => {
           setParty(cards);
           setBossId(boss);

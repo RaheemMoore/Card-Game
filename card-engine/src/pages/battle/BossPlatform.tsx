@@ -114,7 +114,12 @@ export function BossPlatform({ spec = DEFAULT_PLATFORM, motionLevel }: Props) {
               // reads as a shadow on the floor, which is not what this is.
               boxShadow:
                 tier === 0
-                  ? `0 3px 10px ${rim}, 0 0 18px 4px rgba(255,120,40,0.22)`
+                  // Uses the spec's own glow. This was hardcoded to the
+                  // Debt-Bearer's ember, so every boss's contact ring bled
+                  // orange no matter what `glow` said — the third place the
+                  // same per-boss value was frozen to the first boss that
+                  // existed, after ARENA_GROUND_TINT and the sprite rim-light.
+                  ? `0 3px 10px ${rim}, 0 0 18px 4px ${glow}`
                   : `0 3px 0 rgba(0,0,0,0.4)`,
             }}
           />
@@ -146,6 +151,26 @@ const PLATFORM_BY_BOSS: Record<string, BossPlatformSpec> = {
     surface: 'rgba(26,18,16,0.58)',
     rim: 'rgba(0,0,0,0.5)',
     glow: 'rgba(255,110,35,0.5)',
+    steps: 0,
+  },
+  /**
+   * The Still Season: damp moss and stone, his own sick green bleeding out.
+   *
+   * Without this entry he inherited DEFAULT_PLATFORM's `rgba(255,120,40,0.32)`
+   * — an orange fire, in a grove, from a boss made of bark and bone.
+   *
+   * `flatten` is 0.20 rather than the default 0.26 because his arena is shot
+   * from a higher camera and its PAINTED dais is a shallower ellipse; the code
+   * ring has to match the ellipse it is sitting on or it reads as a sticker.
+   * Measure the painted dais's near and far edge at the frame's centre column
+   * and use (near_y - far_y) / dais_width rather than guessing.
+   */
+  boss_champion_druid: {
+    width: 0.5,
+    flatten: 0.2,
+    surface: 'rgba(14,22,16,0.34)',
+    rim: 'rgba(0,0,0,0.42)',
+    glow: 'rgba(150,255,90,0.22)',
     steps: 0,
   },
 };

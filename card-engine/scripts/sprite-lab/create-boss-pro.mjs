@@ -117,12 +117,18 @@ if (!man.characterId) {
 // Poll the CHARACTER for completion. Note the sibling trap recorded in the
 // playbook: animations do NOT move the character's status, so for animation
 // work you must poll background_job_ids instead. For creation, this is right.
+// `failed` is NOT terminal on this endpoint. The Still Season's creation job
+// reported pending -> failed -> failed (9 polls) -> completed with all 8
+// rotations present. Bailing on the first `failed` would have thrown away a
+// paid job that was still working. Only give up after it stays failed.
 let detail;
-for (let i = 0; i < 90; i++) {
+let failedStreak = 0;
+for (let i = 0; i < 150; i++) {
   detail = await api('GET', `/characters/${man.characterId}`);
   if (detail.status === 'completed') break;
-  if (detail.status === 'failed') throw new Error('character generation FAILED');
-  process.stdout.write('.');
+  failedStreak = detail.status === 'failed' ? failedStreak + 1 : 0;
+  if (failedStreak >= 25) throw new Error('character generation FAILED (persistent)');
+  process.stdout.write(detail.status === 'failed' ? '!' : '.');
   await sleep(4000);
 }
 console.log('');
@@ -136,14 +142,46 @@ man.actualSize = detail.size ?? detail.image_size ?? null;
 save();
 console.log('actual size reported by API:', JSON.stringify(man.actualSize));
 
-const rotations = detail.rotations ?? detail.images ?? [];
-console.log('rotations returned:', Array.isArray(rotations) ? rotations.length : 'n/a');
-
+// `rotation_urls` is a name->URL MAP, and it is the shape this endpoint has
+// actually returned every time. The playbook recorded it as "a fourth result
+// shape ... the same class of trap that twice discarded completed paid jobs",
+// but the code below only ever handled the inline-base64 shapes, so the first
+// two bosses had to be pulled down by hand. Handle the map first.
 let n = 0;
+if (detail.rotation_urls && typeof detail.rotation_urls === 'object') {
+  const entries = Object.entries(detail.rotation_urls);
+  console.log('rotation_urls returned:', entries.length);
+  for (const [dir, url] of entries) {
+    if (typeof url !== 'string') continue;
+    // The raw CDN 403s against a plain urllib fetch; node's fetch is fine.
+    // Retry, because a transient 503 once threw away a whole paid run.
+    let buf = null;
+    for (let a = 0; a < 5 && !buf; a++) {
+      const r = await fetch(url);
+      if (r.ok) buf = Buffer.from(await r.arrayBuffer());
+      else await sleep(1500 * (a + 1));
+    }
+    if (!buf) {
+      console.error('  ! failed to download', dir, url);
+      continue;
+    }
+    const file = path.join(outDir, `rot-${dir}.png`);
+    fs.writeFileSync(file, buf);
+    console.log('  wrote', path.relative(ROOT, file));
+    n++;
+  }
+}
+
+const rotations = detail.rotations ?? detail.images ?? [];
+if (!n) console.log('rotations returned:', Array.isArray(rotations) ? rotations.length : 'n/a');
+
 for (const [i, rot] of (Array.isArray(rotations) ? rotations : []).entries()) {
   const b64 = rot?.image?.base64 ?? rot?.base64 ?? (typeof rot === 'string' ? rot : null);
   if (!b64) continue;
-  const name = rot?.direction ? `${rot.direction}` : `rot-${i}`;
+  // Always `rot-<dir>.png` — that is the name sprite-lab.mjs looks up for
+  // startFromRotation. Writing bare `<dir>.png` meant the first boss's files
+  // had to be renamed by hand before animations could be pinned.
+  const name = rot?.direction ? `rot-${rot.direction}` : `rot-${i}`;
   const file = path.join(outDir, `${name}.png`);
   fs.writeFileSync(file, Buffer.from(b64, 'base64'));
   console.log('  wrote', path.relative(ROOT, file));

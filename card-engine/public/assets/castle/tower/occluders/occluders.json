@@ -1,0 +1,74 @@
+{
+  "plate": "anchor-ring-x.png",
+  "plateSize": {
+    "width": 4608,
+    "height": 3456
+  },
+  "occluders": [
+    {
+      "id": "column-1",
+      "x": 697,
+      "y": 1809,
+      "width": 459,
+      "height": 761,
+      "groundY": 2570
+    },
+    {
+      "id": "column-2",
+      "x": 716,
+      "y": 1106,
+      "width": 502,
+      "height": 924,
+      "groundY": 2030
+    },
+    {
+      "id": "column-3",
+      "x": 1064,
+      "y": 558,
+      "width": 516,
+      "height": 1004,
+      "groundY": 1562
+    },
+    {
+      "id": "column-4",
+      "x": 1756,
+      "y": 289,
+      "width": 342,
+      "height": 962,
+      "groundY": 1251
+    },
+    {
+      "id": "column-5",
+      "x": 2471,
+      "y": 291,
+      "width": 360,
+      "height": 971,
+      "groundY": 1262
+    },
+    {
+      "id": "column-6",
+      "x": 3000,
+      "y": 563,
+      "width": 512,
+      "height": 999,
+      "groundY": 1562
+    },
+    {
+      "id": "column-7",
+      "x": 3333,
+      "y": 1113,
+      "width": 523,
+      "height": 916,
+      "groundY": 2029
+    },
+    {
+      "id": "column-8",
+      "x": 3408,
+      "y": 1813,
+      "width": 465,
+      "height": 753,
+      "groundY": 2566
+    }
+  ],
+  "note": "Traced in Figma, cut from the plate so they match it exactly. Draw at (x,y) origin (0,0), depth = groundY. Regenerate with scripts/sprite-lab/lib/import_traces.py."
+}

@@ -1,0 +1,162 @@
+{
+  "subject": "boss-still-season",
+  "label": "The Still Season — Druid champion, tower floor 2, nature",
+  "referenceImage": "../bg-harness/refs/still-season/character-ref-168sq.png",
+  "provenance": [
+    "Design is Raheem's, generated and edited in Leonardo/Gemini; the final pass",
+    "('replace the rocks at his feet with pink poison flowers spreading all over",
+    "the ground') is saved at bg-harness/refs/still-season/source.png.",
+    "",
+    "The reference is a CROP of that image, matted with rembg and cut down to the",
+    "FIGURE ALONE. Four things were deliberately removed and none of them may ever",
+    "be baked into the sprite — each ships as its own layer:",
+    "  - the carved throne and the huge dark deadwood arcs framing him",
+    "  - the green rune halo behind his head",
+    "  - the pink flower ground band and its magenta flame wisps",
+    "  - the green drip / ember fall",
+    "Baked in, they are welded to a rigged figure: v3 warps everything in frame",
+    "with the skeleton, so carved wood would breathe and redecorate frame to frame.",
+    "The Debt-Bearer's first attack returned 'a large brown wing-shaped artifact",
+    "belonging to nothing' from exactly this class of mistake. Kept separate, the",
+    "halo can rotate, the flowers can pulse, and the throne stays still.",
+    "",
+    "TERMINOLOGY, corrected by Raheem 2026-07-30: the growths on his skull are BARE",
+    "TREE BRANCHES, not antlers. This is not pedantry — 'antler' makes a generator",
+    "draw a deer rack, which is paired, symmetrical and curves back. What is in the",
+    "design is irregular forking deadwood. The word 'antler' appears nowhere in",
+    "this file on purpose. Not all druids need antlers.",
+    "",
+    "Approved by Raheem 2026-07-30 before any generation was spent."
+  ],
+  "description": "A gaunt seated skeletal tree-spirit facing the viewer, sitting cross-legged and perfectly still. A smooth pale bone skull with two burning yellow eyes, and bare grey tree branches growing directly out of the skull and forking irregularly upward. Its torso is fully enclosed by a cage of pale bone ribs over overlapping grey bark plates, with no bare flesh anywhere, and a bright yellow-green light burning inside the ribcage and down the belly. Long thin grey bark arms reach outward and down from mossy shoulders, ending in clawed wooden hands resting near its knees. Clusters of small pink and violet flowers grow on its shoulders. Long thin bark legs folded and crossed beneath it. Bone white, grey-brown bark and yellow-green inner light.",
+  "view": "low top-down",
+  "size": {
+    "width": 168,
+    "height": 168
+  },
+  "seed": 20260802,
+  "characterId": null,
+  "animationNotes": [
+    "NAME EVERY RE-SHOT CLIP UNIQUELY. `name` becomes the animation's display_name on the character, animations accumulate, and names are NOT unique. Frames are pulled by slug(display_name), so a second clip called 'hit' silently returns the FIRST one — the version you were replacing — while still charging for the new generation. Clearing the local manifest record does not help: that only makes the job re-submit. `idle-v2` and `hit-v2` below are versioned for exactly this reason; the next re-shoot of either must bump again.",
+    "",
+    "v3, not pro and not template. Same reasoning as boss-debt-bearer.json — pro",
+    "cost ~186 generations and returned corrupt, mis-facing frames; template lost",
+    "the south facing entirely, which is total loss for a frontal boss.",
+    "",
+    "THE GATE. This boss is SEATED, and that is the one genuinely new risk in the",
+    "run. create-character-pro builds a 'mannequin' skeleton and v3 drives that",
+    "skeleton; a cross-legged pose gives it no standing leg chain to find. The",
+    "likely failure is not an error — it is a boss that quietly stands up out of",
+    "his chair, discovered 28 generations later.",
+    "",
+    "So every clip except 'idle' ships with \"skip\": true. Run gen once, get idle",
+    "for 4 generations, LOOK AT THE FRAMES, and only then remove the skips. Frame 0",
+    "must come back near-identical to rot-south.png — that is the free exact check",
+    "the pinning buys. If frames 1-4 show a standing or half-risen figure, re-crop",
+    "the reference from mid-thigh up and let the throne plate cover the lower body:",
+    "a skeleton cannot stand out of a chair it has no legs in.",
+    "",
+    "The word 'seated' appears in EVERY action string, not just the description,",
+    "for the same reason the Debt-Bearer repeats its costume nouns verbatim — the",
+    "clip prompt is the model's most recent instruction and it will drift toward a",
+    "standing default without it.",
+    "",
+    "Clip ids are the BossSpriteState names (idle/windup/attack/defeat/hit) end to",
+    "end. The Debt-Bearer packs sprite-smash.png and mounts it as state 'attack';",
+    "that works but pack_boss_clips.py finds frames by clip name while the manifest",
+    "keys by state, and the mismatch is a trap for whoever comes next.",
+    "",
+    "frameCount is what we ASK for; v3 returns frameCount + 1, frame 0 being the",
+    "pinned pose. 'returnedFrames' below is a DOC field to be filled in after the",
+    "run from what actually came back — do not assume it, measure it, or every clip",
+    "runs one frame longer than the manifest claims.",
+    "",
+    "NEVER ASK A CLIP TO ANIMATE THE GLOW, and NAME EVERY FEATURE IN EVERY CLIP.",
+    "Both rules were broken on the first idle and it cost 4 generations. Asking the",
+    "core to 'brighten and dim' made the model dim it and never bring it back — by",
+    "frame 2 the ribcage was plain white bone. Not naming the flowers made the",
+    "flowers disappear. So every action string below carries the same three nouns",
+    "verbatim — steady bright yellow-green light in the ribcage, pink and violet",
+    "flowers on mossy shoulders, bare grey tree branches on the skull — and asks",
+    "for NO change in any of them. All the light animation is a code layer: an",
+    "alpha/scale sine costs zero generations and cannot lose the feature.",
+    "",
+    "This boss has NO FISTS. Its attack is a cast: the sprite renders only the",
+    "body's contribution (arms lift, torso leans, core blooms). The projectile and",
+    "the ground bloom are AttackVFX/CardCombatFx's job, not the sprite's.",
+    "",
+    "M5.7: an exposed ribcage is, by the letter of the rule, a bare torso, and the",
+    "rule is explicitly species-neutral — a creature textured like skin is still",
+    "nude. Bone and bark are structure, not skin, so this design is fine, but the",
+    "description SAYS SO positively ('fully enclosed by ... no bare flesh anywhere')",
+    "rather than hoping. No pose in any clip opens the ribcage, sheds bark, or",
+    "reveals a torso; those are standard generator drift for charge and enrage."
+  ],
+  "animations": [
+    {
+      "id": "idle",
+      "name": "idle-v2",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 4,
+      "returnedFrames": 5,
+      "action": "seated cross-legged and still, breathing very slowly, its ribcage full of steady bright yellow-green light, clusters of pink and violet flowers on its mossy shoulders, bare grey tree branches on its skull, clawed wooden hands resting on its knees, facing the viewer",
+      "note": "4 is the API minimum (frame_count >= 4; 3 is rejected 422 before any spend), so this returns 5. At fps 3 that is a 1667ms cycle — slow, which is the entire character: this thing is a season that stopped. THE GATE CLIP. Verify he is still seated before removing any skip below.\n\nv1 of this clip FAILED and cost 4 generations; frames kept as anim-idle-v1-*.png. Two lessons, both already in the playbook and both broken here:\n(1) It asked for the core light 'brightening and dimming'. The model dimmed it and never brought it back — by frame 2 the ribcage was plain white bone and the character's whole signature was gone. NEVER ask a clip to animate a glow. Glow is a code layer (alpha/scale sine, zero generations); a sprite asked to pulse just loses the feature.\n(2) It did not name the flowers, so the flowers vanished into green moss blobs by frame 2. Costume nouns must be repeated VERBATIM in every clip action, exactly as boss-debt-bearer.json does — the clip prompt is the model's most recent instruction and anything unnamed is treated as optional."
+    },
+    {
+      "id": "windup",
+      "name": "windup",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 6,
+      "returnedFrames": 7,
+      "action": "seated cross-legged, slowly lifting both long thin bark arms up from its knees and raising its clawed wooden hands in front of its chest, head lifting, its ribcage full of steady bright yellow-green light, clusters of pink and violet flowers on its mossy shoulders, bare grey tree branches on its skull, facing the viewer",
+      "note": "LOOPS and HOLDS — a telegraph can span several hero turns, so it has to be watchable for an unknown length of time. Deliberately says 'up from its knees' and 'in front of its chest' rather than anything like 'flung wide': the arms already spread far in the resting pose, and a wider reach widens the SHARED union box across every clip, padding the idle with dead space and rendering the boss smaller on a fixed-aspect stage. Ends on the raised-hands pose 'attack' begins from."
+    },
+    {
+      "id": "attack",
+      "name": "attack",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromFile": "anim-windup-south-06.png",
+      "frameCount": 6,
+      "returnedFrames": 7,
+      "action": "seated cross-legged, thrusting both raised clawed wooden hands forward toward the viewer, long thin bark arms extending, its ribcage full of steady bright yellow-green light, clusters of pink and violet flowers on its mossy shoulders, bare grey tree branches on its skull, facing the viewer",
+      "note": "ONE action, not three. If an action string contains 'and then' it is two clips — the Debt-Bearer's first attack asked for raise AND smash AND recover and the model rendered no arm motion at all. Chained from the wind-up's last frame so the cast starts with the hands already raised; ONE HOP ONLY, chaining a chain compounds drift. ~7 frames at 11fps = 636ms, inside windUpNormal(250) + impact(400). Sized to the NORMAL beat — sizing to the heavy beat truncates every ordinary attack. Update startFromFile if the wind-up returns a different frame count."
+    },
+    {
+      "id": "defeat",
+      "name": "defeat",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 6,
+      "returnedFrames": 7,
+      "action": "seated cross-legged, head bowing forward onto its chest, long thin bark arms folding inward against its body, its ribcage full of steady bright yellow-green light, clusters of pink and violet flowers on its mossy shoulders, bare grey tree branches on its skull, facing the viewer",
+      "note": "The Debt-Bearer has no real defeat — it reuses idle, so it keeps breathing after you kill it, which is the most visible remaining defect in that set. A STANDING boss's defeat is a fall: large motion, leaves the silhouette, wrecks the ground line. A SEATED boss's defeat is a slump, which stays inside the existing silhouette and inside the union box. That is why this clip is affordable here and was not there. 'Fold INWARD', never downward — a slump moves mass down, and pack_boss_clips.py clips everything below the idle ground line, so a downward fold would be silently cut."
+    },
+    {
+      "id": "hit",
+      "name": "hit-v2",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 4,
+      "returnedFrames": null,
+      "action": "seated cross-legged, head tipping back a little from a blow and settling again, shoulders jerking once, long thin bark arms staying down on its knees, its ribcage full of steady bright yellow-green light, clusters of pink and violet flowers on its mossy shoulders, bare grey tree branches on its skull, facing the viewer",
+      "note": "v1 of this clip came back as a SCREAM — mouth open, arms flung wide, a crown of flame igniting on the skull. Wrong for a flinch, so it was logged as an invented-artifact defect and dropped; Raheem then spotted it in the preview gallery and it now ships as `ultimate` and `rage`. Best accident of the run.\n\nv2 asks for a SMALL, CONTAINED motion on purpose. The pattern across both bosses is that the clips demanding the largest, fastest displacement are the ones that hallucinate decoration — v1 said 'recoiling sharply backward, head snapping back, arms jerking' and the model filled the space it was given. 'Tipping back a little and settling' leaves it nothing to invent. The arms are explicitly pinned DOWN on the knees so this cannot drift toward the scream again."
+    }
+  ]
+}

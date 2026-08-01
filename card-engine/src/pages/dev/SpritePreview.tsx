@@ -16,6 +16,7 @@ import { LiquidVessel } from '../../vfx/LiquidVessel';
 import { LatticeCore } from '../../vfx/LatticeCore';
 import { buildCardShell, generateStats } from '../../services/cardGenerator';
 import type { Card, ArchetypeName } from '../../types/card';
+import { getBossSignature } from '../../data/combat/bossSignatureManifest';
 
 /**
  * Boss animation preview — pick a boss, press play, watch what the fight will
@@ -51,7 +52,7 @@ interface Step {
  * durations from `TIMINGS` — so what plays here runs at fight speed rather
  * than at a speed chosen to look good in a preview.
  */
-function buildSteps(): Step[] {
+function buildSteps(actionId: string): Step[] {
   return [
     {
       label: 'Idle',
@@ -66,7 +67,11 @@ function buildSteps(): Step[] {
         kind: 'boss_intent_declared',
         round: 1,
         intent: {
-          actionId: 'preview',
+          // A REAL action id for the selected boss, not a literal 'preview'.
+          // Signature layers (rune halo, flower bed) are bound to specific
+          // action ids, so a placeholder id charges nothing and the preview
+          // silently cannot exercise the feature it exists to show.
+          actionId,
           intentType: 'heavy_attack',
           telegraphText: 'preview',
           targetActorIds: [HERO_ACTOR],
@@ -83,6 +88,10 @@ function buildSteps(): Step[] {
         kind: 'damage_dealt',
         sourceActorId: BOSS_ACTOR,
         targetActorId: HERO_ACTOR,
+        // Carries the same action as the wind-up, so the layer that lit up
+        // during the telegraph is the one that flashes when the blow lands.
+        // Without it the impact frame is unattributed and nothing fires.
+        sourceActionId: actionId,
         amount: 84,
         damageType: 'kinetic',
         blockedByShield: 0,
@@ -104,6 +113,31 @@ function buildSteps(): Step[] {
       cue: 'impact',
       severity: 'normal',
       durationMs: TIMINGS.impact + 500,
+    },
+    {
+      /**
+       * THE ULTIMATE. Missing until now, which meant the single biggest moment
+       * a boss has — the Still Season's scream, and every signature layer at
+       * full — was the one thing this review tool could not show.
+       *
+       * `cue: 'ultimate'` is what `bossClipForBeat` keys on; severity alone
+       * does not get there.
+       */
+      label: 'Ultimate',
+      event: {
+        kind: 'boss_intent_declared',
+        round: 2,
+        intent: {
+          actionId,
+          intentType: 'heavy_attack',
+          telegraphText: 'preview ultimate',
+          targetActorIds: [HERO_ACTOR],
+          interruptible: false,
+        },
+      },
+      cue: 'ultimate',
+      severity: 'ultimate',
+      durationMs: TIMINGS.ultimate + 600,
     },
     {
       label: 'Defeated',
@@ -136,7 +170,14 @@ export function SpritePreview() {
   const [playing, setPlaying] = useState(false);
   const timer = useRef<number | null>(null);
 
-  const steps = useMemo(() => buildSteps(), []);
+  // Drive the preview with one of the SELECTED boss's real action ids, so its
+  // signature layers actually charge. Falls back to a placeholder for a boss
+  // with no signature — which correctly lights nothing.
+  const previewActionId = useMemo(() => {
+    const sig = getBossSignature(bossId);
+    return Object.keys(sig?.byAction ?? {})[0] ?? 'preview';
+  }, [bossId]);
+  const steps = useMemo(() => buildSteps(previewActionId), [previewActionId]);
   const selected = bosses.find((b) => b.id === bossId);
   const arena = ARENA_MANIFEST[selected?.arenaId ?? DEFAULT_ARENA_ID] ?? ARENA_MANIFEST[DEFAULT_ARENA_ID];
 

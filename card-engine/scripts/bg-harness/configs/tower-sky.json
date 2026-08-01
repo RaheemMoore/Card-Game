@@ -1,0 +1,37 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "building, tower, room, columns, arches, floor, paving, walls, foreground architecture, people, characters, creatures, birds in the foreground, text, watermark, logo, signature, ui, hud, frame, border, vignette, white border, blurry, 3d render, cgi, photorealistic, photograph, dark, gloomy, grim, storm damage, ruins",
+  "styleHeader": "",
+  "familyLabels": {
+    "sky": "Sky backdrop — bottom layer, seen past the arches. Rises per floor."
+  },
+  "anchors": {
+    "sky": {
+      "line": "Hand-painted 2D fantasy game background, soft painterly texture, bright cheerful adventure-game mood, rich saturated colour. A view looking DOWN and OUT from very high in the air, filling the entire image edge to edge with no border and no margin. Far below lie the warm terracotta rooftops and green courtyards of a great fantasy castle, small with distance, with tiny fields and a winding river beyond them. Soft white clouds drift BELOW the viewer, half-hiding the ground. Clear warm morning sky at the top. Nothing in the foreground at all - no building, no railing, no architecture, just open air, cloud and the distant land far underneath. Gentle haze, warm sunlight, storybook colour."
+    }
+  },
+  "states": [
+    {
+      "id": "sky-floor-01",
+      "label": "Floor 1 — just above the castle rooftops (anchor)",
+      "family": "sky",
+      "isAnchor": true
+    },
+    {
+      "id": "sky-floor-02",
+      "label": "Floor 2 — into the cloud layer",
+      "family": "sky",
+      "line": "Hand-painted 2D fantasy game background, soft painterly texture, bright cheerful adventure-game mood, rich saturated colour. A view looking DOWN and OUT from very high in the air, filling the entire image edge to edge with no border and no margin. The viewer is INSIDE the cloud layer: great banks of sunlit white and gold cloud roll below and around, and through a break in them the land shows very far beneath - tiny green hills, a silver river, a distant coastline. Warm blue sky above with high wisps. Nothing in the foreground at all - no building, no railing, no architecture, just open air and cloud. Gentle haze, warm midday sunlight, storybook colour."
+    },
+    {
+      "id": "sky-floor-03",
+      "label": "Floor 3 — above the weather, Seraph sunset",
+      "family": "sky",
+      "line": "Hand-painted 2D fantasy game background, soft painterly texture, bright cheerful adventure-game mood, rich saturated colour. A view looking DOWN and OUT from enormous height, filling the entire image edge to edge with no border and no margin. The viewer is ABOVE the weather: an unbroken floor of glowing sunset cloud stretches away below in rose, amber and warm violet, lit from the side by a low sun. A few tall thunderheads rise through it in the far distance, catching gold on their tops. Deep clear sky above shading toward evening blue with the first faint stars. Nothing in the foreground at all - no building, no railing, no architecture, just open air and cloud. Warm, radiant and hopeful, never dark or grim."
+    }
+  ]
+}

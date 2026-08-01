@@ -20,11 +20,28 @@ type PartySlots = readonly (string | null)[];
 
 interface PickerProps {
   onPick: (cards: Card[], bossId: string, entryTxnId: string) => void;
+  /**
+   * Pre-selected boss, which also HIDES the "choose your foe" step.
+   *
+   * This is the tower's handoff surface. In the tower you walk up to a specific
+   * champion and speak to him — the opponent is already decided by where you
+   * are standing, so being handed a list of every boss in the game at that
+   * moment would undo the whole fiction of having climbed to him.
+   *
+   * The party step deliberately stays: WHICH cards you bring is the interesting
+   * choice, and it is the one the fight is actually balanced around.
+   *
+   * An unknown or inactive id falls through to the normal list rather than
+   * dead-ending, so a bad deep link is recoverable instead of a black hole.
+   */
+  lockedBossId?: string | null;
 }
 
-export function Picker({ onPick }: PickerProps) {
+export function Picker({ onPick, lockedBossId }: PickerProps) {
   const cards = getAllCards();
-  const bosses = getAllBossDefinitions().filter((b) => b.status === 'active');
+  const allBosses = getAllBossDefinitions().filter((b) => b.status === 'active');
+  const locked = lockedBossId ? allBosses.find((b) => b.id === lockedBossId) ?? null : null;
+  const bosses = locked ? [locked] : allBosses;
   const abilityStore = getAbilityStore();
   const [entryError, setEntryError] = useState<string | null>(null);
 
@@ -36,7 +53,9 @@ export function Picker({ onPick }: PickerProps) {
   const [partySlots, setPartySlots] = useState<PartySlots>(
     () => Array.from({ length: MAX_PARTY }, () => null),
   );
-  const [pickedBossId, setPickedBossId] = useState<string | null>(bosses[0]?.id ?? null);
+  const [pickedBossId, setPickedBossId] = useState<string | null>(
+    () => locked?.id ?? allBosses[0]?.id ?? null,
+  );
 
   function toggleCard(cardId: string) {
     setPartySlots((prev) => {
@@ -133,7 +152,12 @@ export function Picker({ onPick }: PickerProps) {
         </div>
       )}
 
-      <h2 className="font-fantasy text-xl text-bone mb-3">Choose your foe</h2>
+      {/* Hidden entirely when the tower has already decided the opponent —
+          see `lockedBossId`. The name still shows, so the player knows who
+          they walked up to, but it is a statement rather than a menu. */}
+      <h2 className="font-fantasy text-xl text-bone mb-3">
+        {locked ? `Facing ${locked.name}` : 'Choose your foe'}
+      </h2>
       {bosses.length === 0 && (
         <div className="p-4 rounded border border-gold/30 bg-void/60 text-bone/80 text-sm">
           No active bosses in the library yet. Sign in as an admin, reload, and try again.
@@ -145,6 +169,7 @@ export function Picker({ onPick }: PickerProps) {
             key={b.id}
             type="button"
             onClick={() => setPickedBossId(b.id)}
+            disabled={!!locked}
             aria-pressed={pickedBossId === b.id}
             aria-label={`Fight ${b.name}`}
             className={`rounded-md p-4 text-left border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-crimson ${

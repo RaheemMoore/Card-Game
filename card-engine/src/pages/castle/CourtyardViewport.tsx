@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { usePhaserGame } from './usePhaserGame';
 import { CourtyardOverlay } from './CourtyardOverlay';
 import { DirectoryPanel, StallPlaceholder } from './CourtyardPanels';
@@ -29,6 +30,17 @@ export function CourtyardViewport() {
   const [motionLevel] = useMotionLevel();
 
   const [openStall, setOpenStall] = useState<Stall | null>(null);
+  const navigate = useNavigate();
+
+  /**
+   * A stall with a `route` goes somewhere; one without opens its placeholder.
+   * Keeping both paths here means destinations can be wired one at a time
+   * without the courtyard ever being half-broken.
+   */
+  const openOrNavigate = useCallback((stall: Stall) => {
+    if (stall.route) navigate(stall.route);
+    else setOpenStall(stall);
+  }, [navigate]);
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [paused, setPaused] = useState(false);
   // Only decides whether the pause menu lists Admin. Defaults to 'user', so a
@@ -165,7 +177,7 @@ export function CourtyardViewport() {
           game={game}
           viewport={viewport}
           motionOff={motionLevel === 'off'}
-          onOpenStall={setOpenStall}
+          onOpenStall={openOrNavigate}
         />
       )}
 
@@ -196,7 +208,7 @@ export function CourtyardViewport() {
           onClose={() => setDirectoryOpen(false)}
           onPick={(stall) => {
             setDirectoryOpen(false);
-            setOpenStall(stall);
+            openOrNavigate(stall);
           }}
         />
       )}

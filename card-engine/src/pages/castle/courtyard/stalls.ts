@@ -22,8 +22,15 @@ export interface Stall {
   /** Collider footprint. */
   width: number;
   height: number;
-  /** Copy for the not-yet-wired panel. */
+  /** Copy for the not-yet-wired panel. Ignored when `route` is set. */
   placeholder: string;
+  /**
+   * Where this stall actually goes. A stall with a route navigates; a stall
+   * without one still opens the placeholder panel. Adding the field per-stall
+   * rather than switching them all at once means the courtyard keeps working
+   * while destinations are wired one at a time.
+   */
+  route?: string;
   /**
    * Plinths are painted-but-empty stands reserved for future destinations.
    * They collide and are visible, but are not interactive and never appear
@@ -58,6 +65,7 @@ export const STALLS: Stall[] = [
     width: 260,
     height: 150,
     placeholder: 'The tower gate. Not yet connected to boss battles.',
+    route: '/castle/tower/1',
   },
   {
     id: 'forge',

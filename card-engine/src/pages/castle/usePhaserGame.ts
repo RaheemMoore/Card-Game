@@ -23,7 +23,27 @@ export interface PhaserHandle {
   game: Phaser.Game | null;
 }
 
-export function usePhaserGame(containerRef: RefObject<HTMLDivElement | null>): PhaserHandle {
+/**
+ * A place's game factory. Passed in rather than hardcoded so this hook can own
+ * the courtyard AND the tower — the two need different cameras, so they are
+ * separate games, but the StrictMode lifecycle problem below is identical.
+ */
+export type GameLoader = (parent: HTMLElement) => Promise<import('phaser').Game>;
+
+export const loadCourtyard: GameLoader = async (parent) => {
+  const { createGame } = await import('./courtyard/createGame');
+  return createGame(parent);
+};
+
+export const loadTowerFloor = (floor: number): GameLoader => async (parent) => {
+  const { createGame } = await import('./tower/createGame');
+  return createGame(parent, floor);
+};
+
+export function usePhaserGame(
+  containerRef: RefObject<HTMLDivElement | null>,
+  load: GameLoader = loadCourtyard,
+): PhaserHandle {
   const [status, setStatus] = useState<PhaserStatus>('loading');
   const [instance, setInstance] = useState<Phaser.Game | null>(null);
 
@@ -36,14 +56,14 @@ export function usePhaserGame(containerRef: RefObject<HTMLDivElement | null>): P
 
     void (async () => {
       try {
-        const { createGame } = await import('./courtyard/createGame');
+        const created = await load(container);
         // Cleanup may have run while the engine chunk was in flight.
-        if (!alive) return;
-        game = createGame(container);
+        if (!alive) { created.destroy(true, false); return; }
+        game = created;
         setInstance(game);
         setStatus('ready');
       } catch (err) {
-        console.error('[castle] failed to start the courtyard', err);
+        console.error('[castle] failed to start the place', err);
         if (alive) setStatus('error');
       }
     })();
@@ -56,7 +76,7 @@ export function usePhaserGame(containerRef: RefObject<HTMLDivElement | null>): P
       game = null;
       setInstance(null);
     };
-  }, [containerRef]);
+  }, [containerRef, load]);
 
   return { status, game: instance };
 }

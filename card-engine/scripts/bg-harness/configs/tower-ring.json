@@ -1,0 +1,43 @@
+{
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "closed ring of columns, unbroken circle of columns, solid outer wall, continuous wall, enclosed room, ceiling, roof, dome, pedestal, dais, plinth, altar, statue, object in the centre, decorated floor, patterned floor, mosaic, tiles, inlay, figure, person, creature, sky, clouds, landscape, ground beyond, cast shadow outside the building, plan view, seen from directly above, flat lay, 3d render, cgi, photorealistic, photograph, text, watermark, logo, signature, ui, hud, frame, border, blurry, bleached white, washed out, grim, gloomy, ruins, decay",
+  "styleHeader": "",
+  "familyLabels": {
+    "ring": "Tower colonnade — cut away at the front, generated once"
+  },
+  "anchors": {
+    "ring": {
+      "line": "Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW like a classic Pokemon overworld room: the camera is above and tilted forward, so you look down INTO the room and clearly see the FRONT FACES of everything standing in it. A circular open-air terrace at the top of a tall tower, alone in the middle of the image with white margin all around. THE FRONT OF THE ROOM IS CUT AWAY so you can see inside: tall columns stand only across the BACK and around the LEFT and RIGHT sides, and at the FRONT there is nothing but a LOW carved balustrade you can easily see over. The tall columns are widely spaced with big empty gaps between them and rounded arches overhead, and they repeat in a calm even rhythm. TWO MATERIALS: the columns and arches are pale warm limestone, and the balustrade and the band they stand on are much DARKER blue-grey granite, so the two read apart clearly. THE CENTRE OF THE ROOM IS COMPLETELY EMPTY - bare undecorated pale paving, no pedestal, no altar, no pattern, nothing standing there at all. Every gap between the columns, and everything beyond the terrace, is plain flat solid pure white."
+    }
+  },
+  "states": [
+    {
+      "id": "ring-cutaway-a",
+      "label": "A · Limestone on granite, cut away at front (anchor)",
+      "family": "ring",
+      "isAnchor": true
+    },
+    {
+      "id": "ring-cutaway-b",
+      "label": "B · Warmer sandstone, heavier piers",
+      "family": "ring",
+      "line": "Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW like a classic Pokemon overworld room: the camera is above and tilted forward, so you look down INTO the room and clearly see the FRONT FACES of everything standing in it. A circular open-air terrace at the top of a tall tower, alone in the middle of the image with white margin all around. THE FRONT OF THE ROOM IS CUT AWAY so you can see inside: heavy square piers stand only across the BACK and around the LEFT and RIGHT sides, and at the FRONT there is nothing but a LOW carved parapet you can easily see over. The piers are widely spaced with big empty gaps between them and broad rounded arches overhead, repeating in a calm even rhythm. TWO MATERIALS: the piers and arches are warm honey sandstone, and the parapet and the band they stand on are much DARKER weathered brown stone with aged bronze straps, so the two read apart clearly. THE CENTRE OF THE ROOM IS COMPLETELY EMPTY - bare undecorated paving, no pedestal, no altar, no pattern, nothing standing there. Every gap between the piers, and everything beyond the terrace, is plain flat solid pure white."
+    },
+    {
+      "id": "ring-cutaway-c",
+      "label": "C · Slender marble spires, delicate",
+      "family": "ring",
+      "line": "Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW like a classic Pokemon overworld room: the camera is above and tilted forward, so you look down INTO the room and clearly see the FRONT FACES of everything standing in it. A circular open-air terrace at the top of a tall tower, alone in the middle of the image with white margin all around. THE FRONT OF THE ROOM IS CUT AWAY so you can see inside: slender fluted columns stand only across the BACK and around the LEFT and RIGHT sides, and at the FRONT there is nothing but a LOW delicate carved railing you can easily see over. The columns are widely spaced with big empty gaps between them and tall graceful arches overhead, repeating in a calm even rhythm. TWO MATERIALS: the columns and arches are pale cream marble capped with gold leaf, and the railing and the band they stand on are much DARKER charcoal slate, so the two read apart clearly. THE CENTRE OF THE ROOM IS COMPLETELY EMPTY - bare undecorated pale paving, no pedestal, no altar, no pattern, nothing standing there. Every gap between the columns, and everything beyond the terrace, is plain flat solid pure white."
+    },
+    {
+      "id": "ring-cutaway-a2",
+      "label": "A2 · slimmer front rim, brighter floor",
+      "family": "ring",
+      "line": "Hand-painted 2D game art, soft painterly texture, warm sunlight from above, bright cheerful adventure-game mood, rich saturated mid-tone colour. LOW TOP-DOWN VIEW like a classic Pokemon overworld room: the camera is above and tilted forward, so you look down INTO the room and clearly see the FRONT FACES of everything standing in it. A circular open-air terrace at the top of a tall tower, alone in the middle of the image with white margin all around. THE FRONT OF THE ROOM IS CUT AWAY so you can see inside: tall columns stand only across the BACK and around the LEFT and RIGHT sides, and at the FRONT there is nothing but a NARROW, THIN low carved balustrade you can easily see over - the front rim is SLIM and takes up very little space, leaving the floor inside as wide and open as possible. The tall columns are widely spaced with big empty gaps between them and rounded arches overhead, and they repeat in a calm even rhythm. TWO MATERIALS: the columns and arches are pale warm limestone, and the balustrade and the band they stand on are much DARKER blue-grey granite, so the two read apart clearly. THE CENTRE OF THE ROOM IS COMPLETELY EMPTY - bare undecorated paving in a BRIGHT, evenly-lit warm cream - the inside of the room is sunlit and open, never shadowed or dim, no pedestal, no altar, no pattern, nothing standing there at all. Every gap between the columns, and everything beyond the terrace, is plain flat solid pure white."
+    }
+  ]
+}
