@@ -25,6 +25,7 @@ import { DevAbilities } from './pages/DevAbilities';
 import { DevSeedBattle } from './pages/DevSeedBattle';
 import { SpritePreview } from './pages/dev/SpritePreview';
 import { BossReadout } from './pages/dev/BossReadout';
+import { AbilityTheater } from './pages/dev/AbilityTheater';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
@@ -68,6 +69,14 @@ export default function App() {
               no player data and gating it behind a login would only add
               friction to sharing it. */}
           <Route path="/dev/boss-readout" element={<BossReadout />} />
+
+          {/* Ability Theater — build and judge ability performances without
+              playing a battle. Same tier as the two above: it replays canned
+              event fixtures through the real compiler and renderers, reads only
+              manifests, and touches no player data. Iterating on a lash by
+              fighting to your turn and hoping the RNG cooperates is not a
+              workflow, and it is not repeatable enough to review a change. */}
+          <Route path="/dev/ability-theater" element={<AbilityTheater />} />
 
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,

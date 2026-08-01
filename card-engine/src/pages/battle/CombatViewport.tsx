@@ -138,7 +138,14 @@ export function CombatViewport({
 
   const body = (
     <div
-      className="fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden text-bone"
+      /* `motion-<level>` is what actually carries the player's Motion choice
+         into CSS. Several stylesheets under this root gate their animations on
+         `@media (prefers-reduced-motion: reduce)`, which only ever saw the OS
+         preference — a player who set Motion → off in the combat HUD without
+         the OS flag still got every one of them. Emitting the resolved level
+         here fixes all of them at once, and covers the mobile tree too, since
+         both layout dispatches live under this element. */
+      className={`fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden text-bone motion-${motionLevel}`}
       style={{ background: '#050308' }}
       aria-label="Active combat"
       role="dialog"

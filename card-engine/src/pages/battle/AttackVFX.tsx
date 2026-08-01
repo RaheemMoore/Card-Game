@@ -149,9 +149,17 @@ function Bolt({ from, to, color, heavy }: Shot) {
         }
         .attack-impact { animation: attack-impact-burst ${impactMs}ms ease-out forwards; }
 
+        /* Gated on BOTH the OS preference and the in-game Motion setting. This
+           rule used to be the media query alone, which meant a player who set
+           Motion → off in the combat HUD without setting the OS flag still got
+           the full bolt. Behaviour is otherwise unchanged — the bolt is
+           suppressed outright at motion off, as it always has been for
+           OS-flag users; the hit itself still reads from the card's own struck
+           state and the damage number, which are not part of this layer. */
         @media (prefers-reduced-motion: reduce) {
           .attack-bolt, .attack-impact { animation: none !important; display: none; }
         }
+        .motion-off .attack-bolt, .motion-off .attack-impact { animation: none !important; display: none; }
       `}</style>
     </>
   );

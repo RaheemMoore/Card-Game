@@ -467,9 +467,14 @@ function DockCardVisual({
         }
         .dock-card-target-reticle { animation: dock-card-target-pulse 1.1s ease-in-out infinite; }
 
+        /* Gated on BOTH the OS preference and the in-game Motion setting. The
+           media query alone missed a player who turned motion off in the combat
+           HUD without setting the OS flag — see CardCombatFx's
+           REDUCED_MOTION_RULES for the same fix and the reasoning. */
         @media (prefers-reduced-motion: reduce) {
           .dock-card-target-reticle { animation: none !important; filter: drop-shadow(0 0 12px rgba(235,150,46,0.8)) !important; }
         }
+        .motion-off .dock-card-target-reticle { animation: none !important; filter: drop-shadow(0 0 12px rgba(235,150,46,0.8)) !important; }
       `}</style>
     </div>
   );
@@ -560,6 +565,7 @@ function DockStats({
         @media (prefers-reduced-motion: reduce) {
           .dock-bar-critical { animation: none !important; box-shadow: 0 0 0 1.5px rgba(220,38,38,0.9); }
         }
+        .motion-off .dock-bar-critical { animation: none !important; box-shadow: 0 0 0 1.5px rgba(220,38,38,0.9); }
       `}</style>
     </div>
   );

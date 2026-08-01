@@ -479,6 +479,32 @@ export function CardCombatFxStyles() {
       .card-shield-sheen { animation: card-shield-sweep 2.6s ease-in-out infinite; }
 
       @media (prefers-reduced-motion: reduce) {
+${REDUCED_MOTION_RULES}
+      }
+      /* The same rules again, keyed on the in-game Motion setting.
+       *
+       * The media query alone was a bug: a player who set Motion off in the
+       * combat HUD without also setting the OS-level preference still got every
+       * animation below. The motionLevel the combat root resolves honours BOTH
+       * sources, so the class emitted from it is what actually reflects the
+       * player's choice. The media query is kept so the dev preview pages,
+       * which have no motionLevel, still behave. */
+      .motion-off {
+${REDUCED_MOTION_RULES}
+      }
+    `}</style>
+  );
+}
+
+/**
+ * Everything that must change when motion is off, as a reusable rule body.
+ *
+ * Emitted twice above — once under the OS media query, once under the
+ * `.motion-off` class the combat root sets from `motionLevel`. Written once
+ * here because two hand-maintained copies of a 30-line rule set drift, and the
+ * drift is invisible until a player with one setting and not the other hits it.
+ */
+const REDUCED_MOTION_RULES = `
         .card-acting,
         .card-ignited,
         .card-target-mark,
@@ -511,7 +537,4 @@ export function CardCombatFxStyles() {
           filter: grayscale(1) brightness(0.42);
           transform: rotate(-9deg);
         }
-      }
-    `}</style>
-  );
-}
+`;

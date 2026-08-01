@@ -84,6 +84,7 @@ These are how a human decides. **Every one of them is offered, not requested.**
 | **Plate gallery** | `node scripts/bg-harness/harness.mjs sheet <config>` | Which candidate plate wins? |
 | **Boss readout** | `/dev/boss-readout` | Does the fight *measure* right — damage, beats, telegraphs? |
 | **Sprite preview** | `/dev/sprite-preview` | Does the sprite mount right on the stage? |
+| **Ability Theater** | `/dev/ability-theater` | Does an ability *perform* right — form, material, staging, legibility? Replays canned event logs through the real compiler and renderers, so there is no battle, no RNG, and the same scenario looks identical every time. **Hide colour** is the control that matters: it greys the stage so the Bible's "recognisable without colour" rule can be tested rather than asserted. Also: three lashes side by side on one path (the form-reuse proof), step-by-stage freeze, motion full/subtle/off, desktop/tablet, simulate-missing-assets, and a coverage panel showing how many materials are authored vs family defaults. |
 | **Ability seed** | `/dev/abilities` | Ability catalogue state |
 | **Battle seed** | `/dev/seed-battle` | Jump straight into a fight |
 | **Courtyard sample** | `/dev/courtyard-sample` | Castle scene composition |
