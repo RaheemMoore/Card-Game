@@ -155,6 +155,25 @@ tbody tr:hover{background:rgba(42,42,62,.4)}
 .hit .hs{display:block;color:var(--ash);font-size:.82rem;margin-top:.25rem}
 .hit mark{background:rgba(251,191,36,.25);color:var(--ivory);border-radius:2px}
 
+/* Wide plates. Arenas are 16:9 and the lesson is in the composition — dark
+   corners, open lower third — so they are never cropped square. */
+.wgal{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:.75rem;margin:0 0 2rem;max-width:none}
+.wc{margin:0;border:1px solid var(--slate);border-radius:8px;overflow:hidden;background:var(--obsidian)}
+.wc img{display:block;width:100%;height:auto}
+.wc figcaption{padding:.45rem .6rem;font-size:.75rem;color:var(--ash);text-align:center;border-top:1px solid var(--slate)}
+
+/* Sprite strips. Shown whole, at their own aspect, on a checkerboard so
+   transparency is visible — a cut-out on a flat dark panel looks like a black
+   box, which is the exact thing the strip is meant to prove it is not. */
+.strips{margin:0 0 2rem;max-width:none}
+.strips h4{font-family:var(--serif);font-size:.95rem;color:var(--gold);letter-spacing:.02em;margin:1.25rem 0 .5rem}
+.strip-row{margin:0 0 .5rem;border:1px solid var(--slate);border-radius:8px;overflow:hidden;
+  background-color:#141420;
+  background-image:linear-gradient(45deg,#1c1c2c 25%,transparent 25%),linear-gradient(-45deg,#1c1c2c 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1c1c2c 75%),linear-gradient(-45deg,transparent 75%,#1c1c2c 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.strip-row img{display:block;width:100%;height:auto;image-rendering:pixelated}
+.strip-row figcaption{padding:.35rem .6rem;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--bronze);background:var(--obsidian);border-bottom:1px solid var(--slate)}
+
 .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:.6rem;margin:0 0 2rem;max-width:none}
 .gc{margin:0;border:1px solid var(--slate);border-radius:8px;overflow:hidden;background:var(--obsidian)}
 .gc img{display:block;width:100%;aspect-ratio:1;object-fit:cover}

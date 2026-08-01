@@ -60,8 +60,15 @@ const SECTION_ART = {
  */
 function makeImageInliner(assetsDir) {
   const cache = new Map();
-  return function inlineImage(relPath, width, base = assetsDir) {
-    const key = `${base}|${relPath}@${width}`;
+  /**
+   * `alpha` matters more than it looks. Sprite sheets are cut-out characters on
+   * transparency; flattening them to JPEG paints the cutout black, which on a
+   * near-black page reads as a fringed box rather than a character. Those go out
+   * as PNG-with-alpha, nearest-neighbour scaled so pixel art stays crisp.
+   * Photographic plates stay JPEG — a 1360x768 arena as PNG is several megabytes.
+   */
+  return function inlineImage(relPath, width, base = assetsDir, alpha = false) {
+    const key = `${base}|${relPath}@${width}${alpha ? '+a' : ''}`;
     if (cache.has(key)) return cache.get(key);
     const abs = path.join(base, relPath);
     if (!fs.existsSync(abs)) return null;
@@ -73,18 +80,35 @@ function makeImageInliner(assetsDir) {
           `
 import sys, io, base64
 from PIL import Image
-im = Image.open(sys.argv[1]).convert('RGB')
+alpha = sys.argv[3] == '1'
+im = Image.open(sys.argv[1])
 w = int(sys.argv[2])
-im = im.resize((w, max(1, round(im.height * w / im.width))), Image.LANCZOS)
-buf = io.BytesIO(); im.save(buf, 'JPEG', quality=78, optimize=True)
-sys.stdout.write(base64.b64encode(buf.getvalue()).decode())
+if alpha:
+    im = im.convert('RGBA')
+    # Never scale a sprite UP, and use NEAREST so the pixel grid survives.
+    if w < im.width:
+        im = im.resize((w, max(1, round(im.height * w / im.width))), Image.NEAREST)
+    # Pixel art already lives in a small palette, so quantising to 256 colours
+    # is visually free and cuts the file several-fold. FASTOCTREE is the only
+    # method that keeps alpha, which is the entire reason these are PNG.
+    im = im.quantize(colors=256, method=Image.FASTOCTREE)
+    buf = io.BytesIO(); im.save(buf, 'PNG', optimize=True)
+    fmt = 'png'
+else:
+    im = im.convert('RGB')
+    im = im.resize((w, max(1, round(im.height * w / im.width))), Image.LANCZOS)
+    buf = io.BytesIO(); im.save(buf, 'JPEG', quality=78, optimize=True)
+    fmt = 'jpeg'
+sys.stdout.write(fmt + '|' + base64.b64encode(buf.getvalue()).decode())
 `,
           abs,
           String(width),
+          alpha ? '1' : '0',
         ],
-        { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 },
+        { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
       );
-      const uri = `data:image/jpeg;base64,${b64}`;
+      const split = b64.indexOf('|');
+      const uri = `data:image/${b64.slice(0, split)};base64,${b64.slice(split + 1)}`;
       cache.set(key, uri);
       return uri;
     } catch {
@@ -140,8 +164,7 @@ export function render(md, { assetsDir, docsDir }) {
    * while showing none of them undersells the work. Read off disk so the grid
    * can never disagree with what actually exists.
    */
-  function gallery(kind) {
-    const dir = kind === 'elements' ? 'elements' : 'archetype-emblems';
+  function squareGallery(dir, width) {
     const abs = path.join(assetsDir, dir);
     if (!fs.existsSync(abs)) return '';
     const cells = fs
@@ -149,7 +172,7 @@ export function render(md, { assetsDir, docsDir }) {
       .filter((f) => /\.(jpe?g|png)$/i.test(f))
       .sort()
       .map((f) => {
-        const uri = inlineImage(path.join(dir, f), 240);
+        const uri = inlineImage(path.join(dir, f), width);
         if (!uri) return '';
         const name = titleCase(f.replace(/\.[^.]+$/, ''));
         return (
@@ -160,6 +183,115 @@ export function render(md, { assetsDir, docsDir }) {
       .filter(Boolean)
       .join('');
     return `<div class="gal">${cells}</div>`;
+  }
+
+  /**
+   * The shipped arena plates, wide. A 16:9 backdrop cropped into a square
+   * thumbnail tells you nothing about the thing it is teaching you to make —
+   * the whole lesson of an arena is where the dark corners and the open lower
+   * third are, and both are lost the moment you crop it.
+   *
+   * Only `base.png` — the folders are also full of rejected candidates, and a
+   * gallery that shows the rejects alongside the keeper teaches the wrong thing.
+   */
+  function arenaGallery() {
+    const root = 'combat/arenas';
+    const abs = path.join(assetsDir, root);
+    if (!fs.existsSync(abs)) return '';
+    const cells = fs
+      .readdirSync(abs)
+      .filter((d) => fs.existsSync(path.join(abs, d, 'base.png')))
+      .sort()
+      .map((d) => {
+        const uri = inlineImage(path.join(root, d, 'base.png'), 760);
+        if (!uri) return '';
+        return (
+          `<figure class="wc"><img src="${uri}" alt="${esc(titleCase(d))}" loading="lazy">` +
+          `<figcaption>${esc(titleCase(d))}</figcaption></figure>`
+        );
+      })
+      .filter(Boolean)
+      .join('');
+    return `<div class="wgal">${cells}</div>`;
+  }
+
+  /**
+   * Packed boss clip strips, shown as strips on purpose.
+   *
+   * A filmstrip of a wind-up is both the best-looking thing in this part and the
+   * clearest possible answer to "what is a clip?" — you can count the frames,
+   * see that they share one crop box, and watch the pose travel. Alpha is
+   * preserved; flattened onto black these read as fringed rectangles.
+   */
+  function bossGallery() {
+    const root = 'combat/bosses';
+    const abs = path.join(assetsDir, root);
+    if (!fs.existsSync(abs)) return '';
+    return fs
+      .readdirSync(abs)
+      .sort()
+      .map((slug) => {
+        const dir = path.join(abs, slug);
+        if (!fs.statSync(dir).isDirectory()) return '';
+        /* Shipped clips only. The folders also hold rejected candidates, and a
+           gallery that shows the rejects beside the keeper teaches the wrong
+           thing — same reason the arena gallery takes only base.png. */
+        const strips = fs
+          .readdirSync(dir)
+          .filter((f) => /^sprite-.*\.png$/i.test(f) && !/candidate/i.test(f))
+          .sort();
+        if (!strips.length) return '';
+        const rows = strips
+          .map((f) => {
+            const uri = inlineImage(path.join(root, slug, f), 660, assetsDir, true);
+            if (!uri) return '';
+            const clip = f.replace(/^sprite-/, '').replace(/\.png$/i, '');
+            return (
+              `<figure class="strip-row"><figcaption>${esc(clip)}</figcaption>` +
+              `<img src="${uri}" alt="${esc(clip)} frames" loading="lazy"></figure>`
+            );
+          })
+          .filter(Boolean)
+          .join('');
+        return `<div class="strips"><h4>${esc(titleCase(slug))}</h4>${rows}</div>`;
+      })
+      .filter(Boolean)
+      .join('');
+  }
+
+  /** The castle cast — packed walk sheets and idle loops, alpha preserved. */
+  function castGallery() {
+    const dirs = ['castle/hero', 'castle/keepers'];
+    const rows = dirs
+      .flatMap((d) => {
+        const abs = path.join(assetsDir, d);
+        if (!fs.existsSync(abs)) return [];
+        return fs
+          .readdirSync(abs)
+          .filter((f) => /\.png$/i.test(f))
+          .sort()
+          .map((f) => {
+            const uri = inlineImage(path.join(d, f), 660, assetsDir, true);
+            if (!uri) return '';
+            const name = titleCase(f.replace(/\.png$/i, ''));
+            return (
+              `<figure class="strip-row"><figcaption>${esc(name)}</figcaption>` +
+              `<img src="${uri}" alt="${esc(name)}" loading="lazy"></figure>`
+            );
+          });
+      })
+      .filter(Boolean)
+      .join('');
+    return rows ? `<div class="strips">${rows}</div>` : '';
+  }
+
+  function gallery(kind) {
+    if (kind === 'elements') return squareGallery('elements', 240);
+    if (kind === 'emblems') return squareGallery('archetype-emblems', 240);
+    if (kind === 'arenas') return arenaGallery();
+    if (kind === 'bosses') return bossGallery();
+    if (kind === 'cast') return castGallery();
+    return '';
   }
 
   const lines = md.split('\n');
@@ -200,7 +332,7 @@ export function render(md, { assetsDir, docsDir }) {
 
     /* `<!-- gallery: elements -->` inlines every element crystal; `emblems`
        every archetype emblem. A new emblem appears the day it lands. */
-    const gal = ln.match(/^<!--\s*gallery:\s*(elements|emblems)\s*-->\s*$/);
+    const gal = ln.match(/^<!--\s*gallery:\s*(elements|emblems|arenas|bosses|cast)\s*-->\s*$/);
     if (gal) {
       out.push(gallery(gal[1]));
       i++;
