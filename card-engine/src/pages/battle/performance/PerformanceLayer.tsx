@@ -5,6 +5,7 @@ import { LashRenderer } from './LashRenderer';
 import { GrowthRenderer } from './GrowthRenderer';
 import { BarrierRenderer } from './BarrierRenderer';
 import { GenericRenderer } from './GenericRenderer';
+import { ChargeTell } from './ChargeTell';
 import { useStageClock, type StageClockOptions } from './useStageClock';
 
 /**
@@ -56,12 +57,45 @@ export function PerformanceView({
    */
   const manifestMs =
     perf.stages.find((s) => s.stage === 'manifest')?.durationMs ?? 260;
+  const chargeMs = perf.stages.find((s) => s.stage === 'charge')?.durationMs ?? 260;
+
+  /*
+   * The charge tell is drawn for EVERY form, not per renderer.
+   *
+   * Gathering material at the cast point before anything happens is universal —
+   * a growth gathers in the ground, a barrier gathers in front of the card, a
+   * lash gathers at the card edge. Putting it here means a new form inherits
+   * it, and no renderer can forget it. It stays up while the effect fires (the
+   * delivery emerges THROUGH the pool) and clears in the aftermath.
+   */
+  const chargeVisible =
+    stageName === 'charge' || stageName === 'cast' || stageName === 'travel' ||
+    stageName === 'manifest' || stageName === 'impact' || stageName === 'return' ||
+    stageName === 'arrival';
+  const chargeTell = chargeVisible ? (
+    <ChargeTell
+      at={resolveAnchor(perf.castAnchor, anchorContext)}
+      kit={perf.material}
+      motionLevel={motionLevel}
+      chargeMs={chargeMs}
+      firing={stageName !== 'charge'}
+      intensity={perf.intensity}
+    />
+  ) : null;
 
   // A finished performance unmounts itself. Leaving it up would accumulate
   // one dead SVG layer per cast for the whole battle — the "unbounded DOM
   // nodes per effect" the budget forbids.
   if (clock.finished && clockOptions?.pinnedStageIndex === undefined) return null;
 
+  return (
+    <>
+      {chargeTell}
+      {renderBody()}
+    </>
+  );
+
+  function renderBody() {
   switch (perf.form) {
     case 'lash':
     case 'drain':
@@ -112,6 +146,7 @@ export function PerformanceView({
           stageName={stageName}
         />
       );
+  }
   }
 }
 
@@ -214,6 +249,36 @@ export function PerformanceStyles() {
         100% { opacity: 0; transform: translateY(var(--cleanse-rise, -16px)) scale(1.08); }
       }
       .perf-cleanse { animation: perf-cleanse-lift 460ms ease-out forwards; }
+
+      /* The gather. Material collects at the cast point over the charge stage,
+         overshooting slightly so it reads as swelling under pressure rather
+         than fading in. Holds at full once gathered — the delivery emerges
+         THROUGH the pool, so it must still be there when the beam fires. */
+      @keyframes perf-charge-gather {
+        0%   { opacity: 0; transform: scale(0.25); }
+        70%  { opacity: 1; transform: scale(1.12); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      .perf-charge-gather {
+        animation: perf-charge-gather var(--charge-ms, 260ms) cubic-bezier(0.2,0.7,0.3,1) forwards;
+      }
+
+      /* Armed: the card is holding a chosen ability and waiting for the round
+         to run. Breathes indefinitely rather than resolving, because this state
+         has no known duration — it lasts as long as the player takes. */
+      @keyframes perf-charge-breathe {
+        0%, 100% { opacity: 0.72; transform: scale(0.96); }
+        50%      { opacity: 1;    transform: scale(1.04); }
+      }
+      .perf-charge-pulse { animation: perf-charge-breathe 1400ms ease-in-out infinite; }
+
+      /* Only materials that drip get drips — a silhouette cue, not a colour one. */
+      @keyframes perf-charge-drip-fall {
+        0%   { opacity: 0; transform: translateY(0) scaleY(0.7); }
+        25%  { opacity: 1; }
+        100% { opacity: 0; transform: translateY(14px) scaleY(1.4); }
+      }
+      .perf-charge-drip { animation: perf-charge-drip-fall 900ms ease-in infinite; }
 
       /* Staged emergence: each root is drawn from the ground outward. The
          stagger comes from a per-branch animation-delay, which is what makes
