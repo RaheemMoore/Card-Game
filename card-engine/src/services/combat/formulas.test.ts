@@ -71,7 +71,7 @@ describe('resolveDamage', () => {
   it('applies scaling coefficient to attacker stat', () => {
     const r = resolveDamage({
       baseAmount: 10,
-      damageType: 'physical',
+      damageType: 'kinetic',
       scaling: { stat: 'atk', coefficient: 0.5 },
       attackerStats: statsFor(60, 40, 50),
       targetMitigation: 5,
@@ -89,7 +89,7 @@ describe('resolveDamage', () => {
   it('halves damage against resistant targets', () => {
     const r = resolveDamage({
       baseAmount: 40,
-      damageType: 'fire',
+      damageType: 'searing',
       targetMitigation: 0,
       targetResistance: FIRE_ELEMENTAL_RESISTANCE,
       targetShields: [],
@@ -101,7 +101,7 @@ describe('resolveDamage', () => {
   it('multiplies damage by 1.5 against weak targets', () => {
     const r = resolveDamage({
       baseAmount: 40,
-      damageType: 'holy',
+      damageType: 'radiant',
       targetMitigation: 0,
       targetResistance: FIRE_ELEMENTAL_RESISTANCE,
       targetShields: [],
@@ -112,7 +112,7 @@ describe('resolveDamage', () => {
   it('applies MIN_DAMAGE_FLOOR of 1', () => {
     const r = resolveDamage({
       baseAmount: 3,
-      damageType: 'physical',
+      damageType: 'kinetic',
       targetMitigation: 100,
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: [],
@@ -134,7 +134,7 @@ describe('resolveDamage', () => {
   it('shields absorb before HP', () => {
     const r = resolveDamage({
       baseAmount: 30,
-      damageType: 'physical',
+      damageType: 'kinetic',
       targetMitigation: 0,
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: [
@@ -148,11 +148,11 @@ describe('resolveDamage', () => {
   it('typed shields only absorb matching damage types', () => {
     const r = resolveDamage({
       baseAmount: 30,
-      damageType: 'physical',
+      damageType: 'kinetic',
       targetMitigation: 0,
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: [
-        { amount: 20, types: ['fire'], remainingRounds: Infinity, sourceActorId: 'x' },
+        { amount: 20, types: ['searing'], remainingRounds: Infinity, sourceActorId: 'x' },
       ],
     });
     expect(r.shieldAbsorbed).toBe(0);
@@ -162,7 +162,7 @@ describe('resolveDamage', () => {
   it('execute at or below threshold deals current hp; above deals nothing', () => {
     const belowThreshold = resolveDamage({
       baseAmount: 0,
-      damageType: 'physical',
+      damageType: 'kinetic',
       targetMitigation: 0,
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: [],
@@ -176,7 +176,7 @@ describe('resolveDamage', () => {
 
     const aboveThreshold = resolveDamage({
       baseAmount: 0,
-      damageType: 'physical',
+      damageType: 'kinetic',
       targetMitigation: 0,
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: [],

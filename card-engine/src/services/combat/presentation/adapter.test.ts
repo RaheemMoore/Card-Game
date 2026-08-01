@@ -18,7 +18,7 @@ const oneOfEach: BattleEvent[] = [
   { kind: 'round_started', round: 1 },
   { kind: 'boss_intent_declared', round: 1, intent },
   { kind: 'player_action_selected', actorId: 'hero_1', action: { kind: 'guard' } },
-  { kind: 'damage_dealt', sourceActorId: 'boss', targetActorId: 'hero_1', amount: 12, damageType: 'fire', blockedByShield: 0 },
+  { kind: 'damage_dealt', sourceActorId: 'boss', targetActorId: 'hero_1', amount: 12, damageType: 'searing', blockedByShield: 0 },
   { kind: 'healing_applied', sourceActorId: 'hero_1', targetActorId: 'hero_1', amount: 5, overheal: 0 },
   { kind: 'shield_gained', sourceActorId: 'hero_1', targetActorId: 'hero_1', amount: 10, types: [] },
   { kind: 'status_applied', sourceActorId: 'boss', targetActorId: 'hero_1', statusId: 'burn', instanceId: 'inst_1', duration: 3 },

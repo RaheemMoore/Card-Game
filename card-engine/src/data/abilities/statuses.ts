@@ -185,9 +185,9 @@ export const STATUS_CATALOG: Record<string, StatusDefinition> = {
  * this is the floor, not a ceiling.
  */
 export const STATUS_DAMAGE_TYPE: Record<string, DamageType> = {
-  burn: 'fire',
-  bleed: 'physical',
-  poison: 'nature',
+  burn: 'searing',
+  bleed: 'kinetic',
+  poison: 'primal',
 };
 
 export const STATUS_IDS = Object.keys(STATUS_CATALOG);

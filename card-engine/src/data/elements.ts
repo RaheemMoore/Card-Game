@@ -62,14 +62,42 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
   // decoupled from elements (fashion/environment only).
   // 2026-07-24 (Raheem): tightened per-archetype element limits.
   Barbarian: {
+    // 2026-07-31 (Raheem): Metal REMOVED. Metal resolves as `tech` damage, and
+    // tech is the machine faction's alone — a Metal Barbarian could clear a
+    // machine-gated floor with no machine in the party, which is the exact
+    // hole the exclusivity rule exists to close. Metal cannot simply be remapped
+    // to `physical` instead: it is the Human's ONLY element, so that would
+    // strip the entire tech faction's builder of tech damage.
+    // 2026-07-31 (Raheem): STORM becomes the Barbarian's exclusive rare. It had
+    // been held by no archetype at all, and the Barbarian had no exclusive of
+    // its own — Fire, Earth and Blood are all shared, and Metal (removed above)
+    // was their one distinctive option. Storm is `kinetic` damage, so it does
+    // not touch the machine faction's tech exclusivity.
     naturally_compatible: ['Fire', 'Earth'],
-    rare: ['Blood', 'Metal'],
+    rare: ['Blood', 'Storm'],
   },
   // Moral-fork: PEACE picks Holy/Light (→ Cosmic culmination), VIOLENCE picks
   // Fire/Water/Wind/Earth (→ all-four). Cosmic is MONK-EXCLUSIVE.
   Monk: {
+    // 2026-07-31 (Raheem): Psychic joins Cosmic as the second Monk rare. This
+    // RESTORES canon rather than extending it — Bible §Monk §12 lists Psychic
+    // as Monk-rare, and the 2026-07-24 tightening narrowed it out.
+    //
+    // Why it doesn't muddy the PEACE/VIOLENCE fork: the fork is about what the
+    // discipline is turned outward ON, not a light/dark axis, and Monk's
+    // identityThrough is Discipline — not holiness. Psychic sits on neither
+    // prong and does not compete with the Cosmic culmination. Cosmic is the
+    // self DISSOLVED outward into the starfield; Psychic is the self kept
+    // whole and extended — influence without contact, discipline pointed
+    // inward at thought itself. One is the end of the road, the other is a
+    // road that never arrives. That is exactly why it is rare.
+    //
+    // Psychic resolves as `shadow` damage (elementDamageType.ts) only because
+    // tech is now the machine faction's alone. It is NOT a shadow element and
+    // must never be rendered as one — see elementVisualLanguage.ts, where its
+    // avoid-list explicitly excludes Dream's pastels and dissolving edges.
     naturally_compatible: ['Holy', 'Light', 'Fire', 'Water', 'Wind', 'Earth'],
-    rare: ['Cosmic'],
+    rare: ['Cosmic', 'Psychic'],
     not_available: ['Beast'],
   },
   Beastmaster: {
@@ -83,8 +111,13 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
   },
   Necromancer: {
     // Bone is Necromancer-EXCLUSIVE.
+    // 2026-07-31 (Raheem): Dream joins Void as a rare — a RESTORATION, not an
+    // extension; Bible §Necromancer §12 already lists it, and the 2026-07-24
+    // tightening narrowed it out. A Necromancer who raises MEMORY rather than
+    // bone is a first-class reading of "alter the relationship with death"
+    // (§14 checklist). It already resolved as `shadow`.
     naturally_compatible: ['Poison', 'Shadow', 'Blood', 'Bone'],
-    rare: ['Void'],
+    rare: ['Void', 'Dream'],
   },
   Vampire: {
     // Nocturne + Sanguine are Vampire-EXCLUSIVE; Void is the Ascension-blocker rare.
@@ -99,13 +132,29 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
   'Mech Pilot': {
     // 2026-07-24 (Raheem): pure engineered/machine power — the tech family only.
     // 2026-07-25: 'Tech' removed as an element (stat only); Plasma/Nanite/Void carry it.
-    naturally_compatible: ['Plasma', 'Nanite', 'Void'],
-    rare: [],
+    // 2026-07-31 (Raheem): Nanite moved to Android alone, leaving PLASMA as the
+    // Mech Pilot's exclusive — a war machine's gun. Every archetype should own
+    // at least one element nobody else can reach; Mech Pilot had none, and was
+    // element-for-element indistinguishable from Android.
+    //
+    // Kept naturally_compatible rather than rare, deliberately: Plasma is now
+    // this archetype's ONLY non-shared element, and an archetype whose sole
+    // element is rare-gated has nothing to forge with.
+    //
+    // 2026-07-31 (Raheem): Void demoted from natural to rare — see the Void
+    // note at the bottom of this file. Plasma alone is the Mech Pilot's forge
+    // path, which is the point: this archetype IS its gun.
+    naturally_compatible: ['Plasma'],
+    rare: ['Void'],
   },
   Android: {
     // 2026-07-24 (Raheem): the engineered tech core; Void + Prism are the rares.
     // 2026-07-25: 'Tech' removed as an element (stat only); Plasma/Nanite carry it.
-    naturally_compatible: ['Plasma', 'Nanite'],
+    // 2026-07-31 (Raheem): NANITE is the Android's alone — a body that is itself
+    // made of machines. Plasma went to Mech Pilot in the same trade. Android now
+    // owns two exclusives: Nanite (natural) and Prism (rare).
+    // 2026-07-31 (Raheem): Void demoted from natural to rare, as for Mech Pilot.
+    naturally_compatible: ['Nanite'],
     rare: ['Void', 'Prism'],
   },
   Seraph: {
@@ -123,6 +172,32 @@ export const ELEMENT_COMPATIBILITY: Record<ArchetypeName, ArchetypeElementBucket
     rare: [],
   },
 };
+
+/**
+ * VOID — the one element that is rare for EVERYONE (2026-07-31, Raheem).
+ *
+ * Every other element is either shared and ordinary, or exclusive to a single
+ * archetype. Void is neither: four archetypes can reach it — Necromancer,
+ * Vampire, Mech Pilot, Android — and **none of them can reach it naturally.**
+ * It is rare-gated in all four. That is its own category, and it is deliberate.
+ *
+ * Raheem's design intent, recorded here because the mechanics do not yet carry
+ * it: *"when Void gets into the game it's going to be quite advantageous — a
+ * ridiculous element that just cuts through the other elements, since that
+ * element in existence kind of absorbs all or avoids all. So we've got to make
+ * it hard to get and make it reserved, but it needs to be very effective."*
+ *
+ * So the rarity is not flavour — it is the PRICE of an effect that has not been
+ * built yet. Void currently resolves as ordinary `umbral` damage like eight
+ * other elements, which is precisely what it must not stay.
+ *
+ * OPEN, and needs Raheem's ruling before anyone builds it: "cuts through the
+ * other elements" maps almost exactly onto the existing `true` damage type,
+ * which `resolveDamage` exempts from BOTH resistance and mitigation. That may
+ * be the right answer or may be too much — `true` currently bypasses armour
+ * entirely, so a Void card would ignore Def as well as elemental resistance.
+ * Do not wire it up on the strength of this comment.
+ */
 
 // ---------- Public helpers ----------
 

@@ -38,7 +38,7 @@ function hero(id: string, stats: CardStats, archetype: 'Barbarian' | 'Mech Pilot
     displayName: id,
     stats,
     rank: 'Forged',
-    elementDamageType: 'physical',
+    elementDamageType: 'kinetic',
     abilities: [buildAbilitySnapshot(attuned.definition, attuned.version)],
   });
 }

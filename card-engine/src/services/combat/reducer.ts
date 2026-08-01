@@ -264,10 +264,10 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
       // attack that ignored the defensive layer would be a second damage
       // system.
       const chamber = hero.snapshot.resourceType;
-      const mods = statusDamageModifiers(hero.statuses, next.boss.statuses, 'physical');
+      const mods = statusDamageModifiers(hero.statuses, next.boss.statuses, 'kinetic');
       const dmg = resolveDamage({
         baseAmount: strikeDamage(hero.snapshot.stats.Atk.value),
-        damageType: 'physical',
+        damageType: 'kinetic',
         targetMitigation: 0,
         targetResistance: bossResistance(next),
         targetShields: next.boss.shields,
@@ -731,7 +731,7 @@ function doResolveBoss(state: BattleState): StepResult {
     const mods = statusDamageModifiers(next.boss.statuses, hero.statuses, action.damageType);
     const dmg = resolveDamage({
       baseAmount: Math.round(bossBaseDamage * multiplier),
-      // Authored per action. Was hardcoded 'fire' for every boss in the game,
+      // Authored per action. Was hardcoded 'searing' for every boss in the game,
       // which made hero elemental resistance meaningless and every future
       // boss a reskin of this one.
       damageType: action.damageType,
@@ -1239,7 +1239,7 @@ function effectDamageType(
 ): DamageType {
   return version.damageTypeSource === 'element'
     ? hero.snapshot.elementDamageType
-    : effect.damageType ?? 'physical';
+    : effect.damageType ?? 'kinetic';
 }
 
 /**
@@ -1486,7 +1486,7 @@ function resolveAbilityEffects(
         // fire here meant the fire-resistant boss halved incoming BLEED.
         // Element-typed abilities still override, per damageTypeSource.
         const damageType = effectDamageType(
-          { damageType: STATUS_DAMAGE_TYPE[effect.statusId] ?? 'physical' },
+          { damageType: STATUS_DAMAGE_TYPE[effect.statusId] ?? 'kinetic' },
           version,
           hero,
         );
@@ -1684,7 +1684,7 @@ function applyDotTicks(state: BattleState, events: BattleEvent[]): BattleState {
     for (const st of statuses) {
       const perTick = st.application.amountPerTick;
       if (!perTick) continue;
-      const damageType = st.application.damageType ?? 'fire';
+      const damageType = st.application.damageType ?? 'searing';
       const multiplier = resistance.resistant.includes(damageType)
         ? 0.5
         : resistance.weak.includes(damageType)

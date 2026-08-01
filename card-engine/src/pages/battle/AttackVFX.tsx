@@ -20,12 +20,15 @@ interface Point {
  * impact flash read — see `resolveImpactAnchors`. */
 
 const ELEMENT_COLOR: Record<DamageType, string> = {
-  physical: '#e8d6b2',
-  fire: '#ff6a2b',
-  holy: '#ffe28a',
-  shadow: '#8b5cf6',
-  nature: '#6bcf6b',
+  kinetic: '#e8d6b2',
+  searing: '#ff6a2b',
+  radiant: '#ffe28a',
+  umbral: '#8b5cf6',
+  primal: '#6bcf6b',
   tech: '#7dd3fc',
+  /* Nebula magenta, deliberately far from shadow's violet — the two are
+     adjacent in the lore and must never be confused mid-fight. */
+  astral: '#e879f9',
   true: '#f5f5f5',
 };
 
@@ -66,7 +69,7 @@ export function AttackVFX({ state, currentBeat }: Props) {
     const anchors = resolveImpactAnchors(state, e.sourceActorId, e.targetActorId, viewportWidth);
     if (!anchors) return;
     const { from, to, sourceIsBoss } = anchors;
-    const color = ELEMENT_COLOR[e.damageType] ?? ELEMENT_COLOR.physical;
+    const color = ELEMENT_COLOR[e.damageType] ?? ELEMENT_COLOR.kinetic;
     const heavy = sourceIsBoss && currentBeat.severity === 'heavy';
 
     const id = currentBeat.id;

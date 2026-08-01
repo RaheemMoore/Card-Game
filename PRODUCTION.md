@@ -13,6 +13,12 @@
 
 ## Contents
 
+The guide is in four parts. **Infrastructure** is how the project is built and run.
+**Game Mechanics** is how the game itself works. **Making Things** is how to make art
+yourself. **Lore** is Tori's.
+
+**Infrastructure**
+
 | | Section | What it answers |
 |---|---|---|
 | 0 | [What I'd work on next](#0-what-id-work-on-next) | What should I do today? |
@@ -26,7 +32,31 @@
 | 8 | [Decision log](#8-decision-log) | Why did we do it that way? |
 | 9 | [Ideas raised, not committed](#9-ideas-raised-not-committed) | What did we say out loud but not promise? |
 
+**Game Mechanics** — how the game itself works.
+
+| | Section | What it answers |
+|---|---|---|
+| 1 | [How the game works](#1-how-the-game-works) | Archetypes, elements, mana vs tech |
+| 2 | [What we still need to decide](#2-what-we-still-need-to-decide) | What is the game waiting on us for? |
+| 3 | [The two engines](#3-the-two-engines--how-a-character-gets-a-face-and-a-story) | How does a character get a face and a story? |
+
+**Making Things** — how to make art yourself, with PixelLab and Leonardo.
+
+| | Section | What it answers |
+|---|---|---|
+| 1 | [PixelLab — people and monsters](#1-pixellab--people-and-monsters) | Characters, bosses, animation, what it costs |
+| 2 | [Leonardo — places](#2-leonardo--places) | Backdrops, arenas and maps |
+| 3 | [Ideas worth making](#3-ideas-worth-making) | What should we make next? |
+
+**Lore** — Tori's part. What is written, what is invented, what needs her.
+
+| | Section | What it answers |
+|---|---|---|
+| 1 | [Tori's desk](#1-toris-desk) | What is waiting for me, and in what order? |
+
 ---
+
+# Infrastructure
 
 <!-- updated: 2026-07-31 -->
 ## 0. What I'd work on next
@@ -808,3 +838,729 @@ start tracking hooks is an open question in §0.
 **The rule that keeps it honest:** if I'm not sure something is true, this guide says so
 rather than guessing. A backlog that lies is worse than no backlog — the moment you catch it
 being wrong, you stop reading it, and then it's dead.
+
+
+---
+
+# Game Mechanics
+
+<!-- updated: 2026-07-31 -->
+## 1. How the game works
+
+*Everything in Infrastructure describes how the project is built. This part describes the
+**game** — the abilities, the elements, the bosses, and how a character actually gets stronger.*
+
+**This part is young.** It was started 2026-07-31 and most of it is still being designed, so it
+opens with what we haven't decided rather than pretending to be finished.
+
+### The eleven archetypes
+
+Every character is one of these. The emblems below are the real selection art — ten approved,
+with the Lycanthrope still on a placeholder.
+
+<!-- gallery: emblems -->
+
+### The twenty-nine elements
+
+Each character carries one. The element decides how the character looks, what their damage
+resolves as in a fight, and — for the fifteen elements only a single archetype can reach — what
+they can do that nobody else can. Every crystal below was made for this game.
+
+<!-- gallery: elements -->
+
+**Twenty-eight crystals for twenty-nine elements** — Time has no art, because no archetype can
+reach it yet. Storm was in the same position until 2026-07-31, when it became the Barbarian's.
+
+**Nine of these are exclusive to one archetype and mechanically identical to a shared one right
+now.** Nature is the Druid's alone, Nocturne and Sanguine are the Vampire's, Nanite is the
+Android's — and none of them do anything a shared element doesn't. That's the largest open
+question in this part.
+
+### Mana and Tech — the same damage, opposite riders
+
+Every card runs on Mana or on Tech, never both, and that choice decides three things: what your
+damage leaves behind, what kind of creature you are, and which fights you are the wrong answer
+for.
+
+**Mana lingers.** Statuses stick, stack and outlast. It is slow, it compounds, and it wins long
+fights. Eight archetypes run on it.
+
+**Tech pierces.** It ignores a share of shields and armour — enchantment does not stop a piston.
+It is immediate and flat, and it wins against defence. Only Human, Android and Mech Pilot run on
+it, and **only they can deal tech damage** — which is what lets a boss be built that simply
+cannot be beaten without a machine in the party.
+
+**Your resource also decides your body.** A tech card has no body: it cannot be frozen,
+poisoned, bled or frightened. It pays for that by breaking under tech damage — machines break
+machines — and by being unhealable. The only thing that restores a machine is a Human.
+
+### Why there are no dwarves
+
+The Human is the answer to "why is a human useful in a fantasy world." They have no powers and
+no elements — only Metal — and what they have instead is *building*. They are the machine
+faction's builder, its only revive, and the reason an Android or Mech Pilot can fire the full
+version of an ultimate. Weak alone by design; their stat line is the flattest in the game and
+stays that way. They are never indispensable because of a number.
+
+### A note on the art
+
+The emblems and element crystals above were made for this game and are the best-looking thing
+the project owns. **Not everything is at that standard yet** — bosses and abilities still run on
+placeholders, the Lycanthrope emblem is unfinished, and the plan is custom art for abilities too.
+Every one of those is a chance to make the game more beautiful, and the pipelines to do it
+already exist: see the workshops in Infrastructure §6.
+
+---
+
+<!-- updated: 2026-07-31 -->
+## 2. What we still need to decide
+
+**Read this first, not last.** A question buried at the bottom of a design doc is a question
+nobody answers. These are the ones where the game is waiting on a ruling — and the ones where
+there's room to invent something.
+
+### Blocking — 5 items
+
+*The game is not functional until these are answered.*
+
+- **The lore engine has never been specified.** Every card's story is written from 42 words of
+  instruction, with no voice, no examples, no banned tropes and no check afterward — while names
+  and images each have a whole apparatus. The lore on the cards is bad and this is why. *Unblocked
+  by:* §3's six-step route, starting with a voice per archetype authored with the Lore Director.
+
+- **What does each of the 15 exclusive elements actually do?** Every archetype now owns at
+  least one element nobody else can reach — Nature is the Druid's, Nocturne and Sanguine are
+  the Vampire's, Nanite is the Android's. Mechanically they do nothing special yet, so an
+  exclusive element is currently identical to a shared one. *Unblocked by:* the element deep
+  dive, deliberately deferred to its own project.
+- **What does Void do, and is it `true` damage?** Void is the one element that is rare for
+  everyone who can reach it, priced for an effect that doesn't exist yet — "cuts through the
+  other elements." That maps almost exactly onto the existing `true` damage type, which
+  bypasses both resistance *and* armour. That may be right, or far too much. *Unblocked by:*
+  Raheem ruling on how far it cuts.
+- **Does an all-machine party get any sustain?** Tech cards can't be healed, only repaired by a
+  Human. A party of Android and Mech Pilot with no Human currently has no healing at all.
+  Either that's the lesson, or machines get a weak self-repair. *Unblocked by:* a ruling.
+- **What is the magic-warded boss, concretely?** The fight that proves the tech gate — a
+  creature every element slides off, where ten archetypes are useless and a hammer is not. It's
+  the floor that sends someone back to level a Human. Nothing is designed. *Unblocked by:* a
+  boss design pass.
+
+### Improving — 7 items
+
+*It works. These would make it better.*
+
+- **The player's answers usually don't reach their picture.** `storyMotifs` is the only channel
+  carrying Story Pillar choices into the portrait, and it sits third from last in a prompt capped
+  at 1450 characters — so it is normally truncated away. See §3. Small fix, likely large effect.
+
+- **The Mana stat is worth about a quarter of what Def is worth.** Measured: Def 100 vs 20 is
+  roughly 430 effective HP; Mana 100 vs 20 is 30–60 damage. Roughly 8:1. The riders should
+  bring it to about 2:1. *Unblocked by:* one line decoupling mitigation from Def's raw value,
+  then the balance sim. Target is under 3:1.
+- **Rider magnitudes are starting numbers, not playtested ones.** `floor(mana/34)` bonus rounds
+  and `tech/167` pierce came from the systems designer's first pass.
+- **Druid and Human have no rare element at all.** Both are narrow by design, so this may be
+  correct — but nobody has said so on purpose.
+- **Time is held by nobody.** It has a name, art and a damage type, and no archetype can reach
+  it. Seed material for a future archetype, or cut? Storm was in the same position until it
+  became the Barbarian's.
+- **`umbral` carries nine elements; `searing` carries one.** Lopsided, and it will look strange
+  the moment the eight damage types are printed side by side.
+- **What does each stat mean per game mode?** Def buying HP in a boss fight is not the same as
+  Def in a zone-control board game, and the design has never said what it is instead.
+
+### Open ground — 4 items
+
+*Nobody has committed to these. This is where the exciting ideas go.*
+
+- **Mode-exclusive prizes.** Power up in the tower, take those cards to the board game, and
+  each mode holds rewards the other cannot give. Needs a rule for *what class of thing* is
+  exclusive — cosmetics? abilities? element access? *Note:* reward changes need Raheem's
+  explicit approval under the economy plan §13.
+- **Do elements combine, and only in the board game?** The Genshin-style reaction system from
+  the warband draft may be the honest answer to "why is the card game a different game" — the
+  tower is about reading one enemy and bringing the right answer; the board game is chemistry.
+- **Special forms for rare elements.** Raheem's note that rare elements will later get forms
+  that do special things. Its own project, deliberately.
+- **Mana flows, tech banks.** Mana draws from the world and regenerates; tech runs on what you
+  built before the fight. Held back because the mana/tech split works without it, but it's a
+  real difference in how the two feel to play.
+
+### The rule for this section
+
+A question that gets answered **moves to the decision log in §8 with its ruling** — it is never
+just deleted. The answer is the valuable part, and the reason behind it is what stops the same
+question being re-asked in three months.
+
+---
+
+<!-- updated: 2026-07-31 -->
+## 3. The two engines — how a character gets a face and a story
+
+*Every card is made by two systems. One writes who the character is; the other paints them. They
+were deliberately split apart, one of them has been rebuilt, and the other has never been touched.*
+
+### The split, and why it exists
+
+Card generation used to be **one** Claude call that returned the name, the title, the lore *and*
+the Leonardo prompt in a single JSON blob, assembled from a ~1200-line braided prompt. Neither half
+could be improved without risking the other — every image fix threatened the name and the story,
+and every lore fix threatened the picture.
+
+They are now two engines with a typed contract between them:
+
+- **The Lore Engine** — one Claude call. Writes *who this character is*: name, title, lore, and the
+  structured `hiddenFate` (fashion, hair, skin, weather).
+- **The Image Engine** — pure, deterministic TypeScript. Reads that description and produces the
+  Leonardo prompt. It invents no identity.
+
+**The seam is one deliberate omission.** The object passed between them carries no `cardName`, no
+`nameAndTitle`, and no `lore`. From `types/characterSheet.ts:21`:
+
+> The Image Engine physically never receives them, so it cannot corrupt the character's name or
+> story by trying to stage a better picture. That omission is the guarantee.
+
+This is not a convention anyone has to remember. It is enforced by the type system — the prose
+*cannot* reach Leonardo.
+
+### Which way the influence runs
+
+**The image decides, and the lore follows.** This is the part worth internalising, because it is
+the opposite of how it worked before.
+
+Before Claude is called at all, code rolls the actual person — sex, build, age, distinguishing mark
+— deterministically, seeded on the card's id (`services/imageEngine/identityRoller.ts:134`). That
+roll is then handed to Claude as a locked constraint:
+
+> ROLLED IDENTITY (LOCKED — the name + lore MUST match this EXACT person, do not drift, do not
+> soften)
+
+and again, in the diversity block: *"cardName + lore MUST fit a person with this attribute. Do not
+soften it. Do not skip it."* After Claude replies, those values are **overwritten with the rolled
+ones anyway** (`claudeApi.ts:1186-1211`), so drift is impossible.
+
+That inversion is what killed the old problem where every generated character drifted toward the
+same young, conventionally attractive body. The code picks the person; the writing has to fit them.
+
+**One detail tells you where the attention went:** the body and age descriptions handed to the lore
+writer are the `leoDescription` fields — strings written for Leonardo, an image API. The lore is
+being conditioned on phrasing authored for a picture.
+
+### The image engine — rebuilt
+
+It has a real home at `services/imageEngine/` and a deterministic assembler at
+`services/portraitAssembler.ts`. What exists today:
+
+- **Complete per-archetype pools, 11 of 11** — weapons, poses, and environments, all rank-scaled so
+  a Foundation card and an Ascendant card of the same archetype don't share a background.
+- **Companions for 5 of 11, by design** — Necromancer, Beastmaster, Vampire, Mech Pilot, Android.
+  The other six have none deliberately: their allies are people, not equipment.
+- **Bespoke scene builders** for ten archetypes and the three Seraph paths.
+- **Ordered assembly.** Segments are emitted in priority order because Leonardo weights early
+  tokens and truncation drops from the end, with a reserved closer that can never be truncated.
+- **Three-layer modesty enforcement**, naming the actual closed garment as a noun rather than
+  hoping a negative prompt holds.
+
+### The lore engine — never started
+
+`services/imageEngine/` contains five modules. **`services/loreEngine/` contains a README and no
+code.** The directory layout is an honest map of where the effort went.
+
+Here is the entire specification for a card's lore, in full, from `claudeApi.ts:954`:
+
+```
+"lore": "2-3 sentences of flavor text. Weave the Story Pillar answers into the
+mood WITHOUT quoting them literally. Reflect the emotional throughline you
+identified."
+```
+
+Forty-two words. No system prompt at all. Temperature 1. Running on Haiku — chosen, per the comment
+above the call, because it reliably emits *short image prompts*; lore quality was never a criterion.
+Roughly 300 of that prompt's 355 lines are about bodies, skin, hair, fashion, pose and element
+visuals.
+
+**Compare what the three outputs actually get:**
+
+| | Names | Images | Lore |
+|---|---|---|---|
+| Specification | a naming bible per archetype | a 5-module engine | **42 words** |
+| Banned material | 25 banned tropes, injected | 265 negative terms | none |
+| Per-archetype voice | yes | yes | **none — all 11 identical** |
+| Anti-repetition | rotation, history, collision detection | seeded rolls | none |
+| Checked afterward | hard lock + collision warning | pure, truncation-ordered | **presence check only** |
+| Milestone markers | M4.5 | M4.6, M4.7, M4.0, image-first | **never had one** |
+
+A Necromancer and a Mech Pilot receive **identical** instructions for how to write their story. The
+Bible chapters carry no voice, tone, or prose-guidance field of any kind. And nothing inspects the
+lore after it comes back — no length check, no trope filter, no repetition tracking — even though
+that exact machinery already exists and runs for names.
+
+That is why the lore is bad. Not because the model is weak: because nobody has ever told it what
+good looks like.
+
+### The one leak worth knowing about
+
+Lore prose never reaches the image. But lore-*derived* data does, through `storyMotifs` — 4 to 8
+concrete objects and symbols Claude infers from the player's Story Pillar answers. It is the only
+channel carrying the player's choices into their picture.
+
+**It sits third from last in the prompt**, inside a block whose own comment reads *"lower-priority
+tail — truncates harmlessly."* The prompt is capped at 1450 characters, with the element palette,
+identity, pose, weapon, companion, wardrobe and background all ahead of it.
+
+**So the thing the player actually chose is usually cut before it reaches Leonardo.** If the cards
+have ever felt disconnected from the answers that made them, this is the most likely reason, and
+it is a small fix rather than a rewrite.
+
+### How we fix the lore
+
+The route is not "write a better sentence." Names already solved this problem, and lore was simply
+never given the same apparatus. Give it that apparatus.
+
+1. **A voice per archetype.** Tense, register, and what this archetype's prose is *about* —
+   Necromancers speak in elegy, Androids in clipped declaratives. Added as a field on the Bible
+   chapter, which today has no such field. The Seraph path anchors already prove per-archetype
+   narrative anchoring works; it was never generalised to the other ten. **Authored with the Lore
+   Director**, not invented in code.
+2. **Banned tropes and worked examples.** Names get 25 banned tropes and a four-point self-check.
+   Two good and two bad examples per archetype will do more than any amount of adjective.
+3. **Get lore out of the image prompt.** Its own call with a real system prompt, or at minimum a
+   system prompt and a lower temperature. One line riding inside a 355-line prompt about faces, at
+   temperature 1, is the current arrangement.
+4. **Reconsider the model for this call.** Haiku was picked to keep image prompts short. That
+   reason does not apply to prose.
+5. **Check the lore after it is written** — length, tropes, and repetition across cards, reusing
+   the tracking that already runs for names.
+6. **Give `services/loreEngine/` some code.**
+
+### Where this is going — questions that build the character
+
+Right now the forge asks two visibly different kinds of question. Story Pillars — 45 hand-authored
+questions about who you are — come at one stage. The visual questions, generated from the weapon
+and companion pools, come at another. **You can feel the seam**, and the seam is what makes it feel
+like filling in a form rather than making someone.
+
+**The direction: one flow, where you cannot tell which is which.** Every question reads as story.
+Some quietly pin the picture, some feed the writing, and many do both. The player is answering
+questions about a person, and a character is assembling itself behind the answers.
+
+**The prototype already exists.** `data/imageQuestionScaffold.ts` holds 30 questions and 100 options
+across all 11 archetypes, and every option carries a hidden image directive — the text reads as
+story, the directive silently pins the portrait. Nothing imports it except its own test. It was
+built as an idea-starter and it proves the shape works.
+
+**What it would actually take**, honestly: merging 30 scaffold questions against 45 live Story
+Pillars plus the generated visual set. The Story Pillar answers also feed the rare-element
+eligibility gate, so they cannot simply be replaced. It is a real design pass, not a wiring job.
+
+---
+
+# Making Things
+
+<!-- updated: 2026-07-31 -->
+## 1. PixelLab — people and monsters
+
+*The tool for anything that moves. This is the one worth getting genuinely good at,
+and the skill that carries into every game after this one.*
+
+**The point is to get good at this, not to follow a checklist.** Everything below was
+learned by spending generations and getting it wrong. The failures are the valuable part
+— each one is a rule that will still be true in the next project.
+
+### What a finished boss actually is
+
+A boss is not one picture. It is a handful of short animations — **clips** — that the game
+plays at different moments in a fight. Each clip is a strip of frames sharing one crop box,
+so he never changes size mid-fight.
+
+<!-- sprite: combat/bosses/debt-bearer/sprite-windup.png | The Debt-Bearer's **wind-up** — 7 frames. This one loops, because he can be charging for several of your turns and a clip that plays once would freeze on raised fists. -->
+
+That is the whole idea. The rest is choosing which clips to make.
+
+### The seven states, and which ones you actually need
+
+| State | When it plays | Skip it? |
+|---|---|---|
+| `idle` | Between moves | **Never.** Everything falls back to it |
+| `windup` | The telegraph, a round before the blow | Worth having — it's how the fight reads |
+| `attack` | The blow landing | Yes |
+| `defeat` | He loses | Yes |
+| `hit` | He takes damage | **Cut this first.** A CSS flash covers it |
+| `rage` | Phase two | Reuse something |
+| `ultimate` | The big one | Reuse something |
+
+**The Still Season only has four generated clips.** Its `rage` is the first three frames of
+its ultimate on a loop. Its `ultimate` is a *rejected* hit animation — the scream was wrong
+for taking damage and perfect for a boss losing its temper. Two states, zero extra
+generations.
+
+<!-- sprite: combat/bosses/still-season/sprite-ultimate.png | The Still Season's **ultimate** — which began life as a rejected `hit`. Before you throw a generation away, check whether it is right for a different state. -->
+
+**So: should we make more animations for the other bosses?** The Emberborn Wraith has one
+static frame and nothing else — it is the oldest boss and it shows. Adding `idle` and
+`windup` alone (~10 generations) would bring it up to the standard of the other two. That's
+the cheapest visible improvement available in the whole project.
+
+### The size you ask for is not the size you get
+
+**PixelLab overrides your canvas size every time.** This surprises everyone.
+
+| We asked for | We got |
+|---|---|
+| 128 × 128 | 180 × 180 |
+| 168 × 168 (the documented maximum) | 256 × 256 |
+
+Treat size as a hint, then read back what arrived. It matters because of the one rule you
+cannot break: **never shrink pixel art to fit.** Both castle characters shipped at 46% of
+the size they were drawn at, and the reaction was *"he doesn't feel like he's from the same
+game"* — which was exactly right. Resize once, before it reaches the game, then display at
+full size or larger. Pixel art tolerates being scaled up. It does not survive scaling down.
+
+### Which way is which
+
+Get this backwards and your character moonwalks. It shipped backwards once.
+
+**`south`** = facing you · **`north`** = their back · **`east`** = screen **right** ·
+**`west`** = screen **left**
+
+**The only way to confirm facing is to walk them around in the game and look.** We
+"verified" it twice with clever pixel analysis; both methods were confident, wrong, and
+disagreed with each other. Raheem spotted the real problem in two seconds of play.
+
+### How many directions, and the three modes
+
+| Who | Directions |
+|---|---|
+| Someone the player steers | **4** |
+| A shopkeeper, an NPC, a boss | **1** — `south` |
+
+Eight is a mistake we made once, on a stationary dwarf who will never show six of them. The
+real cost isn't the rotations — **an animation costs one generation per direction**, so an
+idle across eight directions costs eight instead of one.
+
+| Mode | Verdict |
+|---|---|
+| **`v3` with pinning** | **The default for everything.** ~25 generations for a full walking character, passed the quality check first try |
+| `template` | Only a gentle idle for someone who stands still. It redraws each direction from scratch and a costume visibly changed halfway through a walk |
+| `pro` | **Never.** ~186 generations for one character — a tenth of the monthly allowance — and the result was unusable |
+
+**"Pinning" is the whole trick.** You hand each animation a starting frame — the character's
+own rotation for that direction — so every clip begins from the same person. Without it the
+model reinvents them slightly each time. That is what costume drift is.
+
+### Making them move
+
+- **`frame_count` must be even and at least 4.** Asking for 3 or 7 is simply rejected, for free.
+- **You get back one more frame than you asked for.** Ask 6, receive 7. Frame 0 is your pinned pose.
+- **Speed is chosen against the fight.** An ordinary attack is 650ms from wind-up to impact
+  (250 + 400). Time clips to *that*, not to the big attack, or every normal hit gets cut off.
+
+### Four things the model will do to you
+
+**One action per clip.** *"Raising both arms overhead and smashing them down, then
+recovering"* returned no arm movement at all, plus a large brown wing belonging to nothing.
+Split into "wind up" and "smash" and it worked immediately. **If your description contains
+"and then", it is two clips.**
+
+**Name every part of the costume, every time, and say it does not change.** Anything you
+leave out is optional to the model. A glowing ribcage went from 225 lit pixels to 7 across
+five frames because the clip description didn't mention it.
+
+**Never ask a clip to animate a glow.** We asked for one that brightened and dimmed. It
+dimmed and never came back. **A glow is a code layer** — free, and impossible to lose.
+
+**Keep motion small.** *"Recoiling sharply, head snapping back"* came back wearing an
+invented cyan crown. *"Tipping back a little and settling"* worked.
+
+### Making a boss — the actual steps
+
+*~20–31 generations, and an evening.*
+
+Decide first: whose fight it is, what it looks like standing still (bosses never turn
+around), **what colour its attacks are** — that colour must be quiet in the backdrop or the
+attack stops reading as an event — and whether you have a picture already. Both our bosses
+came from concept art, and it shows.
+
+1. Copy `configs/boss-still-season.json` — the most recent and most correct.
+2. Set every clip except `idle` to `"skip": true`. **One clip, then look.**
+3. `node scripts/sprite-lab/create-boss-pro.mjs configs/boss-<name>.json`
+4. If the idle is right, unskip the rest.
+5. Pack the clips into one shared crop box.
+6. **Watch it play**: `node scripts/sprite-lab/boss-sheet.mjs <folder>`. Watching *is* the
+   review — numbers cannot tell you a boss looks wrong.
+7. Register it in `bossSpriteManifest.ts`, or it will not appear at all.
+
+**Two mistakes both bosses made.** His feet ended up 33 pixels above his own platform,
+because his attack throws flame below his soles and the crop box included it — **the bottom
+of the box is the ground line, taken from his resting pose alone.** And the attack should
+start from the last frame of the wind-up so his fists are already raised — worth doing, and
+**only ever one hop**, because chaining a chain compounds drift.
+
+### Making a character — the actual steps
+
+*A walking character is ~25 generations. A shopkeeper is ~10–15.*
+
+**First, the honest question: does anyone steer them?** If not, **do not generate a walk
+cycle.** That is two thirds of the cost and nearly every defect.
+
+<!-- sprite: castle/hero/chibi.png | A finished walking character: four rows, one per direction, each starting with the standing frame. That standing frame is frame 0 of the walk itself — take it from anywhere else and he changes size when he stops. -->
+
+**Standing still:** make them on the PixelLab website, one direction, add a `breathing-idle`
+(one generation), **write down the seed**, and hand over the character link — it drops
+straight in.
+
+**Walking:** copy `configs/hero-chibi.json`, four directions, one walk clip per direction
+each pinned to its own rotation. **No colour reference** — we fed the courtyard in once for
+"harmony" and the character sank into the background. A character the player controls must be
+readable first and harmonious second.
+
+### What you can do entirely in the browser
+
+Quite a lot, and this is the part that matters for working alone: create a character start to
+finish (every setting is a form field), add template animations, make props and tiles,
+download frames, and **judge whether it looks good — the only test that has ever really
+mattered.**
+
+**A character you make on the website drops straight into the game.** The
+`/create-character/<id>` link is all that's needed. No exporting.
+
+What still needs the scripts: pinning, packing, the quality checks, and resizing for display.
+
+### Costs, so "a few generations" stops being the unit
+
+The plan gives **2,000 generations a month.**
+
+| What | Generations |
+|---|---|
+| A character the player walks around | **~25** |
+| A boss with a full clip set | **~20–31** |
+| A shopkeeper who stands still | **~10–15** |
+| A dialogue portrait | **25** |
+| One animation clip | roughly 1 per frame |
+
+**And a lot is free:** a rejected request, a stalled job, re-running a generate command
+(it skips finished work), and `sprite-lab.mjs recover`, which rebuilds from jobs you already
+paid for. **Write down the seed every time** — we lost a character permanently because
+nobody recorded hers.
+
+---
+
+<!-- updated: 2026-07-31 -->
+## 2. Leonardo — places
+
+*Backdrops, arenas and maps. Slower to get right than characters, and far more of it is
+fixable afterwards for free.*
+
+### What an arena has to do
+
+<!-- plate: combat/arenas/still-season-grove/base.png | A shipped arena. Note what the composition is doing: dark uneventful top corners where the health panels sit, an open middle for the boss, and a flat low-contrast lower third so your party reads against it. -->
+
+An arena is a stage with furniture on it, and the furniture is not optional:
+
+- **Top corners dark and uneventful** — the health panels go there
+- **Middle open** — the boss stands there
+- **Lower third flat and low-contrast** — your party stands there and must stay readable
+- **Bottom of frame gets cut** — the command bar covers it
+- **Nobody in the picture.** Ever. Describing a space by who stands in it once painted three
+  tiny fighters into the floor.
+
+**And check it on a phone.** Portrait crops away everything but the middle quarter, where
+the carefully darkened corners contribute nothing at all.
+
+**Sizes:** arenas are **1360 × 768**. Tower and courtyard plates are **1536 × 1152**.
+
+### Two models, and they are not interchangeable
+
+- **Phoenix** — anything seen head-on. Arenas, battle backdrops, forge scenes.
+- **Lucid Origin** — anything seen from above. The courtyard, tower floors, maps.
+
+Phoenix pulls hard toward being a dramatic painting and cannot hold a flat map look. Lucid
+Origin can. **Do not switch models partway through a set** — the texture is the most visible
+sign that two places belong to the same world.
+
+### Four lessons that each cost real money
+
+**Name the thing you want. Never ask for an absence.** *"No sky"* asks the model to render
+nothing in the most important part of the frame, and it will not. Ten images across four
+rounds failed this way. What worked was making the top of the frame *a thing* — tiers of
+stone rising to the top edge.
+
+**A style reference brings the content with it, not just the style.** We pointed a green
+forest brief at a shipped stone arena for consistency and got that arena's lava floor,
+recoloured, every single time — even at the weakest setting. **Consistency comes from the
+same model, the same size, and the same opening description.**
+
+**A colour grade cannot add a subject.** Raheem, exactly right: *"Making the stone the
+colour of moss doesn't make the environment more nature-like. That would be including more
+plants."*
+
+**Fix framing in code, not by regenerating.** The sky got cropped. The platform the boss
+stands on is drawn by the game. Suspended leaves are code sprites — they failed six times
+out of six in generation, and look better as sprites anyway, because everything else on
+screen moves and they conspicuously don't.
+
+### The one-image rule
+
+**Generate one plate, look at it, then generate the rest.**
+
+```bash
+node scripts/bg-harness/harness.mjs gen arena-<name> <state-id>
+```
+
+If the first is wrong the prompt is wrong, and eight more will be wrong the same way. That
+is exactly how ten images disappeared into an arena that never shipped.
+
+**And read your prompt back as one sentence, hunting for the part that cancels.** One brief
+asked for a centre that was both "densest and most rotten" and "flat, unbroken and
+uncluttered." The model split the difference by moving the rot to the edges — the exact
+opposite of the brief.
+
+### You can just make it yourself
+
+**This is a real path, not a fallback.** The Still Season arena above was generated by hand
+after Leonardo failed ten times, then run through one command:
+
+```bash
+python3 lib/finish_arena.py <your-image.png> \
+  ../../public/assets/combat/arenas/<name>/base.png
+```
+
+That script crops the sky, warms the colour, darkens the corners for the HUD, flattens the
+lower third and pixelises it. Free, and re-runnable as many times as you like.
+
+**If you make a plate anywhere — Leonardo, Gemini, by hand — and it roughly fits the layout
+above, it can be in the game in about a minute.**
+
+---
+
+<!-- updated: 2026-07-31 -->
+## 3. Ideas worth making
+
+*Somewhere to put ideas so they stop evaporating. Add freely — an idea costs nothing, and
+this is the page that decides where the generations go.*
+
+**These are not invented from nothing.** Each is something the game has already told us it
+needs, which is the difference between a generation worth spending and a wasted one.
+
+### Bosses the game is asking for — 4 items
+
+**The thing magic doesn't work on.** Game Mechanics says we need a boss every element slides
+off. Ten of the eleven archetypes are useless against it; a Human with a hammer is not. This
+is the fight that makes people go and level a Human, and it's the most valuable boss we could
+build. *~25 generations. Needs a look first: what does "magic doesn't apply here" look like?*
+
+**The thing you cannot hit.** The mirror — something with no body, where machines swing
+straight through. Stops the tech faction being simply better. *~25 generations.*
+
+**Finish the Emberborn Wraith.** It has one static frame while the other two bosses have full
+clip sets. `idle` + `windup` would bring it level. *~10 generations — the cheapest visible
+improvement in the project.*
+
+**A boss for an element with no fight.** Fifteen elements belong to exactly one archetype and
+most have never been the subject of anything — Lunar is the Lycanthrope's alone, Sanguine and
+Nocturne the Vampire's. *~20–31 each.*
+
+### Characters — 3 items
+
+**The Lycanthrope emblem.** Ten of eleven archetypes have their selection art. This is the
+missing one, pending since 2026-07-17. *Leonardo, one square image.*
+
+**Replace the placeholder hero.** `human.png` breaks all four of its own art rules and we
+know it. *~25 generations.*
+
+**Fill the courtyard.** Stationary NPCs cost about a third of walkers. A blacksmith, a
+herbalist, someone sitting on the fountain. **The cheapest way to make the game feel
+inhabited**, and the best place to practise. *~10–15 each.*
+
+### Places — 2 items
+
+**Tower floors.** Every floor needs a backdrop, and the tower's length is still undecided —
+that ruling blocks the whole queue. *The hand-made path works fine here.*
+
+**The four unopened stalls.** The courtyard has four doors that go nowhere. *A backdrop each,
+plus whoever stands in it.*
+
+### How to add an idea
+
+Four things: what it is, why it would be good, roughly what it costs, and what it's waiting
+on. **When one gets built it moves out of this list**, leaving a line saying what it became.
+
+
+---
+
+# Lore
+
+<!-- updated: 2026-07-31 -->
+## 1. Tori's desk
+
+*This part belongs to Tori. It is the record of what is written, what is invented and
+waiting on her, and what order it is worth doing in.*
+
+**The short version: the bosses have no real story.** Everything currently written about
+them was invented by Claude to fill the field, has never been reviewed, and is not canon.
+It reads like lore, which is precisely the problem — nobody looking at the game can tell
+the difference between what was decided and what was improvised.
+
+**The art and the animation stay.** The bosses look how they look. What changes is who they
+are, why they are in the tower, and what they say.
+
+### What is actually made up
+
+All of it, in `data/bosses/seedBosses.ts`:
+
+| What | How much | Status |
+|---|---|---|
+| Boss names | **4** | Invented |
+| Lore paragraphs | **4** | Invented |
+| Named moves | **39** | Invented |
+| Telegraph lines — what the boss "says" before a move | **39** | Invented |
+| Passive descriptions | **14** | Invented |
+
+The four are the **Emberborn Wraith**, **The Debt-Bearer**, **The Still Season** and **The
+Unclosed Summons**. Some of it may be worth keeping — that is Tori's call, not a default.
+
+**There are also no story pillar questions for bosses.** Characters get a guided set of
+questions that make them specific. Bosses got nothing equivalent, so there is no structure
+behind any of it.
+
+### Where to put your energy first
+
+1. **The two bosses that are actually in the game** — the Debt-Bearer and the Still Season.
+   They are what a player meets. The other two are further off.
+2. **The telegraph lines**, because they are the only boss writing a player reads *during* a
+   fight, once per move, every fight. They do more work than the lore paragraph nobody opens.
+3. **The two unbuilt bosses** in Making Things §3 — the one magic doesn't work on, and the
+   one you cannot hit. **These have no story at all yet, which makes them the easiest to get
+   right**: nothing has to be undone.
+4. **The move names.** 39 of them. Lower priority than the above, but they are the flavour
+   that carries a fight.
+
+### What is already canon, and what isn't
+
+**Canon — do not treat as provisional:**
+
+- The Character Generation Bible. It governs archetype identity, story pillars, element
+  compatibility and prestige. Where the Bible and the code disagree, the Bible wins.
+- The eleven archetypes and their chapters.
+- The twenty-nine elements and what each one means.
+
+**Not canon, invented to fill a gap:**
+
+- Everything about the bosses, as above.
+- The card lore the game writes at the forge. See Game Mechanics §3 — the entire instruction
+  for it is 42 words, with no voice, no examples and no guidance per archetype. **That is the
+  other place a Lore Director changes everything**, and it affects every card a player ever
+  makes rather than four bosses.
+
+### The thing that would help most
+
+Game Mechanics §3 lists what it would take to make the card lore good, and the first item
+needs Tori specifically: **a voice per archetype.** Right now a Necromancer and a Mech Pilot
+receive *identical* instructions for how their story is written. There is no field anywhere
+for tone, register, or what a given archetype's prose is even about.
+
+One or two sentences per archetype — *Necromancers speak in elegy; Androids in clipped
+declaratives* — plus a good and a bad example each, would do more for how the game reads than
+anything else on this page.
+

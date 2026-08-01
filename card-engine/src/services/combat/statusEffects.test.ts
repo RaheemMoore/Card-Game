@@ -70,7 +70,7 @@ function heroWith(
     displayName: 'Probe Hero',
     stats: STATS,
     rank: 'Forged',
-    elementDamageType: 'physical',
+    elementDamageType: 'kinetic',
     abilities: [buildAbilitySnapshot(definition, version)],
   });
 }
@@ -121,39 +121,39 @@ function castOnce(
 
 describe('statusDamageModifiers', () => {
   it('weakened cuts outgoing damage by a quarter', () => {
-    const m = statusDamageModifiers([status('weakened')], [], 'physical');
+    const m = statusDamageModifiers([status('weakened')], [], 'kinetic');
     expect(m.outgoingMultiplier).toBeCloseTo(0.75);
   });
 
   it('rage scales per stack and caps at four', () => {
-    expect(statusDamageModifiers([status('rage', 2)], [], 'physical').outgoingMultiplier).toBeCloseTo(1.16);
+    expect(statusDamageModifiers([status('rage', 2)], [], 'kinetic').outgoingMultiplier).toBeCloseTo(1.16);
     // Ten stacks must not out-perform the cap, or a stacking loop is unbounded.
-    expect(statusDamageModifiers([status('rage', 10)], [], 'physical').outgoingMultiplier).toBeCloseTo(1.32);
+    expect(statusDamageModifiers([status('rage', 10)], [], 'kinetic').outgoingMultiplier).toBeCloseTo(1.32);
   });
 
   it('focus caps at three stacks', () => {
-    expect(statusDamageModifiers([status('focus', 9)], [], 'physical').outgoingMultiplier).toBeCloseTo(1.45);
+    expect(statusDamageModifiers([status('focus', 9)], [], 'kinetic').outgoingMultiplier).toBeCloseTo(1.45);
   });
 
   it('mark only sharpens martial and beast damage', () => {
-    expect(statusDamageModifiers([], [status('mark')], 'physical').incomingMultiplier).toBeCloseTo(1.2);
-    expect(statusDamageModifiers([], [status('mark')], 'nature').incomingMultiplier).toBeCloseTo(1.2);
+    expect(statusDamageModifiers([], [status('mark')], 'kinetic').incomingMultiplier).toBeCloseTo(1.2);
+    expect(statusDamageModifiers([], [status('mark')], 'primal').incomingMultiplier).toBeCloseTo(1.2);
     // A marked target is not more vulnerable to a fireball.
-    expect(statusDamageModifiers([], [status('mark')], 'fire').incomingMultiplier).toBe(1);
+    expect(statusDamageModifiers([], [status('mark')], 'searing').incomingMultiplier).toBe(1);
   });
 
   it('guard-shaped statuses reduce incoming damage by their own amount', () => {
-    const light = statusDamageModifiers([], [status('guarded', 1, 0.2)], 'physical');
-    const heavy = statusDamageModifiers([], [status('guarded', 1, 0.5)], 'physical');
+    const light = statusDamageModifiers([], [status('guarded', 1, 0.2)], 'kinetic');
+    const heavy = statusDamageModifiers([], [status('guarded', 1, 0.5)], 'kinetic');
     expect(light.incomingMultiplier).toBeCloseTo(0.8);
     expect(heavy.incomingMultiplier).toBeCloseTo(0.5);
   });
 
   it('stacked debuffs can never zero a hit out', () => {
-    const m = statusDamageModifiers([status('weakened')], [status('guarded', 1, 0.9)], 'physical');
+    const m = statusDamageModifiers([status('weakened')], [status('guarded', 1, 0.9)], 'kinetic');
     const dmg = resolveDamage({
       baseAmount: 100,
-      damageType: 'physical',
+      damageType: 'kinetic',
       targetMitigation: 200,
       targetResistance: NEUTRAL_RESISTANCE,
       targetShields: [],
@@ -172,7 +172,7 @@ describe('statusDamageModifiers', () => {
 describe('multi_hit', () => {
   it('emits one damage event per hit rather than one aggregate', () => {
     const { events } = castOnce([
-      { type: 'multi_hit', hitCount: 4, amountPerHit: 5, damageType: 'physical' },
+      { type: 'multi_hit', hitCount: 4, amountPerHit: 5, damageType: 'kinetic' },
     ]);
     const hits = events.filter((e) => e.kind === 'damage_dealt');
     expect(hits).toHaveLength(4);
@@ -186,7 +186,7 @@ describe('lifesteal', () => {
   it('steals from every hit of a flurry, not just the last one', () => {
     const { events } = castOnce(
       [
-        { type: 'multi_hit', hitCount: 4, amountPerHit: 10, damageType: 'physical' },
+        { type: 'multi_hit', hitCount: 4, amountPerHit: 10, damageType: 'kinetic' },
         { type: 'lifesteal', percentOfDamage: 0.5 },
       ],
       { heroHp: 20 },
@@ -246,7 +246,7 @@ describe('damage_over_time', () => {
 
 describe('damage-over-time typing', () => {
   it('burns as its status, not as a blanket default', () => {
-    // Regression: DoTs defaulted to 'fire', so the fire-RESISTANT boss was
+    // Regression: DoTs defaulted to 'searing', so the fire-RESISTANT boss was
     // halving bleed ticks. A cut is a cut; only fire is fire.
     const bleed = castOnce([
       { type: 'damage_over_time', statusId: 'bleed', amountPerTick: 10, duration: 3 },
@@ -257,8 +257,8 @@ describe('damage-over-time typing', () => {
     const typeOf = (r: ReturnType<typeof castOnce>, id: string) =>
       r.state.boss.statuses.find((s) => s.statusId === id)?.application.damageType;
 
-    expect(typeOf(bleed, 'bleed')).toBe('physical');
-    expect(typeOf(burn, 'burn')).toBe('fire');
+    expect(typeOf(bleed, 'bleed')).toBe('kinetic');
+    expect(typeOf(burn, 'burn')).toBe('searing');
   });
 });
 

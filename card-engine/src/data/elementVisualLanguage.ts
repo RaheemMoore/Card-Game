@@ -353,7 +353,12 @@ const PSYCHIC = V({
   shapes: 'concentric-halo, orbiting-lattice',
   atmosphere: 'telekinetic ripples cutting through the air, distant objects hovering',
   symbolism: 'unseen touch, mental precision',
-  avoid: 'red/warm colors, gold radiance, fire',
+  // Psychic and Dream resolve as the same DAMAGE TYPE (shadow) and must never
+  // resolve as the same PICTURE. Psychic is sharp-edged and intact; Dream is
+  // soft-edged and coming apart.
+  avoid:
+    'red/warm colors, gold radiance, fire, pastel iridescence, butterflies, ' +
+    'dissolving or soft-edged silhouette (that is Dream)',
 });
 
 const MOON = V({

@@ -13,7 +13,7 @@ const evt = (kind: BattleEvent['kind'], round = 1): BattleEvent => {
         sourceActorId: 'boss',
         targetActorId: 'hero_1',
         amount: 10,
-        damageType: 'fire',
+        damageType: 'searing',
         blockedByShield: 0,
       };
     case 'phase_transition':
@@ -141,7 +141,7 @@ describe('presentation queue', () => {
       sourceActorId: 'boss',
       targetActorId: 'hero_1',
       amount: 40,
-      damageType: 'fire',
+      damageType: 'searing',
       blockedByShield: 0,
     });
 
@@ -214,7 +214,7 @@ describe('presentation queue', () => {
         sourceActorId: 'hero_1',
         targetActorId: 'boss',
         amount: 45,
-        damageType: 'physical',
+        damageType: 'kinetic',
         blockedByShield: 0,
       });
 

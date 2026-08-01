@@ -131,7 +131,7 @@ export interface BuildHeroSnapshotInput {
   rank: Rank;
   abilities: AbilityCombatSnapshot[];
   /** From `damageTypeForElement(resolveCurrentElement(card))`. Test builders
-   *  pass 'physical' when the element is irrelevant to what they assert. */
+   *  pass 'kinetic' when the element is irrelevant to what they assert. */
   elementDamageType: DamageType;
 }
 
@@ -181,7 +181,7 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 40,
     scalingPerRound: 0.2,
-    damageType: 'fire',
+    damageType: 'searing',
   },
   {
     id: 'act_fe_flame_burst',
@@ -193,7 +193,7 @@ const FIRE_ELEMENTAL_ACTIONS: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 27,
     scalingPerRound: 0.2,
-    damageType: 'fire',
+    damageType: 'searing',
   },
 ];
 
@@ -208,7 +208,7 @@ const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 54,
     scalingPerRound: 0.2,
-    damageType: 'fire',
+    damageType: 'searing',
   },
   {
     id: 'act_fe_execute_pyre',
@@ -220,7 +220,7 @@ const FIRE_ELEMENTAL_ENRAGE: BossActionSnapshot[] = [
     interruptible: false,
     baseDamage: 72,
     scalingPerRound: 0,
-    damageType: 'fire',
+    damageType: 'searing',
   },
 ];
 
@@ -283,7 +283,7 @@ export function snapshotFromBossVersion(def: BossDefinition, version: BossVersio
         interruptible: a.interruptible,
         baseDamage: a.baseDamage ?? 0,
         scalingPerRound: a.scalingPerRound ?? 0,
-        damageType: a.damageType ?? 'physical',
+        damageType: a.damageType ?? 'kinetic',
         ...(a.shieldAmount != null ? { shieldAmount: a.shieldAmount } : {}),
         ...(a.shieldDurationRounds != null
           ? { shieldDurationRounds: a.shieldDurationRounds }
