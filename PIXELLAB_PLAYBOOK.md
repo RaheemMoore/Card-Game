@@ -532,3 +532,50 @@ below it: on a flat stage, fire beneath the soles is fire underneath the floor.
 player can only read in the banner text is not a telegraph. `windup` is now its own state
 and LOOPS — a charge stays on screen for however many hero turns the party takes, so a
 one-shot would freeze on a raised-fists pose for the rest of the round.
+
+## Combat effects: PixelLab makes MOMENTS, not repeating path pieces (6 generations)
+
+First effect-art batch for the Ability Performance System. Six 1-generation probes, all
+Blood except one Fire transfer test, deliberately cheap because the question was not "which
+material looks best" but **"does generated pixel art composite onto code-drawn SVG geometry
+at 32px?"** — the same two-register risk that lost the pixel-courtyard experiment above.
+
+**The finding, and it was predicted before a generation was spent:** ask for a *segment* and
+the model returns a *finished object*. Every one of the four "segment" probes came back as a
+complete thing with both ends resolved and closed — a claw at 32px on Pixen, a ribbon on
+Pixflux, a leather cuff at 64px, a whole flame icon for Fire. They look good in isolation,
+which is the trap. Tiled nine times along the lash spline the closed ends collide into a row
+of separate hooks instead of one continuous whip.
+
+**The impact burst succeeded, and succeeded easily.** A splash IS a self-contained object,
+so asking for a self-contained object was the right question. Radial splatter, heavy
+rounded droplets flung outward, wet highlight — legible as blood specifically, not as a
+generic red burst, and legible with the colour removed.
+
+**Standing direction:** the travelling BODY of an effect stays code-drawn — a spline with a
+per-material thickness profile and wobble tracks its target responsively and never seams,
+which is exactly what generated pieces cannot do. Spend generations on the moments that are
+already objects: **impacts, residue, ground tells, bursts, persistent barrier states.**
+
+Secondary results, all one generation each:
+- **Pixflux beats Pixen on material for small effect pieces.** Identical prompt and seed;
+  Pixflux read as a wet ribbon, Pixen as a horn. Permanent finding, one generation.
+- **A bigger canvas does not help a small piece.** 64px did not buy detail, it bought MASS —
+  the wetness that makes blood blood was gone entirely. Consistent with the never-downscale
+  rule above: author at display resolution.
+- **The material language transfers across elements.** The Fire probe failed structurally
+  for the same reason as the others but was unmistakably fire beside the blood pieces —
+  bright core, dark ember edge, jagged forks. Once the piece SHAPE is solved, the remaining
+  elements are cheap.
+- `create_image_pixen` has **no `shading` parameter** (Pixflux does). Its canvas sides must
+  be multiples of 4.
+
+Reviewed in `/dev/ability-theater` → **Generated art**, which shows every candidate at 1× on
+the real arena background, its cutout on three backgrounds, and — for anything meant to
+repeat — nine copies laid along the actual lash curve next to the procedural stroke they
+would replace. That tiling panel is what makes the failure visible in one glance rather than
+after an hour of debugging pivots.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch A | 4 lash segments, 1 tip, 1 impact | 6 | 1 recommend, 4 reject, 1 undecided |

@@ -9,6 +9,7 @@ import { ALL_PERFORMANCE_ASSETS } from '../../data/combat/performance/assetKits'
 import { PerformanceView, PerformanceStyles } from '../battle/performance/PerformanceLayer';
 import { CardCombatFxStyles } from '../battle/CardCombatFx';
 import { BOSS, HERO_A, HERO_B, SCENARIOS, type TheaterScenario } from './abilityTheaterFixtures';
+import { ArtCandidatePanel } from './ArtCandidatePanel';
 
 /**
  * The Ability Theater — an isolated stage for building and reviewing ability
@@ -48,6 +49,7 @@ const STAGE_W = 900;
 const STAGE_H = 560;
 
 export function AbilityTheater() {
+  const [tab, setTab] = useState<'performances' | 'art'>('performances');
   const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
   const [motionLevel, setMotionLevel] = useState<MotionLevel>('full');
   const [tablet, setTablet] = useState(false);
@@ -81,12 +83,26 @@ export function AbilityTheater() {
           battle, no RNG. Same scenario, same result, every time.
           {' '}
           <span className="text-amber-300/80">
-            No art has been generated yet: every performance below is drawn procedurally.
+            Performances below are drawn procedurally — generated art is under Generated art.
           </span>
         </p>
+
+        <div className="flex gap-2 mt-3">
+          <button
+            onClick={() => setTab('performances')}
+            className={tab === 'performances' ? btnOn : btn}
+          >
+            Performances
+          </button>
+          <button onClick={() => setTab('art')} className={tab === 'art' ? btnOn : btn}>
+            Generated art — Batch A
+          </button>
+        </div>
       </header>
 
-      <div className="flex gap-6 items-start flex-wrap">
+      {tab === 'art' && <ArtCandidatePanel />}
+
+      <div className={tab === 'art' ? 'hidden' : 'flex gap-6 items-start flex-wrap'}>
         {/* ---------------- stage ---------------- */}
         <div>
           <div
