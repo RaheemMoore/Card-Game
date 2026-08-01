@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react';
 import type { MotionLevel } from '../../../vfx/types';
-import type { ResolvedPerformance } from '../../../services/combat/performance/types';
+import type { ResolvedPerformance, Trajectory } from '../../../services/combat/performance/types';
+import {
+  assetAvailable,
+  assetKitIdFor,
+  getAssetKit,
+  performanceAssetUrl,
+} from '../../../data/combat/performance/assetKits';
 import type { Point } from '../combatAnchors';
 import {
   edgeDecoration,
@@ -87,7 +93,7 @@ export function LashRenderer({
       // Static variant: the full connection, drawn once and held. Reduced
       // motion must still show WHAT connected to WHAT and what it was made
       // of — only the movement goes away.
-      write(buildPath(origin, destination, kit, 1, 0));
+      write(buildPath(origin, destination, kit, 1, 0, perf.trajectory));
       return;
     }
 
@@ -102,7 +108,7 @@ export function LashRenderer({
       // dwell is what makes contact feel like contact.
       const extend = Math.min(1, p / 0.45);
       const phase = p * Math.PI * 4;
-      write(buildPath(origin, destination, kit, extend, phase));
+      write(buildPath(origin, destination, kit, extend, phase, perf.trajectory));
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -111,11 +117,24 @@ export function LashRenderer({
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [origin, destination, kit, progressRef, still]);
+  }, [origin, destination, kit, progressRef, still, perf.trajectory]);
 
   const [core, edge, accent] = kit.palette;
   const decoration = edgeDecoration(kit);
   const baseWidth = perf.intensity === 'ultimate' ? 1.5 : perf.intensity === 'heavy' ? 1.2 : 1;
+
+  /*
+   * Generated impact art, when the manifest has an approved piece for this
+   * material. Resolved through `assetAvailable` rather than by testing the
+   * path, because every manifest row HAS a path — a path is a spec, not a
+   * file. When nothing is available the procedural burst carries the moment
+   * alone, which is the state the whole system shipped in.
+   */
+  const kitAssets = getAssetKit(assetKitIdFor(perf.form, kit.element));
+  const impactAsset = assetAvailable(kitAssets?.impact) ? kitAssets.impact : undefined;
+  const impactSizePx =
+    (impactAsset?.dimensions.width ?? 64) *
+    (perf.intensity === 'ultimate' ? 1.6 : perf.intensity === 'heavy' ? 1.3 : 1);
 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>
@@ -159,6 +178,27 @@ export function LashRenderer({
         )}
       </svg>
 
+      {impactAsset && (stageName === 'impact' || stageName === 'aftermath') && (
+        <img
+          src={performanceAssetUrl(impactAsset)}
+          alt=""
+          className={still ? undefined : 'perf-impact-art'}
+          style={{
+            position: 'absolute',
+            left: `${destination.x}%`,
+            top: `${destination.y}%`,
+            width: impactSizePx,
+            height: impactSizePx,
+            marginLeft: -impactSizePx / 2,
+            marginTop: -impactSizePx / 2,
+            // Pixel art must not be smoothed by the browser's scaler — the
+            // whole reason it reads as a deliberate material is its hard edges.
+            imageRendering: 'pixelated',
+            zIndex: 1,
+          }}
+        />
+      )}
+
       {!still && <Particles kit={kit} at={destination} />}
     </div>
   );
@@ -181,10 +221,11 @@ function buildPath(
   kit: Parameters<typeof thicknessAt>[0],
   extend: number,
   phase: number,
+  trajectory: Trajectory,
 ): string {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
-  // Perpendicular, so wobble displaces ACROSS the direction of travel.
+  // Perpendicular, so displacement pushes ACROSS the direction of travel.
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
@@ -194,12 +235,58 @@ function buildPath(
 
   for (let i = 0; i <= last; i++) {
     const t = i / SAMPLES;
-    const w = wobbleAt(kit, t, phase) * len;
-    const x = from.x + dx * t + nx * w;
-    const y = from.y + dy * t + ny * w;
+    let offset: number;
+
+    switch (trajectory) {
+      case 'beam':
+        // A pressurised stream. Almost straight — just enough live play that it
+        // is not a ruler-drawn line, and it SHRINKS toward the target because a
+        // jet is steadiest where it lands. The wobble signature is scaled right
+        // down rather than removed, so blood still moves like blood.
+        offset = wobbleAt(kit, t, phase) * len * 0.18 * (1 - t);
+        break;
+
+      case 'arc':
+        // Ballistic lob. The arc is in the SCREEN-VERTICAL axis, not the path
+        // normal — a thrown thing falls downward regardless of which way it was
+        // thrown, and using the normal would tilt the arc sideways on a
+        // diagonal shot and stop reading as gravity.
+        return buildArcPath(from, dx, dy, last, kit, phase, len);
+
+      case 'whip':
+      default:
+        offset = wobbleAt(kit, t, phase) * len;
+        break;
+    }
+
+    const x = from.x + dx * t + nx * offset;
+    const y = from.y + dy * t + ny * offset;
     parts.push(`${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`);
   }
 
+  return parts.join(' ');
+}
+
+/** The lob. Height is applied straight up the screen so it reads as gravity. */
+function buildArcPath(
+  from: Point,
+  dx: number,
+  dy: number,
+  last: number,
+  kit: Parameters<typeof thicknessAt>[0],
+  phase: number,
+  len: number,
+): string {
+  const parts: string[] = [];
+  const height = Math.min(26, len * 0.42);
+  for (let i = 0; i <= last; i++) {
+    const t = i / SAMPLES;
+    const lift = 4 * t * (1 - t) * height;
+    const jitter = wobbleAt(kit, t, phase) * len * 0.1;
+    const x = from.x + dx * t + jitter;
+    const y = from.y + dy * t - lift;
+    parts.push(`${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`);
+  }
   return parts.join(' ');
 }
 

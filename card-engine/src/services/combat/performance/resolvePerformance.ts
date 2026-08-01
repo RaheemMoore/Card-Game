@@ -14,6 +14,7 @@ import type {
   MaterialKit,
   PerformanceIntensity,
   ResolvedPerformance,
+  Trajectory,
 } from './types';
 
 /**
@@ -169,6 +170,7 @@ export function resolvePerformance(
     id: `perf_${scope.openerIndex}`,
     recipeId: effective.id,
     form: effective.form,
+    trajectory: effective.trajectory ?? DEFAULT_TRAJECTORY[effective.form],
     material: kit,
     intensity: intensityFor(effective, ctx),
     castAnchor: effective.castAnchor,
@@ -179,6 +181,22 @@ export function resolvePerformance(
     ...(fallbackReason ? { fallbackReason } : {}),
   };
 }
+
+/**
+ * How each form crosses the gap when the recipe does not say.
+ *
+ * A drain is a `beam` because it is a continuous connection — material is
+ * flowing along it in both directions, and a whip crack would break the read
+ * that something is being siphoned. Growth and barrier never travel at all.
+ */
+const DEFAULT_TRAJECTORY: Record<AbilityForm, Trajectory> = {
+  lash: 'whip',
+  drain: 'beam',
+  projectile: 'arc',
+  growth: 'beam',
+  barrier: 'beam',
+  generic: 'beam',
+};
 
 /**
  * Guess a delivery form from what an action actually did.

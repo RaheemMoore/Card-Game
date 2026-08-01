@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../types/card';
 import type { MotionLevel } from '../../vfx/types';
 import { compileActionScopes } from '../../services/combat/performance/actionScope';
@@ -58,6 +58,8 @@ export function AbilityTheater() {
   const [pinnedStage, setPinnedStage] = useState<number | undefined>(undefined);
   const [replayKey, setReplayKey] = useState(0);
   const [compareLashes, setCompareLashes] = useState(false);
+  const [loop, setLoop] = useState(true);
+  const [speed, setSpeed] = useState(1);
 
   const scenario = SCENARIOS.find((s) => s.id === scenarioId) ?? SCENARIOS[0];
   const viewportWidth = tablet ? 900 : 1440;
@@ -73,6 +75,23 @@ export function AbilityTheater() {
     setPinnedStage(undefined);
     setReplayKey((k) => k + 1);
   };
+
+  /*
+   * Autoplay on a loop, with a beat of dead air between runs.
+   *
+   * The first review of this page failed for a mundane reason: a performance is
+   * ~600ms and then it is over, so anyone arriving saw a frozen mid-flight
+   * shape and reported "squiggles". A single 600ms event is not reviewable —
+   * you cannot judge whether something reads as being FIRED from one still
+   * frame of it. Looping it turns the page into something you can watch until
+   * you have an opinion, which is the entire job of this harness.
+   */
+  useEffect(() => {
+    if (!loop || pinnedStage !== undefined) return;
+    const total = (resolved?.totalMs ?? 700) / speed;
+    const id = window.setInterval(() => setReplayKey((k) => k + 1), total + 700);
+    return () => window.clearInterval(id);
+  }, [loop, pinnedStage, resolved?.totalMs, speed, scenarioId, compareLashes]);
 
   return (
     <div className="min-h-screen bg-[#0b0910] text-bone p-6">
@@ -124,6 +143,7 @@ export function AbilityTheater() {
                 missingAssets={missingAssets}
                 pinnedStage={pinnedStage}
                 replayKey={replayKey}
+                speed={speed}
               />
             ) : (
               resolved && (
@@ -133,7 +153,7 @@ export function AbilityTheater() {
                   motionLevel={motionLevel}
                   anchorContext={{ viewportWidth, casterIndex: 0, targetIndex: 1 }}
                   shieldIntegrity={0.85}
-                  clock={{ pinnedStageIndex: pinnedStage, replayKey }}
+                  clock={{ pinnedStageIndex: pinnedStage, replayKey, speed }}
                 />
               )
             )}
@@ -146,6 +166,14 @@ export function AbilityTheater() {
             <button onClick={replay} className={btn}>
               ▶ Replay
             </button>
+            <button onClick={() => setLoop((v) => !v)} className={loop ? btnOn : btn}>
+              {loop ? '● ' : ''}Loop
+            </button>
+            {([1, 0.5, 0.25] as const).map((s) => (
+              <button key={s} onClick={() => setSpeed(s)} className={speed === s ? btnOn : btn}>
+                {s === 1 ? 'full speed' : `${s}× slow-mo`}
+              </button>
+            ))}
             <button
               onClick={() => setCompareLashes((v) => !v)}
               className={compareLashes ? btnOn : btn}
@@ -279,6 +307,7 @@ function LashComparison({
   missingAssets,
   pinnedStage,
   replayKey,
+  speed,
 }: {
   scenarios: readonly TheaterScenario[];
   viewportWidth: number;
@@ -286,6 +315,7 @@ function LashComparison({
   missingAssets: boolean;
   pinnedStage: number | undefined;
   replayKey: number;
+  speed: number;
 }) {
   return (
     <>
@@ -300,6 +330,7 @@ function LashComparison({
           missingAssets={missingAssets}
           pinnedStage={pinnedStage}
           replayKey={replayKey}
+          speed={speed}
         />
       ))}
     </>
@@ -315,6 +346,7 @@ function LashPane({
   missingAssets,
   pinnedStage,
   replayKey,
+  speed,
 }: {
   scenario: TheaterScenario;
   index: number;
@@ -324,6 +356,7 @@ function LashPane({
   missingAssets: boolean;
   pinnedStage: number | undefined;
   replayKey: number;
+  speed: number;
 }) {
   const resolved = useResolvedPerformance(scenario, viewportWidth, motionLevel, missingAssets);
   if (!resolved) return null;
@@ -341,7 +374,7 @@ function LashPane({
         performance={resolved}
         motionLevel={motionLevel}
         anchorContext={{ viewportWidth, casterIndex: 0, targetIndex: 1 }}
-        clock={{ pinnedStageIndex: pinnedStage, replayKey }}
+        clock={{ pinnedStageIndex: pinnedStage, replayKey, speed }}
       />
     </div>
   );

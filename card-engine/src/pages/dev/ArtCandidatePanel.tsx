@@ -22,6 +22,15 @@ import { BATCH_A, BATCH_A_COST, BATCH_A_FINDING, type ArtCandidate } from './art
  * and my verdict with reasoning — stated plainly so it can be argued with.
  */
 
+/**
+ * The three worth looking at: the recommendation, the one I want a ruling on,
+ * and the single best example of the failure the batch found. The rest are
+ * counted, not shown.
+ */
+const SHOWN_IDS = ['blood_impact_pixen64', 'blood_tip_pixen32', 'blood_segment_pixflux32'];
+const SHOWN = SHOWN_IDS.map((id) => BATCH_A.find((c) => c.id === id)!).filter(Boolean);
+const HIDDEN = BATCH_A.filter((c) => !SHOWN_IDS.includes(c.id));
+
 export function ArtCandidatePanel() {
   const [zoom, setZoom] = useState(2);
   const [showTiling, setShowTiling] = useState(true);
@@ -53,11 +62,26 @@ export function ArtCandidatePanel() {
         </button>
       </div>
 
+      {/*
+        Shown: the one I recommend, plus the two most informative runners-up.
+        The other three rejects are counted below rather than displayed —
+        scrolling past four versions of the same failure is not review, it is
+        just noise, and the failure is already stated once at the top.
+      */}
       <div className="space-y-5">
-        {BATCH_A.map((c) => (
+        {SHOWN.map((c) => (
           <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
         ))}
       </div>
+
+      {HIDDEN.length > 0 && (
+        <p className="text-xs text-bone/45 mt-5">
+          {HIDDEN.length} further rejected {HIDDEN.length === 1 ? 'probe' : 'probes'} not shown
+          ({HIDDEN.map((c) => c.label.replace(/ —.*/, '')).join(', ')}) — same failure as the
+          segment above, kept in <code className="text-bone/60">artCandidates.ts</code> for
+          provenance.
+        </p>
+      )}
     </div>
   );
 }

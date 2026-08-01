@@ -121,7 +121,30 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
     element: 'Blood',
     segment: placeholder('lash_blood_segment', 'still', 'effects/lash/blood/segment.png', 32, 32, ['lash', 'drain'], ['Blood']),
     particle: placeholder('lash_blood_droplet', 'still', 'effects/lash/blood/droplet.png', 16, 16, ['lash', 'drain'], ['Blood']),
-    impact: placeholder('lash_blood_impact', 'flipbook', 'effects/lash/blood/impact.png', 64, 64, ['lash', 'drain'], ['Blood']),
+    // First real asset in the game. Batch A, 2026-08-01 — the one probe of six
+    // that worked, and it worked because an impact IS a self-contained object,
+    // which is exactly what PixelLab returns when you ask for a fragment.
+    impact: {
+      id: 'lash_blood_impact',
+      kind: 'still',
+      path: 'effects/lash/blood/impact.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Blood'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '439190a0-403e-47ed-a075-d11fd659b50d',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#blood_impact_pixen64',
+      },
+      notes:
+        'Radial splatter, heavy rounded droplets, wet highlight. Reads as blood rather than ' +
+        'a generic red burst, and survives the colour being removed.',
+    },
   },
   lash_water: {
     id: 'lash_water',

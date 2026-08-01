@@ -234,12 +234,36 @@ export type MaterialResolver =
   | { kind: 'caster_element' }
   | { kind: 'fixed'; element: ElementName };
 
+/**
+ * The PATH the delivery takes between cast point and target.
+ *
+ * Separate from `form` because one form supports several. A lash can be
+ * cracked like a whip, fired like a hose, or lobbed in an arc, and those are
+ * three completely different reads of the same ability — but they share all the
+ * spline, tracking and impact code.
+ *
+ * Added after the first review: the whip trajectory's wobble, seen frozen
+ * mid-flight, read as "a squiggle" rather than as something being thrown. A
+ * travelling effect has to be legible as TRAVELLING, and for a pressurised
+ * material like blood under force, a directed stream says that far better than
+ * an undulating ribbon does.
+ */
+export type Trajectory =
+  /** Straight, pressurised, barely any lateral play. A hose or a beam. */
+  | 'beam'
+  /** Thrown in a ballistic arc. Reads as weight and distance. */
+  | 'arc'
+  /** Cracked sideways like a whip. The original lash motion. */
+  | 'whip';
+
 export interface AbilityPerformanceRecipe {
   id: string;
   version: number;
   /** Set when this recipe is the exact match for one authored ability. */
   abilityDefinitionId?: string;
   form: AbilityForm;
+  /** How it crosses the gap. Defaults per form when omitted. */
+  trajectory?: Trajectory;
   material: MaterialResolver;
   stages: readonly StageRecipe[];
   /** Optional asset kit id, resolved through `assetKits.ts`. */
@@ -288,6 +312,7 @@ export interface ResolvedPerformance {
   id: string;
   recipeId: string;
   form: AbilityForm;
+  trajectory: Trajectory;
   material: MaterialKit;
   intensity: PerformanceIntensity;
   castAnchor: AnchorName;

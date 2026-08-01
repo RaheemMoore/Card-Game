@@ -49,13 +49,23 @@ export interface StageClockOptions {
   /** Restarting key. Changing it rewinds the clock. */
   replayKey?: number;
   paused?: boolean;
+  /**
+   * Playback rate. 1 is real time; 0.25 is quarter-speed.
+   *
+   * Review-only. A performance is ~600ms, which is right for play and far too
+   * fast to judge — you cannot tell whether a lash reads as being FIRED at that
+   * speed, only whether it registered at all. Slowing the clock changes nothing
+   * about the plan, the stages or the consequences; it only stretches the wall
+   * clock the renderers are reading against.
+   */
+  speed?: number;
 }
 
 export function useStageClock(
   performance_: ResolvedPerformance,
   options: StageClockOptions = {},
 ): StageClock {
-  const { pinnedStageIndex, replayKey = 0, paused = false } = options;
+  const { pinnedStageIndex, replayKey = 0, paused = false, speed = 1 } = options;
 
   const progressRef = useRef(0);
   const stageProgressRef = useRef(0);
@@ -94,7 +104,10 @@ export function useStageClock(
 
     const tick = () => {
       if (cancelled) return;
-      const elapsed = performance.now() - startedAt;
+      // Scaling elapsed time rather than the plan keeps the stage boundaries,
+      // the consequence placement and the totals exactly as combat computed
+      // them — slow-mo shows the real performance, not a different one.
+      const elapsed = (performance.now() - startedAt) * (speed || 1);
       const clamped = Math.min(elapsed, totalMs);
 
       progressRef.current = totalMs > 0 ? clamped / totalMs : 1;
@@ -124,7 +137,7 @@ export function useStageClock(
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [stages, totalMs, pinnedStageIndex, paused, replayKey]);
+  }, [stages, totalMs, pinnedStageIndex, paused, replayKey, speed]);
 
   return {
     progressRef,

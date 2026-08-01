@@ -185,6 +185,18 @@ export function PerformanceStyles() {
       }
       .perf-burst { animation: perf-burst-out 380ms ease-out forwards; }
 
+      /* Generated impact art. Punches in slightly oversized and settles, which
+         is what makes a still image read as a hit rather than as a sticker
+         appearing. Never fades to nothing during the impact beat — the splash
+         is the payoff and it has to stay legible for the whole beat. */
+      @keyframes perf-impact-art-hit {
+        0%   { opacity: 0; transform: scale(0.55); }
+        22%  { opacity: 1; transform: scale(1.18); }
+        45%  { transform: scale(1); }
+        100% { opacity: 0.92; transform: scale(1); }
+      }
+      .perf-impact-art { animation: perf-impact-art-hit 340ms cubic-bezier(0.2,0.8,0.3,1) forwards; }
+
       @keyframes perf-bloom-rise {
         0%   { opacity: 0; transform: translateY(6px) scale(0.7); }
         40%  { opacity: 1; }

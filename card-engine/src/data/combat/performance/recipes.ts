@@ -183,9 +183,17 @@ export const GENERIC_RECIPE = BY_FORM.generic;
  * contrived demo.
  */
 export const BY_ABILITY: Record<string, AbilityPerformanceRecipe> = {
+  /*
+   * `beam` rather than `whip` after the first review (Raheem, 2026-08-01): the
+   * whip's lateral wobble, seen mid-flight, read as "a squiggle" instead of as
+   * something being fired. A pressurised stream out of the card says travel far
+   * more clearly, and it suits a material under force. `arc` is the alternative
+   * he named — lobbed — and both are one word away in this recipe.
+   */
   ability_attuned_strike: base('ability_attuned_strike', 'lash', OUTBOUND_STAGES, {
     id: 'recipe_attuned_strike',
     abilityDefinitionId: 'ability_attuned_strike',
+    trajectory: 'beam',
     fallbackRecipeId: 'form_lash',
   }),
 
