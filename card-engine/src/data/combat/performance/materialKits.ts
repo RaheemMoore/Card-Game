@@ -147,6 +147,8 @@ const NATURE: MaterialKit = {
   chargeForm: 'bloom',
   streamFlow: 'creep',
   palette: ['#1e3d1a', '#4a7c2f', '#c9a227'],
+  // Roots are wood, not leaf. Bible NATURE secondaries: 'brown, amber, moss'.
+  structure: '#6b4423',
   provisional: false,
   citesVisualLanguage: 'NATURE',
 };

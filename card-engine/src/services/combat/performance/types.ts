@@ -117,6 +117,18 @@ export interface MaterialKit {
    */
   palette: readonly [core: string, edge: string, accent: string];
   /**
+   * Colour for the material's STRUCTURAL parts, when they differ from the
+   * living ones.
+   *
+   * Exists because Nature's roots were being drawn in leaf-green. Raheem, on
+   * review: "the roots that pop out the ground should be brown, not green. The
+   * plant's green. Roots are brown." He is right, and the Bible agrees — Nature
+   * lists brown and amber among its secondary colours. Wood, bark, bone and
+   * metal armature are structure; foliage, flame and blood are not. Optional,
+   * because most materials have no structural part at all.
+   */
+  structure?: string;
+  /**
    * True when this kit is a family default rather than authored art
    * direction. Surfaced in the Ability Theater so the debt is visible instead
    * of quietly shipping as if it were finished.

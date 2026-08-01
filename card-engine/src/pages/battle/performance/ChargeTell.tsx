@@ -162,6 +162,21 @@ interface Props {
   armed?: boolean;
   /** True once the delivery is under way — the pool stays, but stops growing. */
   firing?: boolean;
+  /**
+   * The beat immediately before the delivery lands, when the tell brightens.
+   *
+   * Raheem asked for it explicitly: "right before it goes to fire, that plant
+   * should be glowing a little bit brighter as it's activating on the boss."
+   * It is the causal link made visible — the thing on the card surges, and
+   * then the thing at the target happens. Without it the two halves of a
+   * split-location ability like Rootgrasp read as unrelated events.
+   */
+  flaring?: boolean;
+  /**
+   * Optional art for the gathered material, when it should be visibly the same
+   * object the ability later produces. Falls back to the procedural shape.
+   */
+  art?: { src: string; sizePx: number };
   intensity: 'normal' | 'heavy' | 'ultimate';
 }
 
@@ -172,6 +187,8 @@ export function ChargeTell({
   chargeMs,
   armed = false,
   firing = false,
+  flaring = false,
+  art,
   intensity,
 }: Props) {
   const [core, edge, accent] = kit.palette;
@@ -214,7 +231,40 @@ export function ChargeTell({
         }}
       />
 
-      {/* The gathering shape itself, which is NOT always a pool. */}
+      {/*
+        Authored art for the gathered material, when the kit supplies it. The
+        procedural shape below is the fallback and remains the default — most
+        materials never need art here.
+      */}
+      {art ? (
+        <img
+          src={art.src}
+          alt=""
+          className={
+            still || firing
+              ? undefined
+              : armed
+                ? 'perf-charge-pulse'
+                : 'perf-charge-gather'
+          }
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: art.sizePx,
+            height: art.sizePx,
+            marginLeft: -art.sizePx / 2,
+            marginTop: -art.sizePx / 2,
+            imageRendering: 'pixelated',
+            // The flare: the plant surges just before the ability lands.
+            filter: flaring
+              ? `brightness(1.75) drop-shadow(0 0 10px ${accent})`
+              : `drop-shadow(0 0 4px ${core}88)`,
+            transition: still ? undefined : 'filter 160ms ease-out',
+          }}
+        />
+      ) : (
+      /* The gathering shape itself, which is NOT always a pool. */
       <svg
         viewBox="0 0 100 50"
         preserveAspectRatio="none"
@@ -238,6 +288,7 @@ export function ChargeTell({
           <ChargeShape form={kit.chargeForm} heavy={heavy} core={core} edge={edge} accent={accent} />
         </g>
       </svg>
+      )}
 
       {/* Drips, for materials that drip. Blood hangs and falls; nothing else
           here does, which is a silhouette cue rather than a colour one. */}

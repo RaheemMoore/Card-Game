@@ -87,6 +87,11 @@ export function GrowthRenderer({
 }: Props) {
   const kit = perf.material;
   const [core, edge, accent] = kit.palette;
+  // Roots are wood. Drawing them in leaf-green made the whole eruption read as
+  // one undifferentiated green mass; brown structure against green foliage is
+  // what separates the thing that grips from the thing that grows.
+  const rootCore = kit.structure ?? core;
+  const rootEdge = kit.structure ? shade(kit.structure, -0.35) : edge;
   const still = motionLevel === 'off';
 
   const before = stageName === 'charge' || stageName === 'cast';
@@ -166,7 +171,7 @@ export function GrowthRenderer({
                   <path
                     d={d}
                     fill="none"
-                    stroke={edge}
+                    stroke={rootEdge}
                     strokeWidth={thicknessAt(kit, 0.5, baseWidth) * 2.1}
                     strokeLinecap="round"
                     vectorEffect="non-scaling-stroke"
@@ -176,7 +181,7 @@ export function GrowthRenderer({
                   <path
                     d={d}
                     fill="none"
-                    stroke={core}
+                    stroke={rootCore}
                     strokeWidth={thicknessAt(kit, 0.5, baseWidth)}
                     strokeLinecap="round"
                     vectorEffect="non-scaling-stroke"
@@ -194,7 +199,7 @@ export function GrowthRenderer({
                         key={f}
                         d={`M ${fx} ${fy} q ${dir * 2} ${-2.5} ${dir * 3.4} ${-5}`}
                         fill="none"
-                        stroke={core}
+                        stroke={rootCore}
                         strokeWidth={thicknessAt(kit, ft, baseWidth) * 0.6}
                         strokeLinecap="round"
                         vectorEffect="non-scaling-stroke"
@@ -320,6 +325,21 @@ const BLOOM_PX = 76;
  * arcs, and five identical smooth curves read as tentacles. Fixed per index
  * rather than random so replays match.
  */
+/**
+ * Darken (or lighten) a hex colour by a fraction.
+ *
+ * Used for the root under-stroke so the two-pass dark/bright trick still works
+ * on a structural colour that has no authored dark partner in the palette.
+ */
+function shade(hex: string, amount: number): string {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  const r = clamp(((n >> 16) & 255) * (1 + amount));
+  const g = clamp(((n >> 8) & 255) * (1 + amount));
+  const b = clamp((n & 255) * (1 + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
 function rootPath(x0: number, y0: number, x1: number, y1: number, seed: number): string {
   const midX = (x0 + x1) / 2 + (seed % 2 === 0 ? 1.6 : -1.9);
   const midY = (y0 + y1) / 2 + (seed % 3 === 0 ? 1.2 : -0.8);

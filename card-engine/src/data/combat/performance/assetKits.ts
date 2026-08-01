@@ -103,6 +103,18 @@ export interface PerformanceAssetKit {
   stream?: PerformanceAsset;
   /** Burst at the cast point, where the effect leaves the card. */
   muzzle?: PerformanceAsset;
+  /**
+   * What gathers on the card while the ability is held.
+   *
+   * Usually absent — the charge tell is drawn procedurally from the material
+   * kit and costs nothing. It exists for the case where the charge should be
+   * visibly THE SAME OBJECT as something the ability later produces: Nature's
+   * card plant and the plant that blooms on the boss are one design, at two
+   * sizes, so that the player reads the second as having come from the first.
+   * Pointing both slots at the same files is the cheapest way to say that, and
+   * it says it in data rather than in a renderer.
+   */
+  charge?: PerformanceAsset;
   /** A repeated segment laid along the path. */
   segment?: PerformanceAsset;
   /** Shed particles. */
@@ -443,6 +455,37 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       notes:
         'Interwoven roots with leaves. Slowest fps in the set — vines writhe, they do not ' +
         'churn. Tiled horizontally ACROSS the target rather than along a path.',
+    },
+    /*
+     * The card's plant IS the boss's plant, at a smaller size.
+     *
+     * Same files as `impact` below, deliberately. Raheem on review: "that plant
+     * should maybe be the same as the plant that pops up on the card ... just
+     * make it a little bit smaller so we can understand that that plant comes
+     * from that card." Two different plants would have been two objects; one
+     * plant at two sizes is a sentence.
+     *
+     * Held on frame 0 rather than played — it is a thing that grew and is now
+     * waiting, not a thing performing.
+     */
+    charge: {
+      id: 'growth_nature_charge',
+      kind: 'still',
+      path: 'effects/growth/nature/bloom.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['growth'],
+      intendedMaterials: ['Nature'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '8e0fe3c1-0625',
+        seed: 4412,
+        generationCost: 0,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nature_bloom',
+      },
+      notes: 'Reuses the bloom art at a smaller scale. Cost 0 — no new generation.',
     },
     impact: {
       id: 'growth_nature_bloom',

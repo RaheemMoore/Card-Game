@@ -6,7 +6,20 @@ import { GrowthRenderer } from './GrowthRenderer';
 import { BarrierRenderer } from './BarrierRenderer';
 import { GenericRenderer } from './GenericRenderer';
 import { ChargeTell } from './ChargeTell';
+import {
+  assetAvailable,
+  assetKitIdFor,
+  getAssetKit,
+  performanceAssetUrl,
+} from '../../../data/combat/performance/assetKits';
+
 import { useStageClock, type StageClockOptions } from './useStageClock';
+
+/**
+ * How much smaller the charge art is than the version the ability produces at
+ * the target. Small enough to read as "the seed of that", large enough to see.
+ */
+const CHARGE_ART_SCALE = 0.72;
 
 /**
  * Mounts one resolved performance and dispatches it to its family renderer.
@@ -73,12 +86,25 @@ export function PerformanceView({
     stageName === 'manifest' || stageName === 'impact' || stageName === 'return' ||
     stageName === 'arrival';
   /*
+   * Authored charge art, when the kit has it. Drawn smaller than the version
+   * the ability produces at the target — same object, two sizes, which is what
+   * makes the second read as having come from the first.
+   */
+  const chargeKit = getAssetKit(assetKitIdFor(perf.form, perf.material.element));
+  const chargeArt = assetAvailable(chargeKit?.charge)
+    ? {
+        src: performanceAssetUrl(chargeKit.charge),
+        sizePx: Math.round(chargeKit.charge.dimensions.width * CHARGE_ART_SCALE),
+      }
+    : undefined;
+
+  /*
    * The charge tell belongs to the CARD, not to the delivery's origin.
    *
    * For most abilities those are the same point. For Rootgrasp they are not:
    * the plant blooms on the card while the roots erupt from the ground around
    * the boss. Anchoring the tell to `castAnchor` put the plant at the boss's
-   * feet, which reads as the boss growing it. Charging is something the caster
+   * feet, which read as the boss growing it. Charging is something the caster
    * does, so it is always drawn at the caster.
    */
   const chargeTell = chargeVisible ? (
@@ -88,6 +114,11 @@ export function PerformanceView({
       motionLevel={motionLevel}
       chargeMs={chargeMs}
       firing={stageName !== 'charge'}
+      // The surge just before the ability resolves at the target. `cast` is
+      // the beat between gathering and delivery, which is exactly the moment
+      // the card should look like it is about to let go.
+      flaring={stageName === 'cast' || stageName === 'manifest'}
+      art={chargeArt}
       intensity={perf.intensity}
     />
   ) : null;
