@@ -9,6 +9,7 @@ import {
 } from '../../../data/combat/performance/assetKits';
 import { resolveCombatAssetPath } from '../../../data/combat/types';
 import { StreamBody } from './StreamBody';
+import { AssetFrames } from './AssetFrames';
 import type { Point } from '../combatAnchors';
 import {
   edgeDecoration,
@@ -216,9 +217,13 @@ export function LashRenderer({
       )}
 
       {impactAsset && (stageName === 'impact' || stageName === 'aftermath') && (
-        <img
+        <AssetFrames
           src={performanceAssetUrl(impactAsset)}
-          alt=""
+          frames={impactAsset.frames?.map(resolveCombatAssetPath)}
+          fps={impactAsset.fps}
+          loop={impactAsset.loop}
+          motionLevel={motionLevel}
+          playKey={perf.id}
           className={still ? undefined : 'perf-impact-art'}
           style={{
             position: 'absolute',

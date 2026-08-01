@@ -86,10 +86,27 @@ describe('the first real asset', () => {
 
   it('still treats every un-generated piece as unavailable', () => {
     // Guards against a stray status flip making the renderers reach for files
-    // that do not exist.
-    const kit = getAssetKit('lash_blood')!;
-    expect(assetAvailable(kit.segment)).toBe(false);
-    expect(assetAvailable(kit.particle)).toBe(false);
-    expect(assetAvailable(getAssetKit('lash_water')!.impact)).toBe(false);
+    // that do not exist. Fire is the useful subject now — Blood and Water are
+    // both real, and this assertion has to keep pointing at something that
+    // genuinely has not been made yet or it stops guarding anything.
+    const blood = getAssetKit('lash_blood')!;
+    expect(assetAvailable(blood.segment)).toBe(false);
+    expect(assetAvailable(blood.particle)).toBe(false);
+
+    const fire = getAssetKit('lash_fire')!;
+    expect(assetAvailable(fire.stream)).toBe(false);
+    expect(assetAvailable(fire.impact)).toBe(false);
+  });
+
+  it('exposes Water as a second complete material — no code change required', () => {
+    // The payoff for the form/material split: a new element is a manifest
+    // entry. If this ever needs a renderer change to pass, the split has
+    // sprung a leak.
+    const kit = getAssetKit(assetKitIdFor('lash', 'Water'));
+    expect(assetAvailable(kit?.stream)).toBe(true);
+    expect(assetAvailable(kit?.impact)).toBe(true);
+    // Animated, and the splash resolves once rather than looping.
+    expect(kit!.stream!.frames?.length).toBe(9);
+    expect(kit!.impact!.loop).toBe(false);
   });
 });

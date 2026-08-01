@@ -202,13 +202,67 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
         'a generic red burst, and survives the colour being removed.',
     },
   },
+  /*
+   * Water — Batch C, 2026-08-01. Four generations, and NO code changed to
+   * support it: the renderers read the manifest, so a new element is a data
+   * change. That is the payoff for the form/material split, and it is the
+   * cheapest possible evidence that the split was worth making.
+   */
   lash_water: {
     id: 'lash_water',
     form: 'lash',
     element: 'Water',
-    segment: placeholder('lash_water_segment', 'still', 'effects/lash/water/segment.png', 32, 32, ['lash'], ['Water']),
+    stream: {
+      id: 'lash_water_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/water/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/water/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Water'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '4e8d8d15-9ba9 (still) / fae1eb10-ef49 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#water_stream_strip',
+      },
+      notes:
+        'Rolling foam crests along the top edge — the cue that separates it from Blood in ' +
+        'greyscale, where Blood is a smooth beaded band. Faster fps than Blood: water is thin.',
+    },
+    impact: {
+      id: 'lash_water_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/water/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/water/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Water'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '61a3ca07-4d3b (still) / e5053dab-b989 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#water_impact',
+      },
+      notes:
+        'An upward crown rather than Blood radial splatter — water throws itself up and ' +
+        'outward off a surface. Does not loop: a splash resolves once.',
+    },
     particle: placeholder('lash_water_spray', 'still', 'effects/lash/water/spray.png', 16, 16, ['lash'], ['Water']),
-    impact: placeholder('lash_water_impact', 'flipbook', 'effects/lash/water/impact.png', 64, 64, ['lash'], ['Water']),
   },
   lash_fire: {
     id: 'lash_fire',

@@ -3,6 +3,7 @@ import {
   BATCH_A,
   BATCH_B,
   KEPT,
+  KEPT_WATER,
   REJECTED_COUNT,
   TOTAL_GENERATIONS,
   type ArtCandidate,
@@ -62,10 +63,26 @@ export function ArtCandidatePanel() {
       </div>
 
       <div className="space-y-5">
-        <ChargeCard />
+        <ChargeCard element="Blood" />
         {KEPT.map((c) => (
           <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
         ))}
+      </div>
+
+      <div className="mt-10 mb-5 pt-6 border-t border-bone/15">
+        <h2 className="font-fantasy text-lg text-parchment">Water — the same three parts</h2>
+        <p className="text-sm text-bone/70 max-w-3xl mt-1">
+          Four generations, and <strong>not one line of code changed</strong> to support it — a
+          new element is a manifest entry, because the renderers read the material rather than
+          hard-coding it. Compare the shapes against Blood above with the colour off: rolling
+          foam crests versus a smooth beaded band, an upward crown versus a flat radial splatter.
+        </p>
+        <div className="space-y-5 mt-4">
+          <ChargeCard element="Water" />
+          {KEPT_WATER.map((c) => (
+            <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -77,9 +94,10 @@ export function ArtCandidatePanel() {
  * three parts, and because "this one was free and always will be" is the most
  * useful fact on the page.
  */
-function ChargeCard() {
-  const kit = MATERIAL_KITS.Blood;
+function ChargeCard({ element }: { element: 'Blood' | 'Water' }) {
+  const kit = MATERIAL_KITS[element];
   const [core, edge, accent] = kit.palette;
+  const drips = kit.residue === 'dripping';
 
   return (
     <section className="rounded border border-emerald-400/50 bg-void/40 p-4">
@@ -87,7 +105,7 @@ function ChargeCard() {
         <div>
           <h3 className="font-fantasy text-base text-parchment">1 · Charge — the gathering</h3>
           <p className="text-sm text-bone/80 mt-1 max-w-2xl">
-            Blood pools at the card's edge before anything fires, and the stream then shoots
+            {element} pools at the card's edge before anything fires, and the stream then shoots
             through it. It also holds indefinitely while other cards are still choosing.
           </p>
         </div>
@@ -111,8 +129,13 @@ function ChargeCard() {
               <ellipse cx={50} cy={38} rx={44} ry={17} fill={core} opacity={0.85} />
               <ellipse cx={50} cy={33} rx={30} ry={11} fill={edge} opacity={0.9} />
               <ellipse cx={39} cy={28} rx={10} ry={4} fill={accent} opacity={0.75} />
-              <circle cx={32} cy={52} r={2.6} fill={edge} />
-              <circle cx={54} cy={55} r={2.6} fill={edge} />
+              {/* Only materials that drip get drips — Blood does, Water does not. */}
+              {drips && (
+                <>
+                  <circle cx={32} cy={52} r={2.6} fill={edge} />
+                  <circle cx={54} cy={55} r={2.6} fill={edge} />
+                </>
+              )}
             </svg>
           </div>
           <figcaption className="text-[10px] text-bone/45 mt-1.5 text-center">

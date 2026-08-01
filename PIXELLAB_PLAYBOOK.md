@@ -617,3 +617,28 @@ cannot use. Scroll (`transform`) and churn (`src`) stay on independent axes.
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Effects batch B | stream tile + 9-frame churn | 2 | 1 recommend, 1 undecided |
+
+## A second element cost 4 generations and zero code (Batch C — Water)
+
+The Blood recipe transferred to Water first try, with only the material words changed in the
+prompt. Stream tile + churn + splash + splash animation = **4 generations, no code edited** —
+a new element is a manifest entry, because the renderers read the material kit rather than
+hard-coding anything.
+
+The important part is that it did not come back as *blue blood*:
+
+- **Stream:** rolling foam crests along the top edge, where Blood is a smooth beaded band.
+- **Splash:** an upward crown, where Blood is a flat radial splatter. Water throws itself UP
+  off a surface; blood does not.
+
+Both are **silhouette** differences, so the two remain distinguishable with the colour off —
+which is the Bible rule the whole material axis exists to satisfy. Colour was doing none of
+the work.
+
+Also settled here: **a splash must not loop.** It resolves once and parks on its final frame,
+because the aftermath stage keeps it on the boss for most of a second. A looping splash reads
+as a sprinkler.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch C (Water) | stream + churn, splash + animation | 4 | all 4 kept |

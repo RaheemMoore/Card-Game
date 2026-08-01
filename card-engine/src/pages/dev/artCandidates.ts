@@ -190,6 +190,48 @@ export const BATCH_B: readonly ArtCandidate[] = [
 export const BATCH_B_COST = BATCH_B.reduce((n, c) => n + c.provenance.generationCost, 0);
 
 /* ------------------------------------------------------------------ */
+/*  Batch C — Water, on the proven recipe                              */
+/* ------------------------------------------------------------------ */
+
+const ROOT_C = '/assets/combat/effects/_candidates/batch-c';
+
+export const BATCH_C: readonly ArtCandidate[] = [
+  {
+    id: 'water_stream_strip',
+    file: `${ROOT_C}/water-stream.png`,
+    size: 128,
+    label: 'Water stream tile — Pixen, 128×32',
+    what: 'The same piece as the Blood tile, in water. Tiled and scrolled along the beam.',
+    testing: 'Does the recipe transfer to a second element, or was Blood a lucky roll?',
+    verdict: 'recommend',
+    why:
+      'Transferred first try with only the material words changed. And it is the right kind ' +
+      'of different: rolling foam crests along the top edge where Blood is a smooth beaded ' +
+      'band. That is a SILHOUETTE difference, so the two are distinguishable with the colour ' +
+      'turned off — which is the Bible rule this whole system exists to satisfy. Scrolls ' +
+      'faster than Blood too, because water is thin and blood is not.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '4e8d8d15 / fae1eb10', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'water_impact',
+    file: `${ROOT_C}/water-impact.png`,
+    size: 64,
+    label: 'Water splash — Pixen, 64×64',
+    what: 'The splash where the jet lands, animated over 9 frames as a one-shot.',
+    testing: 'Can the impact read as water rather than as blue blood?',
+    verdict: 'recommend',
+    why:
+      'An upward crown with foam and flung droplets, where Blood is a flat radial splatter — ' +
+      'water throws itself UP off a surface and blood does not. Again a shape difference ' +
+      'rather than a colour one. It does not loop, because a splash resolves once; it parks ' +
+      'on its final frame and sits on the boss for the whole aftermath.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '61a3ca07 / e5053dab', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+];
+
+/* ------------------------------------------------------------------ */
 /*  What actually shipped                                              */
 /* ------------------------------------------------------------------ */
 
@@ -211,14 +253,23 @@ export const KEPT: readonly ArtCandidate[] = [
   { ...pick(BATCH_A, 'blood_impact_pixen64'), label: '3 · Impact — the splash' },
 ];
 
+/** The same three parts, in Water. */
+export const KEPT_WATER: readonly ArtCandidate[] = [
+  { ...pick(BATCH_C, 'water_stream_strip'), label: '2 · Stream — the blast' },
+  { ...pick(BATCH_C, 'water_impact'), label: '3 · Impact — the splash' },
+];
+
 function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   const found = batch.find((c) => c.id === id);
   if (!found) throw new Error(`artCandidates: no candidate ${id}`);
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B];
-const KEPT_IDS = new Set(['blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64']);
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C];
+const KEPT_IDS = new Set([
+  'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
+  'water_stream_strip', 'water_impact',
+]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;
 export const TOTAL_GENERATIONS = ALL.reduce((n, c) => n + c.provenance.generationCost, 0);
