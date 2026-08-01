@@ -408,6 +408,51 @@ export const BATCH_G: readonly ArtCandidate[] = [
 ];
 
 /* ------------------------------------------------------------------ */
+/*  Batch H — Sanguine, the first solid                                */
+/* ------------------------------------------------------------------ */
+
+const ROOT_H = '/assets/combat/effects/_candidates/batch-h';
+
+export const BATCH_H: readonly ArtCandidate[] = [
+  {
+    id: 'sanguine_shard',
+    file: `${ROOT_H}/sanguine-shard.png`,
+    size: 32,
+    label: '2 · Volley — thrown crystal',
+    what:
+      'One shard, thrown five times with a stagger and a tumble. Not a beam: separate solid ' +
+      'objects with air between them.',
+    testing: 'Can a delivery be made of DISCRETE objects rather than a continuous body?',
+    verdict: 'recommend',
+    why:
+      'This is the batch that pays back the Batch A failure. PixelLab insists on returning ' +
+      'finished objects with resolved edges, which is exactly why lash segments could not be ' +
+      'made — but a crystal shard SHOULD be a finished object, so the failure mode becomes ' +
+      'the feature. It is also a still rather than a flipbook on purpose: crystal has no ' +
+      'internal motion, and animating it would contradict the material.',
+    provenance: { tool: 'create_image_pixen', jobId: 'fe32b415', seed: 7331, generationCost: 1 },
+    tileable: false,
+  },
+  {
+    id: 'sanguine_impact',
+    file: `${ROOT_H}/sanguine-impact.png`,
+    size: 64,
+    label: '3 · Impact — the shatter',
+    what: 'Angular fragments bursting outward where the shard lands.',
+    testing: 'Does crystal read as HARD next to five soft materials?',
+    verdict: 'recommend',
+    why:
+      'Geometric facets and hard glints, against wet splatter, foam crown, flame sheet and ' +
+      'smoke bloom — it is unmistakably a different substance. My one reservation, stated ' +
+      'plainly: it is radial like Infernal’s starburst, so those two are separated by faceted ' +
+      'vs rayed rather than by overall shape. That is a real difference but a narrower one ' +
+      'than the rest of the set enjoys, and worth a look when you compare them.',
+    provenance: { tool: 'create_image_pixen', jobId: 'f9cd9cf2', seed: 4412, generationCost: 1 },
+    tileable: false,
+  },
+];
+
+/* ------------------------------------------------------------------ */
 /*  What actually shipped                                              */
 /* ------------------------------------------------------------------ */
 
@@ -424,7 +469,7 @@ export const BATCH_G: readonly ArtCandidate[] = [
  * gallery renders it as its own card.
  */
 export interface KeptElement {
-  element: 'Blood' | 'Water' | 'Fire' | 'Infernal' | 'Nature' | 'Shadow';
+  element: 'Blood' | 'Water' | 'Fire' | 'Infernal' | 'Nature' | 'Shadow' | 'Sanguine';
   /** One line on what this element brought that the others did not. */
   note: string;
   generations: number;
@@ -502,6 +547,15 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
     generations: 4,
     candidates: BATCH_G,
   },
+  {
+    element: 'Sanguine',
+    note:
+      'The first SOLID. A vampire hardens their own blood and throws it — so the delivery is ' +
+      'a volley of discrete shards with air between them, not a continuous body. Every field ' +
+      'is chosen against Blood, the element it is most likely to collapse into.',
+    generations: 2,
+    candidates: BATCH_H,
+  },
 ];
 
 function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
@@ -510,7 +564,7 @@ function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G];
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G, ...BATCH_H];
 const KEPT_IDS = new Set([
   'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
   'water_stream_strip', 'water_impact',
@@ -518,6 +572,7 @@ const KEPT_IDS = new Set([
   'fire_stream_wispy', 'fire_impact_spread',
   'nature_wrap', 'nature_bloom',
   'shadow_stream', 'shadow_impact',
+  'sanguine_shard', 'sanguine_impact',
 ]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;

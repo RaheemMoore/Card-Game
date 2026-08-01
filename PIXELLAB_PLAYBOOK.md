@@ -713,3 +713,36 @@ detonates off it). Without that test the collision would have shipped.
 |---|---|---|---|
 | Effects batch E (Fire, re-briefed) | wispy stream + churn, spread impact + animation | 5 | 4 kept, 1 rejected starburst |
 | Effects batch F (Nature) | root wrap + churn, bloom + animation | 4 | all 4 kept |
+
+## Sanguine: the Batch A failure, finally cashed in (2 generations)
+
+Batch A established that PixelLab insists on returning **finished objects with resolved
+edges**, which is why lash segments could not be made — every "fragment" came back as a
+complete thing. Sanguine is the element where that stops being a limitation.
+
+A crystal shard SHOULD be a finished object with hard resolved edges. So the delivery is a
+**volley** — five discrete shards thrown in sequence with air between them — rather than a
+continuous body, and the generator's strongest habit becomes the requirement. Two
+generations, first try, no rerolls: one shard and one shatter.
+
+**A still, deliberately, not a flipbook.** Crystal has no internal motion; animating it would
+contradict the material. Blood churns, fire flickers, smoke billows — crystal is rigid, and
+the movement it has is the tumble the CODE gives it in flight.
+
+**Delivery grammars are now five, and none of them is a recolour of another:**
+
+| Element | Delivery |
+|---|---|
+| Blood, Water, Infernal | continuous pressurised jet |
+| Fire | airy wisp, blown and translucent |
+| Nature | erupts from the ground, does not travel at all |
+| Shadow | wisp, and an impact that hangs rather than resolves |
+| Sanguine | discrete solid shards with air between them |
+
+**Watch item recorded honestly:** Sanguine's shatter is radial like Infernal's starburst. The
+separator is faceted-geometric against glowing-rayed, which is real but narrower than the rest
+of the set enjoys. Worth a look if the two ever appear in the same fight.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch H (Sanguine) | shard + shatter | 2 | both kept, no rerolls |

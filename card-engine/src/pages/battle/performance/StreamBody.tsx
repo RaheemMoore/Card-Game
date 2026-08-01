@@ -62,6 +62,16 @@ interface Props {
   intensity: 'normal' | 'heavy' | 'ultimate';
 }
 
+/**
+ * Shards in a volley, and the gap between their launches.
+ *
+ * Five is deliberate: enough to read as a burst rather than a single thrown
+ * rock, few enough that you can still count them, which is what separates a
+ * volley from a stream at a glance.
+ */
+const VOLLEY_SHARDS = 5;
+const VOLLEY_STAGGER_MS = 70;
+
 export function StreamBody({
   from,
   to,
@@ -122,6 +132,17 @@ export function StreamBody({
    * exists, which the extend clip already handles.
    */
   const creep = kit.streamFlow === 'creep';
+  /*
+   * A volley is not a body at all — it is several separate things crossing the
+   * gap one after another.
+   *
+   * So the tiles stop being a continuous row and become individually spaced
+   * projectiles: fewer of them, gaps between them, each launching a beat after
+   * the last. The GAPS are the read. A crystal shard arriving in a solid queue
+   * of other shards looks like a textured beam; the same shards with air
+   * between them look thrown.
+   */
+  const volley = kit.streamFlow === 'volley';
 
   useEffect(() => {
     if (!geo || still) return;
@@ -179,7 +200,57 @@ export function StreamBody({
 
   // +2 so the row is longer than the stream: one spare tile absorbs the scroll,
   // and one covers the rounding at the far end under the splash.
-  const n = geo ? tileCount(geo.length, tileW) + 2 : 0;
+  // A volley is a fixed small count instead — you are meant to be able to
+  // COUNT the shards, which you cannot do with a tiled row.
+  const n = geo ? (volley ? VOLLEY_SHARDS : tileCount(geo.length, tileW) + 2) : 0;
+
+  /*
+   * The volley draws itself: absolutely-positioned shards along the A→B line,
+   * each with its own launch delay, rather than a clipped row of tiles.
+   *
+   * It deliberately does NOT reuse the row, because the row's whole mechanism
+   * is contiguity — flex, a clip, a scroll offset — and a volley is defined by
+   * the absence of contiguity. Bending the row to leave gaps would have been
+   * more code than drawing the shards directly.
+   */
+  if (volley) {
+    return (
+      <div ref={hostRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>
+        {geo &&
+          Array.from({ length: n }, (_, i) => {
+            const t = i / Math.max(1, n - 1);
+            return (
+              <img
+                key={i}
+                src={tileSrc}
+                alt=""
+                className={still ? undefined : 'perf-volley-shard'}
+                style={{
+                  position: 'absolute',
+                  left: geo.x,
+                  top: geo.y,
+                  width: thickness * 1.35,
+                  height: thickness * 1.35,
+                  marginTop: (-thickness * 1.35) / 2,
+                  imageRendering: 'pixelated',
+                  transformOrigin: '0 50%',
+                  // Static: the shards sit spread along the path so the
+                  // connection is still readable with motion off.
+                  transform: still
+                    ? `rotate(${geo.angle}deg) translateX(${t * geo.length}px)`
+                    : `rotate(${geo.angle}deg)`,
+                  // Each shard's flight is one transform animation along the
+                  // rotated axis, so they all travel the true A→B line.
+                  ['--fly-to' as string]: `${geo.length}px`,
+                  ['--fly-spin' as string]: `${i % 2 === 0 ? 220 : -260}deg`,
+                  animationDelay: `${i * VOLLEY_STAGGER_MS}ms`,
+                }}
+              />
+            );
+          })}
+      </div>
+    );
+  }
 
   return (
     <div ref={hostRef} className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>

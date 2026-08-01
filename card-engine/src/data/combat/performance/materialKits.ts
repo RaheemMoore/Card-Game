@@ -359,7 +359,41 @@ export const MATERIAL_KITS: Record<ElementName, MaterialKit> = {
   Void: fromFamily('Void', 'umbral'),
   Bone: fromFamily('Bone', 'umbral'),
   Nocturne: fromFamily('Nocturne', 'umbral'),
-  Sanguine: fromFamily('Sanguine', 'umbral'),
+  /**
+   * Sanguine — blood that has been hardened, and the first SOLID in the set.
+   *
+   * Bible SANGUINE, Vampire-exclusive: "a vampire's vitality hardened into
+   * faceted ruby/garnet crystal. Distinct from Blood (wet liquid crimson) and
+   * Nocturne (blood-moon night)." Raheem's brief: "the Sanguine texture is a
+   * crystal. The other ones are wet, some are airy and flowy. Sanguine is the
+   * occurrence of when the vampire has the strength to crystallise the blood."
+   *
+   * Every field here is chosen against Blood, because they are the pair most
+   * likely to collapse into each other — same source substance, same damage
+   * type, adjacent lore:
+   *
+   *   Blood    — coiling ribbon, rounded, wet, drips, flows as a jet
+   *   Sanguine — faceted shard, bevelled, hard, shatters, thrown as a volley
+   *
+   * `volley` is the delivery nothing else uses: discrete solid bodies with air
+   * between them, rather than one continuous body spanning the gap. Crystal
+   * cannot flow, blow or grow, so it needed its own.
+   */
+  Sanguine: {
+    element: 'Sanguine',
+    family: 'umbral',
+    silhouette: 'faceted_shard',
+    edgeProfile: 'bevelled',
+    particle: 'shard',
+    // Crystal breaks. It does not splash, spread or engulf.
+    impact: 'splintering',
+    residue: 'none',
+    chargeForm: 'crystallize',
+    streamFlow: 'volley',
+    palette: ['#8c0f2a', '#d4224a', '#ffd9e2'],
+    provisional: false,
+    citesVisualLanguage: 'SANGUINE',
+  },
   Dream: fromFamily('Dream', 'umbral'),
   Psychic: fromFamily('Psychic', 'umbral'),
   /**

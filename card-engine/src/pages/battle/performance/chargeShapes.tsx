@@ -49,6 +49,7 @@ export const CHARGE_SHAPE_SCALE: Record<ChargeForm, number> = {
   bloom: 1.2,
   halo: 1.15,
   motes: 1.6,
+  crystallize: 1.25,
 };
 
 /** Wrap a shape in its per-form scale, anchored at the base. */
@@ -111,6 +112,37 @@ export function ChargeShape({ form, core, edge, accent, heavy = false }: ChargeS
           <ellipse cx={50} cy={32} rx={34} ry={16} fill="none" stroke={core} strokeWidth={5} opacity={0.85} />
           <ellipse cx={50} cy={32} rx={24} ry={11} fill="none" stroke={edge} strokeWidth={3} opacity={0.9} />
           <ellipse cx={50} cy={32} rx={11} ry={5} fill={accent} opacity={0.7} />
+        </>
+      );
+
+    case 'crystallize':
+      /*
+       * Blood that has set. A shallow pool at the base with facets grown up
+       * out of it — the only tell here that shows a material MID-CHANGE rather
+       * than simply gathered, which is the Sanguine lore beat: a vampire with
+       * the strength to harden their own blood.
+       *
+       * The residual pool at the bottom is load-bearing. Without it these are
+       * just crystals; with it, they are visibly blood that turned into
+       * crystals.
+       */
+      return (
+        <>
+          {/* What is left of the liquid. */}
+          <ellipse cx={50} cy={48} rx={32} ry={7} fill={core} opacity={0.75} />
+          {/* Facets, deliberately uneven heights and angles — a matched set
+              reads as a decoration rather than as something that grew. */}
+          <path d="M 50 46 L 42 26 L 50 8 L 58 27 Z" fill={edge} />
+          <path d="M 50 46 L 42 26 L 50 8 Z" fill={core} opacity={0.9} />
+          <path d="M 34 47 L 29 33 L 36 22 L 41 35 Z" fill={edge} opacity={0.9} />
+          <path d="M 34 47 L 29 33 L 36 22 Z" fill={core} opacity={0.85} />
+          <path d="M 66 47 L 62 31 L 69 24 L 72 37 Z" fill={edge} opacity={0.85} />
+          <path d="M 66 47 L 62 31 L 69 24 Z" fill={core} opacity={0.8} />
+          {/* Specular glints on the facet edges — the cue that says HARD.
+              Blood's equivalent is a soft wet highlight; these are sharp. */}
+          <path d="M 48 20 L 50 12 L 52 21" stroke={accent} strokeWidth={1.6} fill="none" />
+          <path d="M 33 30 L 36 25" stroke={accent} strokeWidth={1.3} fill="none" />
+          <path d="M 65 29 L 68 26" stroke={accent} strokeWidth={1.3} fill="none" />
         </>
       );
 

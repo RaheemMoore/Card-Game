@@ -417,6 +417,21 @@ export function PerformanceStyles() {
         to   { stroke-dashoffset: 0; }
       }
 
+      /* A shard's flight. Travels the rotated A→B axis and tumbles on the way,
+         because a thrown solid spins and a poured liquid does not — that spin
+         is most of what separates a volley from a stream at a glance. The
+         element's own rotation is applied inline, so this only adds translation
+         along its local x. */
+      @keyframes perf-volley-fly {
+        0%   { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.7); }
+        12%  { opacity: 1; }
+        88%  { opacity: 1; }
+        100% { opacity: 0; transform: translateX(var(--fly-to, 300px)) rotate(var(--fly-spin, 220deg)) scale(1); }
+      }
+      .perf-volley-shard {
+        animation: perf-volley-fly 460ms cubic-bezier(0.35,0.1,0.6,1) forwards;
+      }
+
       /* ── The release, in order ─────────────────────────────────────────
          Card, then beam, then target. All three overlap at contact and then
          leave one at a time, which reads as a causal chain rather than as the

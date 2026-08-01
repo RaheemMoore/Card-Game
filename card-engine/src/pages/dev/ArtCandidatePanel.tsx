@@ -141,6 +141,7 @@ const GATHER_VERB: Record<string, string> = {
   bloom: 'grows and blooms',
   halo: 'gathers into a ring',
   motes: 'condenses',
+  crystallize: 'hardens into crystal',
 };
 
 function ChargeCard({ element }: { element: KeptElement['element'] }) {

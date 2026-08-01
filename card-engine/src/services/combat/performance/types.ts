@@ -174,7 +174,16 @@ export type ChargeForm =
   /** Light assembles into a ring. Holy, light. */
   | 'halo'
   /** Motes converge on a point. The neutral fallback. */
-  | 'motes';
+  | 'motes'
+  /**
+   * Liquid hardens into facets. Sanguine.
+   *
+   * The lore beat made visible: a vampire with the strength to crystallise
+   * their own blood. It starts as a pool like Blood's and then sets, which is
+   * the one charge tell that CHANGES STATE while you watch it rather than
+   * simply growing.
+   */
+  | 'crystallize';
 
 /** How the travelling body behaves along its length. */
 export type StreamFlow =
@@ -190,7 +199,19 @@ export type StreamFlow =
    * flow — it IS the reaching. So a creep barely scrolls at all; what changes
    * is how much of it exists, and once grown it holds rather than streaming.
    */
-  | 'creep';
+  | 'creep'
+  /**
+   * Discrete solid bodies thrown in sequence. Sanguine.
+   *
+   * The one delivery here that is not a continuous body at all. A jet, a wisp
+   * and a creep are all ONE thing spanning the gap; a volley is several
+   * separate things crossing it one after another, with air between them.
+   *
+   * Crystal cannot flow, blow or grow, so none of the existing three could
+   * carry it — and the gaps are the read: you see individual shards leave, fly
+   * and land, which is what makes it feel thrown rather than poured.
+   */
+  | 'volley';
 
 export type MaterialSilhouette =
   | 'coiling_ribbon'
@@ -199,6 +220,8 @@ export type MaterialSilhouette =
   | 'fibrous_bundle'
   | 'faceted_plane'
   | 'smooth_bolt'
+  /** Hard angular facets with flat planes and sharp corners. Sanguine. */
+  | 'faceted_shard'
   /**
    * Soft, formless, with an edge that frays into nothing. Shadow.
    *

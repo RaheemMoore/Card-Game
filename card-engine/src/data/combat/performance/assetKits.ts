@@ -355,6 +355,70 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
   },
 
   /*
+   * Sanguine — Batch H, 2026-08-01. The first SOLID material.
+   *
+   * Note the `stream` slot holds a 32px SHARD rather than a 128x32 band. That
+   * is not an inconsistency: a volley is discrete objects, so its "stream" is
+   * one object repeated through the air, not a texture repeated along a line.
+   * The slot means "what the delivery is made of", and for a volley that is a
+   * thing rather than a strip.
+   *
+   * It also plays to the generator's strength. The lesson from Batch A was
+   * that PixelLab insists on returning finished objects with resolved edges,
+   * which is why lash segments failed — but a crystal shard SHOULD be exactly
+   * that, so the failure mode becomes the feature.
+   */
+  lash_sanguine: {
+    id: 'lash_sanguine',
+    form: 'lash',
+    element: 'Sanguine',
+    stream: {
+      id: 'lash_sanguine_shard',
+      kind: 'still',
+      path: 'effects/lash/sanguine/stream.png',
+      dimensions: { width: 32, height: 32 },
+      pivot: { x: 16, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Sanguine'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: 'fe32b415-19a4',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#sanguine_shard',
+      },
+      notes:
+        'One shard, thrown five times with a stagger and a tumble. A still rather than a ' +
+        'flipbook because a crystal has no internal motion — it is rigid, and animating it ' +
+        'would contradict the material.',
+    },
+    impact: {
+      id: 'lash_sanguine_impact',
+      kind: 'still',
+      path: 'effects/lash/sanguine/impact.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Sanguine'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: 'f9cd9cf2-f929',
+        seed: 4412,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#sanguine_impact',
+      },
+      notes:
+        'Angular fragments bursting outward. Watch item: it is radial like Infernal’s ' +
+        'starburst — the separator is geometric facets against glowing rays, which is a real ' +
+        'difference but a narrower one than the rest of the set enjoys.',
+    },
+  },
+
+  /*
    * Shadow — Batch G, 2026-08-01. Authored to be the structural opposite of
    * Blood, because the two share the `umbral` damage type and would otherwise
    * be separable only by hue. See the Shadow entry in materialKits.ts.
