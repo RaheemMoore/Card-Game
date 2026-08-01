@@ -1,43 +1,35 @@
 import { useState } from 'react';
 import {
   BATCH_A,
-  BATCH_A_COST,
-  BATCH_A_FINDING,
   BATCH_B,
-  BATCH_B_COST,
-  BATCH_B_FINDING,
+  KEPT,
+  REJECTED_COUNT,
+  TOTAL_GENERATIONS,
   type ArtCandidate,
 } from './artCandidates';
+import { MATERIAL_KITS } from '../../data/combat/performance/materialKits';
 
 /**
- * The generated-art review gallery inside the Ability Theater.
+ * The generated-art gallery — the pieces we KEPT, in the order they play.
  *
- * Built so a piece can be judged rather than merely admired. Three things are
- * shown for every candidate, because each answers a different question:
+ * ## Why rejects are not shown
  *
- *  - **At 1×, on the arena background.** This is the size it actually appears
- *    in combat. A piece that only reads at 4× does not work, because the game
- *    never draws it at 4×.
- *  - **The tiling test**, for anything meant to repeat along the lash path.
- *    Nine copies laid along the real spline, next to the procedural stroke they
- *    would replace. This is where a "segment" that is secretly a finished
- *    object gives itself away — the closed ends collide instead of joining.
- *  - **Alpha on three backgrounds.** A grey fringe that shows on light but not
- *    on dark is a semi-transparent halo that will glow wrongly over a bright
- *    arena.
+ * They were, and it made the page worse. Scrolling past four versions of the
+ * same failure is not review; the lesson is stated once and the rest is
+ * clutter. Rejected candidates stay in `artCandidates.ts` with their full
+ * provenance — that record is what stops us re-running a failed experiment —
+ * but the gallery presents the finished performance, not its history.
  *
- * Every card carries what the piece is for, what it was testing, what it cost,
- * and my verdict with reasoning — stated plainly so it can be argued with.
+ * ## Why it is ordered charge → blast → impact
+ *
+ * Because that is the order the player sees them in. Grouping by "batch" was
+ * an accident of how the work happened, which is meaningless to anyone
+ * reviewing the result.
+ *
+ * One of the three costs nothing: the charge tell is drawn in code from the
+ * material kit, so every element gets one free. That is worth seeing next to
+ * the pieces that did cost generations.
  */
-
-/**
- * The three worth looking at: the recommendation, the one I want a ruling on,
- * and the single best example of the failure the batch found. The rest are
- * counted, not shown.
- */
-const SHOWN_IDS = ['blood_impact_pixen64', 'blood_tip_pixen32', 'blood_segment_pixflux32'];
-const SHOWN = SHOWN_IDS.map((id) => BATCH_A.find((c) => c.id === id)!).filter(Boolean);
-const HIDDEN = BATCH_A.filter((c) => !SHOWN_IDS.includes(c.id));
 
 export function ArtCandidatePanel() {
   const [zoom, setZoom] = useState(2);
@@ -45,37 +37,19 @@ export function ArtCandidatePanel() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="font-fantasy text-lg text-parchment">Batch B — the gushing stream</h2>
+      <div className="mb-5">
+        <h2 className="font-fantasy text-lg text-parchment">
+          Blood — the three parts of a performance
+        </h2>
         <p className="text-sm text-bone/70 max-w-3xl mt-1">
-          {BATCH_B_COST} generations. The stream is not one clip — it is a short tile repeated
-          along the beam and scrolled toward the target, which is how it works at any distance.
-        </p>
-        <p className="text-sm mt-3 max-w-3xl border-l-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 rounded-r">
-          <span className="text-amber-200 font-semibold">What this batch proved: </span>
-          <span className="text-bone/90">{BATCH_B_FINDING}</span>
-        </p>
-        <div className="space-y-5 mt-4">
-          {BATCH_B.map((c) => (
-            <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-4 pt-4 border-t border-bone/15">
-        <h2 className="font-fantasy text-lg text-parchment">Batch A — first generated pieces</h2>
-        <p className="text-sm text-bone/70 max-w-3xl mt-1">
-          Six probes, {BATCH_A_COST} generations total. These were deliberately cheap: the
-          question was not “which material looks best” but whether generated pixel art sits
-          convincingly on top of the code-drawn shapes the system already renders.
-        </p>
-        <p className="text-sm mt-3 max-w-3xl border-l-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 rounded-r">
-          <span className="text-amber-200 font-semibold">What I think this batch proved: </span>
-          <span className="text-bone/90">{BATCH_A_FINDING}</span>
+          In the order they play: the material <strong>gathers</strong> on the card, the
+          <strong> stream</strong> crosses to the boss, and the <strong>splash</strong> lands and
+          stays. {TOTAL_GENERATIONS} generations spent in total, {REJECTED_COUNT} candidates
+          rejected along the way and not shown.
         </p>
       </div>
 
-      <div className="flex gap-2 items-center mb-4">
+      <div className="flex gap-2 items-center mb-5">
         <span className="text-xs text-bone/50">Zoom</span>
         {[1, 2, 4, 6].map((z) => (
           <button key={z} onClick={() => setZoom(z)} className={z === zoom ? btnOn : btn}>
@@ -87,27 +61,79 @@ export function ArtCandidatePanel() {
         </button>
       </div>
 
-      {/*
-        Shown: the one I recommend, plus the two most informative runners-up.
-        The other three rejects are counted below rather than displayed —
-        scrolling past four versions of the same failure is not review, it is
-        just noise, and the failure is already stated once at the top.
-      */}
       <div className="space-y-5">
-        {SHOWN.map((c) => (
+        <ChargeCard />
+        {KEPT.map((c) => (
           <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
         ))}
       </div>
-
-      {HIDDEN.length > 0 && (
-        <p className="text-xs text-bone/45 mt-5">
-          {HIDDEN.length} further rejected {HIDDEN.length === 1 ? 'probe' : 'probes'} not shown
-          ({HIDDEN.map((c) => c.label.replace(/ —.*/, '')).join(', ')}) — same failure as the
-          segment above, kept in <code className="text-bone/60">artCandidates.ts</code> for
-          provenance.
-        </p>
-      )}
     </div>
+  );
+}
+
+/**
+ * The charge tell has no image, because it has no image — it is drawn from the
+ * material kit. Shown alongside the generated pieces because it is one of the
+ * three parts, and because "this one was free and always will be" is the most
+ * useful fact on the page.
+ */
+function ChargeCard() {
+  const kit = MATERIAL_KITS.Blood;
+  const [core, edge, accent] = kit.palette;
+
+  return (
+    <section className="rounded border border-emerald-400/50 bg-void/40 p-4">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h3 className="font-fantasy text-base text-parchment">1 · Charge — the gathering</h3>
+          <p className="text-sm text-bone/80 mt-1 max-w-2xl">
+            Blood pools at the card's edge before anything fires, and the stream then shoots
+            through it. It also holds indefinitely while other cards are still choosing.
+          </p>
+        </div>
+        <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-emerald-400/20 text-emerald-100">
+          ✓ in the game
+        </span>
+      </div>
+
+      <div className="flex gap-5 mt-4 items-start flex-wrap">
+        <figure className="m-0">
+          <div
+            className="rounded border border-bone/20 flex items-center justify-center"
+            style={{
+              background: 'radial-gradient(ellipse at 50% 30%, #241a2e 0%, #0b0910 70%)',
+              width: 180,
+              height: 120,
+            }}
+          >
+            {/* The same shapes ChargeTell draws, held still. */}
+            <svg width={120} height={70} viewBox="0 0 100 60">
+              <ellipse cx={50} cy={38} rx={44} ry={17} fill={core} opacity={0.85} />
+              <ellipse cx={50} cy={33} rx={30} ry={11} fill={edge} opacity={0.9} />
+              <ellipse cx={39} cy={28} rx={10} ry={4} fill={accent} opacity={0.75} />
+              <circle cx={32} cy={52} r={2.6} fill={edge} />
+              <circle cx={54} cy={55} r={2.6} fill={edge} />
+            </svg>
+          </div>
+          <figcaption className="text-[10px] text-bone/45 mt-1.5 text-center">
+            pool + wet highlight + drips
+          </figcaption>
+        </figure>
+
+        <p className="text-sm text-bone/85 max-w-md leading-relaxed">
+          <span className="text-emerald-300 font-semibold">Cost: 0 generations.</span> This is
+          drawn in code from the same material kit that drives everything else — the pool shape,
+          the highlight and the drips all come from Blood being{' '}
+          <code className="text-bone/60">dripping</code> and a{' '}
+          <code className="text-bone/60">coiling_ribbon</code>. Water will pool and swirl without
+          dripping; Fire will build an ember bed. No art needed, for any element, ever.
+        </p>
+      </div>
+
+      <p className="text-[10px] font-mono text-bone/35 mt-3">
+        code · pages/battle/performance/ChargeTell.tsx · 0 generations
+      </p>
+    </section>
   );
 }
 
@@ -120,31 +146,19 @@ function CandidateCard({
   zoom: number;
   showTiling: boolean;
 }) {
-  const tone =
-    c.verdict === 'recommend'
-      ? { border: 'border-emerald-400/50', chip: 'bg-emerald-400/20 text-emerald-100', label: '✓ I recommend this' }
-      : c.verdict === 'reject'
-        ? { border: 'border-rose-400/40', chip: 'bg-rose-400/20 text-rose-100', label: '✕ I’d reject this' }
-        : { border: 'border-amber-400/50', chip: 'bg-amber-400/20 text-amber-100', label: '? Your call' };
-
   return (
-    <section className={`rounded border ${tone.border} bg-void/40 p-4`}>
+    <section className="rounded border border-emerald-400/50 bg-void/40 p-4">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h3 className="font-fantasy text-base text-parchment">{c.label}</h3>
           <p className="text-sm text-bone/80 mt-1 max-w-2xl">{c.what}</p>
-          <p className="text-xs text-bone/50 mt-1 max-w-2xl">
-            <span className="text-bone/40">Testing: </span>
-            {c.testing}
-          </p>
         </div>
-        <span className={`shrink-0 text-xs font-fantasy px-2.5 py-1 rounded ${tone.chip}`}>
-          {tone.label}
+        <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-emerald-400/20 text-emerald-100">
+          ✓ in the game
         </span>
       </div>
 
       <div className="flex gap-5 mt-4 flex-wrap items-start">
-        {/* At scale, on the real arena background. */}
         <figure className="m-0">
           <div
             className="rounded border border-bone/20 p-3 flex items-center justify-center"
@@ -167,7 +181,6 @@ function CandidateCard({
           </figcaption>
         </figure>
 
-        {/* Alpha check. */}
         <figure className="m-0">
           <div className="flex gap-1.5">
             {['#0b0910', '#6b5f7a', '#f2ece0'].map((bg) => (
@@ -191,7 +204,7 @@ function CandidateCard({
           <figure className="m-0">
             <TilingTest file={c.file} />
             <figcaption className="text-[10px] text-bone/45 mt-1.5">
-              9× along the real lash curve — faint band is the code-drawn body it would replace
+              9× along the real beam — this is how the stream is built
             </figcaption>
           </figure>
         )}
@@ -201,17 +214,14 @@ function CandidateCard({
 
       <p className="text-[10px] font-mono text-bone/35 mt-3">
         {c.provenance.tool} · job {c.provenance.jobId} · seed {c.provenance.seed} ·{' '}
-        {c.provenance.generationCost} generation · {c.size}×{c.size}
+        {c.provenance.generationCost} generation
+        {c.provenance.generationCost === 1 ? '' : 's'} · {c.size}px
       </p>
     </section>
   );
 }
 
-/**
- * Nine copies laid along the same quadratic the lash renderer uses, each
- * rotated to follow the tangent. The procedural stroke is drawn underneath so
- * the comparison is direct: this is the thing the pieces would be replacing.
- */
+/** Nine copies along the beam curve, each rotated to follow the tangent. */
 function TilingTest({ file }: { file: string }) {
   const W = 420;
   const H = 140;
@@ -245,7 +255,6 @@ function TilingTest({ file }: { file: string }) {
     >
       <svg width={W} height={H} className="absolute inset-0">
         <path d={d} fill="none" stroke="#ffffff22" strokeWidth={11} />
-        <path d={d} fill="none" stroke="#c8203a" strokeWidth={3} />
       </svg>
       {Array.from({ length: N }, (_, i) => {
         const t = i / (N - 1);
@@ -263,7 +272,7 @@ function TilingTest({ file }: { file: string }) {
               position: 'absolute',
               left: p.x - 16,
               top: p.y - 16,
-              transform: `rotate(${ang}deg)`,
+              transform: `rotate(${ang}deg)${i % 2 ? ' scaleX(-1)' : ''}`,
               imageRendering: 'pixelated',
             }}
           />
@@ -272,6 +281,11 @@ function TilingTest({ file }: { file: string }) {
     </div>
   );
 }
+
+/* Referenced so the rejected records stay reachable from this module rather
+ * than becoming dead data nobody can find. */
+void BATCH_A;
+void BATCH_B;
 
 const btn =
   'px-2.5 py-1 rounded text-xs font-fantasy border border-bone/25 bg-void/50 hover:bg-void/80 transition-colors';

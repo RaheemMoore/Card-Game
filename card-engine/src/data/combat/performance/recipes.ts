@@ -29,6 +29,46 @@ import type {
  */
 
 /* ------------------------------------------------------------------ */
+/*  Tempo                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The single dial for how fast combat performances play.
+ *
+ * Every stage duration below is written at a readable "base" tempo and then
+ * multiplied by this. Tuning the pace of the whole game is therefore one
+ * number, not thirty — which matters because this has already been retuned
+ * twice and will be again.
+ *
+ * **2.85 (Raheem, 2026-08-01).** He reviewed the Ability Theater at several
+ * playback speeds and landed on it directly: "the only one that's close to
+ * being the correct speed is the 0.25 slow-mo ... I think 0.35 maybe should be
+ * the actual speed of the abilities. Everything is way too fast. We're making
+ * nice art, I want people to see it." 1 / 0.35 ≈ 2.85, so full speed now
+ * reproduces what 0.35x looked like during that review.
+ *
+ * Applied uniformly on purpose. The RATIOS between stages were tuned
+ * separately and he liked them — impact stays proportionally short so contact
+ * snaps, travel and aftermath stay long. Scaling everything by one factor
+ * preserves the shape he approved rather than inventing a new one.
+ *
+ * **The consequence, stated plainly:** a basic attack now runs ~4.7s instead
+ * of ~1.7s. With three heroes acting in sequence that is roughly 14s of hero
+ * performance per round before the boss moves. That is a deliberate choice to
+ * make combat a thing you watch; if rounds start feeling long in real play,
+ * this is the one number to turn down.
+ */
+export const PERFORMANCE_TEMPO = 2.85;
+
+/** Apply the global tempo to an authored stage list. */
+function paced(stages: readonly StageRecipe[]): readonly StageRecipe[] {
+  return stages.map((s) => ({
+    ...s,
+    durationMs: Math.round(s.durationMs * PERFORMANCE_TEMPO),
+  }));
+}
+
+/* ------------------------------------------------------------------ */
 /*  Stage vocabularies                                                 */
 /* ------------------------------------------------------------------ */
 
@@ -47,19 +87,22 @@ import type {
  *    appearing has to be tight or contact feels mushy. Snap, not fade.
  *  - **aftermath is long.** The splash sits on the boss and is looked at.
  *
- * Total ~1.6s, up from 620ms. That is a deliberate slowing of combat, not
- * drift.
+ * These are BASE numbers — `paced()` multiplies them by `PERFORMANCE_TEMPO`,
+ * so the shipped attack runs ~4.7s. Edit the ratios here; edit the overall
+ * speed with the tempo constant.
  *
  * ## The coupling to watch
  *
  * The presentation queue has its own beat budget (`TIMINGS` in
  * `presentation/types.ts` — an impact beat holds 400ms). Nothing is truncated
  * TODAY because the performance layer is not yet wired into live combat, but
- * when it is, a 1.6s performance inside a 400ms beat would be cut off
- * mid-flight. Those timings have to grow to match at that point; the Ability
+ * when it is, a ~4.7s performance inside a 400ms beat would be cut off almost
+ * immediately. Those timings have to grow to match at that point, and the gap
+ * is now an order of magnitude rather than a rounding error — this is the
+ * single biggest thing to get right when combat integration lands. The Ability
  * Theater drives the clock directly and is unaffected.
  */
-const OUTBOUND_STAGES: readonly StageRecipe[] = [
+const OUTBOUND_STAGES: readonly StageRecipe[] = paced([
   { stage: 'charge', durationMs: 260, accepts: ['resource'] },
   { stage: 'cast', durationMs: 130, accepts: [] },
   { stage: 'travel', durationMs: 420, accepts: [] },
@@ -67,7 +110,7 @@ const OUTBOUND_STAGES: readonly StageRecipe[] = [
   { stage: 'impact', durationMs: 150, accepts: ['damage', 'defeat'] },
   { stage: 'aftermath', durationMs: 560, accepts: ['status_applied', 'status_removed'] },
   { stage: 'recover', durationMs: 140, accepts: [] },
-];
+]);
 
 /**
  * Drain: everything the outbound attack does, and then the material comes
@@ -80,7 +123,7 @@ const OUTBOUND_STAGES: readonly StageRecipe[] = [
  * numbers appearing together reads as an accounting entry; a thing taken and
  * carried home reads as a drain.
  */
-const DRAIN_STAGES: readonly StageRecipe[] = [
+const DRAIN_STAGES: readonly StageRecipe[] = paced([
   { stage: 'charge', durationMs: 300, accepts: ['resource'] },
   { stage: 'cast', durationMs: 130, accepts: [] },
   { stage: 'travel', durationMs: 420, accepts: [] },
@@ -91,7 +134,7 @@ const DRAIN_STAGES: readonly StageRecipe[] = [
   { stage: 'arrival', durationMs: 300, accepts: ['healing'] },
   { stage: 'aftermath', durationMs: 420, accepts: ['status_applied', 'status_removed'] },
   { stage: 'recover', durationMs: 140, accepts: [] },
-];
+]);
 
 /**
  * Growth: the ground tells you first, then it takes you.
@@ -101,7 +144,7 @@ const DRAIN_STAGES: readonly StageRecipe[] = [
  * with a leaf texture. The damage lands on `impact`, which is the moment of
  * constriction, not the moment the first tip breaks the surface.
  */
-const GROWTH_STAGES: readonly StageRecipe[] = [
+const GROWTH_STAGES: readonly StageRecipe[] = paced([
   { stage: 'charge', durationMs: 280, accepts: ['resource'] },
   { stage: 'cast', durationMs: 140, accepts: [] },
   // The longest stage in the game, and correctly so: staged emergence IS this
@@ -110,7 +153,7 @@ const GROWTH_STAGES: readonly StageRecipe[] = [
   { stage: 'impact', durationMs: 160, accepts: ['damage', 'defeat'] },
   { stage: 'aftermath', durationMs: 560, accepts: ['status_applied', 'status_removed'] },
   { stage: 'recover', durationMs: 140, accepts: [] },
-];
+]);
 
 /**
  * Barrier: interpose, build, and then STAY.
@@ -123,19 +166,19 @@ const GROWTH_STAGES: readonly StageRecipe[] = [
  * Persistence is NOT a stage. The pane lives as long as the shield does, bound
  * to live battle state; the recipe only describes how it arrives.
  */
-const BARRIER_STAGES: readonly StageRecipe[] = [
+const BARRIER_STAGES: readonly StageRecipe[] = paced([
   { stage: 'charge', durationMs: 280, accepts: ['resource'] },
   { stage: 'cast', durationMs: 140, accepts: [] },
   { stage: 'manifest', durationMs: 460, accepts: ['shield'] },
   { stage: 'aftermath', durationMs: 520, accepts: ['status_removed', 'status_applied', 'healing'] },
   { stage: 'recover', durationMs: 140, accepts: [] },
-];
+]);
 
 /**
  * The catch-all. Accepts everything on one beat, because by definition we do
  * not know what this ability is doing.
  */
-const GENERIC_STAGES: readonly StageRecipe[] = [
+const GENERIC_STAGES: readonly StageRecipe[] = paced([
   { stage: 'cast', durationMs: 160, accepts: ['resource'] },
   {
     stage: 'impact',
@@ -143,7 +186,7 @@ const GENERIC_STAGES: readonly StageRecipe[] = [
     accepts: ['damage', 'healing', 'shield', 'status_applied', 'status_removed', 'defeat'],
   },
   { stage: 'recover', durationMs: 120, accepts: [] },
-];
+]);
 
 /* ------------------------------------------------------------------ */
 /*  Form defaults — precedence level 2                                 */

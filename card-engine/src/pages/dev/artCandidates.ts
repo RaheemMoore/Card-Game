@@ -175,19 +175,53 @@ export const BATCH_B: readonly ArtCandidate[] = [
       'The same tile animated so the blood moves WITHIN the band. Scrolling alone slides a ' +
       'texture along; this makes it boil as it travels.',
     testing: 'Does animate_image hold a texture together, or does it drift into a new shape?',
-    verdict: 'undecided',
+    verdict: 'recommend',
     why:
-      'The highlights genuinely travel and the scallops shift, which is exactly the internal ' +
-      'life the scroll cannot supply on its own. But the band thins and breaks up around the ' +
-      'middle frames, so a loop may pulse rather than flow. Whether that reads as a pumping ' +
-      'artery — which would be perfect for Blood — or as a glitch is a judgement call, and ' +
-      'it is genuinely yours. Frame 3 is shown; all nine are on disk.',
+      'Approved on sight (Raheem, 2026-08-01). The highlights travel and the scallops shift, ' +
+      'giving the internal life that scrolling alone cannot supply. The band does thin around ' +
+      'the middle frames — I flagged that as a possible pulse — and in motion it reads as a ' +
+      'pumping artery rather than a glitch, which for Blood is better than the even flow I was ' +
+      'aiming for. Frame 3 shown; all nine are on disk and swap on the tiles as they scroll.',
     provenance: { tool: 'animate_image', jobId: '288ba71c', seed: 7331, generationCost: 1 },
     tileable: true,
   },
 ];
 
 export const BATCH_B_COST = BATCH_B.reduce((n, c) => n + c.provenance.generationCost, 0);
+
+/* ------------------------------------------------------------------ */
+/*  What actually shipped                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The kept pieces, in the order the player sees them.
+ *
+ * The gallery renders this and nothing else. Rejected candidates stay in the
+ * batch arrays above with their provenance — that record is what stops a
+ * failed experiment being re-run — but they are not shown, because scrolling
+ * past four versions of the same failure is clutter, not review.
+ *
+ * The charge tell is the missing first part and is deliberately absent here:
+ * it has no image at all, being drawn in code from the material kit, so the
+ * gallery renders it as its own card.
+ */
+export const KEPT: readonly ArtCandidate[] = [
+  { ...pick(BATCH_B, 'blood_stream_strip'), label: '2 · Stream — the blast' },
+  { ...pick(BATCH_B, 'blood_stream_churn'), label: '2b · Stream churn — internal flow' },
+  { ...pick(BATCH_A, 'blood_impact_pixen64'), label: '3 · Impact — the splash' },
+];
+
+function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
+  const found = batch.find((c) => c.id === id);
+  if (!found) throw new Error(`artCandidates: no candidate ${id}`);
+  return found;
+}
+
+const ALL = [...BATCH_A, ...BATCH_B];
+const KEPT_IDS = new Set(['blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64']);
+
+export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;
+export const TOTAL_GENERATIONS = ALL.reduce((n, c) => n + c.provenance.generationCost, 0);
 
 export const BATCH_B_FINDING =
   'Asking for a texture instead of an object worked — the tile is a continuous band, and ' +

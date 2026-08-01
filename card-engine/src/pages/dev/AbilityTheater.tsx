@@ -6,6 +6,7 @@ import { resolvePerformance } from '../../services/combat/performance/resolvePer
 import type { ResolvedPerformance } from '../../services/combat/performance/types';
 import { MATERIAL_KITS } from '../../data/combat/performance/materialKits';
 import { ALL_PERFORMANCE_ASSETS } from '../../data/combat/performance/assetKits';
+import { PERFORMANCE_TEMPO } from '../../data/combat/performance/recipes';
 import { PerformanceView, PerformanceStyles } from '../battle/performance/PerformanceLayer';
 import { CardCombatFxStyles } from '../battle/CardCombatFx';
 import { BOSS, HERO_A, HERO_B, SCENARIOS, type TheaterScenario } from './abilityTheaterFixtures';
@@ -60,11 +61,22 @@ export function AbilityTheater() {
   const [compareLashes, setCompareLashes] = useState(false);
   const [loop, setLoop] = useState(true);
   const [speed, setSpeed] = useState(1);
+  /*
+   * Live tempo dial.
+   *
+   * Starts at the value baked into `recipes.ts` and rescales the resolved
+   * stage plan in place, so the stage list, the total, and the playback all
+   * move together and the number on screen is the number to ship. Raheem
+   * asked for the dial rather than another round of me guessing a duration —
+   * this has been retuned twice by description already.
+   */
+  const [tempo, setTempo] = useState(PERFORMANCE_TEMPO);
 
   const scenario = SCENARIOS.find((s) => s.id === scenarioId) ?? SCENARIOS[0];
   const viewportWidth = tablet ? 900 : 1440;
 
-  const resolved = useResolvedPerformance(scenario, viewportWidth, motionLevel, missingAssets);
+  const base = useResolvedPerformance(scenario, viewportWidth, motionLevel, missingAssets);
+  const resolved = useMemo(() => (base ? retempo(base, tempo) : null), [base, tempo]);
 
   const lashTrio = useMemo(
     () => SCENARIOS.filter((s) => s.id.startsWith('lash_')),
@@ -114,7 +126,7 @@ export function AbilityTheater() {
             Performances
           </button>
           <button onClick={() => setTab('art')} className={tab === 'art' ? btnOn : btn}>
-            Generated art — Batch A
+            Generated art
           </button>
         </div>
       </header>
@@ -169,9 +181,15 @@ export function AbilityTheater() {
             <button onClick={() => setLoop((v) => !v)} className={loop ? btnOn : btn}>
               {loop ? '● ' : ''}Loop
             </button>
-            {([1, 0.5, 0.25] as const).map((s) => (
+            {/*
+              "1x" is now the SHIPPING speed — the recipes carry
+              PERFORMANCE_TEMPO, so what used to be 0.35x playback is what the
+              game does. The remaining multipliers are for inspection, and for
+              judging whether the baked tempo itself wants moving.
+            */}
+            {([1, 0.7, 0.5, 1.4] as const).map((s) => (
               <button key={s} onClick={() => setSpeed(s)} className={speed === s ? btnOn : btn}>
-                {s === 1 ? 'full speed' : `${s}× slow-mo`}
+                {s === 1 ? 'game speed' : s > 1 ? `${s}× faster` : `${s}× slower`}
               </button>
             ))}
             <button
@@ -192,6 +210,46 @@ export function AbilityTheater() {
             >
               {missingAssets ? '● ' : ''}Simulate missing assets
             </button>
+          </div>
+
+          {/* The tempo dial. Slide it until the pacing is right, then tell me
+              the number — or set PERFORMANCE_TEMPO in recipes.ts yourself; it
+              is one line and nothing else has to change. */}
+          <div className="mt-3 rounded border border-amber-400/30 bg-amber-400/5 px-3 py-2.5">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs font-fantasy text-amber-200">Tempo</span>
+              <input
+                type="range"
+                min={1}
+                max={6}
+                step={0.05}
+                value={tempo}
+                onChange={(e) => setTempo(Number(e.target.value))}
+                className="flex-1 min-w-[220px] accent-amber-400"
+                aria-label="Performance tempo"
+              />
+              <span className="text-sm font-mono text-amber-100 w-14 text-right">
+                {tempo.toFixed(2)}×
+              </span>
+              <span className="text-xs text-bone/55 font-mono">
+                {((resolved?.totalMs ?? 0) / 1000).toFixed(2)}s per ability
+              </span>
+              {Math.abs(tempo - PERFORMANCE_TEMPO) > 0.001 && (
+                <button onClick={() => setTempo(PERFORMANCE_TEMPO)} className={btn}>
+                  reset to shipped ({PERFORMANCE_TEMPO}×)
+                </button>
+              )}
+            </div>
+            <p className="text-[11px] text-bone/50 mt-1.5">
+              Higher = slower and more cinematic. This rescales the real stage plan, so the
+              seconds shown are what the game would do. Three heroes acting in sequence is
+              roughly{' '}
+              <span className="text-bone/75">
+                {(((resolved?.totalMs ?? 0) * 3) / 1000).toFixed(1)}s
+              </span>{' '}
+              of hero turns per round. Shipping value lives in{' '}
+              <code className="text-bone/70">recipes.ts → PERFORMANCE_TEMPO</code>.
+            </p>
           </div>
 
           <div className="mt-2 flex gap-2 items-center">
@@ -260,6 +318,30 @@ export function AbilityTheater() {
       </div>
     </div>
   );
+}
+
+/**
+ * Rescale a resolved plan to a different tempo.
+ *
+ * Rebuilds the stage timings rather than just playing back faster, so the
+ * inspector's stage durations and total are the REAL numbers for the tempo on
+ * screen — the point of the dial is to read off a value to ship, and a
+ * playback-only speed control would show durations that were never true.
+ *
+ * Ratios between stages are untouched; only the multiplier moves.
+ */
+function retempo(p: ResolvedPerformance, tempo: number): ResolvedPerformance {
+  const factor = tempo / PERFORMANCE_TEMPO;
+  if (Math.abs(factor - 1) < 0.001) return p;
+
+  let cursor = 0;
+  const stages = p.stages.map((s) => {
+    const durationMs = Math.round(s.durationMs * factor);
+    const next = { ...s, durationMs, startMs: cursor };
+    cursor += durationMs;
+    return next;
+  });
+  return { ...p, stages, totalMs: cursor };
 }
 
 /* ------------------------------------------------------------------ */
@@ -399,7 +481,8 @@ function ResolutionPanel({
       <Row k="form" v={p.form} />
       <Row k="intensity" v={p.intensity} />
       <Row k="cast → target" v={`${p.castAnchor} → ${p.targetAnchor}`} />
-      <Row k="total" v={`${p.totalMs}ms`} />
+      <Row k="total" v={`${(p.totalMs / 1000).toFixed(2)}s`} />
+      <Row k="tempo" v={`${PERFORMANCE_TEMPO}× shipped — dial above to try others`} />
 
       <div className="mt-3 pt-2 border-t border-bone/15">
         <Row k="material" v={kit.element} />
