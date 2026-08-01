@@ -4,6 +4,7 @@ import type { Card } from '../../../types/card';
 import {
   assetAvailable,
   assetKitIdFor,
+  ALL_PERFORMANCE_ASSETS,
   getAssetKit,
   performanceAssetUrl,
 } from '../../../data/combat/performance/assetKits';
@@ -84,18 +85,33 @@ describe('the first real asset', () => {
     expect(asset.provenance?.generationCost).toBe(1);
   });
 
-  it('still treats every un-generated piece as unavailable', () => {
-    // Guards against a stray status flip making the renderers reach for files
-    // that do not exist. Fire is the useful subject now — Blood and Water are
-    // both real, and this assertion has to keep pointing at something that
-    // genuinely has not been made yet or it stops guarding anything.
-    const blood = getAssetKit('lash_blood')!;
-    expect(assetAvailable(blood.segment)).toBe(false);
-    expect(assetAvailable(blood.particle)).toBe(false);
+  it('reports availability strictly from approval status, never from a path', () => {
+    /*
+     * Structural rather than naming elements, because the element-naming
+     * version of this test went stale three times in one afternoon — every
+     * time a material landed, the thing it asserted was un-generated became
+     * generated. What actually needs guarding is the RULE: a renderer must
+     * reach for a file only when the manifest says it is approved, never
+     * because a path string looks truthy. Every row has a path; a path is a
+     * spec, not a file.
+     */
+    for (const asset of ALL_PERFORMANCE_ASSETS) {
+      const shouldBeUsable =
+        asset.approvalStatus === 'candidate' || asset.approvalStatus === 'approved';
+      expect(assetAvailable(asset), `${asset.id} (${asset.approvalStatus})`).toBe(shouldBeUsable);
+      expect(asset.path.length, `${asset.id} has no path`).toBeGreaterThan(0);
+    }
+  });
 
-    const fire = getAssetKit('lash_fire')!;
-    expect(assetAvailable(fire.stream)).toBe(false);
-    expect(assetAvailable(fire.impact)).toBe(false);
+  it('carries frames and a fps on anything declared a flipbook', () => {
+    // A flipbook with no frames would silently render as a still — the kind of
+    // bug that only shows up as "why isn't the splash moving".
+    for (const asset of ALL_PERFORMANCE_ASSETS) {
+      if (asset.kind !== 'flipbook') continue;
+      expect(asset.frames?.length, `${asset.id} frames`).toBeGreaterThan(1);
+      expect(asset.fps, `${asset.id} fps`).toBeGreaterThan(0);
+      expect(asset.frameCount).toBe(asset.frames!.length);
+    }
   });
 
   it('exposes Water as a second complete material — no code change required', () => {

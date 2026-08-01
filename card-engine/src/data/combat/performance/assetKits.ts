@@ -264,13 +264,67 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
     },
     particle: placeholder('lash_water_spray', 'still', 'effects/lash/water/spray.png', 16, 16, ['lash'], ['Water']),
   },
+  /*
+   * Fire — Batch D, 2026-08-01. Third element, same 4-generation recipe, still
+   * no code. The one kit whose core is BRIGHTER than its edge: everything else
+   * here is darker in the middle, and that inversion is most of why a fire
+   * stream is legible as fire in greyscale.
+   */
   lash_fire: {
     id: 'lash_fire',
     form: 'lash',
     element: 'Fire',
-    segment: placeholder('lash_fire_segment', 'still', 'effects/lash/fire/segment.png', 32, 32, ['lash'], ['Fire']),
+    stream: {
+      id: 'lash_fire_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/fire/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/fire/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Fire'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '3eaf75f7-e992 (still) / ff35770c-ca40 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#fire_stream_strip',
+      },
+      notes:
+        'Jagged tongues licking upward along the top edge — against Water rounded foam ' +
+        'crests and Blood smooth beads. Fastest fps of the three: fire is the least coherent.',
+    },
+    impact: {
+      id: 'lash_fire_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/fire/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/fire/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Fire'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'b8626cb3-7305 (still) / e0b8333f-01e0 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#fire_impact',
+      },
+      notes:
+        'A spiked starburst — against Water upward crown and Blood flat splatter. Three ' +
+        'impacts, three silhouettes, no colour required to tell them apart.',
+    },
     particle: placeholder('lash_fire_ember', 'still', 'effects/lash/fire/ember.png', 16, 16, ['lash'], ['Fire']),
-    impact: placeholder('lash_fire_impact', 'flipbook', 'effects/lash/fire/impact.png', 64, 64, ['lash'], ['Fire']),
   },
   growth_nature: {
     id: 'growth_nature',

@@ -232,6 +232,48 @@ export const BATCH_C: readonly ArtCandidate[] = [
 ];
 
 /* ------------------------------------------------------------------ */
+/*  Batch D — Fire, completing the three-way comparison                */
+/* ------------------------------------------------------------------ */
+
+const ROOT_D = '/assets/combat/effects/_candidates/batch-d';
+
+export const BATCH_D: readonly ArtCandidate[] = [
+  {
+    id: 'fire_stream_strip',
+    file: `${ROOT_D}/fire-stream.png`,
+    size: 128,
+    label: 'Fire stream tile — Pixen, 128×32',
+    what: 'The third stream tile. Same code, same tiling, same scroll — different substance.',
+    testing: 'Third element on the same recipe: is this now a reliable process rather than luck?',
+    verdict: 'recommend',
+    why:
+      'Jagged tongues licking upward along the top edge, against Water rounded foam crests ' +
+      'and Blood smooth beads — three elements, three distinct top edges. Fire is also the ' +
+      'only one of the three whose CORE is brighter than its EDGE; everything else is darker ' +
+      'in the middle. That inversion is most of why it reads as fire with the colour off, and ' +
+      'it is the strongest no-colour cue we have got so far.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '3eaf75f7 / ff35770c', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'fire_impact',
+    file: `${ROOT_D}/fire-impact.png`,
+    size: 64,
+    label: 'Fire burst — Pixen, 64×64',
+    what: 'The burst where the jet lands, animated over 9 frames as a one-shot.',
+    testing: 'Three impacts on one page — do they survive being seen together?',
+    verdict: 'recommend',
+    why:
+      'A spiked starburst, against Water upward crown and Blood flat radial splatter. Put ' +
+      'the three side by side with the colour hidden and they are still three different ' +
+      'events, which is the whole claim the material axis was built to make. Nothing here is ' +
+      'carried by hue.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'b8626cb3 / e0b8333f', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+];
+
+/* ------------------------------------------------------------------ */
 /*  What actually shipped                                              */
 /* ------------------------------------------------------------------ */
 
@@ -247,16 +289,57 @@ export const BATCH_C: readonly ArtCandidate[] = [
  * it has no image at all, being drawn in code from the material kit, so the
  * gallery renders it as its own card.
  */
-export const KEPT: readonly ArtCandidate[] = [
-  { ...pick(BATCH_B, 'blood_stream_strip'), label: '2 · Stream — the blast' },
-  { ...pick(BATCH_B, 'blood_stream_churn'), label: '2b · Stream churn — internal flow' },
-  { ...pick(BATCH_A, 'blood_impact_pixen64'), label: '3 · Impact — the splash' },
-];
+export interface KeptElement {
+  element: 'Blood' | 'Water' | 'Fire';
+  /** One line on what this element brought that the others did not. */
+  note: string;
+  generations: number;
+  candidates: readonly ArtCandidate[];
+}
 
-/** The same three parts, in Water. */
-export const KEPT_WATER: readonly ArtCandidate[] = [
-  { ...pick(BATCH_C, 'water_stream_strip'), label: '2 · Stream — the blast' },
-  { ...pick(BATCH_C, 'water_impact'), label: '3 · Impact — the splash' },
+/**
+ * Every finished element, in the order they were built.
+ *
+ * Element-driven rather than a hardcoded section per material, so the next one
+ * is a row here and nothing else — which mirrors what adding an element
+ * actually costs in the engine, and stops this page drifting out of step with
+ * the manifest it describes.
+ */
+export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
+  {
+    element: 'Blood',
+    note:
+      'The first, and the expensive one — 8 generations, 6 of them spent learning that the ' +
+      'generator returns finished objects and will not make repeating pieces.',
+    generations: 8,
+    candidates: [
+      { ...pick(BATCH_B, 'blood_stream_strip'), label: '2 · Stream — the blast' },
+      { ...pick(BATCH_B, 'blood_stream_churn'), label: '2b · Stream churn — internal flow' },
+      { ...pick(BATCH_A, 'blood_impact_pixen64'), label: '3 · Impact — the splash' },
+    ],
+  },
+  {
+    element: 'Water',
+    note:
+      'Proved the recipe transfers. Rolling foam crests and an upward crown, where Blood is ' +
+      'a smooth beaded band and a flat splatter.',
+    generations: 4,
+    candidates: [
+      { ...pick(BATCH_C, 'water_stream_strip'), label: '2 · Stream — the blast' },
+      { ...pick(BATCH_C, 'water_impact'), label: '3 · Impact — the splash' },
+    ],
+  },
+  {
+    element: 'Fire',
+    note:
+      'Third on the same recipe, so this is a process now rather than luck. The only kit ' +
+      'whose core is brighter than its edge — the strongest no-colour cue of the three.',
+    generations: 4,
+    candidates: [
+      { ...pick(BATCH_D, 'fire_stream_strip'), label: '2 · Stream — the blast' },
+      { ...pick(BATCH_D, 'fire_impact'), label: '3 · Impact — the splash' },
+    ],
+  },
 ];
 
 function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
@@ -265,10 +348,11 @@ function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C];
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D];
 const KEPT_IDS = new Set([
   'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
   'water_stream_strip', 'water_impact',
+  'fire_stream_strip', 'fire_impact',
 ]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;

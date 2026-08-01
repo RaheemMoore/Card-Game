@@ -642,3 +642,35 @@ as a sprinkler.
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Effects batch C (Water) | stream + churn, splash + animation | 4 | all 4 kept |
+
+## Three elements in, the effect recipe is a process (Batch D — Fire)
+
+Fire landed on the identical 4-generation recipe: stream tile + churn, splash + animation, no
+code. Three for three now, which is enough to stop calling it luck.
+
+The three streams differ at the **top edge** — jagged licking tongues (Fire), rounded foam
+crests (Water), smooth beads (Blood) — and the three splashes differ in **silhouette** — a
+spiked starburst, an upward crown, a flat radial splatter. None of it is carried by hue, which
+is the Bible rule the material axis exists to satisfy.
+
+Fire is also the only kit whose **core is brighter than its edge**; the other two are darker in
+the middle. That inversion is the single strongest no-colour cue produced so far, and it came
+free from writing the palette in the kit as core/edge/accent rather than as a hue.
+
+**The standing recipe, now proven:**
+
+1. `create_image_pixen`, 128x32, `no_background`, `selective outline`, `low detail`, side view.
+   Prompt for a *band*: "continuous from left edge to right edge ... no ends, no tip, no
+   tapering".
+2. `animate_image` on it, 8 frames — returns 9 including the input.
+3. Same for a 64x64 impact, prompting for a complete object, because an impact IS one.
+4. Register in `assetKits.ts`. Nothing else.
+
+**A test lesson worth more than the art:** the guard asserting "these pieces are not generated
+yet" went stale three times in one afternoon, once per element. Naming subjects in a test that
+tracks a moving frontier guarantees churn. Rewritten to assert the RULE instead — availability
+follows `approvalStatus`, never a truthy path — and it can no longer go stale.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch D (Fire) | stream + churn, splash + animation | 4 | all 4 kept |

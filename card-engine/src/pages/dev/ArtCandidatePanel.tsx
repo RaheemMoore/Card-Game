@@ -2,8 +2,7 @@ import { useState } from 'react';
 import {
   BATCH_A,
   BATCH_B,
-  KEPT,
-  KEPT_WATER,
+  KEPT_BY_ELEMENT,
   REJECTED_COUNT,
   TOTAL_GENERATIONS,
   type ArtCandidate,
@@ -39,14 +38,18 @@ export function ArtCandidatePanel() {
   return (
     <div>
       <div className="mb-5">
-        <h2 className="font-fantasy text-lg text-parchment">
-          Blood — the three parts of a performance
-        </h2>
+        <h2 className="font-fantasy text-lg text-parchment">Generated art</h2>
         <p className="text-sm text-bone/70 max-w-3xl mt-1">
-          In the order they play: the material <strong>gathers</strong> on the card, the
-          <strong> stream</strong> crosses to the boss, and the <strong>splash</strong> lands and
-          stays. {TOTAL_GENERATIONS} generations spent in total, {REJECTED_COUNT} candidates
-          rejected along the way and not shown.
+          Each element in the order its parts play: the material <strong>gathers</strong> on the
+          card, the <strong>stream</strong> crosses to the boss, and the <strong>splash</strong>{' '}
+          lands and stays. {TOTAL_GENERATIONS} generations spent in total, {REJECTED_COUNT}{' '}
+          candidates rejected along the way and not shown.
+        </p>
+        <p className="text-sm mt-3 max-w-3xl border-l-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 rounded-r text-bone/90">
+          Turn <strong>Hide colour</strong> on in the Performances tab and compare the three
+          streams and the three splashes. If they are still three different things in greyscale,
+          the material axis is doing its job and colour is only reinforcing it — which is the
+          Bible rule this was all built to satisfy.
         </p>
       </div>
 
@@ -62,28 +65,25 @@ export function ArtCandidatePanel() {
         </button>
       </div>
 
-      <div className="space-y-5">
-        <ChargeCard element="Blood" />
-        {KEPT.map((c) => (
-          <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
-        ))}
-      </div>
-
-      <div className="mt-10 mb-5 pt-6 border-t border-bone/15">
-        <h2 className="font-fantasy text-lg text-parchment">Water — the same three parts</h2>
-        <p className="text-sm text-bone/70 max-w-3xl mt-1">
-          Four generations, and <strong>not one line of code changed</strong> to support it — a
-          new element is a manifest entry, because the renderers read the material rather than
-          hard-coding it. Compare the shapes against Blood above with the colour off: rolling
-          foam crests versus a smooth beaded band, an upward crown versus a flat radial splatter.
-        </p>
-        <div className="space-y-5 mt-4">
-          <ChargeCard element="Water" />
-          {KEPT_WATER.map((c) => (
-            <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
-          ))}
-        </div>
-      </div>
+      {KEPT_BY_ELEMENT.map((group, i) => (
+        <section key={group.element} className={i === 0 ? '' : 'mt-10 pt-6 border-t border-bone/15'}>
+          <h2 className="font-fantasy text-lg text-parchment">
+            {group.element} — the three parts of a performance
+          </h2>
+          <p className="text-sm text-bone/70 max-w-3xl mt-1 mb-4">
+            {group.note}{' '}
+            <span className="text-bone/50">
+              {group.generations} generations{i > 0 ? ', no code changed' : ''}.
+            </span>
+          </p>
+          <div className="space-y-5">
+            <ChargeCard element={group.element} />
+            {group.candidates.map((c) => (
+              <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
@@ -94,7 +94,7 @@ export function ArtCandidatePanel() {
  * three parts, and because "this one was free and always will be" is the most
  * useful fact on the page.
  */
-function ChargeCard({ element }: { element: 'Blood' | 'Water' }) {
+function ChargeCard({ element }: { element: 'Blood' | 'Water' | 'Fire' }) {
   const kit = MATERIAL_KITS[element];
   const [core, edge, accent] = kit.palette;
   const drips = kit.residue === 'dripping';
@@ -139,17 +139,17 @@ function ChargeCard({ element }: { element: 'Blood' | 'Water' }) {
             </svg>
           </div>
           <figcaption className="text-[10px] text-bone/45 mt-1.5 text-center">
-            pool + wet highlight + drips
+            {`pool + wet highlight${drips ? ' + drips' : ''}`}
           </figcaption>
         </figure>
 
         <p className="text-sm text-bone/85 max-w-md leading-relaxed">
-          <span className="text-emerald-300 font-semibold">Cost: 0 generations.</span> This is
-          drawn in code from the same material kit that drives everything else — the pool shape,
-          the highlight and the drips all come from Blood being{' '}
-          <code className="text-bone/60">dripping</code> and a{' '}
-          <code className="text-bone/60">coiling_ribbon</code>. Water will pool and swirl without
-          dripping; Fire will build an ember bed. No art needed, for any element, ever.
+          <span className="text-emerald-300 font-semibold">Cost: 0 generations.</span> Drawn in
+          code from the same material kit that drives everything else — this one is a{' '}
+          <code className="text-bone/60">{kit.silhouette}</code> whose residue is{' '}
+          <code className="text-bone/60">{kit.residue}</code>, which is why it{' '}
+          {drips ? 'hangs and drips' : 'gathers without dripping'}. Every element gets a charge
+          tell for free, including ones nobody has generated art for yet.
         </p>
       </div>
 
