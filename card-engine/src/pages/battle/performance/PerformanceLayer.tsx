@@ -400,12 +400,29 @@ export function PerformanceStyles() {
       }
       .perf-wrap-grip { animation: perf-wrap-cinch 300ms cubic-bezier(0.2,0.8,0.3,1) forwards; }
 
+      /* The barrier is CONSECRATED, then it settles.
+       *
+       * It flashes into being much larger than the card, hangs there for a
+       * beat so it is unmistakably an object rather than a border, and then
+       * descends and shrinks onto the card it protects. Raheem's note: "get
+       * big and then shrink back down into the cards, and then it'll appear on
+       * whatever card that barrier has been put on."
+       *
+       * Scaling down IS the travel — cheaper than animating a path across the
+       * stage, and it reads better, because the pane stays legible as a pane
+       * the whole way instead of shrinking to a dot in transit. The small
+       * upward offset at the top of the arc is what makes it read as
+       * descending ONTO the card rather than merely deflating.
+       */
       @keyframes perf-barrier-arrive {
-        0%   { opacity: 0; transform: scale(0.9); }
-        100% { opacity: 1; transform: scale(1); }
+        0%   { opacity: 0; transform: translateY(-26px) scale(0.55); }
+        18%  { opacity: 1; transform: translateY(-34px) scale(2.0); }
+        42%  { opacity: 1; transform: translateY(-30px) scale(1.85); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
       }
       .perf-barrier-form {
-        animation: perf-barrier-arrive var(--barrier-form-ms, 260ms) ease-out forwards;
+        animation: perf-barrier-arrive var(--barrier-form-ms, 260ms)
+                   cubic-bezier(0.25, 0.9, 0.3, 1) forwards;
       }
 
       @keyframes perf-brace-set {
