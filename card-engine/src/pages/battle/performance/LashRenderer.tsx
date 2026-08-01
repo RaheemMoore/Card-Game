@@ -7,6 +7,8 @@ import {
   getAssetKit,
   performanceAssetUrl,
 } from '../../../data/combat/performance/assetKits';
+import { resolveCombatAssetPath } from '../../../data/combat/types';
+import { StreamBody } from './StreamBody';
 import type { Point } from '../combatAnchors';
 import {
   edgeDecoration,
@@ -132,12 +134,46 @@ export function LashRenderer({
    */
   const kitAssets = getAssetKit(assetKitIdFor(perf.form, kit.element));
   const impactAsset = assetAvailable(kitAssets?.impact) ? kitAssets.impact : undefined;
+  /*
+   * A textured stream replaces the drawn spline, but ONLY for `beam` — a whip
+   * and a lob both curve, and a tiled row of quads cannot follow a curve
+   * without shearing at every joint. Those keep the spline, which handles
+   * curvature natively. This is the honest boundary of the technique.
+   */
+  const streamAsset =
+    perf.trajectory === 'beam' && assetAvailable(kitAssets?.stream) ? kitAssets.stream : undefined;
+
+  /*
+   * The jet stops once it has landed.
+   *
+   * Through `aftermath` the splash is the thing being looked at, and a stream
+   * still pouring into it competes for attention and reads as the ability
+   * never having finished. Firing, landing, and then the aftermath sitting on
+   * the boss alone is the sequence Raheem asked for.
+   */
+  const streaming =
+    stageName === 'cast' || stageName === 'travel' || stageName === 'impact' ||
+    stageName === 'return' || stageName === 'arrival';
   const impactSizePx =
     (impactAsset?.dimensions.width ?? 64) *
     (perf.intensity === 'ultimate' ? 1.6 : perf.intensity === 'heavy' ? 1.3 : 1);
 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>
+      {streamAsset ? (
+        (streaming || still) && <StreamBody
+          from={origin}
+          to={destination}
+          kit={kit}
+          motionLevel={motionLevel}
+          progressRef={progressRef}
+          src={performanceAssetUrl(streamAsset)}
+          frames={streamAsset.frames?.map(resolveCombatAssetPath)}
+          fps={streamAsset.fps}
+          tile={streamAsset.dimensions}
+          intensity={perf.intensity}
+        />
+      ) : (
       <svg
         className="w-full h-full"
         viewBox="0 0 100 100"
@@ -177,6 +213,7 @@ export function LashRenderer({
           />
         )}
       </svg>
+      )}
 
       {impactAsset && (stageName === 'impact' || stageName === 'aftermath') && (
         <img

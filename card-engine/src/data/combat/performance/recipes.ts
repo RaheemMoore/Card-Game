@@ -35,19 +35,38 @@ import type {
 /**
  * The plain outbound attack: wind up, throw, cross the gap, land, settle.
  *
- * Durations are nominal-at-full-motion and were chosen to sit INSIDE the
- * existing beat budget rather than alongside it — the queue already holds an
- * impact beat for 400ms (`TIMINGS.impact`), so a performance that ran 1200ms
- * would still be mid-travel when the journal had moved on. Total here is
- * 620ms for exactly that reason.
+ * ## The pacing rule (Raheem, 2026-08-01)
+ *
+ * "We're making beautiful art. I want people to enjoy all of this charging and
+ * different textures." So the shape is deliberately NOT uniform:
+ *
+ *  - **charge and travel are long.** These are the stages where the material
+ *    is on screen doing its thing — a Blood jet crossing the gap is the whole
+ *    point, and at 150ms nobody saw it.
+ *  - **impact is SHORT.** The moment between the beam arriving and the splash
+ *    appearing has to be tight or contact feels mushy. Snap, not fade.
+ *  - **aftermath is long.** The splash sits on the boss and is looked at.
+ *
+ * Total ~1.6s, up from 620ms. That is a deliberate slowing of combat, not
+ * drift.
+ *
+ * ## The coupling to watch
+ *
+ * The presentation queue has its own beat budget (`TIMINGS` in
+ * `presentation/types.ts` — an impact beat holds 400ms). Nothing is truncated
+ * TODAY because the performance layer is not yet wired into live combat, but
+ * when it is, a 1.6s performance inside a 400ms beat would be cut off
+ * mid-flight. Those timings have to grow to match at that point; the Ability
+ * Theater drives the clock directly and is unaffected.
  */
 const OUTBOUND_STAGES: readonly StageRecipe[] = [
-  { stage: 'charge', durationMs: 140, accepts: ['resource'] },
-  { stage: 'cast', durationMs: 90, accepts: [] },
-  { stage: 'travel', durationMs: 150, accepts: [] },
-  { stage: 'impact', durationMs: 160, accepts: ['damage', 'defeat'] },
-  { stage: 'aftermath', durationMs: 80, accepts: ['status_applied', 'status_removed'] },
-  { stage: 'recover', durationMs: 0, accepts: [] },
+  { stage: 'charge', durationMs: 260, accepts: ['resource'] },
+  { stage: 'cast', durationMs: 130, accepts: [] },
+  { stage: 'travel', durationMs: 420, accepts: [] },
+  // Short on purpose — see the pacing rule above.
+  { stage: 'impact', durationMs: 150, accepts: ['damage', 'defeat'] },
+  { stage: 'aftermath', durationMs: 560, accepts: ['status_applied', 'status_removed'] },
+  { stage: 'recover', durationMs: 140, accepts: [] },
 ];
 
 /**
@@ -62,14 +81,16 @@ const OUTBOUND_STAGES: readonly StageRecipe[] = [
  * carried home reads as a drain.
  */
 const DRAIN_STAGES: readonly StageRecipe[] = [
-  { stage: 'charge', durationMs: 180, accepts: ['resource'] },
-  { stage: 'cast', durationMs: 90, accepts: [] },
-  { stage: 'travel', durationMs: 150, accepts: [] },
-  { stage: 'impact', durationMs: 170, accepts: ['damage', 'defeat'] },
-  { stage: 'return', durationMs: 180, accepts: [] },
-  { stage: 'arrival', durationMs: 150, accepts: ['healing'] },
-  { stage: 'aftermath', durationMs: 120, accepts: ['status_applied', 'status_removed'] },
-  { stage: 'recover', durationMs: 0, accepts: [] },
+  { stage: 'charge', durationMs: 300, accepts: ['resource'] },
+  { stage: 'cast', durationMs: 130, accepts: [] },
+  { stage: 'travel', durationMs: 420, accepts: [] },
+  { stage: 'impact', durationMs: 150, accepts: ['damage', 'defeat'] },
+  // The return leg is the drain's signature — it has to be long enough to
+  // watch material travel back, or the heal reads as a coincidence.
+  { stage: 'return', durationMs: 420, accepts: [] },
+  { stage: 'arrival', durationMs: 300, accepts: ['healing'] },
+  { stage: 'aftermath', durationMs: 420, accepts: ['status_applied', 'status_removed'] },
+  { stage: 'recover', durationMs: 140, accepts: [] },
 ];
 
 /**
@@ -81,12 +102,14 @@ const DRAIN_STAGES: readonly StageRecipe[] = [
  * constriction, not the moment the first tip breaks the surface.
  */
 const GROWTH_STAGES: readonly StageRecipe[] = [
-  { stage: 'charge', durationMs: 160, accepts: ['resource'] },
-  { stage: 'cast', durationMs: 100, accepts: [] },
-  { stage: 'manifest', durationMs: 320, accepts: [] },
-  { stage: 'impact', durationMs: 170, accepts: ['damage', 'defeat'] },
-  { stage: 'aftermath', durationMs: 200, accepts: ['status_applied', 'status_removed'] },
-  { stage: 'recover', durationMs: 0, accepts: [] },
+  { stage: 'charge', durationMs: 280, accepts: ['resource'] },
+  { stage: 'cast', durationMs: 140, accepts: [] },
+  // The longest stage in the game, and correctly so: staged emergence IS this
+  // ability, and five roots breaking ground in sequence needs room to read.
+  { stage: 'manifest', durationMs: 640, accepts: [] },
+  { stage: 'impact', durationMs: 160, accepts: ['damage', 'defeat'] },
+  { stage: 'aftermath', durationMs: 560, accepts: ['status_applied', 'status_removed'] },
+  { stage: 'recover', durationMs: 140, accepts: [] },
 ];
 
 /**
@@ -101,11 +124,11 @@ const GROWTH_STAGES: readonly StageRecipe[] = [
  * to live battle state; the recipe only describes how it arrives.
  */
 const BARRIER_STAGES: readonly StageRecipe[] = [
-  { stage: 'charge', durationMs: 160, accepts: ['resource'] },
-  { stage: 'cast', durationMs: 110, accepts: [] },
-  { stage: 'manifest', durationMs: 260, accepts: ['shield'] },
-  { stage: 'aftermath', durationMs: 200, accepts: ['status_removed', 'status_applied', 'healing'] },
-  { stage: 'recover', durationMs: 0, accepts: [] },
+  { stage: 'charge', durationMs: 280, accepts: ['resource'] },
+  { stage: 'cast', durationMs: 140, accepts: [] },
+  { stage: 'manifest', durationMs: 460, accepts: ['shield'] },
+  { stage: 'aftermath', durationMs: 520, accepts: ['status_removed', 'status_applied', 'healing'] },
+  { stage: 'recover', durationMs: 140, accepts: [] },
 ];
 
 /**
@@ -113,13 +136,13 @@ const BARRIER_STAGES: readonly StageRecipe[] = [
  * not know what this ability is doing.
  */
 const GENERIC_STAGES: readonly StageRecipe[] = [
-  { stage: 'cast', durationMs: 90, accepts: ['resource'] },
+  { stage: 'cast', durationMs: 160, accepts: ['resource'] },
   {
     stage: 'impact',
-    durationMs: 260,
+    durationMs: 420,
     accepts: ['damage', 'healing', 'shield', 'status_applied', 'status_removed', 'defeat'],
   },
-  { stage: 'recover', durationMs: 0, accepts: [] },
+  { stage: 'recover', durationMs: 120, accepts: [] },
 ];
 
 /* ------------------------------------------------------------------ */

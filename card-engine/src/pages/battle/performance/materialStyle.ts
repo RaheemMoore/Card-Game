@@ -147,6 +147,45 @@ export function impactShape(kit: MaterialKit): {
   }
 }
 
+/**
+ * How fast the stream texture scrolls toward its target, in px/second.
+ *
+ * This is a weight cue, and it is the main reason a Blood jet and a Water jet
+ * do not feel the same even when both are "a stream". Blood is viscous: it
+ * moves slower and reads as heavy. Water is fast and thin. Fire is faster
+ * still and barely coherent.
+ */
+export function streamScrollSpeed(kit: MaterialKit): number {
+  switch (kit.silhouette) {
+    case 'coiling_ribbon':
+      return 190;
+    case 'cresting_ribbon':
+      return 320;
+    case 'jagged_tongue':
+      return 420;
+    case 'fibrous_bundle':
+      return 120;
+    default:
+      return 260;
+  }
+}
+
+/** Thickness of the stream body in px, before intensity scaling. */
+export function streamThickness(kit: MaterialKit): number {
+  switch (kit.silhouette) {
+    case 'coiling_ribbon':
+      return 20;
+    case 'cresting_ribbon':
+      return 18;
+    case 'jagged_tongue':
+      return 22;
+    case 'fibrous_bundle':
+      return 16;
+    default:
+      return 16;
+  }
+}
+
 /** Edge decoration along the body — the second silhouette cue. */
 export function edgeDecoration(kit: MaterialKit): {
   kind: 'none' | 'beads' | 'crest' | 'forks' | 'barbs';

@@ -189,13 +189,17 @@ export function PerformanceStyles() {
          is what makes a still image read as a hit rather than as a sticker
          appearing. Never fades to nothing during the impact beat — the splash
          is the payoff and it has to stay legible for the whole beat. */
+      /* Fast in, then HOLD. The gap between the beam arriving and the splash
+         appearing has to be tight or contact feels mushy — so the punch is
+         240ms — but the splash then sits at full opacity for the rest of the
+         aftermath, because that is the art the player is meant to enjoy. */
       @keyframes perf-impact-art-hit {
-        0%   { opacity: 0; transform: scale(0.55); }
-        22%  { opacity: 1; transform: scale(1.18); }
-        45%  { transform: scale(1); }
-        100% { opacity: 0.92; transform: scale(1); }
+        0%   { opacity: 0; transform: scale(0.5); }
+        18%  { opacity: 1; transform: scale(1.2); }
+        40%  { transform: scale(1); }
+        100% { opacity: 1; transform: scale(1); }
       }
-      .perf-impact-art { animation: perf-impact-art-hit 340ms cubic-bezier(0.2,0.8,0.3,1) forwards; }
+      .perf-impact-art { animation: perf-impact-art-hit 240ms cubic-bezier(0.2,0.8,0.3,1) forwards; }
 
       @keyframes perf-bloom-rise {
         0%   { opacity: 0; transform: translateY(6px) scale(0.7); }

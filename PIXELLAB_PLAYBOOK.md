@@ -579,3 +579,41 @@ after an hour of debugging pivots.
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Effects batch A | 4 lash segments, 1 tip, 1 impact | 6 | 1 recommend, 4 reject, 1 undecided |
+
+## The fix for "it returns objects, not pieces": ask for a TEXTURE (2 generations)
+
+Batch A concluded PixelLab cannot make repeating path pieces. Batch B narrows that: it
+cannot make **discrete segments**, but it will happily make a **continuous band** — and a
+band is what a stream actually needs.
+
+The prompt is the whole difference. Batch A asked for "a single short curved segment ... with
+open cut ends on both sides" and got a claw, a ribbon, a cuff and a flame icon. Batch B asked
+for:
+
+> a horizontal band of flowing blood, **continuous from left edge to right edge** ... seamless
+> repeating texture, **no ends, no tip, no tapering**, no droplets leaving the band
+
+and got exactly that, first try, 128×32, 1 generation. The words doing the work are
+*band*, *continuous*, and the three explicit negations. "Segment" and "piece" invite an
+object; "band" and "texture" do not.
+
+**Pair it with mirror-tiling and the seam question disappears.** Repeating the tile with
+every other copy flipped horizontally means each seam meets its own mirror image, so a
+discontinuity is geometrically impossible regardless of what the generator returned. That is
+what makes this technique safe where the segment approach was a gamble — see
+`pages/battle/performance/StreamBody.tsx`.
+
+**`animate_image` on a texture: promising, not settled.** 9 frames of the 128×32 band for 1
+generation. The highlights genuinely travel and the scallops shift, which is life that
+scrolling alone cannot supply. But the band thins around the middle frames, so a loop may
+pulse rather than flow. Verdict deferred to Raheem — for Blood a pulse may be perfect.
+
+**Frames come back as separate images, and this repo has no image-composition dependency.**
+Rather than adding one to pack a strip, the tiles are `<img>` elements whose `src` swaps per
+frame. That is also the technically correct choice here: a packed strip needs
+`background-repeat: no-repeat` to isolate a frame, which is exactly what a tiled stream
+cannot use. Scroll (`transform`) and churn (`src`) stay on independent axes.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch B | stream tile + 9-frame churn | 2 | 1 recommend, 1 undecided |

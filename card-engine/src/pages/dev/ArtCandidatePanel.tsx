@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { BATCH_A, BATCH_A_COST, BATCH_A_FINDING, type ArtCandidate } from './artCandidates';
+import {
+  BATCH_A,
+  BATCH_A_COST,
+  BATCH_A_FINDING,
+  BATCH_B,
+  BATCH_B_COST,
+  BATCH_B_FINDING,
+  type ArtCandidate,
+} from './artCandidates';
 
 /**
  * The generated-art review gallery inside the Ability Theater.
@@ -37,7 +45,24 @@ export function ArtCandidatePanel() {
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-6">
+        <h2 className="font-fantasy text-lg text-parchment">Batch B — the gushing stream</h2>
+        <p className="text-sm text-bone/70 max-w-3xl mt-1">
+          {BATCH_B_COST} generations. The stream is not one clip — it is a short tile repeated
+          along the beam and scrolled toward the target, which is how it works at any distance.
+        </p>
+        <p className="text-sm mt-3 max-w-3xl border-l-2 border-amber-400/60 bg-amber-400/10 px-3 py-2 rounded-r">
+          <span className="text-amber-200 font-semibold">What this batch proved: </span>
+          <span className="text-bone/90">{BATCH_B_FINDING}</span>
+        </p>
+        <div className="space-y-5 mt-4">
+          {BATCH_B.map((c) => (
+            <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-4 pt-4 border-t border-bone/15">
         <h2 className="font-fantasy text-lg text-parchment">Batch A — first generated pieces</h2>
         <p className="text-sm text-bone/70 max-w-3xl mt-1">
           Six probes, {BATCH_A_COST} generations total. These were deliberately cheap: the

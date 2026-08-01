@@ -138,6 +138,62 @@ export const BATCH_A: readonly ArtCandidate[] = [
   },
 ];
 
+/* ------------------------------------------------------------------ */
+/*  Batch B — the gushing stream                                       */
+/* ------------------------------------------------------------------ */
+
+const ROOT_B = '/assets/combat/effects/_candidates/batch-b';
+
+export const BATCH_B: readonly ArtCandidate[] = [
+  {
+    id: 'blood_stream_strip',
+    file: `${ROOT_B}/1-blood-stream-strip.png`,
+    size: 128,
+    label: 'Blood stream tile — Pixen, 128×32',
+    what:
+      'One tile of the jet. The stream is built from however many of these fit between the ' +
+      'card and the boss, scrolling toward the target — which is why it works at any distance.',
+    testing:
+      'The whole Batch A failure: can the model return a TEXTURE rather than a finished object?',
+    verdict: 'recommend',
+    why:
+      'It came back as an actual band — continuous from edge to edge, no resolved tip, no ' +
+      'tapering. That is the thing four probes in Batch A could not do, and the difference was ' +
+      'the prompt: "no ends, no tip, no tapering". The scalloped lower edge and the wet ' +
+      'highlights along its length give it real material identity at the size it renders. ' +
+      'Even if its two ends did not match perfectly, mirror-tiling makes the seam impossible ' +
+      'to see, so this cannot fail the way the segments did.',
+    provenance: { tool: 'create_image_pixen', jobId: 'a3feb0b1', seed: 7331, generationCost: 1 },
+    tileable: true,
+  },
+  {
+    id: 'blood_stream_churn',
+    file: `${ROOT_B}/stream-f3.png`,
+    size: 128,
+    label: 'Blood stream churn — animate_image, 9 frames',
+    what:
+      'The same tile animated so the blood moves WITHIN the band. Scrolling alone slides a ' +
+      'texture along; this makes it boil as it travels.',
+    testing: 'Does animate_image hold a texture together, or does it drift into a new shape?',
+    verdict: 'undecided',
+    why:
+      'The highlights genuinely travel and the scallops shift, which is exactly the internal ' +
+      'life the scroll cannot supply on its own. But the band thins and breaks up around the ' +
+      'middle frames, so a loop may pulse rather than flow. Whether that reads as a pumping ' +
+      'artery — which would be perfect for Blood — or as a glitch is a judgement call, and ' +
+      'it is genuinely yours. Frame 3 is shown; all nine are on disk.',
+    provenance: { tool: 'animate_image', jobId: '288ba71c', seed: 7331, generationCost: 1 },
+    tileable: true,
+  },
+];
+
+export const BATCH_B_COST = BATCH_B.reduce((n, c) => n + c.provenance.generationCost, 0);
+
+export const BATCH_B_FINDING =
+  'Asking for a texture instead of an object worked — the tile is a continuous band, and ' +
+  'mirror-tiling means its seam cannot show. The open question is the churn: it moves well ' +
+  'but thins mid-loop, so it may pulse rather than flow.';
+
 /**
  * What I think the batch taught us, as one sentence I would defend.
  *

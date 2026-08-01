@@ -62,6 +62,21 @@ export interface PerformanceAsset {
   frameCount?: number;
   fps?: number;
   loop?: boolean;
+  /**
+   * Frames as SEPARATE files, rather than one packed strip.
+   *
+   * Packed strips are the norm and `SpriteClipPlayer` steps them by offsetting
+   * a background — but that technique needs `background-repeat: no-repeat`,
+   * which is exactly what a TILED stream cannot use. A stream repeats along its
+   * length, so the frame has to be selectable independently of the tiling, and
+   * the simplest correct way to do that is one file per frame swapped on an
+   * `<img>` src. The browser caches all of them after the first pass.
+   *
+   * Also the pragmatic choice: PixelLab's `animate_image` returns frames as
+   * individual images, and this repo has no image-composition dependency to
+   * pack them with.
+   */
+  frames?: readonly string[];
   intendedForms: readonly AbilityForm[];
   intendedMaterials: readonly ElementName[];
   approvalStatus: 'placeholder' | 'candidate' | 'approved' | 'rejected';
@@ -75,6 +90,19 @@ export interface PerformanceAssetKit {
   element: ElementName;
   /** The travelling body's leading piece. */
   head?: PerformanceAsset;
+  /**
+   * A tileable texture for a continuous stream body, scrolled along the path.
+   *
+   * Distinct from `segment` on purpose. A `segment` is a discrete piece placed
+   * at intervals — the Batch A approach, which failed because the generator
+   * returns finished objects with closed ends that will not butt together. A
+   * `stream` is a texture that only has to repeat in one axis, and mirror-
+   * tiling makes that seam unconditionally invisible. Different contract,
+   * different slot, so the two can never be confused at a call site.
+   */
+  stream?: PerformanceAsset;
+  /** Burst at the cast point, where the effect leaves the card. */
+  muzzle?: PerformanceAsset;
   /** A repeated segment laid along the path. */
   segment?: PerformanceAsset;
   /** Shed particles. */
@@ -119,6 +147,34 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
     id: 'lash_blood',
     form: 'lash',
     element: 'Blood',
+    // Batch B, 2026-08-01. A continuous band rather than a piece — the prompt
+    // asked for "no ends, no tip, no tapering", which is what finally got a
+    // texture back instead of an object.
+    stream: {
+      id: 'lash_blood_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/blood/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/blood/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Blood'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'a3feb0b1-39c7-47db (still) / 288ba71c-0d31-4fb6 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#blood_stream_strip',
+      },
+      notes:
+        'Tiled with mirror-flipping and scrolled along the beam; frames swap on the tiles ' +
+        'for internal churn. `path` is frame 0, used when motion is off.',
+    },
     segment: placeholder('lash_blood_segment', 'still', 'effects/lash/blood/segment.png', 32, 32, ['lash', 'drain'], ['Blood']),
     particle: placeholder('lash_blood_droplet', 'still', 'effects/lash/blood/droplet.png', 16, 16, ['lash', 'drain'], ['Blood']),
     // First real asset in the game. Batch A, 2026-08-01 — the one probe of six
