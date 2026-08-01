@@ -190,6 +190,44 @@ export function streamThickness(kit: MaterialKit): number {
   }
 }
 
+/**
+ * How the impact art ARRIVES.
+ *
+ * One punch animation for every material was wrong, and Shadow is what exposed
+ * it: "it feels like it hits and then it's just, like, surprised it's there. It
+ * should feel like it fades in. It's smoke. It's a shadow. It fades in and out
+ * of existence."
+ *
+ * He is right, and the fix belongs on the material rather than in a timing
+ * tweak — a blood splatter SHOULD snap, because liquid hitting a surface is a
+ * hard contact. Smoke arriving hard is what looks wrong. So the arrival is
+ * derived from the impact type the kit already declares.
+ */
+export type ImpactArrival =
+  /** Hard contact. Overshoots and settles. Liquids, sparks, shattering. */
+  | 'punch'
+  /** Materialises. Fades up, spreads, and dissipates. Smoke and shadow. */
+  | 'bloom'
+  /** Crawls outward along the surface it hit. Fire. */
+  | 'spread';
+
+export function impactArrival(kit: MaterialKit): ImpactArrival {
+  switch (kit.impact) {
+    case 'engulfing':
+      return 'bloom';
+    case 'spreading_sheet':
+      return 'spread';
+    case 'wet_splash':
+    case 'foam_fan':
+    case 'ember_burst':
+    case 'splintering':
+    case 'refracting_flare':
+    case 'radial_burst':
+    default:
+      return 'punch';
+  }
+}
+
 /** Edge decoration along the body — the second silhouette cue. */
 export function edgeDecoration(kit: MaterialKit): {
   kind: 'none' | 'beads' | 'crest' | 'forks' | 'barbs';

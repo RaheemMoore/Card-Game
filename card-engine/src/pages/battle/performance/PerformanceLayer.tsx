@@ -120,6 +120,15 @@ export function PerformanceView({
    * Expressed as fractions of the impact stage so it stays correct at any
    * tempo.
    */
+  /*
+   * How long the impact art is actually on screen: the impact beat plus the
+   * aftermath it sits through. A bloom times its whole fade-up-and-dissipate
+   * against this, so smoke finishes exactly as the beat does rather than being
+   * cut off — and it stays correct at any tempo.
+   */
+  const impactVisibleMs =
+    impactMs + (perf.stages.find((s) => s.stage === 'aftermath')?.durationMs ?? 0);
+
   const releasing = stageName === 'impact';
   const chargeReleaseMs = Math.round(impactMs * 0.34);
   const beamReleaseDelayMs = Math.round(impactMs * 0.4);
@@ -192,6 +201,7 @@ export function PerformanceView({
           releasing={releasing}
           releaseDelayMs={beamReleaseDelayMs}
           releaseMs={beamReleaseMs}
+          impactVisibleMs={impactVisibleMs}
         />
       );
 
@@ -320,6 +330,40 @@ export function PerformanceStyles() {
         100% { opacity: 1; transform: scale(1); }
       }
       .perf-impact-art { animation: perf-impact-art-hit 240ms cubic-bezier(0.2,0.8,0.3,1) forwards; }
+
+      /* BLOOM — smoke and shadow, which do not hit, they materialise.
+       *
+       * "It feels like it hits and then it's just, like, surprised it's there.
+       * It should feel like it fades in. It's smoke. It's a shadow. It fades in
+       * and out of existence."
+       *
+       * So this fades UP over its first third rather than punching in, keeps
+       * growing slowly the whole time it is on screen — smoke never stops
+       * expanding — and then dissipates rather than being cut off when the
+       * performance ends. Timed against the full impact + aftermath life, so
+       * it always finishes exactly as the beat does whatever the tempo is. */
+      @keyframes perf-impact-bloom-in {
+        0%   { opacity: 0;    transform: scale(0.62); filter: blur(1.5px); }
+        30%  { opacity: 0.85; transform: scale(0.95); filter: blur(0px); }
+        55%  { opacity: 1;    transform: scale(1.08); }
+        78%  { opacity: 0.85; transform: scale(1.18); }
+        100% { opacity: 0;    transform: scale(1.32); filter: blur(1.5px); }
+      }
+      .perf-impact-bloom {
+        animation: perf-impact-bloom-in var(--impact-life, 1600ms) ease-in-out forwards;
+      }
+
+      /* SPREAD — fire crawling outward along the surface it hit. Widens faster
+         than it grows tall, which is what keeps it a sheet rather than a ball. */
+      @keyframes perf-impact-spread-out {
+        0%   { opacity: 0; transform: scale(0.5, 0.7); }
+        22%  { opacity: 1; transform: scale(1.15, 1.05); }
+        60%  { transform: scale(1.3, 0.95); }
+        100% { opacity: 0.9; transform: scale(1.38, 0.9); }
+      }
+      .perf-impact-spread {
+        animation: perf-impact-spread-out 520ms cubic-bezier(0.15,0.85,0.35,1) forwards;
+      }
 
       @keyframes perf-bloom-rise {
         0%   { opacity: 0; transform: translateY(6px) scale(0.7); }

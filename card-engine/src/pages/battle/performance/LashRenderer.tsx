@@ -17,6 +17,7 @@ import {
   particleDrift,
   thicknessAt,
   wobbleAt,
+  impactArrival,
 } from './materialStyle';
 
 /**
@@ -72,10 +73,24 @@ interface Props {
   /** How long after contact the beam starts fading — the card releases first. */
   releaseDelayMs?: number;
   releaseMs?: number;
+  /**
+   * How long the impact art is on screen — impact plus aftermath.
+   *
+   * A `bloom` arrival needs this to time its own fade-out, so smoke dissipates
+   * over its whole life instead of being cut off when the performance ends.
+   */
+  impactVisibleMs?: number;
 }
 
 /** How many points the spline is sampled at. */
 const SAMPLES = 26;
+
+/** Arrival style → the class that animates it. */
+const IMPACT_ARRIVAL_CLASS: Record<ReturnType<typeof impactArrival>, string> = {
+  punch: 'perf-impact-art',
+  bloom: 'perf-impact-bloom',
+  spread: 'perf-impact-spread',
+};
 
 export function LashRenderer({
   performance: perf,
@@ -88,6 +103,7 @@ export function LashRenderer({
   releasing = false,
   releaseDelayMs = 0,
   releaseMs = 160,
+  impactVisibleMs = 1600,
 }: Props) {
   const pathRef = useRef<SVGPathElement | null>(null);
   const corePathRef = useRef<SVGPathElement | null>(null);
@@ -261,8 +277,11 @@ export function LashRenderer({
           loop={impactAsset.loop}
           motionLevel={motionLevel}
           playKey={perf.id}
-          className={still ? undefined : 'perf-impact-art'}
+          className={still ? undefined : IMPACT_ARRIVAL_CLASS[impactArrival(kit)]}
           style={{
+            // Only the bloom reads this; the punch and spread are fixed-length
+            // arrivals that resolve well before the aftermath ends.
+            ['--impact-life' as string]: `${impactVisibleMs}ms`,
             position: 'absolute',
             left: `${destination.x}%`,
             top: `${destination.y}%`,
