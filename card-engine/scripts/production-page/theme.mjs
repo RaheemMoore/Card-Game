@@ -240,6 +240,16 @@ export const SCRIPT = `
   var results=document.getElementById('results');
   var q=document.getElementById('q');
   var xall=document.getElementById('xall');
+  var refreshBtn=document.getElementById('refresh');
+
+  /* This is a PUBLISHED, static document — reload fetches whatever was last
+     published to this URL, not a live view of the repo. A plain reload can
+     still serve a browser-cached copy of that same publish, so this forces a
+     network fetch instead of trusting the cache. */
+  refreshBtn.addEventListener('click',function(){
+    location.href=location.pathname+location.search.replace(/[?&]_r=\d+/,'')+
+      (location.search?'&':'?')+'_r='+Date.now()+location.hash;
+  });
 
   /* Nothing is hidden until this line. Before it, a no-JS reader has the whole
      document in front of them, and so does print. */
