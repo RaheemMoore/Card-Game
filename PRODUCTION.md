@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-07-31 · **Maintained by:** Claude, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-01 · **Maintained by:** Claude, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -278,6 +278,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
+| IN FLIGHT | Ability performances | Abilities can look like what they are instead of all drawing one coloured bolt. Reviewable at `/dev/ability-theater`; **not in a real fight yet**, and no art generated |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -299,7 +300,7 @@ Only three. Everything else is merged.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-01 -->
 ## 4. Open threads
 
 **49 things started and not finished.** This is the list that didn't exist before. It will
@@ -321,7 +322,7 @@ The hub exists; nothing behind it does.
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
 
-### Combat gaps — 7 items
+### Combat gaps — 10 items
 
 | What | Where |
 |---|---|
@@ -329,6 +330,9 @@ phone-portrait support is deferred pending its own crop of the art
 | Multi-enemy combat deliberately out of scope | `services/combat/reducer.ts:59` |
 | `summon_exists` condition can never evaluate true | `services/combat/reducer.ts:1938` |
 | Twilight dual-cast typed but never read by the reducer | `types/abilities.ts:501` |
+| Ability performances built but not wired into a real fight — the theater plays them, `/battle` does not | `pages/battle/performance/PerformanceLayer.tsx` |
+| Only `damage_dealt` carries `sourceActionId`; the other effect events carry none, so grouping is positional | `types/combat.ts:446` |
+| 24 of 29 elements still use a family-default look rather than authored art direction | `data/combat/performance/materialKits.ts` |
 | Attack VFX needs its own follow-up pass | `battle/AttackVFX.tsx:49` |
 | Crit / dodge / miss deferred beyond B7 | boss battle spec §15 |
 | Server-authoritative combat validation deferred | boss battle spec §15 |
@@ -697,6 +701,48 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-01 — An ability's look comes from the caster's element, not from its damage type
+
+Every attack in the game drew the same coloured bar, tinted by one of eight "damage types".
+Damage type is a rules concept — it decides who resists what — and it was quietly doing a
+second job it was never suited for: deciding what things look like. Blood, Void and Bone all
+count as the same damage type, so all three came out as the identical purple streak.
+
+From now on an ability's *shape* comes from what it does (a lash, a growth, a barrier, a
+drain) and its *substance* comes from the element of the character casting it. The same
+ability cast by a blood vampire and by a water druid runs the same code and looks like two
+different things.
+
+*Why it matters:* it makes element choice visible. Picking Blood over Water was previously a
+number on a card; now it changes what your character does on screen. It also means new
+abilities inherit a decent look for free instead of each needing bespoke effects.
+
+### 2026-08-01 — Build the whole performance system before generating any art
+
+Delivery 1 is deliberately code-only. Everything is drawn with shapes the code makes itself;
+not one image has been generated, and the art manifest is a list of specifications rather
+than files.
+
+*Why it matters:* art is the expensive, irreversible part. Reviewing motion and legibility
+first means the generation round is aimed at a known-good target instead of paying to
+discover the timing is wrong. There is a review page — `/dev/ability-theater` — built for
+exactly that judgement, including a control that hides all colour so the claim "you can tell
+these apart without colour" can be tested rather than asserted.
+
+### 2026-08-01 — Group an ability's effects by position, not by changing the rules engine
+
+A single ability like Sanguine Tithe produces three separate results (damage, healing, a
+debuff) and nothing in the data said they belonged together. The clean fix would be to tag
+every result with the ability that caused it — but that means editing the rules engine,
+whose output is the save-and-replay record for every battle.
+
+Chose instead to work it out from the order events arrive in, plus who caused each one. No
+change to the rules engine at all.
+
+*Why it matters:* combat maths and replay are untouched, so this cannot break a fight. The
+tidier fix stays available later as its own deliberate change rather than being smuggled in
+alongside a visual feature.
 
 ### 2026-07-31 — This guide is linked from the admin sidebar
 
