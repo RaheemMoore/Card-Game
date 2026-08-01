@@ -271,9 +271,9 @@ export interface StatusDamageModifiers {
  * Turn the combatants' status lists into damage multipliers.
  *
  * This is the single place statuses touch outgoing damage. It lives in
- * formulas.ts rather than the reducer so `previewAbilityDamage` — which shows
- * the player a number BEFORE they commit — gets the same answer as the real
- * hit for free, instead of needing a parallel implementation that can drift.
+ * formulas.ts rather than the reducer so it stays a pure, reusable function —
+ * the pre-commit UI preview (`decision/projectAction`) gets the same answer
+ * as the real hit by running the real reducer, not by re-implementing this.
  *
  * Multiplicative, not additive, so stacking several buffs can never invert the
  * sign or zero a hit out.

@@ -3,7 +3,8 @@ import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } 
 import type { AbilitySlotType } from '../../../types/abilities';
 import { getAbilityStore } from '../../../services/abilities/registry';
 import { getArtCrops } from '../../../types/abilities';
-import { previewAbilityDamage } from '../../../services/combat/reducer';
+import { projectAction } from '../../../services/combat/decision/projectAction';
+import { requiresConfirmation } from '../../../services/combat/decision/confirmation';
 import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
 import { displayNameFor } from '../journalNames';
 import { AbilityPreviewCard } from '../AbilityPreviewCard';
@@ -94,9 +95,26 @@ export function MobileAbilityRow({
       : null
     : resolveTargetRule(state, hero.actorId, pendingTargetRule, []).targetActorIds;
   const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
-  const pendingProjectedDamage = pendingAbility
-    ? previewAbilityDamage(state, hero, pendingAbility)
-    : null;
+  // Reducer dry-run — mirrors CombatScene's desktop projection so the two
+  // surfaces cannot show different numbers for the same action.
+  const pendingProjection =
+    pendingAbility && resolvedTargetIds
+      ? projectAction(state, {
+          kind: 'ability',
+          abilityDefinitionId: pendingAbility.definitionId,
+          targetActorIds: resolvedTargetIds,
+        })
+      : null;
+  const pendingProjectedDamage =
+    pendingProjection && !pendingProjection.deniedReason && pendingProjection.damageToBoss > 0
+      ? pendingProjection.damageToBoss
+      : null;
+  const pendingConfirmation =
+    pendingAbility && pendingProjection
+      ? requiresConfirmation(state, pendingAbility, pendingProjection, {
+          targetResolved: resolvedTargetIds !== null,
+        })
+      : undefined;
 
   return (
     <div className="relative w-full" aria-label={`Abilities for ${hero.snapshot.displayName}`}>
@@ -110,6 +128,7 @@ export function MobileAbilityRow({
             projectedDamage={pendingProjectedDamage}
             targetName={targetName}
             needsTargetPick={needsPick && !pickedTargetActorId}
+            confirmation={pendingConfirmation}
             onConfirm={() => {
               if (!resolvedTargetIds) return;
               onSubmit({

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BossCombatant } from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
-import { getCurrentBossVersion } from '../../services/bosses/registry';
 import { PaintedPanel } from './PaintedPanel';
+import { rageFillPercent } from './rageThreshold';
 
 interface Props {
   boss: BossCombatant;
@@ -43,14 +43,13 @@ export function BossHUDOverlay({ boss, currentBeat }: Props) {
   const phaseLabel = boss.currentPhaseId.replace(/^phase_fe_/, '').toUpperCase();
   const isRage = phaseLabel === 'RAGE';
 
-  const RAGE_THRESHOLD = 0.25;
-  const rageFillPct = Math.max(
-    0,
-    Math.min(100, ((RAGE_THRESHOLD - hpPct) / RAGE_THRESHOLD) * -100 + 100),
-  );
+  const rageFillPct = rageFillPercent(hpPct);
 
-  const version = getCurrentBossVersion(boss.snapshot.bossId);
-  const resistances = version?.resistanceProfile ?? { resistant: [], weak: [] };
+  // Frozen at battle start — reading the live registry here would let a
+  // mid-run content edit change what this fight's boss resists without
+  // changing the fight, and a replay could show resistances the reducer
+  // never actually applied.
+  const resistances = boss.snapshot.resistance;
 
   return (
     <div className="absolute top-3 left-3 z-30" style={{ width: 372 }}>
@@ -216,17 +215,32 @@ export function BossHUDOverlay({ boss, currentBeat }: Props) {
             frame's amber border/glow when raging — dropped, not hidden.
             "ARMOR N" was also a mislabel: N is `resistant.length`, a count
             of resisted elemental types, not a mitigation stat — renamed to
-            say what it actually is. Widened to fill the freed width. */}
+            say what it actually is. Widened to fill the freed width.
+
+            Both tiles used to hardcode `FIRE`, which is only ever true for
+            the one boss that resists fire — every other boss (the
+            Debt-Bearer resists `searing`, not `fire`) showed a dash that
+            looked like a real reading. Both tiles now name whatever this
+            boss's frozen profile actually says, so a boss with no weakness
+            reads as none rather than as an unlit fire tile. */}
         <ResistTile
           x={22}
           w={98}
-          label={`FIRE ${resistances.resistant.includes('fire' as never) ? '−' : ' '}`}
-          active={resistances.resistant.includes('fire' as never)}
+          label={
+            resistances.weak.length > 0
+              ? `WEAK ${resistances.weak[0].toUpperCase()}${resistances.weak.length > 1 ? ` +${resistances.weak.length - 1}` : ''}`
+              : 'NO WEAKNESS'
+          }
+          active={resistances.weak.length > 0}
         />
         <ResistTile
           x={130}
           w={98}
-          label={`RESISTS ${resistances.resistant.length}`}
+          label={
+            resistances.resistant.length > 0
+              ? `RESISTS ${resistances.resistant[0].toUpperCase()}${resistances.resistant.length > 1 ? ` +${resistances.resistant.length - 1}` : ''}`
+              : 'NO RESIST'
+          }
           active={resistances.resistant.length > 0}
         />
       </PaintedPanel>

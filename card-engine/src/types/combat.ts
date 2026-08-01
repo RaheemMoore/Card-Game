@@ -213,7 +213,14 @@ export interface PendingCharge {
   actionId: string;
   /** Rounds still to wait before it resolves. */
   roundsRemaining: number;
-  /** Accumulated progress toward the break condition, 0..1. */
+  /**
+   * @deprecated DEAD FIELD — written as 0 when the charge starts and never
+   * read or updated. Real progress is derived from the event log by
+   * `evaluateChargeProgress` in the reducer, which is exported so the UI and
+   * resolution share one evaluator. Reading this instead will show 0% on a
+   * charge the party has nearly broken. Kept only because the field is
+   * serialised into replay records; remove it in a replay-format change.
+   */
   progress: number;
   /** Who it was aimed at when it started. */
   targetActorIds: readonly string[];

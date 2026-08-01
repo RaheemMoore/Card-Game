@@ -58,7 +58,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-01 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -116,6 +116,8 @@ being raised in a chat and lost.*
 | Q3 | Does the Lycanthrope emblem ever get made? | It's the only one of 11 missing, and it's been pending since 2026-07-17. |
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q5 | Should `.claude/hooks/` be tracked in git? | `.gitignore` excludes them, so the build check and the freshness warning live only on your laptop. Nobody else gets either. |
+| Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
+| Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
 
 ---
 
@@ -260,7 +262,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-01 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -279,6 +281,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Ability performances | Abilities can look like what they are instead of all drawing one coloured bolt. Reviewable at `/dev/ability-theater`; **not in a real fight yet**, and no art generated |
+| IN FLIGHT | Decision Experience System | Boss combat now explains itself instead of showing poetic telegraphs and isolated ability text. Stage 1 landed IN `/battle` for every boss, not just one: exact reducer-truth ability projections (a real dry-run, not a copied formula), a Threat Translator panel next to the Boss HUD showing the live objective, an honest ability-vs-threat relationship engine, and one confirmation policy shared by desktop and mobile. Reviewable end-to-end at `/dev/decision-lab` — three frozen Debt-Bearer pilots (`Interest Accrues`, `First Notice`, `The Whole Ledger`), `The Whole Ledger` fully proved out. **No Encounter Briefing yet, and Pilots A/B still need their own comprehension pass** — see §0 and Combat gaps below |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -290,20 +293,22 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Only three. Everything else is merged.
+Five. Everything else is merged.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
+| `ability-performance-system` | 3 | — | Ability Performance spine + Ability Theater. Not yet merged to `main` or wired into `/battle` |
+| `decision-experience` | 4 | — | This work. Branched OFF `ability-performance-system` (not `main`) because it consumes that branch's `actionScope`/correlation contract directly — the two are meant to land together. Worktree at `.claude/worktrees/decision-experience` |
 
 ---
 
 <!-- updated: 2026-08-01 -->
 ## 4. Open threads
 
-**49 things started and not finished.** This is the list that didn't exist before. It will
+**55 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -322,7 +327,7 @@ The hub exists; nothing behind it does.
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
 
-### Combat gaps — 10 items
+### Combat gaps — 16 items
 
 | What | Where |
 |---|---|
@@ -336,6 +341,12 @@ phone-portrait support is deferred pending its own crop of the art
 | Attack VFX needs its own follow-up pass | `battle/AttackVFX.tsx:49` |
 | Crit / dodge / miss deferred beyond B7 | boss battle spec §15 |
 | Server-authoritative combat validation deferred | boss battle spec §15 |
+| A `guard` ability EFFECT (e.g. Load-Bearing) does NOT count toward a `party_action: guard` charge break (First Notice) — only the literal Guard action does. Discovered building the Decision Experience System, which now states this plainly instead of implying it counts. Needs a ruling: is this the intended reading of "coordinated behaviour", or should an ability that grants guarding also count? | `services/combat/reducer.ts` `evaluateChargeProgress` |
+| Damage-over-time advances NEITHER a damage charge break (The Whole Ledger) nor the single-round interrupt bar — both only count `damage_dealt`, and DoT emits `dot_ticked`. Same discovery, same open question: intended, or should sustained damage count toward these objectives? | `services/combat/reducer.ts` `evaluateChargeProgress`, `damageToBossSinceIntent` |
+| `PendingCharge.progress` is a dead field — written `0` when a charge starts, never read or updated again. Harmless today (everything now reads the shared `evaluateChargeProgress` evaluator instead) but worth deleting in a future replay-format change rather than carrying a field that lies if anyone reads it directly | `types/combat.ts` |
+| Decision Experience System has no Encounter Briefing (party coverage vs. boss pressures) — Stage 2 of the reviewed plan, not started | `services/combat/decision/` |
+| Decision Experience Pilots A (`Interest Accrues`) and B (`First Notice`) have fixtures and pass their contextual-note tests, but no dedicated end-to-end playtest pass the way `The Whole Ledger` got — Stage 2 | `pages/dev/decisionLabFixtures.ts` |
+| `ThreatTranslator.tsx`'s panel has no Figma reference — built to match the existing painted-panel family on judgment, not a spec. Needs a design pass before another boss's UI copies its geometry | `pages/battle/ThreatTranslator.tsx` |
 
 ### Placeholder art — 9 items
 
@@ -697,10 +708,32 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-01 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-01 — The Decision Experience handoff got a corrected plan, not a blind build
+
+Raheem and ChatGPT produced a full handoff for a Decision Experience System (boss combat
+explaining itself before, during, and after a decision). Claude read it against the live repo
+before writing any code, rather than executing it as given, and found the architecture sound
+but three mechanical claims wrong, and the scope too large for one reviewable drop.
+
+Corrected before building: (1) an ability's `guard` EFFECT does not satisfy a coordinated-Guard
+charge break the way the handoff assumed — only the literal Guard action does; (2) the handoff
+implied damage-over-time would count toward damage objectives — it counts toward neither the
+Ledger's charge break nor the single-round interrupt; (3) the Ability Performance System the
+handoff assumed was already integrated is in fact still on its own unmerged branch, not wired
+into `/battle`. Stage 1 was re-scoped from "all three pilots + Encounter Briefing in one pass"
+to "engine truth + a real Decision Lab + one full pilot (`The Whole Ledger`) end to end" so the
+first review is of a working thing, not a six-system wall.
+
+*Why it matters:* the three mechanical corrections are now stated PLAINLY in the game's own UI
+(`decision/relationships.ts`) rather than quietly implying something the reducer doesn't do —
+which was the entire failure mode this system exists to prevent. Filed as open Combat-gaps
+threads for Raheem's ruling: should an ability-granted guard or sustained damage count toward
+these objectives, or is the current reducer behaviour correct as designed?
 
 ### 2026-08-01 — An ability's look comes from the caster's element, not from its damage type
 

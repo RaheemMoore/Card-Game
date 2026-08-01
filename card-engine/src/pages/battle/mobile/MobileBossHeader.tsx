@@ -1,7 +1,7 @@
 import type { BossCombatant } from '../../../types/combat';
-import { getCurrentBossVersion } from '../../../services/bosses/registry';
 import { TIMEOUT_ROUND_CAP } from '../../../services/combat/reducer';
 import { CombatFrame } from '../CombatFrame';
+import { rageFillPercent } from '../rageThreshold';
 
 interface Props {
   boss: BossCombatant;
@@ -24,15 +24,12 @@ export function MobileBossHeader({ boss, round }: Props) {
   const phaseLabel = boss.currentPhaseId.replace(/^phase_fe_/, '').toUpperCase();
   const isRage = phaseLabel === 'RAGE';
 
-  const RAGE_THRESHOLD = 0.25;
-  const rageFillPct = Math.max(
-    0,
-    Math.min(100, ((RAGE_THRESHOLD - hpPct) / RAGE_THRESHOLD) * -100 + 100),
-  );
+  const rageFillPct = rageFillPercent(hpPct);
 
-  const version = getCurrentBossVersion(boss.snapshot.bossId);
-  const resistances = version?.resistanceProfile ?? { resistant: [], weak: [] };
-  const fireResist = resistances.resistant.includes('fire' as never);
+  // Frozen at battle start, same as the desktop HUD — a live registry read
+  // here could show resistances this fight never actually applied.
+  const resistances = boss.snapshot.resistance;
+  const hasResist = resistances.resistant.length > 0;
   const displayLevel = Math.max(1, Math.round(boss.snapshot.maxHp / 6.8));
 
   return (
@@ -181,8 +178,13 @@ export function MobileBossHeader({ boss, round }: Props) {
 
           {/* Compact status pips */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {fireResist && <StatusDot glyph="🔥" tone="resist" label="Fire resist" />}
-            <StatusDot glyph="🛡" tone="neutral" label="Armor" />
+            {hasResist && (
+              <StatusDot
+                glyph="🛡"
+                tone="resist"
+                label={`Resists ${resistances.resistant.join(', ')}`}
+              />
+            )}
             {isRage && <StatusDot glyph="💀" tone="rage" label="Rage active" />}
           </div>
 

@@ -6,11 +6,13 @@ import type { MotionLevel } from '../../vfx/types';
 import { resolveArenaFor, resolveGroundTint } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
-import { previewAbilityDamage } from '../../services/combat/reducer';
+import { projectAction } from '../../services/combat/decision/projectAction';
+import { requiresConfirmation } from '../../services/combat/decision/confirmation';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
 import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
+import { ThreatTranslator } from './ThreatTranslator';
 import { BossStage } from './BossStage';
 import { ArenaShakeLayer } from './ArenaShakeLayer';
 import { ArenaAmbience } from './ArenaAmbience';
@@ -180,7 +182,28 @@ export function CombatScene({
       : null
     : resolveTargetRule(state, actingHero.actorId, pendingAbility.version.targetRule, []).targetActorIds;
   const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
-  const projectedDamage = pendingAbility ? previewAbilityDamage(state, actingHero, pendingAbility) : null;
+  // Reducer dry-run, not a copied formula — see decision/projectAction.ts.
+  // Only meaningful once a target is actually resolved; a still-unpicked
+  // manual target has nothing to project against, so this stays null rather
+  // than guessing.
+  const pendingProjection =
+    pendingAbility && resolvedTargetIds
+      ? projectAction(state, {
+          kind: 'ability',
+          abilityDefinitionId: pendingAbility.definitionId,
+          targetActorIds: resolvedTargetIds,
+        })
+      : null;
+  const projectedDamage =
+    pendingProjection && !pendingProjection.deniedReason && pendingProjection.damageToBoss > 0
+      ? pendingProjection.damageToBoss
+      : null;
+  const pendingConfirmation =
+    pendingAbility && pendingProjection
+      ? requiresConfirmation(state, pendingAbility, pendingProjection, {
+          targetResolved: resolvedTargetIds !== null,
+        })
+      : undefined;
   const abilityStore = getAbilityStore();
   const pendingArtUrl = pendingAbility
     ? (() => {
@@ -272,6 +295,7 @@ export function CombatScene({
           chrome, and its own z-30 keeps it above the world (21) and the
           flash (14) so boss HP stays readable straight through an impact. */}
       <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
+      <ThreatTranslator state={state} />
 
       {/* Command Shelf — a real painted 9-slice frame (see PaintedPanel.tsx)
           holding just the ability bar + utility tray. Short on purpose: the
@@ -411,6 +435,7 @@ export function CombatScene({
             projectedDamage={projectedDamage}
             targetName={targetName}
             needsTargetPick={needsTargetPick && !pickedTargetActorId}
+            confirmation={pendingConfirmation}
             onConfirm={() => {
               if (!resolvedTargetIds || !pendingAbility) return;
               onSubmit({

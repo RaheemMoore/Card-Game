@@ -1,5 +1,6 @@
 import type { AbilityCombatSnapshot } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
+import type { ConfirmationDecision } from '../../services/combat/decision/confirmation';
 
 const SLOT_LABEL: Record<AbilitySlotType, string> = {
   core: 'CORE',
@@ -22,19 +23,30 @@ export function AbilityPreviewCard({
   projectedDamage,
   targetName,
   needsTargetPick = false,
+  confirmation = { required: true, reasons: [], prompt: null },
   onConfirm,
   onCancel,
 }: {
   ability: AbilityCombatSnapshot;
   slot: AbilitySlotType;
   artUrl: string | null;
-  /** Computed via previewAbilityDamage — null when the ability has no direct-damage effect. */
+  /** Computed via a reducer dry-run (`decision/projectAction`) — null when the ability deals no damage to the boss. */
   projectedDamage: number | null;
   /** Display name of the resolved target, or null while a pick is still pending. */
   targetName: string | null;
   /** True when this ability needs a player-picked ally target and none has
    *  been picked yet — Confirm is replaced with a "tap an ally" prompt. */
   needsTargetPick?: boolean;
+  /**
+   * Shared desktop/mobile confirmation policy (`decision/confirmation.ts`).
+   * Confirmation is meant to add a decision, not ceremony — an ordinary
+   * resolved action commits itself the moment its target resolves; only
+   * ultimates, self-cost, expensive spends, and lethal outcomes stop and
+   * wait for the click. Defaults to "always confirm" so a caller that hasn't
+   * wired the policy yet keeps today's behaviour rather than silently
+   * auto-committing everything.
+   */
+  confirmation?: ConfirmationDecision;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -172,8 +184,8 @@ export function AbilityPreviewCard({
           {ability.def.descriptionShort || ability.def.descriptionLong || 'Deal damage to the target.'}
         </div>
 
-        {/* Projected damage — computed live via previewAbilityDamage, same
-            math the reducer will use, so this number is never a lie. */}
+        {/* Projected damage — from a real reducer dry-run (decision/projectAction),
+            not a copied formula, so this number is never a lie. */}
         {projectedDamage !== null && (
           <div
             aria-label={`Projected ${projectedDamage} damage`}
@@ -213,27 +225,52 @@ export function AbilityPreviewCard({
             TAP AN ALLY TO TARGET
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            style={{
-              marginTop: 2,
-              height: 26,
-              borderRadius: 4,
-              border: '1.5px solid #eb962e',
-              background: 'linear-gradient(to right, #592b09, #1a1412)',
-              color: '#ffdb94',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 1.4,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              cursor: 'pointer',
-              boxShadow: '0 0 12px rgba(235,150,46,0.35)',
-            }}
-          >
-            CONFIRM →
-          </button>
+          <>
+            {/* Confirmation is meant to add a decision, not ceremony — an
+                ordinary resolved action gets a plain commit label; only the
+                reasons in decision/confirmation.ts (ultimate, self-cost,
+                expensive, lethal) earn the louder "are you sure" framing and
+                say what they're protecting. Both are still ONE click; the
+                policy changes what the click means, not how many there are. */}
+            {confirmation.required && confirmation.prompt && (
+              <div
+                style={{
+                  color: '#e6a04a',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                  marginTop: 2,
+                }}
+              >
+                ⚠ {confirmation.prompt}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              style={{
+                marginTop: 2,
+                height: 26,
+                borderRadius: 4,
+                border: confirmation.required ? '1.5px solid #e0562e' : '1.5px solid #eb962e',
+                background: confirmation.required
+                  ? 'linear-gradient(to right, #5c1c09, #1a1412)'
+                  : 'linear-gradient(to right, #592b09, #1a1412)',
+                color: '#ffdb94',
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 1.4,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                cursor: 'pointer',
+                boxShadow: confirmation.required
+                  ? '0 0 12px rgba(224,86,46,0.4)'
+                  : '0 0 12px rgba(235,150,46,0.35)',
+              }}
+            >
+              {confirmation.required ? 'CONFIRM →' : 'USE →'}
+            </button>
+          </>
         )}
       </div>
     </div>

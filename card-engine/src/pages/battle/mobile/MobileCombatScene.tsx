@@ -237,7 +237,7 @@ export function MobileCombatScene({
           className="absolute left-1.5 z-20 pointer-events-none"
           style={{ top: 70 }}
         >
-          <MobileIntentPanel boss={state.boss} intent={state.boss.currentIntent} state={state} />
+          <MobileIntentPanel state={state} />
         </div>
 
         {/* YOUR TURN cue */}

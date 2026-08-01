@@ -84,7 +84,7 @@ export const TIMEOUT_ROUND_CAP = 30;
  * spell — it just alternates into another action next round. Tune from
  * telemetry once we have it.
  */
-const INTERRUPT_DAMAGE_THRESHOLD = 0.15;
+export const INTERRUPT_DAMAGE_THRESHOLD = 0.15;
 
 /* ------------------------------------------------------------------ */
 /*  init                                                               */
@@ -944,7 +944,7 @@ function doResolveBoss(state: BattleState): StepResult {
  * Each break kind is a genuinely different question, which is the point: it
  * means knowing the boss is not enough, you need the right party.
  */
-function evaluateChargeProgress(
+export function evaluateChargeProgress(
   state: BattleState,
   charge: PendingCharge,
   spec: BossChargeSpec,
@@ -988,9 +988,20 @@ function evaluateChargeProgress(
     case 'dispel': {
       // Binary by nature: the charge carries a status and removing it ends
       // the charge. No partial credit exists to give.
-      const cleansed = state.log.some(
-        (e) => e.kind === 'status_removed' && e.reason === 'dispelled',
-      );
+      //
+      // Windowed like the other three kinds. It used to scan the WHOLE log,
+      // so any dispel earlier in the fight pre-broke every future charge —
+      // latent because no shipped boss uses a dispel break yet.
+      let cleansed = false;
+      let dispelRound = 0;
+      for (const e of state.log) {
+        if (e.kind === 'round_started') dispelRound = e.round;
+        if (dispelRound < charge.startedRound) continue;
+        if (e.kind === 'status_removed' && e.reason === 'dispelled') {
+          cleansed = true;
+          break;
+        }
+      }
       return cleansed ? 1 : 0;
     }
     default:
@@ -1000,7 +1011,7 @@ function evaluateChargeProgress(
 
 /** Sum damage dealt to the boss between the most recent `boss_intent_declared`
  *  event and now. Used to check interrupt thresholds. */
-function damageToBossSinceIntent(state: BattleState): number {
+export function damageToBossSinceIntent(state: BattleState): number {
   let sum = 0;
   let counting = false;
   for (const e of state.log) {
@@ -1223,10 +1234,10 @@ function validateAbilityUsable(
 /**
  * The damage type one effect actually deals.
  *
- * The ONLY place this decision is made. `previewAbilityDamage` and
- * `resolveAbilityEffects` must both route through here, or the number shown
- * in the pre-commit UI drifts from the number the hit actually deals — an
- * invariant `previewAbilityDamage`'s own doc comment depends on.
+ * The ONLY place this decision is made. `resolveAbilityEffects` routes
+ * through here; the pre-commit UI no longer has a second copy of this
+ * decision to keep in sync — it gets its numbers from `decision/projectAction`,
+ * which runs this same function by running the real reducer.
  *
  * `damageTypeSource: 'element'` swaps in the hero's frozen element type (see
  * `HeroSnapshot.elementDamageType`); everything else uses the type the
@@ -1240,38 +1251,6 @@ function effectDamageType(
   return version.damageTypeSource === 'element'
     ? hero.snapshot.elementDamageType
     : effect.damageType ?? 'kinetic';
-}
-
-/**
- * Preview the direct-damage total an ability would deal to the boss right
- * now, using the exact same math + resistance lookup as `resolveAbilityEffects`
- * so the pre-commit UI preview never drifts from the real outcome. Read-only —
- * does not touch shields/state. Returns null if the ability has no
- * direct_damage effect (e.g. a pure heal/shield/status ability).
- */
-export function previewAbilityDamage(
-  state: BattleState,
-  hero: HeroCombatant,
-  ability: AbilityCombatSnapshot,
-): number | null {
-  const resistance = bossResistance(state);
-  let total = 0;
-  let any = false;
-  for (const effect of ability.version.effects) {
-    if (effect.type !== 'direct_damage') continue;
-    any = true;
-    const dmg = resolveDamage({
-      baseAmount: effect.amount,
-      damageType: effectDamageType(effect, ability.version, hero),
-      scaling: effect.scaling,
-      attackerStats: hero.snapshot.stats,
-      targetMitigation: 0,
-      targetResistance: resistance,
-      targetShields: state.boss.shields,
-    });
-    total += dmg.postShieldAmount;
-  }
-  return any ? total : null;
 }
 
 function resolveAbilityEffects(
