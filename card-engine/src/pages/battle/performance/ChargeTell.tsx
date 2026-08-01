@@ -1,6 +1,7 @@
 import type { MotionLevel } from '../../../vfx/types';
 import type { MaterialKit } from '../../../services/combat/performance/types';
 import type { Point } from '../combatAnchors';
+import { ChargeShapeScaled } from './chargeShapes';
 
 /**
  * The gathering — material pooling at the cast point before anything fires.
@@ -30,122 +31,6 @@ import type { Point } from '../combatAnchors';
  * same `MaterialKit` that drives everything else, so a new element inherits a
  * charge tell for free.
  */
-
-/**
- * What the material looks like while it gathers.
- *
- * One shape per `chargeForm`, because "pool" was never generic — it was the
- * liquid case wearing a generic name, and it made Fire charge with a puddle of
- * flame. Each of these is a couple of primitives: the point is the SILHOUETTE
- * being right, not the rendering being clever.
- */
-function ChargeShape({
-  form,
-  heavy,
-  core,
-  edge,
-  accent,
-}: {
-  form: MaterialKit['chargeForm'];
-  heavy: boolean;
-  core: string;
-  edge: string;
-  accent: string;
-}) {
-  switch (form) {
-    case 'flame':
-      // A tongue that catches and rises — narrow at the base, wide and forked
-      // at the top. The opposite proportion to a pool, so the two can never be
-      // confused even in silhouette.
-      return (
-        <>
-          <path
-            d="M 50 46 C 38 36 42 26 50 8 C 58 26 62 36 50 46 Z"
-            fill={core}
-            opacity={0.9}
-          />
-          <path
-            d="M 50 44 C 43 36 45 28 50 16 C 55 28 57 36 50 44 Z"
-            fill={edge}
-            opacity={0.95}
-          />
-          {/* Bright inner core — fire is the one material lit from inside. */}
-          <path d="M 50 40 C 47 34 48 30 50 24 C 52 30 53 34 50 40 Z" fill={accent} />
-          {/* Small licks breaking off, so it reads as burning rather than as
-              a static leaf shape. */}
-          <path d="M 40 34 C 36 28 38 24 41 20" stroke={edge} strokeWidth={2} fill="none" opacity={0.7} />
-          <path d="M 60 36 C 64 30 62 26 59 22" stroke={edge} strokeWidth={2} fill="none" opacity={0.7} />
-        </>
-      );
-
-    case 'bloom':
-      // A plant that grew: a stem, leaves, and a flower opening at the top.
-      // The delivery reaches out of THIS, so it has to look like a thing with
-      // a mouth rather than a puddle or a glow.
-      return (
-        <>
-          {/* Stem. */}
-          <path d="M 50 48 C 49 38 51 32 50 22" stroke={core} strokeWidth={4} fill="none" strokeLinecap="round" />
-          {/* Leaves, deliberately uneven — a symmetrical plant reads as a logo. */}
-          <path d="M 50 40 C 40 38 34 32 33 26 C 41 26 48 32 50 40 Z" fill={core} opacity={0.95} />
-          <path d="M 50 34 C 60 33 66 28 68 22 C 60 22 52 27 50 34 Z" fill={edge} opacity={0.95} />
-          {/* The flower opening at the top — four petals around a bright centre. */}
-          <path d="M 50 22 C 44 18 44 10 50 6 C 56 10 56 18 50 22 Z" fill={edge} />
-          <path d="M 50 20 C 43 21 37 17 36 11 C 43 10 49 14 50 20 Z" fill={edge} opacity={0.85} />
-          <path d="M 50 20 C 57 21 63 17 64 11 C 57 10 51 14 50 20 Z" fill={edge} opacity={0.85} />
-          <circle cx={50} cy={15} r={4} fill={accent} />
-        </>
-      );
-
-    case 'ground':
-      // The floor stirring: a low mound with cracks radiating from it.
-      return (
-        <>
-          <ellipse cx={50} cy={38} rx={40} ry={11} fill={core} opacity={0.8} />
-          <path
-            d="M 30 38 L 44 30 M 50 38 L 50 26 M 70 38 L 58 29"
-            stroke={edge}
-            strokeWidth={2.5}
-            fill="none"
-          />
-          <ellipse cx={50} cy={38} rx={18} ry={5} fill={accent} opacity={0.5} />
-        </>
-      );
-
-    case 'halo':
-      // Light assembling into a ring — symmetrical, which nothing else here is.
-      return (
-        <>
-          <ellipse cx={50} cy={28} rx={34} ry={16} fill="none" stroke={core} strokeWidth={5} opacity={0.85} />
-          <ellipse cx={50} cy={28} rx={24} ry={11} fill="none" stroke={edge} strokeWidth={3} opacity={0.9} />
-          <ellipse cx={50} cy={28} rx={11} ry={5} fill={accent} opacity={0.7} />
-        </>
-      );
-
-    case 'motes':
-      // The neutral fallback: particles converging. Deliberately plain, so an
-      // element that has not been authored looks unfinished rather than wrong.
-      return (
-        <>
-          {[20, 38, 50, 62, 80].map((x, i) => (
-            <circle key={x} cx={x} cy={28 + (i % 2 === 0 ? -6 : 6)} r={4} fill={i === 2 ? accent : core} opacity={0.8} />
-          ))}
-        </>
-      );
-
-    case 'pool':
-    default:
-      return (
-        <>
-          <ellipse cx={50} cy={heavy ? 32 : 25} rx={38} ry={heavy ? 15 : 19} fill={core} opacity={0.85} />
-          <ellipse cx={50} cy={heavy ? 28 : 22} rx={26} ry={heavy ? 9 : 13} fill={edge} opacity={0.9} />
-          {/* Wet highlight — the cue that separates a pool of liquid from a
-              coloured blob. */}
-          <ellipse cx={40} cy={heavy ? 24 : 18} rx={9} ry={3.5} fill={accent} opacity={0.75} />
-        </>
-      );
-  }
-}
 
 interface Props {
   at: Point;
@@ -277,27 +162,24 @@ export function ChargeTell({
       ) : (
       /* The gathering shape itself, which is NOT always a pool. */
       <svg
-        viewBox="0 0 100 50"
+        viewBox="0 0 100 60"
         preserveAspectRatio="none"
         className={still || firing ? undefined : armed ? 'perf-charge-pulse' : 'perf-charge-gather'}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
       >
         {/*
-          A flame is scaled up about its BASE, not its centre — so it grows
-          taller out of the cast point rather than also growing downward
-          through it. Raheem's note on review: the glow was the right size, the
-          flame itself was too small. The glow is a separate element and is
-          deliberately left alone.
+          Shapes come from the shared module, scaled per form about their BASE
+          so they grow upward out of the cast point rather than down through
+          it. Both the sizing table and the geometry live with the gallery's
+          copy, so the review page cannot show something the game does not do.
         */}
-        <g
-          transform={
-            kit.chargeForm === 'flame'
-              ? 'translate(50 46) scale(1.55) translate(-50 -46)'
-              : undefined
-          }
-        >
-          <ChargeShape form={kit.chargeForm} heavy={heavy} core={core} edge={edge} accent={accent} />
-        </g>
+        <ChargeShapeScaled
+          form={kit.chargeForm}
+          heavy={heavy}
+          core={core}
+          edge={edge}
+          accent={accent}
+        />
       </svg>
       )}
 

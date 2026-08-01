@@ -389,14 +389,23 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
         'object. Near-black with almost no specular, which is what separates it from Blood ' +
         'in greyscale where hue cannot help.',
     },
+    /*
+     * Still, NOT a flipbook — deliberately, and only for now.
+     *
+     * Two impacts were rejected before this one, both for the same reason: they
+     * came back as weather. "It's okay for it to look like a cloud or a haze,
+     * but not that little tail coming down from it. Shadow is not weather."
+     * The word `cloud` in a prompt reliably produces a cloud WITH A BASE and
+     * something hanging off it, and adding "no rain, no tail" did not shift it.
+     * Dropping the word entirely and asking for ink dispersing in water did.
+     *
+     * Held as a still until the SHAPE is approved. Animating an unapproved
+     * shape is how you pay twice.
+     */
     impact: {
       id: 'lash_shadow_impact',
-      kind: 'flipbook',
+      kind: 'still',
       path: 'effects/lash/shadow/impact.png',
-      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/shadow/impact-f${i}.png`),
-      frameCount: 9,
-      fps: 13,
-      loop: false,
       dimensions: { width: 64, height: 64 },
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
@@ -404,15 +413,20 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       approvalStatus: 'candidate',
       provenance: {
         provider: 'pixellab',
-        tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: '74c32545-4936 (still) / 24fcc13c-f53c (animation)',
-        seed: 4412,
-        generationCost: 2,
+        tool: 'create_image_pixen',
+        jobOrObjectId: 'ae983f8a-ca1f',
+        seed: 5150,
+        generationCost: 3,
+        selectedCandidate: 3,
+        rejectionReason:
+          'v1 (74c32545) and v2 (fb6abd40) both returned a cloud with a hanging tail — read ' +
+          'as a storm, and Shadow is not weather. Rejected frames kept under ' +
+          '_candidates/batch-g/rejected.',
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#shadow_impact',
       },
       notes:
-        'A billowing cloud with tendrils hanging from it. Every other impact in the set is ' +
-        'an event that resolves; this one arrives and hangs over the target.',
+        'Curling tendrils radiating outward. Open question for review: the even radial ' +
+        'symmetry may read as tentacles rather than as wisps.',
     },
   },
 

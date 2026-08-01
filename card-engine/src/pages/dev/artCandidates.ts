@@ -387,18 +387,22 @@ export const BATCH_G: readonly ArtCandidate[] = [
   },
   {
     id: 'shadow_impact',
-    file: `${ROOT_G}/shadow-impact.png`,
+    file: `${ROOT_G}/shadow-impact-v3.png`,
     size: 64,
-    label: '3 · Impact — the smothering',
-    what: 'A billowing cloud with thin tendrils hanging from it.',
-    testing: 'Can an impact read as something that ARRIVES AND STAYS rather than resolves?',
-    verdict: 'recommend',
+    label: '3 · Impact — the dispersal',
+    what: 'Curling tendrils radiating outward from a dark centre, like ink in water.',
+    testing: 'Three attempts. Can shadow disperse without reading as WEATHER?',
+    verdict: 'undecided',
     why:
-      'The best impact in the set so far, and the most distinct: every other one is an event ' +
-      'that happens and clears — a splash, a crown, a spread, a starburst. This one unfurls ' +
-      'and hangs over the target, which is exactly the read Shadow needs and the reason it ' +
-      'does not simply reuse the generic burst.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: '74c32545 / 24fcc13c', seed: 4412, generationCost: 2 },
+      'Two rejects first, both the same failure: a cloud with a tail hanging off it. "It’s ' +
+      'okay for it to look like a cloud or a haze, but not that little tail. Shadow is not ' +
+      'weather." The word `cloud` in a prompt reliably returns a cloud WITH A BASE, and adding ' +
+      '"no rain, no tail" did not shift it — dropping the word entirely and asking for ink ' +
+      'dispersing in water did. This one is definitely not weather. My honest worry is the ' +
+      'opposite failure: the even radial symmetry may read as TENTACLES rather than wisps. ' +
+      'Held as a still rather than animated until you call the shape — animating an unapproved ' +
+      'silhouette is how you pay twice.',
+    provenance: { tool: 'create_image_pixen', jobId: 'ae983f8a (v3 of 3)', seed: 5150, generationCost: 3 },
     tileable: false,
   },
 ];

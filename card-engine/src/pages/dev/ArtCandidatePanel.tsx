@@ -9,6 +9,7 @@ import {
   type KeptElement,
 } from './artCandidates';
 import { MATERIAL_KITS } from '../../data/combat/performance/materialKits';
+import { ChargeShapeScaled } from '../battle/performance/chargeShapes';
 
 /**
  * The generated-art gallery — the pieces we KEPT, in the order they play.
@@ -173,22 +174,32 @@ function ChargeCard({ element }: { element: KeptElement['element'] }) {
               height: 120,
             }}
           >
-            {/* The same shapes ChargeTell draws, held still. */}
-            <svg width={120} height={70} viewBox="0 0 100 60">
-              <ellipse cx={50} cy={38} rx={44} ry={17} fill={core} opacity={0.85} />
-              <ellipse cx={50} cy={33} rx={30} ry={11} fill={edge} opacity={0.9} />
-              <ellipse cx={39} cy={28} rx={10} ry={4} fill={accent} opacity={0.75} />
+            {/*
+              Literally the same component the game renders, held still.
+              It used to be a hand-copied pool drawn for EVERY element, so this
+              page showed Shadow as a puddle while the theater showed motes —
+              a review tool confidently displaying something other than the
+              thing under review. Sharing the geometry makes that impossible.
+            */}
+            <svg width={130} height={78} viewBox="0 0 100 60" style={{ overflow: 'visible' }}>
+              <ChargeShapeScaled
+                form={kit.chargeForm}
+                heavy={drips}
+                core={core}
+                edge={edge}
+                accent={accent}
+              />
               {/* Only materials that drip get drips — Blood does, Water does not. */}
               {drips && (
                 <>
-                  <circle cx={32} cy={52} r={2.6} fill={edge} />
-                  <circle cx={54} cy={55} r={2.6} fill={edge} />
+                  <circle cx={32} cy={55} r={2.6} fill={edge} />
+                  <circle cx={54} cy={58} r={2.6} fill={edge} />
                 </>
               )}
             </svg>
           </div>
           <figcaption className="text-[10px] text-bone/45 mt-1.5 text-center">
-            {`pool + wet highlight${drips ? ' + drips' : ''}`}
+            {`${kit.chargeForm} — the same shape the game draws`}
           </figcaption>
         </figure>
 
