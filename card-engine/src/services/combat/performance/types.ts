@@ -129,6 +129,21 @@ export interface MaterialKit {
    */
   structure?: string;
   /**
+   * How fast this material CROSSES the gap, in time rather than in texture.
+   *
+   * Everything else about a stream is drawn — `streamScrollSpeed` in
+   * `materialStyle.ts` only changes how fast the texture animates WITHIN a
+   * beam that still takes the recipe's full travel duration to cross the
+   * arena. This is the one field that touches timing itself. Added for
+   * Beast: Raheem, watching a real cast, "I don't think Beast needs a beam
+   * for his attack. It should look more like a lunge... it should just
+   * appear on the [boss]." A pounding predator does not project a
+   * continuous stream across the gap the way blood or water do — it closes
+   * the distance almost instantly. Optional and defaults to `'normal'`;
+   * only Beast uses `'instant'` today.
+   */
+  travelPace?: 'normal' | 'instant';
+  /**
    * True when this kit is a family default rather than authored art
    * direction. Surfaced in the Ability Theater so the debt is visible instead
    * of quietly shipping as if it were finished.

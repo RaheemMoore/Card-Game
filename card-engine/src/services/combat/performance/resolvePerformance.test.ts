@@ -129,6 +129,22 @@ describe('resolvePerformance — material', () => {
     expect(new Set(results.map((r) => r.material.element)).size).toBe(3);
   });
 
+  it('compresses the travel stage to near-zero for a material with travelPace: instant', () => {
+    // Beast lunges rather than projecting a beam across the arena — Raheem,
+    // watching a real cast: "it should just appear on the boss."
+    const events = [cast('ability_attuned_strike'), damage];
+    const beast = resolvePerformance(scopeFor(events), ctx(events, 'Beast'));
+    const blood = resolvePerformance(scopeFor(events), ctx(events, 'Blood'));
+
+    const beastTravel = beast.stages.find((s) => s.stage === 'travel');
+    const bloodTravel = blood.stages.find((s) => s.stage === 'travel');
+
+    expect(beastTravel?.durationMs).toBe(40);
+    expect(bloodTravel?.durationMs).toBeGreaterThan(200);
+    // The stage still exists — impact still lands after it, not on frame 0.
+    expect(beast.stages.some((s) => s.stage === 'impact')).toBe(true);
+  });
+
   it('flags a provisional material kit without treating it as a resolution failure', () => {
     // Time is the one element no archetype can reach (see the coverage note
     // atop materialKits.ts), so it is the one kit still guaranteed to be on

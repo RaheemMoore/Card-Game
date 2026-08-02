@@ -157,9 +157,8 @@ export function resolvePerformance(
     fallbackReason = `Material kit for ${kit.element} is a family default, not authored.`;
   }
 
-  const effective = assetsPresent(recipe, element, ctx)
-    ? recipe
-    : withoutAssets(recipe);
+  const withAssets = assetsPresent(recipe, element, ctx) ? recipe : withoutAssets(recipe);
+  const effective = kit.travelPace === 'instant' ? withInstantTravel(withAssets) : withAssets;
 
   const { stages, totalMs } = buildStagePlan(scope, ctx.events, effective, ctx.motionLevel);
 
@@ -245,6 +244,33 @@ function withoutAssets(recipe: AbilityPerformanceRecipe): AbilityPerformanceReci
   if (!recipe.assetKitId) return recipe;
   const { assetKitId: _dropped, ...rest } = recipe;
   return rest;
+}
+
+/**
+ * Compresses the `travel` stage to a near-zero duration.
+ *
+ * The stage still EXISTS — nothing downstream (consequence placement,
+ * `contactProgress`, the beam's own extend-toward-target math) has to know
+ * this material behaves differently, because a 40ms travel stage naturally
+ * pushes `contactProgress` to almost the very start of the performance and
+ * everything else follows from that unchanged. This is what lets a
+ * `travelPace: 'instant'` material read as a lunge — appearing at the
+ * target almost immediately — through the SAME renderer path every other
+ * material uses, rather than a parallel "instant" code path that would have
+ * to be kept in sync with it forever.
+ *
+ * 40ms rather than 0ms deliberately: a zero-length stage would make
+ * `contactProgress` divide-by-zero-adjacent (`LashRenderer.tsx` already
+ * guards with `Math.max(0.05, contactProgress)`, but a stage that visibly
+ * exists for one frame reads as "instant" without relying on that guard).
+ */
+function withInstantTravel(recipe: AbilityPerformanceRecipe): AbilityPerformanceRecipe {
+  const hasTravel = recipe.stages.some((s) => s.stage === 'travel');
+  if (!hasTravel) return recipe;
+  return {
+    ...recipe,
+    stages: recipe.stages.map((s) => (s.stage === 'travel' ? { ...s, durationMs: 40 } : s)),
+  };
 }
 
 /**

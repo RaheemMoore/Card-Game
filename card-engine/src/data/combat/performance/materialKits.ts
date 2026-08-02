@@ -298,6 +298,12 @@ const STORM: MaterialKit = {
  * So `residue: 'none'` is load-bearing, not a default — nothing about a claw
  * swipe should linger as a glow. Fur is fibrous, claws are barbs, and the
  * charge is a low crouching tension rather than anything gathering in the air.
+ *
+ * `travelPace: 'instant'` was added after watching a real cast: a beam
+ * crossing the arena is a projectile, and a predator does not project
+ * anything — it closes the distance. Raheem: "I don't think Beast needs a
+ * beam for his attack. It should look more like a lunge... it should just
+ * appear on the [boss]."
  */
 const BEAST: MaterialKit = {
   element: 'Beast',
@@ -311,6 +317,7 @@ const BEAST: MaterialKit = {
   // gathering low, not a magical pool.
   chargeForm: 'ground',
   streamFlow: 'jet',
+  travelPace: 'instant',
   palette: ['#8a6b47', '#4a3826', '#e8b923'],
   provisional: false,
   citesVisualLanguage: 'BEAST',
