@@ -469,6 +469,397 @@ export const BATCH_H: readonly ArtCandidate[] = [
 ];
 
 /* ------------------------------------------------------------------ */
+/*  Batch I — the half-batch: ten elements, one review sitting          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Ten elements generated in one pass (2026-08-01), against a 50-generation
+ * budget Raheem approved for "the half batch" of the 20 elements authored
+ * that same day in `materialKits.ts`: Earth, Storm, Void, Ice, Metal, Cosmic,
+ * Plasma, Light, Nanite, Bone. 44 generations spent — confirmed against the
+ * PixelLab balance (596 → 640), not hand-counted.
+ *
+ * This is the first batch built for the NEW review flow — nothing here has
+ * been looked at yet, which is the whole point of `PENDING_REVIEW`. Every
+ * `verdict` below is my own read, offered to be argued with, same as every
+ * batch before it — the difference is there are ten of them to look at in one
+ * sitting instead of one.
+ *
+ * Three findings that cut across more than one element, worth stating once
+ * instead of six times below:
+ *
+ * 1. **PixelLab defaults hard to a spiky radial burst for "fragments bursting
+ *    outward."** Earth, Metal and Bone's impacts all came back as some
+ *    variant of a spiked urchin shape, differentiated mainly by palette
+ *    rather than silhouette — Storm, Ice, Void, Cosmic, Light and Plasma's
+ *    impacts escaped it (asking for a bloom, a flare, a crystal spike or a
+ *    starburst by name steers away from it; asking for generic "fragments" or
+ *    "shrapnel" does not). Flagged per-candidate below rather than silently
+ *    accepted.
+ * 2. **The Cosmic stream animation reports `transparent: False — auto (input
+ *    is opaque)`** — the still frame it was built from is fine, but the
+ *    animated result may composite as an opaque box rather than blending
+ *    over the arena. Needs a check in the theater before this one ships.
+ * 3. **Three stream tiles needed a reroll** (Light came back as a golden vine
+ *    with thorns; Cosmic's first pass put a bright cluster at one end,
+ *    fighting the "no ends" rule; Plasma's first pass was jagged lightning
+ *    rather than a coherent tube) — all fixed by naming the wrong shape and
+ *    explicitly forbidding it, the same technique that fixed Shadow's
+ *    "cloud with a tail" in Batch G. Restated here because it is now three
+ *    for three: naming the failure mode beats describing the target harder.
+ */
+
+const ROOT_I = '/assets/combat/effects/_candidates/batch-i';
+
+export const BATCH_I: readonly ArtCandidate[] = [
+  {
+    id: 'earth_stream',
+    file: `${ROOT_I}/earth-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the hurl',
+    what: 'A band of jagged rock plates, continuous left to right, animated grinding against each other.',
+    testing: 'Does the tiled-stream recipe transfer to a heavy, blocky material?',
+    verdict: 'recommend',
+    why:
+      'Came back as an actual chain of overlapping stone chunks — chunky, grey-brown, no ' +
+      'obvious ends, and no lava glow (the thing that would make it read as Infernal instead). ' +
+      'Animates as plates shifting against each other, which is the right amount of motion for ' +
+      'something heavy: it grinds, it does not flow.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'e305592a / 5d477528', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'earth_impact',
+    file: `${ROOT_I}/earth-impact.png`,
+    size: 64,
+    label: '3 · Impact — the shatter',
+    what: 'Rock fragments bursting outward where the hit lands.',
+    testing: 'Can splintering rock avoid the generic radial-burst default?',
+    verdict: 'undecided',
+    why:
+      'Grey-brown and unmistakably mineral, but it came back as an even, spiky urchin — the ' +
+      'default shape PixelLab reaches for on "fragments bursting outward" regardless of ' +
+      'material, and Metal fell into the same default (see the batch-level note above). Bible ' +
+      'EARTH wants "blocky-heavy," not a starburst of thin spikes. Kept as a still rather than ' +
+      'animated pending your call on whether it needs a reroll first.',
+    provenance: { tool: 'create_image_pixen', jobId: '854d651a', seed: 7331, generationCost: 1 },
+    tileable: false,
+  },
+  {
+    id: 'storm_stream',
+    file: `${ROOT_I}/storm-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the arc',
+    what: 'A band of forked blue-white lightning, animated crackling.',
+    testing: 'Does the new branching_bolt silhouette actually read as lightning rather than a generic wave?',
+    verdict: 'recommend',
+    why:
+      'A genuine jagged zigzag chain rather than a smooth ribbon — the first real test of ' +
+      '`branching_bolt`, the silhouette added specifically so Storm would not share Fire’s ' +
+      'tapering-tongue shape, and it delivered. The animation shifts the zigzag rather than ' +
+      'just brightening it, which reads as current moving through the bolt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '945541bc / 65bc8fb2', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'storm_impact',
+    file: `${ROOT_I}/storm-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the strike',
+    what: 'A burst of forked electric arcs where the bolt lands.',
+    testing: 'Does the impact stay electric rather than sliding into the same default as Earth/Metal?',
+    verdict: 'recommend',
+    why:
+      'Escaped the spiky-urchin default — the rays are softer and more irregular than Earth’s ' +
+      'or Metal’s, and the saturated blue-white against a bright core reads as electricity ' +
+      'rather than shrapnel. Animates crackling outward then fading to a soft glow, which is a ' +
+      'believable arc-then-dissipate rather than a hard punch.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'f28eb5a1 / 8f2ea0f0', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'void_stream',
+    file: `${ROOT_I}/void-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the pull',
+    what: 'A band of dark smoke fraying at both edges, animated curling and drifting.',
+    testing: 'Shadow already owns fraying_smoke — can Void share the silhouette and still be told apart?',
+    verdict: 'recommend',
+    why:
+      'A continuous asymmetric tendril, closer to black than Shadow’s charcoal-purple, with a ' +
+      'faint violet undertone rather than Shadow’s pale lavender highlight. The two are close ' +
+      'enough that this is a genuine judgment call rather than an obvious win — worth comparing ' +
+      'directly against Shadow’s Batch G stream with colour hidden before calling it settled.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'e2944f9b / b13a128a', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'void_impact',
+    file: `${ROOT_I}/void-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the unmaking',
+    what: 'A dark bloom of absence expanding where the hit lands, wisps curling in and out.',
+    testing: 'Can Void’s impact read as absence rather than as a dark version of an ordinary burst?',
+    verdict: 'recommend',
+    why:
+      'The strongest impact in this batch. Wispy violet-black tendrils radiating from total ' +
+      'darkness, and the animation genuinely pulses and dissipates rather than punching once — ' +
+      'it looks like something swallowing light rather than something exploding, which is ' +
+      'exactly the Bible VOID brief.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'ab17a348 / e987392f', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'ice_stream',
+    file: `${ROOT_I}/ice-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the freeze',
+    what: 'A band of packed faceted ice crystals, animated shimmering.',
+    testing: 'Does faceted_shard read as a coherent jet rather than loose gravel?',
+    verdict: 'recommend',
+    why:
+      'A tight chain of angular pale-blue gems, clearly crystalline and clearly cold. Shares its ' +
+      'silhouette with Sanguine on purpose (both are crystal) and is told apart by being a ' +
+      'continuous jet rather than discrete thrown shards — the animation’s shimmer sells the ' +
+      '"packed together, moving as one body" read Sanguine’s still shard does not need.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'fe3bbb84 / d921cbcb', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'ice_impact',
+    file: `${ROOT_I}/ice-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the shatter',
+    what: 'Sharp crystal spikes bursting outward where the jet lands.',
+    testing: 'Can a crystalline impact avoid the generic-burst default the way Storm and Void did?',
+    verdict: 'recommend',
+    why:
+      'A bright white-blue faceted starburst — sharper and more angular than Storm’s electric ' +
+      'burst or Sanguine’s garnet shatter, and the coldest-reading piece in the whole set. ' +
+      'Animates bursting outward and settling, with the spikes visibly catching light frame to ' +
+      'frame rather than just fading.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '1520e5e1 / 20933bf9', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'metal_stream',
+    file: `${ROOT_I}/metal-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the bolt',
+    what: 'A band of polished grey-silver metal with segmented rivets, animated glinting.',
+    testing: 'Does smooth_bolt read as a rigid machined jet rather than an organic ribbon?',
+    verdict: 'undecided',
+    why:
+      'Reads as metal — rigid, geometric, rivets rather than facets — but it came back closer to ' +
+      'a segmented ROD or pipe than a repeating band: two bulbous ball-joint ends are visible, ' +
+      'which is the exact "resolved object, not a texture" failure the whole Batch A/B ' +
+      'technique exists to avoid. Mirror-tiling should hide it, but this is the one candidate in ' +
+      'the batch I would specifically ask you to check at the tiling-test zoom before trusting it.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '6e2918bb / c8010c5a', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'metal_impact',
+    file: `${ROOT_I}/metal-impact.png`,
+    size: 64,
+    label: '3 · Impact — the shrapnel',
+    what: 'Metal fragments and sparks bursting outward where the hit lands.',
+    testing: 'Second attempt at escaping the spiky-urchin default this batch fell into twice.',
+    verdict: 'undecided',
+    why:
+      'Grey-silver with gold sparks, which does the job on palette — but the silhouette is the ' +
+      'same spiky-urchin default Earth’s impact fell into, and the two sit close enough together ' +
+      'that colour is doing more of the separating work than shape is. Kept as a still pending a ' +
+      'decision on whether Earth, Metal or both get a reroll.',
+    provenance: { tool: 'create_image_pixen', jobId: 'b5c8ae8d', seed: 7331, generationCost: 1 },
+    tileable: false,
+  },
+  {
+    id: 'cosmic_stream',
+    file: `${ROOT_I}/cosmic-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the drift',
+    what: 'A band of indigo starfield with scattered gold stars, animated twinkling.',
+    testing: 'Can a nebula read as continuous rather than as a comet with a bright head?',
+    verdict: 'undecided',
+    why:
+      'The first attempt put a bright starburst cluster at the right edge — a resolved "head," ' +
+      'which is an end by another name — and asking explicitly for even density with no cluster ' +
+      'fixed it on the reroll shown here. The remaining problem is technical, not visual: this ' +
+      'animation reports `transparent: False — auto (input is opaque)`, which likely means it ' +
+      'composites as an opaque box rather than blending over the arena. Needs a check in the ' +
+      'theater before it ships regardless of how the art itself reads.',
+    provenance: {
+      tool: 'create_image_pixen + animate_image',
+      jobId: '7ba2f0c1 (reroll of 6ae5c874) / 5e8e797d',
+      seed: 4412,
+      generationCost: 3,
+    },
+    tileable: true,
+  },
+  {
+    id: 'cosmic_impact',
+    file: `${ROOT_I}/cosmic-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the bloom',
+    what: 'A nebula bloom expanding outward, calm rather than explosive.',
+    testing: 'Bible COSMIC is explicit this must NOT read as a violent burst — can it still read as an impact at all?',
+    verdict: 'recommend',
+    why:
+      'The best single piece in the batch. A jewel-toned flower opening outward rather than ' +
+      'detonating — it is calm, vast and unmistakably cosmic, and the animation genuinely ' +
+      'blooms rather than punching and fading. This is what "gentle radiant expansion, NOT ' +
+      'violent" asked for and every other impact in the game so far has been some kind of burst.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'f9cfa704 / b12afba8', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'plasma_stream',
+    file: `${ROOT_I}/plasma-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the beam',
+    what: 'A smooth tube of cyan-white plasma energy with a violet core, animated pulsing.',
+    testing: 'Can a coherent energy beam avoid reading as Storm’s lightning?',
+    verdict: 'undecided',
+    why:
+      'The first attempt came back jagged — reads as Storm, not Plasma, which would have ' +
+      'defeated the entire point of authoring `contained` as its own charge form. Explicitly ' +
+      'forbidding "zigzag" and "lightning" on the reroll fixed the coherence completely: this is ' +
+      'a genuinely smooth glowing tube now, with the wave inside pulsing in the animation rather ' +
+      'than static. The open issue is a violet orb visible at the left end — reads as a resolved ' +
+      'end-cap rather than a repeating texture, which mirror-tiling usually saves but is worth ' +
+      'your eye at the tiling-test zoom.',
+    provenance: {
+      tool: 'create_image_pixen + animate_image',
+      jobId: 'd6d1c1e1 (reroll of 347733d4) / 8507214e',
+      seed: 4412,
+      generationCost: 3,
+    },
+    tileable: true,
+  },
+  {
+    id: 'plasma_impact',
+    file: `${ROOT_I}/plasma-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the flare',
+    what: 'A bright cyan-magenta plasma flare bursting outward, refracting at the edges.',
+    testing: 'Does refracting_flare give Plasma a distinct payoff from Ice’s and Holy’s uses of the same impact type?',
+    verdict: 'recommend',
+    why:
+      'Energetic and clearly synthetic — the cyan-to-magenta mix and the thin numerous rays ' +
+      'separate it from Ice’s cooler white-blue burst and Holy’s softer stained-glass flare. ' +
+      'Animates pulsing outward with real energy rather than a single static flash.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '4cefa930 / 3875c0d7', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'light_stream',
+    file: `${ROOT_I}/light-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the ray',
+    what: 'A band of golden-white radiant beads, animated shimmering.',
+    testing: 'Can radiant energy be generated without the model reaching for a plant?',
+    verdict: 'undecided',
+    why:
+      'The first attempt came back as a golden vine with thorns and leaves — completely wrong ' +
+      'material, fixed only once the reroll explicitly forbade "vine," "plant," "thorns" and ' +
+      '"leaves" by name. What it produced instead is a string of golden diamond beads: warm, ' +
+      'radiant, and genuinely distinct from every other stream in the game, but a beaded chain ' +
+      'rather than the smooth continuous beam the brief asked for. Worth your call on whether ' +
+      'that reads as Light or needs a third attempt.',
+    provenance: {
+      tool: 'create_image_pixen + animate_image',
+      jobId: 'f47a4d1f (reroll of 72dc9241) / 30982ccd',
+      seed: 4412,
+      generationCost: 3,
+    },
+    tileable: true,
+  },
+  {
+    id: 'light_impact',
+    file: `${ROOT_I}/light-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the sunburst',
+    what: 'A sharp many-pointed starburst of golden-white light.',
+    testing: 'Does `sunburst` read as sharper than Holy’s `refracting_flare`, the way it was designed to?',
+    verdict: 'recommend',
+    why:
+      'Thin, numerous, piercing rays — visibly sharper and more pointed than Holy’s softer ' +
+      'stained-glass flare, which was the entire reason `sunburst` was authored as its own ' +
+      'impact type rather than reusing Holy’s. Animates flashing outward and settling into a ' +
+      'scatter of sparkles, which reads as the light dispersing rather than just fading.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'e0913fd5 / 7436c1a9', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'nanite_shard',
+    file: `${ROOT_I}/nanite-shard.png`,
+    size: 32,
+    label: '2 · Volley — thrown fragment',
+    what: 'One small robotic fragment, thrown in a swarm with a stagger and a tumble.',
+    testing: 'Can a mechanical fragment be generated without the model defaulting to crystal?',
+    verdict: 'recommend',
+    why:
+      'The first attempt came back as an ice-blue gem — the model reached for Ice or Sanguine’s ' +
+      'crystal language despite an explicit "mechanical nanobot" description, which is worth ' +
+      'remembering: a material request alone was not enough, and it took an explicit "NOT a ' +
+      'crystal, NOT a gem" to break the pull. The reroll shown here is a proper grey metal chip ' +
+      'with rivets and a cyan light — reads mechanical, not crystalline.',
+    provenance: { tool: 'create_image_pixen', jobId: '53d7fa25 (reroll of e2ebb188)', seed: 4412, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'nanite_impact',
+    file: `${ROOT_I}/nanite-impact.png`,
+    size: 64,
+    label: '3 · Impact — the scatter',
+    what: 'A ring of tiny mechanical fragments bursting outward where the swarm lands.',
+    testing: 'Can Nanite’s impact read as a SWARM rather than a single explosion — Bible’s "never one big machine" applied to the impact, not just the delivery?',
+    verdict: 'recommend',
+    why:
+      'The most distinct silhouette in the whole set: a ring of small discrete particle-dots ' +
+      'around a dark core, rather than any variety of burst or flare. Reads as a scatter of many ' +
+      'small things rather than one large detonation, which is exactly the "swarm, never one big ' +
+      'machine" instruction Bible NANITE repeats for every other part of this element.',
+    provenance: { tool: 'create_image_pixen', jobId: '3b400e88', seed: 7331, generationCost: 1 },
+    tileable: false,
+  },
+  {
+    id: 'bone_shard',
+    file: `${ROOT_I}/bone-shard.png`,
+    size: 32,
+    label: '2 · Volley — thrown fragment',
+    what: 'One bone fragment, thrown in a volley with a stagger and a tumble.',
+    testing: 'Does a bone shard read as its own material rather than a recolour of Sanguine’s crystal or Nanite’s metal?',
+    verdict: 'recommend',
+    why:
+      'A curved, pale ivory claw-or-tooth shape — organic rather than faceted or machined, which ' +
+      'is the right call: Bone should not share Sanguine’s hard-crystal geometry even though both ' +
+      'are `volley` deliveries of a solid fragment. Reads recognizably as bone at a glance.',
+    provenance: { tool: 'create_image_pixen', jobId: '642e5e13', seed: 7331, generationCost: 1 },
+    tileable: false,
+  },
+  {
+    id: 'bone_impact',
+    file: `${ROOT_I}/bone-impact.png`,
+    size: 64,
+    label: '3 · Impact — the splinter',
+    what: 'Bone fragments splintering outward where the shard lands.',
+    testing: 'Third and last test of whether "fragments bursting outward" can escape the spiky-urchin default.',
+    verdict: 'undecided',
+    why:
+      'Pale ivory against Earth’s grey-brown and Metal’s grey-gold, which does separate it by ' +
+      'palette — but this is the third impact this batch to come back as the same spiky-urchin ' +
+      'silhouette (see the batch-level note above), and three from ten is a real pattern, not ' +
+      'noise. If Earth or Metal get a reroll to break the default, worth trying the same fix here.',
+    provenance: { tool: 'create_image_pixen', jobId: '572eda6b', seed: 7331, generationCost: 1 },
+    tileable: false,
+  },
+];
+
+export const BATCH_I_COST = BATCH_I.reduce((n, c) => n + c.provenance.generationCost, 0);
+
+/* ------------------------------------------------------------------ */
 /*  What actually shipped                                              */
 /* ------------------------------------------------------------------ */
 
@@ -577,16 +968,104 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
 /**
  * The batch review queue — generated, not yet looked at.
  *
- * Empty right now: nothing has been generated against the 20 elements
- * authored in `materialKits.ts` 2026-08-01, because that spend is gated on
- * Raheem approving a budget first. Once he does, each new element's `still` +
- * `animate` pieces land here as a `KeptElement` entry — same shape as
- * `KEPT_BY_ELEMENT`, badged "pending review" instead of "in the game" — so a
- * whole batch can be scanned in one sitting instead of one element per
- * conversation turn. An entry moves to `KEPT_BY_ELEMENT` (and out of here)
- * once Raheem has actually said yes to it.
+ * Batch I (2026-08-01): ten elements against the 50-generation half-batch
+ * Raheem approved, 44 spent. Ordered newest-last, matching `KEPT_BY_ELEMENT`'s
+ * convention, so the gallery's "newest" filter lands on the last one built.
+ * An entry moves to `KEPT_BY_ELEMENT` (and out of here) once Raheem has
+ * actually said yes to it — nothing here ships on its own.
  */
-export const PENDING_REVIEW: readonly KeptElement[] = [];
+export const PENDING_REVIEW: readonly KeptElement[] = [
+  {
+    element: 'Earth',
+    note:
+      'The first of the batch, and the first test of the new `jagged_block` silhouette. The ' +
+      'stream reads as heavy stacked rock; the impact fell into the spiky-urchin default the ' +
+      'batch-level note above describes — my honest read, not a hidden problem.',
+    generations: 3,
+    candidates: [pick(BATCH_I, 'earth_stream'), pick(BATCH_I, 'earth_impact')],
+  },
+  {
+    element: 'Storm',
+    note:
+      'First real test of `branching_bolt`, authored specifically so lightning would not share ' +
+      'Fire’s tapering-tongue shape. Both pieces landed clean on the first attempt — no rerolls.',
+    generations: 4,
+    candidates: [pick(BATCH_I, 'storm_stream'), pick(BATCH_I, 'storm_impact')],
+  },
+  {
+    element: 'Void',
+    note:
+      'Shares Shadow’s `fraying_smoke` silhouette on purpose — both are formless umbral absence ' +
+      '— and is told apart by value and undertone rather than shape. The impact is the strongest ' +
+      'single result in the batch.',
+    generations: 4,
+    candidates: [pick(BATCH_I, 'void_stream'), pick(BATCH_I, 'void_impact')],
+  },
+  {
+    element: 'Ice',
+    note:
+      'Shares Sanguine’s `faceted_shard` silhouette (both crystal) and is told apart by being a ' +
+      'continuous jet rather than a discrete thrown volley. Both pieces landed clean, no rerolls.',
+    generations: 4,
+    candidates: [pick(BATCH_I, 'ice_stream'), pick(BATCH_I, 'ice_impact')],
+  },
+  {
+    element: 'Metal',
+    note:
+      'The stream came back closer to a segmented rod than a repeating band — worth checking at ' +
+      'the tiling-test zoom before trusting it — and the impact fell into the same spiky-urchin ' +
+      'default as Earth. Human’s only element; worth getting right.',
+    generations: 3,
+    candidates: [pick(BATCH_I, 'metal_stream'), pick(BATCH_I, 'metal_impact')],
+  },
+  {
+    element: 'Cosmic',
+    note:
+      'The stream needed a reroll to remove a bright "head" cluster; the animated result reports ' +
+      'as opaque rather than transparent and needs a check before it ships. The impact is the ' +
+      'best single piece in the whole batch — a calm bloom, not a burst, exactly per Bible.',
+    generations: 5,
+    candidates: [pick(BATCH_I, 'cosmic_stream'), pick(BATCH_I, 'cosmic_impact')],
+  },
+  {
+    element: 'Plasma',
+    note:
+      'Mech Pilot’s sole element, and the first test of the new `contained` charge form. The ' +
+      'stream needed a reroll after coming back as lightning instead of a smooth tube; the fixed ' +
+      'version has a visible end-cap orb worth a look at the tiling zoom.',
+    generations: 5,
+    candidates: [pick(BATCH_I, 'plasma_stream'), pick(BATCH_I, 'plasma_impact')],
+  },
+  {
+    element: 'Light',
+    note:
+      'The stream came back as a golden vine with thorns on the first attempt — completely wrong ' +
+      'material — and the reroll produced a beaded chain rather than a smooth beam. Reads as ' +
+      'radiant either way; your call on whether it needs a third attempt. The impact is clean.',
+    generations: 5,
+    candidates: [pick(BATCH_I, 'light_stream'), pick(BATCH_I, 'light_impact')],
+  },
+  {
+    element: 'Bone',
+    note:
+      'Necromancer’s exclusive element. The shard reads as bone rather than a recolour of ' +
+      'Sanguine’s crystal or Nanite’s metal, which was the point of giving it an organic rather ' +
+      'than faceted or machined shape. The impact is the third to fall into the spiky-urchin ' +
+      'default this batch.',
+    generations: 2,
+    candidates: [pick(BATCH_I, 'bone_shard'), pick(BATCH_I, 'bone_impact')],
+  },
+  {
+    element: 'Nanite',
+    note:
+      'Android’s sole natural element, and the newest in the batch. The shard needed a reroll ' +
+      'after coming back as an ice crystal instead of a machine part. The impact is the most ' +
+      'distinct silhouette in the whole set — a scatter ring, never a burst, matching the "swarm, ' +
+      'never one big machine" Bible instruction.',
+    generations: 3,
+    candidates: [pick(BATCH_I, 'nanite_shard'), pick(BATCH_I, 'nanite_impact')],
+  },
+];
 
 export const PENDING_GENERATIONS = PENDING_REVIEW.reduce((n, g) => n + g.generations, 0);
 
