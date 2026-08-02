@@ -132,21 +132,25 @@ export function PerformanceView({
   const releasing = stageName === 'impact';
   const chargeReleaseMs = Math.round(impactMs * 0.34);
   /*
-   * The beam used to start fading at 40% into the impact stage and finish by
-   * 85% — gone well before the impact stage itself ended, let alone before
-   * aftermath began. Raheem caught it watching a real cast: "the impact phase
-   * should still show the impact AND the stream toward the boss... the stream
-   * is disappearing too fast, it's a waste of the art."
+   * The beam does NOT fade during the impact stage at all — full opacity for
+   * its entire duration, cut only at the hard stage boundary.
    *
-   * The beam now holds through most of the impact stage and only fades in the
-   * final quarter, finishing right as the stage hands off to aftermath — so
-   * "stream + impact art together" is the impact stage's whole read, and
-   * "just the mark on the boss" starts exactly when aftermath does, which is
-   * also enforced structurally: `LashRenderer`'s `streaming` check excludes
-   * `'aftermath'`, so the beam unmounts there regardless of this fade.
+   * First attempt moved the fade to the impact stage's last quarter, which
+   * was still wrong: watching a real cast, Raheem wanted the beam "visible
+   * for the whole [impact] frame, not disappearing... it needs to be there
+   * at least three times as long as that." The aftermath cut itself was
+   * already right ("aftermath is great, aftermath is how it is now") — the
+   * only problem was a fade starting DURING impact at all.
+   *
+   * So the delay is set to the full impact duration: within 'impact' the CSS
+   * animation never leaves its pre-delay (full-opacity) phase, and the fade
+   * would only begin exactly when impact ends — by which point
+   * `LashRenderer`'s `streaming` check (which excludes `'aftermath'`) has
+   * already unmounted the beam anyway, so the fade never actually plays. The
+   * cut to aftermath is the clean instant one Raheem already approved.
    */
-  const beamReleaseDelayMs = Math.round(impactMs * 0.75);
-  const beamReleaseMs = Math.round(impactMs * 0.25);
+  const beamReleaseDelayMs = impactMs;
+  const beamReleaseMs = 1;
   /*
    * Authored charge art, when the kit has it. Drawn smaller than the version
    * the ability produces at the target — same object, two sizes, which is what
