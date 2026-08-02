@@ -666,6 +666,619 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
     segment: placeholder('barrier_holy_pane', 'state_set', 'effects/barrier/holy/pane-states.png', 128, 176, ['barrier'], ['Holy']),
     particle: placeholder('barrier_holy_mote', 'still', 'effects/barrier/holy/mote.png', 16, 16, ['barrier'], ['Holy']),
   },
+
+  /*
+   * Batch I, 2026-08-01 — ten elements wired at once, all `approvalStatus:
+   * 'candidate'`, matching every prior batch's convention: candidate means
+   * "generated and live for testing", not "Raheem has signed off." That
+   * happens at promotion to `'approved'`, a separate step. See
+   * `pages/dev/artCandidates.ts` for the review writeups, verdicts and the
+   * three cross-cutting issues (Earth/Metal/Bone's impacts sharing a
+   * PixelLab-default spiky-burst silhouette; Cosmic's stream reporting
+   * opaque rather than transparent; Metal's and Plasma's streams showing a
+   * visible resolved end) that make some of these deliberately incomplete.
+   */
+  lash_earth: {
+    id: 'lash_earth',
+    form: 'lash',
+    element: 'Earth',
+    stream: {
+      id: 'lash_earth_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/earth/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/earth/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 8,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Earth'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'e305592a-61a6 (still) / 5d477528-edc8 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#earth_stream',
+      },
+      notes:
+        'Overlapping stone chunks, chunky and grey-brown, no lava glow. Slowest fps in the ' +
+        'set — plates grind against each other, they do not flow.',
+    },
+    // Still, not a flipbook — this impact fell into the spiky-urchin default
+    // PixelLab reaches for on "fragments bursting outward" (see the
+    // batch-level note in artCandidates.ts). Held as a still pending a
+    // decision on whether it needs a reroll before it is worth animating.
+    impact: {
+      id: 'lash_earth_impact',
+      kind: 'still',
+      path: 'effects/lash/earth/impact.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Earth'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '854d651a',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#earth_impact',
+      },
+      notes:
+        'Grey-brown and mineral, but an even spiky-urchin burst rather than Bible EARTH’s ' +
+        '"blocky-heavy." Watch item: shares its silhouette with Metal’s impact below.',
+    },
+    particle: placeholder('lash_earth_shard', 'still', 'effects/lash/earth/shard.png', 16, 16, ['lash'], ['Earth']),
+  },
+
+  lash_storm: {
+    id: 'lash_storm',
+    form: 'lash',
+    element: 'Storm',
+    stream: {
+      id: 'lash_storm_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/storm/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/storm/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 22,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Storm'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '945541bc-6848 (still) / 65bc8fb2-53f8 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#storm_stream',
+      },
+      notes:
+        'First real test of `branching_bolt` — a genuine jagged zigzag chain rather than a ' +
+        'smooth ribbon. Fastest stream fps in the set: current moves through the bolt.',
+    },
+    impact: {
+      id: 'lash_storm_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/storm/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/storm/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 20,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Storm'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'f28eb5a1-6d6e (still) / 8f2ea0f0-f91b (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#storm_impact',
+      },
+      notes:
+        'Escaped the spiky-urchin default — softer, more irregular rays than Earth/Metal, ' +
+        'saturated blue-white. Crackles outward then fades to a soft glow.',
+    },
+    particle: placeholder('lash_storm_droplet', 'still', 'effects/lash/storm/droplet.png', 16, 16, ['lash'], ['Storm']),
+  },
+
+  lash_void: {
+    id: 'lash_void',
+    form: 'lash',
+    element: 'Void',
+    stream: {
+      id: 'lash_void_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/void/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/void/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Void'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'e2944f9b-a054 (still) / b13a128a-e4ef (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#void_stream',
+      },
+      notes:
+        'Shares Shadow’s `fraying_smoke` silhouette on purpose — both formless umbral ' +
+        'absence — told apart by darker value and a faint violet undertone. Worth a direct ' +
+        'side-by-side against Shadow with colour hidden.',
+    },
+    impact: {
+      id: 'lash_void_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/void/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/void/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 12,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Void'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'ab17a348-d254 (still) / e987392f-0e04 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#void_impact',
+      },
+      notes:
+        'Strongest impact in the batch. Wispy violet-black tendrils around total darkness, ' +
+        'pulsing and dissipating rather than punching — reads as absence, not an explosion.',
+    },
+    particle: placeholder('lash_void_shard', 'still', 'effects/lash/void/shard.png', 16, 16, ['lash'], ['Void']),
+  },
+
+  lash_ice: {
+    id: 'lash_ice',
+    form: 'lash',
+    element: 'Ice',
+    stream: {
+      id: 'lash_ice_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/ice/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/ice/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 12,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Ice'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'fe3bbb84-c09d (still) / d921cbcb-dda1 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#ice_stream',
+      },
+      notes:
+        'A tight chain of angular pale-blue crystal shards. Shares `faceted_shard` with ' +
+        'Sanguine on purpose (both crystal); told apart by being a continuous jet rather ' +
+        'than a discrete thrown volley.',
+    },
+    impact: {
+      id: 'lash_ice_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/ice/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/ice/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Ice'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '1520e5e1-9908 (still) / 20933bf9-1ad3 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#ice_impact',
+      },
+      notes:
+        'A bright white-blue faceted starburst — sharper and colder-reading than Storm’s ' +
+        'electric burst or Sanguine’s garnet shatter.',
+    },
+    particle: placeholder('lash_ice_shard', 'still', 'effects/lash/ice/shard.png', 16, 16, ['lash'], ['Ice']),
+  },
+
+  lash_metal: {
+    id: 'lash_metal',
+    form: 'lash',
+    element: 'Metal',
+    // Watch item: came back closer to a segmented rod than a repeating band —
+    // two bulbous ball-joint ends are visible. Mirror-tiling should hide it;
+    // check at the tiling-test zoom in the Generated art tab before trusting it.
+    stream: {
+      id: 'lash_metal_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/metal/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/metal/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Metal'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '6e2918bb-9ff1 (still) / c8010c5a-542f (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#metal_stream',
+      },
+      notes:
+        'Rigid, geometric, rivets rather than facets — reads as metal. See the watch item ' +
+        'above on tiling.',
+    },
+    // Still — same spiky-urchin default as Earth's impact. See batch note.
+    impact: {
+      id: 'lash_metal_impact',
+      kind: 'still',
+      path: 'effects/lash/metal/impact.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Metal'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: 'b5c8ae8d',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#metal_impact',
+      },
+      notes:
+        'Grey-silver with gold sparks — palette carries most of the separation from Earth’s ' +
+        'impact, since the silhouette is the same spiky-urchin default.',
+    },
+    particle: placeholder('lash_metal_shard', 'still', 'effects/lash/metal/shard.png', 16, 16, ['lash'], ['Metal']),
+  },
+
+  /*
+   * Cosmic — Monk's PEACE culmination. Watch item: the stream animation
+   * reports `transparent: False — auto (input is opaque)` from PixelLab,
+   * which likely means it composites as an opaque box rather than blending
+   * over the arena. Verify before treating this as ready.
+   */
+  lash_cosmic: {
+    id: 'lash_cosmic',
+    form: 'lash',
+    element: 'Cosmic',
+    stream: {
+      id: 'lash_cosmic_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/cosmic/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/cosmic/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 8,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Cosmic'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '7ba2f0c1 reroll of 6ae5c874 (still) / 5e8e797d (animation)',
+        seed: 4412,
+        generationCost: 3,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt put a bright starburst cluster at one edge — a resolved "head," ' +
+          'which is an end by another name. Asking for even density with no cluster fixed it.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#cosmic_stream',
+      },
+      notes:
+        'CHECK TRANSPARENCY before trusting this in a real cast — see the kit-level note. ' +
+        'Indigo starfield with scattered gold stars, twinkling.',
+    },
+    impact: {
+      id: 'lash_cosmic_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/cosmic/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/cosmic/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Cosmic'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'f9cfa704-7195 (still) / b12afba8-9913 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#cosmic_impact',
+      },
+      notes:
+        'The best single piece in the batch. A jewel-toned flower opening outward rather ' +
+        'than detonating — calm and vast, exactly what Bible COSMIC asks for. Slowest ' +
+        'impact fps in the set on purpose.',
+    },
+    particle: placeholder('lash_cosmic_mote', 'still', 'effects/lash/cosmic/mote.png', 16, 16, ['lash'], ['Cosmic']),
+  },
+
+  /*
+   * Plasma — Mech Pilot's sole element, and the first test of the new
+   * `contained` charge form. Watch item: the stream shows a visible violet
+   * orb at one end, a resolved end-cap rather than a repeating texture.
+   * Mirror-tiling usually saves this; check at the tiling-test zoom.
+   */
+  lash_plasma: {
+    id: 'lash_plasma',
+    form: 'lash',
+    element: 'Plasma',
+    stream: {
+      id: 'lash_plasma_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/plasma/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/plasma/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Plasma'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'd6d1c1e1 reroll of 347733d4 (still) / 8507214e (animation)',
+        seed: 4412,
+        generationCost: 3,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt came back jagged — read as Storm’s lightning, not a coherent ' +
+          'contained beam. Explicitly forbidding "zigzag" and "lightning" fixed it.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#plasma_stream',
+      },
+      notes:
+        'A genuinely smooth glowing tube now, cyan-white with a violet core, pulsing in the ' +
+        'animation. See the kit-level watch item on the visible end-cap.',
+    },
+    impact: {
+      id: 'lash_plasma_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/plasma/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/plasma/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Plasma'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '4cefa930-e2df (still) / 3875c0d7-46aa (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#plasma_impact',
+      },
+      notes:
+        'Energetic cyan-to-magenta flare, thin numerous rays — distinct from Ice’s cooler ' +
+        'burst and Holy’s softer stained-glass flare.',
+    },
+    particle: placeholder('lash_plasma_mote', 'still', 'effects/lash/plasma/mote.png', 16, 16, ['lash'], ['Plasma']),
+  },
+
+  /*
+   * Light — Holy's un-sanctified cousin. Watch item: the stream's first
+   * attempt came back as a golden vine with thorns; the reroll produced a
+   * beaded chain rather than a smooth beam. Genuinely radiant, but a
+   * different shape than briefed — Raheem's call on whether it needs a
+   * third attempt.
+   */
+  lash_light: {
+    id: 'lash_light',
+    form: 'lash',
+    element: 'Light',
+    stream: {
+      id: 'lash_light_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/light/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/light/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Light'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'f47a4d1f reroll of 72dc9241 (still) / 30982ccd (animation)',
+        seed: 4412,
+        generationCost: 3,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt returned a golden vine with thorns and leaves — completely wrong ' +
+          'material. Forbidding "vine," "plant," "thorns," "leaves" by name fixed the material ' +
+          'but produced a beaded chain rather than a smooth beam.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#light_stream',
+      },
+      notes: 'A string of golden diamond beads, warm and radiant. See kit-level watch item.',
+    },
+    impact: {
+      id: 'lash_light_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/light/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/light/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Light'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'e0913fd5-c612 (still) / 7436c1a9-f8de (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#light_impact',
+      },
+      notes:
+        'Thin, numerous, piercing rays — visibly sharper than Holy’s softer refracting_flare, ' +
+        'which is the reason `sunburst` was authored as its own impact type.',
+    },
+    particle: placeholder('lash_light_mote', 'still', 'effects/lash/light/mote.png', 16, 16, ['lash'], ['Light']),
+  },
+
+  /*
+   * Nanite — Android's sole natural element. Same volley shape as Sanguine:
+   * discrete solid fragments, stills rather than flipbooks, because a
+   * SWARM of many small machines is the Bible brief — never one big body
+   * with internal motion.
+   */
+  lash_nanite: {
+    id: 'lash_nanite',
+    form: 'lash',
+    element: 'Nanite',
+    stream: {
+      id: 'lash_nanite_shard',
+      kind: 'still',
+      path: 'effects/lash/nanite/stream.png',
+      dimensions: { width: 32, height: 32 },
+      pivot: { x: 16, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Nanite'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '53d7fa25 reroll of e2ebb188',
+        seed: 4412,
+        generationCost: 2,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt came back as an ice-blue crystal despite an explicit "mechanical ' +
+          'nanobot" description. Forbidding "crystal" and "gem" by name fixed it.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nanite_shard',
+      },
+      notes: 'A grey metal chip with rivets and a cyan light — reads mechanical, not crystalline.',
+    },
+    impact: {
+      id: 'lash_nanite_impact',
+      kind: 'still',
+      path: 'effects/lash/nanite/impact.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Nanite'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '3b400e88',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nanite_impact',
+      },
+      notes:
+        'The most distinct silhouette in the whole set — a ring of small discrete particle-' +
+        'dots around a dark core, rather than any variety of burst. Reads as a scatter, ' +
+        'never one big detonation.',
+    },
+  },
+
+  /*
+   * Bone — Necromancer's exclusive natural element. Volley, like Sanguine
+   * and Nanite, but organic rather than faceted or machined — bones are
+   * discrete solid fragments, not a flowing or crystalline body.
+   */
+  lash_bone: {
+    id: 'lash_bone',
+    form: 'lash',
+    element: 'Bone',
+    stream: {
+      id: 'lash_bone_shard',
+      kind: 'still',
+      path: 'effects/lash/bone/stream.png',
+      dimensions: { width: 32, height: 32 },
+      pivot: { x: 16, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Bone'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '642e5e13',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#bone_shard',
+      },
+      notes:
+        'A curved, pale ivory claw-or-tooth shape — organic rather than faceted or machined, ' +
+        'so it does not collapse into Sanguine’s crystal or Nanite’s metal despite sharing ' +
+        'the volley delivery.',
+    },
+    // Still, same spiky-urchin default as Earth's and Metal's impacts — the
+    // third of three in this batch. See the batch-level note.
+    impact: {
+      id: 'lash_bone_impact',
+      kind: 'still',
+      path: 'effects/lash/bone/impact.png',
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Bone'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen',
+        jobOrObjectId: '572eda6b',
+        seed: 7331,
+        generationCost: 1,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#bone_impact',
+      },
+      notes:
+        'Pale ivory against Earth’s grey-brown and Metal’s grey-gold — palette separates it, ' +
+        'but the silhouette is the third to fall into the spiky-urchin default this batch.',
+    },
+  },
 };
 
 /** Kit id for a form + element pair, if one is manifested. */
