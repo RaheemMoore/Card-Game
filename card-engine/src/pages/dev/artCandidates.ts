@@ -860,202 +860,6 @@ export const BATCH_I: readonly ArtCandidate[] = [
 export const BATCH_I_COST = BATCH_I.reduce((n, c) => n + c.provenance.generationCost, 0);
 
 /* ------------------------------------------------------------------ */
-/*  What actually shipped                                              */
-/* ------------------------------------------------------------------ */
-
-/**
- * The kept pieces, in the order the player sees them.
- *
- * The gallery renders this and nothing else. Rejected candidates stay in the
- * batch arrays above with their provenance — that record is what stops a
- * failed experiment being re-run — but they are not shown, because scrolling
- * past four versions of the same failure is clutter, not review.
- *
- * The charge tell is the missing first part and is deliberately absent here:
- * it has no image at all, being drawn in code from the material kit, so the
- * gallery renders it as its own card.
- */
-export interface KeptElement {
-  element: ElementName;
-  /** One line on what this element brought that the others did not. */
-  note: string;
-  generations: number;
-  candidates: readonly ArtCandidate[];
-}
-
-/**
- * Every finished element, in the order they were built.
- *
- * Element-driven rather than a hardcoded section per material, so the next one
- * is a row here and nothing else — which mirrors what adding an element
- * actually costs in the engine, and stops this page drifting out of step with
- * the manifest it describes.
- */
-export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
-  {
-    element: 'Blood',
-    note:
-      'The first, and the expensive one — 8 generations, 6 of them spent learning that the ' +
-      'generator returns finished objects and will not make repeating pieces.',
-    generations: 8,
-    candidates: [
-      { ...pick(BATCH_B, 'blood_stream_strip'), label: '2 · Stream — the blast' },
-      { ...pick(BATCH_B, 'blood_stream_churn'), label: '2b · Stream churn — internal flow' },
-      { ...pick(BATCH_A, 'blood_impact_pixen64'), label: '3 · Impact — the splash' },
-    ],
-  },
-  {
-    element: 'Water',
-    note:
-      'Proved the recipe transfers. Rolling foam crests and an upward crown, where Blood is ' +
-      'a smooth beaded band and a flat splatter.',
-    generations: 4,
-    candidates: [
-      { ...pick(BATCH_C, 'water_stream_strip'), label: '2 · Stream — the blast' },
-      { ...pick(BATCH_C, 'water_impact'), label: '3 · Impact — the splash' },
-    ],
-  },
-  {
-    element: 'Fire',
-    note:
-      'Re-briefed after the first attempt came back as lava (which became Infernal). Fire is ' +
-      'not a liquid: it catches rather than pools, blows rather than sprays, and spreads along ' +
-      'a surface rather than detonating off it.',
-    generations: 5,
-    candidates: BATCH_E,
-  },
-  {
-    element: 'Infernal',
-    note:
-      'The lava set, generated as "Fire" and rehomed. Kept its liquid behaviour — it pools ' +
-      'and pours where Fire catches and blows, which is why two elements in the same damage ' +
-      'family share none of their movement.',
-    generations: 4,
-    candidates: [
-      { ...pick(BATCH_D, 'infernal_stream_strip'), label: '2 · Stream — the pour' },
-      { ...pick(BATCH_D, 'infernal_impact'), label: '3 · Impact — the spark' },
-    ],
-  },
-  {
-    element: 'Nature',
-    note:
-      'The only element that does not travel. Roots erupt from the ground AROUND the boss and ' +
-      'wrap it, rather than being fired at it — a different sentence from every other ability, ' +
-      'which is the point.',
-    generations: 4,
-    candidates: BATCH_F,
-  },
-  {
-    element: 'Shadow',
-    note:
-      'The hardest no-colour test yet: nine elements resolve as umbral damage, so Shadow is ' +
-      'authored as Blood’s structural opposite — no edge at all where Blood has a glossy one, ' +
-      'and an impact that hangs over the target rather than resolving.',
-    generations: 4,
-    candidates: BATCH_G,
-  },
-  {
-    element: 'Sanguine',
-    note:
-      'The first SOLID. A vampire hardens their own blood and throws it — so the delivery is ' +
-      'a volley of discrete shards with air between them, not a continuous body. Every field ' +
-      'is chosen against Blood, the element it is most likely to collapse into.',
-    generations: 2,
-    candidates: BATCH_H,
-  },
-  {
-    element: 'Earth',
-    note:
-      'The first of Batch I, and the first test of the new `jagged_block` silhouette. The ' +
-      'stream reads as heavy stacked rock; the impact fell into the spiky-urchin default the ' +
-      'batch-level note describes — approved anyway, worth a reroll later (Raheem, 2026-08-02).',
-    generations: 3,
-    candidates: [pick(BATCH_I, 'earth_stream'), pick(BATCH_I, 'earth_impact')],
-  },
-  {
-    element: 'Storm',
-    note:
-      'First real test of `branching_bolt`, authored specifically so lightning would not share ' +
-      'Fire’s tapering-tongue shape. Both pieces landed clean on the first attempt — no rerolls.',
-    generations: 4,
-    candidates: [pick(BATCH_I, 'storm_stream'), pick(BATCH_I, 'storm_impact')],
-  },
-  {
-    element: 'Void',
-    note:
-      'Shares Shadow’s `fraying_smoke` silhouette on purpose — both are formless umbral absence ' +
-      '— and is told apart by value and undertone rather than shape. The impact is the strongest ' +
-      'single result in the batch.',
-    generations: 4,
-    candidates: [pick(BATCH_I, 'void_stream'), pick(BATCH_I, 'void_impact')],
-  },
-  {
-    element: 'Ice',
-    note:
-      'Shares Sanguine’s `faceted_shard` silhouette (both crystal) and is told apart by being a ' +
-      'continuous jet rather than a discrete thrown volley. Both pieces landed clean, no rerolls.',
-    generations: 4,
-    candidates: [pick(BATCH_I, 'ice_stream'), pick(BATCH_I, 'ice_impact')],
-  },
-  {
-    element: 'Metal',
-    note:
-      'The stream came back closer to a segmented rod than a repeating band — approved anyway, ' +
-      'worth checking at the tiling-test zoom — and the impact fell into the same spiky-urchin ' +
-      'default as Earth. Human’s only element.',
-    generations: 3,
-    candidates: [pick(BATCH_I, 'metal_stream'), pick(BATCH_I, 'metal_impact')],
-  },
-  {
-    element: 'Cosmic',
-    note:
-      'The stream needed a reroll to remove a bright "head" cluster. The impact is the best ' +
-      'single piece in the whole batch — a calm bloom, not a burst, exactly per Bible.',
-    generations: 5,
-    candidates: [pick(BATCH_I, 'cosmic_stream'), pick(BATCH_I, 'cosmic_impact')],
-  },
-  {
-    element: 'Plasma',
-    note:
-      'Mech Pilot’s sole element, and the first test of the new `contained` charge form. The ' +
-      'stream needed a reroll after coming back as lightning instead of a smooth tube. Raheem, ' +
-      'on the visible end-cap orb: "I do not think that\'s a mistake, I like the opaque look of ' +
-      'it" — kept as-is, no further reroll.',
-    generations: 5,
-    candidates: [pick(BATCH_I, 'plasma_stream'), pick(BATCH_I, 'plasma_impact')],
-  },
-  {
-    element: 'Light',
-    note:
-      'The stream came back as a golden vine with thorns on the first attempt — completely wrong ' +
-      'material — and the reroll produced a beaded chain rather than a smooth beam. Approved as ' +
-      'reading radiant either way. The impact is clean.',
-    generations: 5,
-    candidates: [pick(BATCH_I, 'light_stream'), pick(BATCH_I, 'light_impact')],
-  },
-  {
-    element: 'Bone',
-    note:
-      'Necromancer’s exclusive element. The shard reads as bone rather than a recolour of ' +
-      'Sanguine’s crystal or Nanite’s metal, which was the point of giving it an organic rather ' +
-      'than faceted or machined shape. The impact is the third to fall into the spiky-urchin ' +
-      'default this batch.',
-    generations: 2,
-    candidates: [pick(BATCH_I, 'bone_shard'), pick(BATCH_I, 'bone_impact')],
-  },
-  {
-    element: 'Nanite',
-    note:
-      'Android’s sole natural element. The shard needed a reroll after coming back as an ice ' +
-      'crystal instead of a machine part. The impact is the most distinct silhouette in the ' +
-      'whole set — a scatter ring, never a burst, matching the "swarm, never one big machine" ' +
-      'Bible instruction.',
-    generations: 3,
-    candidates: [pick(BATCH_I, 'nanite_shard'), pick(BATCH_I, 'nanite_impact')],
-  },
-];
-
-/* ------------------------------------------------------------------ */
 /*  Batch J — the other half: the last ten elements                    */
 /* ------------------------------------------------------------------ */
 
@@ -1391,14 +1195,200 @@ export const BATCH_J: readonly ArtCandidate[] = [
   },
 ];
 
+/* ------------------------------------------------------------------ */
+/*  What actually shipped                                              */
+/* ------------------------------------------------------------------ */
+
 /**
- * The batch review queue — generated, not yet looked at.
+ * The kept pieces, in the order the player sees them.
  *
- * Batch J (2026-08-02): the other ten of the twenty elements, against the
- * second half of the generation budget Raheem approved after reviewing
- * Batch I. Ordered newest-last, matching `KEPT_BY_ELEMENT`'s convention.
+ * The gallery renders this and nothing else. Rejected candidates stay in the
+ * batch arrays above with their provenance — that record is what stops a
+ * failed experiment being re-run — but they are not shown, because scrolling
+ * past four versions of the same failure is clutter, not review.
+ *
+ * The charge tell is the missing first part and is deliberately absent here:
+ * it has no image at all, being drawn in code from the material kit, so the
+ * gallery renders it as its own card.
  */
-export const PENDING_REVIEW: readonly KeptElement[] = [
+export interface KeptElement {
+  element: ElementName;
+  /** One line on what this element brought that the others did not. */
+  note: string;
+  generations: number;
+  candidates: readonly ArtCandidate[];
+}
+
+/**
+ * Every finished element, in the order they were built.
+ *
+ * Element-driven rather than a hardcoded section per material, so the next one
+ * is a row here and nothing else — which mirrors what adding an element
+ * actually costs in the engine, and stops this page drifting out of step with
+ * the manifest it describes.
+ */
+export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
+  {
+    element: 'Blood',
+    note:
+      'The first, and the expensive one — 8 generations, 6 of them spent learning that the ' +
+      'generator returns finished objects and will not make repeating pieces.',
+    generations: 8,
+    candidates: [
+      { ...pick(BATCH_B, 'blood_stream_strip'), label: '2 · Stream — the blast' },
+      { ...pick(BATCH_B, 'blood_stream_churn'), label: '2b · Stream churn — internal flow' },
+      { ...pick(BATCH_A, 'blood_impact_pixen64'), label: '3 · Impact — the splash' },
+    ],
+  },
+  {
+    element: 'Water',
+    note:
+      'Proved the recipe transfers. Rolling foam crests and an upward crown, where Blood is ' +
+      'a smooth beaded band and a flat splatter.',
+    generations: 4,
+    candidates: [
+      { ...pick(BATCH_C, 'water_stream_strip'), label: '2 · Stream — the blast' },
+      { ...pick(BATCH_C, 'water_impact'), label: '3 · Impact — the splash' },
+    ],
+  },
+  {
+    element: 'Fire',
+    note:
+      'Re-briefed after the first attempt came back as lava (which became Infernal). Fire is ' +
+      'not a liquid: it catches rather than pools, blows rather than sprays, and spreads along ' +
+      'a surface rather than detonating off it.',
+    generations: 5,
+    candidates: BATCH_E,
+  },
+  {
+    element: 'Infernal',
+    note:
+      'The lava set, generated as "Fire" and rehomed. Kept its liquid behaviour — it pools ' +
+      'and pours where Fire catches and blows, which is why two elements in the same damage ' +
+      'family share none of their movement.',
+    generations: 4,
+    candidates: [
+      { ...pick(BATCH_D, 'infernal_stream_strip'), label: '2 · Stream — the pour' },
+      { ...pick(BATCH_D, 'infernal_impact'), label: '3 · Impact — the spark' },
+    ],
+  },
+  {
+    element: 'Nature',
+    note:
+      'The only element that does not travel. Roots erupt from the ground AROUND the boss and ' +
+      'wrap it, rather than being fired at it — a different sentence from every other ability, ' +
+      'which is the point.',
+    generations: 4,
+    candidates: BATCH_F,
+  },
+  {
+    element: 'Shadow',
+    note:
+      'The hardest no-colour test yet: nine elements resolve as umbral damage, so Shadow is ' +
+      'authored as Blood’s structural opposite — no edge at all where Blood has a glossy one, ' +
+      'and an impact that hangs over the target rather than resolving.',
+    generations: 4,
+    candidates: BATCH_G,
+  },
+  {
+    element: 'Sanguine',
+    note:
+      'The first SOLID. A vampire hardens their own blood and throws it — so the delivery is ' +
+      'a volley of discrete shards with air between them, not a continuous body. Every field ' +
+      'is chosen against Blood, the element it is most likely to collapse into.',
+    generations: 2,
+    candidates: BATCH_H,
+  },
+  {
+    element: 'Earth',
+    note:
+      'The first of Batch I, and the first test of the new `jagged_block` silhouette. The ' +
+      'stream reads as heavy stacked rock; the impact fell into the spiky-urchin default the ' +
+      'batch-level note describes — approved anyway, worth a reroll later (Raheem, 2026-08-02).',
+    generations: 3,
+    candidates: [pick(BATCH_I, 'earth_stream'), pick(BATCH_I, 'earth_impact')],
+  },
+  {
+    element: 'Storm',
+    note:
+      'First real test of `branching_bolt`, authored specifically so lightning would not share ' +
+      'Fire’s tapering-tongue shape. Both pieces landed clean on the first attempt — no rerolls.',
+    generations: 4,
+    candidates: [pick(BATCH_I, 'storm_stream'), pick(BATCH_I, 'storm_impact')],
+  },
+  {
+    element: 'Void',
+    note:
+      'Shares Shadow’s `fraying_smoke` silhouette on purpose — both are formless umbral absence ' +
+      '— and is told apart by value and undertone rather than shape. The impact is the strongest ' +
+      'single result in the batch.',
+    generations: 4,
+    candidates: [pick(BATCH_I, 'void_stream'), pick(BATCH_I, 'void_impact')],
+  },
+  {
+    element: 'Ice',
+    note:
+      'Shares Sanguine’s `faceted_shard` silhouette (both crystal) and is told apart by being a ' +
+      'continuous jet rather than a discrete thrown volley. Both pieces landed clean, no rerolls.',
+    generations: 4,
+    candidates: [pick(BATCH_I, 'ice_stream'), pick(BATCH_I, 'ice_impact')],
+  },
+  {
+    element: 'Metal',
+    note:
+      'The stream came back closer to a segmented rod than a repeating band — approved anyway, ' +
+      'worth checking at the tiling-test zoom — and the impact fell into the same spiky-urchin ' +
+      'default as Earth. Human’s only element.',
+    generations: 3,
+    candidates: [pick(BATCH_I, 'metal_stream'), pick(BATCH_I, 'metal_impact')],
+  },
+  {
+    element: 'Cosmic',
+    note:
+      'The stream needed a reroll to remove a bright "head" cluster. The impact is the best ' +
+      'single piece in the whole batch — a calm bloom, not a burst, exactly per Bible.',
+    generations: 5,
+    candidates: [pick(BATCH_I, 'cosmic_stream'), pick(BATCH_I, 'cosmic_impact')],
+  },
+  {
+    element: 'Plasma',
+    note:
+      'Mech Pilot’s sole element, and the first test of the new `contained` charge form. The ' +
+      'stream needed a reroll after coming back as lightning instead of a smooth tube. Raheem, ' +
+      'on the visible end-cap orb: "I do not think that\'s a mistake, I like the opaque look of ' +
+      'it" — kept as-is, no further reroll.',
+    generations: 5,
+    candidates: [pick(BATCH_I, 'plasma_stream'), pick(BATCH_I, 'plasma_impact')],
+  },
+  {
+    element: 'Light',
+    note:
+      'The stream came back as a golden vine with thorns on the first attempt — completely wrong ' +
+      'material — and the reroll produced a beaded chain rather than a smooth beam. Approved as ' +
+      'reading radiant either way. The impact is clean.',
+    generations: 5,
+    candidates: [pick(BATCH_I, 'light_stream'), pick(BATCH_I, 'light_impact')],
+  },
+  {
+    element: 'Bone',
+    note:
+      'Necromancer’s exclusive element. The shard reads as bone rather than a recolour of ' +
+      'Sanguine’s crystal or Nanite’s metal, which was the point of giving it an organic rather ' +
+      'than faceted or machined shape. The impact is the third to fall into the spiky-urchin ' +
+      'default this batch.',
+    generations: 2,
+    candidates: [pick(BATCH_I, 'bone_shard'), pick(BATCH_I, 'bone_impact')],
+  },
+  {
+    element: 'Nanite',
+    note:
+      'Android’s sole natural element. The shard needed a reroll after coming back as an ice ' +
+      'crystal instead of a machine part. The impact is the most distinct silhouette in the ' +
+      'whole set — a scatter ring, never a burst, matching the "swarm, never one big machine" ' +
+      'Bible instruction.',
+    generations: 3,
+    candidates: [pick(BATCH_I, 'nanite_shard'), pick(BATCH_I, 'nanite_impact')],
+  },
   {
     element: 'Wind',
     note:
@@ -1488,6 +1478,19 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
     candidates: [pick(BATCH_J, 'prism_stream'), pick(BATCH_J, 'prism_impact')],
   },
 ];
+
+/**
+ * The batch review queue — generated, not yet looked at.
+ *
+ * Empty right now: Batch J shipped (2026-08-02) after a real review pass —
+ * five pieces reworked (Wind's impact, Beast's impact plus a new lunge
+ * delivery mechanic, Lunar's impact, Psychic's impact, and a full Dream
+ * redesign touching both the art and the material kit) and five approved
+ * as-is. Raheem: "I like all of them. I like all the designs. I think we're
+ * set, ready to move forward." All 20 of the newly-authored elements now
+ * have shipped art. Next batch — if there is one — lands here the same way.
+ */
+export const PENDING_REVIEW: readonly KeptElement[] = [];
 
 export const PENDING_GENERATIONS = PENDING_REVIEW.reduce((n, g) => n + g.generations, 0);
 
