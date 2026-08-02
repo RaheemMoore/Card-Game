@@ -131,8 +131,22 @@ export function PerformanceView({
 
   const releasing = stageName === 'impact';
   const chargeReleaseMs = Math.round(impactMs * 0.34);
-  const beamReleaseDelayMs = Math.round(impactMs * 0.4);
-  const beamReleaseMs = Math.round(impactMs * 0.45);
+  /*
+   * The beam used to start fading at 40% into the impact stage and finish by
+   * 85% — gone well before the impact stage itself ended, let alone before
+   * aftermath began. Raheem caught it watching a real cast: "the impact phase
+   * should still show the impact AND the stream toward the boss... the stream
+   * is disappearing too fast, it's a waste of the art."
+   *
+   * The beam now holds through most of the impact stage and only fades in the
+   * final quarter, finishing right as the stage hands off to aftermath — so
+   * "stream + impact art together" is the impact stage's whole read, and
+   * "just the mark on the boss" starts exactly when aftermath does, which is
+   * also enforced structurally: `LashRenderer`'s `streaming` check excludes
+   * `'aftermath'`, so the beam unmounts there regardless of this fade.
+   */
+  const beamReleaseDelayMs = Math.round(impactMs * 0.75);
+  const beamReleaseMs = Math.round(impactMs * 0.25);
   /*
    * Authored charge art, when the kit has it. Drawn smaller than the version
    * the ability produces at the target — same object, two sizes, which is what
