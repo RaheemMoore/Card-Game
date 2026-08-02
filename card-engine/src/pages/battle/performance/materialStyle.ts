@@ -36,6 +36,14 @@ export function thicknessAt(kit: MaterialKit, t: number, baseWidth: number): num
       return baseWidth;
     case 'smooth_bolt':
       return baseWidth * 0.8;
+    case 'jagged_block':
+      // Earth: heavy and near-constant, stepped rather than smooth — plates
+      // of rock stacking, not a taper.
+      return baseWidth * (1.05 + 0.1 * Math.round(Math.sin(t * Math.PI * 4)));
+    case 'branching_bolt':
+      // Storm: thin and erratic — a bolt is mostly gap, with sudden spikes
+      // where it forks.
+      return baseWidth * (0.4 + 0.5 * Math.abs(Math.sin(t * Math.PI * 6)));
     default:
       return baseWidth;
   }
@@ -70,6 +78,18 @@ export function wobbleAt(kit: MaterialKit, t: number, phase: number): number {
     case 'fibrous_bundle':
       // Barely any. Roots go where they are going.
       return envelope * 0.05 * Math.sin(t * Math.PI * 2 + phase * 0.6);
+    case 'jagged_block':
+      // Almost none, and what there is snaps rather than flows — stone does
+      // not undulate, it shifts in place.
+      return envelope * 0.03 * Math.sign(Math.sin(t * Math.PI * 3 + phase * 0.8));
+    case 'branching_bolt':
+      // Sharp, high-frequency, and irregular in amplitude — a bolt jags,
+      // it does not oscillate smoothly the way fire licks.
+      return (
+        envelope *
+        (0.12 * Math.sin(t * Math.PI * 7 + phase * 6) +
+          0.06 * Math.sin(t * Math.PI * 13 + phase * 2))
+      );
     default:
       return 0;
   }
@@ -145,6 +165,15 @@ export function impactShape(kit: MaterialKit): {
       // Wide and very low — flame crawls ALONG a surface. The flattest
       // roundness in the set, which is what stops it reading as an explosion.
       return { radiusScale: 1.25, roundness: 0.18, lobes: 0 };
+    case 'gust_scatter':
+      // Wind: uneven and asymmetric on purpose — debris thrown by a gust,
+      // not a clean ring. Odd lobe count keeps it from settling into symmetry.
+      return { radiusScale: 1.05, roundness: 0.4, lobes: 5 };
+    case 'sunburst':
+      // Light: sharper and more pointed than ember_burst's rounder spikes —
+      // the single most-seen frame of Light's performance, and it must not
+      // be mistakable for Holy's softer refracting_flare.
+      return { radiusScale: 1.15, roundness: 0.6, lobes: 12 };
     case 'radial_burst':
     default:
       return { radiusScale: 1, roundness: 1, lobes: 0 };
@@ -169,6 +198,12 @@ export function streamScrollSpeed(kit: MaterialKit): number {
       return 420;
     case 'fibrous_bundle':
       return 120;
+    case 'jagged_block':
+      // Slowest in the set. Stone is heaved, not thrown.
+      return 100;
+    case 'branching_bolt':
+      // Fastest in the set. Lightning does not travel, it is already there.
+      return 560;
     default:
       return 260;
   }
@@ -185,6 +220,12 @@ export function streamThickness(kit: MaterialKit): number {
       return 22;
     case 'fibrous_bundle':
       return 16;
+    case 'jagged_block':
+      // Thickest in the set — heaved plates of rock.
+      return 26;
+    case 'branching_bolt':
+      // Thinnest in the set — a bolt is a line, not a body.
+      return 11;
     default:
       return 16;
   }

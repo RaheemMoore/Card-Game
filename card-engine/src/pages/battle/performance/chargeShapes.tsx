@@ -50,6 +50,10 @@ export const CHARGE_SHAPE_SCALE: Record<ChargeForm, number> = {
   halo: 1.15,
   motes: 1.6,
   crystallize: 1.25,
+  // A caged sphere reads small at nominal size the same way flame and motes
+  // did — a compact core with rings around it fills less of the box than a
+  // pool or a halo.
+  contained: 1.35,
 };
 
 /** Wrap a shape in its per-form scale, anchored at the base. */
@@ -179,6 +183,34 @@ export function ChargeShape({ form, core, edge, accent, heavy = false }: ChargeS
           {/* One brighter mote at the centre so the cluster has a focal point
               rather than reading as noise. */}
           <circle cx={50} cy={36} r={2.4} fill={accent} opacity={0.9} />
+        </>
+      );
+
+    case 'contained':
+      /*
+       * A sphere held inside magnetic rings — Plasma. Bible PLASMA, verbatim:
+       * "a caged plasma-sphere held in glowing magnetic RINGS ... CONTAINED
+       * not loose." Nothing else in this table draws a ring AROUND a body;
+       * halo is the ring with nothing inside it, and this is the opposite —
+       * the containment only reads if something is visibly held.
+       *
+       * The outer ring is drawn behind the sphere and the inner ring's front
+       * arc is drawn after it, so the rings appear to pass through the sphere
+       * rather than sit flat on top of it — the one shape in this file that
+       * needs that layering to sell "caged" instead of "orbited".
+       */
+      return (
+        <>
+          <ellipse cx={50} cy={32} rx={34} ry={9} fill="none" stroke={edge} strokeWidth={3} opacity={0.7} />
+          <circle cx={50} cy={32} r={14} fill={core} opacity={0.92} />
+          <circle cx={45} cy={27} r={5} fill={accent} opacity={0.85} />
+          <path
+            d="M 22 32 C 30 40 70 40 78 32"
+            stroke={accent}
+            strokeWidth={2.5}
+            fill="none"
+            opacity={0.85}
+          />
         </>
       );
 

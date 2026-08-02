@@ -142,6 +142,7 @@ const GATHER_VERB: Record<string, string> = {
   halo: 'gathers into a ring',
   motes: 'condenses',
   crystallize: 'hardens into crystal',
+  contained: 'coalesces into a caged sphere',
 };
 
 function ChargeCard({ element }: { element: KeptElement['element'] }) {

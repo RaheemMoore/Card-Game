@@ -130,8 +130,11 @@ describe('resolvePerformance — material', () => {
   });
 
   it('flags a provisional material kit without treating it as a resolution failure', () => {
+    // Time is the one element no archetype can reach (see the coverage note
+    // atop materialKits.ts), so it is the one kit still guaranteed to be on
+    // its family default rather than authored.
     const events = [cast('ability_attuned_strike'), damage];
-    const p = resolvePerformance(scopeFor(events), ctx(events, 'Void'));
+    const p = resolvePerformance(scopeFor(events), ctx(events, 'Time'));
 
     expect(p.material.provisional).toBe(true);
     expect(p.isFallback).toBe(false);

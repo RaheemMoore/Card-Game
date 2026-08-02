@@ -183,7 +183,19 @@ export type ChargeForm =
    * the one charge tell that CHANGES STATE while you watch it rather than
    * simply growing.
    */
-  | 'crystallize';
+  | 'crystallize'
+  /**
+   * A sphere held inside visible rings. Plasma.
+   *
+   * Bible PLASMA is emphatic that this energy is never loose: "a caged
+   * plasma-sphere held in glowing magnetic RINGS ... CONTAINED not loose."
+   * None of the other six forms carry that idea — a pool spreads, a flame
+   * flickers freely, a halo is the ring with nothing inside it. Plasma is a
+   * ring holding something down, and that containment is the whole read for
+   * a faction whose entire identity (Bible METAL/PLASMA/NANITE) is "engineered
+   * power, never open flame."
+   */
+  | 'contained';
 
 /** How the travelling body behaves along its length. */
 export type StreamFlow =
@@ -228,7 +240,25 @@ export type MaterialSilhouette =
    * The point of it is that it has no edge at all, which is the one thing no
    * other silhouette here does — everything else is defined by its outline.
    */
-  | 'fraying_smoke';
+  | 'fraying_smoke'
+  /**
+   * A chunky, blocky mass — heavy plates of material rather than a taper or a
+   * ribbon. Earth.
+   *
+   * Bible EARTH shapes, verbatim: "blocky-heavy, columnar, angular." Nothing
+   * else in the set is heavy in that way — the closest neighbour,
+   * `coiling_ribbon`, is heavy but round and flowing; this is heavy and rigid.
+   */
+  | 'jagged_block'
+  /**
+   * A forked, angular zigzag rather than a smooth taper. Storm.
+   *
+   * Distinct from `jagged_tongue` on purpose: fire's tongue is a continuous
+   * curve that happens to fork at the tip, where lightning is a hard-angled
+   * branch its whole length — Bible STORM shapes: "spiraling, chaotic-
+   * billowing, forked" with textures "lightning-arc."
+   */
+  | 'branching_bolt';
 
 export type MaterialEdgeProfile =
   | 'heavy_rounded'
@@ -238,7 +268,9 @@ export type MaterialEdgeProfile =
   | 'bevelled'
   | 'clean'
   /** Frays and thins into nothing rather than terminating. Shadow. */
-  | 'dissolving';
+  | 'dissolving'
+  /** Broken into discrete blocky notches, like fractured rock. Earth. */
+  | 'chunky';
 
 export type MaterialParticle =
   | 'droplet'
@@ -272,7 +304,25 @@ export type MaterialImpact =
    * that arrives and stays over the target, which is the read Shadow needs
    * and the reason it does not simply reuse `radial_burst`.
    */
-  | 'engulfing';
+  | 'engulfing'
+  /**
+   * Debris scattered irregularly outward, rather than a clean ring. Wind.
+   *
+   * `radial_burst` is even in every direction; a gust throws leaves and dust
+   * unevenly, which is what separates "something exploded" from "something
+   * was blown through."
+   */
+  | 'gust_scatter'
+  /**
+   * A sharp many-pointed star, more pointed than `ember_burst`'s rounder
+   * spikes. Light.
+   *
+   * Needed once Light and Holy both wanted `refracting_flare` for their
+   * radiant payoff — the two are lore-cousins and are allowed to share most of
+   * their vocabulary, but the moment of contact is the single most-seen frame
+   * of a performance and could not be identical for both.
+   */
+  | 'sunburst';
 
 export type MaterialResidue =
   | 'dripping'
