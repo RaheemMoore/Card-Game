@@ -10,7 +10,23 @@
  * `verdict` is MY assessment, written before he looks. It is there to be
  * argued with — if I say a piece works and it plainly does not, that is the
  * useful outcome, and it is cheaper to find here than after a batch of forty.
+ *
+ * ## Shipped vs. pending review
+ *
+ * Through Batch H this file only ever held ONE list, because review happened
+ * one element at a time: generate, write it up, Raheem looks, it ships or it
+ * doesn't, move to the next element. `KEPT_BY_ELEMENT` is that list, and the
+ * gallery badges everything in it "✓ in the game".
+ *
+ * A batch that generates many elements before anyone looks needs a second
+ * list — `PENDING_REVIEW`, same `KeptElement` shape, badged "pending review"
+ * instead. Nothing moves into `KEPT_BY_ELEMENT` on my own say-so; an element's
+ * entry is cut from `PENDING_REVIEW` and pasted into `KEPT_BY_ELEMENT` only
+ * after Raheem has actually looked at it, the same promotion this file always
+ * did, just batched instead of one at a time.
  */
+
+import type { ElementName } from '../../types/bible';
 
 export type CandidateVerdict = 'recommend' | 'reject' | 'undecided';
 
@@ -469,7 +485,7 @@ export const BATCH_H: readonly ArtCandidate[] = [
  * gallery renders it as its own card.
  */
 export interface KeptElement {
-  element: 'Blood' | 'Water' | 'Fire' | 'Infernal' | 'Nature' | 'Shadow' | 'Sanguine';
+  element: ElementName;
   /** One line on what this element brought that the others did not. */
   note: string;
   generations: number;
@@ -557,6 +573,22 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
     candidates: BATCH_H,
   },
 ];
+
+/**
+ * The batch review queue — generated, not yet looked at.
+ *
+ * Empty right now: nothing has been generated against the 20 elements
+ * authored in `materialKits.ts` 2026-08-01, because that spend is gated on
+ * Raheem approving a budget first. Once he does, each new element's `still` +
+ * `animate` pieces land here as a `KeptElement` entry — same shape as
+ * `KEPT_BY_ELEMENT`, badged "pending review" instead of "in the game" — so a
+ * whole batch can be scanned in one sitting instead of one element per
+ * conversation turn. An entry moves to `KEPT_BY_ELEMENT` (and out of here)
+ * once Raheem has actually said yes to it.
+ */
+export const PENDING_REVIEW: readonly KeptElement[] = [];
+
+export const PENDING_GENERATIONS = PENDING_REVIEW.reduce((n, g) => n + g.generations, 0);
 
 function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   const found = batch.find((c) => c.id === id);

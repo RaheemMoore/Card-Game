@@ -3,6 +3,7 @@ import {
   BATCH_A,
   BATCH_B,
   KEPT_BY_ELEMENT,
+  PENDING_REVIEW,
   REJECTED_COUNT,
   TOTAL_GENERATIONS,
   type ArtCandidate,
@@ -31,9 +32,25 @@ import { ChargeShapeScaled } from '../battle/performance/chargeShapes';
  * One of the three costs nothing: the charge tell is drawn in code from the
  * material kit, so every element gets one free. That is worth seeing next to
  * the pieces that did cost generations.
+ *
+ * ## Shipped vs. pending review
+ *
+ * Through Batch H this page only ever showed one list, because review
+ * happened one element at a time as each was generated. A batch that
+ * generates many elements before anyone looks needs a queue that survives
+ * being large — scrolling past fifteen sections looking for the one thing
+ * still undecided is not a review tool, it is a scavenger hunt. So the page
+ * is now two tabs: **Shipped**, exactly the old page; and **Pending
+ * review**, the same layout over `PENDING_REVIEW` instead, opening there by
+ * default whenever it is non-empty since that is the actionable one.
  */
 
 export function ArtCandidatePanel() {
+  const [tab, setTab] = useState<'shipped' | 'pending'>(
+    PENDING_REVIEW.length > 0 ? 'pending' : 'shipped',
+  );
+  const groups = tab === 'pending' ? PENDING_REVIEW : KEPT_BY_ELEMENT;
+
   const [zoom, setZoom] = useState(2);
   const [showTiling, setShowTiling] = useState(true);
   /*
@@ -45,14 +62,19 @@ export function ArtCandidatePanel() {
    * element does. `All` is one click away for comparing across materials,
    * which is the other thing this page is for.
    */
-  const [filter, setFilter] = useState<string>(
-    KEPT_BY_ELEMENT[KEPT_BY_ELEMENT.length - 1]?.element ?? 'all',
-  );
+  const [filter, setFilter] = useState<string>(groups[groups.length - 1]?.element ?? 'all');
 
+  const activeGroups = tab === 'pending' ? PENDING_REVIEW : KEPT_BY_ELEMENT;
   const shown =
-    filter === 'all'
-      ? KEPT_BY_ELEMENT
-      : KEPT_BY_ELEMENT.filter((g) => g.element === filter);
+    filter === 'all' || !activeGroups.some((g) => g.element === filter)
+      ? activeGroups
+      : activeGroups.filter((g) => g.element === filter);
+
+  function switchTab(next: 'shipped' | 'pending') {
+    setTab(next);
+    const nextGroups = next === 'pending' ? PENDING_REVIEW : KEPT_BY_ELEMENT;
+    setFilter(nextGroups[nextGroups.length - 1]?.element ?? 'all');
+  }
 
   return (
     <div>
@@ -73,6 +95,23 @@ export function ArtCandidatePanel() {
       </div>
 
       <div className="flex gap-2 items-center mb-5">
+        <button
+          onClick={() => switchTab('shipped')}
+          className={tab === 'shipped' ? btnOn : btn}
+        >
+          Shipped ({KEPT_BY_ELEMENT.length})
+        </button>
+        <button
+          onClick={() => switchTab('pending')}
+          className={tab === 'pending' ? btnOn : btn}
+          disabled={PENDING_REVIEW.length === 0}
+          style={PENDING_REVIEW.length === 0 ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+        >
+          Pending review ({PENDING_REVIEW.length})
+        </button>
+      </div>
+
+      <div className="flex gap-2 items-center mb-5">
         <span className="text-xs text-bone/50">Zoom</span>
         {[1, 2, 4, 6].map((z) => (
           <button key={z} onClick={() => setZoom(z)} className={z === zoom ? btnOn : btn}>
@@ -86,22 +125,26 @@ export function ArtCandidatePanel() {
 
       <div className="flex gap-2 items-center mb-5 flex-wrap">
         <span className="text-xs text-bone/50">Element</span>
-        {KEPT_BY_ELEMENT.map((g, i) => (
+        {groups.map((g, i) => (
           <button
             key={g.element}
             onClick={() => setFilter(g.element)}
             className={filter === g.element ? btnOn : btn}
           >
             {g.element}
-            {i === KEPT_BY_ELEMENT.length - 1 && (
-              <span className="text-amber-300/80"> · newest</span>
-            )}
+            {i === groups.length - 1 && <span className="text-amber-300/80"> · newest</span>}
           </button>
         ))}
         <button onClick={() => setFilter('all')} className={filter === 'all' ? btnOn : btn}>
-          All ({KEPT_BY_ELEMENT.length}) — compare
+          All ({groups.length}) — compare
         </button>
       </div>
+
+      {groups.length === 0 && (
+        <p className="text-sm text-bone/50 italic">
+          Nothing pending. Every generated element has already been reviewed.
+        </p>
+      )}
 
       {shown.map((group, i) => (
         <section key={group.element} className={i === 0 ? '' : 'mt-10 pt-6 border-t border-bone/15'}>
@@ -115,14 +158,27 @@ export function ArtCandidatePanel() {
             </span>
           </p>
           <div className="space-y-5">
-            <ChargeCard element={group.element} />
+            <ChargeCard element={group.element} status={tab} />
             {group.candidates.map((c) => (
-              <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} />
+              <CandidateCard key={c.id} candidate={c} zoom={zoom} showTiling={showTiling} status={tab} />
             ))}
           </div>
         </section>
       ))}
     </div>
+  );
+}
+
+/** The badge on every card — what tab it's showing under, not a judgment. */
+function StatusBadge({ status }: { status: 'shipped' | 'pending' }) {
+  return status === 'shipped' ? (
+    <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-emerald-400/20 text-emerald-100">
+      ✓ in the game
+    </span>
+  ) : (
+    <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-amber-400/20 text-amber-100">
+      ◐ pending review
+    </span>
   );
 }
 
@@ -145,7 +201,13 @@ const GATHER_VERB: Record<string, string> = {
   contained: 'coalesces into a caged sphere',
 };
 
-function ChargeCard({ element }: { element: KeptElement['element'] }) {
+function ChargeCard({
+  element,
+  status,
+}: {
+  element: KeptElement['element'];
+  status: 'shipped' | 'pending';
+}) {
   const kit = MATERIAL_KITS[element];
   const [core, edge, accent] = kit.palette;
   const drips = kit.residue === 'dripping';
@@ -161,9 +223,7 @@ function ChargeCard({ element }: { element: KeptElement['element'] }) {
             are still choosing.
           </p>
         </div>
-        <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-emerald-400/20 text-emerald-100">
-          ✓ in the game
-        </span>
+        <StatusBadge status={status} />
       </div>
 
       <div className="flex gap-5 mt-4 items-start flex-wrap">
@@ -226,10 +286,12 @@ function CandidateCard({
   candidate: c,
   zoom,
   showTiling,
+  status,
 }: {
   candidate: ArtCandidate;
   zoom: number;
   showTiling: boolean;
+  status: 'shipped' | 'pending';
 }) {
   return (
     <section className="rounded border border-emerald-400/50 bg-void/40 p-4">
@@ -238,9 +300,7 @@ function CandidateCard({
           <h3 className="font-fantasy text-base text-parchment">{c.label}</h3>
           <p className="text-sm text-bone/80 mt-1 max-w-2xl">{c.what}</p>
         </div>
-        <span className="shrink-0 text-xs font-fantasy px-2.5 py-1 rounded bg-emerald-400/20 text-emerald-100">
-          ✓ in the game
-        </span>
+        <StatusBadge status={status} />
       </div>
 
       <div className="flex gap-5 mt-4 flex-wrap items-start">
