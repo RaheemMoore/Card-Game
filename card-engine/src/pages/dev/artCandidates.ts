@@ -963,24 +963,12 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
     generations: 2,
     candidates: BATCH_H,
   },
-];
-
-/**
- * The batch review queue — generated, not yet looked at.
- *
- * Batch I (2026-08-01): ten elements against the 50-generation half-batch
- * Raheem approved, 44 spent. Ordered newest-last, matching `KEPT_BY_ELEMENT`'s
- * convention, so the gallery's "newest" filter lands on the last one built.
- * An entry moves to `KEPT_BY_ELEMENT` (and out of here) once Raheem has
- * actually said yes to it — nothing here ships on its own.
- */
-export const PENDING_REVIEW: readonly KeptElement[] = [
   {
     element: 'Earth',
     note:
-      'The first of the batch, and the first test of the new `jagged_block` silhouette. The ' +
+      'The first of Batch I, and the first test of the new `jagged_block` silhouette. The ' +
       'stream reads as heavy stacked rock; the impact fell into the spiky-urchin default the ' +
-      'batch-level note above describes — my honest read, not a hidden problem.',
+      'batch-level note describes — approved anyway, worth a reroll later (Raheem, 2026-08-02).',
     generations: 3,
     candidates: [pick(BATCH_I, 'earth_stream'), pick(BATCH_I, 'earth_impact')],
   },
@@ -1012,18 +1000,17 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
   {
     element: 'Metal',
     note:
-      'The stream came back closer to a segmented rod than a repeating band — worth checking at ' +
-      'the tiling-test zoom before trusting it — and the impact fell into the same spiky-urchin ' +
-      'default as Earth. Human’s only element; worth getting right.',
+      'The stream came back closer to a segmented rod than a repeating band — approved anyway, ' +
+      'worth checking at the tiling-test zoom — and the impact fell into the same spiky-urchin ' +
+      'default as Earth. Human’s only element.',
     generations: 3,
     candidates: [pick(BATCH_I, 'metal_stream'), pick(BATCH_I, 'metal_impact')],
   },
   {
     element: 'Cosmic',
     note:
-      'The stream needed a reroll to remove a bright "head" cluster; the animated result reports ' +
-      'as opaque rather than transparent and needs a check before it ships. The impact is the ' +
-      'best single piece in the whole batch — a calm bloom, not a burst, exactly per Bible.',
+      'The stream needed a reroll to remove a bright "head" cluster. The impact is the best ' +
+      'single piece in the whole batch — a calm bloom, not a burst, exactly per Bible.',
     generations: 5,
     candidates: [pick(BATCH_I, 'cosmic_stream'), pick(BATCH_I, 'cosmic_impact')],
   },
@@ -1031,8 +1018,9 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
     element: 'Plasma',
     note:
       'Mech Pilot’s sole element, and the first test of the new `contained` charge form. The ' +
-      'stream needed a reroll after coming back as lightning instead of a smooth tube; the fixed ' +
-      'version has a visible end-cap orb worth a look at the tiling zoom.',
+      'stream needed a reroll after coming back as lightning instead of a smooth tube. Raheem, ' +
+      'on the visible end-cap orb: "I do not think that\'s a mistake, I like the opaque look of ' +
+      'it" — kept as-is, no further reroll.',
     generations: 5,
     candidates: [pick(BATCH_I, 'plasma_stream'), pick(BATCH_I, 'plasma_impact')],
   },
@@ -1040,8 +1028,8 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
     element: 'Light',
     note:
       'The stream came back as a golden vine with thorns on the first attempt — completely wrong ' +
-      'material — and the reroll produced a beaded chain rather than a smooth beam. Reads as ' +
-      'radiant either way; your call on whether it needs a third attempt. The impact is clean.',
+      'material — and the reroll produced a beaded chain rather than a smooth beam. Approved as ' +
+      'reading radiant either way. The impact is clean.',
     generations: 5,
     candidates: [pick(BATCH_I, 'light_stream'), pick(BATCH_I, 'light_impact')],
   },
@@ -1058,14 +1046,26 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
   {
     element: 'Nanite',
     note:
-      'Android’s sole natural element, and the newest in the batch. The shard needed a reroll ' +
-      'after coming back as an ice crystal instead of a machine part. The impact is the most ' +
-      'distinct silhouette in the whole set — a scatter ring, never a burst, matching the "swarm, ' +
-      'never one big machine" Bible instruction.',
+      'Android’s sole natural element. The shard needed a reroll after coming back as an ice ' +
+      'crystal instead of a machine part. The impact is the most distinct silhouette in the ' +
+      'whole set — a scatter ring, never a burst, matching the "swarm, never one big machine" ' +
+      'Bible instruction.',
     generations: 3,
     candidates: [pick(BATCH_I, 'nanite_shard'), pick(BATCH_I, 'nanite_impact')],
   },
 ];
+
+/**
+ * The batch review queue — generated, not yet looked at.
+ *
+ * Empty right now: Batch I shipped (2026-08-02, Raheem: "Alright. I like
+ * them. Let's go ahead and move on to the next.") after one real fix along
+ * the way — the beam was fading out during the impact stage instead of
+ * holding through it, caught by watching a real cast in `/battle`, not by
+ * anything visible in this static gallery. Next batch lands here the same
+ * way the last one did.
+ */
+export const PENDING_REVIEW: readonly KeptElement[] = [];
 
 export const PENDING_GENERATIONS = PENDING_REVIEW.reduce((n, g) => n + g.generations, 0);
 
@@ -1075,7 +1075,7 @@ function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G, ...BATCH_H];
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G, ...BATCH_H, ...BATCH_I];
 const KEPT_IDS = new Set([
   'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
   'water_stream_strip', 'water_impact',
@@ -1084,6 +1084,16 @@ const KEPT_IDS = new Set([
   'nature_wrap', 'nature_bloom',
   'shadow_stream', 'shadow_impact',
   'sanguine_shard', 'sanguine_impact',
+  'earth_stream', 'earth_impact',
+  'storm_stream', 'storm_impact',
+  'void_stream', 'void_impact',
+  'ice_stream', 'ice_impact',
+  'metal_stream', 'metal_impact',
+  'cosmic_stream', 'cosmic_impact',
+  'plasma_stream', 'plasma_impact',
+  'light_stream', 'light_impact',
+  'bone_shard', 'bone_impact',
+  'nanite_shard', 'nanite_impact',
 ]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;
