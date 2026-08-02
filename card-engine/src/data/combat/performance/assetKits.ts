@@ -1279,6 +1279,626 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
         'but the silhouette is the third to fall into the spiky-urchin default this batch.',
     },
   },
+
+  /*
+   * Batch J, 2026-08-02 — the other ten of the twenty elements authored in
+   * materialKits.ts. Raheem approved the second half of the generation
+   * budget after reviewing Batch I live: "I like them... let's go ahead and
+   * move on to the next." ~103 generations spent, all `approvalStatus:
+   * 'candidate'`. See `pages/dev/artCandidates.ts` for the review writeups.
+   *
+   * Two cross-cutting findings worth stating once:
+   *
+   * 1. **PixelLab strongly resists an abstract "impact burst" reading for
+   *    certain materials.** Beast's impact came back as a literal monster
+   *    face TWICE before a third attempt — dropping "claw" and "bursting
+   *    outward" language entirely in favour of "gash marks" — finally
+   *    produced an abstract slash. Wind's impact came back as a leaf wreath
+   *    THREE times despite explicit "NOT a wreath, NOT a ring" negations, and
+   *    was accepted as-is rather than spending a fourth attempt.
+   * 2. **One prompted-and-generated piece was never used.** Wind's third
+   *    impact reroll (job `5240d614`) exists as a generation but was
+   *    superseded by the second attempt before it could be reviewed — the
+   *    second attempt was already in the animation queue. Recorded here so
+   *    the spend is traceable even though the file was never wired in.
+   */
+  lash_wind: {
+    id: 'lash_wind',
+    form: 'lash',
+    element: 'Wind',
+    stream: {
+      id: 'lash_wind_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/wind/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/wind/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Wind'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'c009df91 (still) / d0572866 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#wind_stream',
+      },
+      notes: 'Translucent green ribbons twisting — reads as airy and gusting, clean first attempt.',
+    },
+    // Watch item: three attempts all came back as a leaf wreath/ring rather
+    // than an asymmetric scatter, despite explicit negation. Accepted rather
+    // than spending a fourth generation — see the batch-level note above.
+    impact: {
+      id: 'lash_wind_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/wind/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/wind/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Wind'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'bb3a83a1 reroll of c9b58009 (still) / 55e0e48c (animation)',
+        seed: 4412,
+        generationCost: 2,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt was a full leaf wreath. Reroll asked explicitly for asymmetric, ' +
+          'NOT a wreath/circle/ring — still came back circular. Kept rather than a third ' +
+          'reroll; a fourth attempt (5240d614) was generated but never reviewed or used.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#wind_impact',
+      },
+      notes: 'Leaves scattered in a ring rather than an uneven gust. Honest watch item, not hidden.',
+    },
+    particle: placeholder('lash_wind_mote', 'still', 'effects/lash/wind/mote.png', 16, 16, ['lash'], ['Wind']),
+  },
+
+  lash_beast: {
+    id: 'lash_beast',
+    form: 'lash',
+    element: 'Beast',
+    stream: {
+      id: 'lash_beast_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/beast/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/beast/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Beast'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '49a42ca8 (still) / e9865b18 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#beast_stream',
+      },
+      notes:
+        'Striped brown-orange fur texture, physical and unglowing — satisfies Bible BEAST’s ' +
+        '"absolutely never fire, ember, glow-based magic" rule. Clean first attempt.',
+    },
+    // Two rejects before this: both attempts at "claw marks bursting
+    // outward" returned a literal monster face. Dropping "claw" and
+    // "bursting outward" for "gash marks... NOT a face, NOT a creature" on
+    // the third try finally produced an abstract slash.
+    impact: {
+      id: 'lash_beast_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/beast/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/beast/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Beast'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '0c521f97, third of three (still) / 11d01602 (animation)',
+        seed: 5150,
+        generationCost: 3,
+        selectedCandidate: 3,
+        rejectionReason:
+          'v1 (5d1f359a) and v2 (473673d1) both returned a literal monster/demon face despite ' +
+          '"NOT a face, NOT an animal head" — "claw marks... bursting outward" was reliably ' +
+          'read as a creature portrait. v3 dropped that phrasing for "gash marks... wound ' +
+          'slash shapes, abstract graphic" and produced clean diagonal claw slashes.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#beast_impact',
+      },
+      notes: 'Two sharp diagonal red gashes — physical, not magical, and finally not a face.',
+    },
+    particle: placeholder('lash_beast_droplet', 'still', 'effects/lash/beast/droplet.png', 16, 16, ['lash'], ['Beast']),
+  },
+
+  lash_poison: {
+    id: 'lash_poison',
+    form: 'lash',
+    element: 'Poison',
+    stream: {
+      id: 'lash_poison_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/poison/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/poison/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 8,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Poison'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '43f8c9fb (still) / 597d8d4f (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#poison_stream',
+      },
+      notes: 'Twisting toxic green-purple vine shape — reads venomous. Clean first attempt.',
+    },
+    impact: {
+      id: 'lash_poison_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/poison/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/poison/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Poison'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '81abba19 reroll of 85654803 (still) / 06db580d (animation)',
+        seed: 4412,
+        generationCost: 2,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt at "venom splashing... foam" returned a dark bush with berries — the ' +
+          'model read the shape as a plant. "Liquid burst... chemical splatter, NOT a plant, ' +
+          'NOT a bush" on the reroll fixed it completely.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#poison_impact',
+      },
+      notes: 'A genuine toxic green-purple splash burst, bubbling and asymmetric.',
+    },
+    particle: placeholder('lash_poison_spray', 'still', 'effects/lash/poison/spray.png', 16, 16, ['lash'], ['Poison']),
+  },
+
+  lash_moon: {
+    id: 'lash_moon',
+    form: 'lash',
+    element: 'Moon',
+    stream: {
+      id: 'lash_moon_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/moon/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/moon/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 8,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Moon'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'b467c95f reroll of 2752749c (still) / c45861de (animation)',
+        seed: 4412,
+        generationCost: 2,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt ended in a resolved circular "moon" shape at one end — an end by ' +
+          'another name. Explicitly forbidding "circle," "orb," "moon shape" fixed it into an ' +
+          'even wave.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#moon_stream',
+      },
+      notes: 'A calm, even, pale silver-grey wave — no resolved ends. Reads as the calmest stream in the set.',
+    },
+    impact: {
+      id: 'lash_moon_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/moon/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/moon/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Moon'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '4efe61cc (still) / 7ad1b19a (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#moon_impact',
+      },
+      notes:
+        'A genuine crescent moon shape with a gentle wave beneath it — calm, glowing, NOT ' +
+        'violent, exactly per brief. One of the best pieces in the batch.',
+    },
+    particle: placeholder('lash_moon_mote', 'still', 'effects/lash/moon/mote.png', 16, 16, ['lash'], ['Moon']),
+  },
+
+  /*
+   * Lunar — the Lycanthrope's rare, "silver-fire." Faint in these swatches by
+   * design (Bible LUNAR: brighter than white); should read strongly once
+   * composited over the dark arena rather than a light preview background.
+   */
+  lash_lunar: {
+    id: 'lash_lunar',
+    form: 'lash',
+    element: 'Lunar',
+    stream: {
+      id: 'lash_lunar_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/lunar/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/lunar/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 12,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Lunar'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '7a5c8283 reroll of 90d791b0 (still) / 14be8d8e (animation)',
+        seed: 4412,
+        generationCost: 2,
+        selectedCandidate: 2,
+        rejectionReason:
+          'First attempt at "brilliant silver-white flame" came back dark instead of bright — ' +
+          'the opposite of the brief. "Pure white light... extremely bright... NOT dark, NOT ' +
+          'black, NOT shadow" on the reroll fixed the value inversion.',
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#lunar_stream',
+      },
+      notes: 'Faint sparkle in this swatch — check against the dark arena background before judging brightness.',
+    },
+    impact: {
+      id: 'lash_lunar_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/lunar/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/lunar/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Lunar'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'e9bf8b2e (still) / 29d797b4 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#lunar_impact',
+      },
+      notes: 'A delicate radiant white star-flare — same brightness caveat as the stream.',
+    },
+    particle: placeholder('lash_lunar_ember', 'still', 'effects/lash/lunar/ember.png', 16, 16, ['lash'], ['Lunar']),
+  },
+
+  lash_spirit: {
+    id: 'lash_spirit',
+    form: 'lash',
+    element: 'Spirit',
+    stream: {
+      id: 'lash_spirit_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/spirit/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/spirit/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Spirit'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'dddb9e82 (still) / b59ac466 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#spirit_stream',
+      },
+      notes:
+        'Pale blue wavy ribbon, translucent and ghostly. Shares its wave silhouette with Moon ' +
+        'on purpose — told apart by cooler blue tint vs Moon’s grey-silver. Clean first attempt.',
+    },
+    impact: {
+      id: 'lash_spirit_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/spirit/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/spirit/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Spirit'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'af6e61ee (still) / 8086b796 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#spirit_impact',
+      },
+      notes: 'A pale cyan-teal flower-like bloom, calm and ethereal. Clean first attempt.',
+    },
+    particle: placeholder('lash_spirit_mote', 'still', 'effects/lash/spirit/mote.png', 16, 16, ['lash'], ['Spirit']),
+  },
+
+  lash_dream: {
+    id: 'lash_dream',
+    form: 'lash',
+    element: 'Dream',
+    stream: {
+      id: 'lash_dream_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/dream/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/dream/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 8,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Dream'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'c3c93b16 (still) / ce574bdb (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#dream_stream',
+      },
+      notes:
+        'Soft pastel pink-green smoke — the palette inversion against Shadow’s near-black is ' +
+        'the whole no-colour cue for this element. Clean first attempt.',
+    },
+    // The impact still and its animation were generated separately from the
+    // stream — a genuine "a soft pastel cloud blooming outward" prompt,
+    // rather than reusing the stream texture (an internal mistake caught and
+    // fixed before this landed: the first impact animation attempt
+    // accidentally animated the STREAM still instead of a real impact piece).
+    impact: {
+      id: 'lash_dream_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/dream/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/dream/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Dream'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'd1a5935b (still) / b4ded4b6 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#dream_impact',
+      },
+      notes: 'A pastel pink-green rose blooming open — soft, iridescent, unmistakably dreamlike.',
+    },
+    particle: placeholder('lash_dream_mote', 'still', 'effects/lash/dream/mote.png', 16, 16, ['lash'], ['Dream']),
+  },
+
+  lash_nocturne: {
+    id: 'lash_nocturne',
+    form: 'lash',
+    element: 'Nocturne',
+    stream: {
+      id: 'lash_nocturne_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/nocturne/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/nocturne/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Nocturne'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '3708b13d (still) / 1e9be15f (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nocturne_stream',
+      },
+      notes:
+        'Watch item: a red circular "eye" glow resolves at one end, the same kind of resolved-' +
+        'head issue Moon’s first attempt had — kept because the blood-moon glow is thematically ' +
+        'apt for Nocturne specifically, unlike Moon. Worth a second look at the tiling zoom.',
+    },
+    impact: {
+      id: 'lash_nocturne_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/nocturne/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/nocturne/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 10,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Nocturne'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '916eea4b (still) / 3d01f0fe (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#nocturne_impact',
+      },
+      notes: 'A dark crimson rose-like bloom — reads as blood-moon night, distinct from Blood’s wet splatter.',
+    },
+    particle: placeholder('lash_nocturne_mote', 'still', 'effects/lash/nocturne/mote.png', 16, 16, ['lash'], ['Nocturne']),
+  },
+
+  /*
+   * Psychic — the explicit Bible contrast against Dream: "sharp-edged and
+   * intact" vs "soft-edged and coming apart." Both pieces came back as a
+   * jagged zigzag rather than literal flat planes; kept because "sharp,
+   * angular, intact" is the load-bearing part of the contrast, not the
+   * literal geometry.
+   */
+  lash_psychic: {
+    id: 'lash_psychic',
+    form: 'lash',
+    element: 'Psychic',
+    stream: {
+      id: 'lash_psychic_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/psychic/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/psychic/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Psychic'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: 'b1b864a8 (still) / 50241525 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#psychic_stream',
+      },
+      notes:
+        'A sharp jagged purple-magenta zigzag — angular and intact, though closer to a bolt ' +
+        'than literal flat facets. Distinct from Storm by colour and by tighter, denser zigzags.',
+    },
+    impact: {
+      id: 'lash_psychic_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/psychic/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/psychic/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 18,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Psychic'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '44272479 (still) / 72f9c496 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#psychic_impact',
+      },
+      notes:
+        'A sharp many-pointed purple-white star — crisp and intact, the explicit visual ' +
+        'opposite of Dream’s soft bloom. Clean first attempt.',
+    },
+    particle: placeholder('lash_psychic_mote', 'still', 'effects/lash/psychic/mote.png', 16, 16, ['lash'], ['Psychic']),
+  },
+
+  lash_prism: {
+    id: 'lash_prism',
+    form: 'lash',
+    element: 'Prism',
+    stream: {
+      id: 'lash_prism_stream',
+      kind: 'flipbook',
+      path: 'effects/lash/prism/stream.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/prism/stream-f${i}.png`),
+      frameCount: 9,
+      fps: 14,
+      loop: true,
+      dimensions: { width: 128, height: 32 },
+      pivot: { x: 0, y: 16 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Prism'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '950b06a6 (still) / 41a64bc9 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#prism_stream',
+      },
+      notes:
+        'A vibrant chain of overlapping rainbow diamond facets — the most colour-saturated ' +
+        'piece in the whole project, matching Bible PRISM’s "clearly manufactured" brief. ' +
+        'Clean first attempt.',
+    },
+    impact: {
+      id: 'lash_prism_impact',
+      kind: 'flipbook',
+      path: 'effects/lash/prism/impact.png',
+      frames: Array.from({ length: 9 }, (_, i) => `effects/lash/prism/impact-f${i}.png`),
+      frameCount: 9,
+      fps: 16,
+      loop: false,
+      dimensions: { width: 64, height: 64 },
+      pivot: { x: 32, y: 32 },
+      intendedForms: ['lash', 'drain'],
+      intendedMaterials: ['Prism'],
+      approvalStatus: 'candidate',
+      provenance: {
+        provider: 'pixellab',
+        tool: 'create_image_pixen + animate_image',
+        jobOrObjectId: '80f5b0e1 (still) / 4c536844 (animation)',
+        seed: 7331,
+        generationCost: 2,
+        promptOrConfigPath: 'src/pages/dev/artCandidates.ts#prism_impact',
+      },
+      notes: 'A bright holographic rainbow flare refracting outward. Clean first attempt.',
+    },
+    particle: placeholder('lash_prism_shard', 'still', 'effects/lash/prism/shard.png', 16, 16, ['lash'], ['Prism']),
+  },
 };
 
 /** Kit id for a form + element pair, if one is manifested. */

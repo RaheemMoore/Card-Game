@@ -1055,17 +1055,417 @@ export const KEPT_BY_ELEMENT: readonly KeptElement[] = [
   },
 ];
 
+/* ------------------------------------------------------------------ */
+/*  Batch J — the other half: the last ten elements                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The second half of the 20 elements authored in `materialKits.ts`
+ * (2026-08-02): Wind, Beast, Poison, Moon, Lunar, Spirit, Dream, Nocturne,
+ * Psychic, Prism. Raheem approved this half after reviewing Batch I live in
+ * `/battle`: "Alright. I like them. Let's go ahead and move on to the next.
+ * I approve the other half of the generations." ~103 generations spent —
+ * confirmed against the PixelLab balance (596 → 699), not hand-counted, and
+ * over the 50-generation figure the first half used because this batch's
+ * reroll rate was unusually high (see below).
+ *
+ * Two findings that cut across more than one element:
+ *
+ * 1. **PixelLab strongly resists an abstract "impact burst" reading for
+ *    some materials, defaulting instead to a literal creature or object.**
+ *    Beast's "claw marks bursting outward" came back as a monster face
+ *    TWICE — only dropping "claw" and "bursting" for "gash marks... NOT a
+ *    face, NOT a creature" broke it. Wind's "leaves scattered outward"
+ *    came back as a leaf WREATH three separate times despite explicit
+ *    "NOT a wreath, NOT a ring" negations each time, and was accepted
+ *    as-is rather than spending a fourth generation.
+ * 2. **One of my own mistakes, left visible rather than quietly fixed.**
+ *    I animated the wrong source image twice this batch: Beast's first
+ *    impact animation ran on the rejected monster-face still instead of
+ *    the approved claw-slash version, and Dream's first impact animation
+ *    ran on its STREAM texture because I never generated a real impact
+ *    still for it at all. Both were caught before landing here and
+ *    redone correctly — Dream's actual impact is a proper pastel bloom,
+ *    not the stream repurposed.
+ */
+
+const ROOT_J = '/assets/combat/effects/_candidates/batch-j';
+
+export const BATCH_J: readonly ArtCandidate[] = [
+  {
+    id: 'wind_stream',
+    file: `${ROOT_J}/wind-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the gust',
+    what: 'Translucent green ribbons of wind, continuous and twisting, animated swirling.',
+    testing: 'Can wind read as airy and translucent rather than as water?',
+    verdict: 'recommend',
+    why: 'Clean first attempt — wispy, translucent, clearly airy rather than liquid. No rerolls needed.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'c009df91 / d0572866', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'wind_impact',
+    file: `${ROOT_J}/wind-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the scatter',
+    what: 'Leaves and debris scattered by a gust where the wind lands.',
+    testing: 'Can a gust read as an uneven scatter rather than a symmetric ring?',
+    verdict: 'undecided',
+    why:
+      'Three attempts, all a leaf wreath rather than an asymmetric scatter, despite explicit ' +
+      '"NOT a wreath, NOT a ring" negations each time. Kept rather than a fourth reroll — ' +
+      'PixelLab appears to strongly default to circular compositions for "leaves scattered." ' +
+      'Worth your call on whether a genuinely different visual metaphor (wind lines/streaks ' +
+      'instead of leaves) is worth trying.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'bb3a83a1 (v2 of 3) / 55e0e48c', seed: 4412, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'beast_stream',
+    file: `${ROOT_J}/beast-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the strike',
+    what: 'A band of striped brown fur and claw marks, physical and unglowing, animated bristling.',
+    testing: 'Does Beast read as physical rather than magical, per Bible’s absolute rule?',
+    verdict: 'recommend',
+    why:
+      'Striped fur texture, no glow, no fire — satisfies the strictest negative-prompt rule in ' +
+      'the whole Bible. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '49a42ca8 / e9865b18', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'beast_impact',
+    file: `${ROOT_J}/beast-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the slash',
+    what: 'Claw slash marks where the strike lands.',
+    testing: 'Can "claw marks bursting outward" avoid becoming a creature portrait?',
+    verdict: 'recommend',
+    why:
+      'Took three attempts — the first two both came back as a literal monster/demon face, ' +
+      'because "claw" and "bursting outward" together read as an animal. Dropping both words ' +
+      'for "gash marks... wound slash shapes... NOT a face, NOT a creature" produced two clean ' +
+      'diagonal red slashes on the third try. The lesson: naming the wrong RESULT beats ' +
+      'describing the target harder, same technique that fixed Shadow in Batch G.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '0c521f97 (v3 of 3) / 11d01602', seed: 5150, generationCost: 3 },
+    tileable: false,
+  },
+  {
+    id: 'poison_stream',
+    file: `${ROOT_J}/poison-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the ooze',
+    what: 'A twisting band of toxic green-purple venom, animated oozing and bubbling.',
+    testing: 'Does the recipe transfer to a creeping, oozing material?',
+    verdict: 'recommend',
+    why: 'Twisting organic venom shape, clearly toxic. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '43f8c9fb / 597d8d4f', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'poison_impact',
+    file: `${ROOT_J}/poison-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the splash',
+    what: 'Toxic venom splashing outward where the ooze lands.',
+    testing: 'Can "venom splashing" avoid reading as a plant?',
+    verdict: 'recommend',
+    why:
+      'First attempt at "venom splashing... foam" came back as a dark bush with berries — the ' +
+      'model read the composition as foliage. "Liquid burst... chemical splatter, NOT a plant, ' +
+      'NOT a bush" on the reroll produced a genuine toxic splash.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '81abba19 (reroll of 85654803) / 06db580d', seed: 4412, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'moon_stream',
+    file: `${ROOT_J}/moon-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the glow',
+    what: 'A calm, even band of pale silver-blue moonlight, animated shimmering.',
+    testing: 'Can moonlight read as continuous rather than resolving into a moon icon?',
+    verdict: 'recommend',
+    why:
+      'First attempt ended in a resolved circular "moon" shape at one end — an end by another ' +
+      'name. Forbidding "circle," "orb," "moon shape" explicitly on the reroll produced an even, ' +
+      'calm wave with no resolved ends.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'b467c95f (reroll of 2752749c) / c45861de', seed: 4412, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'moon_impact',
+    file: `${ROOT_J}/moon-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the crescent',
+    what: 'A calm crescent moon shape with a gentle wave, where the glow lands.',
+    testing: 'Can Moon’s impact read as calm rather than as a generic burst?',
+    verdict: 'recommend',
+    why:
+      'One of the best pieces in the batch — an actual crescent moon shape with a soft wave ' +
+      'beneath it, glowing rather than exploding. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '4efe61cc / 7ad1b19a', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'lunar_stream',
+    file: `${ROOT_J}/lunar-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the blaze',
+    what: 'A band of brilliant silver-white flame, animated blazing.',
+    testing: 'Does Lunar read as brighter-than-white "silver fire," per Bible, rather than dark flame?',
+    verdict: 'undecided',
+    why:
+      'First attempt came back dark instead of bright — the exact opposite of the brief, and a ' +
+      'genuinely surprising failure mode. "Pure white light... extremely bright... NOT dark, NOT ' +
+      'black, NOT shadow" on the reroll fixed the inversion, but the result is faint in this ' +
+      'swatch. Needs judging against the dark arena background, not this preview, before you ' +
+      'call it done.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '7a5c8283 (reroll of 90d791b0) / 14be8d8e', seed: 4412, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'lunar_impact',
+    file: `${ROOT_J}/lunar-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the flare',
+    what: 'A delicate radiant white star-flare where the blaze lands.',
+    testing: 'Same brightness question as the stream, at the moment of contact.',
+    verdict: 'undecided',
+    why: 'Reads as a delicate sparkle rather than a blaze — same "check against the dark arena" caveat as the stream.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'e9bf8b2e / 29d797b4', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'spirit_stream',
+    file: `${ROOT_J}/spirit-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the drift',
+    what: 'A pale blue wavy ribbon of spirit energy, translucent and ghostly, animated drifting.',
+    testing: 'Can Spirit share Moon’s wave silhouette and still be told apart?',
+    verdict: 'recommend',
+    why:
+      'Shares its cresting-wave shape with Moon on purpose (both are calm, curved materials) — ' +
+      'told apart by a cooler blue tint against Moon’s grey-silver. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'dddb9e82 / b59ac466', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'spirit_impact',
+    file: `${ROOT_J}/spirit-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the bloom',
+    what: 'A pale cyan-teal ethereal bloom expanding where the drift lands.',
+    testing: 'Can Spirit’s impact read as calm and dissipating rather than as a hard punch?',
+    verdict: 'recommend',
+    why: 'A flower-like ghostly bloom, calm and translucent. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'af6e61ee / 8086b796', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'dream_stream',
+    file: `${ROOT_J}/dream-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the haze',
+    what: 'Soft pastel pink-green smoke, dreamlike and iridescent, animated drifting.',
+    testing: 'Does the Shadow↔Dream value inversion (near-black vs pastel) survive as a real generation?',
+    verdict: 'recommend',
+    why:
+      'Genuinely light-valued pastel smoke against Shadow’s near-black — the palette inversion ' +
+      'that is the whole no-colour cue for this pair actually shows up. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'c3c93b16 / ce574bdb', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'dream_impact',
+    file: `${ROOT_J}/dream-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the bloom',
+    what: 'A pastel pink-green rose blooming open where the haze lands.',
+    testing: 'Can Dream’s impact read as soft-edged and coming apart, the Bible contrast against Psychic?',
+    verdict: 'recommend',
+    why:
+      'A genuine flower opening, soft and iridescent — caught and fixed a real mistake on the ' +
+      'way here: the first impact animation attempt accidentally ran on Dream’s STREAM texture ' +
+      'because no dedicated impact still had been generated yet. This is the corrected, actual ' +
+      'impact piece.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'd1a5935b / b4ded4b6', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'nocturne_stream',
+    file: `${ROOT_J}/nocturne-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the pull',
+    what: 'A band of deep crimson-red night mist with a blood-moon glow, animated curling.',
+    testing: 'Vampire’s other exclusive element — does it stay distinct from Blood and Sanguine?',
+    verdict: 'undecided',
+    why:
+      'A red circular "eye"-like glow resolves at one end — the same resolved-end issue Moon’s ' +
+      'first attempt had, kept here rather than rerolled because a blood-moon glow is ' +
+      'thematically apt for Nocturne specifically. Worth a look at the tiling zoom before ' +
+      'trusting it fully.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '3708b13d / 1e9be15f', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'nocturne_impact',
+    file: `${ROOT_J}/nocturne-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the bloom',
+    what: 'A dark crimson rose-like bloom where the mist lands.',
+    testing: 'Can Nocturne’s impact avoid reading as a recolour of Blood’s wet splatter?',
+    verdict: 'recommend',
+    why: 'A dark red rose/gem shape rather than a splatter — reads as blood-moon romance, distinct from Blood’s liquid splash.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '916eea4b / 3d01f0fe', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'psychic_stream',
+    file: `${ROOT_J}/psychic-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the crackle',
+    what: 'A sharp jagged purple-magenta band of psychic energy, animated crackling.',
+    testing: 'Bible’s explicit contrast against Dream — does "sharp-edged and intact" survive generation?',
+    verdict: 'recommend',
+    why:
+      'Angular and intact, though it reads closer to a tight zigzag bolt than literal flat ' +
+      'facets — accepted because the load-bearing part of the Dream contrast is sharp-vs-soft, ' +
+      'not the literal geometry. Distinct from Storm by colour and by denser, tighter zigzags.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'b1b864a8 / 50241525', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'psychic_impact',
+    file: `${ROOT_J}/psychic-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the burst',
+    what: 'A sharp many-pointed purple-white star bursting where the crackle lands.',
+    testing: 'Does the impact carry the sharp-vs-Dream contrast through to the moment of contact?',
+    verdict: 'recommend',
+    why: 'A crisp, intact star — the clearest visual opposite of Dream’s soft bloom in the whole set. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '44272479 / 72f9c496', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+  {
+    id: 'prism_stream',
+    file: `${ROOT_J}/prism-stream-anim.png`,
+    size: 128,
+    label: '2 · Stream — the refraction',
+    what: 'A vibrant chain of overlapping rainbow diamond facets, animated shimmering.',
+    testing: 'Can Prism read as "clearly manufactured," per Bible, rather than organic gemstone?',
+    verdict: 'recommend',
+    why:
+      'The most colour-saturated piece in the whole project — full-spectrum, faceted, holographic. ' +
+      'Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '950b06a6 / 41a64bc9', seed: 7331, generationCost: 2 },
+    tileable: true,
+  },
+  {
+    id: 'prism_impact',
+    file: `${ROOT_J}/prism-impact-anim.png`,
+    size: 64,
+    label: '3 · Impact — the flare',
+    what: 'A bright holographic rainbow flare refracting outward where the light lands.',
+    testing: 'Does the impact carry the same full-spectrum read as the stream?',
+    verdict: 'recommend',
+    why: 'A genuinely beautiful rainbow refraction burst. Clean first attempt.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '80f5b0e1 / 4c536844', seed: 7331, generationCost: 2 },
+    tileable: false,
+  },
+];
+
 /**
  * The batch review queue — generated, not yet looked at.
  *
- * Empty right now: Batch I shipped (2026-08-02, Raheem: "Alright. I like
- * them. Let's go ahead and move on to the next.") after one real fix along
- * the way — the beam was fading out during the impact stage instead of
- * holding through it, caught by watching a real cast in `/battle`, not by
- * anything visible in this static gallery. Next batch lands here the same
- * way the last one did.
+ * Batch J (2026-08-02): the other ten of the twenty elements, against the
+ * second half of the generation budget Raheem approved after reviewing
+ * Batch I. Ordered newest-last, matching `KEPT_BY_ELEMENT`'s convention.
  */
-export const PENDING_REVIEW: readonly KeptElement[] = [];
+export const PENDING_REVIEW: readonly KeptElement[] = [
+  {
+    element: 'Wind',
+    note:
+      'The stream is clean. The impact fell into a leaf-wreath default three separate times — ' +
+      'accepted rather than a fourth reroll, and flagged for your call on whether a different ' +
+      'visual metaphor (streaks instead of leaves) is worth trying.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'wind_stream'), pick(BATCH_J, 'wind_impact')],
+  },
+  {
+    element: 'Beast',
+    note:
+      'The impact took three attempts — "claw marks bursting outward" reliably produced a ' +
+      'literal monster face until "gash marks... NOT a face" broke it. Both pieces clean now.',
+    generations: 5,
+    candidates: [pick(BATCH_J, 'beast_stream'), pick(BATCH_J, 'beast_impact')],
+  },
+  {
+    element: 'Poison',
+    note:
+      'The impact’s first attempt read as a bush rather than a venom splash — fixed on reroll. ' +
+      'Both pieces clean.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'poison_stream'), pick(BATCH_J, 'poison_impact')],
+  },
+  {
+    element: 'Moon',
+    note:
+      'The stream needed a reroll to remove a resolved "moon icon" shape at one end. The impact ' +
+      'is one of the best pieces in the batch — a genuine calm crescent.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'moon_stream'), pick(BATCH_J, 'moon_impact')],
+  },
+  {
+    element: 'Lunar',
+    note:
+      'Lycanthrope’s rare. The stream’s first attempt came back dark instead of "brighter than ' +
+      'white" — a genuinely surprising inversion, fixed on reroll but faint in these swatches. ' +
+      'Needs judging against the dark arena, not this preview.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'lunar_stream'), pick(BATCH_J, 'lunar_impact')],
+  },
+  {
+    element: 'Spirit',
+    note: 'Shares Moon’s wave silhouette by design, told apart by a cooler blue tint. Both pieces clean, no rerolls.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'spirit_stream'), pick(BATCH_J, 'spirit_impact')],
+  },
+  {
+    element: 'Dream',
+    note:
+      'The palette inversion against Shadow (near-black vs pastel) genuinely shows up. Caught ' +
+      'and fixed a real mistake along the way — the first impact animation accidentally used ' +
+      'the stream texture instead of a real impact piece; this is the corrected version.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'dream_stream'), pick(BATCH_J, 'dream_impact')],
+  },
+  {
+    element: 'Nocturne',
+    note:
+      'Vampire’s other exclusive element. The stream has a resolved red "eye" glow at one end — ' +
+      'kept because it reads as thematically apt (blood-moon) rather than rerolled, but worth a ' +
+      'look at the tiling zoom. The impact is clean.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'nocturne_stream'), pick(BATCH_J, 'nocturne_impact')],
+  },
+  {
+    element: 'Psychic',
+    note:
+      'The explicit Bible contrast against Dream (sharp vs soft). Reads as a tight zigzag bolt ' +
+      'rather than literal flat facets, but the sharp/intact read survives, which is the part ' +
+      'that matters. Both pieces clean, no rerolls.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'psychic_stream'), pick(BATCH_J, 'psychic_impact')],
+  },
+  {
+    element: 'Prism',
+    note: 'The most colour-saturated element in the project. Both pieces clean, no rerolls, the newest of the batch.',
+    generations: 4,
+    candidates: [pick(BATCH_J, 'prism_stream'), pick(BATCH_J, 'prism_impact')],
+  },
+];
 
 export const PENDING_GENERATIONS = PENDING_REVIEW.reduce((n, g) => n + g.generations, 0);
 
@@ -1075,7 +1475,7 @@ function pick(batch: readonly ArtCandidate[], id: string): ArtCandidate {
   return found;
 }
 
-const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G, ...BATCH_H, ...BATCH_I];
+const ALL = [...BATCH_A, ...BATCH_B, ...BATCH_C, ...BATCH_D, ...BATCH_E, ...BATCH_F, ...BATCH_G, ...BATCH_H, ...BATCH_I, ...BATCH_J];
 const KEPT_IDS = new Set([
   'blood_stream_strip', 'blood_stream_churn', 'blood_impact_pixen64',
   'water_stream_strip', 'water_impact',
@@ -1094,6 +1494,16 @@ const KEPT_IDS = new Set([
   'light_stream', 'light_impact',
   'bone_shard', 'bone_impact',
   'nanite_shard', 'nanite_impact',
+  'wind_stream', 'wind_impact',
+  'beast_stream', 'beast_impact',
+  'poison_stream', 'poison_impact',
+  'moon_stream', 'moon_impact',
+  'lunar_stream', 'lunar_impact',
+  'spirit_stream', 'spirit_impact',
+  'dream_stream', 'dream_impact',
+  'nocturne_stream', 'nocturne_impact',
+  'psychic_stream', 'psychic_impact',
+  'prism_stream', 'prism_impact',
 ]);
 
 export const REJECTED_COUNT = ALL.filter((c) => !KEPT_IDS.has(c.id)).length;
