@@ -523,28 +523,38 @@ const MOON: MaterialKit = {
 };
 
 /**
- * Dream — soft-edged and coming apart, the explicit Bible contrast against
- * Psychic (see PSYCHIC above). Shares Shadow's `fraying_smoke` and
- * `dissolving` because both are formless umbral materials, and is told apart
- * chiefly by VALUE: iridescent near-white pastel against Shadow's near-black,
- * the same greyscale-safe move used for Spirit against Shadow.
+ * Dream — a corrupted nightmare given form: a black-and-purple ghost.
  *
- * Flagged honestly: Dream, Shadow and Void now form a genuine cluster that
- * leans on palette more than the rest of the table does. Worth a dedicated
- * geometry pass later if playtesting shows they blur together even with
- * colour.
+ * Redesigned 2026-08-02. The first pass inverted Shadow's near-black into an
+ * iridescent PASTEL for a greyscale-safe value contrast — defensible on
+ * paper, wrong in practice. Raheem, on review: "Dream is the worst one. It
+ * has a very fantasy, happy, girly vibe at the moment, and it's supposed to
+ * be dark, nightmarey. Dream is a very corrupted way of attacking people —
+ * it brings their nightmares to life. Look at the element ID we made for
+ * it. It's a black and purple ghost." The canonical Dream crystal
+ * (`public/assets/elements/dream.jpg`) was never pastel; the material kit
+ * should never have drifted from it.
+ *
+ * Still shares the broader umbral-dark family with Shadow, Void and
+ * Nocturne, but is now told apart by SHAPE rather than by inverting value:
+ * `coiling_ribbon` reads as a trailing spectral figure — a ghost's ragged
+ * robe — where Shadow and Void are `fraying_smoke`, an abstract formless
+ * column. `shard` particles (nightmare fragments) and `residue: 'none'`
+ * (it vanishes completely once the horror passes, unlike Shadow's lingering
+ * haze) keep the full signature distinct from Nocturne, which also uses
+ * `coiling_ribbon`.
  */
 const DREAM: MaterialKit = {
   element: 'Dream',
   family: 'umbral',
-  silhouette: 'fraying_smoke',
+  silhouette: 'coiling_ribbon',
   edgeProfile: 'dissolving',
-  particle: 'mote',
-  impact: 'foam_fan',
-  residue: 'misting',
-  chargeForm: 'halo',
+  particle: 'shard',
+  impact: 'engulfing',
+  residue: 'none',
+  chargeForm: 'motes',
   streamFlow: 'wisp',
-  palette: ['#f0d4e8', '#d4f0e0', '#f8e8c8'],
+  palette: ['#0d0512', '#3a1550', '#a855e8'],
   provisional: false,
   citesVisualLanguage: 'DREAM',
 };

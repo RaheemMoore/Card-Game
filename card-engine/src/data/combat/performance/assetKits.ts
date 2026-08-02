@@ -1329,9 +1329,14 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       },
       notes: 'Translucent green ribbons twisting — reads as airy and gusting, clean first attempt.',
     },
-    // Watch item: three attempts all came back as a leaf wreath/ring rather
-    // than an asymmetric scatter, despite explicit negation. Accepted rather
-    // than spending a fourth generation — see the batch-level note above.
+    // Redone 2026-08-02. Raheem, on the leaf-wreath version: "wind is great
+    // except the impact. That makes no sense. That looks like dirt chunks
+    // flying in all directions. Wind is airy, wispy, just like a poof. Keep
+    // that same energy when you get to the impact frame." The fix was to
+    // drop "leaves scattered" (which reliably produced a wreath of debris)
+    // for "a soft translucent puff of air... gentle poof... airy cloud" —
+    // an object rather than a scatter, which is exactly the Batch A lesson
+    // about impacts being self-contained things PixelLab handles well.
     impact: {
       id: 'lash_wind_impact',
       kind: 'flipbook',
@@ -1348,17 +1353,12 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: 'bb3a83a1 reroll of c9b58009 (still) / 55e0e48c (animation)',
-        seed: 4412,
+        jobOrObjectId: 'fb0abe99 (still) / 6cac2cf5 (animation)',
+        seed: 8080,
         generationCost: 2,
-        selectedCandidate: 2,
-        rejectionReason:
-          'First attempt was a full leaf wreath. Reroll asked explicitly for asymmetric, ' +
-          'NOT a wreath/circle/ring — still came back circular. Kept rather than a third ' +
-          'reroll; a fourth attempt (5240d614) was generated but never reviewed or used.',
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#wind_impact',
       },
-      notes: 'Leaves scattered in a ring rather than an uneven gust. Honest watch item, not hidden.',
+      notes: 'A soft translucent puff of pale green air dispersing — airy and light, not debris.',
     },
     particle: placeholder('lash_wind_mote', 'still', 'effects/lash/wind/mote.png', 16, 16, ['lash'], ['Wind']),
   },
@@ -1392,10 +1392,10 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
         'Striped brown-orange fur texture, physical and unglowing — satisfies Bible BEAST’s ' +
         '"absolutely never fire, ember, glow-based magic" rule. Clean first attempt.',
     },
-    // Two rejects before this: both attempts at "claw marks bursting
-    // outward" returned a literal monster face. Dropping "claw" and
-    // "bursting outward" for "gash marks... NOT a face, NOT a creature" on
-    // the third try finally produced an abstract slash.
+    // Redone 2026-08-02 for a second reason on top of the face problem:
+    // Raheem liked the shape but wanted more claws — "it'd be nice if the
+    // impact could be three or four claw marks. Just two is kinda a weird
+    // number for a beast." Explicitly asked for four this time.
     impact: {
       id: 'lash_beast_impact',
       kind: 'flipbook',
@@ -1412,18 +1412,12 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: '0c521f97, third of three (still) / 11d01602 (animation)',
-        seed: 5150,
-        generationCost: 3,
-        selectedCandidate: 3,
-        rejectionReason:
-          'v1 (5d1f359a) and v2 (473673d1) both returned a literal monster/demon face despite ' +
-          '"NOT a face, NOT an animal head" — "claw marks... bursting outward" was reliably ' +
-          'read as a creature portrait. v3 dropped that phrasing for "gash marks... wound ' +
-          'slash shapes, abstract graphic" and produced clean diagonal claw slashes.',
+        jobOrObjectId: '17386c0c (still) / 8b403253 (animation)',
+        seed: 8080,
+        generationCost: 2,
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#beast_impact',
       },
-      notes: 'Two sharp diagonal red gashes — physical, not magical, and finally not a face.',
+      notes: 'Four diagonal red claw slashes in a fan — physical, not magical, not a face.',
     },
     particle: placeholder('lash_beast_droplet', 'still', 'effects/lash/beast/droplet.png', 16, 16, ['lash'], ['Beast']),
   },
@@ -1583,6 +1577,14 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       },
       notes: 'Faint sparkle in this swatch — check against the dark arena background before judging brightness.',
     },
+    // Redone 2026-08-02. Raheem on the first version: "that just looks like
+    // moon-shaped water. It should just look like the glow of a moon, a
+    // silver glow — it should just highlight them in moonlight. Lunar is
+    // fire. It is silver fire... that impact frame needs to show that, not
+    // more like a space capsule." Moon is the weak, calm version; Lunar has
+    // to visibly out-blaze it. Dropped the crescent/flare framing entirely
+    // for a straight glow/highlight/aura, which is what a fire-like burst
+    // needed to stop reading as a splash.
     impact: {
       id: 'lash_lunar_impact',
       kind: 'flipbook',
@@ -1599,12 +1601,12 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: 'e9bf8b2e (still) / 29d797b4 (animation)',
-        seed: 7331,
+        jobOrObjectId: 'aa7bdc12 (still) / d53475ac (animation)',
+        seed: 8080,
         generationCost: 2,
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#lunar_impact',
       },
-      notes: 'A delicate radiant white star-flare — same brightness caveat as the stream.',
+      notes: 'A soft radiant silver-white glow illuminating outward — a highlight, not a splash or a shape.',
     },
     particle: placeholder('lash_lunar_ember', 'still', 'effects/lash/lunar/ember.png', 16, 16, ['lash'], ['Lunar']),
   },
@@ -1664,6 +1666,15 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
     particle: placeholder('lash_spirit_mote', 'still', 'effects/lash/spirit/mote.png', 16, 16, ['lash'], ['Spirit']),
   },
 
+  /*
+   * Dream — fully redesigned 2026-08-02, both pieces. Raheem on the first
+   * pastel version: "Dream is the worst one. It has a very fantasy, happy,
+   * girly vibe at the moment, and it's supposed to be dark, nightmarey.
+   * Dream is a very corrupted way of attacking people — it brings their
+   * nightmares to life. Look at the element ID we made for it. It's a black
+   * and purple ghost." See the matching redesign in `materialKits.ts` — the
+   * material's own silhouette/palette changed, not just the art.
+   */
   lash_dream: {
     id: 'lash_dream',
     form: 'lash',
@@ -1674,7 +1685,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       path: 'effects/lash/dream/stream.png',
       frames: Array.from({ length: 9 }, (_, i) => `effects/lash/dream/stream-f${i}.png`),
       frameCount: 9,
-      fps: 8,
+      fps: 10,
       loop: true,
       dimensions: { width: 128, height: 32 },
       pivot: { x: 0, y: 16 },
@@ -1684,27 +1695,20 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: 'c3c93b16 (still) / ce574bdb (animation)',
-        seed: 7331,
+        jobOrObjectId: '634ebe10 (still) / 5cc05377 (animation)',
+        seed: 8080,
         generationCost: 2,
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#dream_stream',
       },
-      notes:
-        'Soft pastel pink-green smoke — the palette inversion against Shadow’s near-black is ' +
-        'the whole no-colour cue for this element. Clean first attempt.',
+      notes: 'A twisting black-and-dark-purple spectral ribbon — genuinely eerie, not pastel.',
     },
-    // The impact still and its animation were generated separately from the
-    // stream — a genuine "a soft pastel cloud blooming outward" prompt,
-    // rather than reusing the stream texture (an internal mistake caught and
-    // fixed before this landed: the first impact animation attempt
-    // accidentally animated the STREAM still instead of a real impact piece).
     impact: {
       id: 'lash_dream_impact',
       kind: 'flipbook',
       path: 'effects/lash/dream/impact.png',
       frames: Array.from({ length: 9 }, (_, i) => `effects/lash/dream/impact-f${i}.png`),
       frameCount: 9,
-      fps: 10,
+      fps: 12,
       loop: false,
       dimensions: { width: 64, height: 64 },
       pivot: { x: 32, y: 32 },
@@ -1714,12 +1718,14 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: 'd1a5935b (still) / b4ded4b6 (animation)',
-        seed: 7331,
+        jobOrObjectId: '17115b28 (still) / f296e231 (animation)',
+        seed: 8080,
         generationCost: 2,
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#dream_impact',
       },
-      notes: 'A pastel pink-green rose blooming open — soft, iridescent, unmistakably dreamlike.',
+      notes:
+        'A literal dark ghost apparition erupting outward — black and purple, matches the ' +
+        'canonical element crystal directly rather than the earlier flower/bloom read.',
     },
     particle: placeholder('lash_dream_mote', 'still', 'effects/lash/dream/mote.png', 16, 16, ['lash'], ['Dream']),
   },
@@ -1816,13 +1822,19 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
         'A sharp jagged purple-magenta zigzag — angular and intact, though closer to a bolt ' +
         'than literal flat facets. Distinct from Storm by colour and by tighter, denser zigzags.',
     },
+    // Redone 2026-08-02. Raheem on the sharp star-burst version: "the
+    // ending impact frame is a bit exaggerated. It should look like just a
+    // little bloop, a circle bloop — a pink, round, calm opening of a
+    // circle, like boom, but psychic powers should be more subtle than
+    // that." Dropped the "sharp star" framing entirely for a plain round
+    // glow — slower fps to match "calm" rather than "crackling."
     impact: {
       id: 'lash_psychic_impact',
       kind: 'flipbook',
       path: 'effects/lash/psychic/impact.png',
       frames: Array.from({ length: 9 }, (_, i) => `effects/lash/psychic/impact-f${i}.png`),
       frameCount: 9,
-      fps: 18,
+      fps: 10,
       loop: false,
       dimensions: { width: 64, height: 64 },
       pivot: { x: 32, y: 32 },
@@ -1832,14 +1844,15 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
-        jobOrObjectId: '44272479 (still) / 72f9c496 (animation)',
-        seed: 7331,
+        jobOrObjectId: '32c07976 (still) / 29766319 (animation)',
+        seed: 2024,
         generationCost: 2,
         promptOrConfigPath: 'src/pages/dev/artCandidates.ts#psychic_impact',
       },
       notes:
-        'A sharp many-pointed purple-white star — crisp and intact, the explicit visual ' +
-        'opposite of Dream’s soft bloom. Clean first attempt.',
+        'A plain calm pink-purple circle, gently pulsing — round and intact rather than ' +
+        'jagged, which still carries the Bible contrast against Dream (now a corrupted ' +
+        'ghost, not a bloom): psychic is a defined, solid shape; Dream frays apart.',
     },
     particle: placeholder('lash_psychic_mote', 'still', 'effects/lash/psychic/mote.png', 16, 16, ['lash'], ['Psychic']),
   },

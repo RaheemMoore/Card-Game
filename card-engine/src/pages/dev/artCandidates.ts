@@ -1108,17 +1108,17 @@ export const BATCH_J: readonly ArtCandidate[] = [
     id: 'wind_impact',
     file: `${ROOT_J}/wind-impact-anim.png`,
     size: 64,
-    label: '3 · Impact — the scatter',
-    what: 'Leaves and debris scattered by a gust where the wind lands.',
-    testing: 'Can a gust read as an uneven scatter rather than a symmetric ring?',
-    verdict: 'undecided',
+    label: '3 · Impact — the poof',
+    what: 'A soft translucent puff of air dispersing where the gust lands.',
+    testing: 'Redone after review: can wind land as an airy poof instead of a scatter?',
+    verdict: 'recommend',
     why:
-      'Three attempts, all a leaf wreath rather than an asymmetric scatter, despite explicit ' +
-      '"NOT a wreath, NOT a ring" negations each time. Kept rather than a fourth reroll — ' +
-      'PixelLab appears to strongly default to circular compositions for "leaves scattered." ' +
-      'Worth your call on whether a genuinely different visual metaphor (wind lines/streaks ' +
-      'instead of leaves) is worth trying.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'bb3a83a1 (v2 of 3) / 55e0e48c', seed: 4412, generationCost: 2 },
+      'Raheem on the wreath version: "that looks like dirt chunks flying in all directions. ' +
+      'Wind is airy, wispy, just like a poof. Keep that same energy." Dropping "leaves ' +
+      'scattered" (which reliably produced a wreath) for "a soft translucent puff... gentle ' +
+      'poof... airy cloud" fixed it in one attempt — treating the impact as an OBJECT again, ' +
+      'the same lesson that made every other impact in the project work.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'fb0abe99 / 6cac2cf5', seed: 8080, generationCost: 2 },
     tileable: false,
   },
   {
@@ -1140,16 +1140,16 @@ export const BATCH_J: readonly ArtCandidate[] = [
     file: `${ROOT_J}/beast-impact-anim.png`,
     size: 64,
     label: '3 · Impact — the slash',
-    what: 'Claw slash marks where the strike lands.',
-    testing: 'Can "claw marks bursting outward" avoid becoming a creature portrait?',
+    what: 'Four claw slash marks fanning out where the strike lands.',
+    testing: 'Redone after review: does four claws read better than two for a beast?',
     verdict: 'recommend',
     why:
-      'Took three attempts — the first two both came back as a literal monster/demon face, ' +
-      'because "claw" and "bursting outward" together read as an animal. Dropping both words ' +
-      'for "gash marks... wound slash shapes... NOT a face, NOT a creature" produced two clean ' +
-      'diagonal red slashes on the third try. The lesson: naming the wrong RESULT beats ' +
-      'describing the target harder, same technique that fixed Shadow in Batch G.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: '0c521f97 (v3 of 3) / 11d01602', seed: 5150, generationCost: 3 },
+      'Raheem liked the two-slash version’s shape but wanted more of them: "it\'d be nice if ' +
+      'the impact could be three or four claw marks — just two is kinda a weird number for a ' +
+      'beast." Asked explicitly for four in a fan pattern and got a clean result on the first ' +
+      'attempt this time — the "gash marks, NOT a face" phrasing from the earlier fix already ' +
+      'proved reliable.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '17386c0c / 8b403253', seed: 8080, generationCost: 2 },
     tileable: false,
   },
   {
@@ -1229,12 +1229,17 @@ export const BATCH_J: readonly ArtCandidate[] = [
     id: 'lunar_impact',
     file: `${ROOT_J}/lunar-impact-anim.png`,
     size: 64,
-    label: '3 · Impact — the flare',
-    what: 'A delicate radiant white star-flare where the blaze lands.',
-    testing: 'Same brightness question as the stream, at the moment of contact.',
-    verdict: 'undecided',
-    why: 'Reads as a delicate sparkle rather than a blaze — same "check against the dark arena" caveat as the stream.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'e9bf8b2e / 29d797b4', seed: 7331, generationCost: 2 },
+    label: '3 · Impact — the glow',
+    what: 'A soft radiant silver-white glow illuminating the target, like moonlight highlighting them.',
+    testing: 'Redone after review: can Lunar’s impact read as light rather than as a shape?',
+    verdict: 'recommend',
+    why:
+      'Raheem on the first version: "that just looks like moon-shaped water. It should just ' +
+      'look like the glow of a moon, a silver glow — it should just highlight them in ' +
+      'moonlight. Lunar is fire, it is silver fire... not more like a space capsule." Dropped ' +
+      'the crescent/flare framing entirely for a straight glow/highlight, since Moon is meant ' +
+      'to be the calm weak version and Lunar has to visibly out-blaze it.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'aa7bdc12 / d53475ac', seed: 8080, generationCost: 2 },
     tileable: false,
   },
   {
@@ -1268,29 +1273,33 @@ export const BATCH_J: readonly ArtCandidate[] = [
     file: `${ROOT_J}/dream-stream-anim.png`,
     size: 128,
     label: '2 · Stream — the haze',
-    what: 'Soft pastel pink-green smoke, dreamlike and iridescent, animated drifting.',
-    testing: 'Does the Shadow↔Dream value inversion (near-black vs pastel) survive as a real generation?',
+    what: 'A twisting band of black and dark purple ghostly smoke, corrupted and eerie, animated writhing.',
+    testing: 'Redone after review: does Dream read as a dark corrupted nightmare instead of a pastel fantasy?',
     verdict: 'recommend',
     why:
-      'Genuinely light-valued pastel smoke against Shadow’s near-black — the palette inversion ' +
-      'that is the whole no-colour cue for this pair actually shows up. Clean first attempt.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'c3c93b16 / ce574bdb', seed: 7331, generationCost: 2 },
+      'The original pastel version inverted Shadow’s near-black for a greyscale-safe value ' +
+      'contrast — defensible on paper, wrong per Raheem: "Dream is the worst one. It has a ' +
+      'very fantasy, happy, girly vibe, and it\'s supposed to be dark, nightmarey. Dream is a ' +
+      'very corrupted way of attacking people — it brings their nightmares to life. Look at ' +
+      'the element ID we made for it. It\'s a black and purple ghost." The material kit itself ' +
+      'was redesigned to match (see materialKits.ts), not just the art.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '634ebe10 / 5cc05377', seed: 8080, generationCost: 2 },
     tileable: true,
   },
   {
     id: 'dream_impact',
     file: `${ROOT_J}/dream-impact-anim.png`,
     size: 64,
-    label: '3 · Impact — the bloom',
-    what: 'A pastel pink-green rose blooming open where the haze lands.',
-    testing: 'Can Dream’s impact read as soft-edged and coming apart, the Bible contrast against Psychic?',
+    label: '3 · Impact — the apparition',
+    what: 'A dark ghost figure erupting outward, black and purple, where the haze lands.',
+    testing: 'Does the impact match the canonical Dream element crystal — a literal black-and-purple ghost?',
     verdict: 'recommend',
     why:
-      'A genuine flower opening, soft and iridescent — caught and fixed a real mistake on the ' +
-      'way here: the first impact animation attempt accidentally ran on Dream’s STREAM texture ' +
-      'because no dedicated impact still had been generated yet. This is the corrected, actual ' +
-      'impact piece.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: 'd1a5935b / b4ded4b6', seed: 7331, generationCost: 2 },
+      'A genuine spectral figure bursting into being, not a flower — matches the canonical ' +
+      'element crystal (`public/assets/elements/dream.jpg`) directly rather than the earlier ' +
+      'pastel-bloom read. The Bible contrast against Psychic still holds: Psychic stays a ' +
+      'defined, intact circle; Dream frays and writhes apart.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '17115b28 / f296e231', seed: 8080, generationCost: 2 },
     tileable: false,
   },
   {
@@ -1340,12 +1349,18 @@ export const BATCH_J: readonly ArtCandidate[] = [
     id: 'psychic_impact',
     file: `${ROOT_J}/psychic-impact-anim.png`,
     size: 64,
-    label: '3 · Impact — the burst',
-    what: 'A sharp many-pointed purple-white star bursting where the crackle lands.',
-    testing: 'Does the impact carry the sharp-vs-Dream contrast through to the moment of contact?',
+    label: '3 · Impact — the bloop',
+    what: 'A calm, round pink-purple circle opening gently where the crackle lands.',
+    testing: 'Redone after review: can Psychic’s impact read as calm and subtle rather than explosive?',
     verdict: 'recommend',
-    why: 'A crisp, intact star — the clearest visual opposite of Dream’s soft bloom in the whole set. Clean first attempt.',
-    provenance: { tool: 'create_image_pixen + animate_image', jobId: '44272479 / 72f9c496', seed: 7331, generationCost: 2 },
+    why:
+      'Raheem on the sharp-star version: "the ending impact frame is a bit exaggerated. It ' +
+      'should look like just a little bloop, a circle bloop — a pink, round, calm opening of a ' +
+      'circle, like boom, but psychic powers should be more subtle than that." Dropped the ' +
+      '"sharp star" framing entirely for a plain round glow, slower fps to read as calm rather ' +
+      'than crackling. Still stays intact and defined (not fraying), which is what keeps the ' +
+      'Bible contrast against the redesigned Dream alive without needing sharp points.',
+    provenance: { tool: 'create_image_pixen + animate_image', jobId: '32c07976 / 29766319', seed: 2024, generationCost: 2 },
     tileable: false,
   },
   {
@@ -1387,18 +1402,20 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
   {
     element: 'Wind',
     note:
-      'The stream is clean. The impact fell into a leaf-wreath default three separate times — ' +
-      'accepted rather than a fourth reroll, and flagged for your call on whether a different ' +
-      'visual metaphor (streaks instead of leaves) is worth trying.',
-    generations: 4,
+      'The stream is clean. The impact was rebuilt after review — Raheem: "wind is great ' +
+      'except the impact... it should just be a poof, airy energy." Now a soft translucent ' +
+      'puff instead of a leaf wreath.',
+    generations: 6,
     candidates: [pick(BATCH_J, 'wind_stream'), pick(BATCH_J, 'wind_impact')],
   },
   {
     element: 'Beast',
     note:
-      'The impact took three attempts — "claw marks bursting outward" reliably produced a ' +
-      'literal monster face until "gash marks... NOT a face" broke it. Both pieces clean now.',
-    generations: 5,
+      'The impact went through two rounds: first fixing "claw marks" reading as a monster ' +
+      'face, then Raheem asking for four claws instead of two ("just two is kinda a weird ' +
+      'number for a beast"). Also gets its own delivery mechanic now — Beast lunges instead ' +
+      'of projecting a beam (see resolvePerformance.ts travelPace).',
+    generations: 7,
     candidates: [pick(BATCH_J, 'beast_stream'), pick(BATCH_J, 'beast_impact')],
   },
   {
@@ -1421,9 +1438,11 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
     element: 'Lunar',
     note:
       'Lycanthrope’s rare. The stream’s first attempt came back dark instead of "brighter than ' +
-      'white" — a genuinely surprising inversion, fixed on reroll but faint in these swatches. ' +
-      'Needs judging against the dark arena, not this preview.',
-    generations: 4,
+      'white" — fixed on reroll but faint in these swatches, needs judging against the dark ' +
+      'arena. The impact was rebuilt after review — Raheem: "that just looks like moon-shaped ' +
+      'water... it should just look like the glow of a moon, a silver glow." Now a highlight, ' +
+      'not a splash.',
+    generations: 6,
     candidates: [pick(BATCH_J, 'lunar_stream'), pick(BATCH_J, 'lunar_impact')],
   },
   {
@@ -1435,10 +1454,12 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
   {
     element: 'Dream',
     note:
-      'The palette inversion against Shadow (near-black vs pastel) genuinely shows up. Caught ' +
-      'and fixed a real mistake along the way — the first impact animation accidentally used ' +
-      'the stream texture instead of a real impact piece; this is the corrected version.',
-    generations: 4,
+      'Fully redesigned after review — both art and the material kit itself. Raheem: "Dream is ' +
+      'the worst one. It\'s supposed to be dark, nightmarey. Dream is a very corrupted way of ' +
+      'attacking people. Look at the element ID we made for it — it\'s a black and purple ' +
+      'ghost." The pastel-vs-Shadow value-inversion idea is gone; Dream is now genuinely dark, ' +
+      'purple, and reads as a literal ghost apparition.',
+    generations: 8,
     candidates: [pick(BATCH_J, 'dream_stream'), pick(BATCH_J, 'dream_impact')],
   },
   {
@@ -1453,10 +1474,11 @@ export const PENDING_REVIEW: readonly KeptElement[] = [
   {
     element: 'Psychic',
     note:
-      'The explicit Bible contrast against Dream (sharp vs soft). Reads as a tight zigzag bolt ' +
-      'rather than literal flat facets, but the sharp/intact read survives, which is the part ' +
-      'that matters. Both pieces clean, no rerolls.',
-    generations: 4,
+      'The stream is clean — a tight zigzag bolt, sharp and intact. The impact was rebuilt ' +
+      'after review — Raheem: "the ending impact frame is a bit exaggerated... psychic powers ' +
+      'should be more subtle. It should look like just a little bloop, a circle bloop." Now a ' +
+      'calm round pink-purple pulse instead of a sharp star.',
+    generations: 6,
     candidates: [pick(BATCH_J, 'psychic_stream'), pick(BATCH_J, 'psychic_impact')],
   },
   {
