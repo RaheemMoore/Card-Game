@@ -219,33 +219,60 @@ export function StreamBody({
         {geo &&
           Array.from({ length: n }, (_, i) => {
             const t = i / Math.max(1, n - 1);
+            const px = thickness * 1.35;
+            /*
+             * Three nested elements, one transform each — that separation is
+             * the whole fix.
+             *
+             * The first version put the AIM (`rotate`) inline on the same
+             * element that ran the flight animation. A CSS animation REPLACES
+             * an element's transform wholesale rather than composing with it,
+             * so the rotation was silently discarded the instant the flight
+             * animation started, and every shard travelled due east — flying
+             * off to the right regardless of where the boss actually was.
+             * Splitting aim / travel / spin across three elements means no
+             * animation can ever clobber another transform again.
+             */
             return (
-              <img
+              <div
                 key={i}
-                src={tileSrc}
-                alt=""
-                className={still ? undefined : 'perf-volley-shard'}
                 style={{
                   position: 'absolute',
                   left: geo.x,
                   top: geo.y,
-                  width: thickness * 1.35,
-                  height: thickness * 1.35,
-                  marginTop: (-thickness * 1.35) / 2,
-                  imageRendering: 'pixelated',
+                  // AIM. Set once, never touched by an animation.
                   transformOrigin: '0 50%',
-                  // Static: the shards sit spread along the path so the
-                  // connection is still readable with motion off.
-                  transform: still
-                    ? `rotate(${geo.angle}deg) translateX(${t * geo.length}px)`
-                    : `rotate(${geo.angle}deg)`,
-                  // Each shard's flight is one transform animation along the
-                  // rotated axis, so they all travel the true A→B line.
-                  ['--fly-to' as string]: `${geo.length}px`,
-                  ['--fly-spin' as string]: `${i % 2 === 0 ? 220 : -260}deg`,
-                  animationDelay: `${i * VOLLEY_STAGGER_MS}ms`,
+                  transform: `rotate(${geo.angle}deg)`,
                 }}
-              />
+              >
+                <div
+                  className={still ? undefined : 'perf-volley-fly'}
+                  style={{
+                    // TRAVEL, along the now-rotated local x axis — this is what
+                    // makes the shard actually cross to the boss.
+                    transform: still ? `translateX(${t * geo.length}px)` : undefined,
+                    ['--fly-to' as string]: `${geo.length}px`,
+                    animationDelay: `${i * VOLLEY_STAGGER_MS}ms`,
+                  }}
+                >
+                  <img
+                    src={tileSrc}
+                    alt=""
+                    className={still ? undefined : 'perf-volley-spin'}
+                    style={{
+                      display: 'block',
+                      width: px,
+                      height: px,
+                      marginTop: -px / 2,
+                      imageRendering: 'pixelated',
+                      // SPIN, about the shard's own centre — cosmetic tumble,
+                      // independent of where it is along the flight.
+                      ['--fly-spin' as string]: `${i % 2 === 0 ? 220 : -260}deg`,
+                      animationDelay: `${i * VOLLEY_STAGGER_MS}ms`,
+                    }}
+                  />
+                </div>
+              </div>
             );
           })}
       </div>

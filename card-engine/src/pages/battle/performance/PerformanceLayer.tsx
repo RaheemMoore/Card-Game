@@ -417,19 +417,30 @@ export function PerformanceStyles() {
         to   { stroke-dashoffset: 0; }
       }
 
-      /* A shard's flight. Travels the rotated A→B axis and tumbles on the way,
-         because a thrown solid spins and a poured liquid does not — that spin
-         is most of what separates a volley from a stream at a glance. The
-         element's own rotation is applied inline, so this only adds translation
-         along its local x. */
-      @keyframes perf-volley-fly {
-        0%   { opacity: 0; transform: translateX(0) rotate(0deg) scale(0.7); }
+      /* A shard's flight — split into TRAVEL and SPIN on separate elements,
+         because a single CSS animation replaces an element's transform
+         wholesale rather than composing with an inline one. Putting rotation
+         (aim) and animation (travel) on the same element was the bug: the
+         instant the flight animation started, the aim was discarded and every
+         shard flew due east. Now the outer div holds the static aim, this
+         travels along that div's local x axis, and a separate spin animates
+         the image inside for the tumble a thrown solid has and a poured
+         liquid does not. */
+      @keyframes perf-volley-travel {
+        0%   { opacity: 0; transform: translateX(0) scale(0.7); }
         12%  { opacity: 1; }
         88%  { opacity: 1; }
-        100% { opacity: 0; transform: translateX(var(--fly-to, 300px)) rotate(var(--fly-spin, 220deg)) scale(1); }
+        100% { opacity: 0; transform: translateX(var(--fly-to, 300px)) scale(1); }
       }
-      .perf-volley-shard {
-        animation: perf-volley-fly 460ms cubic-bezier(0.35,0.1,0.6,1) forwards;
+      .perf-volley-fly {
+        animation: perf-volley-travel 460ms cubic-bezier(0.35,0.1,0.6,1) forwards;
+      }
+      @keyframes perf-volley-tumble {
+        0%   { transform: rotate(0deg); }
+        100% { transform: rotate(var(--fly-spin, 220deg)); }
+      }
+      .perf-volley-spin {
+        animation: perf-volley-tumble 460ms cubic-bezier(0.35,0.1,0.6,1) forwards;
       }
 
       /* ── The release, in order ─────────────────────────────────────────
