@@ -6,6 +6,10 @@ import type { MotionLevel } from '../../../vfx/types';
 import type { ResolvedPerformance } from '../../../services/combat/performance/types';
 import { compileActionScopes, type ActionScope } from '../../../services/combat/performance/actionScope';
 import { resolvePerformance, buildCardLookup } from '../../../services/combat/performance/resolvePerformance';
+import {
+  compilePartyVolleySlots,
+  retimePerformanceForPartyVolley,
+} from '../../../services/combat/presentation/partyVolley';
 import type { AnchorContext } from '../combatAnchors';
 import { PerformanceView, PerformanceStyles } from './PerformanceLayer';
 
@@ -29,6 +33,7 @@ interface ActivePerformance {
   /** The absorb budget this scope's `shield_gained` granted, to normalise the
    *  live shield total into the 0-1 integrity BarrierRenderer expects. */
   shieldGrantedAmount?: number;
+  isPartyVolley: boolean;
 }
 
 /** `mapEventsToBeats` stamps `beat_<absoluteEventIndex>` — see adapter.ts. This
@@ -81,6 +86,10 @@ export function CombatPerformanceLayer({
     () => compileActionScopes(events, state.boss.actorId),
     [events, state.boss.actorId],
   );
+  const volleySlots = useMemo(
+    () => compilePartyVolleySlots(events, state.boss.actorId),
+    [events, state.boss.actorId],
+  );
   const heroActorIds = useMemo(() => state.heroes.map((h) => h.actorId), [state.heroes]);
   const cardByActorId = useMemo(
     () => buildCardLookup(heroActorIds, partyCards),
@@ -102,7 +111,7 @@ export function CombatPerformanceLayer({
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.suppressEffects) {
-      setActive([]);
+      if (!currentBeat.preserveActivePerformance) setActive([]);
       return;
     }
     const eventIndex = beatEventIndex(currentBeat.id);
@@ -118,7 +127,11 @@ export function CombatPerformanceLayer({
     const targetIndex = primaryTargetId
       ? state.heroes.findIndex((h) => h.actorId === primaryTargetId)
       : -1;
-    const resolvedPerformance = resolvePerformance(scope, { events, cardByActorId, motionLevel });
+    const basePerformance = resolvePerformance(scope, { events, cardByActorId, motionLevel });
+    const volleySlot = volleySlots.get(scope.openerIndex);
+    const resolvedPerformance = volleySlot
+      ? retimePerformanceForPartyVolley(basePerformance, volleySlot)
+      : basePerformance;
     // Recipes describe the usual direction of an ability, but the reducer's
     // live target is authoritative. An unmapped self-buff such as Thornmantle
     // takes the generic recipe (normally caster -> boss); without this seam it
@@ -133,6 +146,7 @@ export function CombatPerformanceLayer({
       performance,
       casterActorId: scope.actorId,
       targetActorId: primaryTargetId,
+      isPartyVolley: Boolean(volleySlot),
       anchorContext: {
         viewportWidth,
         casterIndex: casterIndex === -1 ? undefined : casterIndex,
@@ -175,6 +189,7 @@ export function CombatPerformanceLayer({
             casterActorId: a.casterActorId,
             targetActorId: a.targetActorId,
           }}
+          suppressChargeTell={a.isPartyVolley}
         />
       ))}
       <PerformanceStyles />

@@ -125,7 +125,7 @@ export function ChargeTell({
         className={still || firing ? undefined : armed ? 'perf-charge-pulse' : 'perf-charge-gather'}
         style={{
           position: 'absolute',
-          inset: -w * 0.55,
+          inset: -w * (sizeMultiplier > 2 ? 0.24 : 0.55),
           borderRadius: '50%',
           background: `radial-gradient(ellipse at 50% 50%, ${core}66 0%, ${edge}22 45%, transparent 72%)`,
           opacity: still ? 0.75 : undefined,

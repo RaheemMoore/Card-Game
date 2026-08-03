@@ -45,6 +45,12 @@ export interface AnimationBeat {
    *  State-carrying visuals (floating numbers, HP bars) still render — the
    *  player skipped the drama, not the information. */
   suppressEffects?: boolean;
+  /**
+   * A party-volley receipt can suppress its own standalone flash without
+   * cancelling the already-flying performances. Skip-all deliberately omits
+   * this flag because skipping should clear every active effect immediately.
+   */
+  preserveActivePerformance?: boolean;
 }
 
 /**

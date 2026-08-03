@@ -47,6 +47,8 @@ interface PerformanceProps {
     casterActorId: string;
     targetActorId?: string;
   };
+  /** The planning layer already drew and held the charge for a party volley. */
+  suppressChargeTell?: boolean;
 }
 
 export function PerformanceView({
@@ -56,6 +58,7 @@ export function PerformanceView({
   shieldIntegrity = 1,
   clock: clockOptions,
   observation,
+  suppressChargeTell = false,
 }: PerformanceProps) {
   const clock = useStageClock(perf, clockOptions);
 
@@ -178,7 +181,7 @@ export function PerformanceView({
    * feet, which read as the boss growing it. Charging is something the caster
    * does, so it is always drawn at the caster.
    */
-  const chargeTell = chargeVisible ? (
+  const chargeTell = chargeVisible && !suppressChargeTell ? (
     <ChargeTell
       at={resolveAnchor('caster_card_front', anchorContext)}
       kit={perf.material}

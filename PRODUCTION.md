@@ -718,6 +718,28 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-03 — Party attacks release as a volley and land as one payoff
+
+Raheem approved the plan-all-three structure, then rejected the long presentation rhythm
+where each hero finished a private attack sequence before the next one began. Release Party
+now launches the three prepared actions 150 milliseconds apart, keeps their real element
+deliveries alive together, and retimes contact into one shared impact-and-aftermath window
+before the boss responds. The reducer still resolves the same addressed commands in card
+order; only their human-time presentation is composed as a volley.
+
+The persistent charge tells also moved into the open strip directly above the card fan. They
+are now 2.75 times the original tell rather than 4.5 times, with a tighter halo and smaller
+labels so the three elements remain distinct at 1024×768 instead of merging into one cloud.
+
+This remains a **local human-review candidate**. The focused volley contract, all combat tests,
+the production build, and lint pass. The complete suite remains 612 of 613 passing because of
+the unrelated pre-existing ability-art `cobalt` wording expectation. Nothing has been pushed
+or deployed.
+
+*Why it matters:* one click now produces the intended *boom, boom, boom → one heavy hit*
+rhythm. The party feels coordinated, while the boss still owns the response after the whole
+party payoff rather than interrupting between heroes.
+
 ### 2026-08-03 — Boss combat is a party plan, not three interrupted mini-turns
 
 Raheem rejected the immediate one-card-at-a-time decision loop after playing it. A round now

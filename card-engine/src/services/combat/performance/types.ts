@@ -411,6 +411,7 @@ export type AnchorName =
   | 'caster_card'
   | 'caster_card_edge'
   | 'caster_card_front'
+  | 'caster_charge_lane'
   | 'target_card'
   | 'target_card_front';
 

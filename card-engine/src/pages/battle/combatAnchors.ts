@@ -105,6 +105,7 @@ export type CombatAnchorName =
   | 'caster_card'
   | 'caster_card_edge'
   | 'caster_card_front'
+  | 'caster_charge_lane'
   | 'target_card'
   | 'target_card_front';
 
@@ -122,6 +123,8 @@ const BOSS_GROUND_DY = 16;
 
 /** How far in front of a card its barrier/cast point sits, in %. */
 const CARD_FRONT_DY = -7;
+/** Planning charges sit in the open arena lane above the card fan. */
+const CARD_CHARGE_LANE_DY = -11;
 const CARD_EDGE_DX = 3.2;
 
 /**
@@ -157,6 +160,11 @@ export function resolveAnchor(name: CombatAnchorName, ctx: AnchorContext): Point
       if (ctx.casterIndex === undefined) return BOSS_POINT;
       const p = heroCardPoint(ctx.casterIndex, ctx.viewportWidth);
       return { x: p.x, y: p.y + CARD_FRONT_DY };
+    }
+    case 'caster_charge_lane': {
+      if (ctx.casterIndex === undefined) return BOSS_POINT;
+      const p = heroCardPoint(ctx.casterIndex, ctx.viewportWidth);
+      return { x: p.x, y: p.y + CARD_CHARGE_LANE_DY };
     }
 
     case 'target_card':

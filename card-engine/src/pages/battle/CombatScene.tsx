@@ -116,6 +116,7 @@ export function CombatScene({
   const partyActorIds = state.heroes.filter((hero) => !hero.defeated).map((hero) => hero.actorId);
   const plannedCount = partyActorIds.filter((id) => plannedActions[id]).length;
   const resolvingActorId = (() => {
+    if (!presentationLocked) return null;
     const event = currentBeat?.event;
     if (!event) return null;
     if ('actorId' in event && typeof event.actorId === 'string') return event.actorId;

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { Card } from '../../../types/card';
 import type { BattleState, PlayerAction } from '../../../types/combat';
 import type { MotionLevel } from '../../../vfx/types';
@@ -30,6 +31,18 @@ export function ArmedPartyCharges({
   resolvingActorId = null,
 }: Props) {
   const viewportWidth = useViewportWidth();
+  const [releaseThroughIndex, setReleaseThroughIndex] = useState(-1);
+
+  useEffect(() => {
+    if (Object.keys(plannedActions).length === 0) setReleaseThroughIndex(-1);
+  }, [plannedActions]);
+
+  useEffect(() => {
+    if (!resolvingActorId) return;
+    const index = state.heroes.findIndex((hero) => hero.actorId === resolvingActorId);
+    if (index >= 0) setReleaseThroughIndex((current) => Math.max(current, index));
+  }, [resolvingActorId, state.heroes]);
+
   const armed = state.heroes.flatMap((hero, index) => {
     const action = plannedActions[hero.actorId];
     const card = partyCards[index];
@@ -55,8 +68,9 @@ export function ArmedPartyCharges({
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 24 }} aria-hidden>
       {armed.map(({ hero, index, material, charge, abilityName }) => {
-        const at = resolveAnchor('caster_card_front', { viewportWidth, casterIndex: index });
+        const at = resolveAnchor('caster_charge_lane', { viewportWidth, casterIndex: index });
         const releasing = resolvingActorId === hero.actorId;
+        if (index <= releaseThroughIndex && !releasing) return null;
         return (
           <div key={hero.actorId}>
             <ChargeTell
@@ -71,26 +85,26 @@ export function ArmedPartyCharges({
                 charge
                   ? {
                       src: performanceAssetUrl(charge),
-                      sizePx: Math.round(charge.dimensions.width * 3.2),
+                      sizePx: Math.round(charge.dimensions.width * 2.5),
                     }
                   : undefined
               }
               intensity="heavy"
-              sizeMultiplier={4.5}
+              sizeMultiplier={2.75}
               zIndex={24}
             />
             <div
               style={{
                 position: 'absolute',
                 left: `${at.x}%`,
-                top: `calc(${at.y}% + 54px)`,
+                top: `calc(${at.y}% + 42px)`,
                 transform: 'translateX(-50%)',
                 border: '1px solid rgba(235,150,46,0.78)',
                 borderRadius: 999,
                 background: 'rgba(8,5,8,0.9)',
                 color: '#ffdb94',
-                padding: '4px 9px',
-                font: '700 10px/1 Inter, system-ui, sans-serif',
+                padding: '3px 6px',
+                font: '700 9px/1 Inter, system-ui, sans-serif',
                 letterSpacing: 0.7,
                 whiteSpace: 'nowrap',
                 boxShadow: '0 0 12px rgba(235,150,46,0.24)',
