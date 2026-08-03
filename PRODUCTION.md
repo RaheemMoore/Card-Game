@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; Cards is a first-class Explore destination with three complete uncropped development cards and an explicitly empty permanent roster; Characters & Archetypes shows the selected archetype's accepted-card state; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Card Evaluation Room filters five repository-backed records by archetype and evidence class, then opens full dossiers for art, ranks, lore, stats, abilities, readiness evidence, and investigation notes while the permanent roster remains explicitly empty; Characters & Archetypes shows the selected archetype's accepted-card state; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -294,7 +294,7 @@ Four branches carry the work currently named in this guide.
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 9 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, first-class uncropped Card gallery, separate Element and Ability references, lean admin navigation, studio memory, and local verification |
+| `codex/studio-wiki-foundation` | 10 | 0 | Repository-backed Studio Wiki; Card Evaluation Room, Work Board, onboarding, separate Element and Ability references, lean admin navigation, studio memory, and local verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -704,6 +704,22 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-03 — Card evaluation is evidence-led; permanent promotion stays a future workflow
+
+The Wiki's Cards destination is now the **Card Evaluation Room**, not a gallery. It inventories
+four named development candidates and one unnamed Druid tier-art study, filters them by
+archetype and evidence class, and opens a deep dossier for the selected record: uncropped art,
+known rank progression, lore, stats, ability loadout, repository sources, readiness evidence,
+and investigation notes. Art-only studies remain labeled **not a card**, missing ranks remain
+visible as missing evidence, and no percentage or automatic approval score is calculated.
+
+The page is read-only. It deliberately has no approve, promote, or production action; permanent
+acceptance still requires a later human-governed workflow and an explicit recorded decision.
+
+*Why it matters:* the studio can now understand what each development card does and why before
+deciding whether it deserves permanent work, without turning asset presence or a successful
+test into accidental canon.
+
 ### 2026-08-03 — Cards is a first-class destination, and a card is shown whole
 
 Raheem reversed the earlier placement of Cards beneath Characters & Archetypes. **Cards**
@@ -1014,6 +1030,9 @@ in common, and both tools get used across both subjects.
 - **More minigames as doors** — the shape accepts them; none are designed.
 - **Extract the harnesses as a reusable toolkit for future games** — Raheem explicitly
   deferred this. Focus is this game.
+- **Promote evaluated cards into the permanent roster** — the Evaluation Room is read-only
+  for now. Design the explicit acceptance record, provenance gates, and promotion action only
+  after the team has used the dossiers enough to understand the real review process.
 
 ---
 

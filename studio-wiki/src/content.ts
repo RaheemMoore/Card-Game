@@ -14,30 +14,199 @@ export const archetypes = [
   ['Human', 'human.jpg', 'Fingerprint-ridge knight', 'Adaptability without destiny'],
 ] as const;
 
-export const testedCards = [
+export type CardEvidenceState = 'present' | 'review' | 'missing';
+export type CardRecordKind = 'candidate' | 'study';
+
+export type DevelopmentCardRecord = {
+  id: string;
+  name: string;
+  title: string;
+  archetype: (typeof archetypes)[number][0];
+  kind: CardRecordKind;
+  fixture: string;
+  heroImage: string;
+  heroKind: 'complete-card' | 'portrait';
+  summary: string;
+  lore?: string;
+  stats?: { Atk: number; Def: number; Mana?: number; Tech?: number; resourceBias?: string };
+  abilitySlots?: readonly { abilityId: string; fixtureSlot: 'core' | 'signature' | 'ultimate' }[];
+  tiers: readonly { rank: 'Foundation' | 'Forged' | 'Ascendant'; image?: string; note: string }[];
+  readiness: readonly { label: string; state: CardEvidenceState; note: string }[];
+  notes: readonly string[];
+  sources: readonly string[];
+};
+
+const missingTier = (rank: 'Foundation' | 'Forged' | 'Ascendant') => ({
+  rank,
+  note: 'No rank-specific card or portrait is attached to this repository record.',
+});
+
+export const developmentCards: readonly DevelopmentCardRecord[] = [
   {
+    id: 'gryndak',
     name: 'Gryndak',
     title: 'Gryndak, the Half-Claimed',
     archetype: 'Barbarian',
-    portrait: '/assets/dev-portraits/Ashvara.jpg',
-    purpose: 'Exercises a low-Mana, attack-led hero with a complete three-ability battle loadout.',
-    lesson: 'A strong combat silhouette still needs the full identity, rendering, and art-quality bar before it can enter the game.',
+    kind: 'candidate',
+    fixture: 'Battle Tower seed party',
+    heroImage: '/assets/dev-portraits/Ashvara.jpg',
+    heroKind: 'complete-card',
+    summary: 'A low-Mana, attack-led battle fixture with a complete three-slot loadout.',
+    lore: 'Half his blood answered a whisper before the pact was sealed. He does not name what watches him.',
+    stats: { Atk: 62, Def: 55, Mana: 30, resourceBias: 'Very Low' },
+    abilitySlots: [
+      { abilityId: 'ability_thornmantle', fixtureSlot: 'core' },
+      { abilityId: 'ability_oathbreakers_answer', fixtureSlot: 'signature' },
+      { abilityId: 'ability_the_name_they_left_me', fixtureSlot: 'ultimate' },
+    ],
+    tiers: [missingTier('Foundation'), missingTier('Forged'), missingTier('Ascendant')],
+    readiness: [
+      { label: 'Identity continuity', state: 'missing', note: 'Only one rendered artifact exists; no locked three-rank identity record is attached.' },
+      { label: 'Complete card metadata', state: 'review', note: 'Battle stats, lore, and loadout exist; Story Pillars, element bond, Hidden Fate, and evolution history do not.' },
+      { label: 'Tier coverage', state: 'missing', note: 'Foundation, Forged, and Ascendant evidence is not mapped.' },
+      { label: 'Art quality review', state: 'review', note: 'The complete card is useful development evidence but has not passed the current visual standard.' },
+      { label: 'Reproducible provenance', state: 'present', note: 'The fixture and committed card image have repository source paths.' },
+      { label: 'Gameplay evidence', state: 'present', note: 'Used by the deterministic Battle Tower development seed party.' },
+      { label: 'Human acceptance', state: 'missing', note: 'No permanent-card acceptance has been recorded.' },
+    ],
+    notes: [
+      'Reconcile the fixture stats with the different values printed on the rendered card before evaluation.',
+      'Thornmantle is assigned as a core slot here, while the canonical ability record defines it as a Druid signature; decide whether this is intentional test coverage or a loadout error.',
+      'Create a Bible-era identity record and a true Foundation-to-Ascendant continuity set before permanent review.',
+    ],
+    sources: ['card-engine/src/pages/DevSeedBattle.tsx', 'card-engine/public/assets/dev-portraits/Ashvara.jpg'],
   },
   {
+    id: 'seojin',
     name: 'Seojin',
     title: 'Seojin, Lycanthrope of the Infinite',
     archetype: 'Lycanthrope',
-    portrait: '/assets/dev-portraits/Seojin.jpg',
-    purpose: 'Exercises a defense-led hero and the Lycanthrope identity-continuity rules in battle.',
-    lesson: 'A useful playtest character can prove systems without becoming a permanent character.',
+    kind: 'candidate',
+    fixture: 'Battle Tower seed party',
+    heroImage: '/assets/dev-portraits/Seojin.jpg',
+    heroKind: 'complete-card',
+    summary: 'A defense-led Lycanthrope fixture built to exercise a moderate resource profile.',
+    lore: 'Once, she ran only under one moon. The pack sings her name in three tongues now.',
+    stats: { Atk: 45, Def: 68, Mana: 58, resourceBias: 'Mid' },
+    abilitySlots: [
+      { abilityId: 'ability_inherited_guard', fixtureSlot: 'core' },
+      { abilityId: 'ability_bearing_witness', fixtureSlot: 'signature' },
+      { abilityId: 'ability_the_name_they_left_me', fixtureSlot: 'ultimate' },
+    ],
+    tiers: [missingTier('Foundation'), missingTier('Forged'), missingTier('Ascendant')],
+    readiness: [
+      { label: 'Identity continuity', state: 'missing', note: 'No three-rank identity sequence is attached to the fixture.' },
+      { label: 'Complete card metadata', state: 'review', note: 'Battle stats, lore, and loadout exist; Bible-era generation facts are absent.' },
+      { label: 'Tier coverage', state: 'missing', note: 'Foundation, Forged, and Ascendant evidence is not mapped.' },
+      { label: 'Art quality review', state: 'review', note: 'The rendered artifact needs human review against current Lycanthrope identity and card standards.' },
+      { label: 'Reproducible provenance', state: 'present', note: 'The fixture and committed card image have repository source paths.' },
+      { label: 'Gameplay evidence', state: 'present', note: 'Used by the deterministic Battle Tower development seed party.' },
+      { label: 'Human acceptance', state: 'missing', note: 'No permanent-card acceptance has been recorded.' },
+    ],
+    notes: [
+      'Reconcile the fixture stats with the different ATK and DEF values printed on the rendered card.',
+      'The current loadout pulls from Barbarian and Seraph ability families rather than the Lycanthrope family; evaluate it as test coverage, not a canonical kit.',
+      'Verify that future rank art preserves the same person and expresses pack trust and lunar duty rather than automatic bestial escalation.',
+    ],
+    sources: ['card-engine/src/pages/DevSeedBattle.tsx', 'card-engine/public/assets/dev-portraits/Seojin.jpg'],
   },
   {
+    id: 'ashvara',
     name: 'Ashvara',
     title: 'Ashvara, the Void-Synchronized',
     archetype: 'Necromancer',
-    portrait: '/assets/dev-portraits/Gryndak.jpg',
-    purpose: 'Exercises a resource-rich caster with a complete core, signature, and ultimate loadout.',
-    lesson: 'Mechanical coverage and evocative art are evidence of learning, not an acceptance decision.',
+    kind: 'candidate',
+    fixture: 'Battle Tower seed party',
+    heroImage: '/assets/dev-portraits/Gryndak.jpg',
+    heroKind: 'complete-card',
+    summary: 'A resource-rich Necromancer fixture with a complete three-slot battle loadout.',
+    lore: 'She keeps her prayers unfinished so the dead have somewhere to arrive.',
+    stats: { Atk: 55, Def: 45, Mana: 82, resourceBias: 'Very High' },
+    abilitySlots: [
+      { abilityId: 'ability_inherited_guard', fixtureSlot: 'core' },
+      { abilityId: 'ability_bearing_witness', fixtureSlot: 'signature' },
+      { abilityId: 'ability_the_name_they_left_me', fixtureSlot: 'ultimate' },
+    ],
+    tiers: [missingTier('Foundation'), missingTier('Forged'), missingTier('Ascendant')],
+    readiness: [
+      { label: 'Identity continuity', state: 'missing', note: 'No three-rank identity sequence is attached to the fixture.' },
+      { label: 'Complete card metadata', state: 'review', note: 'Battle stats, lore, and loadout exist; Bible-era generation facts are absent.' },
+      { label: 'Tier coverage', state: 'missing', note: 'Foundation, Forged, and Ascendant evidence is not mapped.' },
+      { label: 'Art quality review', state: 'missing', note: 'The current portrait conflicts with the project-wide modesty standard and cannot be promoted as-is.' },
+      { label: 'Reproducible provenance', state: 'present', note: 'The fixture and committed card image have repository source paths.' },
+      { label: 'Gameplay evidence', state: 'present', note: 'Used by the deterministic Battle Tower development seed party.' },
+      { label: 'Human acceptance', state: 'missing', note: 'No permanent-card acceptance has been recorded.' },
+    ],
+    notes: [
+      'Replace or revise the portrait so the character is covered from neck to feet under the current M5.7 rule.',
+      'Reconcile the fixture stats with the different values printed on the rendered card.',
+      'The current loadout uses Barbarian and Seraph-family abilities; author and test a Necromancer-coherent kit before permanent review.',
+    ],
+    sources: ['card-engine/src/pages/DevSeedBattle.tsx', 'card-engine/public/assets/dev-portraits/Gryndak.jpg'],
+  },
+  {
+    id: 'kael',
+    name: 'Kael',
+    title: 'Kael, the Unbroken',
+    archetype: 'Barbarian',
+    kind: 'candidate',
+    fixture: 'Homepage demo fixture',
+    heroImage: '/portraits/sample/raheem_ascendant.jpg',
+    heroKind: 'portrait',
+    summary: 'The original homepage demo character and the repository’s only named three-rank portrait sequence.',
+    lore: 'Born in the volcanic trenches of the Ashlands, Kael earned every scar before his fifteenth winter.',
+    stats: { Atk: 88, Def: 52, Mana: 22 },
+    tiers: [
+      { rank: 'Foundation', image: '/portraits/sample/raheem_foundation.jpg', note: 'Legacy sample portrait; duplicated under assets/portraits/barbarian_foundation_1.jpg.' },
+      { rank: 'Forged', image: '/portraits/sample/raheem_forged.jpg', note: 'Legacy sample portrait; duplicated under assets/portraits/barbarian_forged_1.jpg.' },
+      { rank: 'Ascendant', image: '/portraits/sample/raheem_ascendant.jpg', note: 'Homepage portrait; duplicated under assets/portraits/barbarian_ascendant_1.jpg.' },
+    ],
+    readiness: [
+      { label: 'Identity continuity', state: 'review', note: 'Three visually related portraits exist, but locked identity fields and a continuity review are not recorded.' },
+      { label: 'Complete card metadata', state: 'review', note: 'Name, archetype, stats, and legacy lore exist; Story Pillars, element bond, Hidden Fate, abilities, and provenance are incomplete.' },
+      { label: 'Tier coverage', state: 'present', note: 'Foundation, Forged, and Ascendant portrait evidence exists.' },
+      { label: 'Art quality review', state: 'missing', note: 'Foundation and Forged portraits expose the torso and fail the current M5.7 modesty rule.' },
+      { label: 'Reproducible provenance', state: 'review', note: 'Committed assets exist, but modern generation inputs and approval records are absent.' },
+      { label: 'Gameplay evidence', state: 'missing', note: 'This card demonstrates rendering on the homepage; it is not part of the Battle Tower seed party.' },
+      { label: 'Human acceptance', state: 'missing', note: 'Homepage visibility is not permanent-card acceptance.' },
+    ],
+    notes: [
+      'Treat this as a legacy homepage fixture, not as a nearly approved card.',
+      'Regenerate the rank sequence under current identity-continuity and modesty rules before visual evaluation.',
+      'Add Story Pillars, element bond, Hidden Fate, abilities, evolution history, and generation provenance before permanent review.',
+    ],
+    sources: ['card-engine/src/pages/Home.tsx', 'card-engine/public/portraits/sample/'],
+  },
+  {
+    id: 'druid-tier-study',
+    name: 'Unnamed Druid',
+    title: 'Druid three-rank art study',
+    archetype: 'Druid',
+    kind: 'study',
+    fixture: 'Portrait generator fallback study',
+    heroImage: '/assets/portraits/druid_ascendant_1.jpg',
+    heroKind: 'portrait',
+    summary: 'A complete visual progression study with no named card record attached.',
+    tiers: [
+      { rank: 'Foundation', image: '/assets/portraits/druid_foundation_1.jpg', note: 'Also committed as portraits/sample/tori_sample.jpg.' },
+      { rank: 'Forged', image: '/assets/portraits/druid_forged_1.jpg', note: 'Visual study only; no rank-specific card metadata is attached.' },
+      { rank: 'Ascendant', image: '/assets/portraits/druid_ascendant_1.jpg', note: 'Visual study only; no rank-specific card metadata is attached.' },
+    ],
+    readiness: [
+      { label: 'Identity continuity', state: 'review', note: 'The same visual identity appears across three ranks, but no locked identity record or human continuity verdict is attached.' },
+      { label: 'Complete card metadata', state: 'missing', note: 'No name, lore, Story Pillars, stats, element bond, abilities, or card ID is attached.' },
+      { label: 'Tier coverage', state: 'present', note: 'Foundation, Forged, and Ascendant portrait evidence exists.' },
+      { label: 'Art quality review', state: 'review', note: 'The study is available for human visual review; no acceptance verdict is recorded.' },
+      { label: 'Reproducible provenance', state: 'review', note: 'Fallback paths are committed, but modern generation inputs are not recorded here.' },
+      { label: 'Gameplay evidence', state: 'missing', note: 'No playable card or battle fixture is attached.' },
+      { label: 'Human acceptance', state: 'missing', note: 'This is not yet a card and cannot enter the permanent roster.' },
+    ],
+    notes: [
+      'Decide whether this visual identity should become a named character before doing card-level work.',
+      'If retained, create the immutable character facts first, then evaluate whether the three portraits preserve them.',
+      'Do not infer lore, stats, elements, or abilities from the art alone.',
+    ],
+    sources: ['card-engine/src/services/portraitGenerator.ts', 'card-engine/public/assets/portraits/druid_*_1.jpg'],
   },
 ] as const;
 

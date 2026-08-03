@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { archetypes, bossStates, elements, navigation, permanentCards, searchEntries, testedCards } from './content';
+import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
 import { sectionsFromMarkdown } from './markdown';
 
 describe('Studio Wiki content contracts', () => {
@@ -36,8 +36,12 @@ describe('Studio Wiki content contracts', () => {
   });
 
   it('keeps card tests separate from the human-accepted permanent roster', () => {
-    expect(testedCards).toHaveLength(3);
-    expect(testedCards.map(({ name }) => name)).toEqual(['Gryndak', 'Seojin', 'Ashvara']);
+    expect(developmentCards).toHaveLength(5);
+    expect(developmentCards.filter(({ kind }) => kind === 'candidate').map(({ name }) => name)).toEqual(['Gryndak', 'Seojin', 'Ashvara', 'Kael']);
+    expect(developmentCards.filter(({ kind }) => kind === 'study').map(({ name }) => name)).toEqual(['Unnamed Druid']);
+    expect(new Set(developmentCards.map(({ id }) => id)).size).toBe(developmentCards.length);
+    expect(developmentCards.filter(({ tiers }) => tiers.every(({ image }) => image))).toHaveLength(2);
+    expect(developmentCards.every(({ readiness }) => readiness.some(({ label, state }) => label === 'Human acceptance' && state === 'missing'))).toBe(true);
     expect(permanentCards).toHaveLength(0);
     expect(searchEntries).toContainEqual(expect.objectContaining({ path: '/characters/cards', title: 'Cards' }));
     const exploreItems = navigation.find(({ group }) => group === 'Explore')?.items;

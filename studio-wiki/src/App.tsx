@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleDashed, CircleHelp, Command, ExternalLink, Eye, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
-import { archetypes, bossStates, elements, navigation, permanentCards, searchEntries, testedCards } from './content';
+import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
+import type { CardEvidenceState, DevelopmentCardRecord } from './content';
 import { MarkdownBody, sectionsFromMarkdown } from './markdown';
 import { ElementPerformancePlayer } from './ElementPerformancePlayer';
 import workshopArena from '../../docs/production/screenshots/workshop-arena.png';
@@ -92,20 +93,73 @@ function Characters() {
 }
 
 function Cards() {
-  return <><PageHeader eyebrow="CHARACTERS & ARCHETYPES · CARD RECORD" title="Cards" intro="Examples from building the character-generation engine. Presence here documents what we learned; it does not place a card in the game." status="IN FLIGHT"/>
+  const [kind, setKind] = useState<'all' | 'candidate' | 'study'>('all');
+  const [archetype, setArchetype] = useState('all');
+  const [cardSearch, setCardSearch] = useState('');
+  const [selectedId, setSelectedId] = useState(developmentCards[0].id);
+  const [selectedRank, setSelectedRank] = useState<'Foundation' | 'Forged' | 'Ascendant'>('Foundation');
+  const availableArchetypes = [...new Set(developmentCards.map((card) => card.archetype))];
+  const visibleCards = developmentCards.filter((card) => {
+    if (kind !== 'all' && card.kind !== kind) return false;
+    if (archetype !== 'all' && card.archetype !== archetype) return false;
+    return `${card.name} ${card.title} ${card.archetype} ${card.fixture}`.toLowerCase().includes(cardSearch.trim().toLowerCase());
+  });
+  const selected = developmentCards.find((card) => card.id === selectedId) ?? developmentCards[0];
+  const selectedTier = selected.tiers.find((tier) => tier.rank === selectedRank && tier.image);
+  useEffect(() => {
+    if (visibleCards.length && !visibleCards.some((card) => card.id === selectedId)) {
+      setSelectedId(visibleCards[0].id);
+      setSelectedRank(visibleCards[0].tiers.find((tier) => tier.image)?.rank ?? 'Foundation');
+    }
+  }, [kind, archetype, cardSearch, selectedId]);
+  const selectCard = (card: DevelopmentCardRecord) => {
+    setSelectedId(card.id);
+    setSelectedRank(card.tiers.find((tier) => tier.image)?.rank ?? 'Foundation');
+  };
+
+  return <><PageHeader eyebrow="CHARACTERS & ARCHETYPES · CARD EVALUATION" title="Cards" intro="Investigate every repository-backed development card, understand what it does, and see exactly what remains before permanent acceptance." status="IN FLIGHT"/>
     <div className="card-truth-banner"><Layers/><div><p className="eyebrow">THE GOVERNING RULE</p><h2>A card becomes permanent only through explicit human acceptance.</h2><p>Assets, database rows, generated portraits, and successful playtests never promote a card on their own.</p></div><span>0 ACCEPTED INTO GAME</span></div>
-    <Panel title="Tested Cards" action={<span className="card-section-state">DEVELOPMENT EVIDENCE</span>} className="tested-card-section">
-      <p className="card-section-intro">These characters are controlled test fixtures. They help us practice the Forge, card rendering, party composition, ability loadouts, and Battle Tower decisions while the quality standard is still being defined.</p>
-      <div className="tested-card-grid">{testedCards.map((card) => <article className="tested-card" key={card.name}>
-        <figure className="tested-card-portrait"><img src={card.portrait} alt={`${card.title}, complete ${card.archetype} development card`}/><figcaption><FlaskConical/>TESTED · DEVELOPMENT ARTIFACT</figcaption></figure>
-        <div className="tested-card-copy"><p className="eyebrow">{card.archetype}</p><h3>{card.title}</h3><p>{card.purpose}</p><div className="tested-card-lesson"><strong>What this test taught us</strong><span>{card.lesson}</span></div></div>
-      </article>)}</div>
-      <RepoLink path="card-engine/src/pages/DevSeedBattle.tsx"/>
+    <div className="card-room-summary" aria-label="Card evidence summary"><article><strong>{developmentCards.filter((card) => card.kind === 'candidate').length}</strong><span>character candidates</span></article><article><strong>{developmentCards.filter((card) => card.kind === 'study').length}</strong><span>tier art studies</span></article><article><strong>{developmentCards.filter((card) => card.tiers.every((tier) => tier.image)).length}</strong><span>complete art progressions</span></article><article><strong>0</strong><span>human accepted</span></article></div>
+    <Panel title="Card Evaluation Room" action={<span className="card-section-state">READ-ONLY EVIDENCE</span>} className="card-evaluation-room">
+      <div className="card-room-intro"><div><p className="eyebrow">INVESTIGATE BEFORE ACCEPTING</p><h2>Understand what a card does, what it proves, and what it still lacks.</h2><p>This room inventories meaningful repository-backed card fixtures and progression studies. Private player collections and unit-test fakes are intentionally not published here.</p></div><FlaskConical/></div>
+      <div className="card-room-filters" aria-label="Filter development card records">
+        <div className="card-kind-filter" role="group" aria-label="Evidence type">{([['all', 'All evidence'], ['candidate', 'Character candidates'], ['study', 'Tier art studies']] as const).map(([value, label]) => <button key={value} className={kind === value ? 'selected' : ''} aria-pressed={kind === value} onClick={() => setKind(value)}>{label}</button>)}</div>
+        <label className="card-archetype-filter"><span>Archetype</span><select value={archetype} onChange={(event) => setArchetype(event.target.value)}><option value="all">All archetypes</option>{availableArchetypes.map((name) => <option key={name}>{name}</option>)}</select></label>
+        <label className="card-record-search"><Search/><input value={cardSearch} onChange={(event) => setCardSearch(event.target.value)} placeholder="Find a card…" aria-label="Find a development card"/></label>
+      </div>
+      <div className="card-room-layout">
+        <section className="card-evidence-roster" aria-label="Development card evidence roster"><div className="card-roster-heading"><span>{visibleCards.length} records</span><small>Select a record to inspect it</small></div>{visibleCards.length ? visibleCards.map((card) => <button key={card.id} className={selected.id === card.id ? 'card-roster-record selected' : 'card-roster-record'} onClick={() => selectCard(card)} aria-pressed={selected.id === card.id}><span className="card-roster-image"><img src={card.heroImage} alt=""/></span><span className="card-roster-copy"><small>{card.archetype} · {card.fixture}</small><strong>{card.title}</strong><em>{card.kind === 'candidate' ? <><Eye/>CHARACTER CANDIDATE · DEVELOPMENT</> : <><Layers/>TIER ART STUDY · NOT A CARD</>}</em>{selected.id === card.id && <b><Check/>Selected</b>}</span></button>) : <div className="card-roster-empty"><Search/><strong>No matching evidence</strong><span>Try another archetype or evidence type.</span></div>}</section>
+        {visibleCards.length > 0 && <CardDossier card={selected} selectedRank={selectedRank} selectedTierImage={selectedTier?.image} onRank={setSelectedRank}/>}
+      </div>
     </Panel>
     <Panel title="Permanent Archetype Cards" action={<span className="card-section-state card-section-empty">0 ACCEPTED</span>} className="permanent-card-section">
       {permanentCards.length === 0 && <div className="permanent-empty"><div className="permanent-seal"><Shield/><span>NONE<br/>ACCEPTED</span></div><div><p className="eyebrow">PERMANENT ROSTER</p><h2>No cards have been accepted into the permanent game roster.</h2><p>This space is intentionally empty. A card will appear here only after its identity, art, rendering, and production provenance meet the game standard and Raheem explicitly accepts it into the game.</p><div className="acceptance-gates"><span>Identity holds across ranks</span><span>Art meets the game standard</span><span>Generation is reproducible</span><span>Human acceptance is recorded</span></div></div></div>}
     </Panel>
   </>;
+}
+
+function EvidenceState({ state }: { state: CardEvidenceState }) {
+  const Icon = state === 'present' ? CircleCheck : state === 'review' ? CircleAlert : CircleDashed;
+  return <span className={`card-evidence-state ${state}`}><Icon/>{state === 'present' ? 'Evidence present' : state === 'review' ? 'Needs human review' : 'No repository evidence'}</span>;
+}
+
+function CardDossier({ card, selectedRank, selectedTierImage, onRank }: { card: DevelopmentCardRecord; selectedRank: 'Foundation' | 'Forged' | 'Ascendant'; selectedTierImage?: string; onRank: (rank: 'Foundation' | 'Forged' | 'Ascendant') => void }) {
+  const stats = card.stats ? Object.entries(card.stats).filter(([name]) => name !== 'resourceBias') as [string, number][] : [];
+  return <article className="card-dossier" id={`card-dossier-${card.id}`} aria-labelledby={`card-dossier-title-${card.id}`}>
+    <div className="card-dossier-heading"><div><p className="eyebrow">SELECTED RECORD · {card.fixture.toUpperCase()}</p><h2 id={`card-dossier-title-${card.id}`}>{card.title}</h2><span className={card.kind === 'candidate' ? 'card-record-class candidate' : 'card-record-class study'}>{card.kind === 'candidate' ? <><Eye/>CHARACTER CANDIDATE · DEVELOPMENT</> : <><Layers/>TIER ART STUDY · NOT A CARD</>}</span></div><img src={`/assets/archetype-emblems/${archetypes.find(([name]) => name === card.archetype)?.[1]}`} alt={`${card.archetype} emblem`}/></div>
+    <div className="card-art-stage"><div className={card.heroKind === 'complete-card' && !selectedTierImage ? 'card-art-frame complete-card' : 'card-art-frame portrait-art'}><img src={selectedTierImage ?? card.heroImage} alt={selectedTierImage ? `${card.title} ${selectedRank} portrait evidence` : `${card.title} ${card.heroKind === 'complete-card' ? 'complete development card' : 'development portrait'}`}/></div><div className="card-art-caption"><span>{selectedTierImage ? `${selectedRank} evidence` : card.heroKind === 'complete-card' ? 'Complete rendered artifact' : 'Selected development portrait'}</span><small>Uncropped repository asset</small></div></div>
+    <p className="card-dossier-summary">{card.summary}</p>
+    <div className="card-rank-selector" aria-label={`${card.title} rank evidence`}>{card.tiers.map((tier) => <button key={tier.rank} disabled={!tier.image} className={selectedRank === tier.rank && tier.image ? 'selected' : ''} aria-pressed={selectedRank === tier.rank && Boolean(tier.image)} onClick={() => tier.image && onRank(tier.rank)}><span>{tier.rank}</span><small>{tier.image ? 'View evidence' : 'No repository evidence'}</small></button>)}</div>
+    <div className="card-dossier-sections">
+      <details open><summary><BookOpen/><span>Known identity and lore</span><ChevronDown/></summary><div className="card-detail-content">{card.lore ? <blockquote>“{card.lore}”</blockquote> : <div className="card-data-missing"><CircleDashed/><span><strong>No card lore is attached.</strong>This is a visual continuity study, not a named character record.</span></div>}<dl className="card-identity-facts"><div><dt>Archetype</dt><dd>{card.archetype}</dd></div><div><dt>Repository role</dt><dd>{card.fixture}</dd></div><div><dt>Record class</dt><dd>{card.kind === 'candidate' ? 'Development candidate' : 'Art study · not a card'}</dd></div></dl></div></details>
+      <details open={Boolean(card.stats)}><summary><Swords/><span>Stats and abilities</span><ChevronDown/></summary><div className="card-detail-content">{card.stats ? <><div className="card-stat-grid">{stats.map(([name, value]) => <div key={name}><span>{name}</span><strong>{value}</strong><i><b style={{width: `${value}%`}}/></i></div>)}</div>{card.stats.resourceBias && <p className="card-resource-note">Resource bias: <strong>{card.stats.resourceBias}</strong></p>}</> : <div className="card-data-missing"><CircleDashed/><span><strong>No card stats are attached.</strong>Do not infer mechanics from artwork.</span></div>}{card.abilitySlots?.length ? <div className="card-loadout">{card.abilitySlots.map(({ abilityId, fixtureSlot }) => { const ability = SEED_ABILITIES.find((entry) => entry.definition.id === abilityId); return <article key={abilityId}><span>{fixtureSlot}</span><h3>{ability?.definition.displayName ?? abilityId}</h3><p>{ability?.definition.descriptionShort ?? 'Ability record unavailable.'}</p><small>Canonical slot: {ability?.version.slotType ?? 'unknown'} · {ability?.definition.role ?? 'unknown role'} · {ability?.version.resourceCost ?? '?'} {ability?.version.resourceType ?? 'resource'}</small></article>; })}</div> : <div className="card-data-missing"><CircleDashed/><span><strong>No ability loadout is attached.</strong>This record cannot yet explain how the character plays.</span></div>}</div></details>
+      <details open><summary><Layers/><span>{card.kind === 'study' ? 'Visual continuity study' : 'Tier evidence'}</span><ChevronDown/></summary><div className="card-detail-content"><div className="card-tier-evidence">{card.tiers.map((tier) => <article className={tier.image ? 'has-evidence' : 'missing-evidence'} key={tier.rank}>{tier.image ? <img src={tier.image} alt={`${card.title} ${tier.rank} evidence`}/> : <div><FileText/><span>NO REPOSITORY<br/>EVIDENCE</span></div>}<h3>{tier.rank}</h3><p>{tier.note}</p></article>)}</div>{card.kind === 'study' && <p className="card-study-warning"><TriangleAlert/>No card metadata is attached to this study. It cannot be evaluated as a permanent card.</p>}</div></details>
+      <details open><summary><Shield/><span>Permanent-readiness evidence</span><ChevronDown/></summary><div className="card-detail-content"><p className="card-detail-preface">Evidence is descriptive, not a score. Only a recorded human decision can accept a permanent card.</p><div className="card-readiness-list">{card.readiness.map((item) => <div key={item.label}><span><strong>{item.label}</strong><EvidenceState state={item.state}/></span><p>{item.note}</p></div>)}</div></div></details>
+      <details><summary><Lightbulb/><span>Investigation notes</span><ChevronDown/></summary><div className="card-detail-content"><p className="card-detail-preface">Editorial observations for the next investigation—not automatic approval requirements.</p><ol className="card-investigation-notes">{card.notes.map((note) => <li key={note}>{note}</li>)}</ol></div></details>
+      <details><summary><FileText/><span>Repository evidence</span><ChevronDown/></summary><div className="card-detail-content card-source-list">{card.sources.map((source) => <RepoLink path={source} key={source}/>)}</div></details>
+    </div>
+    <div className="card-promotion-future"><Shield/><div><p className="eyebrow">FUTURE WORKFLOW</p><h3>Permanent promotion is not implemented yet.</h3><p>This room supports investigation only. The studio will design the explicit acceptance record, provenance gate, and promotion action later.</p></div></div>
+  </article>;
 }
 
 function Bosses() {
