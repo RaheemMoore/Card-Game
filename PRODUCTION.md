@@ -113,7 +113,6 @@ being raised in a chat and lost.*
 |---|---|---|
 | Q1 | How many floors does the tower have? | Gates all planning behind it. See above. |
 | Q2 | Is `feat/warband-battle-mvp` worth reviving, or should the board game be rebuilt fresh? | A tested combat core is stranded 107 commits back. I can assess it if you want. |
-| Q3 | Does the Lycanthrope emblem ever get made? | It's the only one of 11 missing, and it's been pending since 2026-07-17. |
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 
 ---
@@ -275,6 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`; deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -289,20 +289,21 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Only three. Everything else is merged.
+Four branches carry the work currently named in this guide.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
+| `codex/studio-wiki-foundation` | 1 | 0 | Repository-backed Studio Wiki; local implementation and verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 4. Open threads
 
-**49 things started and not finished.** This is the list that didn't exist before. It will
+**48 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -333,13 +334,12 @@ phone-portrait support is deferred pending its own crop of the art
 | Crit / dodge / miss deferred beyond B7 | boss battle spec §15 |
 | Server-authoritative combat validation deferred | boss battle spec §15 |
 
-### Placeholder art — 9 items
+### Placeholder art — 8 items
 
 | What | Where |
 |---|---|
 | Shipped `human.png` violates all four of its own art rules | `SHOPKEEPER_GUIDE.md:75` |
 | Chibi hero is temporary, to be regenerated at final fidelity | `SHOPKEEPER_GUIDE.md:11` |
-| Lycanthrope emblem still pending — 10 of 11 approved | emblem library |
 | Ability art falls back to a family-tinted placeholder tile | `data/abilities/visualManifest.ts:23` |
 | Effect manifest still `approvalStatus: 'placeholder'` | `data/combat/effectManifest.ts:16` |
 | Forge Strike has no real audio | `minigames/forge-strike/ForgeStrikeViewport.tsx:313` |
@@ -704,6 +704,41 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-03 — The Studio Wiki becomes a permanent repository-backed application
+
+The Wiki lives in its own `studio-wiki/` React/Vite package inside the Card Game repository.
+It shares canonical Markdown and optimized web assets with the game, but it will deploy as a
+separate Vercel project and URL so Wiki changes cannot break the playable game. The local
+implementation may continue without hosting cost; deployment and access protection remain a
+separate human gate.
+
+The active Wiki includes navigation, search, all eleven archetype emblems, the Debt-Bearer's
+real seven-state animation inspector, full-art element galleries, production reading pages,
+workshop documentation, responsive layouts, reduced-motion handling, and honest missing-media
+states. Minigames remains intentionally held and Forge Strike is not presented as active work.
+
+*Why it matters:* Claude and Codex can now improve one durable source with Git history instead
+of rebuilding a temporary conversation link, while the game and the Wiki keep separate failure
+and release boundaries.
+
+### 2026-08-03 — Full assets will live in OpenNest; GitHub keeps the web catalog
+
+The current repository keeps canonical documents, metadata, and web-sized previews. Raheem's
+planned OpenNest storage at home will hold the full-resolution generated originals. The Wiki is
+the visual catalog across both locations. No second GitHub repository will be created now; the
+metadata boundary allows storage to split later without redesigning the Wiki.
+
+*Why it matters:* The Wiki can grow into the studio's central information and asset-discovery
+surface without bloating normal Git history or depending on home storage to render day to day.
+
+### 2026-08-03 — The Lycanthrope emblem is integrated
+
+The generated Lycanthrope emblem now lives with the other ten archetype emblems and is used by
+the game and Studio Wiki. The old open question and missing-art entries are closed.
+
+*Why it matters:* Characters & Archetypes can present the complete eleven-emblem collection
+without a fabricated substitute or a pending tile.
+
 ### 2026-08-03 — Raheem accepts the private-device key exception
 
 This supersedes the release requirement in the following earlier entry. Do not rotate,
@@ -883,7 +918,7 @@ being wrong, you stop reading it, and then it's dead.
 
 # Game Mechanics
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 1. How the game works
 
 *Everything in Infrastructure describes how the project is built. This part describes the
@@ -944,8 +979,8 @@ stays that way. They are never indispensable because of a number.
 ### A note on the art
 
 The emblems and element crystals above were made for this game and are the best-looking thing
-the project owns. **Not everything is at that standard yet** — bosses and abilities still run on
-placeholders, the Lycanthrope emblem is unfinished, and the plan is custom art for abilities too.
+the project owns. **Not everything is at that standard yet** — some bosses and abilities still
+run on placeholders, and the plan is custom art for abilities too.
 Every one of those is a chance to make the game more beautiful, and the pipelines to do it
 already exist: see the workshops in Infrastructure §6.
 
@@ -1473,7 +1508,7 @@ above, it can be in the game in about a minute.**
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 3. Ideas worth making
 
 *Somewhere to put ideas so they stop evaporating. Add freely — an idea costs nothing, and
@@ -1500,10 +1535,7 @@ improvement in the project.*
 most have never been the subject of anything — Lunar is the Lycanthrope's alone, Sanguine and
 Nocturne the Vampire's. *~20–31 each.*
 
-### Characters — 3 items
-
-**The Lycanthrope emblem.** Ten of eleven archetypes have their selection art. This is the
-missing one, pending since 2026-07-17. *Leonardo, one square image.*
+### Characters — 2 items
 
 **Replace the placeholder hero.** `human.png` breaks all four of its own art rules and we
 know it. *~25 generations.*
