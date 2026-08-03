@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, CircleHelp, Command, FileText, FlaskConical, Hammer, Image, Menu, Search, Shield, Sparkles, Swords, Users, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, CircleHelp, Command, ExternalLink, FileText, FlaskConical, Hammer, Image, Menu, Search, Shield, Sparkles, Swords, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, elements, navigation, searchEntries } from './content';
@@ -9,8 +9,23 @@ import { ElementPerformancePlayer } from './ElementPerformancePlayer';
 import workshopArena from '../../docs/production/screenshots/workshop-arena.png';
 import workshopBoss from '../../docs/production/screenshots/workshop-boss.png';
 import workshopSprite from '../../docs/production/screenshots/workshop-sprite.png';
+import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.png';
+import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
 
-const icons = [Command, Users, Swords, Sparkles, Castle, CircleHelp, FileText, Image, Hammer, BookOpen, Boxes, Archive];
+const icons = [Command, Users, Swords, Sparkles, Castle, CircleHelp, FileText, Workflow, Image, Hammer, BookOpen, Boxes, Archive];
+
+const studioStages = [
+  ['01', 'Idea', 'Raheem and the team decide what should become part of the game.'],
+  ['02', 'Plan', 'The Studio Lead turns direction into the smallest safe plan and chooses FAST, STANDARD, or FULL mode.'],
+  ['03', 'Create', 'Figma, Leonardo, PixelLab, and the AI tools produce the design, art, sprites, and implementation inputs.'],
+  ['04', 'Build', 'React, TypeScript, and Phaser turn approved inputs into the playable experience.'],
+  ['05', 'Connect', 'Supabase and secure Vercel functions connect game data, accounts, and provider calls.'],
+  ['06', 'Prove', 'Checks, named scenarios, screenshots, and live evidence return PASS, FAIL, or HUMAN REVIEW.'],
+  ['07', 'Release', 'A human approves the push and deployment. Release is never automatic.'],
+] as const;
+
+const studioAgents = ['art-prompt-director', 'environment-art-director', 'game-systems-designer', 'lore-fantasy-director', 'minigame-designer', 'phaser-runtime-director', 'pixel-sprite-director', 'technical-architect', 'ui-ux-director'];
+const studioSkills = ['art-pipeline', 'audit-project-knowledge', 'balance-playtest · inactive', 'build-phaser-feature', 'consult-specialist', 'create-archetype', 'create-arena', 'create-boss', 'create-character-sprite', 'create-prop', 'design-archetype-emblem', 'design-feature', 'design-minigame', 'extract-fullscreen-shell · retired', 'place-character-in-scene', 'production-log', 'ship-approved-plan', 'ship-minigame · retired', 'studio-health', 'sync-project-knowledge', 'trace-environment', 'visual-playtest', 'work-proposal'];
 
 function Shell() {
   const [menu, setMenu] = useState(false);
@@ -47,7 +62,7 @@ function Shell() {
       <header className="topbar"><button className="menu-button" onClick={() => setMenu(true)} aria-label="Open navigation"><Menu/></button><div className="search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the studio…" aria-label="Search the Studio Wiki" onKeyDown={(event) => { if (event.key === 'Enter' && matches[0]) { navigate(matches[0].path); setSearch(''); } }}/>{search && <div className="search-results">{matches.length ? matches.map((entry) => <button key={entry.path} onClick={() => { navigate(entry.path); setSearch(''); }}><strong>{entry.title}</strong><span>{entry.text}</span></button>) : <p>No matching section</p>}</div>}</div><span className="crumb">{searchEntries.find((entry) => entry.path === path)?.title ?? 'Studio Home'}</span></header>
       <main>{({
         '/': <Home/>, '/characters': <Characters/>, '/bosses': <Bosses/>, '/abilities': <Abilities/>,
-        '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/assets': <Assets/>,
+        '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
       } as Record<string, ReactNode>)[path] ?? <Home/>}</main>
     </div>
@@ -170,6 +185,74 @@ function Minigames() {
 function Production() {
   const sections = useMemo(() => sectionsFromMarkdown(productionMarkdown), []); const [selected, setSelected] = useState(Math.max(0, sections.findIndex((section) => section.heading.includes('What I')))); const section = sections[selected];
   return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Current Build" intro="A readable window into PRODUCTION.md. The Markdown file stays canonical; this page adapts it at build time." status="IN FLIGHT"/><div className="reading-layout"><aside className="toc"><p>IN THIS SOURCE</p>{sections.filter((item) => item.level <= 2).slice(0, 18).map((item) => { const index = sections.indexOf(item); return <button className={index === selected ? 'active' : ''} key={`${item.heading}-${index}`} onClick={() => setSelected(index)}>{item.heading}</button>; })}</aside><Panel className="article"><p className="eyebrow">PRODUCTION.MD · BUILD-TIME SOURCE</p><h2>{section?.heading}</h2>{section && <MarkdownBody lines={section.body}/>}<RepoLink path="PRODUCTION.md"/></Panel><aside className="facts"><div><span>Source of truth</span><strong>PRODUCTION.md</strong></div><div><span>Operational metrics</span><strong>Admin dashboard</strong></div><div><span>Update path</span><strong>production-log skill</strong></div></aside></div></>;
+}
+
+function StudioHandbook() {
+  return <>
+    <PageHeader eyebrow="COWORKER HANDBOOK · CARD ENGINE AI STUDIO V2" title="The workflow is the studio." intro="A practical handoff for collaborators: how an idea becomes art, code, evidence, and a human-approved release without losing the reasoning that made it work." status="IN FLIGHT"/>
+
+    <div className="studio-purpose-grid">
+      <Panel className="studio-purpose">
+        <p className="eyebrow">WHAT WE ARE HANDING OFF</p>
+        <h2>Not a box of agents. A way of making games together.</h2>
+        <p>Card Engine is the proving ground for a reusable AI-native 2D game studio. The valuable part is the repeatable process Raheem developed: decide clearly, create with the right tool, integrate into the real game, prove the result, and preserve what the team learned.</p>
+        <div className="studio-principle"><Workflow/><span><strong>One visible path</strong> from idea to release, with an owner and evidence at every handoff.</span></div>
+      </Panel>
+      <Panel className="studio-authority">
+        <Shield/>
+        <p className="eyebrow">HUMAN AUTHORITY</p>
+        <h2>People decide. Tools assist.</h2>
+        <p>Raheem and approved teammates keep the final say on creative direction, product, economy, spending, destructive actions, subjective review, push, and deployment.</p>
+        <strong>Release is never automatic.</strong>
+      </Panel>
+    </div>
+
+    <Panel title="Before a new collaborator starts" action={<span className="studio-kicker">PERSONAL ACCOUNTS · SHARED WORKSPACES</span>}>
+      <div className="studio-onboarding-grid">
+        <article><span>01</span><strong>Create your own tool spaces</strong><p>Set up your own Figma and Leonardo accounts. Personal credentials and provider keys are never handed from one developer to another.</p></article>
+        <article><span>02</span><strong>Join the shared work</strong><p>Once your accounts exist, the team can connect shared Figma and Leonardo workspaces where collaboration belongs.</p></article>
+        <article><span>03</span><strong>Read the current truth</strong><p>Start with the production record and Studio architecture—not an old conversation—so you know what exists, what is in flight, and why.</p></article>
+        <article><span>04</span><strong>Work through evidence</strong><p>Use the repository workflow, keep secrets local, and finish with checks plus human review at the gates that require judgment.</p></article>
+      </div>
+    </Panel>
+
+    <Panel title="How we make the game" action={<a className="studio-full-link" href={studioWorkflow} target="_blank" rel="noreferrer">Open full-size map <ExternalLink/></a>} className="studio-diagram-panel">
+      <p className="studio-section-lede">This is the framework a new developer inherits: responsibility first, a seven-stage production path, clear tool boundaries, and evidence before release.</p>
+      <figure className="studio-figure">
+        <div className="studio-diagram-scroll" tabIndex={0} aria-label="Scrollable overview of the Card Engine AI Studio V2 workflow">
+          <img src={studioWorkflow} alt="Card Engine AI Studio V2 workflow showing human responsibility, seven production stages, tool responsibilities, and current status"/>
+        </div>
+        <figcaption>People decide. One Studio Lead coordinates. Tools do specific jobs. Evidence proves the result.</figcaption>
+      </figure>
+      <details className="studio-transcript"><summary>Read the workflow as text</summary><div className="studio-stage-grid">{studioStages.map(([number, title, copy]) => <article key={number}><span>{number}</span><strong>{title}</strong><p>{copy}</p></article>)}</div></details>
+    </Panel>
+
+    <div className="section-title"><div><p className="eyebrow">THE HANDOFFS</p><h2>Each tool has a job. None of them is the studio.</h2></div></div>
+    <div className="studio-tool-grid">
+      <Panel title="Design + creation"><p><strong>Figma</strong> shapes screens and scene geometry. <strong>Leonardo</strong> creates portraits, emblems, and painted places. <strong>PixelLab and Pixelorama</strong> create and repair sprites and animation.</p></Panel>
+      <Panel title="Frontend + game engine"><p><strong>React and TypeScript</strong> build menus and product surfaces. <strong>Phaser</strong> runs the playable 2D world. The Studio Lead integrates the work.</p></Panel>
+      <Panel title="Backend + secure AI"><p><strong>Supabase</strong> stores accounts and game data. <strong>Vercel Functions</strong> protect provider calls. AI providers help with names, lore, prompts, and production work.</p></Panel>
+      <Panel title="Evidence + memory"><p>Tests, named scenarios, screenshots, and consoles prove behavior. Canonical documents, registries, and playbooks preserve what worked for the next collaborator.</p></Panel>
+    </div>
+
+    <Panel title="The supporting studio system" action={<a className="studio-full-link" href={studioRoster} target="_blank" rel="noreferrer">Open full-size index <ExternalLink/></a>} className="studio-diagram-panel">
+      <p className="studio-section-lede">Specialist agents advise when judgment is needed. Skills hold repeatable workflows. The active Studio Lead still owns integration, verification, reporting, and documentation.</p>
+      <figure className="studio-figure">
+        <div className="studio-diagram-scroll" tabIndex={0} aria-label="Scrollable index of installed Studio V2 specialist agents and production skills">
+          <img src={studioRoster} alt="Index of nine read-only specialist agents and twenty-three installed production workflow skills, including retired and inactive statuses"/>
+        </div>
+        <figcaption>The roster supports the workflow; it does not replace human direction or the Studio Lead.</figcaption>
+      </figure>
+      <details className="studio-transcript"><summary>Read the installed roster as text</summary><div className="studio-roster-text"><section><h3>9 read-only specialists</h3><ul>{studioAgents.map((agent) => <li key={agent}>{agent}</li>)}</ul></section><section><h3>23 installed skills</h3><ul>{studioSkills.map((skill) => <li key={skill}>{skill}</li>)}</ul></section></div></details>
+    </Panel>
+
+    <Panel title="Where the living instructions live" className="studio-reference-panel">
+      <div><RepoLink path="AI_STUDIO_ARCHITECTURE.md"/><p>The plain-language operating model and coworker-ready studio layers.</p></div>
+      <div><RepoLink path="STUDIO_CHARTER.md"/><p>Authority, approval gates, specialist rules, and the long-term vision.</p></div>
+      <div><RepoLink path=".claude/studio/STUDIO_CAPABILITY_REGISTRY.json"/><p>The machine-readable index of current agents, skills, triggers, status, and verification.</p></div>
+      <div><RepoLink path="PRODUCTION.md"/><p>What is true today, what is unfinished, and why decisions were made.</p></div>
+    </Panel>
+  </>;
 }
 
 function Assets() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Art & Assets" intro="The web-sized catalog now; a clean bridge to OpenNest full-resolution storage later." status="IN FLIGHT"/><div className="asset-stats"><div><strong>11</strong><span>Integrated emblems</span></div><div><strong>29</strong><span>Element crystals</span></div><div><strong>7</strong><span>Debt-Bearer clips</span></div><div><strong>2</strong><span>Approved arenas</span></div></div><Panel title="Storage contract"><div className="storage-flow"><div><Image/><strong>Studio Wiki</strong><span>Metadata + web previews</span></div><ChevronDown/><div><Boxes/><strong>GitHub repository</strong><span>Canonical docs + optimized assets</span></div><ChevronDown/><div><Castle/><strong>OpenNest at home</strong><span>Full-resolution sources later</span></div></div></Panel><Panel title="Asset truth"><div className="fact-grid"><div><Status value="APPROVED"/><strong>Ready for canonical display</strong></div><div><Status value="IN FLIGHT"/><strong>Visible with status and provenance</strong></div><div><Status value="MISSING ASSET"/><strong>Honest placeholder; no substitution</strong></div><div><Status value="PARKED"/><strong>Preserved without implying commitment</strong></div></div></Panel></>; }

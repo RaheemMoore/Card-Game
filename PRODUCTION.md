@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Element Codex now browses all 29 canonical elements and previews 27 committed PixelLab combat kits from `ability-performance-system` at `c39304f`. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Element Codex previews the committed PixelLab library; and the AI Studio Handbook now gives new collaborators a workflow-first Studio V2 handoff. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -703,6 +703,24 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Studio V2 is handed off as a workflow, not an agent collection
+
+The Studio Wiki now gives AI Studio V2 its own coworker handbook under Production. It leads
+with the repeatable path from idea through creation, implementation, evidence, and human-approved
+release. The specialist-agent and skill roster remains visible, but it is supporting reference:
+the valuable framework is the production process Raheem developed and proved while building the
+game.
+
+New collaborators create their own Figma and Leonardo accounts and personal spaces first. The
+team can then connect shared workspaces through those services without transferring personal
+credentials or provider keys. The handbook points every collaborator back to the repository's
+current production record, architecture, charter, and capability registry instead of depending
+on a past conversation.
+
+*Why it matters:* Another developer can learn how the studio actually makes and integrates game
+art, join the shared work safely, and preserve the reasoning behind each result without treating
+the agents themselves as the product.
 
 ### 2026-08-03 — Element identity and battle expression are separate Wiki layers
 

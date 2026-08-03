@@ -29,6 +29,11 @@ describe('Studio Wiki content contracts', () => {
     expect(exploreItems).toContainEqual(['/minigames', 'Battle Tower']);
   });
 
+  it('makes the coworker handbook a first-class Production destination', () => {
+    const productionItems = navigation.find(({ group }) => group === 'Production')?.items;
+    expect(productionItems?.[1]).toEqual(['/studio', 'AI Studio Handbook']);
+  });
+
   it('adapts canonical Markdown into readable sections', () => {
     const sections = sectionsFromMarkdown('# Guide\nIntro\n## Status\n- Shipped');
     expect(sections).toEqual([

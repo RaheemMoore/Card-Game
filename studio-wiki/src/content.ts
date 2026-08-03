@@ -98,7 +98,7 @@ export const bossStates = [
 
 export const navigation = [
   { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/abilities', 'Abilities & Elements'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
-  { group: 'Production', items: [['/production', 'Current Build'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decisions'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
+  { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decisions'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
 ] as const;
 
 export const searchEntries = [
@@ -108,6 +108,7 @@ export const searchEntries = [
   { path: '/world', title: 'Game World', text: 'castle courtyard tower arenas colliders occluders Phaser Leonardo PixelLab' },
   { path: '/minigames', title: 'Battle Tower', text: 'primary game mode floors party cards boss intent attack mana tech elements guard strike abilities' },
   { path: '/production', title: 'Current Build', text: 'production status open threads priorities shipped in flight' },
+  { path: '/studio', title: 'AI Studio Handbook', text: 'coworker onboarding workflow accounts Figma Leonardo idea plan create build connect prove release agents skills evidence human approval' },
   { path: '/assets', title: 'Art & Assets', text: 'asset catalog OpenNest web previews provenance approved candidate missing' },
   { path: '/workshops', title: 'Workshops', text: 'harnesses sprite lab background arena prompt lab visual playtest' },
   { path: '/decisions', title: 'Decisions', text: 'decision log governance canonical source truth' },
