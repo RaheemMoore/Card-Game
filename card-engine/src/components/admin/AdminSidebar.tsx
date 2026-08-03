@@ -1,21 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Layers, Sparkles, FlaskConical, Hammer,
+  LayoutDashboard, Users, Sparkles, FlaskConical, Hammer,
   Receipt, Activity, PanelLeftClose, PanelLeftOpen, LogOut, ArrowLeft,
-  BookOpen, ExternalLink,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
-
-/**
- * The published production guide — status, open threads, the workshops, and the
- * decision log. Hosted rather than rebuilt in-app on purpose: one page, one
- * source (PRODUCTION.md), linked from here so nobody has to remember the URL.
- *
- * The URL is STABLE across updates — `npm run production:page` regenerates the
- * file and it republishes to this same address. If it ever changes, this
- * constant and PRODUCTION.md's own reference are the two places to update.
- */
-const PRODUCTION_GUIDE_URL = 'https://claude.ai/code/artifact/d6c9c64f-1342-43cc-9b5f-6fdd87d98852';
 
 // `directorOk` marks the surfaces a lore_director may reach. Everything
 // else is admin-only; a director sees a Proposals-only sidebar.
@@ -36,8 +25,7 @@ const GROUPS: readonly NavGroup[] = [
     items: [
       { label: 'Overview', to: '/admin', icon: LayoutDashboard, end: true },
       { label: 'Users', to: '/admin/users', icon: Users },
-      { label: 'Cards', to: '/admin/cards', icon: Layers },
-      { label: 'Abilities', to: '/admin/abilities', icon: Sparkles },
+      { label: 'Ability Review', to: '/admin/abilities', icon: Sparkles },
     ],
   },
   {
@@ -52,12 +40,6 @@ const GROUPS: readonly NavGroup[] = [
     items: [
       { label: 'Costs', to: '/admin/costs', icon: Receipt },
       { label: 'Diagnostics', to: '/admin/diagnostics', icon: Activity },
-    ],
-  },
-  {
-    label: 'Studio',
-    items: [
-      { label: 'Production Guide', href: PRODUCTION_GUIDE_URL, icon: BookOpen, directorOk: true },
     ],
   },
 ];

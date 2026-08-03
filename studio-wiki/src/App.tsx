@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Gem, Hammer, Image, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
-import { archetypes, bossStates, elements, navigation, searchEntries } from './content';
+import { archetypes, bossStates, elements, navigation, permanentCards, searchEntries, testedCards } from './content';
 import { MarkdownBody, sectionsFromMarkdown } from './markdown';
 import { ElementPerformancePlayer } from './ElementPerformancePlayer';
 import workshopArena from '../../docs/production/screenshots/workshop-arena.png';
@@ -67,7 +67,7 @@ function Shell() {
     <div className="main-column">
       <header className="topbar"><button className="menu-button" onClick={() => setMenu(true)} aria-label="Open navigation"><Menu/></button><div className="search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the studio…" aria-label="Search the Studio Wiki" onKeyDown={(event) => { if (event.key === 'Enter' && matches[0]) { navigate(matches[0].path); setSearch(''); } }}/>{search && <div className="search-results">{matches.length ? matches.map((entry) => <button key={entry.path} onClick={() => { navigate(entry.path); setSearch(''); }}><strong>{entry.title}</strong><span>{entry.text}</span></button>) : <p>No matching section</p>}</div>}</div><span className="crumb">{searchEntries.find((entry) => entry.path === path)?.title ?? 'Studio Home'}</span></header>
       <main>{({
-        '/': <Home/>, '/characters': <Characters/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
+        '/': <Home/>, '/characters': <Characters/>, '/characters/cards': <Cards/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
         '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
         '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>,
@@ -87,7 +87,24 @@ function Home() {
 
 function Characters() {
   const [selected, setSelected] = useState(0); const item = archetypes[selected];
-  return <><PageHeader eyebrow="VISUAL WIKI" title="Characters & Archetypes" intro="The eleven collectible identities. Emblems lead to the cards, heroes, and canon that belong to each archetype." status="SHIPPED"/><div className="character-layout"><Panel title="The eleven archetypes" className="emblem-panel"><div className="emblem-grid">{archetypes.map((entry, index) => <button className={selected === index ? 'emblem-card selected' : 'emblem-card'} key={entry[0]} onClick={() => setSelected(index)} aria-pressed={selected === index}><img src={`/assets/archetype-emblems/${entry[1]}`} alt={`${entry[0]} emblem`}/><span>{entry[0]}</span></button>)}</div></Panel><Panel className="archetype-detail"><img className="detail-emblem" src={`/assets/archetype-emblems/${item[1]}`} alt=""/><p className="eyebrow">SELECTED ARCHETYPE</p><h2>{item[0]}</h2><p>{item[3]}</p><dl><div><dt>Primary symbol</dt><dd>{item[2]}</dd></div><div><dt>Progression</dt><dd>Foundation → Forged → Ascendant</dd></div><div><dt>Identity rule</dt><dd>Rank growth preserves the person.</dd></div></dl><RepoLink path="card-engine/src/data/archetypeBible/"/></Panel></div><Panel title="Verified cards & heroes" action={<Status value="MISSING ASSET"/>}><div className="truth-row"><MissingMedia label={`${item[0]} card gallery`}/><div><h3>Emblem complete. Card curation pending.</h3><p>The Wiki will open from this emblem into verified cards and character art once their mappings are approved. Bosses are never used as substitutes.</p></div></div></Panel></>;
+  return <><PageHeader eyebrow="VISUAL WIKI" title="Characters & Archetypes" intro="The eleven collectible identities. Emblems lead to the cards, heroes, and canon that belong to each archetype." status="SHIPPED"/><div className="character-layout"><Panel title="The eleven archetypes" className="emblem-panel"><div className="emblem-grid">{archetypes.map((entry, index) => <button className={selected === index ? 'emblem-card selected' : 'emblem-card'} key={entry[0]} onClick={() => setSelected(index)} aria-pressed={selected === index}><img src={`/assets/archetype-emblems/${entry[1]}`} alt={`${entry[0]} emblem`}/><span>{entry[0]}</span></button>)}</div></Panel><Panel className="archetype-detail"><img className="detail-emblem" src={`/assets/archetype-emblems/${item[1]}`} alt=""/><p className="eyebrow">SELECTED ARCHETYPE</p><h2>{item[0]}</h2><p>{item[3]}</p><dl><div><dt>Primary symbol</dt><dd>{item[2]}</dd></div><div><dt>Progression</dt><dd>Foundation → Forged → Ascendant</dd></div><div><dt>Identity rule</dt><dd>Rank growth preserves the person.</dd></div></dl><RepoLink path="card-engine/src/data/archetypeBible/"/></Panel></div><Panel title="Cards made from these archetypes" action={<a className="tower-related" href="/characters/cards">Open the Cards page →</a>}><div className="truth-row"><div className="card-status-mark"><Layers/></div><div><h3>Three development examples. Zero permanent cards.</h3><p>See what the current tests are teaching us, and the deliberately empty roster that will hold only cards explicitly accepted into the game.</p></div></div></Panel></>;
+}
+
+function Cards() {
+  return <><PageHeader eyebrow="CHARACTERS & ARCHETYPES · CARD RECORD" title="Cards" intro="Examples from building the character-generation engine. Presence here documents what we learned; it does not place a card in the game." status="IN FLIGHT"/>
+    <div className="card-truth-banner"><Layers/><div><p className="eyebrow">THE GOVERNING RULE</p><h2>A card becomes permanent only through explicit human acceptance.</h2><p>Assets, database rows, generated portraits, and successful playtests never promote a card on their own.</p></div><span>0 ACCEPTED INTO GAME</span></div>
+    <Panel title="Tested Cards" action={<span className="card-section-state">DEVELOPMENT EVIDENCE</span>} className="tested-card-section">
+      <p className="card-section-intro">These characters are controlled test fixtures. They help us practice the Forge, card rendering, party composition, ability loadouts, and Battle Tower decisions while the quality standard is still being defined.</p>
+      <div className="tested-card-grid">{testedCards.map((card) => <article className="tested-card" key={card.name}>
+        <div className="tested-card-portrait"><img src={card.portrait} alt={`${card.name} development portrait`}/><span>TESTED · DEVELOPMENT ARTIFACT</span></div>
+        <div className="tested-card-copy"><p className="eyebrow">{card.archetype}</p><h3>{card.title}</h3><p>{card.purpose}</p><div className="tested-card-lesson"><strong>What this test taught us</strong><span>{card.lesson}</span></div></div>
+      </article>)}</div>
+      <RepoLink path="card-engine/src/pages/DevSeedBattle.tsx"/>
+    </Panel>
+    <Panel title="Permanent Archetype Cards" action={<span className="card-section-state card-section-empty">0 ACCEPTED</span>} className="permanent-card-section">
+      {permanentCards.length === 0 && <div className="permanent-empty"><div className="permanent-seal"><Shield/><span>NONE<br/>ACCEPTED</span></div><div><p className="eyebrow">PERMANENT ROSTER</p><h2>No cards have been accepted into the permanent game roster.</h2><p>This space is intentionally empty. A card will appear here only after its identity, art, rendering, and production provenance meet the game standard and Raheem explicitly accepts it into the game.</p><div className="acceptance-gates"><span>Identity holds across ranks</span><span>Art meets the game standard</span><span>Generation is reproducible</span><span>Human acceptance is recorded</span></div></div></div>}
+    </Panel>
+  </>;
 }
 
 function Bosses() {

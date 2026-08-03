@@ -17,8 +17,8 @@ const COMPACT_KEY = 'admin-sidebar-compact';
 const TITLE_BY_PATH: Record<string, string> = {
   '/admin': 'Overview',
   '/admin/users': 'Users',
-  '/admin/cards': 'Cards',
-  '/admin/abilities': 'Abilities',
+  '/admin/cards': 'Live Card Audit',
+  '/admin/abilities': 'Ability Review',
   '/admin/prompt-lab': 'Prompt Lab',
   '/admin/proposals': 'Proposals',
   '/admin/costs': 'Costs',

@@ -110,8 +110,8 @@ export function AdminCards() {
 
   return (
     <AdminPage
-      title="Cards"
-      description="Every user-owned card (one row per row in the cards table). Failed forges and Prompt Lab test forges are excluded; ability art lives under Abilities. Search matches card name / owner email / uid / card_id. Click a row for the full renderer + prompt provenance."
+      title="Live Card Audit"
+      description="Private operational records for every user-owned card in the live cards table. This view includes owner identifiers and prompt provenance; curated test examples and future permanent game cards belong in the Studio Wiki. Search matches card name / owner email / uid / card_id."
     >
       <AdminFilterBar className="mb-3">
         <div className="flex-1 min-w-[14rem] max-w-md">

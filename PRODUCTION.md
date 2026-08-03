@@ -270,11 +270,11 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Collection + card detail | Grid, filters, tier-up, evolution history |
 | SHIPPED | Ability system | Typed catalogs, power budget validator, discovery rewards, codex |
 | SHIPPED | Persistence + auth + admin | Supabase, RLS, anonymous→email upgrade, admin RBAC |
-| SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side |
+| SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side. The Studio Wiki branch now keeps the sidebar operational: Ability Review remains, Live Card Audit moves behind Overview, and duplicate reference browsing is removed. |
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; Cards separates three development fixtures from an explicitly empty permanent roster; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -294,7 +294,7 @@ Four branches carry the work currently named in this guide.
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 7 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, separate Element and Ability codices, studio memory, and local verification |
+| `codex/studio-wiki-foundation` | 8 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, separate Element, Ability, and Card references, lean admin navigation, studio memory, and local verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -703,6 +703,24 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — The Wiki owns reference; admin owns live operations
+
+The admin sidebar no longer presents Cards and Abilities as general libraries. **Ability
+Review** keeps the actions that change state: approve, reject, merge, generate candidate art,
+and accept or reject those candidates. The private cross-user card table remains available
+from the Overview metric as **Live Card Audit**, because owner identifiers and prompt
+provenance are operational records, not public Wiki material. The obsolete Production Guide
+link is removed; a Studio Wiki link returns only after the Wiki has an approved deployed URL.
+
+The Wiki's Cards page lives beneath Characters & Archetypes because the card is the format a
+character comes in. It records Gryndak, Seojin, and Ashvara as **TESTED · DEVELOPMENT
+ARTIFACT** examples and keeps **Permanent Archetype Cards** at **0 ACCEPTED**. No asset,
+database row, or successful test can promote a card. A permanent card requires Raheem's
+explicit human acceptance.
+
+*Why it matters:* The team can learn from every useful card test without accidentally turning
+practice work into canon, while the admin remains a focused place for private data and actions.
 
 ### 2026-08-03 — Studio memory, current work, elements, and abilities keep separate jobs
 

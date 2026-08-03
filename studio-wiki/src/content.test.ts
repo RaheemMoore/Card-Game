@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { archetypes, bossStates, elements, navigation } from './content';
+import { archetypes, bossStates, elements, navigation, permanentCards, searchEntries, testedCards } from './content';
 import { sectionsFromMarkdown } from './markdown';
 
 describe('Studio Wiki content contracts', () => {
@@ -33,6 +33,14 @@ describe('Studio Wiki content contracts', () => {
     const exploreItems = navigation.find(({ group }) => group === 'Explore')?.items;
     expect(exploreItems).toContainEqual(['/elements', 'Elements']);
     expect(exploreItems).toContainEqual(['/abilities', 'Abilities']);
+  });
+
+  it('keeps card tests separate from the human-accepted permanent roster', () => {
+    expect(testedCards).toHaveLength(3);
+    expect(testedCards.map(({ name }) => name)).toEqual(['Gryndak', 'Seojin', 'Ashvara']);
+    expect(permanentCards).toHaveLength(0);
+    expect(searchEntries).toContainEqual(expect.objectContaining({ path: '/characters/cards', title: 'Cards' }));
+    expect(navigation.flatMap(({ items }) => items.map(([path]) => path))).not.toContain('/characters/cards');
   });
 
   it('makes the coworker handbook a first-class Production destination', () => {

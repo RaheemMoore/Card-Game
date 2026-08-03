@@ -14,6 +14,37 @@ export const archetypes = [
   ['Human', 'human.jpg', 'Fingerprint-ridge knight', 'Adaptability without destiny'],
 ] as const;
 
+export const testedCards = [
+  {
+    name: 'Gryndak',
+    title: 'Gryndak, the Half-Claimed',
+    archetype: 'Barbarian',
+    portrait: '/assets/dev-portraits/Gryndak.jpg',
+    purpose: 'Exercises a low-Mana, attack-led hero with a complete three-ability battle loadout.',
+    lesson: 'A strong combat silhouette still needs the full identity, rendering, and art-quality bar before it can enter the game.',
+  },
+  {
+    name: 'Seojin',
+    title: 'Seojin, Lycanthrope of the Infinite',
+    archetype: 'Lycanthrope',
+    portrait: '/assets/dev-portraits/Seojin.jpg',
+    purpose: 'Exercises a defense-led hero and the Lycanthrope identity-continuity rules in battle.',
+    lesson: 'A useful playtest character can prove systems without becoming a permanent character.',
+  },
+  {
+    name: 'Ashvara',
+    title: 'Ashvara, the Void-Synchronized',
+    archetype: 'Necromancer',
+    portrait: '/assets/dev-portraits/Ashvara.jpg',
+    purpose: 'Exercises a resource-rich caster with a complete core, signature, and ultimate loadout.',
+    lesson: 'Mechanical coverage and evocative art are evidence of learning, not an acceptance decision.',
+  },
+] as const;
+
+// This list is intentionally human-governed. File, asset, or database presence
+// never promotes a card into the permanent game roster.
+export const permanentCards: readonly [] = [];
+
 export type ElementPerformance = {
   slug: string;
   name: string;
@@ -104,6 +135,7 @@ export const navigation = [
 
 export const searchEntries = [
   { path: '/characters', title: 'Characters & Archetypes', text: 'eleven emblems cards heroes ranks foundation forged ascendant' },
+  { path: '/characters/cards', title: 'Cards', text: 'tested development artifacts permanent archetype cards accepted into game roster examples learning' },
   { path: '/bosses', title: 'Bosses & Arenas', text: 'Battle Tower floors Debt-Bearer Still Season PixelLab idle windup attack ultimate rage hit defeat' },
   { path: '/elements', title: 'Elements', text: '29 element crystals PixelLab charge delivery stream volley growth impact blast combat performance material language' },
   { path: '/abilities', title: 'Abilities', text: 'ability codex canonical roster core signature ultimate role family resource effects version artwork' },
