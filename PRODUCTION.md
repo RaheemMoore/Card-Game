@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; Cards separates three development fixtures from an explicitly empty permanent roster; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; Cards is a first-class Explore destination with three complete uncropped development cards and an explicitly empty permanent roster; Characters & Archetypes shows the selected archetype's accepted-card state; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -294,7 +294,7 @@ Four branches carry the work currently named in this guide.
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 8 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, separate Element, Ability, and Card references, lean admin navigation, studio memory, and local verification |
+| `codex/studio-wiki-foundation` | 9 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, first-class uncropped Card gallery, separate Element and Ability references, lean admin navigation, studio memory, and local verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -703,6 +703,23 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Cards is a first-class destination, and a card is shown whole
+
+Raheem reversed the earlier placement of Cards beneath Characters & Archetypes. **Cards**
+now has its own Explore navigation entry between **Bosses & Arenas** and **Elements**. The
+Cards page owns development artifacts and the future accepted roster. Characters &
+Archetypes remains archetype-led: selecting an emblem shows only the permanent cards accepted
+for that archetype, which is currently zero for all eleven.
+
+The three development assets are complete card compositions, not portrait crops. The Wiki
+now renders their native tall proportions with the full frame, name, artwork, and lower stats
+visible. Gryndak and Ashvara's crossed source filenames are corrected in the Wiki mapping so
+the visible card agrees with its explanation; the underlying game fixtures are unchanged.
+
+*Why it matters:* The card work is no longer hidden or visually diminished, and nobody has
+to choose between seeing the whole artifact and understanding that it is still development
+evidence rather than accepted canon.
 
 ### 2026-08-03 — The Wiki owns reference; admin owns live operations
 

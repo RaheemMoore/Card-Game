@@ -40,7 +40,13 @@ describe('Studio Wiki content contracts', () => {
     expect(testedCards.map(({ name }) => name)).toEqual(['Gryndak', 'Seojin', 'Ashvara']);
     expect(permanentCards).toHaveLength(0);
     expect(searchEntries).toContainEqual(expect.objectContaining({ path: '/characters/cards', title: 'Cards' }));
-    expect(navigation.flatMap(({ items }) => items.map(([path]) => path))).not.toContain('/characters/cards');
+    const exploreItems = navigation.find(({ group }) => group === 'Explore')?.items;
+    expect(exploreItems?.slice(2, 6)).toEqual([
+      ['/bosses', 'Bosses & Arenas'],
+      ['/characters/cards', 'Cards'],
+      ['/elements', 'Elements'],
+      ['/abilities', 'Abilities'],
+    ]);
   });
 
   it('makes the coworker handbook a first-class Production destination', () => {

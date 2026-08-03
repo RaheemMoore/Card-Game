@@ -19,7 +19,7 @@ export const testedCards = [
     name: 'Gryndak',
     title: 'Gryndak, the Half-Claimed',
     archetype: 'Barbarian',
-    portrait: '/assets/dev-portraits/Gryndak.jpg',
+    portrait: '/assets/dev-portraits/Ashvara.jpg',
     purpose: 'Exercises a low-Mana, attack-led hero with a complete three-ability battle loadout.',
     lesson: 'A strong combat silhouette still needs the full identity, rendering, and art-quality bar before it can enter the game.',
   },
@@ -35,15 +35,23 @@ export const testedCards = [
     name: 'Ashvara',
     title: 'Ashvara, the Void-Synchronized',
     archetype: 'Necromancer',
-    portrait: '/assets/dev-portraits/Ashvara.jpg',
+    portrait: '/assets/dev-portraits/Gryndak.jpg',
     purpose: 'Exercises a resource-rich caster with a complete core, signature, and ultimate loadout.',
     lesson: 'Mechanical coverage and evocative art are evidence of learning, not an acceptance decision.',
   },
 ] as const;
 
+export type PermanentCard = {
+  name: string;
+  title: string;
+  archetype: (typeof archetypes)[number][0];
+  image: string;
+  acceptedAt: string;
+};
+
 // This list is intentionally human-governed. File, asset, or database presence
 // never promotes a card into the permanent game roster.
-export const permanentCards: readonly [] = [];
+export const permanentCards: readonly PermanentCard[] = [];
 
 export type ElementPerformance = {
   slug: string;
@@ -128,7 +136,7 @@ export const bossStates = [
 ] as const;
 
 export const navigation = [
-  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
+  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/characters/cards', 'Cards'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
   { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decision Log'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
   { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"]] },
 ] as const;
