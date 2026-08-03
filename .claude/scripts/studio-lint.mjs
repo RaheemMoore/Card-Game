@@ -12,10 +12,21 @@ const add = (arr, rule, file, message) => arr.push({ rule, file: file.replaceAll
 
 function read(file) { return fs.readFileSync(file, 'utf8'); }
 function rel(file) { return path.relative(root, file).replaceAll('\\', '/'); }
+// Directories this walk must never enter: node_modules is vendored, and
+// .claude/worktrees holds OTHER git worktrees nested on disk as literal
+// subdirectories (git worktree add puts them there) — each one a full,
+// separate checkout with its own .claude/ and node_modules. Scanning from the
+// primary checkout with sibling worktrees present walked into all of them,
+// reporting their unrelated content (and their vendored deps) as this
+// project's studio errors. Never caught in isolated-worktree testing because
+// a nested worktree has no sibling worktrees under IT.
+const NEVER_WALK = new Set(['node_modules', 'worktrees', '.git']);
+
 function filesUnder(dir, predicate = () => true) {
   if (!fs.existsSync(dir)) return [];
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory() && NEVER_WALK.has(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) out.push(...filesUnder(full, predicate));
     else if (predicate(full)) out.push(full);
