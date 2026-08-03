@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`; deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`; its Battle Tower page now explains the primary play loop while Bosses & Arenas remains the production inspector. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -703,6 +703,20 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Battle Tower is the primary playable mode in the Studio Wiki
+
+The Wiki now presents Battle Tower as the castle's first great door and the place to explain
+party building, boss intent, action order, attacking, guarding, elements, damage, and the
+shared Mana and Tech chambers. The existing `/minigames` address remains stable for now, but
+its visible name is Battle Tower. Bosses & Arenas remains a separate production inspector for
+the art, animation states, and arena assets used on Tower floors.
+
+The Wiki does not invent a final floor count, rewards, or unverified elemental combat art. The
+new PixelLab effect assets will be handled in a later asset-verification pass.
+
+*Why it matters:* Players and collaborators can now understand the game's central play loop
+without confusing the playable mode with the library of assets used to build it.
 
 ### 2026-08-03 — The Studio Wiki becomes a permanent repository-backed application
 

@@ -16,6 +16,11 @@ describe('Studio Wiki content contracts', () => {
     expect(new Set(paths).size).toBe(paths.length);
   });
 
+  it('presents the Battle Tower as the playable mode without losing its stable route', () => {
+    const exploreItems = navigation.find(({ group }) => group === 'Explore')?.items;
+    expect(exploreItems).toContainEqual(['/minigames', 'Battle Tower']);
+  });
+
   it('adapts canonical Markdown into readable sections', () => {
     const sections = sectionsFromMarkdown('# Guide\nIntro\n## Status\n- Shipped');
     expect(sections).toEqual([

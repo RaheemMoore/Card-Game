@@ -57,8 +57,8 @@ export function App() { return <Shell/>; }
 
 function Home() {
   return <><PageHeader eyebrow="CARD ENGINE · STUDIO CONTROL CENTER" title="Everything we know, somewhere worth exploring." intro="A visual, searchable home for the game’s characters, worlds, production truth, and the tools used to make them." status="IN FLIGHT"/>
-    <div className="hero-grid"><Panel className="hero-panel"><div className="hero-art"><img src="/assets/castle/courtyard.png" alt="The Card Engine castle courtyard"/><div className="hero-overlay"><span>THE WORLD</span><h2>The castle is the hub. Every mode is a door.</h2><a href="/world">Explore the game world →</a></div></div></Panel><Panel title="What needs attention"><div className="attention-list"><div><Status value="IN FLIGHT"/><strong>Studio Wiki foundation</strong><span>Repository-backed implementation</span></div><div><Status value="PLANNED"/><strong>Open the first castle stall</strong><span>Tower gate → boss battle</span></div><div><Status value="PARKED"/><strong>Minigames</strong><span>No confirmed active minigame</span></div></div></Panel></div>
-    <div className="section-title"><div><p className="eyebrow">EXPLORE THE STUDIO</p><h2>Choose a door</h2></div></div><div className="route-grid"><RouteCard icon={<Users/>} title="Characters & Archetypes" copy="11 identities, emblems, cards, and rank continuity" path="/characters"/><RouteCard icon={<Swords/>} title="Bosses & Arenas" copy="Combat champions, seven-state animation, and arena truth" path="/bosses"/><RouteCard icon={<Sparkles/>} title="Abilities & Elements" copy="Full-art crystals, ability roles, and system rules" path="/abilities"/><RouteCard icon={<Hammer/>} title="Workshops" copy="The harnesses that turn ideas into reproducible work" path="/workshops"/></div>
+    <div className="hero-grid"><Panel className="hero-panel"><div className="hero-art"><img src="/assets/castle/courtyard.png" alt="The Card Engine castle courtyard"/><div className="hero-overlay"><span>THE WORLD</span><h2>The castle is the hub. The Battle Tower is its first great door.</h2><a href="/minigames">Enter the Battle Tower guide →</a></div></div></Panel><Panel title="What needs attention"><div className="attention-list"><div><Status value="IN FLIGHT"/><strong>Studio Wiki foundation</strong><span>Repository-backed implementation</span></div><div><Status value="PLANNED"/><strong>Open the tower gate</strong><span>Castle courtyard → Battle Tower</span></div><div><Status value="IN FLIGHT"/><strong>Battle Tower</strong><span>Main mode · tower length undecided</span></div></div></Panel></div>
+    <div className="section-title"><div><p className="eyebrow">EXPLORE THE STUDIO</p><h2>Choose a door</h2></div></div><div className="route-grid"><RouteCard icon={<Castle/>} title="Battle Tower" copy="The primary mode: build a party, read the boss, and climb" path="/minigames"/><RouteCard icon={<Users/>} title="Characters & Archetypes" copy="11 identities, emblems, cards, and rank continuity" path="/characters"/><RouteCard icon={<Swords/>} title="Bosses & Arenas" copy="The Tower’s production art, animation, and floor assets" path="/bosses"/><RouteCard icon={<Sparkles/>} title="Abilities & Elements" copy="Full-art crystals, ability roles, and system rules" path="/abilities"/></div>
     <Panel title="The game in one sentence" className="manifesto"><blockquote>Card Engine is an adventure game with characters you made yourself.</blockquote><p>The card is the format a character comes in. It is not the point.</p></Panel></>;
 }
 
@@ -79,7 +79,64 @@ function Abilities() {
 
 function World() { return <><PageHeader eyebrow="VISUAL WIKI" title="Game World" intro="The permanent world, its interactive layers, and the boundary between painted truth and runtime behavior." status="IN FLIGHT"/><Panel className="world-hero"><img src="/assets/castle/courtyard.png" alt="Card Engine castle courtyard"/><div className="world-caption"><span>COURTYARD · 1536 × 1152</span><strong>The post-login hub with four unopened doors.</strong></div></Panel><div className="four-col"><Panel title="Leonardo"><p>Ground, architecture, landmarks, and permanent environment plates.</p></Panel><Panel title="PixelLab"><p>Actors, reusable props, shopkeepers, and animated character sprites.</p></Panel><Panel title="Figma"><p>Projection, placement, anchors, colliders, occluders, and physical truth.</p></Panel><Panel title="Phaser"><p>Motion, reactions, audio, depth, atmosphere, camera, and scene state.</p></Panel></div><Panel title="Scene layers"><div className="fact-grid"><div><strong>Base plate</strong><span>Approved and integrated</span></div><div><strong>Occluders</strong><span>Fountain bands, stalls, props</span></div><div><strong>Colliders</strong><span>Feet-origin, traced geometry</span></div><div><strong>Stalls</strong><span>4 placeholders · deliberately unwired</span></div></div></Panel></>; }
 
-function Minigames() { return <><PageHeader eyebrow="VISUAL WIKI" title="Minigames" intro="This room is intentionally quiet until the game has a confirmed minigame worth documenting." status="PARKED"/><Panel className="held-page"><FlaskConical/><h2>No active minigame</h2><p>Forge Strike is excluded. Nothing has been invented to fill the space. When a minigame is approved and built, this page will document its loop, assets, harness, status, and decisions.</p></Panel></>; }
+function Minigames() {
+  return <>
+    <PageHeader eyebrow="PRIMARY PLAYABLE MODE · THE CASTLE’S FIRST DOOR" title="Battle Tower" intro="Build a party from the characters you forged, read what the boss is about to do, and solve each encounter one floor at a time." status="IN FLIGHT"/>
+    <div className="tower-hero-grid">
+      <Panel className="tower-stage">
+        <img className="tower-arena" src="/assets/combat/arenas/barbarian-moot-ground/base.png" alt="The approved Barbarian moot-ground Battle Tower arena"/>
+        <div className="tower-boss"><img src="/assets/combat/bosses/debt-bearer/sprite-idle.png" alt="The Debt-Bearer waiting on a Battle Tower floor"/></div>
+        <div className="tower-party" aria-label="Example three-card party">
+          {['barbarian','druid','mech-pilot'].map((hero) => <img key={hero} src={`/assets/combat/heroes/archetypes/${hero}.png`} alt={`${hero.replace('-', ' ')} battle card`}/>) }
+        </div>
+        <div className="tower-stage-copy"><span>BATTLE TOWER · VERIFIED ENCOUNTER</span><strong>Your cards are the characters on the field.</strong></div>
+      </Panel>
+      <Panel title="The promise" className="tower-promise">
+        <p className="tower-lede">The Tower is the main feature and the gate.</p>
+        <p>You prepare in the castle, choose the cards that belong together, and enter a sequence of boss floors. Winning grows your characters and opens the rest of the game.</p>
+        <div className="tower-link-pair"><a href="/bosses">Inspect boss & arena assets →</a><RepoLink path="card-engine/src/pages/battle"/></div>
+        <div className="tower-caution"><Status value="PLANNED"/><span>The total number of floors is not decided yet.</span></div>
+      </Panel>
+    </div>
+
+    <div className="section-title"><div><p className="eyebrow">THE ROUND</p><h2>Read first. Commit second.</h2></div></div>
+    <div className="tower-round" aria-label="Battle round sequence">
+      <article><span>01</span><Swords/><strong>Boss declares</strong><p>Its intent, target, and telegraph are chosen and locked.</p></article>
+      <article><span>02</span><BookOpen/><strong>You read</strong><p>See who is threatened, what kind of hit is coming, and whether it can be interrupted.</p></article>
+      <article><span>03</span><Users/><strong>Your party acts</strong><p>Living cards take actions from left to right: strike, guard, or use an ability.</p></article>
+      <article><span>04</span><Shield/><strong>The boss resolves</strong><p>The declared action lands, the round ends, and statuses, cooldowns, and resources tick.</p></article>
+    </div>
+
+    <div className="tower-system-grid">
+      <Panel title="Build the party" className="tower-system">
+        <div className="power-budget"><div><span style={{width:'72%'}}/></div><strong>18 power</strong><small>3 field slots</small></div>
+        <p>Each card costs the sum of its three stat ranks. Up to three heroes take the field, but stronger cards consume more of the fixed power budget. Lanes resolve left to right.</p>
+        <div className="tower-rule"><strong>Why it matters</strong><span>The boss does not scale down to your party. Climbing is answered by building a better composition.</span></div>
+      </Panel>
+      <Panel title="Read a battle card" className="tower-system">
+        <div className="stat-explainer"><div><b>ATK</b><span>Sets the free Strike’s damage and scales offensive abilities.</span></div><div><b>DEF</b><span>Builds HP, reduces incoming damage, and strengthens Guard.</span></div><div><b>MANA<br/>TECH</b><span>Sets resource capacity and which shared chamber pays for abilities.</span></div></div>
+      </Panel>
+      <Panel title="The resource rhythm" className="tower-system">
+        <div className="chambers"><div className="mana"><span>Mana chamber</span><i/><i/><i/><i/></div><div className="tech"><span>Tech chamber</span><i/><i/><i/></div></div>
+        <p>Mana and Tech are separate party resources. Androids and Mech Pilots spend Tech; the other archetypes spend Mana. A free Strike deals light kinetic damage and adds <strong>2</strong> to the matching chamber. Abilities spend from that shared chamber.</p>
+        <small>Each living contributor also restores 1 to its matching chamber at round end.</small>
+      </Panel>
+      <Panel title="Elements, damage & defense" className="tower-system">
+        <div className="damage-pipeline"><span>Base + stat scaling</span><b>→</b><span>Weakness / resistance</span><b>→</b><span>DEF mitigation</span><b>→</b><span>Shields, then HP</span></div>
+        <p>Damage types are the tactical expression of elements. A resisted type deals half; a weakness deals one-and-a-half times. Guard creates a one-round shield. Damage always has a minimum floor of 1.</p>
+        <a className="tower-related" href="/abilities">Explore Abilities & Elements →</a>
+      </Panel>
+    </div>
+
+    <Panel title="Known Tower encounters" action={<a className="tower-related" href="/bosses">Open production inspector →</a>}>
+      <div className="tower-floors">
+        <article className="tower-floor verified"><img src="/assets/combat/arenas/barbarian-moot-ground/base.png" alt=""/><div><Status value="APPROVED"/><h3>The Debt-Bearer</h3><p>Barbarian Moot-Ground · seven real PixelLab animation states</p></div></article>
+        <article className="tower-floor pending"><div className="floor-pending"><FlaskConical/></div><div><Status value="IN FLIGHT"/><h3>The Still Season</h3><p>Encounter code exists; its current art is not committed on this branch.</p></div></article>
+        <article className="tower-floor open"><div className="floor-number">?</div><div><Status value="PLANNED"/><h3>Higher floors</h3><p>No invented count, boss, or reward. Tower length still needs Raheem’s ruling.</p></div></article>
+      </div>
+    </Panel>
+  </>;
+}
 
 function Production() {
   const sections = useMemo(() => sectionsFromMarkdown(productionMarkdown), []); const [selected, setSelected] = useState(Math.max(0, sections.findIndex((section) => section.heading.includes('What I')))); const section = sections[selected];

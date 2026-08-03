@@ -27,15 +27,16 @@ export const bossStates = [
 ] as const;
 
 export const navigation = [
-  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/abilities', 'Abilities & Elements'], ['/world', 'Game World'], ['/minigames', 'Minigames']] },
+  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/abilities', 'Abilities & Elements'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
   { group: 'Production', items: [['/production', 'Current Build'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decisions'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
 ] as const;
 
 export const searchEntries = [
   { path: '/characters', title: 'Characters & Archetypes', text: 'eleven emblems cards heroes ranks foundation forged ascendant' },
-  { path: '/bosses', title: 'Bosses & Arenas', text: 'Debt-Bearer Still Season PixelLab idle windup attack ultimate rage hit defeat' },
+  { path: '/bosses', title: 'Bosses & Arenas', text: 'Battle Tower floors Debt-Bearer Still Season PixelLab idle windup attack ultimate rage hit defeat' },
   { path: '/abilities', title: 'Abilities & Elements', text: 'element crystals ability families Ember Cleave Aegis Ward artwork' },
   { path: '/world', title: 'Game World', text: 'castle courtyard tower arenas colliders occluders Phaser Leonardo PixelLab' },
+  { path: '/minigames', title: 'Battle Tower', text: 'primary game mode floors party cards boss intent attack mana tech elements guard strike abilities' },
   { path: '/production', title: 'Current Build', text: 'production status open threads priorities shipped in flight' },
   { path: '/assets', title: 'Art & Assets', text: 'asset catalog OpenNest web previews provenance approved candidate missing' },
   { path: '/workshops', title: 'Workshops', text: 'harnesses sprite lab background arena prompt lab visual playtest' },
