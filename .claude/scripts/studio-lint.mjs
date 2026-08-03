@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+
+const root = process.cwd();
+const claude = path.join(root, '.claude');
+const jsonMode = process.argv.includes('--json');
+const errors = [];
+const warnings = [];
+const add = (arr, rule, file, message) => arr.push({ rule, file: file.replaceAll('\\', '/'), message });
+
+function read(file) { return fs.readFileSync(file, 'utf8'); }
+function rel(file) { return path.relative(root, file).replaceAll('\\', '/'); }
+function filesUnder(dir, predicate = () => true) {
+  if (!fs.existsSync(dir)) return [];
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...filesUnder(full, predicate));
+    else if (predicate(full)) out.push(full);
+  }
+  return out;
+}
+function frontmatter(text) {
+  if (!text.startsWith('---\n')) return null;
+  const end = text.indexOf('\n---\n', 4);
+  if (end < 0) return null;
+  const raw = text.slice(4, end);
+  const values = {};
+  for (const [i, line] of raw.split('\n').entries()) {
+    if (!line.trim() || /^\s/.test(line)) continue;
+    const m = /^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/.exec(line);
+    if (!m) return { error: `invalid top-level frontmatter line ${i + 1}: ${line}`, raw, values };
+    let value = m[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+    else if (/^[^\[\{].*:\s/.test(value)) return { error: `unquoted colon in scalar on line ${i + 1}`, raw, values };
+    values[m[1]] = value;
+  }
+  return { raw, values };
+}
+
+const agentFiles = filesUnder(path.join(claude, 'agents'), f => f.endsWith('.md'));
+const skillFiles = filesUnder(path.join(claude, 'skills'), f => path.basename(f) === 'SKILL.md');
+const components = [];
+const names = new Map();
+for (const file of [...agentFiles, ...skillFiles]) {
+  const text = read(file);
+  const r = rel(file);
+  if (text.includes('\r')) add(errors, 'line-endings', r, 'CR/CRLF found; studio text must be LF');
+  const fm = frontmatter(text);
+  if (!fm || fm.error) { add(errors, 'frontmatter', r, fm?.error ?? 'missing/unterminated frontmatter'); continue; }
+  const name = fm.values.name;
+  const description = fm.values.description;
+  if (!name) add(errors, 'frontmatter', r, 'missing name');
+  if (!description) add(errors, 'frontmatter', r, 'missing description');
+  if (name) {
+    if (names.has(name)) add(errors, 'unique-name', r, `duplicate component name also in ${names.get(name)}`);
+    names.set(name, r);
+    components.push({ name, sourcePath: r, type: r.includes('/agents/') ? 'agent' : 'skill', fm });
+  }
+  if (r.includes('/agents/')) {
+    const tools = (fm.values.tools ?? '').split(/[ ,]+/).filter(Boolean);
+    for (const forbidden of ['Bash','Write','Edit','NotebookEdit']) if (tools.includes(forbidden)) add(errors, 'advisory-tools', r, `advisory agent exposes ${forbidden}`);
+    const denied = (fm.values.disallowedTools ?? '').split(/[ ,]+/).filter(Boolean);
+    for (const required of ['Bash','Write','Edit']) if (!denied.includes(required)) add(errors, 'advisory-tools', r, `disallowedTools does not include ${required}`);
+  }
+  for (const stale of ['card-engine-archetype-prompt-library.md','card-engine-modifier-pools.md']) {
+    if (text.includes(stale)) add(errors, 'stale-current-source', r, `active component cites retired source ${stale}`);
+  }
+  const linkRe = /\[[^\]]*\]\(([^)]+)\)/g;
+  for (const match of text.matchAll(linkRe)) {
+    let target = match[1].trim().split('#')[0];
+    if (!target || /^(https?:|mailto:|#)/.test(target) || /[<>*{}]/.test(target)) continue;
+    target = decodeURIComponent(target);
+    const resolved = path.resolve(path.dirname(file), target);
+    if (!fs.existsSync(resolved)) add(errors, 'local-link', r, `missing target ${match[1]}`);
+  }
+}
+
+const registryPath = path.join(claude, 'studio', 'STUDIO_CAPABILITY_REGISTRY.json');
+let registry = null;
+try { registry = JSON.parse(read(registryPath)); }
+catch (e) { add(errors, 'registry-json', rel(registryPath), String(e.message)); }
+if (registry) {
+  const records = [...(registry.agents ?? []), ...(registry.skills ?? [])];
+  const recordNames = new Set(records.map(x => x.name));
+  for (const c of components) if (!recordNames.has(c.name)) add(errors, 'registry-source', c.sourcePath, 'component absent from registry');
+  for (const rec of records) {
+    if (!rec.sourcePath) { add(errors, 'registry-source', rel(registryPath), `${rec.name} has no sourcePath`); continue; }
+    const source = path.join(root, rec.sourcePath);
+    if (!fs.existsSync(source)) add(errors, 'registry-source', rel(registryPath), `${rec.name} source missing: ${rec.sourcePath}`);
+  }
+}
+
+const settingsPath = path.join(claude, 'settings.json');
+try {
+  const settings = JSON.parse(read(settingsPath));
+  const permissions = settings.permissions ?? {};
+  if (permissions.disableBypassPermissionsMode !== 'disable') add(errors, 'permission-policy', rel(settingsPath), 'permissions.disableBypassPermissionsMode must be disable');
+  const denyRules = new Set(permissions.deny ?? []);
+  for (const required of [
+    'Read(/.env)', 'Read(/.env.*)', 'Read(/card-engine/.env)', 'Read(/card-engine/.env.*)',
+    'Edit(/.env)', 'Edit(/.env.*)', 'Edit(/card-engine/.env)', 'Edit(/card-engine/.env.*)'
+  ]) if (!denyRules.has(required)) add(errors, 'permission-policy', rel(settingsPath), `missing root-anchored secret protection rule ${required}`);
+  const hookCommands = [];
+  for (const groups of Object.values(settings.hooks ?? {})) for (const group of groups ?? []) for (const hook of group.hooks ?? []) if (hook.command) hookCommands.push(hook.command);
+  for (const command of hookCommands) {
+    const m = /\.claude[\\/]scripts[\\/]([^"'\s]+)/.exec(command);
+    if (m && !fs.existsSync(path.join(claude, 'scripts', m[1]))) add(errors, 'hook-target', rel(settingsPath), `missing hook script ${m[1]}`);
+  }
+} catch (e) { add(errors, 'settings-json', rel(settingsPath), String(e.message)); }
+
+const gitignore = read(path.join(root, '.gitignore'));
+for (const required of ['!.claude/agents/','!.claude/skills/','!.claude/verify/','!.claude/scripts/','!.claude/studio/','!.claude/settings.json','!.claude/launch.json']) {
+  if (!gitignore.includes(required)) add(errors, 'git-tracking', '.gitignore', `missing ${required}`);
+}
+const shellFiles = filesUnder(claude, f => /\.(sh|mjs)$/.test(f));
+for (const file of shellFiles) if (read(file).includes('\r')) add(errors, 'line-endings', rel(file), 'executable script contains CR/CRLF');
+
+const shell = path.join(root, 'card-engine', 'src', 'pages', 'games', 'FullscreenGameShell.tsx');
+const extract = path.join(claude, 'skills', 'extract-fullscreen-shell', 'SKILL.md');
+if (!fs.existsSync(shell) && fs.existsSync(extract)) add(warnings, 'migration-pending', rel(extract), 'FullscreenGameShell is still absent; ship-minigame must remain blocked until migration is approved and completed');
+const balance = path.join(claude, 'skills', 'balance-playtest', 'SKILL.md');
+if (fs.existsSync(balance) && !/disable-model-invocation:\s*true/.test(read(balance))) add(errors, 'inactive-skill', rel(balance), 'scaffold must be hidden from model invocation');
+
+const result = { ok: errors.length === 0, errors, warnings, counts: { agents: agentFiles.length, skills: skillFiles.length } };
+if (jsonMode) console.log(JSON.stringify(result, null, 2));
+else {
+  console.log(`Studio health: ${result.ok ? 'PASS' : 'FAIL'} — ${errors.length} error(s), ${warnings.length} warning(s)`);
+  for (const item of errors) console.error(`ERROR [${item.rule}] ${item.file}: ${item.message}`);
+  for (const item of warnings) console.warn(`WARN  [${item.rule}] ${item.file}: ${item.message}`);
+}
+process.exit(result.ok ? 0 : 1);

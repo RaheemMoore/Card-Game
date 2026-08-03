@@ -5,6 +5,9 @@ description: Ship a new boss end to end — identity intake, reference matting, 
 
 # Skill: create-boss
 
+
+> **Studio V2 contracts:** Before any paid call, follow [PAID_OPERATION_POLICY.md](../../studio/PAID_OPERATION_POLICY.md). Final acceptance uses [EVIDENCE_VERDICT_CONTRACT.md](../../studio/EVIDENCE_VERDICT_CONTRACT.md). Group expected provider calls into one approved batch with a stop limit; recovery, download, sheet, validation, and local finishing steps are not new paid approval events.
+
 A boss is four separate assets that have to agree: a **sprite** (his body), **clips** (what
 his body does), **signature layers** (everything around him, in code), and a **moveset**
 (what the clips mean). The recurring failure is baking layers 1 and 3 together.

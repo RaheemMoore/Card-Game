@@ -1,92 +1,94 @@
 ---
 name: design-feature
-description: Turn a raw feature idea into a structured design proposal ready for Raheem's approval. Consults the relevant specialist agent(s), pulls constraints from canonical docs, and returns a proposal Raheem can approve, adjust, or reject in one pass. Use when Raheem says "let's design X" or "how should we do Y." Do NOT use for bug fixes or fully-specified work — go straight to implementation for those.
+description: Turn a raw Card Engine feature idea into the smallest approval-ready design. Classifies FAST/STANDARD/FULL work, reads implementation and canonical constraints, consults zero to two registry-selected specialists only when judgment is needed, and defines acceptance evidence before implementation. Use for new behavior, systems, flows, runtime architecture, or cross-discipline changes. Do NOT use for isolated bugs, exact canonical changes, or already-approved plans.
 ---
 
-# Skill: design-feature
+# Design Feature
 
 ## Inputs
 
-- **Feature idea** (from Raheem, may be one sentence or several)
-- **Optional constraints** (deadline, must-not-break, must-integrate-with)
+- Raheem's feature idea, preserved verbatim.
+- Constraints, must-not-break rules, and any prior approvals.
+- Current implementation evidence.
 
-## Workflow
+## 1. Choose the work mode
 
-### 1. Classify the feature
-Which specialist domain does this hit? Pick one primary and up to one secondary:
+- **FAST** — isolated, low-risk, exact convention, no cross-system decision. No specialist and usually no formal proposal.
+- **STANDARD** — normal feature with one clear domain. At most one specialist.
+- **FULL** — new system, schema/economy change, major UX, paid campaign, runtime architecture, or cross-discipline feature. Written proposal, explicit approval, at most two specialists.
 
-| Domain signal | Primary specialist |
+If the idea contains more than two independent design decisions, split it.
+
+## 2. Refresh only relevant truth
+
+Read:
+
+1. `PRODUCTION.md` for current status;
+2. live code for the affected surface;
+3. generated references before historical design docs;
+4. the smallest topical canonical documents;
+5. Figma when interface design is involved.
+
+Do not read the whole project.
+
+## 3. Route through the registry
+
+Use `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json` and `consult-specialist`.
+
+| Signal | Specialist |
 |---|---|
-| Stats, ranks, minigame math, economy balance | `game-systems-designer` |
-| Portrait art, prompts, modifier pools, Leonardo pipeline | `art-prompt-director` |
-| Card renderer, forge flow, wallet UI, mobile | `ui-ux-director` |
-| Data model, storage, tests, module boundaries | `technical-architect` |
+| balance, economy, numerical mechanics | `game-systems-designer` |
+| lore, archetype identity, narrative territory | `lore-fantasy-director` |
+| minigame loop and feel | `minigame-designer` |
+| UI flow, mobile, accessibility | `ui-ux-director` |
+| schema, persistence, API, provider boundary | `technical-architect` |
+| Phaser lifecycle, camera, physics, runtime evidence | `phaser-runtime-director` |
+| portrait/Image Engine/emblem direction | `art-prompt-director` |
+| environment plate/prop composition | `environment-art-director` |
+| PixelLab character/animation integrity | `pixel-sprite-director` |
 
-If it hits two domains, that's fine — invoke both. If it hits three or more, the feature is too big; break it up before designing.
+Art, environment, sprite, runtime, and lore are separate domains. Do not send all visual work to one agent.
 
-### 2. Read the relevant canonical docs myself
-Never delegate reading — I need the context to synthesize. At minimum:
-- [CLAUDE.md](../../../CLAUDE.md)
-- Whichever topical doc(s) the specialist's reading list names
+## 4. Return this proposal
 
-### 3. Consult specialist(s)
-Invoke via `Agent` tool with the specialist's `subagent_type`. Prompt must include:
-- The feature idea verbatim
-- The specific question I want answered (not "what do you think" — a decision or a design)
-- What I've already ruled out
-- The constraint on response length ("under 500 words")
+```md
+# Feature: <name>
 
-### 4. Synthesize the proposal
-Combine specialist recommendations with what I already know. The proposal I return to Raheem has this exact shape:
+**Work mode:** FAST | STANDARD | FULL
+**Problem:** <one sentence>
+**Recommendation:** <one ranked approach>
+**Why now:** <player/project value>
 
+## Design contract
+- <observable behavior and boundaries>
+- <what is explicitly out of scope>
+
+## Existing systems reused
+- <components, services, manifests, skills, harnesses>
+
+## Implementation surface
+- `<path>` — <change>
+
+## Acceptance evidence
+- Deterministic: <tests/lint/build/schema>
+- Runtime: <named scenario/state assertions, or N/A>
+- Visual: <screenshot/video/human review, or N/A>
+- Mobile/reduced motion: <required behavior, or N/A>
+
+## Risks and rollback
+- <risk → detection → rollback boundary>
+
+## Human decisions
+1. <only unresolved choice; omit section if none>
+
+## Reuse forecast
+<No opportunity, or one evidence-backed component/skill/doc recommendation. Do not implement it automatically.>
 ```
-## Feature: <name>
 
-**Problem it solves:** <one sentence>
-**Approach:** <2–3 sentences>
+## Approval gate
 
-### Design
-- <bullet list of concrete design points>
+FAST exact work may proceed when Raheem already supplied the exact desired result. STANDARD and FULL designs stop for explicit approval before `ship-approved-plan`, `build-phaser-feature`, or a production-generation skill runs.
 
-### Files touched
-- <path> — <what changes>
+## Done when
 
-### Governance
-- Requires Raheem approval: <yes/no>
-- If economy: <old value → new value, reason, player impact>
-
-### Verification plan
-- <how I'll confirm this works when built>
-
-### Reuse Forecast
-- <does this look repeatable? does an existing skill already cover it? should I capture special process evidence during implementation? is a new/updated skill worth proposing afterward? — OR the single line "No reusable workflow opportunity identified.">
-
-### Open questions for Raheem
-- <numbered list — one decision per item>
-```
-
-**Rule of thumb for the Reuse Forecast:** most small features get one line — "No reusable workflow opportunity identified." Only expand when the feature has real repetition signals (see [STUDIO_CHARTER.md](../../../STUDIO_CHARTER.md) — *Proactive Workflow Discovery*). This is a forecast, not permission to create the skill.
-
-## Human approval gates
-
-Always. This skill never leads directly into implementation. Raheem must approve the proposal (or ask for revisions) before I open a plan or write code.
-
-## Validation
-
-Proposal is complete when:
-- [ ] All specialist recommendations are reflected or explicitly overruled with reason.
-- [ ] File paths are real (verified with Read/Glob).
-- [ ] Governance impact is stated (economy? destructive? external?).
-- [ ] Reuse Forecast is present (even if it's the single-line "No reusable workflow opportunity identified.").
-- [ ] Open questions are enumerated — I did not silently guess.
-
-## Expected outputs
-
-A single markdown proposal, delivered inline in chat. No file created — this is a proposal, not canonical truth. If approved, `ship-approved-plan` takes over.
-
-## When NOT to use this skill
-
-- Bug fixes.
-- Renames, type tweaks, small refactors.
-- Features Raheem has already fully specified in the request.
-- Anything urgent where the ceremony would waste time.
+The proposal is bounded, reuses existing systems, names evidence before code, records specialist rulings or reason for no consult, and contains no invented project truth.

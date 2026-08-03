@@ -1,0 +1,72 @@
+{
+  "permissions": {
+    "defaultMode": "default",
+    "deny": [
+      "Read(/.env)",
+      "Read(/.env.*)",
+      "Read(/card-engine/.env)",
+      "Read(/card-engine/.env.*)",
+      "Read(/secrets/**)",
+      "Read(/**/credentials.json)",
+      "Edit(/.env)",
+      "Edit(/.env.*)",
+      "Edit(/card-engine/.env)",
+      "Edit(/card-engine/.env.*)",
+      "Edit(/secrets/**)",
+      "Edit(/**/credentials.json)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(vercel *)",
+      "Bash(npx vercel *)",
+      "Bash(supabase db push *)",
+      "Bash(npx supabase db push *)",
+      "Bash(npm publish *)",
+      "Bash(*sprite-lab.mjs gen *)",
+      "Bash(*bg-harness/harness.mjs gen *)"
+    ],
+    "allow": [
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(node .claude/scripts/studio-lint.mjs *)"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/studio-hook.mjs\" pre-tool"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/studio-hook.mjs\" post-write"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/studio-hook.mjs\" session-start"
+          }
+        ]
+      }
+    ]
+  }
+}

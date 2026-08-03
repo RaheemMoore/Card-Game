@@ -1,100 +1,58 @@
 ---
 name: ship-approved-plan
-description: Post-approval handoff for an approved feature or fix. Creates a branch, decomposes work into tasks, implements, commits with clean messages, runs verification, and drafts the PR body. Use ONLY after a plan or design-feature proposal has been explicitly approved by Raheem. Does NOT replace plan mode — plan mode owns the design; this owns the delivery.
+description: Deliver an explicitly approved Card Engine feature or fix. Enforces scope, branch/worktree safety, small implementation steps, objective and runtime evidence, human gates, documentation sync, and a draft PR. Use after an approved design/plan. Do NOT use for open design, unapproved work, paid generation owned by another production skill, or a Phaser architecture change better handled by build-phaser-feature.
 ---
 
-# Skill: ship-approved-plan
+# Ship Approved Plan
+
+Read `.claude/studio/SHIPPING_CONTRACT.md`, `EVIDENCE_VERDICT_CONTRACT.md`, and the capability registry. Those contracts are authoritative for shared delivery behavior; this skill adds Card Engine-specific execution.
 
 ## Inputs
 
-- **Approved plan or design proposal** (from plan mode, `design-feature`, or a direct Raheem approval)
-- **Optional branch name** (default: derive from the proposal title, kebab-case)
+- approved plan and approval evidence;
+- work mode and acceptance criteria;
+- bounded file/surface scope;
+- branch/worktree context.
 
 ## Workflow
 
-### 1. Confirm approval is real
-Do not proceed if approval is ambiguous. If the last Raheem message is "sure, sounds good" but the proposal has open questions, ask for the specific decisions before touching code.
+1. Confirm no unresolved approval question remains.
+2. Inspect working tree; never discard or overwrite unrelated work. Branch only when appropriate for the current worktree.
+3. Decompose the approved plan into small ordered tasks.
+4. Implement only in scope. Raise discovered work separately.
+5. Run the cheapest relevant checks first, then `.claude/verify/card-engine.sh` when dependencies are installed.
+6. For runtime/UI changes, use the named scenario and `visual-playtest`; a compile-only result is not complete.
+7. Return `PASS`, `FAIL`, or `HUMAN REVIEW` with evidence. Never call subjective visual quality PASS on your own.
+8. Run `sync-project-knowledge` and `production-log` when the change lands.
+9. Complete the harvest review: propose at most one proven reusable improvement; do not install it automatically.
+10. Draft the PR body. Ask before `git push`, opening a PR, deploying, merging, or changing economy values.
 
-### 2. Create the branch
-```bash
-git checkout -b <derived-name>
-```
-Only if not already on a feature branch. If on `main` and about to make changes, always branch first.
+## Required PR body
 
-### 3. Decompose into tasks
-Use `TaskCreate` to break the plan into concrete implementation steps. Mark the first `in_progress` before starting. Update as I go — never batch.
-
-### 4. Implement
-Standard rules apply. In particular:
-- Small, meaningful commits at natural stopping points — never one giant end-of-work commit.
-- Commit messages describe the *why*, per repo convention.
-- No hooks skipped, no signing bypassed.
-- Do not touch files outside the approved plan's scope. If I find something worth fixing, flag it with `spawn_task` for later.
-
-### 5. Verify before declaring done
-Invoke the built-in `verify` skill — it bootstraps `.claude/verify/card-engine.sh` which runs typecheck, tests, and a boot check. Never claim done based on typecheck alone.
-
-For UI changes, exercise the feature in the browser preview (`preview_start` with `card-engine-dev`) and share proof.
-
-### 6. Reuse Review (mandatory)
-
-Before drafting the PR body, answer these five questions honestly. If the honest answer to (1) is "no," the review is one line — do not manufacture opportunities to look thorough.
-
-1. Did implementation reveal a repeatable workflow?
-2. Is the sequence stable enough to encode?
-3. What evidence supports the recommendation? (Cite the process log if one was kept, or the specific steps that repeated across similar past work.)
-4. Should an existing skill be updated, a new skill be proposed, or nothing change?
-5. What human approval gates must remain outside automation?
-
-When a credible candidate exists, **raise it with Raheem using the standard prompt** (see [STUDIO_CHARTER.md](../../../STUDIO_CHARTER.md) — *Proactive Workflow Discovery*). Do not create the skill. Wait for approval.
-
-### 7. Draft the PR body
-When work is complete and verified, draft (do not push without asking):
-
-```
+```md
 ## Summary
-- <2–3 bullet points, why matters>
+- <why this matters>
+
+## Scope
+- <implemented>
+- <explicitly not implemented>
 
 ## Changes
-- <files touched, one line each>
+- `<path>` — <reason>
 
-## Verification
-- <what was tested, what was observed>
+## Evidence
+- Deterministic: ...
+- Runtime: ...
+- Visual/mobile/reduced motion: ...
+- Verdict: PASS | FAIL | HUMAN REVIEW
 
 ## Governance
-- <if economy touched: what old value → new value, why, Raheem-approval reference>
-- <otherwise: "N/A">
+- <approvals, paid operations, economy, migrations, or N/A>
+
+## Harvest
+- <none, or one proposed reusable improvement>
 ```
 
-Ask Raheem before pushing to remote or opening the PR.
+## Done when
 
-## Specialists consulted
-
-Usually none — design is done, execution is the Studio Lead's job. Consult `technical-architect` mid-execution *only* if I discover the plan is broken (e.g. a data-model conflict the design missed) and I need a course correction.
-
-## Human approval gates
-
-- Before creating the branch (if unclear whether approval is real).
-- Before pushing to remote or opening a PR.
-- If the plan turns out to require changes to approved economy values — full stop, escalate.
-
-## Validation
-
-- [ ] All tasks in TaskList are completed.
-- [ ] `.claude/verify/card-engine.sh` passes.
-- [ ] For UI changes: browser proof shared.
-- [ ] Commits are atomic and messages explain the why.
-- [ ] Nothing outside the plan's scope was changed.
-- [ ] Reuse Review answered (even if the honest answer is "no repeatable workflow revealed").
-
-## Expected outputs
-
-- A feature branch with clean commits.
-- A verified working feature.
-- A drafted PR body ready for Raheem's sign-off.
-
-## When NOT to use
-
-- The proposal wasn't approved.
-- Raheem just asked a question — don't ship anything.
-- Plan mode is still active — finish that first.
+Scope is preserved, checks and runtime evidence match the approved acceptance criteria, unresolved subjective judgment is labeled HUMAN REVIEW, docs are synchronized, and no remote/deploy action occurred without authorization.
