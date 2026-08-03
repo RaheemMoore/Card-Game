@@ -297,6 +297,12 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
       }
       break;
     }
+    case 'wait': {
+      // An explicit pass, never an automatic substitute for a denied action.
+      // It consumes this hero's command slot but intentionally produces no
+      // damage, resource, charge, status, guard, or action-kind trigger.
+      break;
+    }
     case 'inspect': {
       // No mechanical effect at B2 — UI-only reveal added in B4.
       break;

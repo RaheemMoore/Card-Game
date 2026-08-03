@@ -20,6 +20,7 @@ interface Props {
   pendingId: string | null;
   onArm: (definitionId: string | null) => void;
   pickedTargetActorId: string | null;
+  plannedAction?: PlayerAction;
   onPlan: (action: PlayerAction) => void;
 }
 
@@ -50,14 +51,16 @@ export function MobileAbilityRow({
   pendingId,
   onArm,
   pickedTargetActorId,
+  plannedAction,
   onPlan,
 }: Props) {
   const store = getAbilityStore();
+  const availableResource = state.partyResource[hero.snapshot.resourceType];
 
   useEffect(() => {
     if (!pendingId) return;
     const a = hero.snapshot.abilities.find((x) => x.definitionId === pendingId);
-    if (!a || isDenied(hero, a, disabled)) onArm(null);
+    if (!a || isDenied(hero, a, availableResource, disabled)) onArm(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hero, disabled, pendingId]);
 
@@ -122,6 +125,18 @@ export function MobileAbilityRow({
       ? explainAbility(state, deriveThreat(state), pendingAbility, pendingProjection)
       : null;
 
+  useEffect(() => {
+    if (!pendingAbility || !resolvedTargetIds || !pendingConfirmation) return;
+    if (pendingConfirmation.required) return;
+    onPlan({
+      kind: 'ability',
+      abilityDefinitionId: pendingAbility.definitionId,
+      targetActorIds: resolvedTargetIds,
+    });
+    onArm(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingId, pickedTargetActorId, pendingConfirmation?.required]);
+
   return (
     <div className="relative w-full" aria-label={`Abilities for ${hero.snapshot.displayName}`}>
       {/* Preview card — appears above the strip when an ability is pending */}
@@ -165,11 +180,13 @@ export function MobileAbilityRow({
             slot={slot}
             ability={ability}
             hero={hero}
+            availableResource={availableResource}
             disabled={disabled}
             pending={ability ? pendingId === ability.definitionId : false}
+            planned={ability ? plannedAction?.kind === 'ability' && plannedAction.abilityDefinitionId === ability.definitionId : false}
             onClick={() => {
               if (!ability) return;
-              if (isDenied(hero, ability, disabled)) return;
+              if (isDenied(hero, ability, availableResource, disabled)) return;
               onArm(pendingId === ability.definitionId ? null : ability.definitionId);
             }}
           />
@@ -183,15 +200,19 @@ function MobileAbilityTile({
   slot,
   ability,
   hero,
+  availableResource,
   disabled,
   pending,
+  planned,
   onClick,
 }: {
   slot: AbilitySlotType;
   ability: AbilityCombatSnapshot | undefined;
   hero: HeroCombatant;
+  availableResource: number;
   disabled: boolean;
   pending: boolean;
+  planned: boolean;
   onClick: () => void;
 }) {
   const empty = !ability;
@@ -199,7 +220,7 @@ function MobileAbilityTile({
     ? hero.cooldowns.find((c) => c.abilityDefinitionId === ability!.definitionId)
     : undefined;
   const onCd = cooldownEntry !== undefined;
-  const short = !empty && hero.resource < ability!.resourceCost;
+  const short = !empty && availableResource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
 
@@ -211,13 +232,15 @@ function MobileAbilityTile({
     ? 'NO MP'
     : notCharged
     ? 'LOCK'
+    : planned
+    ? 'PLANNED'
     : pending
     ? 'SELECTED'
     : 'READY';
   const statusColor =
     statusText === 'READY'
       ? '#8ab87d'
-      : statusText === 'SELECTED'
+      : statusText === 'SELECTED' || statusText === 'PLANNED'
       ? '#f0942e'
       : statusText === 'LOCK'
       ? '#c88a45'
@@ -323,10 +346,10 @@ function MobileAbilityTile({
   );
 }
 
-function isDenied(hero: HeroCombatant, a: AbilityCombatSnapshot, disabled: boolean): boolean {
+function isDenied(hero: HeroCombatant, a: AbilityCombatSnapshot, availableResource: number, disabled: boolean): boolean {
   if (disabled) return true;
   if (hero.cooldowns.some((c) => c.abilityDefinitionId === a.definitionId)) return true;
-  if (hero.resource < a.resourceCost) return true;
+  if (availableResource < a.resourceCost) return true;
   if (a.slot === 'ultimate' && hero.ultimateCharge < 100) return true;
   return false;
 }

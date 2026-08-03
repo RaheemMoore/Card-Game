@@ -30,6 +30,7 @@ interface Props {
   motionLevel: MotionLevel;
   /** Free basic attack — the action that FILLS these vessels. */
   onStrike: () => void;
+  onWait: () => void;
   canAct: boolean;
 }
 
@@ -47,7 +48,7 @@ const TECH_PALETTE = {
   glow: '#4aa8ef',
 };
 
-export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Props) {
+export function PartyResourceVessel({ state, motionLevel, onStrike, onWait, canAct }: Props) {
   const { partyResource: cur, partyResourceMax: max } = state;
   const vw = useViewportWidth();
   const vessel = vesselWidth(vw);
@@ -107,6 +108,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
         so putting it beside the vessels makes the spend/build loop legible
         instead of filing it with the turn controls.
       */}
+      <div className="flex flex-col" style={{ width: STRIKE_WIDTH, gap: 4 }}>
       <button
         type="button"
         onClick={() => canAct && onStrike()}
@@ -115,7 +117,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         style={{
           width: STRIKE_WIDTH,
-          height: 88,
+          height: 42,
           borderRadius: 6,
           border: '2px solid #7a5530',
           background: canAct
@@ -133,15 +135,37 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, canAct }: Pr
           transition: 'opacity 200ms',
         }}
       >
-        {/* Vertical, because the button is tall and narrow to match the
-            vessels it stands beside. */}
-        <span style={{ fontSize: 11, letterSpacing: 1.4, writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+        <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: 0.65 }}>
           STRIKE
         </span>
         <span aria-hidden style={{ fontSize: 12, color: '#8ab87d', lineHeight: 1 }}>
           +
         </span>
       </button>
+      <button
+        type="button"
+        onClick={() => canAct && onWait()}
+        disabled={!canAct}
+        aria-label="Wait until the next round"
+        className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        style={{
+          width: STRIKE_WIDTH,
+          height: 42,
+          borderRadius: 6,
+          border: '1px solid #6b5b47',
+          background: canAct ? 'linear-gradient(to bottom, #211d18, #12100d)' : '#0d0a08',
+          color: canAct ? '#d3c7b5' : '#6b6058',
+          cursor: canAct ? 'pointer' : 'not-allowed',
+          fontSize: 8,
+          fontWeight: 800,
+          letterSpacing: 0.65,
+          padding: 1,
+          opacity: canAct ? 1 : 0.55,
+        }}
+      >
+        WAIT
+      </button>
+      </div>
 
       <span className="sr-only">
         {techUnused ? 'Tech unused by this party. ' : `Tech ${cur.tech} of ${max.tech}. `}

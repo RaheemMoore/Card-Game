@@ -304,7 +304,7 @@ function DockCardVisual({
 }) {
   const isDefeated = combatant.defeated;
   const picking = onPick !== null;
-  const tappable = picking ? pickable : canAct && !isActing && !isDefeated;
+  const tappable = picking ? pickable : canAct && !isDefeated;
   const handleTap = picking ? onPick! : onSelect;
 
   const [shakeKey, setShakeKey] = useState(0);
@@ -320,7 +320,7 @@ function DockCardVisual({
 
   const ariaLabel = `${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP${
     isActing ? ', acting' : ''
-  }${pickable ? ' — press Enter to target, or Space' : ' — press Enter to view card'}`;
+  }${pickable ? ' — press Enter to target' : ' — press Enter to select'}`;
 
   return (
     <div
@@ -370,13 +370,11 @@ function DockCardVisual({
       }}
       onClick={() => {
         if (tappable) handleTap();
-        else onOpen();
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           if (tappable) handleTap();
-          else onOpen();
         } else if (e.key === ' ' && tappable) {
           e.preventDefault();
           handleTap();
@@ -449,7 +447,7 @@ function DockCardVisual({
           onOpen();
         }}
         className="absolute top-1 right-1 flex items-center justify-center rounded-sm bg-void/70 hover:bg-void/90 text-bone/80 hover:text-gold transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-gold"
-        style={{ width: 20, height: 20, fontSize: 11, lineHeight: 1 }}
+        style={{ width: 32, height: 32, fontSize: 15, lineHeight: 1 }}
       >
         ⤢
       </button>

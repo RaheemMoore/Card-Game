@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Card } from '../../../types/card';
-import type { BattleState, PlayerAction } from '../../../types/combat';
+import type { BattleState, HeroCombatant, PlayerAction } from '../../../types/combat';
 import type { AnimationBeat } from '../../../services/combat/presentation/types';
 import type { MotionLevel } from '../../../vfx/types';
 import type { JournalEntry } from '../../../services/combat/presentation/journalSummary';
@@ -15,6 +15,8 @@ import { MobileResourceRow } from './MobileResourceRow';
 import { MobileCombatJournal } from './MobileCombatJournal';
 import { CombatGuideModal } from '../CombatGuideModal';
 import { LeaveConfirmModal } from '../LeaveConfirmModal';
+import { CardSheet } from '../../../components/CardSheet';
+import { buildBattleCardSheetAbilities, buildBattleLiveState } from '../cardSheetAdapters';
 
 interface Props {
   state: BattleState;
@@ -73,6 +75,7 @@ export function MobileCombatScene({
   const canAct = state.phase === 'awaiting_player_action';
   const [guideOpen, setGuideOpen] = useState(false);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [sheetHero, setSheetHero] = useState<{ card: Card; combatant: HeroCombatant } | null>(null);
 
   const defaultSelected =
     actingActorId ??
@@ -82,6 +85,12 @@ export function MobileCombatScene({
   const [selectedActorId, setSelectedActorId] = useState<string>(defaultSelected);
 
   useEffect(() => {
+    // Planning an action advances the reducer focus to the next unarmed hero;
+    // keep the visible card and its ability row in lockstep with that focus.
+    if (canAct && actingActorId && actingActorId !== selectedActorId) {
+      setSelectedActorId(actingActorId);
+      return;
+    }
     // Follow the reducer's acting hero when we're between decisions (not
     // awaiting a hero to be picked). When we ARE awaiting input, the user's
     // last tap is the source of truth — do NOT snap back to actingActorId,
@@ -286,6 +295,7 @@ export function MobileCombatScene({
               // instead of just being a visual focus change.
               if (canAct) onSelectActor(id);
             }}
+            onOpenCard={(card, combatant) => setSheetHero({ card, combatant })}
             canAct={canAct}
             currentBeat={currentBeat}
             loweredForPlayback={isPlaybackMode}
@@ -355,6 +365,7 @@ export function MobileCombatScene({
               pendingId={pendingAbilityId}
               onArm={armAbility}
               pickedTargetActorId={pickedTargetActorId}
+              plannedAction={plannedActions[selectedHero.actorId]}
               onPlan={onPlan}
             />
           )}
@@ -385,6 +396,8 @@ export function MobileCombatScene({
             canAct={canAct}
             plannedCount={plannedCount}
             totalHeroes={aliveCount}
+            onPlanStrike={() => onPlan({ kind: 'strike' })}
+            onPlanWait={() => onPlan({ kind: 'wait' })}
             onPlanGuard={() => onPlan({ kind: 'guard' })}
             onReleasePlan={onReleasePlan}
           />
@@ -420,6 +433,14 @@ export function MobileCombatScene({
             setConfirmingLeave(false);
             onExit();
           }}
+        />
+      )}
+      {sheetHero && (
+        <CardSheet
+          card={sheetHero.card}
+          abilities={buildBattleCardSheetAbilities(sheetHero.combatant, state.partyResource[sheetHero.combatant.snapshot.resourceType])}
+          liveState={buildBattleLiveState(sheetHero.combatant, state.partyResource[sheetHero.combatant.snapshot.resourceType])}
+          onClose={() => setSheetHero(null)}
         />
       )}
     </div>

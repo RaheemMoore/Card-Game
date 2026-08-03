@@ -3,6 +3,8 @@ interface Props {
   plannedCount: number;
   totalHeroes: number;
   onPlanGuard: () => void;
+  onPlanStrike: () => void;
+  onPlanWait: () => void;
   onReleasePlan: () => void;
 }
 
@@ -16,6 +18,8 @@ export function MobileActionControls({
   plannedCount,
   totalHeroes,
   onPlanGuard,
+  onPlanStrike,
+  onPlanWait,
   onReleasePlan,
 }: Props) {
   const ready = totalHeroes > 0 && plannedCount === totalHeroes;
@@ -26,7 +30,7 @@ export function MobileActionControls({
     <div
       className="grid items-stretch gap-2 w-full"
       style={{
-        gridTemplateColumns: '1fr 54px',
+        gridTemplateColumns: '1fr repeat(3, 48px)',
       }}
     >
       <button
@@ -78,6 +82,8 @@ export function MobileActionControls({
           </span>
         )}
       </button>
+      <IconButton glyph="+" label="Strike" onClick={onPlanStrike} disabled={!canAct} />
+      <IconButton glyph="○" label="Wait" onClick={onPlanWait} disabled={!canAct} />
       <IconButton glyph="◇" label="Guard" onClick={onPlanGuard} disabled={!canAct} />
     </div>
   );

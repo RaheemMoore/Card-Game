@@ -212,6 +212,9 @@ function composeActionText(events: readonly BattleEvent[], state: BattleState): 
       );
       return `${actorName} focused${gain ? ` (+${gain.delta} energy)` : ''}`;
     }
+    if (start.action.kind === 'wait') {
+      return `${actorName} waited`;
+    }
     return `${actorName} inspected`;
   }
 

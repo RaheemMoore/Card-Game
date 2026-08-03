@@ -168,4 +168,23 @@ describe('party resource chambers', () => {
     // Two living mana heroes → +2 into the mana chamber.
     expect(s.partyResource.mana).toBe(2);
   });
+
+  it('wait consumes one command slot without changing combat resources or health', () => {
+    const state = opened([
+      hero('m1', MANA_STATS, 'Barbarian'),
+      hero('m2', MANA_STATS, 'Barbarian'),
+    ]);
+    const beforePending = state.pendingActorIds.length;
+    const beforeResource = state.partyResource;
+    const beforeBossHp = state.boss.hp;
+
+    const result = submitPlayerAction(state, { kind: 'wait' });
+
+    expect(result.state.pendingActorIds.length).toBe(beforePending - 1);
+    expect(result.state.partyResource).toEqual(beforeResource);
+    expect(result.state.boss.hp).toBe(beforeBossHp);
+    expect(result.events).toEqual([
+      { kind: 'player_action_selected', actorId: state.pendingActorIds[0], action: { kind: 'wait' } },
+    ]);
+  });
 });

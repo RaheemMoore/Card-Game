@@ -28,7 +28,7 @@ import { ArenaAmbience } from './ArenaAmbience';
 import { ImpactFlash } from './ImpactFlash';
 import { PartyDock, computePartyDockWidth } from './PartyDock';
 import { useViewportWidth } from './useViewportWidth';
-import { AbilityCommandBar } from './AbilityCommandBar';
+import { SelectedAbilityPanel } from './SelectedAbilityPanel';
 import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
@@ -39,7 +39,6 @@ import {
   abilityZoneWidth,
   abilityZonePadding,
   resourceZoneWidth,
-  resourceZonePadding,
   controlsPaddingRight,
 } from './shelfLayout';
 import { CombatGuideModal } from './CombatGuideModal';
@@ -249,6 +248,18 @@ export function CombatScene({
       })()
     : null;
 
+  useEffect(() => {
+    if (!pendingAbility || !resolvedTargetIds || !pendingConfirmation) return;
+    if (pendingConfirmation.required) return;
+    onPlan({
+      kind: 'ability',
+      abilityDefinitionId: pendingAbility.definitionId,
+      targetActorIds: resolvedTargetIds,
+    });
+    armAbility(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAbilityId, pickedTargetActorId, pendingConfirmation?.required]);
+
   const [sheetHero, setSheetHero] = useState<{ card: Card; combatant: HeroCombatant } | null>(null);
 
   return (
@@ -396,42 +407,28 @@ export function CombatScene({
             // Widths come from `shelfLayout`, which `shelfBudget.test.ts`
             // sums at every breakpoint. Inline clamp() strings here are what
             // let the shelf overflow twice without anything noticing.
-            flex: `0 0 ${abilityZoneWidth(viewportWidth)}px`,
+            flex: `0 0 ${abilityZoneWidth(viewportWidth) + resourceZoneWidth(viewportWidth)}px`,
             minWidth: 0,
             height: '100%',
             paddingLeft: abilityZonePadding(viewportWidth),
             paddingRight: abilityZonePadding(viewportWidth),
           }}
         >
-          <AbilityCommandBar
+          <SelectedAbilityPanel
             hero={actingHero}
+            availableResource={state.partyResource[actingHero.snapshot.resourceType]}
             disabled={!canAct}
             pendingId={pendingAbilityId}
+            plannedAction={plannedActions[actingHero.actorId]}
             onArm={armAbility}
             onHoverAbility={setHoveredAbility}
           />
-        </div>
-
-        <ShelfSeam />
-
-        {/* The party's shared resource, in the gap that used to be empty
-            between the ability control and the cards. Deliberately adjacent to
-            the abilities: it is the thing they are paid for with. */}
-        <div
-          className="flex items-center justify-center"
-          style={{
-            flex: `0 0 ${resourceZoneWidth(viewportWidth)}px`,
-            minWidth: 0,
-            height: '100%',
-            paddingLeft: resourceZonePadding(viewportWidth),
-            paddingRight: resourceZonePadding(viewportWidth),
-          }}
-        >
           <PartyResourceVessel
             state={state}
             motionLevel={motionLevel}
             canAct={canAct}
             onStrike={() => onPlan({ kind: 'strike' })}
+            onWait={() => onPlan({ kind: 'wait' })}
           />
         </div>
 
@@ -529,8 +526,8 @@ export function CombatScene({
       {sheetHero && (
         <CardSheet
           card={sheetHero.card}
-          abilities={buildBattleCardSheetAbilities(sheetHero.combatant)}
-          liveState={buildBattleLiveState(sheetHero.combatant)}
+          abilities={buildBattleCardSheetAbilities(sheetHero.combatant, state.partyResource[sheetHero.combatant.snapshot.resourceType])}
+          liveState={buildBattleLiveState(sheetHero.combatant, state.partyResource[sheetHero.combatant.snapshot.resourceType])}
           onClose={() => setSheetHero(null)}
         />
       )}

@@ -421,6 +421,8 @@ export type PlayerAction =
    * on that meaning. Adding damage to it would silently change targeting.
    */
   | { kind: 'strike' }
+  /** Deliberately spend this hero's command slot without producing an effect. */
+  | { kind: 'wait' }
   | { kind: 'guard' }
   | { kind: 'focus' }
   | { kind: 'inspect' };

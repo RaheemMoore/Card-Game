@@ -121,7 +121,7 @@ being raised in a chat and lost.*
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 1. What this game is
 
 > **Card Engine is an adventure game with characters you made yourself.**
@@ -226,10 +226,17 @@ The reducer is **pure and deterministic** — same seed, same fight, every time.
 lets a 5000-run headless simulator check balance without playing anything.
 
 **A combat round is planned as a party.** You choose one action for each living card; every
-choice leaves a large elemental charge hovering directly above that card. Nothing resolves
+attack leaves a large elemental charge above its card, while Wait leaves a neutral hold mark. Nothing resolves
 until all cards are ready and you press **Release Party**. The cards then act left to right,
 one complete charge → travel → impact → aftermath at a time, and only then does the boss
 respond.
+
+Selecting a card now exposes that character's three ability rows immediately above the
+shared Mana/Tech controls. Ordinary legal abilities lock from that choice and move focus to
+the next unfinished card; only genuinely risky choices keep a confirmation. **Strike** is a
+voluntary resource-building attack, while **Wait** spends that character's command slot with
+no damage, resource, charge, or status effect. A card opens its full sheet only through the
+separate expand control.
 
 **Cards are the characters on the field.** Hero cards replaced floor sprites.
 
@@ -286,8 +293,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **plan three → hold three visible charges → Release Party → resolve left to right → boss response**. Unmapped direct attacks now reuse the reviewed element stream/impact art instead of the old generic beam. Desktop and 1024×768 tablet runs pass locally; the combined branch is not merged, pushed, or deployed. |
-| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: reducer-truth projections, the live Threat Translator, contextual ability-vs-threat explanations, shared desktop/mobile confirmation policy, and authoritative resolution receipts retained in the combat journal. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
+| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → hold three visible charges → Release Party → resolve as a volley → boss response**. Unmapped direct attacks reuse the reviewed element stream/impact art instead of the old generic beam. Desktop and 1024×768 tablet runs pass locally; the combined branch is not merged, pushed, or deployed. |
+| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, Wait is an explicit zero-output command, and Strike is never forced. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -307,7 +314,7 @@ Five. Everything else is merged.
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 | `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
-| `decision-experience` | 4 | — | Combined local release candidate with the plan-and-release combat restructure committed. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
+| `decision-experience` | 5 | — | Combined local release candidate with the party-plan, selected-card command surface, explicit Wait action, and volley restructure. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
@@ -718,6 +725,28 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-03 — Selecting a card is the combat command, not a route to another menu
+
+Raheem approved removing the permanent Abilities disclosure. A single card selection now
+changes the visible ability rows immediately; choosing an ordinary legal ability locks that
+one action and moves to the next unfinished card. The full card sheet stays behind its own
+expand control instead of opening when the already-selected card is clicked.
+
+The same decision added **Wait** as a real combat command. It consumes one character's slot
+without damage, resource, ultimate charge, guard, taunt, or status. Strike remains available
+as the intentional light attack that builds the shared chamber, never as a forced way to
+finish planning. Desktop and 1024×768 tablet were exercised through the authentic
+party-picker and battle route with an ability, Wait, and Strike in the same released plan;
+the boss responded and the next round opened with no console errors.
+
+Build and targeted combat tests pass. The complete suite is 613 of 614 passing; the only
+failure is the unrelated pre-existing ability-art `cobalt` wording expectation. This is a
+local **HUMAN REVIEW** candidate. Nothing has been pushed or deployed.
+
+*Why it matters:* the card is finally the character and the command anchor. Planning no
+longer asks the player to select a card, open a menu, select again, or attack merely to make
+the turn continue.
+
 ### 2026-08-03 — Party attacks release as a volley and land as one payoff
 
 Raheem approved the plan-all-three structure, then rejected the long presentation rhythm
@@ -954,7 +983,7 @@ in common, and both tools get used across both subjects.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 9. Ideas raised, not committed
 
 *Said out loud, captured so they aren't lost, explicitly **not** promises.*
@@ -966,6 +995,9 @@ in common, and both tools get used across both subjects.
 - **More minigames as doors** — the shape accepts them; none are designed.
 - **Extract the harnesses as a reusable toolkit for future games** — Raheem explicitly
   deferred this. Focus is this game.
+- **Explore a generated combat-UI art pass** — Raheem raised PixelLab as a possible way to
+  improve the boss-battle chrome after the interaction restructure is proven. This is not an
+  approved generation run or a decision that PixelLab is the right UI tool.
 
 ---
 
