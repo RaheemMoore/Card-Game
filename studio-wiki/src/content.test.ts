@@ -29,9 +29,20 @@ describe('Studio Wiki content contracts', () => {
     expect(exploreItems).toContainEqual(['/minigames', 'Battle Tower']);
   });
 
+  it('keeps elements and abilities as separate first-class references', () => {
+    const exploreItems = navigation.find(({ group }) => group === 'Explore')?.items;
+    expect(exploreItems).toContainEqual(['/elements', 'Elements']);
+    expect(exploreItems).toContainEqual(['/abilities', 'Abilities']);
+  });
+
   it('makes the coworker handbook a first-class Production destination', () => {
     const productionItems = navigation.find(({ group }) => group === 'Production')?.items;
     expect(productionItems?.[1]).toEqual(['/studio', 'AI Studio Handbook']);
+  });
+
+  it('labels the append-only studio memory as the Decision Log', () => {
+    const productionItems = navigation.find(({ group }) => group === 'Production')?.items;
+    expect(productionItems).toContainEqual(['/decisions', 'Decision Log']);
   });
 
   it('keeps advice, execution, deferred work, and Tori on separate Work Board routes', () => {

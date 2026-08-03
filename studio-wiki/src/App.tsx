@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Hammer, Image, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Gem, Hammer, Image, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, elements, navigation, searchEntries } from './content';
@@ -11,9 +11,11 @@ import workshopBoss from '../../docs/production/screenshots/workshop-boss.png';
 import workshopSprite from '../../docs/production/screenshots/workshop-sprite.png';
 import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.png';
 import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
+import { SEED_ABILITIES } from '../../card-engine/src/data/abilities/seedAbilities';
+import { getApprovedArt } from '../../card-engine/src/data/abilities/visualManifest';
 
 const iconsByPath = {
-  '/': Command, '/characters': Users, '/bosses': Swords, '/abilities': Sparkles, '/world': Castle, '/minigames': CircleHelp,
+  '/': Command, '/characters': Users, '/bosses': Swords, '/elements': Gem, '/abilities': Sparkles, '/world': Castle, '/minigames': CircleHelp,
   '/production': FileText, '/studio': Workflow, '/assets': Image, '/workshops': Hammer, '/decisions': BookOpen, '/technical': Boxes, '/archive': Archive,
   '/work/advice': Lightbulb, '/work/active': ListChecks, '/work/required': TriangleAlert, '/work/tori': Feather,
 } as const;
@@ -65,7 +67,7 @@ function Shell() {
     <div className="main-column">
       <header className="topbar"><button className="menu-button" onClick={() => setMenu(true)} aria-label="Open navigation"><Menu/></button><div className="search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the studio…" aria-label="Search the Studio Wiki" onKeyDown={(event) => { if (event.key === 'Enter' && matches[0]) { navigate(matches[0].path); setSearch(''); } }}/>{search && <div className="search-results">{matches.length ? matches.map((entry) => <button key={entry.path} onClick={() => { navigate(entry.path); setSearch(''); }}><strong>{entry.title}</strong><span>{entry.text}</span></button>) : <p>No matching section</p>}</div>}</div><span className="crumb">{searchEntries.find((entry) => entry.path === path)?.title ?? 'Studio Home'}</span></header>
       <main>{({
-        '/': <Home/>, '/characters': <Characters/>, '/bosses': <Bosses/>, '/abilities': <Abilities/>,
+        '/': <Home/>, '/characters': <Characters/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
         '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
         '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>,
@@ -79,7 +81,7 @@ export function App() { return <Shell/>; }
 function Home() {
   return <><PageHeader eyebrow="CARD ENGINE · STUDIO CONTROL CENTER" title="Everything we know, somewhere worth exploring." intro="A visual, searchable home for the game’s characters, worlds, production truth, and the tools used to make them." status="IN FLIGHT"/>
     <div className="hero-grid"><Panel className="hero-panel"><div className="hero-art"><img src="/assets/castle/courtyard.png" alt="The Card Engine castle courtyard"/><div className="hero-overlay"><span>THE WORLD</span><h2>The castle is the hub. The Battle Tower is its first great door.</h2><a href="/minigames">Enter the Battle Tower guide →</a></div></div></Panel><Panel title="What needs attention"><div className="attention-list"><div><Status value="IN FLIGHT"/><strong>Studio Wiki foundation</strong><span>Repository-backed implementation</span></div><div><Status value="PLANNED"/><strong>Open the tower gate</strong><span>Castle courtyard → Battle Tower</span></div><div><Status value="IN FLIGHT"/><strong>Battle Tower</strong><span>Main mode · tower length undecided</span></div></div></Panel></div>
-    <div className="section-title"><div><p className="eyebrow">EXPLORE THE STUDIO</p><h2>Choose a door</h2></div></div><div className="route-grid"><RouteCard icon={<Castle/>} title="Battle Tower" copy="The primary mode: build a party, read the boss, and climb" path="/minigames"/><RouteCard icon={<Users/>} title="Characters & Archetypes" copy="11 identities, emblems, cards, and rank continuity" path="/characters"/><RouteCard icon={<Swords/>} title="Bosses & Arenas" copy="The Tower’s production art, animation, and floor assets" path="/bosses"/><RouteCard icon={<Sparkles/>} title="Abilities & Elements" copy="Full-art crystals, ability roles, and system rules" path="/abilities"/></div>
+    <div className="section-title"><div><p className="eyebrow">EXPLORE THE STUDIO</p><h2>Choose a door</h2></div></div><div className="route-grid route-grid-five"><RouteCard icon={<Castle/>} title="Battle Tower" copy="The primary mode: build a party, read the boss, and climb" path="/minigames"/><RouteCard icon={<Users/>} title="Characters & Archetypes" copy="11 identities, emblems, cards, and rank continuity" path="/characters"/><RouteCard icon={<Swords/>} title="Bosses & Arenas" copy="The Tower’s production art, animation, and floor assets" path="/bosses"/><RouteCard icon={<Gem/>} title="Elements" copy="Crystals, combat expression, charge, travel, and impact" path="/elements"/><RouteCard icon={<Sparkles/>} title="Abilities" copy="The live ability roster, roles, versions, and canonical artwork" path="/abilities"/></div>
     <Panel title="The game in one sentence" className="manifesto"><blockquote>Card Engine is an adventure game with characters you made yourself.</blockquote><p>The card is the format a character comes in. It is not the point.</p></Panel></>;
 }
 
@@ -93,10 +95,10 @@ function Bosses() {
   return <><PageHeader eyebrow="VISUAL WIKI" title="Bosses & Arenas" intro="Inspect the actual combat art, its animation states, implementation facts, and honest gaps." status="IN FLIGHT"/><div className="boss-layout"><Panel title="Boss roster"><div className="boss-roster"><button className="boss-tile selected"><img src="/assets/combat/bosses/debt-bearer/sprite-idle.png" alt="Debt-Bearer"/><span><strong>The Debt-Bearer</strong><small>PixelLab · 7 real clips</small></span></button><div className="boss-tile boss-tile-missing"><span className="boss-missing">ART<br/>PENDING</span><span><strong>The Still Season</strong><small>Clips are not committed on this branch</small></span></div></div><div className="arena-thumb"><img src="/assets/combat/arenas/barbarian-moot-ground/base.png" alt="Barbarian moot-ground arena"/><span>Approved arena · actual in-game plate</span></div></Panel><Panel title="Animation inspector" action={<label className="speed">Preview speed<select value={speed} onChange={(event) => setSpeed(Number(event.target.value))}><option value={0.5}>0.5×</option><option value={1}>1×</option><option value={1.5}>1.5×</option></select></label>}><SpritePlayer clip={clip} speed={speed}/><div className="state-tabs" role="tablist" aria-label="Boss animation states">{bossStates.map((state, index) => <button role="tab" aria-selected={selected === index} onClick={() => setSelected(index)} key={state.id}>{state.label}<small>{state.frames}f · {state.fps}fps</small></button>)}</div></Panel></div><Panel title="Seven-state comparison"><div className="comparison-grid">{bossStates.map((state) => <button key={state.id} onClick={() => setSelected(bossStates.indexOf(state))}><span className="comparison-image"><img src={`/assets/combat/bosses/debt-bearer/sprite-${state.file}.png`} alt="" style={{width:`${state.frames * 100}%`}}/></span><strong>{state.label}</strong><small>{state.loop ? 'Loops' : 'One-shot'} · {state.frames} frames</small></button>)}</div></Panel></>;
 }
 
-function Abilities() {
+function Elements() {
   const [selected, setSelected] = useState(0);
   const element = elements[selected];
-  return <><PageHeader eyebrow="VISUAL WIKI · ELEMENT CODEX" title="Abilities & Elements" intro="Every element has two lives: the crystal establishes its identity, and the combat performance shows how that material charges, travels, and lands." status="IN FLIGHT"/>
+  return <><PageHeader eyebrow="VISUAL WIKI · ELEMENT CODEX" title="Elements" intro="Every element has two lives: the crystal establishes its identity, and the combat performance shows how that material charges, travels, and lands." status="IN FLIGHT"/>
     <Panel title="Choose an element" action={<span className="element-count">29 canonical elements · 27 PixelLab combat kits</span>} className="element-browser">
       <div className="crystal-grid" role="listbox" aria-label="Element library">
         {elements.map((item, index) => <button className={selected === index ? 'selected' : ''} onClick={() => setSelected(index)} key={item.slug} role="option" aria-selected={selected === index} tabIndex={selected === index ? 0 : -1} onKeyDown={(event) => {
@@ -122,7 +124,37 @@ function Abilities() {
       </Panel>
       <ElementPerformancePlayer element={element}/>
     </div>
-    <Panel title="Ability artwork benchmarks" action={<a className="tower-related" href="/assets">Browse the full asset catalog →</a>}><div className="ability-benchmark-row"><div className="ability-cards"><article><img src="/assets/abilities/approved/ember-cleave/detail.jpg" alt="Ember Cleave ability art"/><strong>Ember Cleave</strong><small>Approved · Mana benchmark</small></article><article><img src="/assets/abilities/approved/aegis-ward/detail.jpg" alt="Aegis Ward ability art"/><strong>Aegis Ward</strong><small>Approved · Tech benchmark</small></article></div><div><p className="eyebrow">THREE DIFFERENT ART JOBS</p><h3>Crystal, performance, and ability art stay distinct.</h3><p className="fine-print">The crystal defines the element. PixelLab performance art shows what the material does in battle. Ability illustrations identify an individual named power. None of these overwrite gameplay values.</p><RepoLink path="card-engine/src/data/combat/performance/assetKits.ts"/></div></div></Panel>
+    <Panel title="Where elements end and abilities begin" action={<a className="tower-related" href="/abilities">Open the Ability Codex →</a>}><div className="ability-boundary"><Gem/><div><h3>An element is a material language, not a named move.</h3><p className="fine-print">The crystal defines elemental identity. PixelLab performance art shows how that material behaves in battle. An ability combines rules, a role, a slot, and its own named identity—and now has a separate repository-backed catalog.</p></div></div></Panel>
+  </>;
+}
+
+function Abilities() {
+  const [slot, setSlot] = useState<'all' | 'core' | 'signature' | 'ultimate'>('all');
+  const visible = SEED_ABILITIES.filter(({ version }) => slot === 'all' || version.slotType === slot);
+  const [selectedId, setSelectedId] = useState(() => SEED_ABILITIES.find(({ definition }) => getApprovedArt(definition.slug))?.definition.id ?? SEED_ABILITIES[0].definition.id);
+  const selected = visible.find(({ definition }) => definition.id === selectedId) ?? visible[0];
+  const art = getApprovedArt(selected.definition.slug);
+  const approvedArtCount = SEED_ABILITIES.filter(({ definition }) => getApprovedArt(definition.slug)).length;
+  return <><PageHeader eyebrow="VISUAL WIKI · ABILITY CODEX" title="Abilities" intro="The live canonical roster: what each named power does, where it belongs, how it is versioned, and which abilities have approved artwork." status="IN FLIGHT"/>
+    <div className="ability-summary-grid">
+      <Panel><strong>{SEED_ABILITIES.length}</strong><span>canonical seed abilities</span></Panel>
+      <Panel><strong>3</strong><span>slot tiers · core, signature, ultimate</span></Panel>
+      <Panel><strong>{approvedArtCount}</strong><span>current abilities with canonical art</span></Panel>
+      <Panel><strong>1 → many</strong><span>permanent identity to balance versions</span></Panel>
+    </div>
+    <div className="ability-filter" role="group" aria-label="Filter abilities by slot">{(['all','core','signature','ultimate'] as const).map((value) => <button key={value} className={slot === value ? 'selected' : ''} aria-pressed={slot === value} onClick={() => setSlot(value)}>{value === 'all' ? 'All abilities' : value}</button>)}</div>
+    <div className="ability-codex-layout">
+      <Panel title={`${visible.length} ${slot === 'all' ? 'abilities' : `${slot} abilities`}`} className="ability-roster"><div className="ability-roster-list">{visible.map(({ definition, version }) => <button key={definition.id} className={selected.definition.id === definition.id ? 'selected' : ''} aria-pressed={selected.definition.id === definition.id} onClick={() => setSelectedId(definition.id)}><span className={`ability-rarity ability-rarity-${definition.rarity}`}/><span><strong>{definition.displayName}</strong><small>{definition.familyIds.join(' · ')} · {version.resourceType}</small></span><ChevronRight/></button>)}</div></Panel>
+      <Panel className="ability-detail">
+        <div className="ability-detail-head"><div><p className="eyebrow">{selected.version.slotType.toUpperCase()} · {selected.definition.rarity.toUpperCase()}</p><h2>{selected.definition.displayName}</h2><p>{selected.definition.descriptionShort}</p></div><Status value={art ? 'APPROVED' : 'MISSING ASSET'}/></div>
+        <div className="ability-detail-body"><div className="ability-art-frame">{art ? <img src={art.detail.url} alt={`${selected.definition.displayName} canonical ability art`}/> : <MissingMedia label="Canonical ability art"/>}</div><dl>
+          <div><dt>Role</dt><dd>{selected.definition.role}</dd></div><div><dt>Family</dt><dd>{selected.definition.familyIds.join(', ')}</dd></div><div><dt>Resource</dt><dd>{selected.version.resourceType} · cost {selected.version.resourceCost}</dd></div><div><dt>Target</dt><dd>{selected.version.targetRule.type.replaceAll('_',' ')}</dd></div><div><dt>Effects</dt><dd>{selected.version.effects.map((effect) => effect.type.replaceAll('_',' ')).join(', ')}</dd></div><div><dt>Version</dt><dd>v{selected.version.versionNumber} · {selected.version.status}</dd></div>
+        </dl></div>
+        <div className="ability-detail-foot"><p>Gameplay identity and artwork stay attached to the permanent ability. Balance changes create a new version instead of rewriting its discovery history.</p><RepoLink path="card-engine/src/data/abilities/seedAbilities.ts"/></div>
+      </Panel>
+    </div>
+    <div className="ability-principles"><Panel title="Identity"><p>One named ability remains recognizable across balance passes, cards, and discoveries.</p></Panel><Panel title="Progression"><p>Core abilities establish the kit. Signature and ultimate slots expand as the character advances.</p></Panel><Panel title="Artwork"><p>Leonardo art is generated once for a genuinely new permanent ability—not per card and not per tier.</p></Panel></div>
+    <Panel className="ability-next-pass"><div><p className="eyebrow">NEXT PRODUCTION PASS</p><h2>{SEED_ABILITIES.length - approvedArtCount} abilities still need canonical art.</h2><p>The catalog is ready for the deeper ability-generation and picture workflow you plan to develop next. Missing art stays explicit instead of borrowing retired paintings from the old roster.</p></div><div><a className="tower-related" href="/elements">Looking for elemental charge and blast art? Open Elements →</a><RepoLink path="card-engine/src/data/abilities/visualManifest.ts"/></div></Panel>
   </>;
 }
 
@@ -173,7 +205,7 @@ function Minigames() {
       <Panel title="Elements, damage & defense" className="tower-system">
         <div className="damage-pipeline"><span>Base + stat scaling</span><b>→</b><span>Weakness / resistance</span><b>→</b><span>DEF mitigation</span><b>→</b><span>Shields, then HP</span></div>
         <p>Damage types are the tactical expression of elements. A resisted type deals half; a weakness deals one-and-a-half times. Guard creates a one-round shield. Damage always has a minimum floor of 1.</p>
-        <a className="tower-related" href="/abilities">Explore Abilities & Elements →</a>
+        <a className="tower-related" href="/elements">Explore Elements →</a>
       </Panel>
     </div>
 
@@ -333,7 +365,13 @@ function Assets() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Art
 function Workshops() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Workshops" intro="The repeatable harnesses and review surfaces that let the studio see how something is being made." status="IN FLIGHT"/><div className="workshop-grid"><Workshop image={workshopSprite} title="Sprite Lab" copy="Generate, recover, pack, and validate PixelLab characters and bosses." path="card-engine/scripts/sprite-lab"/><Workshop image={workshopArena} title="Background Harness" copy="Prompt, compare, finish, and approve environment plates." path="card-engine/scripts/bg-harness"/><Workshop image={workshopBoss} title="Boss Readout" copy="Review animation states, frame geometry, and combat presentation." path="card-engine/scripts"/></div><Panel title="A harness is a window"><p className="large-copy">A generation run is not complete merely because files exist. The harness exposes the prompt, candidates, provenance, cost, validation, and human approval point so the next person can reproduce the work.</p><RepoLink path="HARNESS_INDEX.md"/></Panel></>; }
 function Workshop({image,title,copy,path}:{image:string;title:string;copy:string;path:string}) { return <Panel className="workshop-card"><img src={image} alt="" onError={(event) => { event.currentTarget.style.display='none'; }}/><h2>{title}</h2><p>{copy}</p><RepoLink path={path}/></Panel>; }
 
-function Decisions() { const decisions = sectionsFromMarkdown(productionMarkdown).find((section) => section.heading.includes('Decision log')); return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Decisions" intro="Why the studio works this way, kept beside the implementation instead of stranded in old conversations."/><div className="reading-layout single"><Panel className="article"><h2>Decision log</h2>{decisions ? <MarkdownBody lines={decisions.body}/> : <p>The decision log remains in PRODUCTION.md.</p>}<RepoLink path="PRODUCTION.md"/></Panel><aside className="facts"><div><span>Final product authority</span><strong>Raheem</strong></div><div><span>Creative canon</span><strong>Character Bible</strong></div><div><span>Current status</span><strong>PRODUCTION.md</strong></div></aside></div></>; }
+function Decisions() {
+  const [introduction, ...entries] = productionSectionGroup('8. Decision log');
+  return <><PageHeader eyebrow="PRODUCTION LIBRARY · STUDIO MEMORY" title="Decision Log" intro="The append-only record of why the studio chose a direction. This is historical rationale—not a list of current tasks."/><div className="decision-boundary"><Panel><BookOpen/><div><p className="eyebrow">DECISION LOG</p><h2>Why did we choose this?</h2><p>Settled choices, reversals, and their consequences remain readable here in newest-first order.</p></div></Panel><RouteCard icon={<ListChecks/>} title="Looking for current work?" copy="Advice, active work, required debt, and Tori's desk live on the Work Board" path="/work/advice"/></div>
+    {introduction ? <Panel className="decision-intro"><MarkdownBody lines={introduction.body}/><RepoLink path="PRODUCTION.md"/></Panel> : <Panel><p>The decision log remains in PRODUCTION.md.</p></Panel>}
+    <div className="decision-layout"><section className="decision-list" aria-label="Decision history">{entries.map((entry, index) => <details className="decision-entry" open={index < 3} key={entry.heading}><summary><span>{String(index + 1).padStart(2,'0')}</span><strong>{entry.heading}</strong><ChevronDown/></summary><MarkdownBody lines={entry.body} limit={80}/></details>)}</section><aside className="facts"><div><span>Final product authority</span><strong>Raheem</strong></div><div><span>Answers</span><strong>Why it was decided</strong></div><div><span>Current tasks live in</span><strong>Work Board</strong></div><div><span>Record rule</span><strong>Newest first · append-only</strong></div></aside></div>
+  </>;
+}
 
 function Technical() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Technical Systems" intro="The major engines and the contracts between them—enough context to navigate the repository without flattening it into a file list."/><div className="system-map"><Panel title="Web application"><h3>React 19 · Vite 8 · TypeScript 6</h3><p>Forge, collection, admin, and battle interfaces.</p><RepoLink path="card-engine/src"/></Panel><Panel title="World runtime"><h3>Phaser 3</h3><p>Lazy-loaded castle scene, collision, depth, motion, and observation.</p><RepoLink path="card-engine/src/pages/castle"/></Panel><Panel title="Persistence"><h3>Supabase</h3><p>Cards, ledger, abilities, bosses, admin RBAC, and provider telemetry.</p><RepoLink path="card-engine/src/services/persistence"/></Panel><Panel title="Art engines"><h3>Leonardo · PixelLab</h3><p>Portraits and places; characters, bosses, animation, and props.</p><RepoLink path="HARNESS_INDEX.md"/></Panel></div></>; }
 

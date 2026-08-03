@@ -97,22 +97,23 @@ export const bossStates = [
 ] as const;
 
 export const navigation = [
-  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/abilities', 'Abilities & Elements'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
-  { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decisions'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
+  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
+  { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decision Log'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
   { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"]] },
 ] as const;
 
 export const searchEntries = [
   { path: '/characters', title: 'Characters & Archetypes', text: 'eleven emblems cards heroes ranks foundation forged ascendant' },
   { path: '/bosses', title: 'Bosses & Arenas', text: 'Battle Tower floors Debt-Bearer Still Season PixelLab idle windup attack ultimate rage hit defeat' },
-  { path: '/abilities', title: 'Abilities & Elements', text: '29 element crystals PixelLab charge delivery stream volley growth impact blast ability performance Ember Cleave Aegis Ward artwork' },
+  { path: '/elements', title: 'Elements', text: '29 element crystals PixelLab charge delivery stream volley growth impact blast combat performance material language' },
+  { path: '/abilities', title: 'Abilities', text: 'ability codex canonical roster core signature ultimate role family resource effects version artwork' },
   { path: '/world', title: 'Game World', text: 'castle courtyard tower arenas colliders occluders Phaser Leonardo PixelLab' },
   { path: '/minigames', title: 'Battle Tower', text: 'primary game mode floors party cards boss intent attack mana tech elements guard strike abilities' },
   { path: '/production', title: 'Current Build', text: 'production status open threads priorities shipped in flight' },
   { path: '/studio', title: 'AI Studio Handbook', text: 'coworker onboarding workflow accounts Figma Leonardo idea plan create build connect prove release agents skills evidence human approval' },
   { path: '/assets', title: 'Art & Assets', text: 'asset catalog OpenNest web previews provenance approved candidate missing' },
   { path: '/workshops', title: 'Workshops', text: 'harnesses sprite lab background arena prompt lab visual playtest' },
-  { path: '/decisions', title: 'Decisions', text: 'decision log governance canonical source truth' },
+  { path: '/decisions', title: 'Decision Log', text: 'append-only historical rationale why decisions governance canonical source truth' },
   { path: '/technical', title: 'Technical Systems', text: 'React Vite Supabase Phaser Leonardo PixelLab architecture' },
   { path: '/work/advice', title: 'AI Advice', text: 'recommendations priorities goals questions improve game Codex Claude advice next' },
   { path: '/work/active', title: 'Active Work', text: 'ongoing tasks in progress live branches current work status owners blockers checkpoints' },

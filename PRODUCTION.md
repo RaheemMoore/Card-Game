@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Element Codex previews the PixelLab library; the AI Studio Handbook handles coworker onboarding; and the Work Board separates advice, active work, obligations, and Tori's lore desk while keeping one production ledger. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -294,7 +294,7 @@ Four branches carry the work currently named in this guide.
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 5 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, visual catalogs, and local verification |
+| `codex/studio-wiki-foundation` | 7 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, separate Element and Ability codices, studio memory, and local verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -703,6 +703,24 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Studio memory, current work, elements, and abilities keep separate jobs
+
+The Production navigation keeps its decision page, renamed **Decision Log**, because it
+answers a different question from the Work Board. The Decision Log is the append-only record
+of why Raheem and the studio chose a direction. The Work Board remains the place for advice,
+active execution, necessary debt, and assignments. The Wiki now links between them explicitly
+instead of making two pages appear to be competing task lists.
+
+The former Abilities & Elements page is also split. **Elements** owns crystals and the
+PixelLab charge, travel, and impact library. **Abilities** keeps the stable `/abilities`
+address and reads the game's current 41-ability seed roster and approved-art manifest directly.
+Only Thornmantle and Bearing Witness currently have art approved for the live roster; retired
+paintings remain on disk but are not presented as current ability art. A focused admin-dashboard
+audit is the next separate review, not part of this navigation change.
+
+*Why it matters:* Current work, historical reasoning, elemental language, and named powers can
+each grow without obscuring one another or creating a second source of truth.
 
 ### 2026-08-03 — The Work Board is four views of one production ledger
 
