@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import type { PlayerAction } from '../../types/combat';
 import type { MotionLevel } from '../../vfx/types';
 import { LeaveConfirmModal } from './LeaveConfirmModal';
 import { useViewportWidth } from './useViewportWidth';
@@ -7,8 +6,8 @@ import { controlsGap, endTurnWidth, utilityChipWidth } from './shelfLayout';
 
 interface Props {
   canAct: boolean;
-  /** Heroes still owing a command this round. Used to size the End Turn stroke. */
-  pendingCount?: number;
+  plannedCount: number;
+  partyCount: number;
   /** Boss action currently resolving, if any. Rendered as a caption over the
    *  End Turn button so the disabled state says WHY it's disabled — this
    *  used to be the Turn Badge's "RESOLVE · <name>" line. */
@@ -16,7 +15,8 @@ interface Props {
   motionLevel: MotionLevel;
   onChangeMotionLevel: (next: MotionLevel) => void;
   onExit: () => void;
-  onSubmit: (action: PlayerAction) => void;
+  onPlanGuard: () => void;
+  onReleasePlan: () => void;
   onOpenGuide: () => void;
 }
 
@@ -38,12 +38,14 @@ const MOTION_LABEL: Record<MotionLevel, string> = {
  */
 export function BattleControls({
   canAct,
-  pendingCount = 1,
+  plannedCount,
+  partyCount,
   resolvingIntentName = null,
   motionLevel,
   onChangeMotionLevel,
   onExit,
-  onSubmit,
+  onPlanGuard,
+  onReleasePlan,
   onOpenGuide,
 }: Props) {
   const [confirmingLeave, setConfirmingLeave] = useState(false);
@@ -52,19 +54,12 @@ export function BattleControls({
   // overflowed twice precisely because no single place knew the total.
   const vw = useViewportWidth();
 
-  // End Turn = "every remaining hero guards + boss goes." Submitting once per
-  // pending hero cycles the party through in one click so users don't have to
-  // hunt the End Turn button for each hero individually.
-  const endParty = () => {
-    if (!canAct) return;
-    const n = Math.max(1, pendingCount);
-    for (let i = 0; i < n; i++) onSubmit({ kind: 'guard' });
-  };
-  const endLabel = pendingCount > 1 ? `END PARTY TURN (${pendingCount})` : 'END TURN';
-  const endAria =
-    pendingCount > 1
-      ? `End party turn — guards all ${pendingCount} remaining heroes and lets the boss act`
-      : 'End turn — guards this hero and lets the boss act';
+  const ready = partyCount > 0 && plannedCount === partyCount;
+  const unfinished = partyCount - plannedCount;
+  const unfinishedLabel = `${unfinished} ${unfinished === 1 ? 'hero still needs' : 'heroes still need'} an action`;
+  const releaseLabel = ready
+    ? `RELEASE PARTY · ${plannedCount}/${partyCount}`
+    : `ARM PARTY · ${plannedCount}/${partyCount}`;
   return (
     <div className="flex items-center" style={{ gap: controlsGap(vw), minWidth: 0 }}>
       {/* Utility tray — Settings / Guide / Leave, one quiet bordered group
@@ -106,6 +101,14 @@ export function BattleControls({
       {/* Seam — a thin inset rule instead of a second frame boundary */}
       <div aria-hidden style={{ width: 1, height: 44, background: 'rgba(128,79,33,0.5)' }} />
 
+      <UtilityChip
+        label="◇"
+        caption="GUARD"
+        onClick={canAct ? onPlanGuard : undefined}
+        ariaLabel="Arm Guard for the active hero"
+        width={utilityChipWidth(vw)}
+      />
+
       {/* STRIKE lives beside the resource vessels now, not here. It was 88px
           plus a 12px margin in this cluster, and that ~100px is exactly what
           pushed End Turn off the right edge of the screen. It also belongs
@@ -113,9 +116,8 @@ export function BattleControls({
           "generate" with "what you generated" reads better than grouping it
           with the turn controls. */}
 
-      {/* End Turn button — gradient border, unchanged visual language.
-          P1: one click ends the whole party turn (all pending heroes guard).
-          Label + aria communicate that so users don't have to guess. */}
+      {/* The round's single commit boundary. Until every living card has a
+          command it is a visible readiness counter, not a partial submit. */}
       <div className="relative">
         {/* Resolve caption — shown while the boss's beat is animating. Sits
             above the button so the player has somewhere to read "the boss is
@@ -144,30 +146,30 @@ export function BattleControls({
         )}
         <button
         type="button"
-        onClick={endParty}
-        disabled={!canAct}
+        onClick={onReleasePlan}
+        disabled={!canAct || !ready}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
         style={{
           width: endTurnWidth(vw),
           height: 58,
           borderRadius: 6,
           border: '2px solid #eb962e',
-          background: canAct
+          background: canAct && ready
             ? 'linear-gradient(to right, #592b09, #1a1412)'
             : 'linear-gradient(to right, #2a1608, #150c0e)',
           color: '#ffdb94',
-          fontSize: pendingCount > 1 ? 'clamp(10px, 1.3vw, 13px)' : 18,
+          fontSize: 'clamp(9px, 1.15vw, 13px)',
           fontWeight: 600,
           letterSpacing: 1.6,
           fontFamily: 'Inter, system-ui, sans-serif',
-          cursor: canAct ? 'pointer' : 'not-allowed',
-          boxShadow: canAct ? '0 0 22px rgba(235,150,46,0.35)' : 'none',
+          cursor: canAct && ready ? 'pointer' : 'not-allowed',
+          boxShadow: canAct && ready ? '0 0 22px rgba(235,150,46,0.35)' : 'none',
           transition: 'box-shadow 200ms, opacity 200ms',
         }}
-        aria-label={endAria}
-        title={endAria}
+        aria-label={ready ? 'Release all prepared party actions' : unfinishedLabel}
+        title={ready ? 'Release the party in card order' : unfinishedLabel}
       >
-        {endLabel}
+        {releaseLabel}
         </button>
       </div>
 

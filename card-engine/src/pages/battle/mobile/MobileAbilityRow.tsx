@@ -20,7 +20,7 @@ interface Props {
   pendingId: string | null;
   onArm: (definitionId: string | null) => void;
   pickedTargetActorId: string | null;
-  onSubmit: (action: PlayerAction) => void;
+  onPlan: (action: PlayerAction) => void;
 }
 
 const SLOT_ORDER: AbilitySlotType[] = ['core', 'signature', 'ultimate'];
@@ -50,7 +50,7 @@ export function MobileAbilityRow({
   pendingId,
   onArm,
   pickedTargetActorId,
-  onSubmit,
+  onPlan,
 }: Props) {
   const store = getAbilityStore();
 
@@ -138,7 +138,7 @@ export function MobileAbilityRow({
             decisionContext={pendingDecisionContext}
             onConfirm={() => {
               if (!resolvedTargetIds) return;
-              onSubmit({
+              onPlan({
                 kind: 'ability',
                 abilityDefinitionId: pendingAbility.definitionId,
                 targetActorIds: resolvedTargetIds,

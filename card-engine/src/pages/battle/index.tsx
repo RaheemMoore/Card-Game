@@ -66,7 +66,9 @@ export function Battle() {
       partyCards={party}
       entryTxnId={entryTxnId}
       error={battle.error}
-      onSubmit={battle.submit}
+      plannedActions={battle.plannedActions}
+      onPlan={battle.plan}
+      onReleasePlan={battle.releasePlan}
       onSelectActor={battle.selectActor}
       onRestart={() => {
         try {

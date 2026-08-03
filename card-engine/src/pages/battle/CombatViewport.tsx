@@ -25,7 +25,9 @@ interface Props {
   partyCards: Card[];
   entryTxnId: string | null;
   error: string | null;
-  onSubmit: (action: PlayerAction) => void;
+  plannedActions: Readonly<Record<string, PlayerAction>>;
+  onPlan: (action: PlayerAction) => void;
+  onReleasePlan: (actions?: Readonly<Record<string, PlayerAction>>) => void;
   onSelectActor: (actorId: string) => void;
   onRestart: () => void;
   onExit: () => void;
@@ -75,12 +77,18 @@ export function CombatViewport({
   partyCards,
   entryTxnId,
   error,
-  onSubmit,
+  plannedActions,
+  onPlan,
+  onReleasePlan,
   onSelectActor,
   onRestart,
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
+  const [releasedPlan, setReleasedPlan] = useState<{
+    actions: Readonly<Record<string, PlayerAction>>;
+    playbackStarted: boolean;
+  } | null>(null);
 
   // Lets the presentation queue recognise an ultimate and give it its own
   // pacing. Reads the ALREADY-FROZEN ability snapshots rather than adding a
@@ -122,6 +130,22 @@ export function CombatViewport({
   );
   const presentation = useCombatPresentation(events, presentationOptions, state?.boss.actorId);
   const isMobile = useIsMobileCombatLayout();
+  const visiblePlannedActions = releasedPlan?.actions ?? plannedActions;
+  const handleReleasePlan = () => {
+    setReleasedPlan({ actions: { ...plannedActions }, playbackStarted: false });
+    onReleasePlan(plannedActions);
+  };
+
+  useEffect(() => {
+    if (!releasedPlan) return;
+    if (presentation.isPlaying && !releasedPlan.playbackStarted) {
+      setReleasedPlan((current) =>
+        current ? { ...current, playbackStarted: true } : current,
+      );
+      return;
+    }
+    if (!presentation.isPlaying && releasedPlan.playbackStarted) setReleasedPlan(null);
+  }, [presentation.isPlaying, releasedPlan]);
 
   useBattleStudioBridge({
     state,
@@ -188,6 +212,10 @@ export function CombatViewport({
       data-battle-input-locked={import.meta.env.DEV ? presentation.isPlaying : undefined}
       data-battle-queued-beats={import.meta.env.DEV ? presentation.pendingCount : undefined}
       data-battle-motion={import.meta.env.DEV ? motionLevel : undefined}
+      data-battle-planned-count={
+        import.meta.env.DEV ? Object.keys(visiblePlannedActions).length : undefined
+      }
+      data-battle-release-held={import.meta.env.DEV ? Boolean(releasedPlan) : undefined}
     >
       {isMobile ? (
         <div className="w-full h-full">
@@ -206,7 +234,9 @@ export function CombatViewport({
               isPlaying={presentation.isPlaying}
               pendingCount={presentation.pendingCount}
               onSkip={presentation.skip}
-              onSubmit={onSubmit}
+              plannedActions={visiblePlannedActions}
+              onPlan={onPlan}
+              onReleasePlan={handleReleasePlan}
               onSelectActor={onSelectActor}
               onExit={onExit}
             />
@@ -232,7 +262,9 @@ export function CombatViewport({
                 presentationLocked={presentation.isPlaying}
                 motionLevel={motionLevel}
                 onChangeMotionLevel={setMotionLevel}
-                onSubmit={onSubmit}
+                plannedActions={visiblePlannedActions}
+                onPlan={onPlan}
+                onReleasePlan={handleReleasePlan}
                 onSelectActor={onSelectActor}
                 onExit={onExit}
               />

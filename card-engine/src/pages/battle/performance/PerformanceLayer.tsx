@@ -180,7 +180,7 @@ export function PerformanceView({
    */
   const chargeTell = chargeVisible ? (
     <ChargeTell
-      at={resolveAnchor('caster_card_edge', anchorContext)}
+      at={resolveAnchor('caster_card_front', anchorContext)}
       kit={perf.material}
       motionLevel={motionLevel}
       chargeMs={chargeMs}
@@ -193,6 +193,8 @@ export function PerformanceView({
       releaseMs={chargeReleaseMs}
       art={chargeArt}
       intensity={perf.intensity}
+      sizeMultiplier={4.5}
+      zIndex={24}
     />
   ) : null;
 
@@ -224,6 +226,8 @@ export function PerformanceView({
   );
 
   function renderBody() {
+  const deliveryKit = getAssetKit(assetKitIdFor(perf.form, perf.material.element));
+  const hasReviewedStream = assetAvailable(deliveryKit?.stream);
   switch (perf.form) {
     case 'lash':
     case 'drain':
@@ -269,6 +273,32 @@ export function PerformanceView({
 
     case 'projectile':
     case 'generic':
+      if (hasReviewedStream) {
+        return (
+          <LashRenderer
+            performance={perf}
+            from={from}
+            to={to}
+            motionLevel={motionLevel}
+            progressRef={clock.progressRef}
+            stageName={stageName}
+            contactProgress={contactProgress}
+            releasing={releasing}
+            releaseDelayMs={beamReleaseDelayMs}
+            releaseMs={beamReleaseMs}
+            impactVisibleMs={impactVisibleMs}
+          />
+        );
+      }
+      return (
+        <GenericRenderer
+          performance={perf}
+          from={from}
+          to={to}
+          motionLevel={motionLevel}
+          stageName={stageName}
+        />
+      );
     default:
       return (
         <GenericRenderer

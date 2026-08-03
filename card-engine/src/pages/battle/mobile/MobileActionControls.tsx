@@ -1,12 +1,9 @@
-import type { PlayerAction } from '../../../types/combat';
-
 interface Props {
   canAct: boolean;
-  /** Heroes still owing a command this round — sets End Party Turn subtext. */
-  pendingCount: number;
-  /** Total heroes alive this round — the denominator for pendingCount. */
+  plannedCount: number;
   totalHeroes: number;
-  onSubmit: (action: PlayerAction) => void;
+  onPlanGuard: () => void;
+  onReleasePlan: () => void;
 }
 
 /**
@@ -14,17 +11,16 @@ interface Props {
  * Auto is a display-only affordance because the reducer does not yet support
  * auto-battle — it's stubbed as disabled with an explanatory title.
  */
-export function MobileActionControls({ canAct, pendingCount, totalHeroes, onSubmit }: Props) {
-  const endParty = () => {
-    if (!canAct) return;
-    const n = Math.max(1, pendingCount);
-    for (let i = 0; i < n; i++) onSubmit({ kind: 'guard' });
-  };
-  const endLabel = pendingCount > 1 || totalHeroes > 1 ? 'END PARTY TURN' : 'END TURN';
-  const endSub =
-    totalHeroes > 1
-      ? `(${totalHeroes - pendingCount} / ${totalHeroes})`
-      : null;
+export function MobileActionControls({
+  canAct,
+  plannedCount,
+  totalHeroes,
+  onPlanGuard,
+  onReleasePlan,
+}: Props) {
+  const ready = totalHeroes > 0 && plannedCount === totalHeroes;
+  const label = ready ? 'RELEASE PARTY' : 'ARM PARTY';
+  const sub = `(${plannedCount} / ${totalHeroes})`;
 
   return (
     <div
@@ -35,20 +31,20 @@ export function MobileActionControls({ canAct, pendingCount, totalHeroes, onSubm
     >
       <button
         type="button"
-        onClick={endParty}
-        disabled={!canAct}
+        onClick={onReleasePlan}
+        disabled={!canAct || !ready}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-45"
         style={{
           height: 54,
           borderRadius: 6,
           border: '2px solid #eb962e',
-          background: canAct
+          background: canAct && ready
             ? 'linear-gradient(to right, #592b09, #1a1412)'
             : 'linear-gradient(to right, #2a1608, #150c0e)',
           color: '#ffdb94',
           fontFamily: 'Inter, system-ui, sans-serif',
-          cursor: canAct ? 'pointer' : 'not-allowed',
-          boxShadow: canAct ? '0 0 18px rgba(235,150,46,0.35)' : 'none',
+          cursor: canAct && ready ? 'pointer' : 'not-allowed',
+          boxShadow: canAct && ready ? '0 0 18px rgba(235,150,46,0.35)' : 'none',
           transition: 'box-shadow 200ms, opacity 200ms',
           display: 'flex',
           flexDirection: 'column',
@@ -57,7 +53,7 @@ export function MobileActionControls({ canAct, pendingCount, totalHeroes, onSubm
           gap: 2,
           padding: '0 8px',
         }}
-        aria-label={`${endLabel}${endSub ? ` ${endSub}` : ''} — guards all remaining heroes and lets the boss act`}
+        aria-label={ready ? `Release party ${sub}` : `Arm party ${sub}`}
       >
         <span
           style={{
@@ -66,9 +62,9 @@ export function MobileActionControls({ canAct, pendingCount, totalHeroes, onSubm
             letterSpacing: 1.2,
           }}
         >
-          {endLabel}
+          {label}
         </span>
-        {endSub && (
+        {sub && (
           <span
             style={{
               fontSize: 10,
@@ -78,17 +74,11 @@ export function MobileActionControls({ canAct, pendingCount, totalHeroes, onSubm
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {endSub}
+            {sub}
           </span>
         )}
       </button>
-      <IconButton
-        glyph="»"
-        label="Auto"
-        onClick={undefined}
-        disabled
-        title="Auto-battle coming soon"
-      />
+      <IconButton glyph="◇" label="Guard" onClick={onPlanGuard} disabled={!canAct} />
     </div>
   );
 }

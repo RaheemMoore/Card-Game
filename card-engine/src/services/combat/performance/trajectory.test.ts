@@ -125,4 +125,10 @@ describe('the first real asset', () => {
     expect(kit!.stream!.frames?.length).toBe(9);
     expect(kit!.impact!.loop).toBe(false);
   });
+
+  it('routes inferred projectile and generic damage through reviewed element art', () => {
+    expect(assetKitIdFor('projectile', 'Fire')).toBe('lash_fire');
+    expect(assetKitIdFor('generic', 'Moon')).toBe('lash_moon');
+    expect(assetAvailable(getAssetKit(assetKitIdFor('projectile', 'Bone'))?.stream)).toBe(true);
+  });
 });

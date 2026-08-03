@@ -1915,7 +1915,19 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
 export function assetKitIdFor(form: AbilityForm, element: ElementName | undefined): string | undefined {
   if (!element) return undefined;
   const id = `${form}_${element.toLowerCase()}`;
-  return id in PERFORMANCE_ASSET_KITS ? id : undefined;
+  if (id in PERFORMANCE_ASSET_KITS) return id;
+
+  // The reviewed element library currently manifests its travelling material
+  // as `lash_<element>` streams. Unmapped direct-damage abilities infer the
+  // projectile/generic families, but they still need to use that approved
+  // element art instead of falling all the way back to the legacy SVG line.
+  // This is an asset-family fallback only: timing, trajectory, consequences,
+  // and combat math remain those of the resolved performance.
+  if (form === 'projectile' || form === 'generic' || form === 'drain') {
+    const elementStreamId = `lash_${element.toLowerCase()}`;
+    if (elementStreamId in PERFORMANCE_ASSET_KITS) return elementStreamId;
+  }
+  return undefined;
 }
 
 export function getAssetKit(kitId: string | undefined): PerformanceAssetKit | undefined {

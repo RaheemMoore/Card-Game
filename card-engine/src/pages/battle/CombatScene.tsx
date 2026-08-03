@@ -33,6 +33,7 @@ import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
 import { CombatPerformanceLayer } from './performance/CombatPerformanceLayer';
+import { ArmedPartyCharges } from './performance/ArmedPartyCharges';
 import { PartyResourceVessel } from './PartyResourceVessel';
 import {
   abilityZoneWidth,
@@ -55,7 +56,9 @@ interface Props {
   presentationLocked: boolean;
   motionLevel: MotionLevel;
   onChangeMotionLevel: (next: MotionLevel) => void;
-  onSubmit: (action: PlayerAction) => void;
+  plannedActions: Readonly<Record<string, PlayerAction>>;
+  onPlan: (action: PlayerAction) => void;
+  onReleasePlan: () => void;
   onSelectActor: (actorId: string) => void;
   onExit: () => void;
 }
@@ -88,7 +91,9 @@ export function CombatScene({
   presentationLocked,
   motionLevel,
   onChangeMotionLevel,
-  onSubmit,
+  plannedActions,
+  onPlan,
+  onReleasePlan,
   onSelectActor,
   onExit,
 }: Props) {
@@ -108,6 +113,15 @@ export function CombatScene({
   // that human-time boundary: no new command (and no boss response) is allowed
   // to visually pile into a performance that has not finished.
   const canAct = state.phase === 'awaiting_player_action' && !presentationLocked;
+  const partyActorIds = state.heroes.filter((hero) => !hero.defeated).map((hero) => hero.actorId);
+  const plannedCount = partyActorIds.filter((id) => plannedActions[id]).length;
+  const resolvingActorId = (() => {
+    const event = currentBeat?.event;
+    if (!event) return null;
+    if ('actorId' in event && typeof event.actorId === 'string') return event.actorId;
+    if ('sourceActorId' in event && typeof event.sourceActorId === 'string') return event.sourceActorId;
+    return null;
+  })();
 
   // The boss's in-flight action name, shown as a caption on the command shelf
   // while its turn plays out. (Was the Turn Badge's second line; the badge is
@@ -319,6 +333,13 @@ export function CombatScene({
           motionLevel={motionLevel}
           viewportWidth={viewportWidth}
         />
+        <ArmedPartyCharges
+          state={state}
+          partyCards={partyCards}
+          plannedActions={plannedActions}
+          motionLevel={motionLevel}
+          resolvingActorId={resolvingActorId}
+        />
         <ResolutionReceiptOverlay
           state={state}
           events={events}
@@ -409,7 +430,7 @@ export function CombatScene({
             state={state}
             motionLevel={motionLevel}
             canAct={canAct}
-            onStrike={() => onSubmit({ kind: 'strike' })}
+            onStrike={() => onPlan({ kind: 'strike' })}
           />
         </div>
 
@@ -431,9 +452,11 @@ export function CombatScene({
         <div style={{ paddingRight: controlsPaddingRight(viewportWidth), minWidth: 0 }}>
           <BattleControls
             onExit={onExit}
-            onSubmit={onSubmit}
             canAct={canAct}
-            pendingCount={state.pendingActorIds.length}
+            plannedCount={plannedCount}
+            partyCount={partyActorIds.length}
+            onPlanGuard={() => onPlan({ kind: 'guard' })}
+            onReleasePlan={onReleasePlan}
             resolvingIntentName={resolvingIntentName}
             motionLevel={motionLevel}
             onChangeMotionLevel={onChangeMotionLevel}
@@ -483,7 +506,7 @@ export function CombatScene({
             decisionContext={pendingDecisionContext}
             onConfirm={() => {
               if (!resolvedTargetIds || !pendingAbility) return;
-              onSubmit({
+              onPlan({
                 kind: 'ability',
                 abilityDefinitionId: pendingAbility.definitionId,
                 targetActorIds: resolvedTargetIds,
@@ -495,6 +518,10 @@ export function CombatScene({
           />
         </div>
       )}
+
+      <div className="sr-only" aria-live="polite">
+        {plannedCount} of {partyActorIds.length} heroes armed.
+      </div>
 
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
 

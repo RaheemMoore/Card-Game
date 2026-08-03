@@ -69,6 +69,9 @@ interface Props {
    */
   art?: { src: string; sizePx: number };
   intensity: 'normal' | 'heavy' | 'ultimate';
+  /** Scale the whole tell for persistent party-planning readability. */
+  sizeMultiplier?: number;
+  zIndex?: number;
 }
 
 export function ChargeTell({
@@ -83,13 +86,15 @@ export function ChargeTell({
   releaseMs = 140,
   art,
   intensity,
+  sizeMultiplier = 1,
+  zIndex = 21,
 }: Props) {
   const [core, edge, accent] = kit.palette;
   const still = motionLevel === 'off';
 
   const scale = intensity === 'ultimate' ? 1.45 : intensity === 'heavy' ? 1.2 : 1;
-  const w = 54 * scale;
-  const h = 26 * scale;
+  const w = 54 * scale * sizeMultiplier;
+  const h = 26 * scale * sizeMultiplier;
 
   // Blood pools and hangs; the pool sits BELOW the cast point for heavy
   // materials so it reads as collecting.
@@ -107,7 +112,7 @@ export function ChargeTell({
         height: h,
         marginLeft: -w / 2,
         marginTop: -h / 2,
-        zIndex: 21,
+        zIndex,
         ['--charge-ms' as string]: `${Math.max(120, chargeMs)}ms`,
         ['--release-ms' as string]: `${Math.max(80, releaseMs)}ms`,
       }}

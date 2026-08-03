@@ -7,7 +7,7 @@ import {
   baselineHeroPolicy,
   verifyDeterminism,
 } from './harness';
-import { advance, initializeBattle, submitPartyCommands } from './reducer';
+import { advance, initializeBattle, submitPartyCommands, submitPartyPlan } from './reducer';
 import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
 import type { CardStats } from '../../types/card';
 
@@ -109,6 +109,24 @@ describe('party runtime — 3-hero baseline', () => {
       .filter((e) => e.kind === 'player_action_selected')
       .map((e) => (e.kind === 'player_action_selected' ? e.actorId : ''));
     expect(actorOrder).toEqual(['hero_0', 'hero_1', 'hero_2']);
+    expect(step.state.pendingActorIds).toEqual([]);
+  });
+
+  it('releases an addressed party plan in visible card order even after focus reordering', () => {
+    let s = initializeBattle(partySnapshot(11));
+    while (s.phase !== 'awaiting_player_action') s = advance(s).state;
+    s = { ...s, pendingActorIds: ['hero_2', 'hero_0', 'hero_1'] };
+
+    const step = submitPartyPlan(s, [
+      { actorId: 'hero_0', action: { kind: 'strike' } },
+      { actorId: 'hero_1', action: { kind: 'guard' } },
+      { actorId: 'hero_2', action: { kind: 'strike' } },
+    ]);
+    const selected = step.events
+      .filter((event) => event.kind === 'player_action_selected')
+      .map((event) => (event.kind === 'player_action_selected' ? event.actorId : ''));
+
+    expect(selected).toEqual(['hero_0', 'hero_1', 'hero_2']);
     expect(step.state.pendingActorIds).toEqual([]);
   });
 });

@@ -180,7 +180,7 @@ find in the mine. Each mode is the key to another.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 2. The map
 
 *How the game is actually built. Aimed at making you fluent in your own codebase.*
@@ -224,6 +224,12 @@ boss declares intent  →  you see a telegraph  →  party acts  →  boss acts
 
 The reducer is **pure and deterministic** — same seed, same fight, every time. That's what
 lets a 5000-run headless simulator check balance without playing anything.
+
+**A combat round is planned as a party.** You choose one action for each living card; every
+choice leaves a large elemental charge hovering directly above that card. Nothing resolves
+until all cards are ready and you press **Release Party**. The cards then act left to right,
+one complete charge → travel → impact → aftermath at a time, and only then does the boss
+respond.
 
 **Cards are the characters on the field.** Hero cards replaced floor sprites.
 
@@ -280,7 +286,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Card actions are presentation-locked and resolve sequentially through charge, travel, impact, aftermath, receipt, then boss response. Review remains available at `/dev/ability-theater`; the combined branch is verified locally but is not merged, pushed, or deployed. |
+| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **plan three → hold three visible charges → Release Party → resolve left to right → boss response**. Unmapped direct attacks now reuse the reviewed element stream/impact art instead of the old generic beam. Desktop and 1024×768 tablet runs pass locally; the combined branch is not merged, pushed, or deployed. |
 | IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: reducer-truth projections, the live Threat Translator, contextual ability-vs-threat explanations, shared desktop/mobile confirmation policy, and authoritative resolution receipts retained in the combat journal. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
@@ -301,7 +307,7 @@ Five. Everything else is merged.
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 | `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
-| `decision-experience` | 4 | — | Combined release candidate at committed base `262bc62`, plus audited local integration changes. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
+| `decision-experience` | 4 | — | Combined local release candidate with the plan-and-release combat restructure committed. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
@@ -711,6 +717,28 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Boss combat is a party plan, not three interrupted mini-turns
+
+Raheem rejected the immediate one-card-at-a-time decision loop after playing it. A round now
+stays in planning while every living card chooses an action. Each confirmed choice creates a
+large, element-specific charge directly above that card. **Release Party** becomes available
+only when the party is complete; it resolves the three commands in visible card order and
+holds the boss until the last action, impact, aftermath, and receipt have played.
+
+The same pass removed the old generic travel beam from element-backed direct attacks. Those
+attacks now use the reviewed element stream and impact files already approved in Ability
+Theater. The authentic battle was exercised at desktop and 1024×768 tablet sizes: all three
+charges stayed visible, the active one changed to *Releasing*, the other two stayed *Armed*,
+input remained locked for the sequence, and the boss/next-round boundary followed it.
+
+This is still a **local release candidate**. Build and lint pass; 608 of 609 tests pass, with
+the one failure still the pre-existing ability-art `cobalt` wording expectation. Nothing has
+been pushed or deployed.
+
+*Why it matters:* the player now makes one legible party decision and watches one causal
+sequence, instead of being bounced between a card, the boss, and another card before the
+party's intent ever becomes clear.
 
 ### 2026-08-03 — Ability Performance and Decision Experience release as one combat track
 

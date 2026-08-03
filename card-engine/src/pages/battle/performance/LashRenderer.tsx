@@ -170,13 +170,13 @@ export function LashRenderer({
   const kitAssets = getAssetKit(assetKitIdFor(perf.form, kit.element));
   const impactAsset = assetAvailable(kitAssets?.impact) ? kitAssets.impact : undefined;
   /*
-   * A textured stream replaces the drawn spline, but ONLY for `beam` — a whip
-   * and a lob both curve, and a tiled row of quads cannot follow a curve
-   * without shearing at every joint. Those keep the spline, which handles
-   * curvature natively. This is the honest boundary of the technique.
+   * Reviewed element art wins over the procedural spline for every travelling
+   * damage family. The current stream sprites are authored as tiling strips,
+   * so their path is intentionally direct even when the recipe's abstract
+   * trajectory says lob/whip; showing the real Moon, Bone, Fire, etc. material
+   * is more faithful than replacing it with the old same-shape SVG beam.
    */
-  const streamAsset =
-    perf.trajectory === 'beam' && assetAvailable(kitAssets?.stream) ? kitAssets.stream : undefined;
+  const streamAsset = assetAvailable(kitAssets?.stream) ? kitAssets.stream : undefined;
 
   /*
    * The jet stops once it has landed.

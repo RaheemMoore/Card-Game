@@ -4,6 +4,7 @@ import type { BattleEvent, BattleState, PlayerAction, TurnPhase } from '../../ty
 import {
   advance,
   initializeBattle,
+  submitPartyPlan,
   submitPlayerAction,
 } from './reducer';
 import {
@@ -42,6 +43,12 @@ export interface UseBattleApi {
   /** actorId of the hero currently being asked for input, or null if not awaiting. */
   actingActorId: string | null;
   submit(action: PlayerAction): void;
+  /** Commands prepared this round, keyed by hero actor id. */
+  plannedActions: Readonly<Record<string, PlayerAction>>;
+  /** Save or replace the focused hero's command without resolving combat. */
+  plan(action: PlayerAction): void;
+  /** Commit the complete party plan in visible card order. */
+  releasePlan(actions?: Readonly<Record<string, PlayerAction>>): void;
   /**
    * Move a specific hero to the front of `pendingActorIds` so the next
    * `submit()` acts as them. Lets the player choose their party's action
@@ -83,6 +90,7 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
   const [state, setState] = useState<BattleState | null>(null);
   const [events, setEvents] = useState<BattleEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [plannedActions, setPlannedActions] = useState<Record<string, PlayerAction>>({});
   const [restartCount, setRestartCount] = useState(0);
   const partyKey = input?.heroCards.map((c) => c.cardId).join('|') ?? null;
 
@@ -91,6 +99,7 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       setState(null);
       setEvents([]);
       setError(null);
+      setPlannedActions({});
       return;
     }
     try {
@@ -162,6 +171,7 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       setState(flushed);
       setEvents([...initial.log, ...flushedEvents]);
       setError(null);
+      setPlannedActions({});
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setState(null);
@@ -203,6 +213,60 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
     });
   }, []);
 
+  const plan = useCallback((action: PlayerAction) => {
+    if (!state || state.phase !== 'awaiting_player_action') return;
+    const actorId = state.pendingActorIds[0];
+    if (!actorId) return;
+    const nextPlan = { ...plannedActions, [actorId]: action };
+    setPlannedActions(nextPlan);
+
+    // Advance focus to the next unarmed card without consuming the current
+    // hero's reducer turn. Planned actions remain editable until release.
+    const unarmed = state.heroes.find(
+      (hero) =>
+        !hero.defeated &&
+        state.pendingActorIds.includes(hero.actorId) &&
+        hero.actorId !== actorId &&
+        !nextPlan[hero.actorId],
+    );
+    if (!unarmed) return;
+    setState({
+      ...state,
+      pendingActorIds: [
+        unarmed.actorId,
+        ...state.pendingActorIds.filter((id) => id !== unarmed.actorId),
+      ],
+    });
+  }, [plannedActions, state]);
+
+  const releasePlan = useCallback((submittedPlan?: Readonly<Record<string, PlayerAction>>) => {
+    if (!state || state.phase !== 'awaiting_player_action') return;
+    const planToRelease = submittedPlan ?? plannedActions;
+    const orderedActorIds = state.heroes
+      .filter((hero) => !hero.defeated && state.pendingActorIds.includes(hero.actorId))
+      .map((hero) => hero.actorId);
+    if (orderedActorIds.length === 0 || orderedActorIds.some((id) => !planToRelease[id])) return;
+
+    try {
+      const committed = submitPartyPlan(
+        state,
+        orderedActorIds.map((actorId) => ({ actorId, action: planToRelease[actorId] })),
+      );
+      if (committed.state.pendingActorIds.length > 0) {
+        throw new Error('One prepared action became unavailable. Review the armed party and release again.');
+      }
+      const { state: flushed, events: flushedEvents } = runToNextPause(committed.state);
+      const allEvents = [...committed.events, ...flushedEvents];
+      if (allEvents.length > 0) setEvents((current) => [...current, ...allEvents]);
+      setState(flushed);
+      setPlannedActions({});
+      setError(null);
+    } catch (err) {
+      console.error('[combat] party release failed', { planToRelease }, err);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }, [plannedActions, state]);
+
   // Reorder pendingActorIds so `actorId` is next to act. Pure reordering —
   // no events, no phase change. The reducer's contract stays "acts on
   // pendingActorIds[0]"; we just let the view influence which pending id
@@ -227,7 +291,29 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       : null;
 
   return useMemo(
-    () => ({ state, events, actingActorId, submit, selectActor, restart, error }),
-    [state, events, actingActorId, submit, selectActor, restart, error],
+    () => ({
+      state,
+      events,
+      actingActorId,
+      submit,
+      plannedActions,
+      plan,
+      releasePlan,
+      selectActor,
+      restart,
+      error,
+    }),
+    [
+      state,
+      events,
+      actingActorId,
+      submit,
+      plannedActions,
+      plan,
+      releasePlan,
+      selectActor,
+      restart,
+      error,
+    ],
   );
 }

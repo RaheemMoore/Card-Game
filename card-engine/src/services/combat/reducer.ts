@@ -2162,3 +2162,59 @@ export function submitPartyCommands(
   }
   return { state, events };
 }
+
+export interface PlannedPartyCommand {
+  actorId: string;
+  action: PlayerAction;
+}
+
+/**
+ * Commit an explicitly-addressed party plan in canonical card order.
+ *
+ * Planning lives above the reducer and does not mutate combat state. At the
+ * release boundary this helper binds each saved command back to its hero,
+ * while still routing every consequence through `submitPlayerAction`. That
+ * keeps one source of truth for costs, targeting, damage, reactions, receipts,
+ * and victory checks; the batch is orchestration, not a second combat engine.
+ */
+export function submitPartyPlan(
+  start: BattleState,
+  commands: readonly PlannedPartyCommand[],
+): StepResult {
+  let state = start;
+  const events: BattleEvent[] = [];
+
+  for (const command of commands) {
+    while (state.phase === 'resolving_reactions') {
+      const advanced = advance(state);
+      state = advanced.state;
+      events.push(...advanced.events);
+    }
+
+    if (state.phase !== 'awaiting_player_action') break;
+    if (!state.pendingActorIds.includes(command.actorId)) continue;
+
+    // UI focus may have reordered the pending queue while the plan was being
+    // edited. Release order is the visible card order supplied by the caller,
+    // so bind the next reducer submission to the addressed hero explicitly.
+    state = {
+      ...state,
+      pendingActorIds: [
+        command.actorId,
+        ...state.pendingActorIds.filter((id) => id !== command.actorId),
+      ],
+    };
+
+    const beforeCount = state.pendingActorIds.length;
+    const submitted = submitPlayerAction(state, command.action);
+    state = submitted.state;
+    events.push(...submitted.events);
+
+    // A denied command deliberately leaves the hero pending. Never let the
+    // batch slide past that failure and hand control to the boss as if the
+    // hero had acted.
+    if (state.pendingActorIds.length === beforeCount) break;
+  }
+
+  return { state, events };
+}

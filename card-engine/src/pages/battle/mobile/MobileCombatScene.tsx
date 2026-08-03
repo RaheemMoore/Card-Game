@@ -26,7 +26,9 @@ interface Props {
   isPlaying: boolean;
   pendingCount: number;
   onSkip: () => void;
-  onSubmit: (action: PlayerAction) => void;
+  plannedActions: Readonly<Record<string, PlayerAction>>;
+  onPlan: (action: PlayerAction) => void;
+  onReleasePlan: () => void;
   /** Move a pending hero to the front of the action queue. */
   onSelectActor: (actorId: string) => void;
   onExit: () => void;
@@ -62,7 +64,9 @@ export function MobileCombatScene({
   isPlaying,
   pendingCount: journalPendingCount,
   onSkip,
-  onSubmit,
+  plannedActions,
+  onPlan,
+  onReleasePlan,
   onSelectActor,
   onExit,
 }: Props) {
@@ -105,7 +109,9 @@ export function MobileCombatScene({
   }, [state.heroes, selectedActorId]);
 
   const aliveCount = state.heroes.filter((h) => !h.defeated).length;
-  const pendingActions = state.pendingActorIds.length;
+  const plannedCount = state.heroes.filter(
+    (hero) => !hero.defeated && plannedActions[hero.actorId],
+  ).length;
 
   // Armed-ability + target-pick state, mirroring desktop's CombatScene —
   // owned here so MobilePartyCardTray's target-pick mode shares the same
@@ -349,7 +355,7 @@ export function MobileCombatScene({
               pendingId={pendingAbilityId}
               onArm={armAbility}
               pickedTargetActorId={pickedTargetActorId}
-              onSubmit={onSubmit}
+              onPlan={onPlan}
             />
           )}
         </div>
@@ -360,7 +366,7 @@ export function MobileCombatScene({
             <MobileResourceRow
               selectedHero={selectedHero}
               boss={state.boss}
-              actionsRemaining={pendingActions === 0 ? aliveCount : pendingActions}
+              actionsRemaining={Math.max(0, aliveCount - plannedCount)}
             />
           </div>
         )}
@@ -377,9 +383,10 @@ export function MobileCombatScene({
         >
           <MobileActionControls
             canAct={canAct}
-            pendingCount={pendingActions}
+            plannedCount={plannedCount}
             totalHeroes={aliveCount}
-            onSubmit={onSubmit}
+            onPlanGuard={() => onPlan({ kind: 'guard' })}
+            onReleasePlan={onReleasePlan}
           />
         </div>
 
