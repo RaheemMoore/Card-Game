@@ -70,6 +70,7 @@ describe('summarizeJournal', () => {
     const action = entries.find((e) => e.kind === 'action');
     expect(action).toBeDefined();
     expect(action!.text).toBe(`Seojin used "Oathbreaker's Answer" on ${state.boss.snapshot.name} for 3 energy — 49 damage`);
+    expect(action!.receipts.map((receipt) => receipt.text)).toContain('49 DAMAGE');
     void ashvara;
   });
 
@@ -85,6 +86,7 @@ describe('summarizeJournal', () => {
     const entries = summarizeJournal(events, state);
     expect(entries).toHaveLength(1);
     expect(entries[0].text).toBe(`Seojin used "Bearing Witness" on Ashvara — healed 30`);
+    expect(entries[0].receipts.map((receipt) => receipt.text)).toContain('+30 HP');
   });
 
   it('drops regen resource_changed events entirely', () => {

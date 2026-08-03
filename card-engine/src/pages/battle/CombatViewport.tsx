@@ -11,10 +11,12 @@ import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
 import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
 import { useMotionLevel } from '../../services/combat/presentation/useMotionLevel';
 import { summarizeJournal } from '../../services/combat/presentation/journalSummary';
+import { buildHeroPerformanceDurations } from '../../services/combat/presentation/performanceTiming';
 import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
 import { ResultModal } from './ResultModal';
 import { MobileCombatScene } from './mobile/MobileCombatScene';
+import { BATTLE_STUDIO_SCENARIO, useBattleStudioBridge } from './studioBridge';
 
 interface Props {
   state: BattleState | null;
@@ -98,12 +100,37 @@ export function CombatViewport({
   // would have added another copy of that read. One source, one answer.
   const [motionLevel, setMotionLevel] = useMotionLevel();
 
+  const performanceDurations = useMemo(() => {
+    if (!state) return new Map<number, number>();
+    return buildHeroPerformanceDurations(
+      events,
+      state.boss.actorId,
+      state.heroes.map((hero) => hero.actorId),
+      partyCards,
+      motionLevel,
+    );
+  }, [events, motionLevel, partyCards, state]);
+
+  const performanceDurationLookup = useMemo(
+    () => (openerIndex: number) => performanceDurations.get(openerIndex),
+    [performanceDurations],
+  );
+
   const presentationOptions = useMemo(
-    () => ({ slotLookup, motionLevel }),
-    [slotLookup, motionLevel],
+    () => ({ slotLookup, motionLevel, performanceDurationLookup }),
+    [slotLookup, motionLevel, performanceDurationLookup],
   );
   const presentation = useCombatPresentation(events, presentationOptions, state?.boss.actorId);
   const isMobile = useIsMobileCombatLayout();
+
+  useBattleStudioBridge({
+    state,
+    events,
+    currentBeat: presentation.currentBeat,
+    isPlaying: presentation.isPlaying,
+    pendingCount: presentation.pendingCount,
+    motionLevel,
+  });
 
   // A separate condensed view over the same event stream, purely for the
   // journal panels — does not touch `presentation` (beat pacing/animation
@@ -150,6 +177,17 @@ export function CombatViewport({
       aria-label="Active combat"
       role="dialog"
       aria-modal="true"
+      data-battle-runtime="authentic"
+      data-battle-scenario={import.meta.env.DEV ? BATTLE_STUDIO_SCENARIO : undefined}
+      data-battle-phase={import.meta.env.DEV ? state?.phase : undefined}
+      data-battle-id={import.meta.env.DEV ? state?.snapshot.battleId : undefined}
+      data-battle-round={import.meta.env.DEV ? state?.round : undefined}
+      data-battle-event-count={import.meta.env.DEV ? events.length : undefined}
+      data-battle-current-beat={import.meta.env.DEV ? presentation.currentBeat?.id : undefined}
+      data-battle-current-event={import.meta.env.DEV ? presentation.currentBeat?.event.kind : undefined}
+      data-battle-input-locked={import.meta.env.DEV ? presentation.isPlaying : undefined}
+      data-battle-queued-beats={import.meta.env.DEV ? presentation.pendingCount : undefined}
+      data-battle-motion={import.meta.env.DEV ? motionLevel : undefined}
     >
       {isMobile ? (
         <div className="w-full h-full">
@@ -187,9 +225,11 @@ export function CombatViewport({
             <>
               <CombatScene
                 state={state}
+                events={events}
                 actingActorId={actingActorId}
                 partyCards={partyCards}
                 currentBeat={presentation.currentBeat}
+                presentationLocked={presentation.isPlaying}
                 motionLevel={motionLevel}
                 onChangeMotionLevel={setMotionLevel}
                 onSubmit={onSubmit}

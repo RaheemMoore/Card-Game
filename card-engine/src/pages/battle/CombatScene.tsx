@@ -1,6 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Card } from '../../types/card';
-import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
+import type {
+  AbilityCombatSnapshot,
+  BattleEvent,
+  BattleState,
+  HeroCombatant,
+  PlayerAction,
+} from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import type { MotionLevel } from '../../vfx/types';
 import { resolveArenaFor, resolveGroundTint } from '../../data/combat/arenaManifest';
@@ -8,11 +14,14 @@ import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
 import { projectAction } from '../../services/combat/decision/projectAction';
 import { requiresConfirmation } from '../../services/combat/decision/confirmation';
+import { deriveThreat } from '../../services/combat/decision/objectives';
+import { explainAbility } from '../../services/combat/decision/relationships';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
 import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
 import { ThreatTranslator } from './ThreatTranslator';
+import { ResolutionReceiptOverlay } from './ResolutionReceiptOverlay';
 import { BossStage } from './BossStage';
 import { ArenaShakeLayer } from './ArenaShakeLayer';
 import { ArenaAmbience } from './ArenaAmbience';
@@ -23,6 +32,7 @@ import { AbilityCommandBar } from './AbilityCommandBar';
 import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
+import { CombatPerformanceLayer } from './performance/CombatPerformanceLayer';
 import { PartyResourceVessel } from './PartyResourceVessel';
 import {
   abilityZoneWidth,
@@ -38,9 +48,11 @@ import { buildBattleCardSheetAbilities, buildBattleLiveState } from './cardSheet
 
 interface Props {
   state: BattleState;
+  events: readonly BattleEvent[];
   actingActorId: string | null;
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
+  presentationLocked: boolean;
   motionLevel: MotionLevel;
   onChangeMotionLevel: (next: MotionLevel) => void;
   onSubmit: (action: PlayerAction) => void;
@@ -69,9 +81,11 @@ interface Props {
  */
 export function CombatScene({
   state,
+  events,
   actingActorId,
   partyCards,
   currentBeat,
+  presentationLocked,
   motionLevel,
   onChangeMotionLevel,
   onSubmit,
@@ -89,7 +103,11 @@ export function CombatScene({
     (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
     state.heroes.find((h) => !h.defeated) ??
     state.heroes[0];
-  const canAct = state.phase === 'awaiting_player_action';
+  // The reducer resolves synchronously and may already be awaiting the next
+  // hero while the previous hero is still visibly casting. Presentation owns
+  // that human-time boundary: no new command (and no boss response) is allowed
+  // to visually pile into a performance that has not finished.
+  const canAct = state.phase === 'awaiting_player_action' && !presentationLocked;
 
   // The boss's in-flight action name, shown as a caption on the command shelf
   // while its turn plays out. (Was the Turn Badge's second line; the badge is
@@ -204,6 +222,10 @@ export function CombatScene({
           targetResolved: resolvedTargetIds !== null,
         })
       : undefined;
+  const pendingDecisionContext =
+    pendingAbility && pendingProjection
+      ? explainAbility(state, deriveThreat(state), pendingAbility, pendingProjection)
+      : null;
   const abilityStore = getAbilityStore();
   const pendingArtUrl = pendingAbility
     ? (() => {
@@ -278,10 +300,32 @@ export function CombatScene({
               - the boss's target is shown by brackets on the named card
                 (PartyDock), which is the job the sprites used to do. */}
 
-        {/* Attack VFX (bolt + impact burst). Inside the wrapper so beams stay
-            welded to what they are anchored to — outside it, a heavy hit would
-            shake the combatants out from under their own beam. */}
+        {/* Attack VFX (bolt + impact burst) — boss-sourced hits only now.
+            Hero-sourced hits get the full Ability Performance System below;
+            drawing both for the same `damage_dealt` would double the effect.
+            Inside the wrapper so beams stay welded to what they are anchored
+            to — outside it, a heavy hit would shake the combatants out from
+            under their own beam. */}
         <AttackVFX state={state} currentBeat={currentBeat} />
+
+        {/* Ability Performance System — delivery form x caster material,
+            resolved from the live event log. Hero actions only; see the
+            layer's own docstring for why the boss stays on AttackVFX. */}
+        <CombatPerformanceLayer
+          state={state}
+          events={events}
+          partyCards={partyCards}
+          currentBeat={currentBeat}
+          motionLevel={motionLevel}
+          viewportWidth={viewportWidth}
+        />
+        <ResolutionReceiptOverlay
+          state={state}
+          events={events}
+          currentBeat={currentBeat}
+          motionLevel={motionLevel}
+          viewportWidth={viewportWidth}
+        />
         </>}
       />
 
@@ -436,6 +480,7 @@ export function CombatScene({
             targetName={targetName}
             needsTargetPick={needsTargetPick && !pickedTargetActorId}
             confirmation={pendingConfirmation}
+            decisionContext={pendingDecisionContext}
             onConfirm={() => {
               if (!resolvedTargetIds || !pendingAbility) return;
               onSubmit({

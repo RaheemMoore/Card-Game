@@ -5,19 +5,16 @@ import { resolveCombatAssetPath } from '../types';
 /**
  * Effect-art manifest for the Ability Performance System.
  *
- * ## Nothing here is generated yet
+ * ## Reviewed runtime art
  *
- * Every row is `approvalStatus: 'placeholder'` and every `path` points at a
- * file that does not exist. That is deliberate and is the whole shape of
- * Delivery 1: the renderers must be able to draw a complete, reviewable
- * performance from CODE alone, with art as an enhancement that slots in later.
- * A renderer that only works once its PNG lands is a renderer that cannot be
- * reviewed before money is spent.
+ * The generated rows below are locally stored, provenance-backed assets that
+ * Raheem reviewed in the Ability Theater and approved through Batch J. Holy
+ * remains procedural by design; placeholder rows still describe missing-kit
+ * fallback behavior where a form has no authored asset.
  *
- * `assetAvailable()` therefore returns false for every row today, and every
- * renderer takes its procedural path. When PixelLab assets land in Delivery 3
- * the rows flip to `'candidate'` and the same renderers start compositing them
- * without further change.
+ * `assetAvailable()` accepts approved assets and candidate assets while they
+ * are under review. The live shipped set is marked `approved`; review-only
+ * candidates stay visible as debt instead of silently masquerading as final.
  *
  * ## Provenance is not optional
  *
@@ -174,7 +171,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Blood'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -200,7 +197,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Blood'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -236,7 +233,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Water'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -261,7 +258,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Water'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -307,7 +304,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Fire'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -333,7 +330,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Fire'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -380,7 +377,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 16, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Sanguine'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -402,7 +399,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Sanguine'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -439,7 +436,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Shadow'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -474,7 +471,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Shadow'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -514,7 +511,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Infernal'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -539,7 +536,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Infernal'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -583,7 +580,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['growth'],
       intendedMaterials: ['Nature'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -616,7 +613,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['growth'],
       intendedMaterials: ['Nature'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -639,7 +636,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['growth'],
       intendedMaterials: ['Nature'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -694,7 +691,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Earth'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -719,7 +716,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Earth'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -751,7 +748,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Storm'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -776,7 +773,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Storm'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -808,7 +805,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Void'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -834,7 +831,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Void'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -866,7 +863,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Ice'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -892,7 +889,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Ice'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -927,7 +924,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Metal'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -949,7 +946,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Metal'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -987,7 +984,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Cosmic'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1016,7 +1013,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Cosmic'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1055,7 +1052,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Plasma'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1084,7 +1081,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Plasma'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1123,7 +1120,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Light'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1151,7 +1148,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Light'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1185,7 +1182,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 16, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Nanite'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -1208,7 +1205,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Nanite'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -1241,7 +1238,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 16, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Bone'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -1265,7 +1262,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Bone'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen',
@@ -1318,7 +1315,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Wind'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1349,7 +1346,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Wind'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1379,7 +1376,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Beast'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1408,7 +1405,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Beast'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1438,7 +1435,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Poison'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1461,7 +1458,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Poison'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1496,7 +1493,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Moon'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1524,7 +1521,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Moon'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1561,7 +1558,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Lunar'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1597,7 +1594,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Lunar'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1627,7 +1624,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Spirit'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1652,7 +1649,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Spirit'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1691,7 +1688,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Dream'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1714,7 +1711,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Dream'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1746,7 +1743,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Nocturne'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1772,7 +1769,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Nocturne'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1809,7 +1806,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Psychic'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1840,7 +1837,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Psychic'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1873,7 +1870,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 0, y: 16 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Prism'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',
@@ -1899,7 +1896,7 @@ export const PERFORMANCE_ASSET_KITS: Record<string, PerformanceAssetKit> = {
       pivot: { x: 32, y: 32 },
       intendedForms: ['lash', 'drain'],
       intendedMaterials: ['Prism'],
-      approvalStatus: 'candidate',
+      approvalStatus: 'approved',
       provenance: {
         provider: 'pixellab',
         tool: 'create_image_pixen + animate_image',

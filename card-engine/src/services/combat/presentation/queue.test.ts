@@ -49,6 +49,31 @@ describe('presentation queue', () => {
     expect(s3.consumedCount).toBe(3);
   });
 
+  it('holds a hero opener for the complete resolved performance budget', () => {
+    const events: BattleEvent[] = [
+      { kind: 'player_action_selected', actorId: 'hero_1', action: { kind: 'strike' } },
+      {
+        kind: 'damage_dealt',
+        sourceActorId: 'hero_1',
+        targetActorId: 'boss',
+        amount: 10,
+        damageType: 'kinetic',
+        blockedByShield: 0,
+      },
+    ];
+    const state = syncEvents(
+      createQueueState(),
+      events,
+      'boss',
+      undefined,
+      (openerIndex) => (openerIndex === 0 ? 5_395 : undefined),
+    );
+
+    expect(state.pending[0].event.kind).toBe('player_action_selected');
+    expect(state.pending[0].durationMs).toBe(5_395);
+    expect(state.pending[1].durationMs).toBe(400);
+  });
+
   it('syncEvents resets state when stream shrinks (new battle)', () => {
     let s = createQueueState();
     s = syncEvents(s, [evt('round_started', 1), evt('damage_dealt')]);

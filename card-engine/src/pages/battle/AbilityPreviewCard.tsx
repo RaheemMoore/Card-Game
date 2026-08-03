@@ -1,6 +1,7 @@
 import type { AbilityCombatSnapshot } from '../../types/combat';
 import type { AbilitySlotType } from '../../types/abilities';
 import type { ConfirmationDecision } from '../../services/combat/decision/confirmation';
+import type { ContextualAbilityVM } from '../../services/combat/decision/relationships';
 
 const SLOT_LABEL: Record<AbilitySlotType, string> = {
   core: 'CORE',
@@ -24,6 +25,7 @@ export function AbilityPreviewCard({
   targetName,
   needsTargetPick = false,
   confirmation = { required: true, reasons: [], prompt: null },
+  decisionContext = null,
   onConfirm,
   onCancel,
 }: {
@@ -47,6 +49,8 @@ export function AbilityPreviewCard({
    * auto-committing everything.
    */
   confirmation?: ConfirmationDecision;
+  /** Exact relationship to the live threat, compiled from reducer primitives. */
+  decisionContext?: ContextualAbilityVM | null;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -183,6 +187,36 @@ export function AbilityPreviewCard({
         >
           {ability.def.descriptionShort || ability.def.descriptionLong || 'Deal damage to the target.'}
         </div>
+
+        {decisionContext && (
+          <div
+            aria-label={`Tactical context: ${decisionContext.tacticalLabel}`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              paddingTop: 4,
+              borderTop: '1px solid rgba(120,80,40,0.28)',
+              fontFamily: 'Inter, system-ui, sans-serif',
+              fontSize: 9,
+              lineHeight: 1.25,
+            }}
+          >
+            <div style={{ color: '#d8b878', fontWeight: 700, letterSpacing: 0.5 }}>
+              {decisionContext.tacticalLabel.toUpperCase()}
+            </div>
+            {decisionContext.relevance.slice(0, 2).map((note, index) => (
+              <div key={`helps-${index}`} style={{ color: '#9fd0a5' }}>
+                {note.text}
+              </div>
+            ))}
+            {decisionContext.limitations.slice(0, 1).map((note, index) => (
+              <div key={`limit-${index}`} style={{ color: '#e0a36a' }}>
+                {note.text}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Projected damage — from a real reducer dry-run (decision/projectAction),
             not a copied formula, so this number is never a lie. */}

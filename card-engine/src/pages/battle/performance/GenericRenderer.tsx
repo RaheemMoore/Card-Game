@@ -53,51 +53,85 @@ export function GenericRenderer({
   const hasHealing = kinds.has('healing');
   const hasShield = kinds.has('shield');
 
-  const active = stageName === 'impact' || stageName === 'cast';
+  const active = stageName === 'impact' || stageName === 'cast' || stageName === 'travel';
   if (!active) return null;
 
   const shape = impactShape(kit);
   const size = 46 * shape.radiusScale * (perf.intensity === 'ultimate' ? 1.5 : perf.intensity === 'heavy' ? 1.25 : 1);
 
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-  const length = Math.hypot(dx, dy);
+  const travelMs = perf.stages.find((stage) => stage.stage === 'travel')?.durationMs ?? 460;
+  const deliveryVisible = stageName === 'travel' || stageName === 'impact';
 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 22 }} aria-hidden>
-      {hasDamage && (
+      {hasDamage && deliveryVisible && (
         <>
-          <div
-            className={still ? undefined : 'perf-bolt'}
+          <svg
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
             style={{
               position: 'absolute',
-              left: `${from.x}%`,
-              top: `${from.y}%`,
-              width: `${length}%`,
-              height: perf.intensity === 'normal' ? 4 : 8,
-              transformOrigin: '0 50%',
-              transform: `rotate(${angle}deg)`,
-              background: `linear-gradient(to right, transparent, ${core})`,
-              borderRadius: 4,
-              opacity: still ? 0.9 : undefined,
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              overflow: 'visible',
             }}
-          />
-          <div
-            className={still ? undefined : 'perf-burst'}
-            style={{
-              position: 'absolute',
-              left: `${to.x}%`,
-              top: `${to.y}%`,
-              width: size,
-              height: size * (0.4 + 0.6 * shape.roundness),
-              marginLeft: -size / 2,
-              marginTop: (-size * (0.4 + 0.6 * shape.roundness)) / 2,
-              borderRadius: '50%',
-              background: `radial-gradient(circle, ${core} 0%, ${edge} 45%, transparent 72%)`,
-              opacity: still ? 0.85 : undefined,
-            }}
-          />
+          >
+            {/* SVG owns the endpoint geometry. A rotated CSS bar measures its
+                percentage width against viewport width but its Y against
+                viewport height, so it overshoots on every non-square screen. */}
+            <line
+              className={!still && stageName === 'travel' ? 'perf-generic-line' : undefined}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              pathLength={1}
+              vectorEffect="non-scaling-stroke"
+              stroke={edge}
+              strokeWidth={perf.intensity === 'normal' ? 10 : 14}
+              strokeLinecap="round"
+              style={{
+                opacity: still || stageName === 'impact' ? 0.78 : undefined,
+                animationDuration: stageName === 'travel' ? `${travelMs}ms` : undefined,
+                filter: `drop-shadow(0 0 8px ${accent})`,
+              }}
+            />
+            <line
+              className={!still && stageName === 'travel' ? 'perf-generic-line' : undefined}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              pathLength={1}
+              vectorEffect="non-scaling-stroke"
+              stroke={core}
+              strokeWidth={perf.intensity === 'normal' ? 4 : 6}
+              strokeLinecap="round"
+              style={{
+                opacity: still || stageName === 'impact' ? 0.98 : undefined,
+                animationDuration: stageName === 'travel' ? `${travelMs}ms` : undefined,
+              }}
+            />
+          </svg>
+          {stageName === 'impact' && (
+            <div
+              className={still ? undefined : 'perf-burst'}
+              style={{
+                position: 'absolute',
+                left: `${to.x}%`,
+                top: `${to.y}%`,
+                width: size,
+                height: size * (0.4 + 0.6 * shape.roundness),
+                marginLeft: -size / 2,
+                marginTop: (-size * (0.4 + 0.6 * shape.roundness)) / 2,
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${accent} 0%, ${core} 30%, ${edge} 58%, transparent 76%)`,
+                filter: `drop-shadow(0 0 10px ${accent})`,
+                opacity: still ? 0.9 : undefined,
+              }}
+            />
+          )}
         </>
       )}
 

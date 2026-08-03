@@ -5,6 +5,8 @@ import { getAbilityStore } from '../../../services/abilities/registry';
 import { getArtCrops } from '../../../types/abilities';
 import { projectAction } from '../../../services/combat/decision/projectAction';
 import { requiresConfirmation } from '../../../services/combat/decision/confirmation';
+import { deriveThreat } from '../../../services/combat/decision/objectives';
+import { explainAbility } from '../../../services/combat/decision/relationships';
 import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
 import { displayNameFor } from '../journalNames';
 import { AbilityPreviewCard } from '../AbilityPreviewCard';
@@ -115,6 +117,10 @@ export function MobileAbilityRow({
           targetResolved: resolvedTargetIds !== null,
         })
       : undefined;
+  const pendingDecisionContext =
+    pendingAbility && pendingProjection
+      ? explainAbility(state, deriveThreat(state), pendingAbility, pendingProjection)
+      : null;
 
   return (
     <div className="relative w-full" aria-label={`Abilities for ${hero.snapshot.displayName}`}>
@@ -129,6 +135,7 @@ export function MobileAbilityRow({
             targetName={targetName}
             needsTargetPick={needsPick && !pickedTargetActorId}
             confirmation={pendingConfirmation}
+            decisionContext={pendingDecisionContext}
             onConfirm={() => {
               if (!resolvedTargetIds) return;
               onSubmit({

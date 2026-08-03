@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-01 · **Maintained by:** Claude, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-03 · **Maintained by:** Claude, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -262,7 +262,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-01 -->
+<!-- updated: 2026-08-03 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -280,8 +280,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Ability performances | Abilities can look like what they are instead of all drawing one coloured bolt. Reviewable at `/dev/ability-theater`; **not in a real fight yet**, and no art generated |
-| IN FLIGHT | Decision Experience System | Boss combat now explains itself instead of showing poetic telegraphs and isolated ability text. Stage 1 landed IN `/battle` for every boss, not just one: exact reducer-truth ability projections (a real dry-run, not a copied formula), a Threat Translator panel next to the Boss HUD showing the live objective, an honest ability-vs-threat relationship engine, and one confirmation policy shared by desktop and mobile. Reviewable end-to-end at `/dev/decision-lab` — three frozen Debt-Bearer pilots (`Interest Accrues`, `First Notice`, `The Whole Ledger`), `The Whole Ledger` fully proved out. **No Encounter Briefing yet, and Pilots A/B still need their own comprehension pass** — see §0 and Combat gaps below |
+| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Card actions are presentation-locked and resolve sequentially through charge, travel, impact, aftermath, receipt, then boss response. Review remains available at `/dev/ability-theater`; the combined branch is verified locally but is not merged, pushed, or deployed. |
+| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: reducer-truth projections, the live Threat Translator, contextual ability-vs-threat explanations, shared desktop/mobile confirmation policy, and authoritative resolution receipts retained in the combat journal. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -300,15 +300,15 @@ Five. Everything else is merged.
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
-| `ability-performance-system` | 3 | — | Ability Performance spine + Ability Theater. Not yet merged to `main` or wired into `/battle` |
-| `decision-experience` | 4 | — | This work. Branched OFF `ability-performance-system` (not `main`) because it consumes that branch's `actionScope`/correlation contract directly — the two are meant to land together. Worktree at `.claude/worktrees/decision-experience` |
+| `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
+| `decision-experience` | 4 | — | Combined release candidate at committed base `262bc62`, plus audited local integration changes. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
-<!-- updated: 2026-08-01 -->
+<!-- updated: 2026-08-03 -->
 ## 4. Open threads
 
-**55 things started and not finished.** This is the list that didn't exist before. It will
+**54 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -327,7 +327,7 @@ The hub exists; nothing behind it does.
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
 
-### Combat gaps — 16 items
+### Combat gaps — 15 items
 
 | What | Where |
 |---|---|
@@ -335,9 +335,8 @@ phone-portrait support is deferred pending its own crop of the art
 | Multi-enemy combat deliberately out of scope | `services/combat/reducer.ts:59` |
 | `summon_exists` condition can never evaluate true | `services/combat/reducer.ts:1938` |
 | Twilight dual-cast typed but never read by the reducer | `types/abilities.ts:501` |
-| Ability performances built but not wired into a real fight — the theater plays them, `/battle` does not | `pages/battle/performance/PerformanceLayer.tsx` |
 | Only `damage_dealt` carries `sourceActionId`; the other effect events carry none, so grouping is positional | `types/combat.ts:446` |
-| 24 of 29 elements still use a family-default look rather than authored art direction | `data/combat/performance/materialKits.ts` |
+| Nine family-default material kits remain as explicit fallbacks for elements/forms outside the 27 reviewed shipped element set | `data/combat/performance/materialKits.ts` |
 | Attack VFX needs its own follow-up pass | `battle/AttackVFX.tsx:49` |
 | Crit / dodge / miss deferred beyond B7 | boss battle spec §15 |
 | Server-authoritative combat validation deferred | boss battle spec §15 |
@@ -708,10 +707,29 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-01 -->
+<!-- updated: 2026-08-03 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Ability Performance and Decision Experience release as one combat track
+
+The two branches were built to meet at the real fight, and they now do. The authentic
+`/battle` surface reads one reducer event stream for both: a card's ability performs from
+its real caster anchor while the Threat Translator and contextual ability explanation tell
+the player why the choice matters; the performance completes before the next card or boss
+responds; authoritative receipts then remain in the combat journal. The Ability Theater and
+Decision Lab remain focused review tools, not substitute implementations.
+
+The combined work is a local release candidate on `decision-experience`. Desktop and tablet
+were exercised through the real seed → picker → wallet → battle path with the named
+`battle-ability-decision-sequence` observation scenario. It is not merged, pushed, or
+deployed, and one pre-existing ability-art prompt test still fails on its old `cobalt`
+expectation.
+
+*Why it matters:* presentation time now matches reducer truth without letting synchronous
+combat resolution pile several characters and the boss onto the same visual moment. The
+review labs prove their own questions; the real battle proves the combined experience.
 
 ### 2026-08-01 — The Decision Experience handoff got a corrected plan, not a blind build
 

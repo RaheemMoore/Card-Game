@@ -43,6 +43,10 @@ interface PerformanceProps {
   /** Live shield integrity for the protected card, when the form is a barrier. */
   shieldIntegrity?: number;
   clock?: StageClockOptions;
+  observation?: {
+    casterActorId: string;
+    targetActorId?: string;
+  };
 }
 
 export function PerformanceView({
@@ -51,6 +55,7 @@ export function PerformanceView({
   anchorContext,
   shieldIntegrity = 1,
   clock: clockOptions,
+  observation,
 }: PerformanceProps) {
   const clock = useStageClock(perf, clockOptions);
 
@@ -198,6 +203,21 @@ export function PerformanceView({
 
   return (
     <>
+      {import.meta.env.DEV && observation && (
+        <output
+          hidden
+          data-battle-performance
+          data-performance-id={perf.id}
+          data-performance-form={perf.form}
+          data-performance-stage={stageName ?? undefined}
+          data-caster-actor-id={observation.casterActorId}
+          data-target-actor-id={observation.targetActorId}
+          data-from-x={from.x}
+          data-from-y={from.y}
+          data-to-x={to.x}
+          data-to-y={to.y}
+        />
+      )}
       {chargeTell}
       {renderBody()}
     </>
@@ -325,6 +345,17 @@ export function PerformanceStyles() {
       /* transform-origin and rotate come from the inline style; the keyframe
          only drives scaleX, so it composes with the element's own rotation. */
       .perf-bolt { animation: perf-bolt-travel 240ms ease-in forwards; }
+
+      @keyframes perf-generic-line-draw {
+        0%   { opacity: 0; stroke-dashoffset: 1; }
+        12%  { opacity: 1; }
+        82%  { opacity: 1; }
+        100% { opacity: 0; stroke-dashoffset: 0; }
+      }
+      .perf-generic-line {
+        stroke-dasharray: 1;
+        animation: perf-generic-line-draw 460ms ease-in-out forwards;
+      }
 
       @keyframes perf-burst-out {
         0%, 40% { opacity: 0; transform: scale(0.3); }
