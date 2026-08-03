@@ -100,6 +100,9 @@ function heroCardPoint(heroIndex: number, viewportWidth: number): Point {
  */
 export type CombatAnchorName =
   | 'boss_center'
+  | 'boss_impact_upper_left'
+  | 'boss_impact_upper_right'
+  | 'boss_impact_lower_center'
   | 'boss_feet'
   | 'boss_ground'
   | 'caster_card'
@@ -120,6 +123,9 @@ export interface AnchorContext {
 /** Vertical offsets from the boss's centre of mass, in viewport-height %. */
 const BOSS_FEET_DY = 12;
 const BOSS_GROUND_DY = 16;
+const BOSS_VOLLEY_DX = 9;
+const BOSS_VOLLEY_UPPER_DY = -6;
+const BOSS_VOLLEY_LOWER_DY = 7;
 
 /** How far in front of a card its barrier/cast point sits, in %. */
 const CARD_FRONT_DY = -7;
@@ -139,6 +145,12 @@ export function resolveAnchor(name: CombatAnchorName, ctx: AnchorContext): Point
   switch (name) {
     case 'boss_center':
       return BOSS_POINT;
+    case 'boss_impact_upper_left':
+      return { x: BOSS_POINT.x - BOSS_VOLLEY_DX, y: BOSS_POINT.y + BOSS_VOLLEY_UPPER_DY };
+    case 'boss_impact_upper_right':
+      return { x: BOSS_POINT.x + BOSS_VOLLEY_DX, y: BOSS_POINT.y + BOSS_VOLLEY_UPPER_DY };
+    case 'boss_impact_lower_center':
+      return { x: BOSS_POINT.x, y: BOSS_POINT.y + BOSS_VOLLEY_LOWER_DY };
     case 'boss_feet':
       return { x: BOSS_POINT.x, y: BOSS_POINT.y + BOSS_FEET_DY };
     case 'boss_ground':
@@ -183,4 +195,11 @@ export function resolveAnchor(name: CombatAnchorName, ctx: AnchorContext): Point
       return BOSS_POINT;
     }
   }
+}
+
+/** Map release order onto three distinct boss contact zones. */
+export function partyVolleyBossAnchor(order: number): CombatAnchorName {
+  if (order === 0) return 'boss_impact_upper_left';
+  if (order === 1) return 'boss_impact_upper_right';
+  return 'boss_impact_lower_center';
 }

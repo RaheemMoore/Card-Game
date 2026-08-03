@@ -17,6 +17,7 @@ import { CombatGuideModal } from '../CombatGuideModal';
 import { LeaveConfirmModal } from '../LeaveConfirmModal';
 import { CardSheet } from '../../../components/CardSheet';
 import { buildBattleCardSheetAbilities, buildBattleLiveState } from '../cardSheetAdapters';
+import { hasCurrentlyUsableAbility } from '../../../services/combat/actionAvailability';
 
 interface Props {
   state: BattleState;
@@ -121,6 +122,9 @@ export function MobileCombatScene({
   const plannedCount = state.heroes.filter(
     (hero) => !hero.defeated && plannedActions[hero.actorId],
   ).length;
+  const tacticalFallbackAvailable = selectedHero
+    ? hasCurrentlyUsableAbility(state, selectedHero)
+    : false;
 
   // Armed-ability + target-pick state, mirroring desktop's CombatScene —
   // owned here so MobilePartyCardTray's target-pick mode shares the same
@@ -400,6 +404,7 @@ export function MobileCombatScene({
             onPlanWait={() => onPlan({ kind: 'wait' })}
             onPlanGuard={() => onPlan({ kind: 'guard' })}
             onReleasePlan={onReleasePlan}
+            tacticalFallbackAvailable={tacticalFallbackAvailable}
           />
         </div>
 

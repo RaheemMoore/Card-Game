@@ -11,6 +11,7 @@ import {
   retimePerformanceForPartyVolley,
 } from '../../../services/combat/presentation/partyVolley';
 import type { AnchorContext } from '../combatAnchors';
+import { partyVolleyBossAnchor } from '../combatAnchors';
 import { PerformanceView, PerformanceStyles } from './PerformanceLayer';
 
 interface Props {
@@ -137,9 +138,15 @@ export function CombatPerformanceLayer({
     // takes the generic recipe (normally caster -> boss); without this seam it
     // visibly hits the boss while its receipt truthfully says "on Gryndak".
     // Any hero target, self or ally, must land on that card.
+    const bossVolleyTarget =
+      volleySlot && primaryTargetId === state.boss.actorId
+        ? partyVolleyBossAnchor(volleySlot.order)
+        : null;
     const performance: ResolvedPerformance =
       targetIndex === -1
-        ? resolvedPerformance
+        ? bossVolleyTarget
+          ? { ...resolvedPerformance, targetAnchor: bossVolleyTarget }
+          : resolvedPerformance
         : { ...resolvedPerformance, targetAnchor: 'target_card_front' };
 
     const entry: ActivePerformance = {

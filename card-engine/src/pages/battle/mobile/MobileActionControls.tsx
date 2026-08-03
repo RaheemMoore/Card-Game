@@ -6,6 +6,7 @@ interface Props {
   onPlanStrike: () => void;
   onPlanWait: () => void;
   onReleasePlan: () => void;
+  tacticalFallbackAvailable: boolean;
 }
 
 /**
@@ -21,6 +22,7 @@ export function MobileActionControls({
   onPlanStrike,
   onPlanWait,
   onReleasePlan,
+  tacticalFallbackAvailable,
 }: Props) {
   const ready = totalHeroes > 0 && plannedCount === totalHeroes;
   const label = ready ? 'RELEASE PARTY' : 'ARM PARTY';
@@ -82,9 +84,21 @@ export function MobileActionControls({
           </span>
         )}
       </button>
-      <IconButton glyph="+" label="Strike" onClick={onPlanStrike} disabled={!canAct} />
+      <IconButton
+        glyph="+"
+        label="Strike"
+        onClick={onPlanStrike}
+        disabled={!canAct || !tacticalFallbackAvailable}
+        title={tacticalFallbackAvailable ? 'Strike' : 'No usable ability — wait this turn'}
+      />
       <IconButton glyph="○" label="Wait" onClick={onPlanWait} disabled={!canAct} />
-      <IconButton glyph="◇" label="Guard" onClick={onPlanGuard} disabled={!canAct} />
+      <IconButton
+        glyph="◇"
+        label="Guard"
+        onClick={onPlanGuard}
+        disabled={!canAct || !tacticalFallbackAvailable}
+        title={tacticalFallbackAvailable ? 'Guard' : 'No usable ability — wait this turn'}
+      />
     </div>
   );
 }

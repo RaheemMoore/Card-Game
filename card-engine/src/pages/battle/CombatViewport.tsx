@@ -154,6 +154,8 @@ export function CombatViewport({
     isPlaying: presentation.isPlaying,
     pendingCount: presentation.pendingCount,
     motionLevel,
+    actingActorId,
+    plannedActions: visiblePlannedActions,
   });
 
   // A separate condensed view over the same event stream, purely for the

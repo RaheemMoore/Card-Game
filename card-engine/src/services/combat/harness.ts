@@ -22,6 +22,11 @@ import {
 } from './reducer';
 import { deriveHeroStats, FIRE_ELEMENTAL_RESISTANCE } from './formulas';
 import { RandomStream } from './RandomStream';
+import {
+  abilityDenialReason,
+  hasCurrentlyUsableAbility,
+  visibleCommandAbilities,
+} from './actionAvailability';
 
 /**
  * Headless battle harness (Master Plan §B2). Runs a scripted hero against a
@@ -98,11 +103,9 @@ export function runBattle(snapshot: BattleSnapshot, policy: HeroPolicy): RunResu
  */
 export const baselineHeroPolicy: HeroPolicy = {
   chooseAction(state, hero) {
-    const abilities = hero.snapshot.abilities;
+    const abilities = visibleCommandAbilities(hero);
     const chamber = state.partyResource[hero.snapshot.resourceType];
-    const usable = (a: AbilityCombatSnapshot) =>
-      !hero.cooldowns.some((c) => c.abilityDefinitionId === a.definitionId) &&
-      chamber >= a.resourceCost;
+    const usable = (a: AbilityCombatSnapshot) => abilityDenialReason(state, hero, a) === null;
 
     const ult = abilities.find((a) => a.slot === 'ultimate' && usable(a) && hero.ultimateCharge >= 100);
     if (ult) return { kind: 'ability', abilityDefinitionId: ult.definitionId, targetActorIds: [state.boss.actorId] };
@@ -113,7 +116,7 @@ export const baselineHeroPolicy: HeroPolicy = {
     const core = abilities.find((a) => a.slot === 'core' && usable(a));
     if (core) return { kind: 'ability', abilityDefinitionId: core.definitionId, targetActorIds: [state.boss.actorId] };
 
-    // Nothing affordable — build the pool back up while still contributing.
+    if (!hasCurrentlyUsableAbility(state, hero)) return { kind: 'wait' };
     if (chamber < state.partyResourceMax[hero.snapshot.resourceType]) return { kind: 'strike' };
     return { kind: 'guard' };
   },

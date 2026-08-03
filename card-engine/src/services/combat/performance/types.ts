@@ -406,6 +406,9 @@ export type ConsequenceKind =
  *  never compute a percentage themselves — see `pages/battle/combatAnchors.ts`. */
 export type AnchorName =
   | 'boss_center'
+  | 'boss_impact_upper_left'
+  | 'boss_impact_upper_right'
+  | 'boss_impact_lower_center'
   | 'boss_feet'
   | 'boss_ground'
   | 'caster_card'

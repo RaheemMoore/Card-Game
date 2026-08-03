@@ -45,6 +45,7 @@ import { CombatGuideModal } from './CombatGuideModal';
 import { PaintedPanel } from './PaintedPanel';
 import { CardSheet } from '../../components/CardSheet';
 import { buildBattleCardSheetAbilities, buildBattleLiveState } from './cardSheetAdapters';
+import { hasCurrentlyUsableAbility } from '../../services/combat/actionAvailability';
 
 interface Props {
   state: BattleState;
@@ -114,6 +115,7 @@ export function CombatScene({
   const canAct = state.phase === 'awaiting_player_action' && !presentationLocked;
   const partyActorIds = state.heroes.filter((hero) => !hero.defeated).map((hero) => hero.actorId);
   const plannedCount = partyActorIds.filter((id) => plannedActions[id]).length;
+  const tacticalFallbackAvailable = hasCurrentlyUsableAbility(state, actingHero);
   const resolvingActorId = (() => {
     if (!presentationLocked) return null;
     const event = currentBeat?.event;
@@ -427,6 +429,7 @@ export function CombatScene({
             state={state}
             motionLevel={motionLevel}
             canAct={canAct}
+            strikeAvailable={tacticalFallbackAvailable}
             onStrike={() => onPlan({ kind: 'strike' })}
             onWait={() => onPlan({ kind: 'wait' })}
           />
@@ -454,6 +457,7 @@ export function CombatScene({
             plannedCount={plannedCount}
             partyCount={partyActorIds.length}
             onPlanGuard={() => onPlan({ kind: 'guard' })}
+            guardAvailable={tacticalFallbackAvailable}
             onReleasePlan={onReleasePlan}
             resolvingIntentName={resolvingIntentName}
             motionLevel={motionLevel}

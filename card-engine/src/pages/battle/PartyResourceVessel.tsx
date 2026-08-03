@@ -32,6 +32,7 @@ interface Props {
   onStrike: () => void;
   onWait: () => void;
   canAct: boolean;
+  strikeAvailable: boolean;
 }
 
 const MANA_PALETTE = {
@@ -48,7 +49,7 @@ const TECH_PALETTE = {
   glow: '#4aa8ef',
 };
 
-export function PartyResourceVessel({ state, motionLevel, onStrike, onWait, canAct }: Props) {
+export function PartyResourceVessel({ state, motionLevel, onStrike, onWait, canAct, strikeAvailable }: Props) {
   const { partyResource: cur, partyResourceMax: max } = state;
   const vw = useViewportWidth();
   const vessel = vesselWidth(vw);
@@ -111,27 +112,30 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, onWait, canA
       <div className="flex flex-col" style={{ width: STRIKE_WIDTH, gap: 4 }}>
       <button
         type="button"
-        onClick={() => canAct && onStrike()}
-        disabled={!canAct}
-        aria-label="Strike — a free basic attack that adds to the party's resource"
+        onClick={() => canAct && strikeAvailable && onStrike()}
+        disabled={!canAct || !strikeAvailable}
+        aria-label={strikeAvailable
+          ? "Strike — a free basic attack that adds to the party's resource"
+          : 'Strike unavailable — no ability can currently be activated; wait this turn'}
+        title={strikeAvailable ? 'Strike' : 'No usable ability — this hero must wait'}
         className="focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         style={{
           width: STRIKE_WIDTH,
           height: 42,
           borderRadius: 6,
           border: '2px solid #7a5530',
-          background: canAct
+          background: canAct && strikeAvailable
             ? 'linear-gradient(to bottom, #2a1d12, #17100a)'
             : 'linear-gradient(to bottom, #16120f, #0d0a08)',
-          color: canAct ? '#e8d6b2' : '#6b6058',
-          cursor: canAct ? 'pointer' : 'not-allowed',
+          color: canAct && strikeAvailable ? '#e8d6b2' : '#6b6058',
+          cursor: canAct && strikeAvailable ? 'pointer' : 'not-allowed',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 3,
           padding: 2,
-          opacity: canAct ? 1 : 0.55,
+          opacity: canAct && strikeAvailable ? 1 : 0.55,
           transition: 'opacity 200ms',
         }}
       >
@@ -160,7 +164,7 @@ export function PartyResourceVessel({ state, motionLevel, onStrike, onWait, canA
           fontWeight: 800,
           letterSpacing: 0.65,
           padding: 1,
-          opacity: canAct ? 1 : 0.55,
+          opacity: canAct && strikeAvailable ? 1 : 0.55,
         }}
       >
         WAIT

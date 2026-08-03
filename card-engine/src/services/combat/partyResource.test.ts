@@ -90,7 +90,9 @@ describe('party resource chambers', () => {
     // Spend the mana chamber down so there is room to refill.
     const drained = {
       ...state,
-      partyResource: { ...state.partyResource, mana: 0, tech: 0 },
+      // Keep the attuned ability affordable so Strike remains a legal tactical
+      // choice while still leaving room to prove it refills the chamber.
+      partyResource: { ...state.partyResource, mana: 1, tech: 0 },
     };
 
     const after = submitPlayerAction(drained, { kind: 'strike' }).state;
@@ -157,7 +159,7 @@ describe('party resource chambers', () => {
 
     // Everyone acts, then run to the top of the next round.
     for (let i = s.pendingActorIds.length; i > 0; i--) {
-      s = submitPlayerAction(s, { kind: 'guard' }).state;
+      s = submitPlayerAction(s, { kind: 'wait' }).state;
       // Between hero submissions the machine parks in resolving_reactions.
       while (s.phase === 'resolving_reactions') s = advance(s).state;
     }
@@ -186,5 +188,54 @@ describe('party resource chambers', () => {
     expect(result.events).toEqual([
       { kind: 'player_action_selected', actorId: state.pendingActorIds[0], action: { kind: 'wait' } },
     ]);
+  });
+
+  it('makes Wait the only fallback when no ability is currently usable', () => {
+    const state = opened([
+      hero('m1', MANA_STATS, 'Barbarian'),
+      hero('m2', MANA_STATS, 'Barbarian'),
+    ]);
+    const locked = {
+      ...state,
+      partyResource: { mana: 0, tech: 0 },
+      heroes: state.heroes.map((combatant) => ({
+        ...combatant,
+        cooldowns: combatant.snapshot.abilities.map((ability) => ({
+          abilityDefinitionId: ability.definitionId,
+          remainingRounds: 1,
+        })),
+      })),
+    };
+    const pendingBefore = locked.pendingActorIds;
+
+    for (const action of [{ kind: 'strike' }, { kind: 'guard' }] as const) {
+      const result = submitPlayerAction(locked, action);
+      expect(result.state.pendingActorIds).toEqual(pendingBefore);
+      expect(result.state.partyResource).toEqual(locked.partyResource);
+      expect(result.state.boss.hp).toBe(locked.boss.hp);
+      expect(result.events.at(-1)).toEqual({
+        kind: 'action_denied',
+        actorId: pendingBefore[0],
+        reason: 'no_usable_ability',
+      });
+    }
+
+    const waited = submitPlayerAction(locked, { kind: 'wait' });
+    expect(waited.state.pendingActorIds).toEqual(pendingBefore.slice(1));
+  });
+
+  it('keeps Strike and Guard legal when any one ability is usable', () => {
+    const state = opened([
+      hero('m1', MANA_STATS, 'Barbarian'),
+      hero('m2', MANA_STATS, 'Barbarian'),
+    ]);
+
+    const strike = submitPlayerAction(state, { kind: 'strike' });
+    const guard = submitPlayerAction(state, { kind: 'guard' });
+
+    expect(strike.events.some((event) => event.kind === 'action_denied')).toBe(false);
+    expect(guard.events.some((event) => event.kind === 'action_denied')).toBe(false);
+    expect(strike.state.pendingActorIds).toHaveLength(state.pendingActorIds.length - 1);
+    expect(guard.state.pendingActorIds).toHaveLength(state.pendingActorIds.length - 1);
   });
 });

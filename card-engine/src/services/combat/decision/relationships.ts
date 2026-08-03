@@ -367,6 +367,7 @@ const RULES: readonly Rule[] = [
 const DENIAL_TEXT: Record<string, string> = {
   insufficient_resource: 'Not enough in the party chamber.',
   on_cooldown: 'On cooldown.',
+  no_usable_ability: 'No ability is currently usable; this hero must wait.',
   invalid_target: 'No legal target.',
 };
 

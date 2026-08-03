@@ -481,6 +481,7 @@ export type BattleEvent =
 export type ActionDenialReason =
   | 'insufficient_resource'
   | 'on_cooldown'
+  | 'no_usable_ability'
   | 'invalid_target'
   | 'actor_defeated'
   | 'silenced'

@@ -227,16 +227,19 @@ lets a 5000-run headless simulator check balance without playing anything.
 
 **A combat round is planned as a party.** You choose one action for each living card; every
 attack leaves a large elemental charge above its card, while Wait leaves a neutral hold mark. Nothing resolves
-until all cards are ready and you press **Release Party**. The cards then act left to right,
-one complete charge → travel → impact → aftermath at a time, and only then does the boss
-respond.
+until all cards are ready and you press **Release Party**. The cards launch left to right in
+a tight *boom, boom, boom* rhythm, then their three impacts arrive together at distinct
+upper-left, upper-right, and lower-center points on the boss. The shared aftermath finishes
+before the boss responds.
 
 Selecting a card now exposes that character's three ability rows immediately above the
 shared Mana/Tech controls. Ordinary legal abilities lock from that choice and move focus to
 the next unfinished card; only genuinely risky choices keep a confirmation. **Strike** is a
 voluntary resource-building attack, while **Wait** spends that character's command slot with
 no damage, resource, charge, or status effect. A card opens its full sheet only through the
-separate expand control.
+separate expand control. Strike and Guard are tactical alternatives only while that card has
+at least one visible ability it could activate now. If cooldown, charge, status, resource, or
+targeting leaves it with no legal ability, **Wait is the only planning command**.
 
 **Cards are the characters on the field.** Hero cards replaced floor sprites.
 
@@ -293,8 +296,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → hold three visible charges → Release Party → resolve as a volley → boss response**. Unmapped direct attacks reuse the reviewed element stream/impact art instead of the old generic beam. Desktop and 1024×768 tablet runs pass locally; the combined branch is not merged, pushed, or deployed. |
-| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, Wait is an explicit zero-output command, and Strike is never forced. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
+| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → hold three visible charges → Release Party → stagger three launches → shared impact → boss response**. Boss-bound volleys land in a readable triangle instead of stacking three effect pieces on one point. Unmapped direct attacks reuse the reviewed element stream/impact art instead of the old generic beam. The combined branch is not merged, pushed, or deployed. |
+| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible ability it could activate; otherwise Wait is the sole choice. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -314,7 +317,7 @@ Five. Everything else is merged.
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 | `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
-| `decision-experience` | 5 | — | Combined local release candidate with the party-plan, selected-card command surface, explicit Wait action, and volley restructure. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
+| `decision-experience` | 6 | — | Combined local release candidate with the party-plan, selected-card command surface, explicit Wait action, triangular volley impacts, and the Wait-only lockout rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
@@ -724,6 +727,38 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Locked heroes wait, and party impacts spread across the boss
+
+Raheem ruled that a character with no ability it can activate does not get to manufacture
+another action. Strike and Guard now lock together when every visible ability is blocked by
+cooldown, shared Mana/Tech, Ultimate charge, stun, silence, or targeting. Wait remains active
+and spends that card's one command slot without producing an effect. The reducer, desktop,
+mobile, and headless simulator all read one rule; passive round regeneration remains the
+recovery path, and no combat values changed.
+
+The party's shared impact also stopped stacking three element pieces on the boss's center.
+The first release lands upper-left, the second upper-right, and the third lower-center. In
+the authentic fight, the live performance outputs reported all three simultaneously at
+`(41,28)`, `(59,28)`, and `(50,41)` while the reviewed element assets remained distinct.
+
+The real `/battle` route was manually exercised through party selection, three Strikes, a
+three-ability volley, boss response, cooldown lockout, and the next planning round. Build,
+lint, the focused combat and balance tests, and 620 of 621 full-suite tests pass;
+the sole failure remains the unrelated pre-existing ability-art `cobalt` expectation.
+
+The authentic React battle bridge now owns two named scenarios instead of the old generic
+observation label. `battle-party-volley-impact` passed with three simultaneous real
+performances, three casters, three distinct contact points, input locked, and no runtime
+errors. `battle-wait-only-lockout` passed with the player able to act, no usable ability,
+Strike and Guard disabled, Wait enabled, Release disabled, and the same result with Motion
+Off. The production bundle contains none of the bridge names or transport. The visual
+result remains **HUMAN REVIEW** for Raheem's feel/composition approval. Nothing has been
+pushed or deployed.
+
+*Why it matters:* characters can no longer escape cooldown/resource lockout through a free
+fallback, and three simultaneous hits finally read as three physical contacts. The release
+record also replaces a generic observation label with repeatable assertions.
 
 ### 2026-08-03 — Selecting a card is the combat command, not a route to another menu
 

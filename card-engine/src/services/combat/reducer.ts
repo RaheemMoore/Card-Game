@@ -7,6 +7,7 @@ import type {
 } from '../../types/abilities';
 import { STATUS_CATALOG, STATUS_DAMAGE_TYPE } from '../../data/abilities/statuses';
 import { resolveTargetRule } from './targeting';
+import { abilityDenialReason, hasCurrentlyUsableAbility } from './actionAvailability';
 import { RandomStream } from './RandomStream';
 import type {
   AbilityCombatSnapshot,
@@ -35,7 +36,6 @@ import {
   STRIKE_RESOURCE_GAIN,
   strikeDamage,
   deriveChamberMax,
-  ULTIMATE_CHARGE_MAX,
   resolveDamage,
   resolveHeal,
   tickCooldowns,
@@ -224,6 +224,14 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
     { kind: 'player_action_selected', actorId: hero.actorId, action },
   ];
 
+  if (
+    (action.kind === 'strike' || action.kind === 'guard') &&
+    !hasCurrentlyUsableAbility(state, hero)
+  ) {
+    events.push({ kind: 'action_denied', actorId: hero.actorId, reason: 'no_usable_ability' });
+    return { state: { ...state, log: [...state.log, ...events] }, events };
+  }
+
   let next: BattleState = state;
 
   switch (action.kind) {
@@ -315,7 +323,7 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
         events.push({ kind: 'action_denied', actorId: hero.actorId, reason: 'invalid_target' });
         break;
       }
-      const denial = validateAbilityUsable(hero, abilityRef, next);
+      const denial = abilityDenialReason(next, hero, abilityRef);
       if (denial) {
         events.push({ kind: 'action_denied', actorId: hero.actorId, reason: denial });
         // The hero KEEPS their turn. Falling through to the pendingActorIds
@@ -1205,37 +1213,6 @@ function doCheckVictory(state: BattleState): StepResult {
 /* ------------------------------------------------------------------ */
 /*  Ability effect resolution                                          */
 /* ------------------------------------------------------------------ */
-
-function validateAbilityUsable(
-  hero: HeroCombatant,
-  ability: AbilityCombatSnapshot,
-  state: BattleState,
-): 'insufficient_resource' | 'on_cooldown' | 'stunned' | 'silenced' | null {
-  const version = ability.version;
-  // Stun costs the NEXT ACTION, not a whole round. Against a three-hero party
-  // a full-turn skip would prevent roughly an ultimate's worth of damage,
-  // which is far too much for a single status.
-  if (hero.statuses.some((st) => st.statusId === 'stunned')) return 'stunned';
-  if (hero.statuses.some((st) => st.statusId === 'silenced')) return 'silenced';
-  if (hero.cooldowns.some((c) => c.abilityDefinitionId === version.abilityId)) {
-    return 'on_cooldown';
-  }
-  // Against the PARTY chamber, not the hero's own pool.
-  if (version.resourceCost > state.partyResource[hero.snapshot.resourceType]) {
-    return 'insufficient_resource';
-  }
-  // Ultimates are gated on charge, and that gate now lives in the ENGINE.
-  // It was previously enforced only by the ability bar and the harness policy,
-  // so `submitPlayerAction` with an uncharged ultimate succeeded and silently
-  // reset an already-zero meter — boss-battle-spec §8 says the reducer owns
-  // this. Reported as 'on_cooldown': it is the existing "not available yet"
-  // reason, and inventing a new one would change a union every consumer
-  // switches on.
-  if (ability.slot === 'ultimate' && hero.ultimateCharge < ULTIMATE_CHARGE_MAX) {
-    return 'on_cooldown';
-  }
-  return null;
-}
 
 /**
  * The damage type one effect actually deals.

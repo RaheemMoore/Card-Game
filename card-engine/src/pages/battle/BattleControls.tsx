@@ -16,6 +16,7 @@ interface Props {
   onChangeMotionLevel: (next: MotionLevel) => void;
   onExit: () => void;
   onPlanGuard: () => void;
+  guardAvailable: boolean;
   onReleasePlan: () => void;
   onOpenGuide: () => void;
 }
@@ -45,6 +46,7 @@ export function BattleControls({
   onChangeMotionLevel,
   onExit,
   onPlanGuard,
+  guardAvailable,
   onReleasePlan,
   onOpenGuide,
 }: Props) {
@@ -104,8 +106,10 @@ export function BattleControls({
       <UtilityChip
         label="◇"
         caption="GUARD"
-        onClick={canAct ? onPlanGuard : undefined}
-        ariaLabel="Arm Guard for the active hero"
+        onClick={canAct && guardAvailable ? onPlanGuard : undefined}
+        ariaLabel={guardAvailable
+          ? 'Arm Guard for the active hero'
+          : 'Guard unavailable — no ability can currently be activated; wait this turn'}
         width={utilityChipWidth(vw)}
       />
 
