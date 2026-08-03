@@ -8,6 +8,7 @@ const repositoryRoot = resolve(import.meta.dirname, '..');
 function studioContent(): Plugin {
   const virtualId = 'virtual:studio-content';
   const resolvedId = `\0${virtualId}`;
+  const productionPath = resolve(repositoryRoot, 'PRODUCTION.md');
 
   return {
     name: 'studio-wiki-content-adapter',
@@ -16,8 +17,18 @@ function studioContent(): Plugin {
     },
     load(id) {
       if (id !== resolvedId) return undefined;
-      const production = readFileSync(resolve(repositoryRoot, 'PRODUCTION.md'), 'utf8');
+      const production = readFileSync(productionPath, 'utf8');
       return `export const productionMarkdown = ${JSON.stringify(production)};`;
+    },
+    configureServer(server) {
+      server.watcher.add(productionPath);
+    },
+    handleHotUpdate(context) {
+      if (resolve(context.file) !== productionPath) return;
+      const studioModule = context.server.moduleGraph.getModuleById(resolvedId);
+      if (studioModule) context.server.moduleGraph.invalidateModule(studioModule);
+      context.server.ws.send({ type: 'full-reload' });
+      return [];
     },
   };
 }

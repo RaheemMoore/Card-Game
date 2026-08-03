@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Element Codex previews the committed PixelLab library; and the AI Studio Handbook now gives new collaborators a workflow-first Studio V2 handoff. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Element Codex previews the PixelLab library; the AI Studio Handbook handles coworker onboarding; and the Work Board separates advice, active work, obligations, and Tori's lore desk while keeping one production ledger. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -294,7 +294,7 @@ Four branches carry the work currently named in this guide.
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 1 | 0 | Repository-backed Studio Wiki; local implementation and verification |
+| `codex/studio-wiki-foundation` | 5 | 0 | Repository-backed Studio Wiki; Work Board, onboarding, visual catalogs, and local verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -703,6 +703,24 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — The Work Board is four views of one production ledger
+
+The Studio Wiki now has a third first-class navigation group named Work Board. AI Advice
+shows the Studio Lead's ranked recommendations and unresolved questions. Active Work shows
+only `IN FLIGHT` workstreams plus the branches carrying live work. Required & Deferred keeps
+the categorized unfinished obligations visible. Tori's Desk projects the existing Lore queue,
+including provisional boss writing, telegraphs, move names, and the need for an archetype prose
+voice.
+
+All four pages read from `PRODUCTION.md`; they do not keep a second task database or private
+browser state. A goal becomes locked only when Codex or Claude records its owner, state, next
+checkpoint, and blocker in that ledger through the production-log workflow. During development,
+the Wiki now reloads automatically when the ledger changes.
+
+*Why it matters:* Anyone joining a session can find useful work at the right level—advice,
+current execution, necessary debt, or a named collaborator's desk—while every assistant still
+updates one durable source of truth.
 
 ### 2026-08-03 — Studio V2 is handed off as a workflow, not an agent collection
 

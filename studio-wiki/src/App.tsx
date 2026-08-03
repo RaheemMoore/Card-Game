@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, CircleHelp, Command, ExternalLink, FileText, FlaskConical, Hammer, Image, Menu, Search, Shield, Sparkles, Swords, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Hammer, Image, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, elements, navigation, searchEntries } from './content';
@@ -12,7 +12,11 @@ import workshopSprite from '../../docs/production/screenshots/workshop-sprite.pn
 import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.png';
 import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
 
-const icons = [Command, Users, Swords, Sparkles, Castle, CircleHelp, FileText, Workflow, Image, Hammer, BookOpen, Boxes, Archive];
+const iconsByPath = {
+  '/': Command, '/characters': Users, '/bosses': Swords, '/abilities': Sparkles, '/world': Castle, '/minigames': CircleHelp,
+  '/production': FileText, '/studio': Workflow, '/assets': Image, '/workshops': Hammer, '/decisions': BookOpen, '/technical': Boxes, '/archive': Archive,
+  '/work/advice': Lightbulb, '/work/active': ListChecks, '/work/required': TriangleAlert, '/work/tori': Feather,
+} as const;
 
 const studioStages = [
   ['01', 'Idea', 'Raheem and the team decide what should become part of the game.'],
@@ -54,7 +58,7 @@ function Shell() {
     <aside className={menu ? 'sidebar sidebar-open' : 'sidebar'}>
       <div className="brand"><div className="brand-mark"><Shield/></div><div><strong>Card Engine</strong><span>Studio Wiki</span></div><button className="mobile-close" onClick={() => setMenu(false)} aria-label="Close navigation"><X/></button></div>
       <nav aria-label="Studio Wiki">
-        {navigation.map((group, groupIndex) => <div className="nav-group" key={group.group}><p>{group.group}</p>{group.items.map(([itemPath, label], index) => { const Icon = icons[groupIndex * 6 + index]; return <a href={itemPath} className={path === itemPath ? 'active' : ''} key={itemPath} onClick={() => setMenu(false)}><Icon/><span>{label}</span></a>; })}</div>)}
+        {navigation.map((group) => <div className="nav-group" key={group.group}><p>{group.group}</p>{group.items.map(([itemPath, label]) => { const Icon = iconsByPath[itemPath]; return <a href={itemPath} className={path === itemPath ? 'active' : ''} aria-current={path === itemPath ? 'page' : undefined} key={itemPath} onClick={() => setMenu(false)}><Icon/><span>{label}</span></a>; })}</div>)}
       </nav>
       <div className="sidebar-foot"><span className="live-dot"/>Repository-backed<span>Local build</span></div>
     </aside>
@@ -64,6 +68,7 @@ function Shell() {
         '/': <Home/>, '/characters': <Characters/>, '/bosses': <Bosses/>, '/abilities': <Abilities/>,
         '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
+        '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>,
       } as Record<string, ReactNode>)[path] ?? <Home/>}</main>
     </div>
   </div>;
@@ -179,6 +184,58 @@ function Minigames() {
         <article className="tower-floor open"><div className="floor-number">?</div><div><Status value="PLANNED"/><h3>Higher floors</h3><p>No invented count, boss, or reward. Tower length still needs Raheem’s ruling.</p></div></article>
       </div>
     </Panel>
+  </>;
+}
+
+type WorkBoardKind = 'advice' | 'active' | 'required' | 'tori';
+
+function productionSectionGroup(heading: string) {
+  const sections = sectionsFromMarkdown(productionMarkdown);
+  const start = sections.findIndex((section) => section.heading.toLowerCase().includes(heading.toLowerCase()));
+  if (start < 0) return [];
+  const rootLevel = sections[start].level;
+  let end = start + 1;
+  while (end < sections.length && sections[end].level > rootLevel) end += 1;
+  return sections.slice(start, end);
+}
+
+function inFlightOnly(lines: string[]) {
+  const hasStatusTable = lines.some((line) => line.startsWith('| State |'));
+  if (!hasStatusTable) return lines;
+  return lines.filter((line) => !line.startsWith('|') || line.startsWith('| State |') || /^\|[-:| ]+\|$/.test(line) || line.includes('| IN FLIGHT |'));
+}
+
+function WorkBoardNav({ current }: { current: WorkBoardKind }) {
+  const items: Array<[WorkBoardKind, string, string]> = [
+    ['advice', '/work/advice', 'AI Advice'], ['active', '/work/active', 'Active Work'],
+    ['required', '/work/required', 'Required & Deferred'], ['tori', '/work/tori', "Tori's Desk"],
+  ];
+  return <nav className="work-board-switcher" aria-label="Work Board pages">{items.map(([kind, path, label], index) => <a key={path} href={path} aria-current={current === kind ? 'page' : undefined}><span>{String(index + 1).padStart(2,'0')}</span>{label}</a>)}</nav>;
+}
+
+function WorkBoardPage({ kind }: { kind: WorkBoardKind }) {
+  const configs = {
+    advice: { eyebrow: 'WORK BOARD · STUDIO LEAD RECOMMENDATIONS', title: 'AI Advice', intro: 'What Codex and Claude think will most improve the game next—ranked, explained, and always yours to overrule.', heading: "0. What I'd work on next", source: 'PRODUCTION.md §0', icon: <Lightbulb/> },
+    active: { eyebrow: 'WORK BOARD · CURRENT EXECUTION', title: 'Active Work', intro: 'The work that is genuinely in motion now, including its current state and the branches carrying it.', heading: '3. Status board', source: 'PRODUCTION.md §3', icon: <ListChecks/> },
+    required: { eyebrow: 'WORK BOARD · UNFINISHED OBLIGATIONS', title: 'Required & Deferred', intro: 'Necessary gaps, conscious deferrals, and stranded work—visible so “later” never quietly becomes “forgotten.”', heading: '4. Open threads', source: 'PRODUCTION.md §4', icon: <TriangleAlert/> },
+    tori: { eyebrow: 'WORK BOARD · LORE DIRECTOR', title: "Tori's Desk", intro: 'Lore work waiting for Tori: what is provisional, what needs review, and where her judgment changes the game most.', heading: "1. Tori's desk", source: 'PRODUCTION.md · Lore §1', icon: <Feather/> },
+  } as const;
+  const config = configs[kind];
+  const sourceSections = productionSectionGroup(config.heading).map((section, index) => kind === 'active' && index === 0 ? { ...section, body: inFlightOnly(section.body) } : section);
+  const updated = /\*\*Last updated:\*\*\s*([^·\n]+)/.exec(productionMarkdown)?.[1]?.trim() ?? 'repository source';
+  return <>
+    <PageHeader eyebrow={config.eyebrow} title={config.title} intro={config.intro} status="IN FLIGHT"/>
+    <WorkBoardNav current={kind}/>
+    <Panel className={`work-board-ledger work-board-ledger-${kind}`}>
+      <div className="work-ledger-mark">{config.icon}</div>
+      <div><p className="eyebrow">LIVE REPOSITORY PROJECTION</p><h2>{config.source}</h2><p>Last sourced {updated}. Update the owning section through the <strong>production-log</strong> workflow; this page never keeps a separate browser-only task list.</p></div>
+      <RepoLink path="PRODUCTION.md"/>
+    </Panel>
+    {sourceSections.length ? <div className={`work-source-grid work-source-grid-${kind}`}>{sourceSections.map((section, index) => {
+      const classification = kind === 'required' ? (section.heading.toLowerCase().includes('deferred') ? 'DEFERRED' : section.heading.toLowerCase().includes('stranded') ? 'BLOCKED' : index === 0 ? 'OPEN LEDGER' : 'REQUIRED') : undefined;
+      return <Panel className={index === 0 ? 'work-source-card work-source-intro' : 'work-source-card'} title={section.heading.replace(/\s*\{#[^}]+\}/, '')} action={classification ? <span className={`work-class work-class-${classification.toLowerCase().replace(' ','-')}`}>{classification}</span> : undefined} key={`${section.heading}-${index}`}><MarkdownBody lines={section.body} limit={80}/></Panel>;
+    })}</div> : <Panel className="work-parse-error"><TriangleAlert/><h2>Source section unavailable</h2><p>The expected {config.source} heading could not be parsed. Nothing has been substituted.</p></Panel>}
+    <Panel className="work-lock-note"><strong>Locking a goal means writing it down.</strong><p>Ask Codex or Claude to make a recommendation the current goal. It becomes active only when the production ledger records its owner, state, next checkpoint, and blocker.</p></Panel>
   </>;
 }
 

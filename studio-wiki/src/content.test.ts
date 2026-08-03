@@ -34,6 +34,16 @@ describe('Studio Wiki content contracts', () => {
     expect(productionItems?.[1]).toEqual(['/studio', 'AI Studio Handbook']);
   });
 
+  it('keeps advice, execution, deferred work, and Tori on separate Work Board routes', () => {
+    const workBoard = navigation.find(({ group }) => group === 'Work Board')?.items;
+    expect(workBoard).toEqual([
+      ['/work/advice', 'AI Advice'],
+      ['/work/active', 'Active Work'],
+      ['/work/required', 'Required & Deferred'],
+      ['/work/tori', "Tori's Desk"],
+    ]);
+  });
+
   it('adapts canonical Markdown into readable sections', () => {
     const sections = sectionsFromMarkdown('# Guide\nIntro\n## Status\n- Shipped');
     expect(sections).toEqual([

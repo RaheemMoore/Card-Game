@@ -99,6 +99,7 @@ export const bossStates = [
 export const navigation = [
   { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/abilities', 'Abilities & Elements'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
   { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decisions'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
+  { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"]] },
 ] as const;
 
 export const searchEntries = [
@@ -113,4 +114,8 @@ export const searchEntries = [
   { path: '/workshops', title: 'Workshops', text: 'harnesses sprite lab background arena prompt lab visual playtest' },
   { path: '/decisions', title: 'Decisions', text: 'decision log governance canonical source truth' },
   { path: '/technical', title: 'Technical Systems', text: 'React Vite Supabase Phaser Leonardo PixelLab architecture' },
+  { path: '/work/advice', title: 'AI Advice', text: 'recommendations priorities goals questions improve game Codex Claude advice next' },
+  { path: '/work/active', title: 'Active Work', text: 'ongoing tasks in progress live branches current work status owners blockers checkpoints' },
+  { path: '/work/required', title: 'Required & Deferred', text: 'open threads required blocked deferred sidestepped later functional gaps unfinished work' },
+  { path: '/work/tori', title: "Tori's Desk", text: 'lore assignments bosses telegraphs move names archetype voice canon review Tori' },
 ];
