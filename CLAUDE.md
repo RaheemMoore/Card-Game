@@ -52,6 +52,8 @@ Card Game/                          # Git root
 │   │   │   ├── NavBar.tsx
 │   │   │   └── economy/           # CurrencyBalance, CurrencyCost, WalletPopover, etc.
 │   │   ├── pages/
+│   │   │   ├── games/FullscreenGameShell.tsx # Shared portal, 100dvh, scroll lock, and min-size layout boundary
+│   │   │   ├── castle/courtyard/studioBridge.ts # DEV-only snapshots and three named Phaser scenarios
 │   │   │   ├── CardForge.tsx       # 5-stage flow: archetype → stats → pillars → element+bond → forge → reveal
 │   │   │   ├── Collection.tsx      # Card grid with filters/sort
 │   │   │   ├── CardDetail.tsx      # Full card view — Story Pillar Q&A, elemental bond, prestige (when earned)
@@ -236,7 +238,7 @@ Two standing rules that are not "limitations" and stay in this file:
 This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER.md)). I am the Studio Lead — I do all implementation. Specialist subagents advise, skills define reusable workflows.
 
 - `.claude/agents/` — read-only specialist directors: game-systems, lore/fantasy, minigame, UI/UX, technical architecture, **Phaser runtime**, art/prompt, environment art, and pixel sprites. Invoke only when the registry trigger matches an open decision; FAST work normally uses none. Their tool surface is enforced as Read/Grep/Glob only.
-- `.claude/skills/` — repeatable workflows, including design/ship/sync, art and PixelLab production, environment/boss/prop workflows, minigames, `studio-health`, `build-phaser-feature`, and `visual-playtest`. `balance-playtest` remains hidden/inactive; `extract-fullscreen-shell` is a manual one-time migration until completed and retired.
+- `.claude/skills/` — repeatable workflows, including design/ship/sync, art and PixelLab production, environment/boss/prop workflows, `studio-health`, `build-phaser-feature`, and `visual-playtest`. `balance-playtest` remains hidden/inactive; `ship-minigame` and the completed `extract-fullscreen-shell` migration are retired and hidden.
 - **[HARNESS_INDEX.md](HARNESS_INDEX.md) — the catalogue of every reusable harness, readout, library script, review sheet and registration point.** Read it BEFORE any art, boss, arena, sprite or prop work, and **name the relevant tools to Raheem before starting** — the harnesses are how he and the team see what is happening, and a run that does not offer them is a miss. Every new harness or readout is added here in the same commit that builds it.
 - **Art playbooks** — [LEONARDO_PLAYBOOK.md](LEONARDO_PLAYBOOK.md) (portraits, environment plates) and [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) (character sprites). Both are running records of what actually worked and what it cost; append after every run. `card-engine/scripts/sprite-lab/test-validator.sh` guards the sprite quality gate against regression.
 - `.claude/settings.json` + `.claude/scripts/` — shareable permission, human-gate, secret-protection, and studio-lint enforcement.

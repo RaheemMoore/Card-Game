@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { Card } from '../../types/card';
 import type { AbilitySlotType } from '../../types/abilities';
 import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
@@ -15,6 +14,7 @@ import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
 import { ResultModal } from './ResultModal';
 import { MobileCombatScene } from './mobile/MobileCombatScene';
+import { FullscreenGameShell } from '../games/FullscreenGameShell';
 
 interface Props {
   state: BattleState | null;
@@ -114,14 +114,6 @@ export function CombatViewport({
   );
 
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, []);
-
-  useEffect(() => {
     if (!state || !state.result || state.phase !== 'battle_over') {
       setRewardOutcome(null);
       return;
@@ -136,13 +128,10 @@ export function CombatViewport({
     setRewardOutcome(outcome);
   }, [state, entryTxnId]);
 
-  const body = (
+  const mainColumn = (
     <div
-      className="fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden text-bone"
+      className="relative w-full h-full min-h-0 overflow-hidden text-bone"
       style={{ background: '#050308' }}
-      aria-label="Active combat"
-      role="dialog"
-      aria-modal="true"
     >
       {isMobile ? (
         <div className="w-full h-full">
@@ -202,34 +191,20 @@ export function CombatViewport({
         </div>
       )}
 
-      {state?.phase === 'battle_over' && state.result && (
-        <ResultModal
-          outcome={state.result.outcome}
-          roundsElapsed={state.result.roundsElapsed}
-          reward={rewardOutcome}
-          onRestart={onRestart}
-          onExit={onExit}
-        />
-      )}
-
-      <style>{`
-        /* Journal owns the top-right corner outright — the Turn Badge that
-           used to share this row was removed; its round counter and timeout
-           clock live in the journal header now, and its resolve state moved
-           next to End Turn. */
-        .combat-journal-box { top: 12px; right: 12px; width: 320px; }
-
-        /* Under ~720px the 372px Boss HUD and a 320px journal can no longer
-           share a row without overlapping, so the journal drops below the
-           Boss HUD's band. */
-        @media (max-width: 720px) {
-          .combat-journal-box { top: 216px; width: 280px; }
-        }
-      `}</style>
     </div>
   );
 
-  return createPortal(body, document.body);
+  const overlay = state?.phase === 'battle_over' && state.result ? (
+    <ResultModal
+      outcome={state.result.outcome}
+      roundsElapsed={state.result.roundsElapsed}
+      reward={rewardOutcome}
+      onRestart={onRestart}
+      onExit={onExit}
+    />
+  ) : undefined;
+
+  return <FullscreenGameShell ariaLabel="Active combat" mainColumn={mainColumn} overlay={overlay} />;
 }
 
 function ErrorPanel({ error, onExit }: { error: string; onExit: () => void }) {

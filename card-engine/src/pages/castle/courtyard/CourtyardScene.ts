@@ -66,6 +66,7 @@ export class CourtyardScene extends Phaser.Scene {
   private seekTarget: Vec2 | null = null;
   private ambient: Ambient | null = null;
   private keepers: KeeperView[] = [];
+  private studioDirection: Vec2 | null = null;
 
   constructor() {
     super('courtyard');
@@ -356,6 +357,7 @@ export class CourtyardScene extends Phaser.Scene {
   }
 
   private directionVector(): Vec2 {
+    if (this.studioDirection) return this.studioDirection;
     const keys = keyboardVector(
       this.cursors.left.isDown || this.wasd.A.isDown,
       this.cursors.right.isDown || this.wasd.D.isDown,
@@ -429,4 +431,5 @@ export class CourtyardScene extends Phaser.Scene {
       y: this.player.y,
     });
   }
+
 }

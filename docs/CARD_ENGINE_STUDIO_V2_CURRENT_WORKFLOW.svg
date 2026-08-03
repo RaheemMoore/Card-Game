@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">Card Engine AI Studio V2 current workflow and tools</title>
+  <desc id="desc">A plain-language map of who decides, how work moves from idea to release, which tools do each job, what is verified, and what remains human-controlled or future work.</desc>
+  <rect width="1600" height="1040" fill="#f8fafc"/>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #102044; }
+    .title { font-size: 36px; font-weight: 700; }
+    .subtitle { font-size: 19px; fill: #40516f; }
+    .section { font-size: 20px; font-weight: 700; }
+    .head { font-size: 18px; font-weight: 700; }
+    .body { font-size: 15px; }
+    .toolbody { font-size: 13px; }
+    .small { font-size: 13px; fill: #40516f; }
+    .footer { font-size: 17px; fill: #ffffff; }
+    .card { fill: #ffffff; stroke: #b8c4d8; stroke-width: 2; rx: 14; }
+    .teal { fill: #e8f7f5; stroke: #12837a; }
+    .blue { fill: #eaf2ff; stroke: #2f6fca; }
+    .purple { fill: #f1edff; stroke: #6651c6; }
+    .green { fill: #edf9ee; stroke: #34833b; }
+    .amber { fill: #fff8e6; stroke: #c97913; }
+    .gray { fill: #f1f4f8; stroke: #7c899c; }
+    .arrow { stroke: #52627b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#52627b"/></marker></defs>
+
+  <text class="title" x="800" y="54" text-anchor="middle">CARD ENGINE AI STUDIO V2 — WHAT IS ACTUALLY INSTALLED</text>
+  <text class="subtitle" x="800" y="84" text-anchor="middle">People decide. One Studio Lead coordinates. Tools do specific jobs. Evidence proves the result.</text>
+
+  <text class="section" x="42" y="125">1. WHO IS RESPONSIBLE?</text>
+  <rect class="card teal" x="42" y="145" width="470" height="105"/>
+  <text class="head" x="67" y="180">RAHEEM + TEAM</text><text class="body" x="67" y="207">Final say on vision, spending, economy, destructive actions,</text><text class="body" x="67" y="229">subjective review, push, and deployment.</text>
+  <rect class="card blue" x="565" y="145" width="470" height="105"/>
+  <text class="head" x="590" y="180">ONE STUDIO LEAD</text><text class="body" x="590" y="207">The active Codex or Claude Code session plans, builds, verifies,</text><text class="body" x="590" y="229">and integrates the approved work.</text>
+  <rect class="card purple" x="1088" y="145" width="470" height="105"/>
+  <text class="head" x="1113" y="180">9 READ-ONLY SPECIALISTS</text><text class="body" x="1113" y="207">They advise when judgment is needed. They do not edit files,</text><text class="body" x="1113" y="229">spend money, deploy, or make the final decision.</text>
+
+  <text class="section" x="42" y="300">2. HOW A GAME FEATURE GETS MADE</text>
+  <g>
+    <rect class="card teal" x="42" y="325" width="190" height="165"/><text class="head" x="137" y="360" text-anchor="middle">1 · IDEA</text><text class="body" x="137" y="392" text-anchor="middle">Raheem</text><text class="small" x="137" y="420" text-anchor="middle">What should the</text><text class="small" x="137" y="440" text-anchor="middle">game become?</text>
+    <path class="arrow" d="M238 407 H264"/>
+    <rect class="card teal" x="272" y="325" width="190" height="165"/><text class="head" x="367" y="360" text-anchor="middle">2 · PLAN</text><text class="body" x="367" y="390" text-anchor="middle">Raheem + Claude Code</text><text class="body" x="367" y="413" text-anchor="middle">+ ChatGPT / Codex</text><text class="small" x="367" y="444" text-anchor="middle">FAST · STANDARD · FULL</text>
+    <path class="arrow" d="M468 407 H494"/>
+    <rect class="card blue" x="502" y="325" width="190" height="165"/><text class="head" x="597" y="360" text-anchor="middle">3 · CREATE</text><text class="body" x="597" y="390" text-anchor="middle">Figma · Leonardo</text><text class="body" x="597" y="413" text-anchor="middle">PixelLab · Claude</text><text class="body" x="597" y="436" text-anchor="middle">ChatGPT / Codex</text><text class="small" x="597" y="464" text-anchor="middle">Design, art, sprites, code</text>
+    <path class="arrow" d="M698 407 H724"/>
+    <rect class="card blue" x="732" y="325" width="190" height="165"/><text class="head" x="827" y="360" text-anchor="middle">4 · BUILD</text><text class="body" x="827" y="392" text-anchor="middle">React + TypeScript</text><text class="body" x="827" y="415" text-anchor="middle">Phaser 3</text><text class="small" x="827" y="446" text-anchor="middle">Front end + game engine</text>
+    <path class="arrow" d="M928 407 H954"/>
+    <rect class="card purple" x="962" y="325" width="190" height="165"/><text class="head" x="1057" y="360" text-anchor="middle">5 · CONNECT</text><text class="body" x="1057" y="390" text-anchor="middle">Supabase</text><text class="body" x="1057" y="413" text-anchor="middle">Vercel Functions</text><text class="body" x="1057" y="436" text-anchor="middle">Anthropic API</text><text class="small" x="1057" y="464" text-anchor="middle">Backend + secure AI calls</text>
+    <path class="arrow" d="M1158 407 H1184"/>
+    <rect class="card green" x="1192" y="325" width="190" height="165"/><text class="head" x="1287" y="360" text-anchor="middle">6 · PROVE</text><text class="body" x="1287" y="390" text-anchor="middle">Checks · scenarios</text><text class="body" x="1287" y="413" text-anchor="middle">screenshots · consoles</text><text class="small" x="1287" y="446" text-anchor="middle">PASS · FAIL</text><text class="small" x="1287" y="466" text-anchor="middle">HUMAN REVIEW</text>
+    <path class="arrow" d="M1388 407 H1414"/>
+    <rect class="card amber" x="1422" y="325" width="136" height="165"/><text class="head" x="1490" y="360" text-anchor="middle">7 · RELEASE</text><text class="body" x="1490" y="392" text-anchor="middle">Raheem approves</text><text class="body" x="1490" y="420" text-anchor="middle">GitHub → Vercel</text><text class="small" x="1490" y="452" text-anchor="middle">Never automatic</text>
+  </g>
+
+  <text class="section" x="42" y="545">3. WHAT EACH TOOL IS FOR</text>
+  <rect class="card blue" x="42" y="570" width="365" height="145"/><text class="head" x="66" y="605">DESIGN + CREATION</text><text class="toolbody" x="66" y="636">Figma — screens, layouts, traced scene shapes</text><text class="toolbody" x="66" y="661">Leonardo — portraits, emblems, painted places</text><text class="toolbody" x="66" y="686">PixelLab + Pixelorama — sprites, animation, pixel fixes</text>
+  <rect class="card blue" x="426" y="570" width="365" height="145"/><text class="head" x="450" y="605">FRONT END + GAME ENGINE</text><text class="toolbody" x="450" y="636">React + TypeScript — menus, Forge, admin, UI</text><text class="toolbody" x="450" y="661">Phaser 3 — playable 2D world and movement</text><text class="toolbody" x="450" y="686">Codex + Claude Code — implement and integrate</text>
+  <rect class="card purple" x="810" y="570" width="365" height="145"/><text class="head" x="834" y="605">BACKEND + AI</text><text class="toolbody" x="834" y="636">Supabase — accounts, cards, economy, game data</text><text class="toolbody" x="834" y="661">Vercel Functions — secure server provider calls</text><text class="toolbody" x="834" y="686">Anthropic API — names, lore, generation prompts</text>
+  <rect class="card green" x="1194" y="570" width="364" height="145"/><text class="head" x="1218" y="605">EVIDENCE + MEMORY</text><text class="toolbody" x="1218" y="636">Tests and named scenarios prove behavior</text><text class="toolbody" x="1218" y="661">Screenshots and consoles prove the live result</text><text class="toolbody" x="1218" y="686">Docs, registry, playbooks preserve what worked</text>
+
+  <text class="section" x="42" y="770">4. CURRENT STATUS</text>
+  <rect class="card green" x="42" y="795" width="490" height="130"/><text class="head" x="66" y="828">IMPLEMENTED + LOCALLY VERIFIED</text><text class="body" x="66" y="858">Control plane · Codex adapters · safety hooks · Studio checks</text><text class="body" x="66" y="883">Fullscreen combat shell · development-only Phaser bridge</text><text class="body" x="66" y="908">3 courtyard scenarios · desktop and phone evidence</text>
+  <rect class="card amber" x="555" y="795" width="490" height="130"/><text class="head" x="579" y="828">HUMAN-CONTROLLED</text><text class="body" x="579" y="858">Paid operations · economy · destructive actions · subjective review</text><text class="body" x="579" y="883">Local secrets stay private, ignored, and untracked</text><text class="body" x="579" y="908">Raheem approves push and deployment</text>
+  <rect class="card gray" x="1068" y="795" width="490" height="130"/><text class="head" x="1092" y="828">RETIRED / FUTURE</text><text class="body" x="1092" y="858">ship-minigame retired · shell migration completed and retired</text><text class="body" x="1092" y="883">Tower scenarios and more live bridges remain future work</text><text class="body" x="1092" y="908">Future packs: Core · 2D · Phaser · Providers · Card Engine</text>
+
+  <rect x="42" y="955" width="1516" height="55" rx="14" fill="#102d54"/>
+  <text class="footer" x="800" y="989" text-anchor="middle">Protected Claude work remains untouched: Courtyard V2 Plate · Boss Battle Decisions · Ability Performance System</text>
+</svg>

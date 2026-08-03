@@ -16,6 +16,19 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
+# Windows Git Bash commonly exposes the interpreter as `python` rather than
+# `python3`. Force UTF-8 as well: otherwise printing the validator's ✓/✗
+# evidence can crash under the legacy cp1252 console before assertions run.
+export PYTHONUTF8=1
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN=python3
+elif command -v python >/dev/null 2>&1; then
+  PYTHON_BIN=python
+else
+  echo "FAIL — Python is required to run the sprite validator regression."
+  exit 1
+fi
+
 FIXTURE_PNG="fixtures/known-bad-cardwright.png"
 FIXTURE_JSON="fixtures/known-bad-cardwright.json"
 FAILED=0
@@ -33,7 +46,7 @@ check() {
 echo "validator regression test"
 echo
 
-OUT=$(python3 lib/validate.py "$FIXTURE_PNG" "$FIXTURE_JSON" 2>&1)
+OUT=$($PYTHON_BIN lib/validate.py "$FIXTURE_PNG" "$FIXTURE_JSON" 2>&1)
 STATUS=$?
 
 # 1. It must reject the sheet outright.
@@ -73,7 +86,7 @@ fi
 echo
 echo "loop-mode gate"
 
-OUT=$(python3 lib/validate_object.py loop fixtures/known-bad-clipped-horse.png \
+OUT=$($PYTHON_BIN lib/validate_object.py loop fixtures/known-bad-clipped-horse.png \
         fixtures/known-bad-clipped-horse.json 2>&1)
 if [ $? -eq 0 ]; then
   echo "  ✗ passed the clipped horse — the edge check is broken"
@@ -83,7 +96,7 @@ else
 fi
 check "names the clipping, not just a failure" "clipped this frame" "$OUT"
 
-OUT=$(python3 lib/validate_object.py loop fixtures/known-bad-archivist-drift.png \
+OUT=$($PYTHON_BIN lib/validate_object.py loop fixtures/known-bad-archivist-drift.png \
         fixtures/known-bad-archivist-drift.json 2>&1)
 if [ $? -eq 0 ]; then
   echo "  ✗ passed the drifting archivist — the block-drift check is broken"
@@ -96,7 +109,7 @@ check "localizes the moving prop to a region" "region" "$OUT"
 # A gate that fails everything is as useless as one that passes everything. The
 # dwarf is the same pipeline and frame count as the archivist, and his loop is
 # genuinely clean — he is the control.
-OUT=$(python3 lib/validate_object.py loop fixtures/known-good-dwarf-loop.png \
+OUT=$($PYTHON_BIN lib/validate_object.py loop fixtures/known-good-dwarf-loop.png \
         fixtures/known-good-dwarf-loop.json 2>&1)
 if [ $? -eq 0 ]; then
   echo "  ✓ no false positive on the healthy dwarf loop"

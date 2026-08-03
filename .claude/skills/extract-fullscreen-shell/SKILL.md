@@ -1,10 +1,12 @@
 ---
 name: extract-fullscreen-shell
-description: "Manual one-time migration that extracts the proven fullscreen portal/grid/min-height pattern into card-engine/src/pages/games/FullscreenGameShell.tsx. Use only after Raheem explicitly approves the migration and only while the shared shell is absent; retire this skill after the shell lands."
+description: "RETIRED after the approved FullscreenGameShell migration was implemented and live-verified on 2026-08-03. Historical record only; do not invoke."
 disable-model-invocation: true
 ---
 
 # Skill: extract-fullscreen-shell
+
+> **RETIRED 2026-08-03:** `FullscreenGameShell.tsx` now exists, combat consumes it, and desktop/mobile/Turn-2 live checks passed. This file remains only as the migration record.
 
 ## Inputs
 

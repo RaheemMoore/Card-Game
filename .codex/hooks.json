@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.claude/scripts/studio-hook.mjs\" codex-pre-tool",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel; node (Join-Path $root '.claude/scripts/studio-hook.mjs') codex-pre-tool\"",
+            "statusMessage": "Checking Card Engine studio policy"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.claude/scripts/studio-hook.mjs\" codex-post-write",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel; node (Join-Path $root '.claude/scripts/studio-hook.mjs') codex-post-write\"",
+            "statusMessage": "Validating Card Engine studio files"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.claude/scripts/studio-hook.mjs\" codex-session-start",
+            "commandWindows": "powershell -NoProfile -Command \"$root = git rev-parse --show-toplevel; node (Join-Path $root '.claude/scripts/studio-hook.mjs') codex-session-start\"",
+            "statusMessage": "Loading Card Engine studio guidance"
+          }
+        ]
+      }
+    ]
+  }
+}

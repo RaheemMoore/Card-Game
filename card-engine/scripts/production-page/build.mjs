@@ -35,7 +35,10 @@ const OUT =
  * and Claude both read it — but the page generates a real nav from the headings,
  * and shipping both would put two tables of contents above the fold on a phone.
  */
-const md = fs.readFileSync(SRC, 'utf8').replace(/\n## Contents\n[\s\S]*?\n---\n/, '\n');
+const md = fs
+  .readFileSync(SRC, 'utf8')
+  .replace(/\r\n?/g, '\n')
+  .replace(/\n## Contents\n[\s\S]*?\n---\n/, '\n');
 const { title, parts } = render(md, { assetsDir: ASSETS, docsDir: DOCS });
 const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
 

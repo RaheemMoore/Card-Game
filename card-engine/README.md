@@ -14,7 +14,7 @@ npm run build      # tsc -b && vite build
 npm run lint       # oxlint
 ```
 
-Requires `.env` with `VITE_ANTHROPIC_API_KEY` (Claude for card text) and `VITE_LEONARDO_API_KEY` (portrait generation). See `.env.example`.
+Requires only public Supabase client values to use the `VITE_` prefix. Anthropic and Leonardo keys are server-only (`ANTHROPIC_API_KEY`, `LEONARDO_API_KEY`) and must never be exposed as Vite variables; the browser calls the protected `/api/*` proxies. Offline art scripts read provider keys from `.env.local`. See `.env.example`.
 
 ## Verify a change
 

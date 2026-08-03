@@ -1,7 +1,7 @@
 {
   "$schema": "./STUDIO_CAPABILITY_REGISTRY.schema.json",
-  "registryVersion": "2.0.0-candidate",
-  "status": "candidate-pending-live-validation",
+  "registryVersion": "2.0.0",
+  "status": "locally-verified-awaiting-human-release",
   "project": "Card Engine",
   "studioCategory": "AI-native 2D game development studio",
   "truthPriority": [
@@ -31,7 +31,7 @@
       ]
     },
     "studioLead": {
-      "role": "primary Claude session",
+      "role": "primary Codex or Claude Code session",
       "owns": [
         "routing",
         "integration",
@@ -599,7 +599,7 @@
     {
       "name": "phaser-runtime-director",
       "sourcePath": ".claude/agents/phaser-runtime-director.md",
-      "status": "proposed",
+      "status": "active",
       "portability": "phaser-pack",
       "domains": [
         "phaser",
@@ -1023,14 +1023,14 @@
       "name": "extract-fullscreen-shell",
       "type": "skill",
       "sourcePath": ".claude/skills/extract-fullscreen-shell/SKILL.md",
-      "status": "migration",
+      "status": "retired",
       "portability": "phaser-pack",
       "ownerAgents": [
         "ui-ux-director",
         "phaser-runtime-director"
       ],
       "humanGates": [
-        "migration approval"
+        "migration approved and completed on 2026-08-03"
       ],
       "verification": [
         "consumer migration",
@@ -1136,20 +1136,17 @@
       "name": "ship-minigame",
       "type": "skill",
       "sourcePath": ".claude/skills/ship-minigame/SKILL.md",
-      "status": "revise",
+      "status": "retired",
       "portability": "card-engine-project-pack-configurable",
       "ownerAgents": [
         "phaser-runtime-director",
         "game-systems-designer"
       ],
       "humanGates": [
-        "approved minigame design",
-        "ask before push/PR"
+        "retired by Raheem on 2026-08-03"
       ],
       "verification": [
-        "all registrations",
-        "mobile/desktop scenario",
-        "build"
+        "historical checklist only; invocation disabled"
       ],
       "requiredContract": [
         "TRIGGER",
@@ -1162,7 +1159,7 @@
         "OUTPUTS",
         "HARVEST REVIEW"
       ],
-      "modelInvocation": "enabled"
+      "modelInvocation": "disabled"
     },
     {
       "name": "sync-project-knowledge",
@@ -1252,7 +1249,7 @@
       "name": "studio-health",
       "type": "skill",
       "sourcePath": ".claude/skills/studio-health/SKILL.md",
-      "status": "proposed",
+      "status": "active",
       "portability": "studio-core",
       "ownerAgents": [],
       "humanGates": [],
@@ -1281,7 +1278,7 @@
       "name": "build-phaser-feature",
       "type": "skill",
       "sourcePath": ".claude/skills/build-phaser-feature/SKILL.md",
-      "status": "proposed",
+      "status": "active",
       "portability": "phaser-pack",
       "ownerAgents": [
         "phaser-runtime-director"
@@ -1311,7 +1308,7 @@
       "name": "visual-playtest",
       "type": "skill",
       "sourcePath": ".claude/skills/visual-playtest/SKILL.md",
-      "status": "proposed",
+      "status": "active",
       "portability": "phaser-pack",
       "ownerAgents": [],
       "humanGates": [

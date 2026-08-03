@@ -5,30 +5,62 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 
 const mode = process.argv[2] ?? '';
-const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 let input = {};
 try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { input = {}; }
 
+function findProjectRoot(start) {
+  let current = path.resolve(start || process.cwd());
+  while (true) {
+    if (fs.existsSync(path.join(current, '.git')) && fs.existsSync(path.join(current, 'AI_STUDIO_ARCHITECTURE.md'))) return current;
+    const parent = path.dirname(current);
+    if (parent === current) return path.resolve(start || process.cwd());
+    current = parent;
+  }
+}
+
+const isCodex = mode.startsWith('codex-');
+const action = mode.replace(/^codex-/, '');
+const root = findProjectRoot(process.env.CLAUDE_PROJECT_DIR || input.cwd || process.cwd());
+
 function decision(value, reason) {
+  // Codex PreToolUse does not support the Claude "ask" decision. Failing the
+  // hook would allow the command, so imported human gates fail closed instead.
+  if (isCodex && value === 'ask') {
+    value = 'deny';
+    reason = `${reason} Run it outside the agent only after reviewing the exact command.`;
+  }
   console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: value, permissionDecisionReason: reason } }));
 }
 function normalized(value='') { return String(value).replaceAll('\\', '/'); }
 
-if (mode === 'session-start') {
+function toolTargets(tool, toolInput) {
+  const direct = toolInput.file_path ?? toolInput.path;
+  if (direct) return [normalized(direct)];
+  if (tool !== 'apply_patch') return [];
+  const patch = String(toolInput.command ?? '');
+  return [...patch.matchAll(/^\*\*\* (?:Add|Update|Delete) File: (.+)$/gm)].map((match) => normalized(match[1].trim()));
+}
+
+function isSecretPath(file) {
+  const basename = file.split('/').at(-1) ?? '';
+  return (basename === '.env' || (basename.startsWith('.env.') && basename !== '.env.example')) || /(^|\/)secrets?(\/|$)/i.test(file);
+}
+
+if (action === 'session-start') {
   console.log('Card Engine Studio V2: use FAST/STANDARD/FULL routing; agents advise, skills execute; paid/destructive/remote actions and subjective visual approval remain human gates. Architecture: AI_STUDIO_ARCHITECTURE.md. Registry: .claude/studio/STUDIO_CAPABILITY_REGISTRY.json.');
   process.exit(0);
 }
 
-if (mode === 'pre-tool') {
+if (action === 'pre-tool') {
   const tool = input.tool_name ?? '';
   const ti = input.tool_input ?? {};
-  if (tool === 'Edit' || tool === 'Write') {
-    const file = normalized(ti.file_path ?? ti.path ?? '');
-    if (/(^|\/)\.env(?:\.|$)/.test(file) || /(^|\/)secrets?(\/|$)/i.test(file)) {
+  if (tool === 'Edit' || tool === 'Write' || tool === 'apply_patch') {
+    const files = toolTargets(tool, ti);
+    if (files.some(isSecretPath)) {
       decision('deny', 'Secret/environment files are protected by the studio policy. Use .env.example for structure and never expose values.');
       process.exit(0);
     }
-    if (/(^|\/)IMAGE_ENGINE_REFERENCE\.md$/.test(file)) {
+    if (files.some((file) => /(^|\/)IMAGE_ENGINE_REFERENCE\.md$/.test(file))) {
       decision('deny', 'IMAGE_ENGINE_REFERENCE.md is generated from code. Change live Image Engine source and run npm run docs:engines instead.');
       process.exit(0);
     }
@@ -73,9 +105,15 @@ if (mode === 'pre-tool') {
   process.exit(0);
 }
 
-if (mode === 'post-write') {
-  const file = normalized(input.tool_input?.file_path ?? input.tool_input?.path ?? '');
-  if (!file.includes('/.claude/') && !file.startsWith('.claude/')) process.exit(0);
+if (action === 'post-write') {
+  const files = toolTargets(input.tool_name ?? '', input.tool_input ?? {});
+  const touchesStudio = files.some((file) =>
+    file.includes('/.claude/') || file.startsWith('.claude/') ||
+    file.includes('/.agents/') || file.startsWith('.agents/') ||
+    file.includes('/.codex/') || file.startsWith('.codex/') ||
+    /(^|\/)AGENTS\.md$/.test(file)
+  );
+  if (!touchesStudio) process.exit(0);
   const lint = spawnSync(process.execPath, [path.join(root, '.claude/scripts/studio-lint.mjs')], { cwd: root, encoding: 'utf8' });
   if (lint.status !== 0) {
     process.stderr.write(lint.stdout || 'Studio lint failed after the edit.\n');

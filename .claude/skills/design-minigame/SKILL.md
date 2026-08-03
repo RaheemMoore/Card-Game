@@ -1,6 +1,6 @@
 ---
 name: design-minigame
-description: Interview Raheem for the specifics needed to build a new mini-game, then hand off to ship-minigame. Ask the questions inline (not a formal proposal document) — Raheem prefers a conversational intake like the Combat Overhaul session. Use whenever Raheem says "I want to make a mini-game" or names a specific one. Do NOT produce a written proposal doc; the answers ARE the design.
+description: Interview Raheem for the specifics needed to explore a new mini-game, then park the agreed design for a separate future shipping decision. Ask the questions inline (not a formal proposal document). Use only when Raheem explicitly wants to explore a mini-game. Do NOT build or hand off automatically.
 ---
 
 # Skill: design-minigame
@@ -79,16 +79,16 @@ Locking in <name>:
 - Motion: <tier>
 - <anything else>
 
-Handing off to ship-minigame. Say "go" or amend.
+Parking this design for a separate future shipping decision. Confirm or amend.
 ```
 
-On "go" (or equivalent), invoke `ship-minigame` with these locked answers as the input.
+Do not start implementation from this interview. A later explicit shipping decision needs a current delivery workflow and fresh scope review.
 
 ## Human approval gates
 
 - **Motion tier** must be explicitly answered (never inferred).
 - **Reward math** must be Raheem-stated numbers when there's a stat gain or currency cost — governance rule from `card-engine-economy-currency-system-plan.md` §13.
-- **"Go" to hand off** — never jump to `ship-minigame` without confirming the summary.
+- **Confirmation** closes the design interview; it does not authorize implementation.
 
 ## Validation
 
@@ -97,12 +97,12 @@ Interview is complete when:
 - [ ] All three ability slots have an integration answer (or an explicit "no hook, by design because X").
 - [ ] Reward math has Raheem-stated numbers.
 - [ ] Rank-sum cap of 7 interaction is addressed if reward pushes near it.
-- [ ] Locked-in summary was posted and Raheem said go (or amended).
+- [ ] Locked-in summary was posted and Raheem confirmed or amended it.
 
 ## Expected outputs
 
 - A brief locked-in summary in chat.
-- Direct handoff to `ship-minigame` with the answers as input.
+- A parked design summary; no automatic implementation handoff.
 - No separate design document, no separate approval gate — the interview IS the design.
 
 ## When NOT to use this skill

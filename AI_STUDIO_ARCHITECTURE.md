@@ -1,7 +1,7 @@
 # Card Engine AI Studio Architecture V2
 
-**Status:** Approved by Raheem on 2026-08-02 — authorized for controlled installation and live validation
-**Audience:** Raheem, future studio teammates, and the primary Claude Studio Lead
+**Status:** Installed and live-verified locally on 2026-08-03; awaiting Raheem's final push/deploy approval
+**Audience:** Raheem, future studio teammates, and whichever primary Codex or Claude Code session is serving as Studio Lead
 **Purpose:** explain the studio simply enough to understand, operate, and teach without reading every agent and skill file.
 
 ## Approval record
@@ -16,13 +16,13 @@ Raheem approved the complete Studio V2 direction on **August 2, 2026**:
 - the one-time shared `FullscreenGameShell` migration during Handoff B;
 - controlled installation and live validation of this control plane.
 
-Approval authorizes implementation, not silent spending, deployment, destructive operations, or bypassing evidence gates. `ship-minigame` remains blocked until the approved fullscreen-shell migration is actually completed and verified.
+Approval authorizes implementation, not silent spending, deployment, destructive operations, or bypassing evidence gates. The shared fullscreen shell is now implemented and live-checked in combat. Raheem retired `ship-minigame` on **August 3, 2026** because that minigame is no longer wanted; it is not a release dependency.
 
 ---
 
 ## The idea in one sentence
 
-**Card Engine is built by an AI-native game studio in which humans make the important decisions, one primary Claude integrates the work, read-only specialists give focused advice, skills run repeatable production workflows, tools execute, and evidence determines whether the result is done.**
+**Card Engine is built by an AI-native game studio in which humans make the important decisions, one primary implementation session integrates the work, read-only specialists give focused advice, skills run repeatable production workflows, tools execute, and evidence determines whether the result is done.**
 
 Card Engine is Project 001 and the proving ground. After the workflow is strong and stable here, its reusable parts can become a portable 2D game-development studio for Raheem and a coworker.
 
@@ -30,7 +30,11 @@ Card Engine is Project 001 and the proving ground. After the workflow is strong 
 
 ## The architecture at a glance
 
-![Card Engine AI Studio V2 map](docs/CARD_ENGINE_STUDIO_ARCHITECTURE_MAP.svg)
+![Card Engine AI Studio V2 current workflow](docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.svg)
+
+![Card Engine AI Studio V2 current agents and skills](docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.svg)
+
+The original predicted map remains preserved separately; these versioned images show the current installed Studio and can be updated without overwriting it.
 
 The architecture has five operating layers:
 
@@ -39,6 +43,19 @@ The architecture has five operating layers:
 3. **Production workflows** — skills that design, generate, build, verify, ship, and synchronize.
 4. **Execution and evidence** — providers, code tools, Phaser, validators, runtime state, screenshots, and video.
 5. **Durable memory** — canonical docs, generated references, playbooks, fixtures, and harvested reusable components.
+
+## What is actually installed today
+
+| Area | Current truth |
+|---|---|
+| Studio control plane | Implemented under `.claude/`. Structural checks, routing fixtures, failure-prevention tests, and release health checks pass. |
+| Codex support | Checked-in adapters under `.agents/` and `.codex/`, including read-only specialist sandboxes and fail-closed human gates. |
+| Shared fullscreen shell | Implemented at `card-engine/src/pages/games/FullscreenGameShell.tsx`; combat uses it and has passed desktop, phone, Turn 1 → Turn 2, screenshot, and clean-console checks. |
+| Phaser observation bridge | Implemented as a development-only courtyard adapter. Direction, collision/occlusion, and reduced-motion scenarios all pass live with clean consoles and screenshots; production-bundle exclusion is separately verified. |
+| Minigame shipping | Retired by Raheem. Existing game code is not deleted, but the `ship-minigame` workflow is hidden and cannot be invoked. |
+| Human gates | Paid providers, economy changes, destructive actions, deployment, and subjective visual approval remain human-controlled. |
+
+Local provider credentials remain a private-device exception accepted by Raheem. Studio automation does not inspect or modify their contents; it verifies only that the local secret files are ignored and untracked. This exception must be revisited before the repository becomes shared or public. The remaining release gate is human approval to push and deploy.
 
 ---
 
@@ -59,9 +76,9 @@ Humans own decisions that should not be delegated to an automated workflow:
 
 The studio should reduce clerical work, not hide consequential choices.
 
-## Primary Claude — Studio Lead
+## Primary implementation session — Studio Lead
 
-The primary Claude is the only AI role that integrates and implements the final work. It:
+The primary Codex or Claude Code session is the only AI role that integrates and implements the final work. It:
 
 - understands the request;
 - refreshes relevant project truth;
@@ -344,15 +361,15 @@ Named scenarios start a known state, perform a repeatable interaction, collect s
 - `FAIL` — objective criteria failed, with evidence;
 - `HUMAN REVIEW` — mechanics pass, but appearance or feel needs Raheem/team judgment.
 
-Initial Card Engine scenarios should include:
+The implemented Card Engine scenario set is deliberately limited to behavior that exists today:
 
-- courtyard character walking and direction;
-- courtyard collision and occlusion;
-- tower camera follow;
-- tower depth sorting;
-- Forge Strike fullscreen/mobile layout.
+- `courtyard-direction-validation`;
+- `courtyard-collision-and-occlusion`;
+- `courtyard-reduced-motion-walk`.
 
-Repeatable scenarios use Playwright scripts. MCP can be added for exploratory diagnosis, but deterministic tests should not require an expensive conversational loop.
+Tower scenarios remain future work because there is no matching Phaser tower scene to observe. Forge Strike is a React surface, not a Phaser scene, and its former shipping workflow is retired.
+
+Repeatable scenarios use a compatible browser runner that can call the development bridge in the page's main execution world. Browser tools that isolate evaluation from page globals may still capture screenshots and console evidence, but cannot certify these named scenarios by themselves.
 
 ---
 
@@ -398,7 +415,7 @@ Aseprite remains optional. It should be added only after repeated evidence shows
 - missing checked-in permission and hook configuration;
 - shell-script line-ending failures;
 - inactive scaffold skills occupying active discovery;
-- a minigame shell dependency that does not exist;
+- the missing shared fullscreen shell, now extracted from combat and live-checked without changing combat behavior;
 - duplicated shipping instructions;
 - documentation that assumes nobody else will use the studio.
 
@@ -410,8 +427,8 @@ Aseprite remains optional. It should be added only after repeated evidence shows
 - project permission rules and deterministic hooks;
 - standard specialist and skill contracts;
 - Phaser Runtime Director;
-- Phaser runtime observation bridge;
-- named visual-playtest scenarios;
+- a development-only Phaser runtime observation bridge;
+- three named courtyard visual-playtest scenarios;
 - structured evidence verdicts;
 - a formal harvest step;
 - a simple architecture map for people.
@@ -471,6 +488,6 @@ A coworker should install the stable studio package, connect their own accounts,
 
 # 8. The simplest explanation to give a teammate
 
-> We run one primary Claude as the Studio Lead. It reads the project’s canonical truth, chooses a fast, standard, or full workflow, and consults a read-only specialist only when a real design judgment is needed. Skills tell it how to perform recurring work. PixelLab, Leonardo, Figma, Phaser, and code tools execute the work. Deterministic checks and visual gameplay evidence decide whether the work passes. Human judgment remains the final gate for creative, economy, spending, deployment, and subjective visual decisions. Every proven lesson can become reusable studio memory, but no agent rewrites the studio without approval.
+> We run one primary Codex or Claude Code session as the Studio Lead. It reads the project’s canonical truth, chooses a fast, standard, or full workflow, and consults a read-only specialist only when a real design judgment is needed. Skills tell it how to perform recurring work. PixelLab, Leonardo, Figma, React, Phaser, Supabase, Vercel, and code tools execute the work. Deterministic checks and visual gameplay evidence decide whether the work passes. Human judgment remains the final gate for creative, economy, spending, deployment, and subjective visual decisions. Every proven lesson can become reusable studio memory, but no agent rewrites the studio without approval.
 
 That is the Card Engine AI Studio V2.

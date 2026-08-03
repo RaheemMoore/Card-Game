@@ -134,7 +134,7 @@ PixelLab are used across all three.
 
 ## Phaser runtime and visual evidence
 
-**Status:** architecture specified; runtime bridge/scenarios are the next implementation workstream.
+**Status:** implemented and locally verified for the courtyard on 2026-08-03.
 
 | Capability | Purpose |
 |---|---|
@@ -143,7 +143,7 @@ PixelLab are used across all three.
 | `build-phaser-feature` | Approved implementation workflow: define scenario first, preserve React/Phaser lifecycle, implement, then verify. |
 | `visual-playtest` | Runtime snapshot + console + screenshot/video; returns PASS / FAIL / HUMAN REVIEW. |
 
-Initial scenario set: `courtyard-character-walk`, `sprite-direction-validation`, `collision-and-occlusion`, `tower-camera-follow`, `tower-depth-sorting`, and `forge-strike-fullscreen-mobile`. Repeatable automation should use Playwright scripts/CLI; an MCP browser session is optional for diagnosis.
+Current scenario set: `courtyard-direction-validation`, `courtyard-collision-and-occlusion`, and `courtyard-reduced-motion-walk`. Development automation can run one through `/castle?studioScenario=<name>&studioRun=<unique-nonce>` and read the sanitized `#card-engine-studio-result` output. Unknown scenarios fail without moving the player. Tower scenarios are future work; Forge Strike is not a Phaser scene and its shipping workflow is retired.
 
 ## 5. Playbooks — the memory layer
 

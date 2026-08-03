@@ -344,3 +344,36 @@ html {
   .fs-flash,
   .fs-cardbloom { animation: fs-flash 360ms ease-out both; }
 }
+
+/* Shared full-screen game layout. Both the grid tracks and their children need
+   a zero minimum or intrinsic game content can force the viewport to overflow. */
+.fullscreen-game-grid {
+  grid-template-columns: var(--fullscreen-desktop-columns);
+  grid-template-rows: var(--fullscreen-desktop-rows);
+}
+
+.fullscreen-game-grid > * {
+  min-height: 0;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .fullscreen-game-grid {
+    grid-template-columns: var(--fullscreen-mobile-columns);
+    grid-template-rows: var(--fullscreen-mobile-rows);
+  }
+}
+
+/* Combat journal owns the desktop arena's top-right corner. */
+.combat-journal-box {
+  top: 12px;
+  right: 12px;
+  width: 320px;
+}
+
+@media (max-width: 720px) {
+  .combat-journal-box {
+    top: 216px;
+    width: 280px;
+  }
+}
