@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Hammer, Image, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleHelp, Command, ExternalLink, Feather, FileText, FlaskConical, Hammer, Image, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, elements, navigation, searchEntries } from './content';
@@ -206,11 +206,27 @@ function inFlightOnly(lines: string[]) {
 }
 
 function WorkBoardNav({ current }: { current: WorkBoardKind }) {
-  const items: Array<[WorkBoardKind, string, string]> = [
-    ['advice', '/work/advice', 'AI Advice'], ['active', '/work/active', 'Active Work'],
-    ['required', '/work/required', 'Required & Deferred'], ['tori', '/work/tori', "Tori's Desk"],
+  const items: Array<[WorkBoardKind, string, string, string, typeof Lightbulb]> = [
+    ['advice', '/work/advice', 'AI Advice', 'Ranked recommendations', Lightbulb],
+    ['active', '/work/active', 'Active Work', 'What is in motion', ListChecks],
+    ['required', '/work/required', 'Required & Deferred', 'Necessary and delayed', TriangleAlert],
+    ['tori', '/work/tori', "Tori's Desk", 'Lore assignments', Feather],
   ];
-  return <nav className="work-board-switcher" aria-label="Work Board pages">{items.map(([kind, path, label], index) => <a key={path} href={path} aria-current={current === kind ? 'page' : undefined}><span>{String(index + 1).padStart(2,'0')}</span>{label}</a>)}</nav>;
+  return <section className="work-board-navigation" aria-labelledby="work-board-navigation-title">
+    <div className="work-board-navigation-heading">
+      <div><p className="eyebrow">NAVIGATE THE WORK BOARD</p><h2 id="work-board-navigation-title">Choose a work view</h2></div>
+      <p>Four linked pages · select one to open</p>
+    </div>
+    <nav className="work-board-switcher" aria-label="Work Board pages">{items.map(([kind, path, label, description, Icon], index) => {
+      const selected = current === kind;
+      return <a key={path} href={path} data-kind={kind} aria-label={`Open ${label}: ${description}`} aria-current={selected ? 'page' : undefined}>
+        <span className="work-board-switcher-index">{String(index + 1).padStart(2,'0')}</span>
+        <span className="work-board-switcher-icon"><Icon aria-hidden="true"/></span>
+        <span className="work-board-switcher-copy"><strong>{label}</strong><small>{description}</small></span>
+        <span className="work-board-switcher-action">{selected ? 'YOU ARE HERE' : 'OPEN PAGE'}<ChevronRight aria-hidden="true"/></span>
+      </a>;
+    })}</nav>
+  </section>;
 }
 
 function WorkBoardPage({ kind }: { kind: WorkBoardKind }) {
