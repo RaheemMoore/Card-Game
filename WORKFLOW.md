@@ -9,9 +9,29 @@ This is short by design. If it grows past two pages, I've made it too clerical.
 
 ## The one-line version
 
-**You make the creative and business decisions. I do the implementation. Specialist subagents advise on hard questions. Skills handle repeat workflows.**
+**Raheem/team make consequential decisions. One primary Claude Studio Lead integrates and implements. Read-only specialists advise only when judgment is needed. Skills run repeatable workflows. Evidence—not confidence—determines done.**
 
 ---
+
+## Choose the smallest safe work mode
+
+| Mode | Use when | Default |
+|---|---|---|
+| **FAST** | isolated bug, copy/formatting, exact canonical instruction | Studio Lead works directly; no specialist unless a risk trigger appears |
+| **STANDARD** | normal feature/asset task with one clear domain | at most one specialist; existing skill; normal evidence |
+| **FULL** | new system, schema/economy, major UX, paid campaign, Phaser runtime architecture, cross-discipline feature | written design; up to two specialists; explicit approval; complete evidence |
+
+The control plane is `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json`. The Studio Lead reads only the relevant code/docs, not the entire project.
+
+## Evidence rule
+
+Every completed task ends as:
+
+- **PASS** — objective criteria pass and no human gate remains;
+- **FAIL** — a criterion fails and evidence identifies where/why;
+- **HUMAN REVIEW** — objective behavior passes or is inconclusive, and the remaining question is subjective/product-level.
+
+Phaser/UI work requires runtime and visual evidence when compilation cannot prove behavior. Paid generation requires an approved batch and provenance.
 
 ## What you do
 
@@ -120,6 +140,14 @@ If the fix requires an economy change (refund logic, price change, reward tweak)
 
 I only raise these at design or delivery gates — not mid-implementation, unless continuing without the workflow would create real risk. If I ever raise one that feels like ceremony for its own sake, tell me and I'll tighten the bar.
 
+### Pattern 8: "Build or change something in Phaser"
+
+**You:** Describe the player-visible goal and approve any architecture choice.
+
+**Studio Lead:** Use `design-feature` for STANDARD/FULL runtime changes, consult `phaser-runtime-director` only for scene/lifecycle/camera/physics/bridge decisions, implement through `build-phaser-feature`, then run `visual-playtest` against a named scenario.
+
+**Result:** code checks + structured runtime state + screenshot/video + `PASS`, `FAIL`, or `HUMAN REVIEW`. A screenshot alone cannot prove direction mapping, motion, collision, or camera behavior.
+
 ## Where things live
 
 | Thing | Location |
@@ -133,6 +161,9 @@ I only raise these at design or delivery gates — not mid-implementation, unles
 | Economy plan + governance | [card-engine-economy-currency-system-plan.md](card-engine-economy-currency-system-plan.md) |
 | Specialist agent definitions | `.claude/agents/` |
 | Skill (workflow) definitions | `.claude/skills/` |
+| Studio architecture map | `AI_STUDIO_ARCHITECTURE.md` + `docs/CARD_ENGINE_STUDIO_ARCHITECTURE_MAP.svg` |
+| Capability/routing registry | `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json` |
+| Shared project permissions/hooks | `.claude/settings.json` + `.claude/scripts/` |
 | Verify script | `.claude/verify/card-engine.sh` |
 | The app | `card-engine/` |
 | Deprecated docs (do not use) | [docs/archive/](docs/archive/) |
@@ -158,4 +189,4 @@ Try one of these to see the flow in action:
 
 ## If the flow ever feels wrong
 
-Tell me. This whole structure is optimized for me and for you specifically — nobody else. If a skill takes longer than the direct implementation would have, I'll skip the skill next time. If a specialist consultation slowed us down instead of helping, I'll consult less. This is a living workflow; adjust it whenever it stops fitting.
+Tell me. This structure is proved in Card Engine before extraction. If a skill costs more than direct work, routing is tightened; if a specialist adds no decision value, it is skipped. Stable, project-neutral behavior can later move into a coworker-installable studio/plugin, while Card Engine canon stays in its project pack.

@@ -1,6 +1,6 @@
 ---
 name: place-character-in-scene
-description: Put a generated character sprite into a Phaser scene so it walks convincingly — sprite sheet packing, four-direction animations, feet-anchored colliders, walkable region tracing onto a painted plate, scale, and the verification that proves the walk cycle is actually playing. Use after create-character-sprite, or when adding/repositioning any walkable character or collider in the castle. Do NOT use for React/DOM combat VFX (those are CSS keyframes, no frame player exists there).
+description: Integrate an approved generated character into a Phaser scene with correct sheet packing, four-direction animations, feet-origin collider/depth conventions, scale, movement, and runtime evidence. Use after create-character-sprite or when repairing character placement. Do NOT use for PixelLab generation, Figma tracing, React-only effects, or static-only direction approval.
 ---
 
 # Skill: place-character-in-scene
@@ -73,3 +73,7 @@ Automation gotchas learned the hard way:
 - Programmatic `.focus()` sets `activeElement` but fires **no focus event** when the automated window lacks OS focus — use real Tab presses to test focus behaviour.
 
 Also confirm: idle returns to a standing frame; reduced-motion holds the frame while position still changes; exit/re-enter leaves exactly 0 canvases then 1; and Phaser stays in its own async chunk (a value-import from a scene file collapsed it into the main bundle once).
+
+## Studio V2 runtime gate
+
+For new or changed character integration, define or reuse a named scenario (normally `courtyard-character-walk` or `sprite-direction-validation`) and invoke `visual-playtest`. Evidence must include runtime direction/animation state plus screenshot or video. Static pixel similarity, sheet labels, or a single screenshot cannot prove that left/right mapping and movement agree. Follow `.claude/studio/PHASER_RUNTIME_BRIDGE_SPEC.md` and return PASS, FAIL, or HUMAN REVIEW. Consult `phaser-runtime-director` only when lifecycle, camera, physics architecture, or reusable runtime-component boundaries change.

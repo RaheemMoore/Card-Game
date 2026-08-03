@@ -1,94 +1,50 @@
 ---
 name: art-pipeline
-description: End-to-end workflow for generating or regenerating card portrait art via Leonardo. Assembles the prompt (base + archetype DNA + rank modifier + modifier pool picks + specialization suffix), calls Leonardo with Character Reference for continuity, updates the card's evolution history, and stores the seed for future re-generation. Use when creating a new card's portrait or evolving art on tier-up.
+description: Generate or regenerate a Card Engine full-body card portrait through the current deterministic Image Engine and Leonardo provider path. Uses the locked CharacterSheet/hidden-fate inputs, generated IMAGE_ENGINE_REFERENCE, server-side paid-provider controls, provenance, continuity checks, and approval evidence. Use for card portrait production or tier evolution. Do NOT use for emblems, PixelLab sprites, environment plates, prompt-system redesign, or text-only lore generation.
 ---
 
-# Skill: art-pipeline
+# Card Portrait Art Pipeline
+
+## Truth and ownership
+
+The live Image Engine is deterministic TypeScript. Do not manually recreate the retired “base + DNA + modifier-pool document” formula. Read:
+
+- `IMAGE_ENGINE_REFERENCE.md` (generated current-state reference);
+- live `portraitAssembler.ts`, archetype hooks, CharacterSheet factory, visual-language/pool data, and Leonardo service involved;
+- `Character_Generation_Bible_Canonical_v1.md` for identity and rank continuity;
+- `.claude/studio/PAID_OPERATION_POLICY.md` and `EVIDENCE_VERDICT_CONTRACT.md`.
+
+Consult `art-prompt-director` only when changing Image Engine behavior or art direction—not for a routine generation using approved rules.
 
 ## Inputs
 
-- **Card ID** (existing) or **new-card context** (archetype, rank, dominant stat, stat values, modifier pool picks, whisper words)
-- **Regeneration reason** — one of: `new_card`, `tier_up`, `player_regen`, `admin_regen`
-- **Optional: Character Reference source** (defaults to card's current portrait if regenerating)
+- card/character id and rank;
+- generation reason: new, tier-up, player regeneration, or approved admin repair;
+- locked CharacterSheet / hidden-fate identity fields;
+- current portrait reference for continuity when regenerating;
+- approved spend/transaction context.
 
 ## Workflow
 
-### 1. Pre-flight (governance + economy)
-- Confirm the caller (the flow that invoked this skill) has already reserved the correct premium currency per [economy-plan §7](../../../card-engine-economy-currency-system-plan.md). This skill does NOT charge — it only generates. If no reservation exists for a paid regeneration, fail fast and tell the caller.
-- Confirm Leonardo credentials are present (`.env` VITE_LEONARDO_API_KEY).
+1. **Preflight identity.** Confirm the locked fields, body/skin presentation, rank, element/bond, prompt version, and prior portrait provenance exist. Never improve the body by making it younger, thinner, more muscular, healthier, or less disabled.
+2. **Confirm paid approval.** No reservation/explicit admin batch approval means no call. State provider, operation, estimated count/cost, and stop limit.
+3. **Assemble through live code.** Use the current deterministic Image Engine. Do not hand-edit the final prompt unless an approved system change is being implemented.
+4. **Call through the approved server/provider boundary.** Never expose a provider key to client code or copy secrets into logs.
+5. **Persist provenance.** Record generated asset id/url, provider/model, prompt version, seed when available, reference strength/input, cost source, reason, and evolution-history link.
+6. **Review continuity.** Compare identity anchors, silhouette, body/skin continuity, archetype read, rank escalation, element visual language, modesty, and unintended embedded UI/text.
+7. **Return evidence verdict.** `PASS`, `FAIL`, or `HUMAN REVIEW`; subjective approval remains Raheem's.
+8. **Harvest only proven lessons.** Propose a pool, validator, prompt rule, or doc update only when the failure repeated or the evidence is strong. Never silently modify the engine from one attractive image.
 
-### 2. Assemble the prompt
-Formula from [modifier-pools.md §Prompt Assembly](../../../card-engine-modifier-pools.md) + [power-system-spec §9](../../../card-engine-power-system-spec.md):
+## Verification
 
-```
-Base Visual Style
-+ Archetype DNA block                          [from archetype-prompt-library.md]
-+ Rank Modifier (Foundation / Forged / Ascendant)
-+ Specialization Suffix                        [only if rank ≥ Forged; keyed by (dominantStat, dominantStatRank)]
-+ Visual Motif Fragment                        [from spec §9 table]
-+ Very Low Absence Motif                       [only if a Very Low stat is in the bottom half of its range]
-+ Setting: <Pool 1 pick>
-+ Demeanor: <Pool 2 pick>
-+ Signature Detail: <Pool 3 pick>
-+ Lighting: <Pool 4 pick>
-+ Negative Prompt Rules
-```
+- generated engine reference still matches code when engine code changed (`npm run docs:engines`);
+- provider call and cost recorded;
+- locked identity fields unchanged;
+- currentArt/evolution history consistent;
+- reference/seed/provenance retained;
+- visual evidence attached;
+- no direct edit to generated `IMAGE_ENGINE_REFERENCE.md`.
 
-Code: `card-engine/src/services/promptAssembler.ts` already does this — call it, don't reimplement.
+## Outputs
 
-### 3. Call Leonardo
-Code: `card-engine/src/services/leonardoApi.ts` for new generation, `regeneratePortrait.ts` for regen with Character Reference.
-
-**Character Reference settings** (from spec §9 and project-knowledge Key Learnings):
-- Strength: Mid (~60–70%)
-- Source: card's previous portrait (or Character Reference from the same character on a different card if this is a first regeneration)
-- Seed: reuse the card's stored seed for character-identity stability
-
-Wait for completion. If Leonardo fails:
-- Do NOT commit the transaction — the caller should refund per [economy-plan §7.2/§7.3](../../../card-engine-economy-currency-system-plan.md).
-- Return failure with the reason.
-
-### 4. Update evolution history
-Per [power-system-spec §6](../../../card-engine-power-system-spec.md):
-
-- **First promotion to a tier:** always save the new art as canonical for that (stat, tier) key.
-- **Re-promotion to a tier with saved art:** the player was offered a choice upstream (keep vs. regenerate). This skill only runs when the choice was "regenerate" — permanently overwrite the saved art.
-- **Demotion to a tier with saved art:** never call this skill — restore the saved version instead.
-
-The `evolutionHistory` structure is card-bound and travels with the card on trade/gift.
-
-### 5. Persist
-- Update the card's `currentArt` fields (portraitUrl, cardName if renamed, lore if regenerated, leonardoSeed).
-- Update `evolutionHistory[dominantStat][currentTier]` with the new art snapshot.
-- Save via `storage.ts`.
-
-### 6. Signal the caller
-Return the updated Card object. The caller decides whether to commit the transaction and refresh the UI.
-
-## Specialists consulted
-
-- `art-prompt-director` — only if the generated art comes back consistently off for a specific archetype × rank combination and the fix isn't obvious. Don't consult for one-off bad rolls; consult when a *pattern* emerges.
-
-## Human approval gates
-
-- Player-triggered regenerations: the caller UI must have shown the cost and gotten player confirmation before invoking this skill. Trust the caller's contract.
-- Admin regenerations (`admin_regen`): always ask Raheem before running — these bypass the normal economy and are only used for fixing broken cards.
-
-## Validation
-
-- [ ] Prompt assembly matches the formula (all pieces present).
-- [ ] Character Reference used for regeneration (not for new-card creation).
-- [ ] Seed reused for the same character across tiers.
-- [ ] Evolution history updated per one-art-per-tier rule.
-- [ ] Failure returns without persisting partial state.
-
-## Expected outputs
-
-- On success: updated Card with new portrait + updated evolution history.
-- On failure: structured error the caller can act on (`{ status: 'failed', reason: string, refundable: true }`).
-
-## When NOT to use
-
-- Card text regeneration only (no new portrait) — that's a Claude API call, not Leonardo. Handle inline.
-- Placeholder portrait generation — that's `portraitGenerator.ts` and doesn't need this skill.
-- Batch regeneration across the whole collection — that would be an admin migration, gets its own plan.
+A persisted candidate portrait with provenance and an evidence verdict. Promotion or admin repair remains behind the applicable human gate.

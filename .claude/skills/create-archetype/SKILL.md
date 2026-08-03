@@ -10,10 +10,10 @@ description: Ship a fully-approved new archetype (name, class-affinity, DNA, opt
 - **Approved archetype design** from `design-feature` or a direct Raheem approval. Must include:
   - Archetype name (single word or "Two Word" — case matters, `ArchetypeName` is a union of literals).
   - Class-affinity row (Atk/Def biases + one of Mana/Tech + tier).
-  - DNA block: identity string, palette (primary/secondary/accent), motifs, three long-form rank progression strings.
-  - Any per-archetype pipeline exception (rolled identity struct, init_strength override, negative-prompt additions, front-loaded prompt-structure override).
-  - Any lore-instruction block (e.g. Moon Goddess for Lycanthrope, Tech-Class Escalation for Android/Mech Pilot).
-  - Class-signature modifier-pool entries (~8-12, same rarity shape as existing pools).
+  - Canonical Bible chapter and structured body/skin/identity rules.
+  - Class-affinity row and class-signature modifier-pool entries.
+  - Current Image Engine inputs: curated pools, generic escalation or approved archetype hook, locked CharacterSheet/hidden-fate fields, and element visual language.
+  - Any genuine per-archetype implementation exception approved during design.
 
 - **Optional branch name** (default: `feat/<archetype-lowercase>-archetype`).
 
@@ -32,35 +32,29 @@ git checkout main             # branch off fresh main
 git checkout -b <branch>
 ```
 
-Create the process log at `.claude/process-logs/<archetype>.md` using the Lycanthrope template ([reference](../../process-logs/lycanthrope.md) if it still exists — otherwise recreate a fresh log with the same section shape: legend, decisions from Raheem, specialists consulted, canonical docs read, files touched table, verification checklist, notes for the Reuse Review).
+Create the process log at `.claude/process-logs/<archetype>.md` using the established process-log section shape (legend, decisions, specialists, sources, files, verification, and harvest notes). If a historical Lycanthrope log is present, use it only as an example—not as a required dependency. Required sections: legend, decisions from Raheem, specialists consulted, canonical docs read, files touched table, verification checklist, notes for the Reuse Review).
 
 ### 3. Decompose into tasks
 
 Use `TaskCreate` to break the plan into concrete steps mirroring §4 below. Mark the first `in_progress` before starting.
 
-### 4. Implement — universal 10 file edits (mandatory)
+### 4. Implement — universal registrations (mandatory)
 
-Do these in dependency order. Each is small (~1–15 lines).
+Do these in dependency order. The exact list may grow with live exhaustive Records; use compiler/search evidence rather than trusting the count in this document.
 
 1. **`card-engine/src/types/card.ts`** — append `'<Archetype>'` to `ARCHETYPE_NAMES`. If a per-archetype identity struct is approved, add the interface here and add optional `<archetype>Identity?` field on `Card`.
 2. **`card-engine/src/data/archetypes.ts`** — add `ArchetypeDefinition` entry with identity, palette, motifs, and long-form rank progression strings. Match position in the object literal to the ARCHETYPE_NAMES order.
 3. **`card-engine/src/data/powerSystem.ts`** — add row to `CLASS_AFFINITY` at matching position.
 4. **`card-engine/src/data/modifierPools.ts`** — add entry to `CLASS_SIGNATURE_POOLS` with ~8–12 signature entries. **Mandatory** — Mech Pilot's omission proved the silent-bug failure mode.
-5. **`card-engine-archetype-prompt-library.md`** — add DNA block section (title, identity, palette, motifs, body/posture, Foundation → Ascendant progression). Bump the "N Archetype DNA Blocks" heading counter.
-6. **`card-engine-power-system-spec.md`** — add matrix row in §1.
-7. **`CLAUDE.md`** — bump "N options" and "grid of N archetypes" counters (usually 2 occurrences). If a per-archetype pipeline deviation shipped, add a Conventions bullet describing it.
-8. **`card-engine/src/data/archetypeEmblems.ts`** — add a `Record<ArchetypeName, EmblemMeta>` entry with `status: 'not_started'`, `assetPath: null`, and TBD `primarySymbol` / `palette`. The emblem itself is designed later in step 7 via `design-archetype-emblem`; this entry keeps the `Record` exhaustive so `ArchetypeSelector` compiles.
+5. **`card-engine/src/data/archetypeBible/<slug>.ts` + `Character_Generation_Bible_Canonical_v1.md`** — add the approved canonical identity and narrative chapter without overlapping an existing archetype.
+6. **Current Image Engine source** — add only the approved pools/hook/visual-language entries in the live source files. Do not edit archived prompt libraries. Regenerate `IMAGE_ENGINE_REFERENCE.md` via `npm run docs:engines`.
+7. **`card-engine-power-system-spec.md`** — add matrix row in §1.
+8. **`CLAUDE.md`** — update durable counts/conventions only after code is verified.
+9. **`card-engine/src/data/archetypeEmblems.ts`** — add a `Record<ArchetypeName, EmblemMeta>` entry with `status: 'not_started'`, `assetPath: null`, and TBD `primarySymbol` / `palette`. The emblem itself is designed later in step 7 via `design-archetype-emblem`; this entry keeps the `Record` exhaustive so `ArchetypeSelector` compiles.
 
-### 5. Implement — per-archetype exceptions (optional, only when approved)
+### 5. Implement — approved exceptions only
 
-Only touch these files when the approved proposal calls for the corresponding exception. Skip otherwise.
-
-- **Rolled identity struct** (e.g. Lycan's furColor+moonPhase) — `card-engine/src/services/cardGenerator.ts` roll + attach to shell; then thread the field through the three callers: `services/regeneratePortrait.ts`, `services/tierUp.ts`, `pages/CardForge.tsx`. All three must pass the field to `generateCardText` as the 9th positional arg (or the corresponding named param slot).
-- **Per-archetype `init_strength`** — extend `getInitStrengthForArchetype` in `services/leonardoApi.ts`. Add the archetype to the branch, keep others at the 0.45 default.
-- **Escalation-rule block + lore instruction** — extend the archetype-branch chain in `services/claudeApi.ts` (around the existing `archetype === 'Android' || archetype === 'Mech Pilot'` block). Add whatever combination of `LYCANTHROPE-STYLE ESCALATION RULE`, `MOON GODDESS LORE INSTRUCTION`, `PROMPT-STRUCTURE OVERRIDE`, and `NEGATIVE-PROMPT ADDITIONS` the design called for. Keep each block wrapped in an `${archetype === '<Name>' ? ...  : ''}` conditional so other archetypes are unaffected.
-- **Additional Card field** (e.g. Lycan's `lycanIdentity?`) — declare on `Card` in `types/card.ts` and thread through `cardGenerator.buildCardShell` return spread. All three callers already spread the shell, so it flows automatically.
-
-Commit strategy: land the universal 10 as one atomic commit. Land each significant per-archetype exception as its own subsequent commit on the same branch — makes the base easy to review and the deviations easy to attribute in the log.
+Prefer generic shared fields and current Image Engine hooks. Any exception must be named in the approved proposal, justified against `technical-architect` and/or `art-prompt-director`, and covered by a test. Never add a positional Claude API argument or archetype-only shared-schema field merely because an archived workflow used one. Preserve locked identity fields through generation, regeneration, tier-up, persistence, and migrations.
 
 ### 6. Verify before Foundation gate
 
@@ -77,13 +71,13 @@ Commit strategy: land the universal 10 as one atomic commit. Land each significa
 
 Once step 6 verify passes and the new tile is visible, hand off to the [`design-archetype-emblem`](../design-archetype-emblem/SKILL.md) skill. That skill owns the entire emblem workflow — lore-first analysis, prompt authoring, Leonardo API call, draft storage, `archetypeEmblems.ts` metadata update, and [emblem library](../../../card-engine-archetype-emblem-library.md) sync.
 
-**First-pass autonomy applies here.** When invoked from `create-archetype`, the emblem skill fires the Leonardo call automatically (no pre-generation approval gate). The returned draft wires into `ArchetypeSelector.tsx` immediately so Raheem can review live. The emblem is orthogonal to Foundation/Forged/Ascendant portrait work and can proceed in parallel with step 8.
+**Paid approval still applies here.** The emblem skill prepares one strong prompt and bounded cost plan, then waits for Raheem before calling Leonardo. The returned candidate can wire into a draft/review path without replacing an approved public asset.
 
 Do NOT duplicate emblem-workflow steps here. If the emblem skill is missing or errors, stop and report — do not fall back to hand-writing an emblem prompt in this skill.
 
-### 8. Foundation Leonardo gate (Raheem-approved 1 generation)
+### 8. Foundation Leonardo gate (explicitly approved bounded batch)
 
-Forge exactly ONE Foundation card of the new archetype via the real Leonardo pipeline. Screenshot the reveal, share it with Raheem, and **halt**. Do NOT proceed to Forged/Ascendant regen tuning without explicit approval. Test-generation budget ceiling is 5 total unless Raheem extends it.
+After presenting provider, operation, expected cost, and stop limit, forge exactly ONE Foundation card through the real deterministic Image Engine + Leonardo pipeline. Screenshot the reveal, share it with Raheem, and **halt**. Do NOT proceed to Forged/Ascendant regen tuning without explicit approval. Test-generation budget ceiling is 5 total unless Raheem extends it.
 
 If the Foundation looks wrong (missing anchor, wrong palette, prompt not landing), iterate on the branch: revise the escalation block or lore instruction, re-verify, regen. If it looks right, wait for Raheem to clear the gate.
 
@@ -141,7 +135,7 @@ Documented from real incidents:
 - [ ] Any per-archetype exception is intentional, documented in the process log, and has its own commit.
 - [ ] `./.claude/verify/card-engine.sh` passes.
 - [ ] Local UI smoke test done (tile visible, affinity correct, dice ranges match).
-- [ ] `design-archetype-emblem` invoked and returned a `draft_generated` emblem (auto-fired).
+- [ ] `design-archetype-emblem` invoked; an explicitly approved generation batch returned a `draft_generated` candidate.
 - [ ] Foundation Leonardo generation reviewed and cleared by Raheem.
 - [ ] Process log updated with "Notes for the Reuse Review" section.
 - [ ] Reuse Review answered (per ship-approved-plan §6).

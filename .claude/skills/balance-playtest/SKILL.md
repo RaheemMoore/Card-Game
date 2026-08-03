@@ -1,6 +1,7 @@
 ---
 name: balance-playtest
-description: SCAFFOLD ONLY — do not run in Phase 1. Workflow for tuning bias tier ranges, modifier pool weights, minigame reward rates, and economy prices against real playtest telemetry. Becomes runnable once Phase 3 minigames produce data. Documented now so game-systems-designer has a workflow to point at.
+description: SCAFFOLD ONLY — not runnable until governed playtest telemetry exists. Kept for future design reference; invoke manually only after Raheem activates it.
+disable-model-invocation: true
 ---
 
 # Skill: balance-playtest

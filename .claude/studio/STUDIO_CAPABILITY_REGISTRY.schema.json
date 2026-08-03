@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://card-engine.local/schemas/studio-capability-registry.schema.json",
+  "title": "Card Engine Studio Capability Registry",
+  "type": "object",
+  "required": ["registryVersion", "status", "project", "authority", "workModes", "agents", "skills"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "registryVersion": {"type": "string"},
+    "status": {"type": "string"},
+    "project": {"type": "string"},
+    "studioCategory": {"type": "string"},
+    "truthPriority": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "authority": {"type": "object"},
+    "workModes": {"type": "object"},
+    "evidenceVerdicts": {"type": "object"},
+    "agents": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/agent"}
+    },
+    "skills": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/skill"}
+    },
+    "sharedPolicies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path"],
+        "properties": {
+          "id": {"type": "string"},
+          "path": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "capabilityBase": {
+      "type": "object",
+      "required": ["name", "type", "sourcePath", "status", "portability"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "type": {"enum": ["agent", "skill"]},
+        "sourcePath": {"type": "string"},
+        "status": {"enum": ["active", "revise", "inactive", "migration", "proposed", "retired"]},
+        "portability": {"type": "string"}
+      }
+    },
+    "agent": {
+      "allOf": [
+        {"$ref": "#/$defs/capabilityBase"},
+        {
+          "type": "object",
+          "required": ["authority", "domains", "trigger", "exclusions", "toolPolicy", "outputContract", "verification"],
+          "properties": {
+            "authority": {"const": "advisory-read-only"},
+            "domains": {"type": "array", "items": {"type": "string"}},
+            "trigger": {"type": "string"},
+            "exclusions": {"type": "array", "items": {"type": "string"}},
+            "requiredSources": {"type": "array", "items": {"type": "string"}},
+            "historicalFailuresPrevented": {"type": "array", "items": {"type": "string"}},
+            "toolPolicy": {"type": "object"},
+            "outputContract": {"type": "array", "items": {"type": "string"}},
+            "humanGates": {"type": "array", "items": {"type": "string"}},
+            "verification": {"type": "array", "items": {"type": "string"}},
+            "notes": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      ]
+    },
+    "skill": {
+      "allOf": [
+        {"$ref": "#/$defs/capabilityBase"},
+        {
+          "type": "object",
+          "required": ["ownerAgents", "humanGates", "verification", "requiredContract", "modelInvocation"],
+          "properties": {
+            "ownerAgents": {"type": "array", "items": {"type": "string"}},
+            "humanGates": {"type": "array", "items": {"type": "string"}},
+            "verification": {"type": "array", "items": {"type": "string"}},
+            "requiredContract": {"type": "array", "items": {"type": "string"}},
+            "modelInvocation": {"enum": ["enabled", "disabled"]}
+          }
+        }
+      ]
+    }
+  }
+}

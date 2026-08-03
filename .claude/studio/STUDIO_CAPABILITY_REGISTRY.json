@@ -1,0 +1,1362 @@
+{
+  "$schema": "./STUDIO_CAPABILITY_REGISTRY.schema.json",
+  "registryVersion": "2.0.0-candidate",
+  "status": "candidate-pending-live-validation",
+  "project": "Card Engine",
+  "studioCategory": "AI-native 2D game development studio",
+  "truthPriority": [
+    "latest implementation snapshot / live repository",
+    "Figma for interface design",
+    "generated code references",
+    "canonical project documentation",
+    "approved plans and decision records",
+    "previous conversations",
+    "general assumptions"
+  ],
+  "authority": {
+    "human": {
+      "owners": [
+        "Raheem",
+        "approved team members"
+      ],
+      "finalFor": [
+        "creative direction",
+        "product",
+        "economy",
+        "paid services",
+        "destructive actions",
+        "deployment",
+        "subjective visuals",
+        "studio conventions"
+      ]
+    },
+    "studioLead": {
+      "role": "primary Claude session",
+      "owns": [
+        "routing",
+        "integration",
+        "implementation",
+        "verification coordination",
+        "reporting",
+        "documentation sync"
+      ]
+    },
+    "specialists": {
+      "role": "read-only recommendation",
+      "cannot": [
+        "edit",
+        "write",
+        "run shell",
+        "spend",
+        "ship",
+        "create canonical truth"
+      ]
+    }
+  },
+  "workModes": {
+    "FAST": {
+      "criteria": [
+        "isolated",
+        "low risk",
+        "exact canonical answer",
+        "no cross-system decision"
+      ],
+      "specialistLimit": 0,
+      "requiresWrittenProposal": false
+    },
+    "STANDARD": {
+      "criteria": [
+        "normal feature or production task",
+        "one clear domain"
+      ],
+      "specialistLimit": 1,
+      "requiresWrittenProposal": false
+    },
+    "FULL": {
+      "criteria": [
+        "new system",
+        "cross-discipline",
+        "schema",
+        "economy",
+        "major UX",
+        "paid campaign",
+        "runtime architecture"
+      ],
+      "specialistLimit": 2,
+      "requiresWrittenProposal": true
+    }
+  },
+  "evidenceVerdicts": {
+    "PASS": "Objective criteria pass and no unresolved human gate remains.",
+    "FAIL": "At least one objective acceptance criterion fails; evidence identifies where and why.",
+    "HUMAN_REVIEW": "Objective checks pass or are inconclusive, and the remaining decision is subjective or product-level."
+  },
+  "agents": [
+    {
+      "name": "art-prompt-director",
+      "sourcePath": ".claude/agents/art-prompt-director.md",
+      "status": "revise",
+      "portability": "provider-pack-configurable",
+      "domains": [
+        "image-engine",
+        "portrait-art",
+        "archetype-emblems",
+        "leonardo"
+      ],
+      "trigger": "Before changing current Image Engine prompt architecture, portrait continuity rules, curated art pools, element visual language, Character Reference strategy, or emblem art direction.",
+      "exclusions": [
+        "provider 5xx errors",
+        "prompt-string typo",
+        "cost math",
+        "environment plates",
+        "PixelLab sprites"
+      ],
+      "requiredSources": [
+        "IMAGE_ENGINE_REFERENCE.md",
+        "card-engine-archetype-emblem-library.md",
+        "CLAUDE.md",
+        "live Image Engine source files"
+      ],
+      "historicalFailuresPrevented": [
+        "rank identity drift",
+        "emblem palette collision after paid generation"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "environment-art-director",
+      "sourcePath": ".claude/agents/environment-art-director.md",
+      "status": "active",
+      "portability": "2d-production-pack",
+      "domains": [
+        "environment-art",
+        "arenas",
+        "plates",
+        "props",
+        "background-harness"
+      ],
+      "trigger": "Before generating/regenerating environment plates or scenery objects, or changing generation/finishing configuration.",
+      "exclusions": [
+        "character bodies",
+        "card portraits",
+        "Phaser collider math",
+        "place lore meaning"
+      ],
+      "requiredSources": [
+        "LEONARDO_PLAYBOOK.md",
+        "HARNESS_INDEX.md",
+        "bg-harness configs",
+        "arena manifests",
+        "CLAUDE.md"
+      ],
+      "historicalFailuresPrevented": [
+        "framing fought with negatives",
+        "self-contradictory prompts",
+        "style-reference leakage",
+        "color grade used instead of content revision"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "game-systems-designer",
+      "sourcePath": ".claude/agents/game-systems-designer.md",
+      "status": "active",
+      "portability": "studio-core-configurable",
+      "domains": [
+        "balance",
+        "stats",
+        "ranks",
+        "economy",
+        "rewards",
+        "ability-power-budget"
+      ],
+      "trigger": "Before open-ended numerical balance or mechanical-shape decisions.",
+      "exclusions": [
+        "exact canonical values",
+        "renames",
+        "routine bug fixes"
+      ],
+      "requiredSources": [
+        "card-engine-power-system-spec.md",
+        "card-engine-economy-currency-system-plan.md",
+        "card-engine-ability-system-spec.md",
+        "card-engine-boss-battle-spec.md",
+        "live economy catalogs"
+      ],
+      "historicalFailuresPrevented": [
+        "prices chosen from vibes",
+        "archetype-specific shape that should be generic"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "lore-fantasy-director",
+      "sourcePath": ".claude/agents/lore-fantasy-director.md",
+      "status": "active",
+      "portability": "card-engine-project-pack",
+      "domains": [
+        "lore",
+        "archetypes",
+        "story-pillars",
+        "bosses",
+        "factions",
+        "codex",
+        "flavor"
+      ],
+      "trigger": "Before proposing new narrative content or changing established character/world identity.",
+      "exclusions": [
+        "routine implementation",
+        "questions already answered by canonical lore or code"
+      ],
+      "requiredSources": [
+        "Character_Generation_Bible_Canonical_v1.md",
+        "LORE_ENGINE_REFERENCE.md"
+      ],
+      "historicalFailuresPrevented": [
+        "identity update without linked Bible value",
+        "new path overlapping existing archetype territory"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "minigame-designer",
+      "sourcePath": ".claude/agents/minigame-designer.md",
+      "status": "revise",
+      "portability": "studio-core-configurable",
+      "domains": [
+        "minigame-loop",
+        "session-length",
+        "difficulty-curve",
+        "moment-to-moment-feel",
+        "ability-hooks"
+      ],
+      "trigger": "For open-ended minigame-loop design decisions.",
+      "exclusions": [
+        "combat balance math",
+        "routine implementation"
+      ],
+      "requiredSources": [
+        "card-engine-power-system-spec.md",
+        "card-engine-economy-currency-system-plan.md",
+        "card-engine-boss-battle-spec.md",
+        "card-engine-ability-system-spec.md",
+        "CLAUDE.md"
+      ],
+      "historicalFailuresPrevented": [
+        "ad hoc minigame loop design without system context"
+      ],
+      "notes": [
+        "Remove WebFetch unless an explicit research workflow is approved."
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "pixel-sprite-director",
+      "sourcePath": ".claude/agents/pixel-sprite-director.md",
+      "status": "revise",
+      "portability": "pixellab-production-pack",
+      "domains": [
+        "pixellab",
+        "character-sprites",
+        "animation-consistency",
+        "sprite-packing",
+        "sprite-validation"
+      ],
+      "trigger": "Before generating/regenerating PixelLab characters or changing sprite-lab generation, animation, packing, or validator rules.",
+      "exclusions": [
+        "Phaser wiring",
+        "collider math",
+        "card portraits",
+        "environment plates",
+        "lore identity"
+      ],
+      "requiredSources": [
+        "PIXELLAB_PLAYBOOK.md",
+        "create-character-sprite",
+        "place-character-in-scene",
+        "sprite-lab scripts",
+        "archetype Bible data"
+      ],
+      "historicalFailuresPrevented": [
+        "idle/walk scale mismatch",
+        "wrong direction",
+        "costume drift",
+        "expensive corrupt generation mode"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "technical-architect",
+      "sourcePath": ".claude/agents/technical-architect.md",
+      "status": "active",
+      "portability": "studio-core-configurable",
+      "domains": [
+        "schemas",
+        "supabase",
+        "rls",
+        "api",
+        "storage",
+        "provider-boundaries",
+        "runtime-bridge"
+      ],
+      "trigger": "Before new shared schema fields, tables, RLS, API routes, providers, persistence layers, or cross-system architecture.",
+      "exclusions": [
+        "single-file bug fixes",
+        "style changes",
+        "tests within existing architecture"
+      ],
+      "requiredSources": [
+        "CLAUDE.md",
+        "current schema/type definitions",
+        "current migrations",
+        "current server proxy patterns"
+      ],
+      "historicalFailuresPrevented": [
+        "project-specific field in shared schema",
+        "client integration exposing paid API key"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "ui-ux-director",
+      "sourcePath": ".claude/agents/ui-ux-director.md",
+      "status": "active",
+      "portability": "studio-core-configurable",
+      "domains": [
+        "ui",
+        "ux",
+        "flows",
+        "navigation",
+        "mobile",
+        "accessibility",
+        "admin-surfaces"
+      ],
+      "trigger": "Before new pages/flows/modals/admin surfaces or material changes to navigation, stage count, or mobile behavior.",
+      "exclusions": [
+        "narrow CSS bugs",
+        "spacing tweak",
+        "single-component implementation with approved design"
+      ],
+      "requiredSources": [
+        "CLAUDE.md",
+        "relevant Figma source",
+        "current component/route implementation"
+      ],
+      "historicalFailuresPrevented": [
+        "admin UI without mobile story",
+        "flow competing with card art and ritual moment"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    },
+    {
+      "name": "phaser-runtime-director",
+      "sourcePath": ".claude/agents/phaser-runtime-director.md",
+      "status": "proposed",
+      "portability": "phaser-pack",
+      "domains": [
+        "phaser",
+        "scenes",
+        "lifecycle",
+        "camera",
+        "physics",
+        "collision",
+        "animation",
+        "runtime-observation",
+        "phaser-editor"
+      ],
+      "trigger": "Before new Phaser scenes, scene lifecycle/camera/physics architecture, runtime animation integration, observation bridge changes, or Phaser Editor adoption.",
+      "exclusions": [
+        "art direction",
+        "Figma tracing",
+        "routine exact-value implementation",
+        "general React UI"
+      ],
+      "requiredSources": [
+        "usePhaserGame.ts",
+        "current scene source",
+        "scene layout/control modules",
+        "HARNESS_INDEX.md",
+        "relevant manifests"
+      ],
+      "historicalFailuresPrevented": [
+        "static verification of wrong sprite direction",
+        "camera/scene behavior that compiles but fails in play",
+        "duplicate runtime patterns"
+      ],
+      "type": "agent",
+      "authority": "advisory-read-only",
+      "toolPolicy": {
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "disallowedTools": [
+          "Write",
+          "Edit",
+          "NotebookEdit",
+          "Bash"
+        ],
+        "model": "sonnet",
+        "effort": "medium",
+        "maxTurns": 8
+      },
+      "outputContract": [
+        "RULING",
+        "WHY",
+        "RISKS",
+        "RECOMMENDED ACTION",
+        "CANONICAL SOURCES READ",
+        "HUMAN DECISION NEEDED"
+      ],
+      "humanGates": [],
+      "verification": [
+        "Cite exact sources read",
+        "Return a bounded recommendation",
+        "Do not edit files or declare canonical truth"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "name": "art-pipeline",
+      "type": "skill",
+      "sourcePath": ".claude/skills/art-pipeline/SKILL.md",
+      "status": "revise",
+      "portability": "card-engine-project-pack",
+      "ownerAgents": [
+        "art-prompt-director"
+      ],
+      "humanGates": [
+        "paid-leonardo",
+        "player/admin confirmation"
+      ],
+      "verification": [
+        "generation provenance",
+        "current Image Engine validation"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "audit-project-knowledge",
+      "type": "skill",
+      "sourcePath": ".claude/skills/audit-project-knowledge/SKILL.md",
+      "status": "revise",
+      "portability": "studio-core-configurable",
+      "ownerAgents": [],
+      "humanGates": [],
+      "verification": [
+        "studio linter",
+        "code/doc drift report"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "balance-playtest",
+      "type": "skill",
+      "sourcePath": ".claude/skills/balance-playtest/SKILL.md",
+      "status": "inactive",
+      "portability": "card-engine-project-pack",
+      "ownerAgents": [
+        "game-systems-designer"
+      ],
+      "humanGates": [],
+      "verification": [
+        "activation criteria not met"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "disabled"
+    },
+    {
+      "name": "consult-specialist",
+      "type": "skill",
+      "sourcePath": ".claude/skills/consult-specialist/SKILL.md",
+      "status": "revise",
+      "portability": "studio-core",
+      "ownerAgents": [],
+      "humanGates": [],
+      "verification": [
+        "registry resolution",
+        "six-part specialist result"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "create-archetype",
+      "type": "skill",
+      "sourcePath": ".claude/skills/create-archetype/SKILL.md",
+      "status": "revise",
+      "portability": "card-engine-project-pack",
+      "ownerAgents": [
+        "lore-fantasy-director",
+        "art-prompt-director",
+        "game-systems-designer"
+      ],
+      "humanGates": [
+        "explicit approved proposal",
+        "paid Foundation art"
+      ],
+      "verification": [
+        "all registration points",
+        "build",
+        "visual review"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "create-arena",
+      "type": "skill",
+      "sourcePath": ".claude/skills/create-arena/SKILL.md",
+      "status": "active",
+      "portability": "2d-production-pack-configurable",
+      "ownerAgents": [
+        "environment-art-director",
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "paid generation approval"
+      ],
+      "verification": [
+        "harness",
+        "manifest",
+        "runtime visual playtest"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "create-boss",
+      "type": "skill",
+      "sourcePath": ".claude/skills/create-boss/SKILL.md",
+      "status": "active",
+      "portability": "2d-production-pack-configurable",
+      "ownerAgents": [
+        "pixel-sprite-director",
+        "game-systems-designer",
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "paid generation approval",
+        "moveset approval"
+      ],
+      "verification": [
+        "sprite validator",
+        "manifest",
+        "playable review"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "create-character-sprite",
+      "type": "skill",
+      "sourcePath": ".claude/skills/create-character-sprite/SKILL.md",
+      "status": "revise",
+      "portability": "pixellab-production-pack",
+      "ownerAgents": [
+        "pixel-sprite-director"
+      ],
+      "humanGates": [
+        "paid PixelLab plan approval"
+      ],
+      "verification": [
+        "frame validator",
+        "direction runtime scenario",
+        "review sheet"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "create-prop",
+      "type": "skill",
+      "sourcePath": ".claude/skills/create-prop/SKILL.md",
+      "status": "active",
+      "portability": "2d-production-pack-configurable",
+      "ownerAgents": [
+        "environment-art-director",
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "paid generation approval"
+      ],
+      "verification": [
+        "asset validator",
+        "runtime placement review"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "design-archetype-emblem",
+      "type": "skill",
+      "sourcePath": ".claude/skills/design-archetype-emblem/SKILL.md",
+      "status": "revise",
+      "portability": "card-engine-project-pack",
+      "ownerAgents": [
+        "art-prompt-director",
+        "lore-fantasy-director"
+      ],
+      "humanGates": [
+        "paid generation approval",
+        "human art approval"
+      ],
+      "verification": [
+        "distinctness check",
+        "status tracking"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "design-feature",
+      "type": "skill",
+      "sourcePath": ".claude/skills/design-feature/SKILL.md",
+      "status": "revise",
+      "portability": "studio-core-configurable",
+      "ownerAgents": [],
+      "humanGates": [
+        "human approval before build"
+      ],
+      "verification": [
+        "proposal completeness",
+        "work mode",
+        "reuse forecast"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "design-minigame",
+      "type": "skill",
+      "sourcePath": ".claude/skills/design-minigame/SKILL.md",
+      "status": "active",
+      "portability": "studio-core-configurable",
+      "ownerAgents": [
+        "minigame-designer",
+        "game-systems-designer",
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "human approval before ship"
+      ],
+      "verification": [
+        "design checklist",
+        "runtime acceptance criteria"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "extract-fullscreen-shell",
+      "type": "skill",
+      "sourcePath": ".claude/skills/extract-fullscreen-shell/SKILL.md",
+      "status": "migration",
+      "portability": "phaser-pack",
+      "ownerAgents": [
+        "ui-ux-director",
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "migration approval"
+      ],
+      "verification": [
+        "consumer migration",
+        "desktop/mobile visual scenarios"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "disabled"
+    },
+    {
+      "name": "place-character-in-scene",
+      "type": "skill",
+      "sourcePath": ".claude/skills/place-character-in-scene/SKILL.md",
+      "status": "revise",
+      "portability": "phaser-pack",
+      "ownerAgents": [
+        "phaser-runtime-director"
+      ],
+      "humanGates": [],
+      "verification": [
+        "direction scenario",
+        "collision/occlusion scenario",
+        "actual gameplay scale"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "production-log",
+      "type": "skill",
+      "sourcePath": ".claude/skills/production-log/SKILL.md",
+      "status": "active",
+      "portability": "studio-core-configurable",
+      "ownerAgents": [],
+      "humanGates": [
+        "ask before deploy"
+      ],
+      "verification": [
+        "claim matches shipped evidence"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "ship-approved-plan",
+      "type": "skill",
+      "sourcePath": ".claude/skills/ship-approved-plan/SKILL.md",
+      "status": "revise",
+      "portability": "studio-core",
+      "ownerAgents": [],
+      "humanGates": [
+        "explicit plan approval",
+        "ask before push/PR/deploy"
+      ],
+      "verification": [
+        "static checks",
+        "runtime/visual evidence when applicable",
+        "doc sync"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "ship-minigame",
+      "type": "skill",
+      "sourcePath": ".claude/skills/ship-minigame/SKILL.md",
+      "status": "revise",
+      "portability": "card-engine-project-pack-configurable",
+      "ownerAgents": [
+        "phaser-runtime-director",
+        "game-systems-designer"
+      ],
+      "humanGates": [
+        "approved minigame design",
+        "ask before push/PR"
+      ],
+      "verification": [
+        "all registrations",
+        "mobile/desktop scenario",
+        "build"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "sync-project-knowledge",
+      "type": "skill",
+      "sourcePath": ".claude/skills/sync-project-knowledge/SKILL.md",
+      "status": "revise",
+      "portability": "studio-core-configurable",
+      "ownerAgents": [],
+      "humanGates": [],
+      "verification": [
+        "current-code references",
+        "studio linter"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "trace-environment",
+      "type": "skill",
+      "sourcePath": ".claude/skills/trace-environment/SKILL.md",
+      "status": "active",
+      "portability": "2d-production-pack-configurable",
+      "ownerAgents": [
+        "environment-art-director",
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "human Figma tracing"
+      ],
+      "verification": [
+        "collision/occlusion runtime scenario"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "work-proposal",
+      "type": "skill",
+      "sourcePath": ".claude/skills/work-proposal/SKILL.md",
+      "status": "active",
+      "portability": "card-engine-project-pack",
+      "ownerAgents": [
+        "lore-fantasy-director"
+      ],
+      "humanGates": [
+        "Raheem console approval",
+        "ask before push/PR"
+      ],
+      "verification": [
+        "branch/PR parked",
+        "never ship automatically"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "studio-health",
+      "type": "skill",
+      "sourcePath": ".claude/skills/studio-health/SKILL.md",
+      "status": "proposed",
+      "portability": "studio-core",
+      "ownerAgents": [],
+      "humanGates": [],
+      "verification": [
+        "frontmatter",
+        "links",
+        "registry",
+        "permissions",
+        "line endings",
+        "stale references"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "build-phaser-feature",
+      "type": "skill",
+      "sourcePath": ".claude/skills/build-phaser-feature/SKILL.md",
+      "status": "proposed",
+      "portability": "phaser-pack",
+      "ownerAgents": [
+        "phaser-runtime-director"
+      ],
+      "humanGates": [
+        "approved plan when architecture changes"
+      ],
+      "verification": [
+        "named scenario",
+        "static checks",
+        "visual playtest"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    },
+    {
+      "name": "visual-playtest",
+      "type": "skill",
+      "sourcePath": ".claude/skills/visual-playtest/SKILL.md",
+      "status": "proposed",
+      "portability": "phaser-pack",
+      "ownerAgents": [],
+      "humanGates": [
+        "human review when subjective"
+      ],
+      "verification": [
+        "runtime snapshot",
+        "console",
+        "screenshot/video",
+        "PASS/FAIL/HUMAN REVIEW"
+      ],
+      "requiredContract": [
+        "TRIGGER",
+        "EXCLUSIONS",
+        "INPUTS",
+        "PREFLIGHT",
+        "WORKFLOW",
+        "APPROVAL GATES",
+        "VERIFICATION",
+        "OUTPUTS",
+        "HARVEST REVIEW"
+      ],
+      "modelInvocation": "enabled"
+    }
+  ],
+  "sharedPolicies": [
+    {
+      "id": "specialist-output",
+      "path": ".claude/studio/SPECIALIST_OUTPUT_CONTRACT.md"
+    },
+    {
+      "id": "skill-lifecycle",
+      "path": ".claude/studio/SKILL_LIFECYCLE_CONTRACT.md"
+    },
+    {
+      "id": "paid-operations",
+      "path": ".claude/studio/PAID_OPERATION_POLICY.md"
+    },
+    {
+      "id": "evidence-verdict",
+      "path": ".claude/studio/EVIDENCE_VERDICT_CONTRACT.md"
+    },
+    {
+      "id": "shipping",
+      "path": ".claude/studio/SHIPPING_CONTRACT.md"
+    }
+  ]
+}

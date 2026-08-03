@@ -5,6 +5,9 @@ description: Generate a single object or scenery prop — a horse at a stall, a 
 
 # Skill: create-prop
 
+
+> **Studio V2 contracts:** Before any paid call, follow [PAID_OPERATION_POLICY.md](../../studio/PAID_OPERATION_POLICY.md). Final acceptance uses [EVIDENCE_VERDICT_CONTRACT.md](../../studio/EVIDENCE_VERDICT_CONTRACT.md). Group expected provider calls into one approved batch with a stop limit; recovery, download, sheet, validation, and local finishing steps are not new paid approval events.
+
 A prop is the cheapest asset in the pipeline and the easiest to overspend on, because it
 looks trivial. The discipline is entirely about **attempt budgets** and **knowing when to
 ship static**.
@@ -106,6 +109,78 @@ If the prop must match a scene's palette or lighting, run `lib/palette_ref.py`,
 `lib/harmonize.py` or `lib/relight.py` rather than re-rolling.
 
 ---
+
+## Step 1b — Prefer objects with LOW DIRECTIONAL REQUIREMENT
+
+Raheem, after six generations lost to a card rack that would not sit against a wall:
+*"If we're having trouble with directions, maybe we should lean toward objects that have
+less requirement for a directional input. Like the bench — after you took the back off,
+the non-requirement direction makes it very useful. Maybe a really nice lamp in that
+corner, maybe a really nice chest. Something that doesn't need a specific direction."*
+
+This is the cheapest quality lever in the whole prop pipeline, and it is a DESIGN choice
+made before any generation is spent.
+
+**An object's directional requirement is how much its appearance depends on which way it
+faces.** It is not about symmetry for its own sake — it is about how many distinct
+generations the object will eventually cost.
+
+| Requirement | Examples | Cost |
+|---|---|---|
+| **None** — reads the same from any angle | barrel, chest, brazier, planter, lamp post, rug, crate, well, **backless bench** | One generation, placed anywhere, reused across every area |
+| **Low** — a clear top but no front | round table, fountain, cauldron, stack of crates | One generation, minor placement care |
+| **High** — mandatory front face | bookshelf, display rack, cabinet, stall, workbench, anything with a facade | One generation PER ORIENTATION, and each is a fight |
+
+**The bench is the worked example.** As a park bench with a backrest it has a mandatory
+front, and three separate prompt attempts failed to produce a convincing rear view against
+a very strong front-view prior. Deleting the backrest removed the requirement entirely:
+the backless version reads correctly from every direction, so it is one asset reused
+everywhere instead of a front variant and a back variant kept in sync. **Changing the
+object beat fighting the prior**, and the result was more useful than what was asked for.
+
+**When a high-requirement object is genuinely needed**, the lever is "perfectly symmetrical
+left to right" in the prompt — see Step 3. Never state an angle in degrees; text-to-image
+cannot parse it and will fall back on its own default three-quarter pose.
+
+**When it is not needed, substitute.** A corner that fought a bookshelf for six
+generations is better served by a chest or a lamp, which will land first try.
+
+## Step 4b — If you trimmed it, cap it. If you're guessing, let Raheem place it.
+
+Two rules that came out of the courtyard forge and now apply to every prop.
+
+**A trimmed asset needs end caps.** Trimming an approved generation is correct — free,
+and it protects a result from a re-roll that might lose its axis or palette. But a cut
+edge reads as a mistake rather than a boundary. `lib/cap_run.py` welds a cap onto both
+ends: ground-line aligned, overlapping rather than abutting, one asset mirrored for both
+sides, baked to a single PNG. The shared cap library lives in `configs/endcaps.json`.
+
+Two things that keep caps reusable: swatch the cap's forced palette **from the body it
+caps, not from the scene** (a plate-derived swatch made the first one olive-gold because
+the plate is mostly paving), and generate it tall — a cap shorter than the edge it covers
+has achieved nothing.
+
+**Raheem places finished art. You do not.** The moment a piece is finished, upload it into
+the plate frame in Figma as an `art-<id>` layer and stop. He drags it where it belongs and
+says so; read the node back and use that rect verbatim. Two rules learned the hard way:
+
+- **Never touch a node while he is positioning it.** Resizing `art-forge` mid-adjustment
+  once wiped work he had just done. Read-only until he says he is finished.
+- **A FIT fill letterboxes.** The node's frame is not the art rect — derive the visible
+  rect from the source aspect, or the sprite ships stretched. `art-forge`'s frame was
+  272x240 while the drawn art was 272x196.
+
+**Stop guessing arrangements. Put the pieces in Figma.** Position, scale and how pieces
+sit together are judgements, and Raheem makes them faster and more clearly than a
+description can. Upload the real sprites at native size to the composition bench, let him
+slot them, then bake with `lib/compose_from_figma.py`. His ground line is a per-column
+CUT PROFILE, not a level — it can sit high under one piece and dip under another, which
+is how depth gets expressed.
+
+The same principle upstream: `lib/placement_brief.py` derives an object's size and
+required facing from where its footprint mark sits, so the angle is read off a position
+rather than written from a description. That fix exists because the forge came back on
+the wrong axis twice.
 
 ## Step 5 — Review by watching
 

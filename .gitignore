@@ -74,6 +74,9 @@ vite.config.ts.timestamp-*
 !.claude/agents/
 !.claude/skills/
 !.claude/verify/
+!.claude/scripts/
+!.claude/studio/
+!.claude/settings.json
 !.claude/launch.json
 
 # yarn v3

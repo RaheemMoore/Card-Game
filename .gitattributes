@@ -1,0 +1,6 @@
+# Studio and executable scripts must remain portable across Windows/macOS/Linux.
+*.sh text eol=lf
+*.mjs text eol=lf
+.claude/**/*.md text eol=lf
+.claude/**/*.json text eol=lf
+.claude/**/*.py text eol=lf
