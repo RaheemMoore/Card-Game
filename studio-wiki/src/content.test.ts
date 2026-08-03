@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { archetypes, bossStates, navigation } from './content';
+import { archetypes, bossStates, elements, navigation } from './content';
 import { sectionsFromMarkdown } from './markdown';
 
 describe('Studio Wiki content contracts', () => {
@@ -9,6 +9,14 @@ describe('Studio Wiki content contracts', () => {
     expect(bossStates.map(({ id }) => id)).toEqual([
       'idle', 'windup', 'attack', 'ultimate', 'rage', 'hit', 'defeat',
     ]);
+  });
+
+  it('indexes the complete element language and the committed combat-art coverage', () => {
+    expect(elements).toHaveLength(29);
+    expect(new Set(elements.map(({ slug }) => slug)).size).toBe(29);
+    expect(elements.filter(({ artStatus }) => artStatus === 'candidate')).toHaveLength(27);
+    expect(elements.find(({ slug }) => slug === 'holy')?.artStatus).toBe('procedural');
+    expect(elements.find(({ slug }) => slug === 'time')?.artStatus).toBe('missing');
   });
 
   it('does not expose duplicate routes', () => {

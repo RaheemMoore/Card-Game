@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, ChevronDown, CircleHelp, Command, FileText, FlaskConical, Hammer, Image, Menu, Search, Shield, Sparkles, Swords, Users, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, CircleHelp, Command, FileText, FlaskConical, Hammer, Image, Menu, Search, Shield, Sparkles, Swords, Users, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, elements, navigation, searchEntries } from './content';
 import { MarkdownBody, sectionsFromMarkdown } from './markdown';
+import { ElementPerformancePlayer } from './ElementPerformancePlayer';
 import workshopArena from '../../docs/production/screenshots/workshop-arena.png';
 import workshopBoss from '../../docs/production/screenshots/workshop-boss.png';
 import workshopSprite from '../../docs/production/screenshots/workshop-sprite.png';
@@ -73,8 +74,36 @@ function Bosses() {
 }
 
 function Abilities() {
-  const [element, setElement] = useState<(typeof elements)[number]>('fire');
-  return <><PageHeader eyebrow="VISUAL WIKI" title="Abilities & Elements" intro="Element crystals are hero artwork: complete silhouettes, full glow fields, and no destructive cropping." status="SHIPPED"/><div className="ability-layout"><Panel className="crystal-hero"><img src={`/assets/elements/${element}.jpg`} alt={`${element} element crystal`}/><div><p className="eyebrow">SELECTED ELEMENT</p><h2>{element[0].toUpperCase()+element.slice(1)}</h2><p>Full-resolution inspection · FIT presentation</p></div></Panel><Panel title="Ability benchmarks"><div className="ability-cards"><article><img src="/assets/abilities/approved/ember-cleave/detail.jpg" alt="Ember Cleave ability art"/><strong>Ember Cleave</strong><small>Approved · Mana benchmark</small></article><article><img src="/assets/abilities/approved/aegis-ward/detail.jpg" alt="Aegis Ward ability art"/><strong>Aegis Ward</strong><small>Approved · Tech benchmark</small></article></div><p className="fine-print">Artwork never overwrites gameplay values. Combat, detail, and relic roles remain separate.</p></Panel></div><Panel title="Element library"><div className="crystal-grid">{elements.map((name) => <button className={element === name ? 'selected' : ''} onClick={() => setElement(name)} key={name}><img src={`/assets/elements/${name}.jpg`} alt=""/><span>{name}</span></button>)}</div></Panel></>;
+  const [selected, setSelected] = useState(0);
+  const element = elements[selected];
+  return <><PageHeader eyebrow="VISUAL WIKI · ELEMENT CODEX" title="Abilities & Elements" intro="Every element has two lives: the crystal establishes its identity, and the combat performance shows how that material charges, travels, and lands." status="IN FLIGHT"/>
+    <Panel title="Choose an element" action={<span className="element-count">29 canonical elements · 27 PixelLab combat kits</span>} className="element-browser">
+      <div className="crystal-grid" role="listbox" aria-label="Element library">
+        {elements.map((item, index) => <button className={selected === index ? 'selected' : ''} onClick={() => setSelected(index)} key={item.slug} role="option" aria-selected={selected === index} tabIndex={selected === index ? 0 : -1} onKeyDown={(event) => {
+          const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button');
+          if (!buttons) return;
+          let next = index;
+          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % elements.length;
+          else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + elements.length) % elements.length;
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = elements.length - 1;
+          else return;
+          event.preventDefault(); setSelected(next); buttons[next]?.focus();
+        }}>
+          <span className="element-thumb">{item.crystal ? <img src={item.crystal} alt=""/> : <Sparkles/>}</span><span>{item.name}</span>{selected === index && <Check className="element-check"/>}<small>{item.artStatus === 'candidate' ? 'PixelLab kit' : item.artStatus === 'procedural' ? 'Procedural' : 'Unmapped'}</small>
+        </button>)}
+      </div>
+    </Panel>
+    <div className="element-codex-layout">
+      <Panel className="crystal-identity">
+        <div className="identity-status"><p className="eyebrow">CRYSTAL IDENTITY</p><Status value={element.crystal ? 'APPROVED' : 'MISSING ASSET'}/></div>
+        {element.crystal ? <img src={element.crystal} alt={`${element.name} element crystal`}/> : <MissingMedia label="Time crystal"/>}
+        <div className="crystal-copy"><h2>{element.name}</h2><p>The crystal is the complete identity artwork. Combat expression adds motion and material behavior without replacing it.</p><div className="material-signature"><span>Charge<strong>{element.charge}</strong></span><span>Delivery<strong>{element.delivery}</strong></span><span>Impact<strong>{element.impact}</strong></span></div></div>
+      </Panel>
+      <ElementPerformancePlayer element={element}/>
+    </div>
+    <Panel title="Ability artwork benchmarks" action={<a className="tower-related" href="/assets">Browse the full asset catalog →</a>}><div className="ability-benchmark-row"><div className="ability-cards"><article><img src="/assets/abilities/approved/ember-cleave/detail.jpg" alt="Ember Cleave ability art"/><strong>Ember Cleave</strong><small>Approved · Mana benchmark</small></article><article><img src="/assets/abilities/approved/aegis-ward/detail.jpg" alt="Aegis Ward ability art"/><strong>Aegis Ward</strong><small>Approved · Tech benchmark</small></article></div><div><p className="eyebrow">THREE DIFFERENT ART JOBS</p><h3>Crystal, performance, and ability art stay distinct.</h3><p className="fine-print">The crystal defines the element. PixelLab performance art shows what the material does in battle. Ability illustrations identify an individual named power. None of these overwrite gameplay values.</p><RepoLink path="card-engine/src/data/combat/performance/assetKits.ts"/></div></div></Panel>
+  </>;
 }
 
 function World() { return <><PageHeader eyebrow="VISUAL WIKI" title="Game World" intro="The permanent world, its interactive layers, and the boundary between painted truth and runtime behavior." status="IN FLIGHT"/><Panel className="world-hero"><img src="/assets/castle/courtyard.png" alt="Card Engine castle courtyard"/><div className="world-caption"><span>COURTYARD · 1536 × 1152</span><strong>The post-login hub with four unopened doors.</strong></div></Panel><div className="four-col"><Panel title="Leonardo"><p>Ground, architecture, landmarks, and permanent environment plates.</p></Panel><Panel title="PixelLab"><p>Actors, reusable props, shopkeepers, and animated character sprites.</p></Panel><Panel title="Figma"><p>Projection, placement, anchors, colliders, occluders, and physical truth.</p></Panel><Panel title="Phaser"><p>Motion, reactions, audio, depth, atmosphere, camera, and scene state.</p></Panel></div><Panel title="Scene layers"><div className="fact-grid"><div><strong>Base plate</strong><span>Approved and integrated</span></div><div><strong>Occluders</strong><span>Fountain bands, stalls, props</span></div><div><strong>Colliders</strong><span>Feet-origin, traced geometry</span></div><div><strong>Stalls</strong><span>4 placeholders · deliberately unwired</span></div></div></Panel></>; }

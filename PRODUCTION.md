@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`; its Battle Tower page now explains the primary play loop while Bosses & Arenas remains the production inspector. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Element Codex now browses all 29 canonical elements and previews 27 committed PixelLab combat kits from `ability-performance-system` at `c39304f`. Deployment waits on a separate Vercel URL and access-mode approval. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -703,6 +703,24 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Element identity and battle expression are separate Wiki layers
+
+The Studio Wiki's Element Codex keeps each approved crystal as the dominant identity artwork,
+then presents a separate battle-expression theater for charge, delivery or manifestation, and
+impact. It covers all 29 canonical elements: 27 use the committed PixelLab combat-effect library
+from `ability-performance-system` at `c39304f`, Holy honestly uses the procedural ward renderer,
+and Time remains deliberately unmapped because no current archetype can reach it. The theater is
+keyboard-operable, responsive, playable on demand, and offers a motion-free three-beat tableau.
+
+Only the committed art library entered the Wiki. No combat code or uncommitted work from the
+Decision Experience worktree was copied, and every imported performance kit remains labeled
+`IN FLIGHT` candidate art until the separate gameplay-integration task lands and is reviewed.
+The full library remains discoverable through Art & Assets while representative playback lives
+on Abilities & Elements.
+
+*Why it matters:* Collaborators can now see what each element actually looks like in combat
+without mistaking candidate effects for shipped gameplay or replacing the crystal identity art.
 
 ### 2026-08-03 — Battle Tower is the primary playable mode in the Studio Wiki
 
