@@ -88,6 +88,18 @@
       "line": "It is exactly high noon with the sun straight overhead, so nothing casts any shadow in any direction and the light is perfectly even everywhere. Open courtyard ground fills the whole frame corner to corner, with nothing standing on it and nothing at its edges — no walls, no hedges, no trees, no boulders, no timber. Deep verdant sunlit turf with real blade texture and clover. Broad soft paths of warm honey-amber and ochre packed earth, worn by generations of feet, radiate from a bare circular patch of earth at the centre out to each edge. Beautiful, natural, hand-painted."
     },
     {
+      "id": "vast-grass-dirt",
+      "label": "V1 — Vast courtyard, grass and dirt (cut the middle)",
+      "family": "options",
+      "line": "An immense castle courtyard seen from far above. The open ground stretches unbroken right across the whole frame, and the surrounding wall is only a thin strip along the extreme outer edge, tiny against all that ground. The sun is nearly overhead, so what little shadow the wall casts hugs the base of the wall itself and never reaches out across the open ground, which is evenly lit everywhere. Deep verdant sunlit turf with real blade texture and clover, and broad soft paths of warm honey-amber and ochre packed earth worn across it. Beautiful, hand-painted."
+    },
+    {
+      "id": "vast-grass-dirt-stone",
+      "label": "V2 — Vast courtyard, grass, dirt and stone paths",
+      "family": "options",
+      "line": "An immense castle courtyard seen from far above. The open ground stretches unbroken right across the whole frame, and the surrounding wall is only a thin strip along the extreme outer edge, tiny against all that ground. The sun is nearly overhead, so what little shadow the wall casts hugs the base of the wall itself and never reaches out across the open ground, which is evenly lit everywhere. Deep verdant turf and warm ochre packed earth, crossed by wide paths of uneven warm honey-amber stone slabs, never grey, with grass between them. Beautiful, hand-painted."
+    },
+    {
       "id": "opt-grass-dirt-stone",
       "label": "B — Grass and dirt with stone paths",
       "family": "options",
