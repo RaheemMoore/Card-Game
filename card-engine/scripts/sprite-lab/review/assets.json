@@ -186,6 +186,50 @@
       "faces": "same run as lectern-LEFT",
       "verdict": "approved",
       "note": "Face of an approved object."
+    },
+    {
+      "id": "rug-tower",
+      "file": "src/assets/dev-preview/rugs/laid/rug-tower.png",
+      "wall": "floor",
+      "source": "courtyard-rugs.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 a rug has no front",
+      "verdict": "pending",
+      "note": "TOWER quadrant. Midnight blue, gold summit star, climbing-stair border. Shown laid into the ground plane by lib/lay_flat.py."
+    },
+    {
+      "id": "rug-forge",
+      "file": "src/assets/dev-preview/rugs/laid/rug-forge.png",
+      "wall": "floor",
+      "source": "courtyard-rugs.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 a rug has no front",
+      "verdict": "pending",
+      "note": "FORGE quadrant. Ember red and charcoal, anvil-and-flame roundel, scorched edges."
+    },
+    {
+      "id": "rug-collection",
+      "file": "src/assets/dev-preview/rugs/laid/rug-collection.png",
+      "wall": "floor",
+      "source": "courtyard-rugs.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 a rug has no front",
+      "verdict": "pending",
+      "note": "COLLECTION quadrant. Teal and parchment, card-back lattice border, star field."
+    },
+    {
+      "id": "rug-training",
+      "file": "src/assets/dev-preview/rugs/laid/rug-training.png",
+      "wall": "floor",
+      "source": "courtyard-rugs.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 a rug has no front",
+      "verdict": "pending",
+      "note": "TRAINING quadrant. Round rust-and-sand sparring ring, worn pale through the middle."
     }
   ]
 }
