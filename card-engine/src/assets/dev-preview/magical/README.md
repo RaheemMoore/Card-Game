@@ -38,3 +38,43 @@ in the castle. Per the standing rule (Raheem, 2026-08-04), an item is judged
 first and only then does it earn its animation and its other seven faces.
 
 Rebuild the harness: `python3 scripts/sprite-lab/lib/review_sheet.py build`
+
+---
+
+## Verdicts (Raheem, 2026-08-04) — all four approved
+
+| Piece | Verdict | Angles |
+|---|---|---|
+| `card-stand` | ✅ approved | **8 faces generated** (40 gens) — "I want that magical card stand from every angle" |
+| `rune-lectern` | ✅ approved — "one of my favourites", bound for the **Collection area** | **8 faces generated** (40 gens) |
+| `element-crystal` | ✅ approved as-is | **One face only, deliberately** |
+| `mana-font` | ✅ approved as-is | **One face only, deliberately** |
+
+### Why two of them will never need other angles
+
+**The camera in this game never moves.** So the only reason to buy eight faces is to *turn* an
+object against a diagonal wall. Turning a **radially symmetric** object shows nothing: the
+crystal is a prism inside a spherical aura on a round cracked base, and the font is a circular
+tiered basin. Both read identically from any bearing.
+
+**50 generations deliberately not spent.** Apply this test to every object before approving a
+rotation pass: *does this thing have a front?* If not, one face is the whole asset. If variation
+is ever wanted, mirror it horizontally — that is free.
+
+### Object IDs — the handles for animation
+
+`POST /objects/{object_id}/animations`, `mode='v3'`:
+
+| Object | `object_id` |
+|---|---|
+| card-stand (8 faces) | `febdfbd3-b24a-4865-ab68-54bea2f43784` |
+| rune-lectern (8 faces) | `c89da42e-832f-420d-ae54-4eac718f338e` |
+| the 4-concept draft (crystal + font live in here) | `816b96eb-2f1f-4862-a240-582776789d6b` |
+
+⚠️ For the 8-direction objects, **pass `directions` explicitly** (`south`, `south-east`,
+`south-west` are the only faces the game uses). Omitting it animates all eight, which is how you
+accidentally buy five animations nobody will see.
+
+The crystal and font came from a single 4-item call and share one review object, so they likely
+need `POST /objects/{id}/select-frames` to be promoted into their own objects before they can be
+animated individually.
