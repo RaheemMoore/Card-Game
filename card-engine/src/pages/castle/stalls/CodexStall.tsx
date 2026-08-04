@@ -6,6 +6,9 @@ import type { ArchetypeName } from '../../../types/card';
 import { ELEMENT_IMAGES } from '../../../data/elementImages';
 import { ARCHETYPE_EMBLEMS } from '../../../data/archetypeEmblems';
 import { ARCHETYPE_BIBLE } from '../../../data/archetypeBible';
+import { SEED_ABILITIES } from '../../../data/abilities/seedAbilities';
+import { ABILITY_FAMILIES } from '../../../data/abilities/families';
+import { APPROVED_ABILITY_ART } from '../../../data/abilities/visualManifest';
 import { PixelButton } from '../../../components/ui/PixelButton';
 import { Slot } from '../../../components/ui/Slot';
 import { StallShell } from '../../../components/ui/StallShell';
@@ -34,18 +37,49 @@ import { StallShell } from '../../../components/ui/StallShell';
  * Forge: this stands beside it until Raheem decides which one wins.
  */
 
-type Page = 'elements' | 'archetypes';
+type Page = 'elements' | 'archetypes' | 'abilities';
 
 const PAGES: { id: Page; label: string }[] = [
   { id: 'elements', label: 'Elements' },
   { id: 'archetypes', label: 'Archetypes' },
+  { id: 'abilities', label: 'Abilities' },
 ];
+
+/**
+ * Family tints for the placeholder tiles.
+ *
+ * Only two abilities have approved art (Thornmantle and Bearing Witness — the
+ * rest of the old roster's paintings were retired with it). Raheem asked for the
+ * page anyway: "I know the current abilities don't have great art, but you can
+ * put the temporary placeholder there so you could just see how the pages are
+ * gonna look."
+ *
+ * So a missing tile is a FAMILY-COLOURED plate with the ability's initial, not a
+ * grey box — the page has to show whether the layout works when the art lands,
+ * and a wall of identical grey proves nothing about that.
+ */
+const FAMILY_TINT: Record<string, [string, string]> = {
+  martial: ['#7a2f2f', '#3a1414'],
+  defense: ['#2f5a7a', '#132a3a'],
+  elemental: ['#7a5a1f', '#3a2a0c'],
+  arcane: ['#5a2f7a', '#2a133a'],
+  support: ['#2f7a5a', '#133a2a'],
+  shadow: ['#3a3550', '#171426'],
+};
+
+function familyTint(familyId: string | undefined): string {
+  const [a, b] = FAMILY_TINT[familyId ?? ''] ?? ['#4a4038', '#241d18'];
+  return `linear-gradient(155deg, ${a} 0%, ${b} 100%)`;
+}
 
 interface Entry {
   id: string;
   name: string;
   image?: string;
   blurb?: string;
+  /** Set when there is no artwork — drives the tinted placeholder plate. */
+  tint?: string;
+  meta?: string;
 }
 
 export function CodexStall({ onClose }: { onClose: () => void }) {
@@ -69,6 +103,24 @@ export function CodexStall({ onClose }: { onClose: () => void }) {
         name: n,
         image: ELEMENT_IMAGES[n as ElementName],
       }));
+    }
+    if (page === 'abilities') {
+      // SEED_ABILITIES entries are {definition, version}, not flat abilities.
+      return SEED_ABILITIES.map(({ definition: a }) => {
+        const familyId = a.familyIds?.[0];
+        const family = ABILITY_FAMILIES.find((f) => f.id === familyId);
+        // `relic` is the squarest of the three approved crops, so it is the one
+        // that fits a square tile without cropping the subject out of frame.
+        const art = APPROVED_ABILITY_ART[a.slug]?.relic?.url;
+        return {
+          id: a.slug,
+          name: a.displayName,
+          image: art,
+          tint: art ? undefined : familyTint(familyId),
+          blurb: a.descriptionShort,
+          meta: [family?.name, a.rarity].filter(Boolean).join(' · '),
+        };
+      });
     }
     return ARCHETYPE_NAMES.map((n) => {
       const chapter = ARCHETYPE_BIBLE[n as ArchetypeName];
@@ -154,8 +206,10 @@ export function CodexStall({ onClose }: { onClose: () => void }) {
                     placeItems: 'center',
                     width: '100%',
                     height: '100%',
+                    background: e.tint,
                     color: '#e8dcc4',
-                    fontSize: 16,
+                    fontSize: 18,
+                    textShadow: '0 1px 3px rgba(0,0,0,0.7)',
                   }}
                 >
                   {e.name[0]}
@@ -167,7 +221,7 @@ export function CodexStall({ onClose }: { onClose: () => void }) {
 
         {selected && (
           <aside style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
-            {selected.image && (
+            {selected.image ? (
               <img
                 src={selected.image}
                 alt={selected.name}
@@ -179,6 +233,23 @@ export function CodexStall({ onClose }: { onClose: () => void }) {
                   border: '2px solid rgba(201,162,39,0.5)',
                 }}
               />
+            ) : (
+              <div
+                aria-hidden
+                style={{
+                  width: '100%',
+                  aspectRatio: '1 / 1',
+                  background: selected.tint,
+                  border: '2px solid rgba(201,162,39,0.5)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: '#e8dcc4',
+                  fontSize: 52,
+                  textShadow: '0 2px 6px rgba(0,0,0,0.7)',
+                }}
+              >
+                {selected.name[0]}
+              </div>
             )}
             <h3
               className="font-fantasy"
@@ -186,6 +257,19 @@ export function CodexStall({ onClose }: { onClose: () => void }) {
             >
               {selected.name}
             </h3>
+            {selected.meta && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 11,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: '#a08c6e',
+                }}
+              >
+                {selected.meta}
+              </p>
+            )}
             {selected.blurb && (
               <p style={{ margin: 0, fontSize: 13, color: '#cbb9a0', lineHeight: 1.6 }}>
                 {selected.blurb}

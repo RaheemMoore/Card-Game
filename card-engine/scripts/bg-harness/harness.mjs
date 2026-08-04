@@ -154,7 +154,10 @@ async function cmdGen(arch, only) {
     m.styleRefUploadId = await uploadInitImage(abs);
     saveMan(arch, m);
   }
-  for (const [fam, a] of Object.entries(c.anchors)) {
+  // A config whose states are each an independent direction has no anchor to
+  // share (and with styleRef:false nothing would read one anyway), so "anchors"
+  // is optional rather than required.
+  for (const [fam, a] of Object.entries(c.anchors || {})) {
     if (m.anchors[fam]?.imageId) continue;
     console.log(`> anchor ${fam}…`);
     const res = await generate(promptFor(c, a.line), {
