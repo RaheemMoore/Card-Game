@@ -98,6 +98,50 @@
       "faces": "same run as weapon-rack-LEFT",
       "verdict": "approved",
       "note": "KEEP - right-wall face of the approved rack."
+    },
+    {
+      "id": "magic-card-stand",
+      "file": "src/assets/dev-preview/magical/card-stand.png",
+      "wall": "back",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "DRAFT 1. Cards drawn already lifting off the stand so they can be animated - PixelLab can move the cards themselves, Phaser adds the sparkle."
+    },
+    {
+      "id": "magic-element-crystal",
+      "file": "src/assets/dev-preview/magical/element-crystal.png",
+      "wall": "floor",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "DRAFT 1. Anchored to the game's own element-crystal art: prism hovering over a cracked base with shards suspended around it."
+    },
+    {
+      "id": "magic-mana-font",
+      "file": "src/assets/dev-preview/magical/mana-font.png",
+      "wall": "floor",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "DRAFT 1. Glowing basin with motes rising."
+    },
+    {
+      "id": "magic-rune-lectern",
+      "file": "src/assets/dev-preview/magical/rune-lectern.png",
+      "wall": "back",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "DRAFT 1. Pages drawn torn free and flying - the 'papers floating off a stand' brief."
     }
   ]
 }

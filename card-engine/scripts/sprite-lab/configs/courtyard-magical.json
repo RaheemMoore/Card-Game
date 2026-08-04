@@ -1,0 +1,35 @@
+{
+  "subject": "courtyard-magical",
+  "label": "Courtyard V2 — whimsical magical draw-me-over pieces (DRAFT 1)",
+
+  "notes": [
+    "WHY THIS EXISTS: the tower batch was briefed as a BARRACKS — portcullis, weapon rack, muster board, trophy rack. Raheem's verdict: 'pretty cool, but very, very boring', and the deeper note is that it was off-brief. This is a magical fantasy CARD game. We forge cards, not weapons.",
+    "THE GOAL IS ATTRACTION, NOT DECORATION (Raheem, 2026-08-04): 'I want people to look at each quadrant and want to go over there and explore... things that catch their attention, sparkle, things that wave in the air. There should be dust, movement, maybe some papers floating off of a stand somewhere to imply that's magical.'",
+    "DRAW THE MOVING PARTS ALREADY AIRBORNE. Every piece here is drawn with its floating parts LIFTED AND SEPARATED IN MID-AIR — cards off the stand, shards off the crystal, pages off the book. This serves both halves of the motion plan: PixelLab can animate the object itself via POST /objects/{object_id}/animations (mode='v3'), and Phaser layers the world's motion — sparkle, dust, bloom, reacting to the hero approaching — on top for free, the way src/pages/castle/v2-preview/crystalVfx.ts already does for the counter gems. A piece drawn as one closed solid lump animates badly in either system.",
+    "CORRECTION 2026-08-04: an earlier version of this note claimed PixelLab objects cannot be animated. They can. See PIXELLAB_PLAYBOOK.md §'What PixelLab can actually do'.",
+    "VISUAL ANCHOR IS THE GAME'S OWN ELEMENT CRYSTAL ART (public/assets/elements/*.jpg): a tall hexagonal prism, hovering above a cracked base, shards suspended around it, a soft halo, element colour bleeding into the air. That is this game's established language for 'magical' and it is the best-looking art we have. Match it, do not invent a new one.",
+    "Palette continuity with the shipped forge counter and bench: honey-amber wood, weathered pale stone, dark iron and teal-green fittings — with the MAGIC carried in rose, azure and verdant light, the same three colours as the counter's gems.",
+    "Style anchor is the hero crop per the standing ruling. Four items in one call, which is the cheapest way to explore a new direction: drafting 1 concept and drafting 4 both cost 25 generations.",
+    "ONE AT A TIME APPLIES TO THE EXPENSIVE STEP. This is a cheap exploratory draft; no 8-face pass happens on anything until Raheem approves that specific item.",
+    "No figures, so modesty rule M5.7 is not engaged. No real-world heraldry on any card face."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "objects": [
+    {
+      "id": "magic-draft-1",
+      "note": "DRAFT 1 — four different answers to 'why would I walk over there'. Each one has something already airborne so Phaser can move it.",
+      "params": {
+        "description": "whimsical magical fantasy castle courtyard objects seen from directly above, honey-amber wood, pale weathered stone, dark iron and teal-green fittings, glowing rose pink azure blue and green magic light, floating pieces suspended in mid-air, sparkles and drifting motes, black pixel outline, basic shading: 1). card forging stand with glowing cards rising off it 2). floating element crystal over a cracked stone base 3). glowing mana font basin 4). enchanted lectern with pages flying up",
+        "view": "top-down",
+        "item_descriptions": [
+          "wooden card-forging stand of honey-amber timber with teal-green metal fittings, three ornate fantasy playing cards LIFTING OFF IT AND FANNING UPWARD, floating free in the air above the stand, each card glowing rose pink and azure blue with sparkles trailing beneath them",
+          "tall glowing hexagonal crystal prism HOVERING IN MID-AIR above a cracked pale stone base, several smaller crystal shards suspended and orbiting around it, soft rose and azure halo of light, small motes drifting upward, no cable or support touching the crystal",
+          "round pale stone font basin filled with glowing turquoise liquid light, ring of small teal crystal shards growing from its rim, bright motes of light rising out of the water and drifting up into the air",
+          "honey-amber wooden reading lectern with an open spellbook on it, loose glowing pages TORN FREE AND FLYING UPWARD around it, pages suspended in mid-air, golden sparkles, faint green rune glow rising off the open book"
+        ]
+      }
+    }
+  ]
+}
