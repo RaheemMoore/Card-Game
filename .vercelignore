@@ -1,46 +1,36 @@
-# Local dependency/build trees are recreated by Vercel and must never upload.
+# This file is shared by EVERY Vercel project connected to this repo — Vercel
+# applies the repo-root .vercelignore to a project's clone even when that
+# project's Root Directory is a subfolder (there is no card-engine/.vercelignore
+# to override it). A line here that assumes "the Wiki only" is scoped wrong and
+# will strip files another project's build needs.
+#
+# Case in point: this file used to exclude card-engine/public/assets/castle/
+# occluders/ on the theory that only the Wiki reads it for size. The game's own
+# TypeScript imports occluders.json and colliders.json as modules at compile
+# time, so that line broke the game's production build for four deploys in a
+# row while looking like a Wiki-only change. See PRODUCTION.md decision log,
+# 2026-08-04.
+#
+# The Studio Wiki no longer needs help here at all: its own build controls
+# what it ships via studio-wiki/asset-manifest.ts, which trims the OUTPUT to
+# what it displays regardless of what exists in the source clone. So this file
+# only lists things that are safe to exclude from every project, always.
+
+# Local dependency/build trees are recreated by every project and must never upload.
 **/node_modules/
 **/dist/
 **/.vite/
 **/*.tsbuildinfo
-
-# Session-local AI studio state and historical worktrees are not Wiki inputs.
-.claude/
-.agents/
-.codex/
-
-# The Wiki consumes card-engine/src and card-engine/public only.
-card-engine/api/
-card-engine/scripts/
-card-engine/supabase/
-card-engine/scratch-assets/
-card-engine/.claude/
-
-# Public assets are an explicit web-sized subset. The Wiki reuses these
-# canonical files directly; unused game plates and runtime layers stay home.
-card-engine/public/assets/backgrounds/
-card-engine/public/assets/badges/
-card-engine/public/assets/economy/
-card-engine/public/assets/icons/
-card-engine/public/assets/castle/layers/
-card-engine/public/assets/castle/occluders/
-card-engine/public/assets/castle/hero/
-card-engine/public/assets/castle/pixel-sample/
-card-engine/public/assets/castle/keepers/
-card-engine/public/assets/combat/bosses/emberborn-wraith/
-card-engine/public/assets/combat/arenas/forbidden-mountain-passage/
-card-engine/public/assets/combat/shelf/
-card-engine/public/assets/combat/projectiles/
-
-# Non-web production sources are documented by path but not deployed.
-Card Images/
-Classes and Boss Battles/
-Combat_Fullscreen_Correction_Handoff/
-docs/archive/
 
 # Local-only deployment and scratch state.
 .vercel/
 .env*
 ai-snapshot-output/
 scratchpad/
-CARD_ENGINE_STUDIO_V2_PROMPTS.md
+
+# Non-web production sources — reference material, not a deploy input for
+# any project.
+Card Images/
+Classes and Boss Battles/
+Combat_Fullscreen_Correction_Handoff/
+docs/archive/
