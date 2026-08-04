@@ -1,0 +1,280 @@
+#!/usr/bin/env python3
+"""
+The asset review harness.
+
+One self-contained HTML page showing every generated courtyard asset **in
+context on the plate at true game scale**, with its provenance, its cost, and
+its verdict. Built because judging a sprite on a checkerboard is how you approve
+something that turns out to be the wrong scale, the wrong angle, or invisible
+against the paving.
+
+Standing workflow (Raheem, 2026-08-04): **one item at a time.** An item is
+drafted, reviewed here, and only once it is APPROVED do we spend the 25
+generations to shoot its other seven faces. Nothing goes into the castle on my
+say-so.
+
+The page is self-contained (images inlined as base64), so it opens from disk
+with no server and survives being copied anywhere.
+
+Usage:
+  review_sheet.py build                       rebuild the page from assets.json
+  review_sheet.py add <id> <png> [options]    register a newly generated asset
+  review_sheet.py decide <id> <verdict> [why] record a verdict
+  review_sheet.py list                        print the register
+
+Verdicts: pending | approved | rejected
+"""
+import base64
+import io
+import json
+import os
+import sys
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+LAB = os.path.dirname(HERE)
+CARD_ENGINE = os.path.dirname(os.path.dirname(LAB))
+REVIEW = os.path.join(LAB, "review")
+REGISTER = os.path.join(REVIEW, "assets.json")
+PLATE = os.path.join(
+    CARD_ENGINE, "src", "assets", "dev-preview", "courtyard-v2-figma.png"
+)
+OUT = os.path.join(REVIEW, "review-sheet.html")
+
+# Measured off the plate. The side walls splay outward toward the viewer, so an
+# object standing against one is NOT square to the camera. These anchors are
+# where a candidate is dropped for its context shot.
+WALLS = {
+    "back":  {"label": "back wall (north)",  "x": 640,  "y": 470, "face": "south",      "lean": 0},
+    "left":  {"label": "left wall (west)",   "x": 360,  "y": 640, "face": "south-east", "lean": 13},
+    "right": {"label": "right wall (east)",  "x": 1210, "y": 640, "face": "south-west", "lean": -12},
+    "floor": {"label": "open floor",          "x": 700,  "y": 760, "face": "south",      "lean": 0},
+}
+
+VERDICTS = ("pending", "approved", "rejected")
+
+
+def load():
+    if not os.path.exists(REGISTER):
+        return {"assets": []}
+    with open(REGISTER) as f:
+        return json.load(f)
+
+
+def save(reg):
+    os.makedirs(REVIEW, exist_ok=True)
+    with open(REGISTER, "w") as f:
+        json.dump(reg, f, indent=2)
+
+
+def b64(img):
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def resolve(p):
+    return p if os.path.isabs(p) else os.path.join(CARD_ENGINE, p)
+
+
+def context_shot(sprite, wall):
+    """Composite the sprite onto the real plate, standing on its feet, and crop
+    a window around it. Feet-anchored because that is how the game places it —
+    a centre-anchored preview lies about how tall a thing reads."""
+    plate = Image.open(PLATE).convert("RGBA")
+    w = WALLS.get(wall, WALLS["floor"])
+    x, y = w["x"], w["y"]
+    scene = plate.copy()
+    scene.alpha_composite(sprite, (int(x - sprite.width / 2), int(y - sprite.height)))
+    pad_x, pad_top, pad_bottom = 210, 190, 120
+    box = (
+        max(0, int(x - sprite.width / 2) - pad_x),
+        max(0, int(y - sprite.height) - pad_top),
+        min(plate.width, int(x + sprite.width / 2) + pad_x),
+        min(plate.height, y + pad_bottom),
+    )
+    return scene.crop(box)
+
+
+def swatch(sprite, scale=3):
+    """The sprite alone on courtyard paving tone, magnified with hard pixels."""
+    pad = 10
+    bg = Image.new(
+        "RGBA", (sprite.width + pad * 2, sprite.height + pad * 2), (228, 196, 132, 255)
+    )
+    bg.alpha_composite(sprite, (pad, pad))
+    return bg.resize((bg.width * scale, bg.height * scale), Image.NEAREST)
+
+
+def build():
+    reg = load()
+    assets = reg.get("assets", [])
+    if not assets:
+        print("No assets registered yet. Use: review_sheet.py add <id> <png>")
+        return
+
+    order = {"pending": 0, "rejected": 2, "approved": 1}
+    assets = sorted(assets, key=lambda a: (order.get(a.get("verdict", "pending"), 9), a["id"]))
+
+    total_gens = sum(a.get("generations", 0) or 0 for a in assets)
+    counts = {v: sum(1 for a in assets if a.get("verdict", "pending") == v) for v in VERDICTS}
+
+    cards = []
+    for a in assets:
+        p = resolve(a["file"])
+        if not os.path.exists(p):
+            cards.append(
+                f'<article class="card missing"><h3>{a["id"]}</h3>'
+                f'<p class="warn">FILE MISSING: {a["file"]}</p></article>'
+            )
+            continue
+        sprite = Image.open(p).convert("RGBA")
+        wall = a.get("wall", "floor")
+        wl = WALLS.get(wall, WALLS["floor"])
+        verdict = a.get("verdict", "pending")
+        note = a.get("note", "")
+        gens = a.get("generations")
+        scale = 3 if max(sprite.size) < 130 else 2
+
+        cards.append(f"""
+<article class="card {verdict}">
+  <header>
+    <h3>{a['id']}</h3>
+    <span class="badge {verdict}">{verdict.upper()}</span>
+  </header>
+  <div class="shots">
+    <figure><img src="data:image/png;base64,{b64(context_shot(sprite, wall))}"/>
+      <figcaption>IN CONTEXT &middot; {wl['label']} &middot; true game scale, standing on its feet</figcaption></figure>
+    <figure><img class="pix" src="data:image/png;base64,{b64(swatch(sprite, scale))}"/>
+      <figcaption>the asset alone &middot; {sprite.width}&times;{sprite.height}px &middot; {scale}&times;</figcaption></figure>
+  </div>
+  <dl>
+    <dt>source</dt><dd>{a.get('source','—')}</dd>
+    <dt>endpoint</dt><dd>{a.get('endpoint','—')}</dd>
+    <dt>cost</dt><dd>{'—' if gens is None else str(gens) + ' generations'}</dd>
+    <dt>faces</dt><dd>{a.get('faces','1 (front only — needs an 8-face pass if approved)')}</dd>
+    <dt>file</dt><dd><code>{a['file']}</code></dd>
+  </dl>
+  {f'<p class="note">{note}</p>' if note else ''}
+  <p class="cmd">approve: <code>review_sheet.py decide {a['id']} approved</code>
+     &middot; reject: <code>review_sheet.py decide {a['id']} rejected "why"</code></p>
+</article>""")
+
+    html = f"""<!doctype html><meta charset="utf-8">
+<title>Courtyard asset review</title>
+<style>
+ :root {{ color-scheme: dark }}
+ body {{ background:#14121a; color:#efe9dd; font:14px/1.5 ui-sans-serif,system-ui,sans-serif;
+        margin:0; padding:32px 28px 80px }}
+ h1 {{ font-size:26px; margin:0 0 4px }}
+ .lede {{ color:#9a94a8; max-width:74ch; margin:0 0 6px }}
+ .tally {{ color:#9a94a8; margin:0 0 28px; font-size:13px }}
+ .tally b {{ color:#efe9dd }}
+ .card {{ background:#1d1b26; border:1px solid #2e2b3a; border-radius:12px;
+          padding:18px; margin:0 0 22px; max-width:1180px }}
+ .card.pending {{ border-color:#c9a227 }}
+ .card.approved {{ border-color:#3f8f5a }}
+ .card.rejected {{ opacity:.55 }}
+ .card header {{ display:flex; align-items:center; gap:12px; margin-bottom:14px }}
+ h3 {{ margin:0; font-size:17px }}
+ .badge {{ font-size:11px; letter-spacing:.12em; padding:3px 9px; border-radius:99px;
+           background:#2e2b3a; color:#b9b2c8 }}
+ .badge.pending {{ background:#c9a227; color:#231c00 }}
+ .badge.approved {{ background:#3f8f5a; color:#03170b }}
+ .shots {{ display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end }}
+ figure {{ margin:0 }}
+ figure img {{ max-width:100%; border-radius:8px; display:block }}
+ img.pix {{ image-rendering:pixelated }}
+ figcaption {{ color:#8d879b; font-size:11px; margin-top:6px }}
+ dl {{ display:grid; grid-template-columns:max-content 1fr; gap:2px 14px;
+       margin:16px 0 0; font-size:12.5px }}
+ dt {{ color:#8d879b }}
+ dd {{ margin:0 }}
+ code {{ background:#26232f; padding:1px 5px; border-radius:4px; font-size:12px }}
+ .note {{ background:#26232f; border-left:3px solid #c9a227; padding:9px 12px;
+          margin:14px 0 0; border-radius:0 6px 6px 0 }}
+ .cmd {{ color:#8d879b; font-size:11.5px; margin:12px 0 0 }}
+ .warn {{ color:#ff8080 }}
+</style>
+<h1>Courtyard asset review</h1>
+<p class="lede">Every generated asset, on the real plate, at true game scale, standing on its
+feet. Nothing here is in the castle. <b>One item at a time:</b> an item is drafted, judged
+here, and only once it is approved do we spend the 25 generations to shoot its other seven
+faces.</p>
+<p class="tally"><b>{counts['pending']}</b> awaiting your call &middot;
+ <b>{counts['approved']}</b> approved &middot; <b>{counts['rejected']}</b> rejected &middot;
+ <b>{total_gens}</b> generations spent so far</p>
+{''.join(cards)}
+"""
+    os.makedirs(REVIEW, exist_ok=True)
+    with open(OUT, "w") as f:
+        f.write(html)
+    print(OUT)
+    print(
+        f"  {counts['pending']} pending · {counts['approved']} approved · "
+        f"{counts['rejected']} rejected · {total_gens} generations"
+    )
+
+
+def add(argv):
+    aid, png = argv[0], argv[1]
+    opts = {}
+    for kv in argv[2:]:
+        if "=" in kv:
+            k, v = kv.split("=", 1)
+            opts[k] = v
+    reg = load()
+    rel = os.path.relpath(resolve(png), CARD_ENGINE)
+    entry = {
+        "id": aid,
+        "file": rel,
+        "wall": opts.get("wall", "floor"),
+        "source": opts.get("source", ""),
+        "endpoint": opts.get("endpoint", ""),
+        "generations": int(opts["generations"]) if "generations" in opts else None,
+        "faces": opts.get("faces", "1 (front only — needs an 8-face pass if approved)"),
+        "verdict": "pending",
+        "note": opts.get("note", ""),
+    }
+    reg["assets"] = [a for a in reg.get("assets", []) if a["id"] != aid] + [entry]
+    save(reg)
+    print(f"registered {aid} ({rel}) against the {entry['wall']} wall — pending")
+
+
+def decide(argv):
+    aid, verdict = argv[0], argv[1]
+    if verdict not in VERDICTS:
+        sys.exit(f"verdict must be one of {', '.join(VERDICTS)}")
+    why = argv[2] if len(argv) > 2 else ""
+    reg = load()
+    for a in reg.get("assets", []):
+        if a["id"] == aid:
+            a["verdict"] = verdict
+            if why:
+                a["note"] = why
+            save(reg)
+            print(f"{aid} -> {verdict}" + (f" ({why})" if why else ""))
+            return
+    sys.exit(f"no asset registered as {aid}")
+
+
+def show():
+    for a in load().get("assets", []):
+        print(
+            f"{a.get('verdict','pending'):9} {a['id']:34} {a.get('wall','floor'):6} "
+            f"{a.get('generations') if a.get('generations') is not None else '—'}"
+        )
+
+
+if __name__ == "__main__":
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "build"
+    if cmd == "build":
+        build()
+    elif cmd == "add":
+        add(sys.argv[2:])
+    elif cmd == "decide":
+        decide(sys.argv[2:])
+    elif cmd == "list":
+        show()
+    else:
+        sys.exit(__doc__)

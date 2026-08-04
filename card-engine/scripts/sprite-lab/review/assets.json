@@ -1,0 +1,103 @@
+{
+  "assets": [
+    {
+      "id": "tower-portcullis",
+      "file": "src/assets/dev-preview/tower/portcullis.png",
+      "wall": "back",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
+      "verdict": "pending",
+      "note": "Wall anchor for the tower quadrant. Palette and outline weight match the shipped forge counter well."
+    },
+    {
+      "id": "tower-muster-board",
+      "file": "src/assets/dev-preview/tower/muster-board.png",
+      "wall": "back",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
+      "verdict": "pending",
+      "note": ""
+    },
+    {
+      "id": "tower-trophy-rack",
+      "file": "src/assets/dev-preview/tower/trophy-rack.png",
+      "wall": "back",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
+      "verdict": "pending",
+      "note": ""
+    },
+    {
+      "id": "tower-weapon-rack",
+      "file": "src/assets/dev-preview/tower/weapon-rack.png",
+      "wall": "back",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "8 shot - see weapon-rack-LEFT/RIGHT",
+      "verdict": "pending",
+      "note": ""
+    },
+    {
+      "id": "tower-watch-brazier",
+      "file": "src/assets/dev-preview/tower/watch-brazier.png",
+      "wall": "floor",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
+      "verdict": "pending",
+      "note": "Reads flatter than the counter's three-quarter view."
+    },
+    {
+      "id": "tower-tally-pillar",
+      "file": "src/assets/dev-preview/tower/tally-pillar.png",
+      "wall": "floor",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
+      "verdict": "pending",
+      "note": "Came back ISOMETRIC - you can see its top face - while every other object is elevation or three-quarter. It is a floor object, so its projection is the one that has to agree with the counter."
+    },
+    {
+      "id": "tower-stone-winch",
+      "file": "src/assets/dev-preview/tower/stone-winch.png",
+      "wall": "back",
+      "source": "tower-quadrant.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
+      "verdict": "pending",
+      "note": "Never briefed. The API returned it to fill a slot in a call that requested only 2 items."
+    },
+    {
+      "id": "weapon-rack-LEFT",
+      "file": "src/assets/dev-preview/tower/rotations/weapon-rack-south-east.png",
+      "wall": "left",
+      "source": "courtyard-side-walls.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 25,
+      "faces": "one of 8 from a single 25-gen run",
+      "verdict": "pending",
+      "note": "Proof an approved item can be re-shot from other angles. Regression: the teal-green fittings came back brown."
+    },
+    {
+      "id": "weapon-rack-RIGHT",
+      "file": "src/assets/dev-preview/tower/rotations/weapon-rack-south-west.png",
+      "wall": "right",
+      "source": "courtyard-side-walls.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 0,
+      "faces": "same run as weapon-rack-LEFT",
+      "verdict": "pending",
+      "note": "Mirror-side face from the same run - one run serves both walls."
+    }
+  ]
+}

@@ -37,6 +37,20 @@ node scripts/bg-harness/harness.mjs sheet <config>           # HTML review galle
 
 Re-running `gen` is cheap — it skips anything already in the manifest and only fills gaps.
 
+> ⚠️ **Audit, 2026-08-04 — most of the table below is not in the repository.** Only
+> `finish_arena.py`, `pixelize.py`, `cutout.py`, `nobg.sh`, `process_plume.py`, `leo.sh` and
+> `trace_guide.py` actually exist in `bg-harness/lib/`. Checked against every branch:
+> `placement_brief.py`, `zone_mock.py`, `area_mock.py`, `cut_flat_background.py`,
+> `trim_forge.py`, `compose_from_figma.py`, `cap_run.py` and `lay_flat.py` have **never been
+> committed anywhere**. `review_sheet.py` did not exist either and was rebuilt on 2026-08-04
+> at `sprite-lab/lib/review_sheet.py`.
+>
+> These entries are kept, not deleted — several describe standing rules of Raheem's that still
+> govern how the work is done, and the descriptions are worth more than the blank line that
+> would replace them. But **do not plan around any of them being runnable.** This drift is why
+> a review harness was not offered before generating the tower batch: the index named one and
+> the index was wrong.
+
 **Post-processing library** (`bg-harness/lib/`) — deterministic, free, re-runnable:
 
 | Script | Job |
@@ -47,7 +61,7 @@ Re-running `gen` is cheap — it skips anything already in the manifest and only
 | `process_plume.py` | Seat + white-fog an element plume for the forge scene |
 | `placement_brief.py` | **Placement-first.** Reads Raheem's Figma `place-*` footprint marks and derives each object's size and REQUIRED FACING from where it sits — against a wall means square-on, open floor means free-standing. Built because the forge came back catty-corner twice while the angle was being written from a description instead of read off a position. |
 | `zone_mock.py` / `area_mock.py` | Render traced areas on a plate and place objects in them at true world scale, with welded cast shadows — judge a room before buying it |
-| `review_sheet.py` | The asset review harness: one self-contained page per config, every attempt at game scale with its seed, cost and verdict |
+| `review_sheet.py` | **Lives at `sprite-lab/lib/review_sheet.py`, not here.** The asset review harness: one self-contained page showing every generated asset composited on the real plate at true game scale, feet-anchored, with its provenance, cost and verdict. See §2. |
 | `cut_flat_background.py` | Flood-fill a flat background off a generated sprite from the frame edge (PixelLab's `no_background` is a request, not a guarantee) |
 | `trim_forge.py` | Trim an approved asset down to the part that belongs, by measured crop rather than a re-roll |
 | `compose_from_figma.py` | **Composition is Raheem's, arithmetic is mine.** Bakes a multi-piece object from the arrangement he makes on the Figma composition bench — his positions, his scales, and a hand-drawn ground line used as a per-column CUT PROFILE rather than a level. Standing rule (Raheem, 2026-08-01): *"let's do this process in the future for all our objects... whenever we have confusion, remember that I can do this faster and a little bit clearer than you can."* |
@@ -92,6 +106,7 @@ These are how a human decides. **Every one of them is offered, not requested.**
 |---|---|---|
 | **Boss clip sheet** | `node scripts/sprite-lab/boss-sheet.mjs <packed_dir>` | Do the clips *play* right? Plays PACKED strips at real fps, self-contained HTML. Built because stills cannot catch the shrinking hero, the backwards facing, the costume drift — and three automated motion checks reported "frozen" on working animation. |
 | **Plate gallery** | `node scripts/bg-harness/harness.mjs sheet <config>` | Which candidate plate wins? |
+| **Courtyard asset review** | `python3 scripts/sprite-lab/lib/review_sheet.py build` | Does this object belong in the castle? Every generated asset composited on the REAL plate at true game scale, feet-anchored, against the wall it is meant for — plus its cost, endpoint and verdict. Built 2026-08-04 because judging a sprite on a checkerboard is how you approve the wrong scale or the wrong angle. **Standing rule (Raheem, 2026-08-04): one item at a time — an item is drafted, judged here, and only once APPROVED do we spend 25 generations on its other seven faces.** Record verdicts with `review_sheet.py decide <id> approved\|rejected "why"`; register new art with `review_sheet.py add <id> <png> wall=back\|left\|right\|floor`. |
 | **Boss readout** | `/dev/boss-readout` | Does the fight *measure* right — damage, beats, telegraphs? |
 | **Sprite preview** | `/dev/sprite-preview` | Does the sprite mount right on the stage? |
 | **Ability Theater** | `/dev/ability-theater` | Does an ability *perform* right — form, material, staging, legibility? Replays canned event logs through the real compiler and renderers, so there is no battle, no RNG, and the same scenario looks identical every time. **Hide colour** is the control that matters: it greys the stage so the Bible's "recognisable without colour" rule can be tested rather than asserted. Also: three lashes side by side on one path (the form-reuse proof), step-by-stage freeze, motion full/subtle/off, desktop/tablet, simulate-missing-assets, and a coverage panel showing how many materials are authored vs family defaults. |
