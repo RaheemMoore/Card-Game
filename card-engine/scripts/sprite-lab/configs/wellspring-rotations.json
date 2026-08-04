@@ -1,0 +1,33 @@
+{
+  "subject": "wellspring-rotations",
+  "label": "The Wellspring \u2014 crystal cart and sorting table, all 8 faces",
+  "notes": [
+    "RAHEEM APPROVED BOTH, 2026-08-04: 'the well crystal cart, that's awesome... the well sorting table, they're all amazing. Go ahead and generate the other angles of those two, because those are beautiful.'",
+    "THE CART WAS DEHALOED FIRST, AND THE ORDER MATTERS. It came back with a pale matting fringe \u2014 42% of its edge pixels were near-white, against 0% on the sorting table beside it. /create-8-direction-object takes the sprite as its `reference_image`, so a halo in the source would have propagated into ALL EIGHT faces. One free fix beforehand instead of eight dirty sprites afterwards. lib/dehalo.py, 6 passes, 0% remaining, and only 8.9% of pixels removed so the art survived.",
+    "The sorting table needed no cleaning \u2014 measured at 0% near-white edge.",
+    "Both objects have a definite front, so a turn is genuinely visible and the rotation buys something real. This is the same test that spared the crystal and the mana font, which are radially symmetric and got one face each.",
+    "COST: a rotation pass measured 40 generations on the card stand and lectern, so budget ~80 for the pair.",
+    "/create-8-direction-object rejects `size` when `reference_image` is supplied \u2014 the reference's own dimensions decide the output. And its `view` enum is 'low top-down' | 'high top-down' | 'side', NOT the 'top-down' that the 1-direction endpoint takes."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "rotations": [
+    {
+      "id": "crystal-cart-8",
+      "referenceFile": "ref-crystal-cart.png",
+      "note": "Dehaloed source. A cart is strongly front-facing \u2014 wheels, handle, open bed \u2014 so every face reads differently.",
+      "params": {
+        "description": "small wooden hand cart with dark iron banded wheels, honey-amber timber, heaped with raw glowing crystal shards in rose pink azure blue and green, light spilling over the sides, black pixel outline, basic shading",
+        "view": "low top-down"
+      }
+    },
+    {
+      "id": "sorting-table-8",
+      "referenceFile": "ref-sorting-table.png",
+      "note": "Clean source, no dehalo needed. A table with trays on top and a lantern at one corner turns visibly.",
+      "params": {
+        "description": "honey-amber wooden sorting table with a teal-green metal frame, raw crystal shards sorted into shallow trays across its top, a small hooded iron lantern at one corner giving a warm glow, black pixel outline, basic shading",
+        "view": "low top-down"
+      }
+    }
+  ]
+}

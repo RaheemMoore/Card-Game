@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ArchetypeName, CardStats } from '../../types/card';
 import type { ElementSelection, StoryPillarAnswers } from '../../types/bible';
+import { archetypeBackgroundFor } from '../../data/archetypeBackgrounds';
 import { ArchetypeSelector } from '../../components/ArchetypeSelector';
 import { DiceRoll } from '../../components/DiceRoll';
 import { ElementPicker } from '../../components/ElementPicker';
@@ -55,6 +56,13 @@ export function ForgeStallPreview() {
   const [element, setElement] = useState<ElementSelection | null>(null);
   const [answers, setAnswers] = useState<StoryPillarAnswers | null>(null);
   const [narrow, setNarrow] = useState(() => window.innerWidth < 720);
+
+  // The commissioned archetype plate, once there is an archetype to show one
+  // for. Raheem: "we crafted very special backgrounds for each archetype... I
+  // wanna make sure that art is still enjoyed." Portrait crop on phone, because
+  // the landscape plates put their subject where a phone would crop it out.
+  const backdrop = archetypeBackgroundFor(archetype);
+  const backdropSrc = backdrop ? (narrow ? backdrop.portrait : backdrop.landscape) : undefined;
 
   useEffect(() => {
     const onResize = () => setNarrow(window.innerWidth < 720);
@@ -148,13 +156,12 @@ export function ForgeStallPreview() {
   })();
 
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        background: 'url(/assets/castle/courtyard.png) center/cover fixed',
-      }}
-    >
+    // No courtyard plate behind this one: full-bleed covers the viewport, so a
+    // second background would only ever be visible for a frame.
+    <div style={{ minHeight: '100dvh', background: '#07050b' }}>
       <StallShell
+        fullBleed
+        backdrop={backdropSrc}
         title="The Crafting Stall"
         subtitle="Design preview — the web forge at /forge is unchanged"
         stages={STAGES}

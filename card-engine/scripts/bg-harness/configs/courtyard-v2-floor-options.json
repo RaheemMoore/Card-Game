@@ -82,6 +82,12 @@
       "line": "The open-air courtyard ground is entirely living grass and bare earth, with no paving and no stone anywhere. Deep verdant sunlit turf, richly painted with real blade texture, clover and small wildflower tufts. Broad soft desire-paths of warm honey-amber and ochre-brown packed earth, worn through the grass by generations of feet, radiate from a bare circular patch of earth at the centre of the courtyard out toward each edge, their borders soft where turf frays into soil. Beautiful, natural, hand-painted, no hard lines."
     },
     {
+      "id": "opt-grass-dirt-noon",
+      "label": "A2 — A at high noon, ground only (Raheem's shadow fix)",
+      "family": "options",
+      "line": "It is exactly high noon and the sun is straight overhead, so nothing on the ground casts any shadow in any direction and the light is perfectly even everywhere. A continuous expanse of open courtyard ground fills the entire frame corner to corner, with nothing standing on it and nothing at its edges — no walls, no buildings, no hedges, no bushes, no trees, no boulders, no timber. Deep verdant sunlit turf, richly painted with real blade texture, clover and small wildflower tufts. Broad soft paths of warm honey-amber and ochre-brown packed earth, worn through the grass by generations of feet, radiate from a bare circular patch of earth at the centre out toward each edge. Beautiful, natural, hand-painted."
+    },
+    {
       "id": "opt-grass-dirt-stone",
       "label": "B — Grass and dirt with stone paths",
       "family": "options",

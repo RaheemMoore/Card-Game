@@ -39,6 +39,13 @@ interface Props {
   onClose: () => void;
   narrow: boolean;
   scrollLabel?: string;
+  /** Edge-to-edge, for surfaces whose background art IS the experience. */
+  fullBleed?: boolean;
+  /**
+   * Painted plate shown behind the content, full-bleed only. The Forge passes
+   * the chosen archetype's commissioned background here.
+   */
+  backdrop?: string;
 }
 
 export function StallShell({
@@ -53,15 +60,76 @@ export function StallShell({
   onClose,
   narrow,
   scrollLabel,
+  fullBleed = false,
+  backdrop,
 }: Props) {
   return (
-    <Scrim onClose={onClose} label={title} bottomSheet={narrow}>
+    <Scrim onClose={onClose} label={title} bottomSheet={narrow} fullBleed={fullBleed}>
       <Panel
         variant="sheet"
-        style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          flex: 1,
+          position: 'relative',
+          // Full-bleed keeps the frame as a border on the screen edge rather
+          // than a floating box, so the art reads as the room you are standing
+          // in instead of a picture hung on a wall.
+          background: backdrop ? 'transparent' : undefined,
+        }}
       >
+        {backdrop && (
+          <>
+            <img
+              src={backdrop}
+              alt=""
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                zIndex: 0,
+              }}
+            />
+            {/* Readability over ELEVEN different paintings, without flattening
+                any of them. Two layers, deliberately:
+                  - a vertical gradient anchoring the header and footer bands;
+                  - a centre-column wash behind where the questions actually sit.
+                The second one is what the Druid plate proved necessary: its
+                bright sky sits exactly mid-screen, and the sub-heading and
+                "show different options" link both vanished into it. The wash is
+                an ellipse rather than a band so the art stays fully visible down
+                the left and right of the screen, which is where these plates put
+                their trees, architecture and silhouettes. */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 0,
+                background:
+                  'linear-gradient(180deg, rgba(10,6,14,0.88) 0%, rgba(10,6,14,0.34) 34%, rgba(10,6,14,0.38) 64%, rgba(10,6,14,0.90) 100%)',
+              }}
+            />
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 0,
+                background:
+                  'radial-gradient(ellipse 46% 62% at 50% 48%, rgba(8,5,12,0.72) 0%, rgba(8,5,12,0.45) 55%, rgba(8,5,12,0) 100%)',
+              }}
+            />
+          </>
+        )}
         <header
           style={{
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
             alignItems: 'baseline',
             gap: 12,
@@ -79,20 +147,29 @@ export function StallShell({
         </header>
 
         {stages && (
-          <div style={{ paddingBottom: 12 }}>
+          <div style={{ paddingBottom: 12, position: 'relative', zIndex: 1 }}>
             <StageRail stages={stages} current={currentStage} compact={narrow} />
           </div>
         )}
 
-        {toolbar}
+        {toolbar && (
+          <div style={{ position: 'relative', zIndex: 1 }}>{toolbar}</div>
+        )}
 
-        <ScrollArea axis="y" label={scrollLabel ?? title} style={{ flex: 1 }} contentStyle={{ padding: 4 }}>
+        <ScrollArea
+          axis="y"
+          label={scrollLabel ?? title}
+          style={{ flex: 1, position: 'relative', zIndex: 1 }}
+          contentStyle={{ padding: 4 }}
+        >
           {children}
         </ScrollArea>
 
         {(footer || footerNote) && (
           <footer
             style={{
+              position: 'relative',
+              zIndex: 1,
               display: 'flex',
               alignItems: 'center',
               gap: 12,

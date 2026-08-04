@@ -23,9 +23,25 @@ interface Props {
   label: string;
   /** Bottom-sheet layout. Callers pass their own breakpoint result. */
   bottomSheet?: boolean;
+  /**
+   * Edge-to-edge: the case fills the viewport instead of floating in it.
+   *
+   * For the Forge, where the archetype's commissioned background is the point.
+   * Raheem: "I want the UI to go to the full screen, like edge to edge, and the
+   * centre to fill in with that art we generated." A boxed panel with a scrim
+   * around it shows that painting through a letterbox, which is the opposite of
+   * immersion.
+   */
+  fullBleed?: boolean;
 }
 
-export function Scrim({ children, onClose, label, bottomSheet = false }: Props) {
+export function Scrim({
+  children,
+  onClose,
+  label,
+  bottomSheet = false,
+  fullBleed = false,
+}: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const restoreTo = useRef<HTMLElement | null>(null);
 
@@ -67,7 +83,9 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
       role="dialog"
       aria-modal="true"
       aria-label={label}
-      onClick={onClose}
+      // No click-outside on a full-bleed surface: there is no outside, and a
+      // stray click on the backdrop art must not throw away a half-answered forge.
+      onClick={fullBleed ? undefined : onClose}
       style={{
         position: 'fixed',
         inset: 0,
@@ -78,11 +96,12 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
         // it opens sit on top, and stays below the pause menu (70), which
         // should still cover everything.
         zIndex: 45,
-        background: 'rgba(6,4,10,0.72)',
+        // Full-bleed needs no dimming — there is nothing behind it to see.
+        background: fullBleed ? '#07050b' : 'rgba(6,4,10,0.72)',
         display: 'flex',
         alignItems: bottomSheet ? 'flex-end' : 'center',
         justifyContent: 'center',
-        padding: bottomSheet ? 0 : 24,
+        padding: fullBleed ? 0 : bottomSheet ? 0 : 24,
       }}
     >
       <div
@@ -92,7 +111,7 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
           // WIDTH, not just max-width. With only a max-width the box shrinks to
           // its content, so a menu that should span 960px rendered as a narrow
           // two-column column on desktop.
-          width: bottomSheet ? '100%' : 'min(960px, 100%)',
+          width: fullBleed ? '100%' : bottomSheet ? '100%' : 'min(960px, 100%)',
           // A DEFINITE height, not just a max. A flex child with `flex-basis: 0`
           // contributes nothing to a content-sized parent, so a scroller inside
           // a max-height-only box collapsed to 8px and the box shrank around it.
@@ -101,7 +120,7 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
           // It is also the better game surface: the case stays the same size
           // while you filter, instead of the panel jumping every time the result
           // count changes.
-          height: bottomSheet ? '85dvh' : 'min(90dvh, 780px)',
+          height: fullBleed ? '100dvh' : bottomSheet ? '85dvh' : 'min(90dvh, 780px)',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,
