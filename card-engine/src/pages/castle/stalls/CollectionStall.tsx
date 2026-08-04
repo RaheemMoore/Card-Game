@@ -6,6 +6,7 @@ import { CardRenderer } from '../../../components/CardRenderer';
 import { Panel } from '../../../components/ui/Panel';
 import { PixelButton } from '../../../components/ui/PixelButton';
 import { Scrim } from '../../../components/ui/Scrim';
+import { ScrollArea } from '../../../components/ui/ScrollArea';
 import { Slot } from '../../../components/ui/Slot';
 import { CardSheet } from '../../../components/CardSheet';
 import { buildStaticCardSheetAbilities } from '../../../services/abilities/cardSheetAdapter';
@@ -120,7 +121,7 @@ export function CollectionStall({ onClose, cards: override }: Props) {
     <Scrim onClose={onClose} label="The Collection" bottomSheet={narrow}>
       <Panel
         variant="sheet"
-        style={{ display: 'flex', flexDirection: 'column', minHeight: 0, maxHeight: '100%' }}
+        style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}
       >
         <header
           style={{
@@ -160,7 +161,12 @@ export function CollectionStall({ onClose, cards: override }: Props) {
         {/* min-height:0 on the scroller — without it this grid child refuses to
             shrink and pushes the panel past the viewport. Same invariant the
             fullscreen game shell documents. */}
-        <div style={{ overflowY: 'auto', minHeight: 0, flex: 1, padding: 4 }}>
+        <ScrollArea
+          axis="y"
+          label="Your characters"
+          style={{ flex: 1 }}
+          contentStyle={{ padding: 4 }}
+        >
           <div
             ref={gridRef}
             style={{
@@ -222,7 +228,7 @@ export function CollectionStall({ onClose, cards: override }: Props) {
               );
             })}
           </div>
-        </div>
+        </ScrollArea>
 
         <footer
           style={{

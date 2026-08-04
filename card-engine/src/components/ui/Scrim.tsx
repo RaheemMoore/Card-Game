@@ -93,7 +93,15 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
           // its content, so a menu that should span 960px rendered as a narrow
           // two-column column on desktop.
           width: bottomSheet ? '100%' : 'min(960px, 100%)',
-          maxHeight: bottomSheet ? '85dvh' : '90dvh',
+          // A DEFINITE height, not just a max. A flex child with `flex-basis: 0`
+          // contributes nothing to a content-sized parent, so a scroller inside
+          // a max-height-only box collapsed to 8px and the box shrank around it.
+          // Giving the box a real height breaks that circularity.
+          //
+          // It is also the better game surface: the case stays the same size
+          // while you filter, instead of the panel jumping every time the result
+          // count changes.
+          height: bottomSheet ? '85dvh' : 'min(90dvh, 780px)',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,

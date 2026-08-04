@@ -2,6 +2,7 @@ import type { ArchetypeName, Rank } from '../../../types/card';
 import { ARCHETYPE_NAMES, RANKS } from '../../../types/card';
 import { ARCHETYPE_EMBLEMS } from '../../../data/archetypeEmblems';
 import { PixelButton } from '../../../components/ui/PixelButton';
+import { ScrollArea } from '../../../components/ui/ScrollArea';
 import { Slot } from '../../../components/ui/Slot';
 
 /**
@@ -62,17 +63,10 @@ export function CollectionFilters({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 12 }}>
       {/* Crest rack. Scrolls sideways rather than wrapping — a single row reads
           as a rack of crests; two ragged rows read as a form. */}
-      <div
-        role="group"
-        aria-label="Filter by archetype"
-        style={{
-          display: 'flex',
-          gap: 8,
-          overflowX: 'auto',
-          paddingBottom: 4,
-          // The rack may scroll, but the page never does sideways.
-          scrollbarWidth: 'thin',
-        }}
+      <ScrollArea
+        axis="x"
+        label="Filter by archetype"
+        contentStyle={{ display: 'flex', gap: 8, paddingBottom: 4 }}
       >
         {ARCHETYPE_NAMES.map((name) => {
           const emblem = ARCHETYPE_EMBLEMS[name]?.assetPath;
@@ -126,7 +120,7 @@ export function CollectionFilters({
             </Slot>
           );
         })}
-      </div>
+      </ScrollArea>
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 9, letterSpacing: '0.14em', color: '#a08c6e' }}>RANK</span>
