@@ -40,6 +40,7 @@ PLATE = os.path.join(
     CARD_ENGINE, "src", "assets", "dev-preview", "courtyard-v2-figma.png"
 )
 OUT = os.path.join(REVIEW, "review-sheet.html")
+ARTIFACT_OUT = os.path.join(REVIEW, "review-sheet.artifact.html")
 
 # Measured off the plate. The side walls splay outward toward the viewer, so an
 # object standing against one is NOT square to the camera. These anchors are
@@ -173,56 +174,103 @@ def build():
      &middot; reject: <code>review_sheet.py decide {a['id']} rejected "why"</code></p>
 </article>""")
 
-    html = f"""<!doctype html><meta charset="utf-8">
-<title>Courtyard asset review</title>
+    head = """<title>Courtyard asset review</title>
 <style>
- :root {{ color-scheme: dark }}
- body {{ background:#14121a; color:#efe9dd; font:14px/1.5 ui-sans-serif,system-ui,sans-serif;
-        margin:0; padding:32px 28px 80px }}
- h1 {{ font-size:26px; margin:0 0 4px }}
- .lede {{ color:#9a94a8; max-width:74ch; margin:0 0 6px }}
- .tally {{ color:#9a94a8; margin:0 0 28px; font-size:13px }}
- .tally b {{ color:#efe9dd }}
- .card {{ background:#1d1b26; border:1px solid #2e2b3a; border-radius:12px;
-          padding:18px; margin:0 0 22px; max-width:1180px }}
- .card.pending {{ border-color:#c9a227 }}
- .card.approved {{ border-color:#3f8f5a }}
- .card.rejected {{ opacity:.55 }}
- .card header {{ display:flex; align-items:center; gap:12px; margin-bottom:14px }}
- h3 {{ margin:0; font-size:17px }}
- .badge {{ font-size:11px; letter-spacing:.12em; padding:3px 9px; border-radius:99px;
-           background:#2e2b3a; color:#b9b2c8 }}
- .badge.pending {{ background:#c9a227; color:#231c00 }}
- .badge.approved {{ background:#3f8f5a; color:#03170b }}
- .shots {{ display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end }}
- figure {{ margin:0 }}
- figure img {{ max-width:100%; border-radius:8px; display:block }}
- img.pix {{ image-rendering:pixelated }}
- figcaption {{ color:#8d879b; font-size:11px; margin-top:6px }}
- dl {{ display:grid; grid-template-columns:max-content 1fr; gap:2px 14px;
-       margin:16px 0 0; font-size:12.5px }}
- dt {{ color:#8d879b }}
- dd {{ margin:0 }}
- code {{ background:#26232f; padding:1px 5px; border-radius:4px; font-size:12px }}
- .note {{ background:#26232f; border-left:3px solid #c9a227; padding:9px 12px;
-          margin:14px 0 0; border-radius:0 6px 6px 0 }}
- .cmd {{ color:#8d879b; font-size:11.5px; margin:12px 0 0 }}
- .warn {{ color:#ff8080 }}
-</style>
-<h1>Courtyard asset review</h1>
+ /* Tokens first, components styled only through them, so the viewer's theme
+    toggle can override the OS preference in BOTH directions. */
+ :root {
+   --ground:#14121a; --panel:#1d1b26; --line:#2e2b3a; --chip:#26232f;
+   --ink:#efe9dd; --muted:#9a94a8;
+   --pending:#c9a227; --pending-ink:#231c00;
+   --approved:#3f8f5a; --approved-ink:#03170b;
+   --warn:#ff8080;
+ }
+ @media (prefers-color-scheme: light) {
+   :root {
+     --ground:#f7f4ef; --panel:#fffdfa; --line:#e2dbd0; --chip:#efe9e0;
+     --ink:#241f2b; --muted:#6b6478;
+     --pending:#a8851a; --pending-ink:#fffdf3;
+     --approved:#2f7449; --approved-ink:#f2fbf5;
+     --warn:#b3261e;
+   }
+ }
+ :root[data-theme="light"] {
+   --ground:#f7f4ef; --panel:#fffdfa; --line:#e2dbd0; --chip:#efe9e0;
+   --ink:#241f2b; --muted:#6b6478;
+   --pending:#a8851a; --pending-ink:#fffdf3;
+   --approved:#2f7449; --approved-ink:#f2fbf5;
+   --warn:#b3261e;
+ }
+ :root[data-theme="dark"] {
+   --ground:#14121a; --panel:#1d1b26; --line:#2e2b3a; --chip:#26232f;
+   --ink:#efe9dd; --muted:#9a94a8;
+   --pending:#c9a227; --pending-ink:#231c00;
+   --approved:#3f8f5a; --approved-ink:#03170b;
+   --warn:#ff8080;
+ }
+ body { background:var(--ground); color:var(--ink);
+        font:14px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif;
+        margin:0; padding:30px 26px 80px }
+ h1 { font-size:26px; margin:0 0 6px; text-wrap:balance }
+ .lede { color:var(--muted); max-width:66ch; margin:0 0 14px }
+ .tally { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 26px;
+          font-variant-numeric:tabular-nums }
+ .tally span { background:var(--chip); border:1px solid var(--line);
+               border-radius:99px; padding:4px 12px; font-size:12.5px; color:var(--muted) }
+ .tally b { color:var(--ink) }
+ .card { background:var(--panel); border:1px solid var(--line); border-left-width:4px;
+         border-radius:12px; padding:18px; margin:0 0 20px; max-width:1180px }
+ .card.pending { border-left-color:var(--pending) }
+ .card.approved { border-left-color:var(--approved) }
+ .card.rejected { opacity:.5 }
+ .card header { display:flex; align-items:center; gap:11px; margin-bottom:14px;
+                flex-wrap:wrap }
+ h3 { margin:0; font-size:17px }
+ .badge { font-size:10.5px; letter-spacing:.13em; padding:3px 10px; border-radius:99px;
+          background:var(--chip); color:var(--muted) }
+ .badge.pending { background:var(--pending); color:var(--pending-ink) }
+ .badge.approved { background:var(--approved); color:var(--approved-ink) }
+ .shots { display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end;
+          overflow-x:auto }
+ figure { margin:0 }
+ figure img { max-width:100%; border-radius:8px; display:block }
+ img.pix { image-rendering:pixelated }
+ figcaption { color:var(--muted); font-size:11px; margin-top:6px }
+ dl { display:grid; grid-template-columns:max-content 1fr; gap:3px 14px;
+      margin:16px 0 0; font-size:12.5px; font-variant-numeric:tabular-nums }
+ dt { color:var(--muted) }
+ dd { margin:0 }
+ code { background:var(--chip); padding:1px 5px; border-radius:4px;
+        font:12px ui-monospace,SFMono-Regular,Menlo,monospace }
+ .note { background:var(--chip); border-left:3px solid var(--pending);
+         padding:9px 12px; margin:14px 0 0; border-radius:0 6px 6px 0 }
+ .cmd { color:var(--muted); font-size:11.5px; margin:12px 0 0 }
+ .warn { color:var(--warn) }
+ @media (prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important } }
+</style>"""
+
+    body = f"""<h1>Courtyard asset review</h1>
 <p class="lede">Every generated asset, on the real plate, at true game scale, standing on its
 feet. Nothing here is in the castle. <b>One item at a time:</b> an item is drafted, judged
-here, and only once it is approved do we spend the 25 generations to shoot its other seven
-faces.</p>
-<p class="tally"><b>{counts['pending']}</b> awaiting your call &middot;
- <b>{counts['approved']}</b> approved &middot; <b>{counts['rejected']}</b> rejected &middot;
- <b>{total_gens}</b> generations spent so far</p>
+here, and only once it is approved does it earn its animation and its other seven faces.</p>
+<p class="tally">
+ <span><b>{counts['pending']}</b> awaiting your call</span>
+ <span><b>{counts['approved']}</b> approved</span>
+ <span><b>{counts['rejected']}</b> rejected</span>
+ <span><b>{total_gens}</b> generations spent</span>
+</p>
 {''.join(cards)}
 """
+    html = "<!doctype html><meta charset=\"utf-8\">\n" + head + "\n" + body
     os.makedirs(REVIEW, exist_ok=True)
     with open(OUT, "w") as f:
         f.write(html)
+    # Artifact-ready twin: no doctype/meta, since the Artifact host supplies the
+    # skeleton. Same content, so the shared URL and the local file never diverge.
+    with open(ARTIFACT_OUT, "w") as f:
+        f.write(head + "\n" + body)
     print(OUT)
+    print(ARTIFACT_OUT)
     print(
         f"  {counts['pending']} pending · {counts['approved']} approved · "
         f"{counts['rejected']} rejected · {total_gens} generations"

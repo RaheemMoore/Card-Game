@@ -8,6 +8,32 @@ art, checking art, and understanding the game. Nothing here is one-off. If you a
 to generate an arena, a boss, a prop, or a scene — or you want to *see* how something is
 behaving — the tool already exists and is listed below.
 
+## RULE ZERO — never show work in chat. Show it in a harness.
+
+**Standing rule (Raheem, 2026-08-04), and it applies to every discipline, not just art:**
+
+> *"I wanna see it in a harness. How can I hate looking at it in the chat? Harness every time.
+> Write it down somewhere. We always use a harness. We have multiple harnesses. Make another
+> harness if you need one."*
+
+Pasting an image into chat is **not** a deliverable. A harness is: a page he can open, scroll,
+compare against what shipped, come back to tomorrow, and judge from. Chat images are a
+convenience on top of a harness, never a replacement for one.
+
+- **If a harness exists for the job, use it.** The catalogue is below — read it first.
+- **If none fits, build one.** That is explicitly sanctioned. A new harness is cheaper than a
+  decision made from a bad look at the work.
+- **Keep it current.** Everything generated gets registered in its harness *before* it is
+  shown, so the harness is never behind the conversation.
+- **Give him a way in.** A local file he has to hunt for is a weak harness. Publish it as an
+  Artifact URL, serve it from the dev server, or both.
+
+*Why this is Rule Zero: assets were generated, judged and discussed for a whole session
+through one-off chat screenshots, while `HARNESS_INDEX.md` advertised a review harness that
+had never actually been committed. The work looked fine in a strip and the questions that
+mattered — does it sit at the right scale, does it read against the paving, does it match what
+already shipped — could not be asked.*
+
 **Standing rule (Raheem, 2026-07-31):** every harness and readout we build stays usable
 and gets **offered by name** at the start of any work it covers. If I am helping with a
 boss, an arena, a sprite or a balance question and I do not name the relevant tool from
