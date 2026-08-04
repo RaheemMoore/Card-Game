@@ -41,6 +41,8 @@ interface Props {
   onArchetype: (a: ArchetypeName | '') => void;
   onRank: (r: Rank | '') => void;
   onSort: (s: SortOption) => void;
+  /** Phone portrait: smaller crests so the rack doesn't eat the case. */
+  compact?: boolean;
 }
 
 export function CollectionFilters({
@@ -51,7 +53,11 @@ export function CollectionFilters({
   onArchetype,
   onRank,
   onSort,
+  compact = false,
 }: Props) {
+  // 84 gives the crest room on desktop; 64 keeps the rack from taking a third
+  // of an iPhone screen before a single card is visible.
+  const tile = compact ? 64 : 84;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 12 }}>
       {/* Crest rack. Scrolls sideways rather than wrapping — a single row reads
@@ -61,7 +67,7 @@ export function CollectionFilters({
         aria-label="Filter by archetype"
         style={{
           display: 'flex',
-          gap: 6,
+          gap: 8,
           overflowX: 'auto',
           paddingBottom: 4,
           // The rack may scroll, but the page never does sideways.
@@ -77,14 +83,20 @@ export function CollectionFilters({
               key={name}
               selected={active}
               framed
+              // Thin ring on purpose: at the default 13 the frame carried more
+              // visual weight than the crest it was holding. Raheem: "the
+              // frames are taking up a lot of the energy... this is a good
+              // chance to showcase the emblem art."
+              frameWidth={6}
               // Toggle: pressing the active crest clears the filter.
               onClick={() => onArchetype(active ? '' : name)}
               label={`${name}${owned ? `, ${owned} owned` : ', none owned'}`}
               style={{
-                // 58, not 46: the gem frame eats 13px a side, so a 46px tile
-                // left barely 20px of crest and the emblems were unreadable.
-                width: 58,
-                height: 58,
+                // A 6px ring leaves nearly the whole tile to the crest, versus
+                // 20px at the first pass. The cards below scroll, so the rack
+                // can afford the height — the emblems are the showcase here.
+                width: tile,
+                height: tile,
                 flex: '0 0 auto',
                 // Unowned archetypes stay visible but recede — a collection
                 // screen should show you what you HAVEN'T got, not hide it.
@@ -117,11 +129,11 @@ export function CollectionFilters({
       </div>
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 10, letterSpacing: '0.14em', color: '#a08c6e' }}>RANK</span>
+        <span style={{ fontSize: 9, letterSpacing: '0.14em', color: '#a08c6e' }}>RANK</span>
         {RANKS.map((r) => (
           <PixelButton
             key={r}
-            scale={1.1}
+            scale={0.95}
             onClick={() => onRank(rank === r ? '' : r)}
             aria-pressed={rank === r}
             style={{ filter: rank === r ? 'brightness(1.25)' : 'brightness(0.82)' }}
@@ -133,7 +145,7 @@ export function CollectionFilters({
         <span style={{ flex: 1 }} />
 
         <PixelButton
-          scale={1.1}
+          scale={0.95}
           onClick={() => onSort(SORT_CYCLE[(SORT_CYCLE.indexOf(sort) + 1) % SORT_CYCLE.length])}
           aria-label={`Sort: ${SORT_LABELS[sort]}. Activate to change.`}
         >

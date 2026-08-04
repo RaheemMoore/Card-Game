@@ -667,6 +667,71 @@ async function cmdScene(subject) {
   // rejects anything larger, where 1-direction allows 256.
   for (const o of c.rotations ?? []) await run('rot8', o, '/create-8-direction-object');
 
+  /**
+   * OBJECT ANIMATION. `/objects/{id}/animations` animates an object we already
+   * have — banners ripple, crystals pulse, pages flutter. The claim that
+   * PixelLab objects cannot be animated was WRONG and was corrected 2026-08-04;
+   * see PIXELLAB_PLAYBOOK.md §"What PixelLab can actually do".
+   *
+   * Two ways to spend far more than you meant to:
+   *  - `mode: 'pro'` is 20-40 generations PER DIRECTION. Always leave it on v3.
+   *  - Omitting `directions` on an 8-direction object animates ALL EIGHT. The
+   *    game only ever shows south / south-east / south-west, so name them.
+   *    (For a 1-direction object the field must be omitted entirely — passing
+   *    it is a 400.)
+   */
+  for (const a of c.objectAnimations ?? []) {
+    const key = `anim:${a.id}`;
+    if (m.assets[key]?.files?.length) {
+      console.log(`= ${key} exists`);
+      continue;
+    }
+    console.log(`> ${key} …`);
+    const body = {
+      mode: a.mode ?? 'v3',
+      animation_description: a.description,
+      ...(a.frameCount ? { frame_count: a.frameCount } : {}),
+      ...(a.displayName ? { display_name: a.displayName } : {}),
+      ...(a.directions ? { directions: a.directions } : {}),
+    };
+    const res = await api('POST', `/objects/${a.objectId}/animations`, body);
+    const jobIds = (res.submissions ?? [])
+      .map((s) => s.job_id ?? s.background_job_id ?? s.id)
+      .filter(Boolean);
+    if (!jobIds.length) throw new Error(`${key}: no jobs returned — ${JSON.stringify(res).slice(0, 400)}`);
+
+    const jobs = await waitForJobs(jobIds, key);
+    const generations = Object.values(jobs).reduce((n, j) => n + (j.usage?.generations ?? 0), 0);
+
+    // Frames live on the OBJECT once the jobs land, not on the job response.
+    const detail = await api('GET', `/objects/${a.objectId}`);
+    const group = (detail.animations ?? []).find(
+      (g) => g.animation_group_id === res.animation_group_id,
+    ) ?? (detail.animations ?? []).slice(-1)[0];
+    fs.writeFileSync(
+      path.join(d, `anim-${a.id}-detail.json`),
+      JSON.stringify({ post: res, group }, null, 2),
+    );
+
+    const files = [];
+    for (const dir of group?.directions ?? []) {
+      const urls = dir.frame_urls ?? dir.frames ?? [];
+      for (const [i, url] of urls.entries()) {
+        if (!url) continue;
+        const file = `anim-${a.id}-${dir.direction ?? 'single'}-${String(i).padStart(2, '0')}.png`;
+        await download(typeof url === 'string' ? url : url.url, path.join(d, file));
+        files.push({ file, direction: dir.direction ?? 'single', frame: i });
+      }
+    }
+    if (!files.length) {
+      throw new Error(`${key}: jobs completed but no frame urls found — inspect anim-${a.id}-detail.json`);
+    }
+
+    m.assets[key] = { spec: a, files, generations, animationGroupId: res.animation_group_id };
+    saveMan(subject, m);
+    console.log(`  ${files.length} frame(s), ${generations} generation(s)`);
+  }
+
   const total = Object.values(m.assets).reduce((n, a) => n + (a.generations ?? 0), 0);
   m.totalGenerations = total;
   saveMan(subject, m);

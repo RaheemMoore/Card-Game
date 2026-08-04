@@ -34,6 +34,13 @@ interface Props {
    * is what makes a crest read as a pressable tile rather than a loose image.
    */
   framed?: boolean;
+  /**
+   * Rendered ring thickness. Independent of the 13px SLICE, which is fixed by
+   * the source art — a smaller value draws the same beading thinner rather than
+   * cropping it. The crest rack uses ~6 so the emblem gets the tile instead of
+   * the frame; leave the default for card slots.
+   */
+  frameWidth?: number;
   className?: string;
   style?: CSSProperties;
 }
@@ -44,6 +51,7 @@ export function Slot({
   label,
   selected = false,
   framed,
+  frameWidth = 13,
   className = '',
   style,
 }: Props) {
@@ -56,7 +64,7 @@ export function Slot({
     ? { background: 'transparent', border: 'none', padding: 0 }
     : {
         borderStyle: 'solid' as const,
-        borderWidth: 13,
+        borderWidth: frameWidth,
         borderImageSource: `url(${SLOT_SRC})`,
         borderImageSlice: '13 fill',
         // STRETCH, not repeat. The slot art is near-square (45x47) and a card

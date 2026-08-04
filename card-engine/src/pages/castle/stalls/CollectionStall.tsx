@@ -154,6 +154,7 @@ export function CollectionStall({ onClose, cards: override }: Props) {
           onArchetype={setFilterArchetype}
           onRank={setFilterRank}
           onSort={setSort}
+          compact={narrow}
         />
 
         {/* min-height:0 on the scroller — without it this grid child refuses to
