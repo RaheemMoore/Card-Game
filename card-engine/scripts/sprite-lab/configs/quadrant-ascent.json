@@ -1,0 +1,34 @@
+{
+  "subject": "quadrant-ascent",
+  "label": "The Ascent (top-left quadrant) — the way up the tower",
+
+  "notes": [
+    "THE PITCH RAHEEM APPROVED: not a barracks gate. A stone archway whose stair climbs into light and disappears — you cannot see where it goes, and that is the hook. This is the game's actual gate (CLAUDE.md: beating the tower unlocks the rest of the game), so it should read as a THRESHOLD rather than a door.",
+    "THE PULL IS MOTION YOU CAN SEE FROM THE FOUNTAIN. Raheem: 'I want people to look at each quadrant and want to go over there and explore.' The sigil turns, the cold flame moves, the banner ripples — so from across the courtyard something up there is alive. Every one of those is animatable through /objects/{id}/animations at ~2 generations per direction.",
+    "DRAWN WITH THE MOVING PARTS ALREADY AIRBORNE AND SEPARATED — the sigil floats free of the arch, the flame stands clear of the bowl. A piece drawn as one closed lump animates badly in either PixelLab or Phaser.",
+    "COLD BLUE FLAME, NOT ORANGE. The forge quadrant owns warm fire. The tower must not read as a second forge, so its light is cold — pale blue and white, the temperature of altitude rather than heat.",
+    "PALETTE: pale weathered stone and honey trim from the plate, dark iron and teal-green fittings from the shipped counter, with the ascent's own accent in cold azure and white. The rose/verdant magic stays with the forge.",
+    "Style anchor is the hero crop per the standing ruling. Four items in one call — 25 generations for four concepts, the same price as one.",
+    "No figures, so modesty M5.7 is not engaged. No real-world heraldry on the banner or the sigil.",
+    "The midnight-blue summit-star rug is already generated and belongs to this quadrant."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "objects": [
+    {
+      "id": "ascent-draft-1",
+      "note": "The threshold and the three things that move around it. The arch is the anchor everything else scales against.",
+      "params": {
+        "description": "magical fantasy castle tower-ascent pieces seen from directly above, pale weathered stone with honey trim, dark iron and teal-green fittings, COLD pale blue and white magic light, floating pieces suspended in mid-air, black pixel outline, basic shading: 1). stone archway with stairs climbing into light 2). floating rotating rank sigil 3). brazier of cold blue flame 4). carved stone tally marker",
+        "view": "top-down",
+        "item_descriptions": [
+          "tall pale stone archway set into a wall, worn stone steps climbing up through it and FADING INTO A HAZE OF COLD WHITE-BLUE LIGHT so the top of the stair cannot be seen, honey stone trim, small teal-green lanterns flanking the opening",
+          "an ornate metal sigil ring HOVERING FREE IN MID-AIR with nothing supporting it, dark iron and pale gold, a glowing azure rune suspended at its centre, small motes of cold blue light drifting off it, no stand, no pole, no chain",
+          "iron brazier on a slender three-legged stand holding a tall COLD PALE BLUE AND WHITE flame that burns upward clear of the bowl, frost-blue glow, no orange, no red, no warm colour anywhere",
+          "weathered pale stone marker pillar the height of a person, its faces densely carved with hundreds of small tally notches and worn names, a faint azure glow caught in the deepest cuts, honey stone base"
+        ]
+      }
+    }
+  ]
+}

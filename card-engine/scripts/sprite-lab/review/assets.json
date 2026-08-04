@@ -318,6 +318,94 @@
       "faces": "4 directions; SOUTH is her counter facing",
       "verdict": "pending",
       "note": "REDESIGNED. Deliberately NOT the old pale young red-haired woman, because that is now almost exactly the forge apprentice \u2014 two near-identical women in adjacent quadrants. She becomes the cast's older, spectacled, silver-bun silhouette instead. Seed 771902 recorded."
+    },
+    {
+      "id": "ascent-arch-stair",
+      "file": "src/assets/dev-preview/quadrants/arch-stair.png",
+      "wall": "back",
+      "source": "quadrant-ascent.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "THE ASCENT'S ANCHOR. Stairs climb through the arch and vanish into cold blue haze \u2014 you cannot see where they go, which is the hook. Teal lanterns tie it to the shipped counter's fittings."
+    },
+    {
+      "id": "ascent-rank-sigil",
+      "file": "src/assets/dev-preview/quadrants/rank-sigil.png",
+      "wall": "back",
+      "source": "quadrant-ascent.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "Floats free with nothing supporting it, so it can be ROTATED as an object animation (~2 gens). This is the piece that moves and pulls the eye from the fountain."
+    },
+    {
+      "id": "ascent-cold-brazier",
+      "file": "src/assets/dev-preview/quadrants/cold-brazier.png",
+      "wall": "floor",
+      "source": "quadrant-ascent.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "COLD blue-white flame, deliberately not orange \u2014 the forge owns warm fire, and the tower must not read as a second forge. Flame stands clear of the bowl so it can be animated."
+    },
+    {
+      "id": "ascent-tally-marker",
+      "file": "src/assets/dev-preview/quadrants/tally-marker.png",
+      "wall": "floor",
+      "source": "quadrant-ascent.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "WEAKEST OF THE FOUR \u2014 it reads very close to the tally-pillar we already approved from the tower batch. Probably redundant."
+    },
+    {
+      "id": "well-fissure",
+      "file": "src/assets/dev-preview/quadrants/fissure.png",
+      "wall": "floor",
+      "source": "quadrant-wellspring.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "THE WELLSPRING'S ANCHOR, and the strongest idea \u2014 rose/azure/green crystals in the SAME three colours as the counter gems, because this is where those crystals come from. DEFECT: it came back with its own square patch of paving baked in, which will not blend with the plate's paving. Either matte it out or treat it as a floor patch laid on top."
+    },
+    {
+      "id": "well-crystal-cart",
+      "file": "src/assets/dev-preview/quadrants/crystal-cart.png",
+      "wall": "floor",
+      "source": "quadrant-wellspring.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": ""
+    },
+    {
+      "id": "well-sorting-table",
+      "file": "src/assets/dev-preview/quadrants/sorting-table.png",
+      "wall": "back",
+      "source": "quadrant-wellspring.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": "Crystals sorted into trays with a lantern \u2014 this is the piece that says someone WORKS here, which stops the fissure reading as untouched scenery."
+    },
+    {
+      "id": "well-lift-winch",
+      "file": "src/assets/dev-preview/quadrants/lift-winch.png",
+      "wall": "back",
+      "source": "quadrant-wellspring.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 (front only)",
+      "verdict": "pending",
+      "note": ""
     }
   ]
 }

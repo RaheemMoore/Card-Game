@@ -1,0 +1,34 @@
+{
+  "subject": "quadrant-wellspring",
+  "label": "The Wellspring (bottom-left quadrant) — where raw element crystals come from",
+
+  "notes": [
+    "THE PITCH RAHEEM APPROVED: the mine door, but read as MAGIC rather than industry. A cracked-open spring in the paving with raw element crystals growing out of it and light welling up from below. Not pickaxes and carts of ore — a wound in the stone that the world's magic is leaking out of.",
+    "WHY THIS AND NOT A TRAINING YARD: the earlier design put a sparring yard here, and that was part of the barracks pitch Raheem rejected as boring and off-brief. This is a magical fantasy card game; the place cards' ELEMENTS come from is a far better door than a place to hit a post with a stick. It also gives the economy a face — the mine yields Gold, and PRODUCTION.md is explicit that it must never yield Forge Crystals.",
+    "THE PULL: crystals pulse and light breathes out of the fissure. Both are already proven at zero cost — src/pages/castle/v2-preview/crystalVfx.ts does exactly this for the counter gems, with a bloom pulse, glints and rising motes that swell as the hero approaches.",
+    "COLOUR IS THE ELEMENTS THEMSELVES — rose, azure and verdant, the same three as the counter gems and the game's own element crystal art. That is deliberate: this is where those crystals come FROM, so seeing the same three colours in raw form is the story being told without a word of text.",
+    "THE FISSURE IS A GROUND FEATURE. It is drawn as a top-down object rather than a flat texture because the crystals stand up out of it; lib/lay_flat.py is for things that lie completely flat, like rugs.",
+    "PALETTE otherwise matches the plate: honey-amber wood, pale weathered stone, dark iron and teal-green fittings.",
+    "Style anchor is the hero crop. Four items in one call. No figures, so modesty M5.7 is not engaged.",
+    "RUG NOTE: the round rust sparring-ring rug was designed for the training yard this replaces, so it is orphaned. This quadrant wants its own — something like spilled light on stone. One more rug is trivial: four cost 25 generations."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "objects": [
+    {
+      "id": "wellspring-draft-1",
+      "note": "The fissure is the anchor; the other three are the human evidence that someone works here. The cart and table keep it from reading as a natural feature nobody uses.",
+      "params": {
+        "description": "magical fantasy crystal-mine pieces seen from directly above, pale weathered stone paving, honey-amber wood, dark iron and teal-green fittings, glowing rose pink azure blue and green crystal light welling upward, black pixel outline, basic shading: 1). cracked fissure in the paving with raw crystals growing out 2). wooden cart of raw crystal shards 3). sorting table with a lantern 4). iron lift winch",
+        "item_descriptions": [
+          "a jagged fissure cracked open in pale stone paving with raw hexagonal crystals in rose pink, azure blue and green growing up out of the opening at angles, cold bright light welling upward out of the crack from deep below, small motes of light rising, broken paving slabs tilted around the edge",
+          "small wooden hand cart with dark iron banded wheels, honey-amber timber, heaped with raw glowing crystal shards in rose pink azure blue and green, light spilling over the cart's sides",
+          "honey-amber wooden sorting table with a teal-green metal frame, raw crystal shards sorted into shallow trays across its top, a small hooded iron lantern at one corner giving a warm glow",
+          "tall iron lift winch with a rope drum and a hanging hook on a chain, dark iron and honey-wood frame, standing over a stone-lined shaft opening, teal-green metal fittings"
+        ],
+        "view": "top-down"
+      }
+    }
+  ]
+}
