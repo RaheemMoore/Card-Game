@@ -382,8 +382,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": ""
+      "verdict": "approved",
+      "note": "APPROVED - 'that's awesome'. DEHALOED: it arrived with 42% of its edge pixels near-white; lib/dehalo.py at 6 passes took that to 0% while removing only 8.9% of pixels. Fixed BEFORE the rotation pass, because the reference feeds all 8 faces."
     },
     {
       "id": "well-sorting-table",
@@ -393,8 +393,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "Crystals sorted into trays with a lantern \u2014 this is the piece that says someone WORKS here, which stops the fissure reading as untouched scenery."
+      "verdict": "approved",
+      "note": "APPROVED - 'amazing'. Needed no cleaning; measured 0% near-white edge."
     },
     {
       "id": "well-lift-winch",
@@ -547,8 +547,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "BEST OF THE FOUR. A dark branching crack climbing the wall with violet crystals pushing through every fracture and rubble at the foot. Cleanest cutout too \u2014 only 45% of its crop is opaque, so there is almost nothing to cut. This is the one."
+      "verdict": "approved",
+      "note": "APPROVED \u2014 Raheem likes all three; adding them all so he can try them against the wall."
     },
     {
       "id": "wallcrack-blue-breach",
@@ -558,8 +558,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "USABLE, second choice. Blue crystals bursting through with tumbled blocks. Reads more as a burst than a climb \u2014 wider than tall, so it works low on a wall rather than running up it."
+      "verdict": "approved",
+      "note": "APPROVED."
     },
     {
       "id": "wallcrack-crimson-vein",
@@ -569,8 +569,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "NEEDS CUTTING and reads more like coral or a bush than a crack in stone. It came back with a pale beige backing slab behind the crystals."
+      "verdict": "approved",
+      "note": "APPROVED \u2014 Raheem liked it despite my note that it reads coral-ish."
     },
     {
       "id": "wallcrack-light-seam",
@@ -593,6 +593,28 @@
       "faces": "1",
       "verdict": "rejected",
       "note": "Superseded by the recoloured version directly above. Kept only so the recolour can be judged against something."
+    },
+    {
+      "id": "cart-8-south-east",
+      "file": "src/assets/dev-preview/quadrants/rotations/crystal-cart-south-east.png",
+      "wall": "left",
+      "source": "wellspring-rotations.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 25,
+      "faces": "6 of 8 usable",
+      "verdict": "pending",
+      "note": "DEFECT: the cart's EAST and WEST faces came back as a PERSON, not a cart \u2014 the model lost the subject at pure profile, where the cart is thinnest. The other six faces are correct. East/west are the least-used faces so the set is still usable, but do not ship those two."
+    },
+    {
+      "id": "table-8-south-east",
+      "file": "src/assets/dev-preview/quadrants/rotations/sorting-table-south-east.png",
+      "wall": "left",
+      "source": "wellspring-rotations.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 25,
+      "faces": "8 of 8 clean",
+      "verdict": "pending",
+      "note": "All eight faces correct, including the pure profiles. The lantern and trays read at every angle."
     }
   ]
 }
