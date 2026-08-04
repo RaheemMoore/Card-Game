@@ -274,6 +274,7 @@ const DEV_ONLY_UNGATED_ROUTES = [
   // cannot tell you, so gating it behind a login would put a review surface
   // behind a wall for no protection.
   '/dev/ui-kit',
+  '/dev/collection-stall',
   ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
 ];
 

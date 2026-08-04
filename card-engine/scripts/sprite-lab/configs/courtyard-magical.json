@@ -31,5 +31,28 @@
         ]
       }
     }
-  ]
+  ],
+
+  "rotations": [
+    {
+      "id": "card-stand-8",
+      "referenceFile": "ref-card-stand.png",
+      "note": "APPROVED by Raheem 2026-08-04, 'I want that magical card stand from every angle'. The stand has a definite front — a facing chest body with cards launching forward off it — so a turn is plainly visible and the 25 generations buy something real.",
+      "params": {
+        "description": "wooden card-forging stand of honey-amber timber with dark iron corner fittings and a glowing teal gem set in its front panel, three ornate fantasy cards lifting off it and fanning upward on pink violet and teal magic trails, black pixel outline, basic shading",
+        "view": "low top-down"
+      }
+    },
+    {
+      "id": "rune-lectern-8",
+      "referenceFile": "ref-rune-lectern.png",
+      "note": "APPROVED by Raheem 2026-08-04, 'one of my favourites' — destined for the COLLECTION area (bottom-right quadrant). An open book on a lectern is strongly front-facing, so the turn reads.",
+      "params": {
+        "description": "honey-amber wooden reading lectern on a carved splayed foot, an open spellbook resting on it, loose pages torn free and flying upward around it, a pale green rune glyph rising out of the open book on a shard of light, black pixel outline, basic shading",
+        "view": "low top-down"
+      }
+    }
+  ],
+
+  "_costNote": "Deliberately NOT rotated: element-crystal and mana-font. Both are radially symmetric — a prism inside a spherical aura on a round cracked base, and a circular tiered basin. The camera in this game never moves, so the only reason to buy 8 faces is to TURN an object against a diagonal wall; turning a radially symmetric object shows nothing. 50 generations saved, and the same test should be applied to every future object before a rotation pass is approved."
 }

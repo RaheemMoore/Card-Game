@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Card as CardType } from '../../../types/card';
 import { getAllCards } from '../../../services/storage';
 import { getOverallRank } from '../../../data/powerSystem';
@@ -28,8 +28,21 @@ import { Slot } from '../../../components/ui/Slot';
 /** A full case, even when the collection isn't. */
 const MIN_SLOTS = 18;
 
-export function CollectionStall({ onClose }: { onClose: () => void }) {
-  const [cards] = useState<CardType[]>(() => getAllCards());
+/** CardRenderer's thumbnail width: 326 * 0.42. Not configurable there. */
+const THUMB_W = 137;
+
+interface Props {
+  onClose: () => void;
+  /**
+   * Overrides the player's real collection. Only the ungated dev preview passes
+   * this — it lets the case be reviewed full without a signed-in account, which
+   * is otherwise impossible to see.
+   */
+  cards?: CardType[];
+}
+
+export function CollectionStall({ onClose, cards: override }: Props) {
+  const [cards] = useState<CardType[]>(() => override ?? getAllCards());
   const [selected, setSelected] = useState<CardType | null>(null);
   const [narrow, setNarrow] = useState(() => window.innerWidth < 720);
 
@@ -37,6 +50,29 @@ export function CollectionStall({ onClose }: { onClose: () => void }) {
     const onResize = () => setNarrow(window.innerWidth < 720);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // CardRenderer's thumbnail is a FIXED 137x197 (326x470 at 0.42). A hardcoded
+  // transform scale therefore only fits one cell width, and at 375px portrait
+  // the cards overflowed their slots and were clipped mid-portrait. Measuring
+  // the real cell and deriving the factor is the only version that holds at
+  // every viewport, and every cell is the same width so one observer covers the
+  // whole grid.
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [cardScale, setCardScale] = useState(0.66);
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const measure = () => {
+      const cell = grid.firstElementChild as HTMLElement | null;
+      if (!cell) return;
+      const w = cell.getBoundingClientRect().width;
+      if (w > 0) setCardScale(w / THUMB_W);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(grid);
+    return () => ro.disconnect();
   }, []);
 
   const sorted = useMemo(
@@ -78,10 +114,17 @@ export function CollectionStall({ onClose }: { onClose: () => void }) {
             fullscreen game shell documents. */}
         <div style={{ overflowY: 'auto', minHeight: 0, flex: 1, padding: 4 }}>
           <div
+            ref={gridRef}
             style={{
               display: 'grid',
               gridTemplateColumns: `repeat(auto-fill, minmax(${narrow ? 92 : 116}px, 1fr))`,
               gap: 10,
+              // `start`, NOT the default `stretch`. A row containing only empty
+              // slots has no card to give it height, so under `stretch` the
+              // slots took the row's min-content height and rendered as
+              // slivers. With `start` each cell takes its height from its own
+              // aspect-ratio and an all-empty row looks like the full ones.
+              alignItems: 'start',
             }}
           >
             {Array.from({ length: slots }, (_, i) => {
@@ -103,12 +146,26 @@ export function CollectionStall({ onClose }: { onClose: () => void }) {
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        display: 'grid',
-                        placeItems: 'center',
                         overflow: 'hidden',
                       }}
                     >
-                      <div style={{ transform: `scale(${narrow ? 0.52 : 0.66})` }}>
+                      {/* TOP-LEFT ORIGIN, NOT CENTRED. The card's layout box is
+                          137px wide — wider than the cell — and when a grid item
+                          overflows its track the browser aligns it to the START
+                          rather than centring it (overflow alignment is "safe"
+                          by default). Scaling about the centre of a box that was
+                          never actually centred pushed every card ~17px right
+                          and clipped its frame. Anchoring at 0,0 and scaling
+                          from that corner is exact at any cell width. */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          transform: `scale(${cardScale})`,
+                          transformOrigin: 'left top',
+                        }}
+                      >
                         <CardRenderer card={card} size="thumbnail" />
                       </div>
                     </div>

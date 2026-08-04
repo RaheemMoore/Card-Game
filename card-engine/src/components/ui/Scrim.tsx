@@ -83,8 +83,10 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
         ref={boxRef}
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: bottomSheet ? '100%' : undefined,
-          maxWidth: bottomSheet ? undefined : 'min(960px, 100%)',
+          // WIDTH, not just max-width. With only a max-width the box shrinks to
+          // its content, so a menu that should span 960px rendered as a narrow
+          // two-column column on desktop.
+          width: bottomSheet ? '100%' : 'min(960px, 100%)',
           maxHeight: bottomSheet ? '85dvh' : '90dvh',
           display: 'flex',
           flexDirection: 'column',

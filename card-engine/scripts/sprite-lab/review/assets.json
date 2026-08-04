@@ -107,8 +107,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "DRAFT 1. Cards drawn already lifting off the stand so they can be animated - PixelLab can move the cards themselves, Phaser adds the sparkle."
+      "verdict": "approved",
+      "note": "APPROVED - Raheem wants it from every angle. 8-face pass authorised."
     },
     {
       "id": "magic-element-crystal",
@@ -118,8 +118,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "DRAFT 1. Anchored to the game's own element-crystal art: prism hovering over a cracked base with shards suspended around it."
+      "verdict": "approved",
+      "note": "APPROVED as-is, ONE FACE ONLY. Radially symmetric - a prism in a round aura on a round base - so turning it shows nothing. 25 generations deliberately not spent."
     },
     {
       "id": "magic-mana-font",
@@ -129,8 +129,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "DRAFT 1. Glowing basin with motes rising."
+      "verdict": "approved",
+      "note": "APPROVED as-is, ONE FACE ONLY. Circular basin, radially symmetric, same reasoning as the crystal. Mirror it horizontally if variation is ever wanted - that is free."
     },
     {
       "id": "magic-rune-lectern",
@@ -140,8 +140,52 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "DRAFT 1. Pages drawn torn free and flying - the 'papers floating off a stand' brief."
+      "verdict": "approved",
+      "note": "APPROVED - 'one of my favourites'. Destined for the COLLECTION area. 8-face pass authorised."
+    },
+    {
+      "id": "card-stand-LEFT",
+      "file": "src/assets/dev-preview/magical/rotations/card-stand-south-east.png",
+      "wall": "left",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 40,
+      "faces": "one of 8 from a single 40-gen run",
+      "verdict": "approved",
+      "note": "Face of an approved object."
+    },
+    {
+      "id": "card-stand-RIGHT",
+      "file": "src/assets/dev-preview/magical/rotations/card-stand-south-west.png",
+      "wall": "right",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 0,
+      "faces": "same run as card-stand-LEFT",
+      "verdict": "approved",
+      "note": "Face of an approved object."
+    },
+    {
+      "id": "lectern-LEFT",
+      "file": "src/assets/dev-preview/magical/rotations/rune-lectern-south-east.png",
+      "wall": "left",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 40,
+      "faces": "one of 8 from a single 40-gen run",
+      "verdict": "approved",
+      "note": "Face of an approved object."
+    },
+    {
+      "id": "lectern-RIGHT",
+      "file": "src/assets/dev-preview/magical/rotations/rune-lectern-south-west.png",
+      "wall": "right",
+      "source": "courtyard-magical.json",
+      "endpoint": "/create-8-direction-object",
+      "generations": 0,
+      "faces": "same run as lectern-LEFT",
+      "verdict": "approved",
+      "note": "Face of an approved object."
     }
   ]
 }

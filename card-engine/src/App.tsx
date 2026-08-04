@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
 import { Landing } from './pages/Landing';
-import { Collection } from './pages/Collection';
 import { CardDetail } from './pages/CardDetail';
 import { AdminShell } from './components/admin/AdminShell';
 import { AdminOverview } from './pages/AdminOverview';
@@ -29,6 +28,8 @@ import { BossReadout } from './pages/dev/BossReadout';
 import { AbilityTheater } from './pages/dev/AbilityTheater';
 import { DecisionLab } from './pages/dev/DecisionLab';
 import { UiKit } from './pages/dev/UiKit';
+import { CollectionStallPreview } from './pages/dev/CollectionStallPreview';
+import { CollectionRoute } from './pages/CollectionRoute';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
@@ -101,6 +102,11 @@ export default function App() {
               mush, so a passing build proves nothing about this surface. */}
           <Route path="/dev/ui-kit" element={<UiKit />} />
 
+          {/* The Collection case, filled from the real card factory so it can be
+              reviewed without an account. Same tier: builds its own cards in
+              memory, reads no player data, spends nothing. */}
+          <Route path="/dev/collection-stall" element={<CollectionStallPreview />} />
+
           {CourtyardV2Preview && (
             <Route
               path="/dev/courtyard-v2-preview"
@@ -139,7 +145,7 @@ export default function App() {
                 signing in land in the courtyard rather than the Forge. */}
             <Route path="/" element={<Landing />} />
             <Route path="/forge" element={<CardForge />} />
-            <Route path="/collection" element={<Collection />} />
+            <Route path="/collection" element={<CollectionRoute />} />
             <Route path="/card/:cardId" element={<CardDetail />} />
             <Route path="/codex" element={<Codex />} />
             <Route path="/codex/elements" element={<CodexElements />} />
