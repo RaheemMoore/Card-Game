@@ -275,6 +275,7 @@ const DEV_ONLY_UNGATED_ROUTES = [
   // behind a wall for no protection.
   '/dev/ui-kit',
   '/dev/collection-stall',
+  '/dev/stall-shell',
   ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
 ];
 

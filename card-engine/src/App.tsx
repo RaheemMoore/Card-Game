@@ -29,6 +29,7 @@ import { AbilityTheater } from './pages/dev/AbilityTheater';
 import { DecisionLab } from './pages/dev/DecisionLab';
 import { UiKit } from './pages/dev/UiKit';
 import { CollectionStallPreview } from './pages/dev/CollectionStallPreview';
+import { StallShellPreview } from './pages/dev/StallShellPreview';
 import { CollectionRoute } from './pages/CollectionRoute';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
@@ -106,6 +107,11 @@ export default function App() {
               reviewed without an account. Same tier: builds its own cards in
               memory, reads no player data, spends nothing. */}
           <Route path="/dev/collection-stall" element={<CollectionStallPreview />} />
+
+          {/* The shared stall case + stage rail against filler content. The
+              Forge's real flow needs a session AND premium currency at its last
+              step, so its shell cannot be reviewed through the Forge itself. */}
+          <Route path="/dev/stall-shell" element={<StallShellPreview />} />
 
           {CourtyardV2Preview && (
             <Route
