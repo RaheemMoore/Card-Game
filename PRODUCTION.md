@@ -255,6 +255,14 @@ the next hero chooses an ability.
 A painted, non-scrolling top-down courtyard in Phaser 3. Fixed cover-scaled camera, WASD
 walking, feet-anchored colliders traced onto the plate. Four stalls, all placeholders.
 
+**Courtyard V2 is a separate pending replacement, not the live courtyard.** Its forge quadrant
+now has a development-only playable preview with a controllable chibi, soft white heel dust,
+forge surge/smoke/heat effects, Figma-traced counter/bench/forge occlusion, and imported
+ground-contact colliders. Both forge passages are walkable in named checks, including reduced
+motion. The other quadrants, full-map collision/occlusion, baked-shadow cleanup, and production
+route integration remain open. Review it locally at `/dev/courtyard-v2-preview` from the
+`codex/courtyard-forge-vfx` branch; the route and its assets are excluded from production builds.
+
 Deliberately kept out of the main nav — a player reaching it today would find four dead ends.
 
 *Lives in:* `src/pages/castle/` — `courtyard/layout.ts` derives the canvas size and is
@@ -299,7 +307,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. The separate Studio Wiki remains its own in-flight workstream. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
-| IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
+| IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | SHIPPED | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets run in the authentic `/battle` event stream. Combat follows **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The full-motion exchange reaches the next intent in about 6.2 seconds; boss-bound volleys land in a readable triangle, and Motion Off preserves the order as still tableaux. Released through PR #34 at production commit `98f66e7`. |
 | SHIPPED | Decision Experience System — Stage 1 | The selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible usable ability; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back. Projections, the Threat Translator, contextual explanations, shared confirmation policy, authoritative receipts, and `/dev/decision-lab` remain intact. **Encounter Briefing and dedicated Pilot A/B comprehension passes are still open Stage 2 work** — see Combat gaps below. |
@@ -345,6 +353,18 @@ The hub exists; nothing behind it does.
 *Also:* castle is held out of the main nav until these open (`components/nav/navConfig.ts:20`);
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
+
+### Courtyard V2 replacement — 5 items
+
+The forge quadrant is a verified development checkpoint, not permission to replace production.
+
+| What | Where |
+|---|---|
+| Finish collider and occluder traces for the remaining courtyard, including walls and fountain | `src/pages/castle/v2-preview/` + Figma Courtyard V2 file |
+| Design and build the top-left, bottom-left Archivist, and bottom-right quadrants | Figma Courtyard V2 file |
+| Remove the counter's baked shadow and reduce the bench shadow without damaging the rug | Courtyard V2 source art |
+| Replace preview-only walk bounds with the complete imported map collision set | `v2-preview/CourtyardV2PreviewScene.ts` |
+| Integrate V2 into the production castle only after full-map runtime and human visual approval | `src/pages/castle/` |
 
 ### Combat gaps — 15 items
 
@@ -736,6 +756,21 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Courtyard V2 is a verified preview, not the production courtyard
+
+Raheem accepted the new forge quadrant as a strong stopping point and asked for it to be
+preserved in GitHub without replacing the existing courtyard. The checkpoint includes the
+new plate, a controllable chibi, softer white heel dust, forge atmosphere, layered counter and
+bench occlusion, and Raheem-shaped Figma ground-contact colliders. Both named passages pass in
+normal and reduced-motion runtime checks. TypeScript, focused lint, and the production build
+pass, and the V2 route/assets do not appear in the production bundle.
+
+The remaining quadrants, full-map collider/occluder coverage, counter/bench shadow cleanup,
+and production integration remain pending. The existing `/castle` experience is unchanged.
+
+*Why it matters:* the work is durable and reviewable on another device without presenting one
+finished quadrant as a finished courtyard or risking the current production hub.
 
 ### 2026-08-03 — The combined boss-combat overhaul ships to production
 

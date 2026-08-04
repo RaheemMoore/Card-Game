@@ -100,6 +100,7 @@ These are how a human decides. **Every one of them is offered, not requested.**
 | **Ability seed** | `/dev/abilities` | Ability catalogue state |
 | **Battle seed** | `/dev/seed-battle` | Jump straight into a fight |
 | **Courtyard sample** | `/dev/courtyard-sample` | Castle scene composition |
+| **Courtyard V2 forge preview** | `/dev/courtyard-v2-preview` | DEV-only walk-through of the pending V2 forge quadrant: Figma-derived colliders/occlusion, chibi movement, heel dust, forge atmosphere, named aisle checks, and reduced-motion behavior. It does not replace `/castle` and is excluded from production builds. |
 | **Validator regression** | `scripts/sprite-lab/test-validator.sh` | Does the quality gate still catch the known-bad fixtures? |
 
 **Known-good / known-bad fixtures** live at `sprite-lab/fixtures/` — the drifting
