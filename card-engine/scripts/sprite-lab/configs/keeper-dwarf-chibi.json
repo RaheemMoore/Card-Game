@@ -1,0 +1,40 @@
+{
+  "subject": "keeper-dwarf-chibi",
+  "label": "The Forge Dwarf (CHIBI) — regenerated in the game's actual register",
+
+  "notes": [
+    "REPLACES keeper-dwarf.json. The original was generated under SHOPKEEPER_GUIDE's old instruction that 'the quality bar is the dwarf, not the hero', which is the rule that produced a cast in two different art styles. Raheem, 2026-08-04: the dwarf 'is not even for the game, it's a completely different vibe'. That instruction is now reversed and every character matches hero-chibi.json.",
+    "HIS IDENTITY CARRIES OVER UNCHANGED — only the art register moves. Dark-skinned Black dwarf, short thick dreads with beads, long beard split into two braids, fur-trimmed shoulders. That is who he already is to anyone who has met him, and changing a person because the art pipeline changed is exactly what Bible §Rank continuity exists to forbid.",
+    "THE ROUTE IS THE POINT: /create-character-with-4-directions, because it has a REAL `proportions` preset. /create-character-v3 has none, so 'chibi' there is prose and prose loses — that is precisely how the first apprentice came back a detailed adult.",
+    "STYLE BLOCK COPIED VERBATIM FROM hero-chibi.json. Same view, proportions, outline, shading, detail and size. Matching the numbers is what makes a cast look like one game.",
+    "SOUTH IS HIS FACING. He stands behind the forge counter facing out at the approaching player. A stationary keeper needs one direction; the original's eight rotations were seven views a vendor never shows.",
+    "SEED IS EXPLICIT — 660418. The original dwarf's seed was never recorded and he can never be rebuilt, which is half the reason this regeneration is a fresh character rather than a re-roll. The archivist has the identical problem and is queued next.",
+    "MODESTY M5.7: covered neck to feet. Tunic, apron, fur shoulders, boots.",
+    "DO NOT ANIMATE UNTIL RAHEEM CONFIRMS THE STILL. Standing rule. His breathing idle is south-only when approved."
+  ],
+
+  "identity": {
+    "description": "A Black dwarf smith drawn as a big-headed chibi game character, warm dark brown skin, friendly readable face. Short thick black dreadlocks with small gold beads, a long black beard split into two braids. He wears a fur-trimmed leather shoulder mantle over a rust-brown tunic, a scorched work apron, dark trousers and heavy boots, fully covered from neck to feet. Short and broad, standing squarely.",
+    "avoid": "no sword, no weapons, no shield, no armour, no wizard robe, no cape, no helmet, no bare chest, no bare arms, no background, no floor, not realistic proportions, not an adult human body plan, not tall"
+  },
+
+  "style": {
+    "view": "low top-down",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 128, "height": 128 }
+  },
+
+  "palette": {
+    "reference": null,
+    "note": "No colour reference, matching the hero. The courtyard plate as color_image dragged the hero toward dark stone and cost his face contrast."
+  },
+
+  "seed": 660418,
+
+  "directions": ["south"],
+
+  "animations": []
+}

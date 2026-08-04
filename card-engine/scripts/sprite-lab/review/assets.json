@@ -294,8 +294,19 @@
       "endpoint": "/create-character-with-4-directions",
       "generations": 8,
       "faces": "4 directions; EAST is the forge's",
+      "verdict": "approved",
+      "note": "APPROVED - Raheem: 'I like the apprentice'. Correct chibi register, east facing confirmed."
+    },
+    {
+      "id": "dwarf-chibi-south",
+      "file": "src/assets/dev-preview/forge-life/dwarf-chibi-south.png",
+      "wall": "floor",
+      "source": "keeper-dwarf-chibi.json",
+      "endpoint": "/create-character-with-4-directions",
+      "generations": 8,
+      "faces": "4 directions; SOUTH is his counter facing",
       "verdict": "pending",
-      "note": "THE CORRECT REGISTER. Red curly-haired woman reading a book, generated on hero-chibi.json's exact style block. The previous attempt used the v3 pipeline, which has NO proportions field, so 'chibi' was prose and the model drew a detailed adult. Seed 771244 recorded."
+      "note": "REGENERATED in the game's chibi register. Register is right, but IDENTITY DRIFTED: the beads in his dreads and the split braided beard did not survive, his skin reads lighter than the original, and he is proportioned more like the hero than short-and-broad. Seed 660418 IS recorded, so a sharper re-roll is cheap. Raheem's call."
     }
   ]
 }
