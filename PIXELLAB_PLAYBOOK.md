@@ -77,6 +77,23 @@ This is the second time this bug has hit the repo; `src/data/combat/heroSpriteMa
 
 Passing a scene plate as `color_image` for "harmony" dragged a chibi character toward dark stone tones; his face and apron lost contrast and he read muddy against sunlit paving. **Readability of the character the player controls beats palette cohesion.** Prefer no colour reference for player characters; reserve it for props that should recede.
 
+## "Transparent background" can be drawn LITERALLY
+
+A wall-crack prompt asked for a *"solid blade of brilliant light"* on a *"transparent
+background"*. The model returned a **literal transparency checkerboard rendered as actual
+pixels** — the grey-and-white squares baked into the image — around a white bar.
+
+The failure mode: when the subject itself is mostly light and the rest of the frame is
+described as transparent, there is almost nothing left to draw, so the model draws the
+convention for "nothing". Its training data is full of checkerboards meaning transparency.
+
+**Say `no background, no floor, no panel, no square border` instead.** Those describe what must
+not be present; "transparent background" names a *thing* the model can render. The three
+sibling items in the same call that had solid subjects came back correctly, so this is
+specifically a risk when the subject has little substance of its own.
+
+Related and already recorded: PixelLab's `no_background` flag is a request, not a guarantee.
+
 ## The art register is a PARAMETER, not an adjective
 
 **`/create-character-v3` has no `proportions` field.** You can write "chibi, big-headed" in the

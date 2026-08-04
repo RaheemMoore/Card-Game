@@ -538,6 +538,50 @@
       "faces": "1",
       "verdict": "pending",
       "note": "FLAIR PASS. Tighter square case, runes etched on the frame, crackle across the glass."
+    },
+    {
+      "id": "wallcrack-violet-web",
+      "file": "src/assets/dev-preview/wall-fissure/crack-violet-web.png",
+      "wall": "left",
+      "source": "wall-fissure.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "BEST OF THE FOUR. A dark branching crack climbing the wall with violet crystals pushing through every fracture and rubble at the foot. Cleanest cutout too \u2014 only 45% of its crop is opaque, so there is almost nothing to cut. This is the one."
+    },
+    {
+      "id": "wallcrack-blue-breach",
+      "file": "src/assets/dev-preview/wall-fissure/crack-blue-breach.png",
+      "wall": "left",
+      "source": "wall-fissure.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "USABLE, second choice. Blue crystals bursting through with tumbled blocks. Reads more as a burst than a climb \u2014 wider than tall, so it works low on a wall rather than running up it."
+    },
+    {
+      "id": "wallcrack-crimson-vein",
+      "file": "src/assets/dev-preview/wall-fissure/crack-crimson-vein.png",
+      "wall": "left",
+      "source": "wall-fissure.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "NEEDS CUTTING and reads more like coral or a bush than a crack in stone. It came back with a pale beige backing slab behind the crystals."
+    },
+    {
+      "id": "wallcrack-light-seam",
+      "file": "src/assets/dev-preview/wall-fissure/crack-light-seam.png",
+      "wall": "left",
+      "source": "wall-fissure.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "rejected",
+      "note": "The model drew the transparency checkerboard as real pixels. Unusable."
     }
   ]
 }
