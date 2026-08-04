@@ -230,6 +230,61 @@
       "faces": "1 \u2014 a rug has no front",
       "verdict": "pending",
       "note": "TRAINING quadrant. Round rust-and-sand sparring ring, worn pale through the middle."
+    },
+    {
+      "id": "apprentice-east",
+      "file": "src/assets/dev-preview/forge-life/apprentice-east.png",
+      "wall": "floor",
+      "source": "keeper-forge-apprentice.json",
+      "endpoint": "/create-character-v3",
+      "generations": 15,
+      "faces": "8 rotations generated; EAST is the one the forge needs",
+      "verdict": "pending",
+      "note": "FACING CONFIRMED BY EYE, not by label: east is genuinely profile-facing screen-RIGHT, which is where the crystal sits. Seed 480915 IS recorded, so unlike the dwarf and archivist she can be rebuilt. Awaiting Raheem's approval before the study animation."
+    },
+    {
+      "id": "pet-curled-asleep",
+      "file": "src/assets/dev-preview/forge-life/curled-asleep.png",
+      "wall": "floor",
+      "source": "prop-forge-pet.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "RESTING POSE \u2014 recommended as the base object, since the stretch should grow out of it."
+    },
+    {
+      "id": "pet-sitting-alert",
+      "file": "src/assets/dev-preview/forge-life/sitting-alert.png",
+      "wall": "floor",
+      "source": "prop-forge-pet.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": ""
+    },
+    {
+      "id": "pet-mid-stretch",
+      "file": "src/assets/dev-preview/forge-life/mid-stretch.png",
+      "wall": "floor",
+      "source": "prop-forge-pet.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "The cat stretch Raheem asked for, yawn included. NOTE: these four poses are INDEPENDENT generations, so using them as animation frames directly would drift. Animate one base object instead."
+    },
+    {
+      "id": "pet-lying-relaxed",
+      "file": "src/assets/dev-preview/forge-life/lying-relaxed.png",
+      "wall": "floor",
+      "source": "prop-forge-pet.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": ""
     }
   ]
 }

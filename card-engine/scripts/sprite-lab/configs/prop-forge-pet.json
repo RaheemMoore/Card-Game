@@ -1,0 +1,35 @@
+{
+  "subject": "prop-forge-pet",
+  "label": "The Forge Pet — a griffin cub asleep on the counter",
+
+  "notes": [
+    "RAHEEM'S BRIEF, 2026-08-04: 'nothing too crazy to animate. Something cute. Griffin or something. Something magical that can sit on the table. We can get it to stand up and stretch, like a cat stretch.'",
+    "BUILT AS AN OBJECT, NOT A CHARACTER — this is the load-bearing decision. Quadruped CHARACTER animation is 0-for-3 in this repo: `eating` stalled server-side twice and `rest-idle` was abandoned in flight after fifteen minutes. Object animation, by contrast, worked first try for 2 generations on the lectern. A creature that sits on a counter needs no walk cycle, so nothing is lost by taking the reliable route.",
+    "WHY A GRIFFIN CUB AND NOT SOMETHING STRANGER: the last attempt reached for the exotic and the model struggled. A cub is unmistakably magical (feathers, beak, wings) while having a CAT'S BODY PLAN — and a cat body is what makes a stretch read. The motion has to be legible at ~70px, so the pose has to be one everyone already recognises.",
+    "DRAWN CURLED AND SETTLED, the resting pose of the loop. The stretch is generated from this as its animation, so the still is the anchor rather than one frame of four.",
+    "IT SITS ON THE COUNTER, so it gets NO ground footprint and NO collider of its own — the counter already has one. It is scenery with charm, not an obstacle.",
+    "SIZE: it must sit on the counter without dominating it. The counter is 214x110 on the plate, so the cub wants to land around 70px — roughly a third of the counter's width, the size of a real cat curled on a real workbench.",
+    "PLANNED ANIMATION once Raheem confirms: a stand-and-stretch loop — curled, lifts head, rises, arches into a long cat stretch, settles back. ~2 generations, single direction. Confirm the facing first, per the standing rule.",
+    "Style anchor is the hero crop. Modesty M5.7 is not engaged — no figures.",
+    "/create-1-direction-object rejects `seed`, so this is not reproducible. A bad result is a reroll with a changed description, not a re-roll of the same prompt."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "objects": [
+    {
+      "id": "forge-pet",
+      "note": "Four takes on the same cub in one call — 25 generations buys four attempts at the pose rather than one, and the pose is the whole risk.",
+      "params": {
+        "description": "a tiny cute magical griffin cub curled up asleep, seen from a low top-down angle, cat-sized, soft cream and warm tawny feathers on its head and folded wings with a fluffy honey-brown lion body and tail, small golden beak, oversized ears, black pixel outline, basic shading, no background",
+        "view": "top-down",
+        "item_descriptions": [
+          "tiny cute griffin cub curled up asleep in a tight circle with its tail wrapped around itself, small folded cream feathered wings on its back, tawny lion hindquarters, soft golden beak tucked into its chest, eyes closed",
+          "tiny cute griffin cub sitting upright and alert on its haunches like a cat, cream feathered head and chest, small folded wings, tawny lion body, tail curled around its front paws, golden beak, big round eyes",
+          "tiny cute griffin cub mid-stretch with its front legs stretched forward and its rump raised in a long cat stretch, cream feathered wings half open, tawny lion hindquarters, golden beak open in a small yawn",
+          "tiny cute griffin cub lying flat and relaxed on its side with legs loosely tucked, cream feathered wings folded against its back, tawny lion body, golden beak resting on its paws, content and sleepy"
+        ]
+      }
+    }
+  ]
+}
