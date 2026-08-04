@@ -178,3 +178,39 @@ Never loosen the gate to make an asset pass; freeze the first failure into
    `art-` layer in `MpUs9WJKMvwTtpH9Akz4Rm`. What and where is it?
 3. **Rugs** — the star vs charcoal comparison in the Figma file is still unresolved for the
    forge, and each new quadrant wants the same decision.
+
+---
+
+## Walkability — the green / red / blue convention
+
+Added to the Figma plate 2026-08-04, with a `READ ME — walkability` frame beside it. Layers
+live inside the `plate` frame so every coordinate is already in the game's 1536x1152 space.
+
+| Colour | Prefix | Meaning |
+|---|---|---|
+| **GREEN** | `walk-*` | Floor the player can move across |
+| **RED** | `block-*` | Solid. The player is stopped |
+| **BLUE** | `path-*` | Routes that must stay open no matter what gets placed |
+
+The red boxes for the forge, counter and bench are **not proposals** — they are the colliders
+already traced and running in the preview, imported from
+`scripts/sprite-lab/figma-traces/courtyard-v2-forge-preview.json`. The fountain and the green
+floor are proposals for Raheem to reshape.
+
+### The number that decides it: 24px
+
+`HERO_FEET` is **34 x 20 px** and `NAVIGATION_TOLERANCE` is **4**
+(`src/data/castle/heroSprite.ts`, `v2-preview/forgeColliders.ts`), so **24px is the hard
+minimum gap** the hero can pass through. That is a squeeze, not a walk. The blue corridors are
+drawn at **90–140px** deliberately: a passage at the bare minimum reads as a wall and players
+will not attempt it. **Treat 24px as the failure line, not the target.**
+
+The existing forge aisles already assert this in code — `PREVIEW_FORGE_AISLE` and
+`PREVIEW_FORGE_COUNTER_AISLE` each carry `requiredClearance` and a pass/fail check, and the
+preview has named scenarios that walk the hero through both. Any new blue path should get the
+same treatment before it is believed.
+
+### Order of work
+
+Place objects → check no blue path is blocked → then trace colliders. Tracing first means
+re-tracing every time something moves.
