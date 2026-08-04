@@ -30,6 +30,9 @@ So: **the tileset route is spent, the prop route is proven.**
 
 ## Recommendation, ranked
 
+> **The day/night cycle is the point.** Read section 2 before anything else — it reverses the
+> caution this handoff originally carried.
+
 ### 1. Free the fountain first — low risk, high payoff
 
 It is currently painted into the plate, which is why it can never ripple, never catch light, and
@@ -44,19 +47,44 @@ Two routes, both viable:
 
 Do this one even if the floor idea is dropped.
 
-### 2. The floor — the hard part is the LIGHT, not the bricks
+### 2. The floor — and the reason it matters more than it first looked
 
-**The plate's floor carries a large diagonal cast shadow, and that shadow is what gives the
-courtyard depth.** A new floor that is evenly lit will read flatter than what exists now, even
-if the paving is more beautiful. Solve this before judging any paving.
+**Raheem's long-term goal is a DAY/NIGHT CYCLE**: the sun crossing the sky and setting, the moon
+rising and setting. That reframes this entire question, and it reverses the caution written in
+the first draft of this handoff.
 
-Routes, best first:
-- **Leonardo painted floor** via `card-engine/scripts/bg-harness` — same pipeline that made the
-  plate, so the register matches by construction. Consult `environment-art-director` first.
-- **One large paving texture** seated with `lib/lay_flat.py` (built this session; a true
-  8-coefficient projective solve, not a shear).
-- ~~PixelLab Wang tileset~~ — **already tested and lost.** Do not re-spend here without a
-  reason that answers the grid-repetition finding.
+**A painted-in shadow is a fixed sun.** The plate's big diagonal cast shadow is not merely
+"depth we would lose" — it is the single thing that makes a day/night cycle impossible. You
+cannot move the sun while the shadow is welded to the floor.
+
+So replacing the floor is not a risk to the day/night goal. **It is the prerequisite for it.**
+
+**Generate the floor EVENLY LIT, with no cast shadows and no directional light baked in.** That
+is easier for Leonardo than matching a specific shadow, not harder. The light then moves out of
+the art and into code, where it can actually move.
+
+**Tool split (Raheem, explicit):** *"I was only referring to using Leonardo for the floor.
+Leonardo is what we use for pretty backgrounds. We use PixelLab to generate the fountain."*
+Correct, and it matches CLAUDE.md — Lucid Origin for flat top-down plates, PixelLab for objects.
+Ignore the tileset discussion above except as the record of why tiles are not the route.
+
+#### What day/night then needs, in layers
+
+| Layer | What it is | Where it lives |
+|---|---|---|
+| Ground | Evenly lit paving, no baked shadow | Leonardo plate, via `bg-harness` |
+| Structures | Walls, towers, keep, gate — cut from the current plate or regenerated | image layers |
+| **Cast shadows** | A shadow map that ROTATES with the sun | **Phaser, generated** |
+| Time-of-day grade | Warm dawn, white noon, amber dusk, blue night | **Phaser tint over everything** |
+| Lights | Braziers, crystals, lanterns that only matter after dark | **Phaser, additive** |
+
+The last three are free and re-tunable forever.
+`src/pages/castle/v2-preview/crystalVfx.ts` is already a working example of the code-side half —
+bloom, glints and motes driven entirely by numbers rather than art.
+
+**The structures still carry their own baked shadows too.** Full day/night eventually needs the
+whole plate separated into ground + structures + dynamic shadow. The floor is step one, not the
+whole job — but it is the step that unblocks the rest, and it can be done alone.
 
 ### 3. What replacing the floor would break
 
