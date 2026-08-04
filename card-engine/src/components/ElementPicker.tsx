@@ -30,6 +30,18 @@ const DEFAULT_BOND = 'It is part of who I am.' as const;
 interface ElementPickerProps {
   archetype: ArchetypeName;
   onComplete: (selection: ElementSelection) => void;
+  /**
+   * Opt-in wider layout for the full-bleed stall, which has a whole screen to
+   * spend. Defaults to false so the web forge at /forge renders EXACTLY as it
+   * did — Raheem: "do not remove it until we completely approve this," and a
+   * silent layout change to the shipping ritual is a kind of removal.
+   *
+   * The narrow default caps at max-w-2xl with three columns, which on a
+   * full-bleed screen wasted half the width and pushed an archetype with more
+   * than three elements into a scroll. Raheem: "There should be no scroll. Just
+   * lay out each of the elements... don't shrink the images."
+   */
+  wide?: boolean;
 }
 
 interface ElementTileProps {
@@ -83,7 +95,7 @@ function ElementTile({ element, rarityLabel, rarityClass, onPick }: ElementTileP
   );
 }
 
-export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
+export function ElementPicker({ archetype, onComplete, wide = false }: ElementPickerProps) {
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   const natural = buckets.naturally_compatible;
   // Rares are FULLY SELECTABLE during testing (Raheem 2026-07-24) — the "Rare"
@@ -96,7 +108,9 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 min-h-0">
+    <div
+      className={`w-full mx-auto space-y-6 min-h-0 ${wide ? 'max-w-6xl' : 'max-w-2xl'}`}
+    >
       <header className="text-center space-y-2">
         <h2 className="font-fantasy text-2xl font-bold text-ivory">Your Power</h2>
         <p className="text-ash text-sm italic">
@@ -104,7 +118,11 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-0">
+      <div
+        className={`grid gap-3 min-h-0 ${
+          wide ? 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3'
+        }`}
+      >
         {natural.map((element) => (
           <ElementTile
             key={element}

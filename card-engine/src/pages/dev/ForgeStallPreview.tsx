@@ -106,6 +106,7 @@ export function ForgeStallPreview() {
     if (step === 2 && archetype) {
       return (
         <ElementPicker
+          wide
           archetype={archetype}
           onComplete={(sel) => {
             setElement(sel);
@@ -166,6 +167,10 @@ export function ForgeStallPreview() {
         subtitle="Design preview — the web forge at /forge is unchanged"
         stages={STAGES}
         currentStage={step}
+        // The element step lays out in the space it has instead of scrolling —
+        // see StallShell's noScroll note. Every other step is content of
+        // unknown length and keeps the scroller.
+        noScroll={step === 2}
         narrow={narrow}
         onClose={reset}
         scrollLabel="Forge steps"

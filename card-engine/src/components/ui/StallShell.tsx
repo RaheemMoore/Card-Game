@@ -46,6 +46,15 @@ interface Props {
    * the chosen archetype's commissioned background here.
    */
   backdrop?: string;
+  /**
+   * Render the body in the available space with NO scroller.
+   *
+   * Raheem, on the element step: "There should be no scroll... it makes it look
+   * dirty, runs damage in the background." The scroll fades are right for a
+   * collection of unknown length and wrong for a step whose whole content is
+   * meant to be seen at once — the fade reads as grime over the painting.
+   */
+  noScroll?: boolean;
 }
 
 export function StallShell({
@@ -62,7 +71,13 @@ export function StallShell({
   scrollLabel,
   fullBleed = false,
   backdrop,
+  noScroll = false,
 }: Props) {
+  // Full-bleed puts the frame ON the screen edge, so content needs its own
+  // inset or it collides with the art of the frame. Raheem: "the archetype
+  // checkbox is smashed up against the frame — let me get a little bit of
+  // padding over there to the left."
+  const inset = fullBleed ? (narrow ? 16 : 30) : 4;
   return (
     <Scrim onClose={onClose} label={title} bottomSheet={narrow} fullBleed={fullBleed}>
       <Panel
@@ -133,7 +148,7 @@ export function StallShell({
             display: 'flex',
             alignItems: 'baseline',
             gap: 12,
-            padding: '4px 4px 12px',
+            padding: `4px ${inset}px 12px`,
             flexWrap: 'wrap',
           }}
         >
@@ -147,23 +162,49 @@ export function StallShell({
         </header>
 
         {stages && (
-          <div style={{ paddingBottom: 12, position: 'relative', zIndex: 1 }}>
+          <div
+            style={{
+              padding: `0 ${inset}px 12px`,
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
             <StageRail stages={stages} current={currentStage} compact={narrow} />
           </div>
         )}
 
         {toolbar && (
-          <div style={{ position: 'relative', zIndex: 1 }}>{toolbar}</div>
+          <div style={{ position: 'relative', zIndex: 1, padding: `0 ${inset}px` }}>{toolbar}</div>
         )}
 
-        <ScrollArea
-          axis="y"
-          label={scrollLabel ?? title}
-          style={{ flex: 1, position: 'relative', zIndex: 1 }}
-          contentStyle={{ padding: 4 }}
-        >
-          {children}
-        </ScrollArea>
+        {noScroll ? (
+          // Centred in whatever room is left, rather than pinned to the top of a
+          // scroller. A step that fits should look composed, not truncated.
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              position: 'relative',
+              zIndex: 1,
+              padding: `0 ${inset}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            {children}
+          </div>
+        ) : (
+          <ScrollArea
+            axis="y"
+            label={scrollLabel ?? title}
+            style={{ flex: 1, position: 'relative', zIndex: 1 }}
+            contentStyle={{ padding: `0 ${inset}px` }}
+          >
+            {children}
+          </ScrollArea>
+        )}
 
         {(footer || footerNote) && (
           <footer
@@ -173,7 +214,7 @@ export function StallShell({
               display: 'flex',
               alignItems: 'center',
               gap: 12,
-              paddingTop: 14,
+              padding: `14px ${inset}px 0`,
               flexWrap: 'wrap',
             }}
           >
