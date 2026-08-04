@@ -384,7 +384,9 @@ The forge quadrant is a verified development checkpoint, not permission to repla
 | What | Where |
 |---|---|
 | Finish collider and occluder traces for the remaining courtyard, including walls and fountain | `src/pages/castle/v2-preview/` + Figma Courtyard V2 file |
-| Design and build the top-left, bottom-left Archivist, and bottom-right quadrants | Figma Courtyard V2 file |
+| ~~Design~~ and build the top-left, bottom-left Archivist, and bottom-right quadrants — **all three are now designed** in `card-engine-courtyard-v2-quadrants.md`; the tower's six objects are generated and awaiting Raheem's pick | Figma Courtyard V2 file |
+| Decide the tower objects: keep, cut, or re-roll each of the seven `art-tower-*` layers now sitting in the plate frame | Figma Courtyard V2 file |
+| Find or generate the forge apprentice and forge pet — neither exists in git, and neither is an `art-` layer in `MpUs9WJKMvwTtpH9Akz4Rm` | unknown; blocking |
 | Remove the counter's baked shadow and reduce the bench shadow without damaging the rug | Courtyard V2 source art |
 | Replace preview-only walk bounds with the complete imported map collision set | `v2-preview/CourtyardV2PreviewScene.ts` |
 | Integrate V2 into the production castle only after full-map runtime and human visual approval | `src/pages/castle/` |
@@ -778,6 +780,38 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-04 — The forge crystals are a code problem, and the tower is picked in Figma
+
+Two things settled today that had been treated as art questions.
+
+**The counter crystals will never be animated art.** PixelLab has no object-animation endpoint
+at all: the object route returns a still, and the animation route is skeleton-driven and needs
+a character, so it animates a rigged humanoid rather than a gem. Faking it with independent
+"frame 1/2/3" prompts is the drift trap that already cost 186 generations. So the gems stay
+static paint and every bit of their life is synthesized in Phaser for free. One rule was bent
+deliberately: the courtyard life plan mutes every emitter within 80px of the hero, but the gems
+are the forge's attractor, so their glow **ramps up** on approach and only the drifting motes
+mute. Muting the counter exactly when the player walks up to it is the opposite of the ask.
+
+**The tower quadrant's objects are generated and chosen in Figma, not in code.** Six objects
+plus two the API volunteered, 50 generations, anchored to the hero crop. Anchoring instead to a
+crop of the shipped forge counter was considered and rejected: that art is small and dense with
+one-off content, so any usable crop lands on a gem, a card or a leg finial, and rides it into
+whatever is generated next — the Still Season failure in miniature. They now sit in the plate
+frame at true game scale for Raheem to keep or cut, because he is picking, not cutting.
+
+*Two things this cost us that are now written down.* `item_descriptions` does not cap how many
+objects a call returns — the style image's size does — so a two-item request still returned
+four and spent half its slots on inventions nobody briefed. And objects always arrive untrimmed
+and floating above the canvas bottom, failing the anchor gate by construction; trimming to the
+alpha box is a mandatory post-process, not a defect.
+
+**Still open, and blocking:** the forge apprentice and forge pet do not exist in git and are not
+`art-` layers in the Courtyard v2 file, contrary to what we believed when the session started.
+
+*Why it matters:* the expensive half of this work was the half nobody spent money on.
+
 
 ### 2026-08-04 — Being on `main` is not the same as being in the game
 
