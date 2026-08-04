@@ -239,8 +239,8 @@
       "endpoint": "/create-character-v3",
       "generations": 15,
       "faces": "8 rotations generated; EAST is the one the forge needs",
-      "verdict": "pending",
-      "note": "FACING CONFIRMED BY EYE, not by label: east is genuinely profile-facing screen-RIGHT, which is where the crystal sits. Seed 480915 IS recorded, so unlike the dwarf and archivist she can be rebuilt. Awaiting Raheem's approval before the study animation."
+      "verdict": "rejected",
+      "note": "WRONG ART REGISTER - semi-realistic adult proportions beside a chibi game. Raheem likes the character and wants her reused in ANOTHER ZONE, so keep the files; she is simply not the forge apprentice."
     },
     {
       "id": "pet-curled-asleep",
@@ -285,6 +285,17 @@
       "faces": "1",
       "verdict": "pending",
       "note": ""
+    },
+    {
+      "id": "apprentice-chibi-east",
+      "file": "src/assets/dev-preview/forge-life/apprentice-chibi-east.png",
+      "wall": "floor",
+      "source": "keeper-forge-apprentice-chibi.json",
+      "endpoint": "/create-character-with-4-directions",
+      "generations": 8,
+      "faces": "4 directions; EAST is the forge's",
+      "verdict": "pending",
+      "note": "THE CORRECT REGISTER. Red curly-haired woman reading a book, generated on hero-chibi.json's exact style block. The previous attempt used the v3 pipeline, which has NO proportions field, so 'chibi' was prose and the model drew a detailed adult. Seed 771244 recorded."
     }
   ]
 }

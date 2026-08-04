@@ -880,6 +880,39 @@ function cmdShow(subject) {
   );
 }
 
+/**
+ * Promote chosen frames of a REVIEW object into their own completed objects.
+ *
+ * A multi-item `/create-1-direction-object` call returns ONE object holding
+ * several candidate frames, and a review object cannot be animated. Selecting a
+ * frame is what turns "one of four sketches" into an asset with its own
+ * object_id — which is the handle `/objects/{id}/animations` needs.
+ *
+ *   node sprite-lab.mjs promote <subject> <objectId> <index[,index...]> [tag]
+ */
+async function cmdPromote(subject, args) {
+  const [objectId, indexList, tag] = args;
+  if (!objectId || !indexList) {
+    throw new Error('usage: promote <subject> <objectId> <indices> [tag]');
+  }
+  const indices = indexList.split(',').map((n) => Number(n.trim()));
+  const body = { indices, ...(tag ? { common_tag: tag } : {}) };
+  const res = await api('POST', `/objects/${objectId}/select-frames`, body);
+
+  const m = loadMan(subject);
+  m.promoted = m.promoted ?? {};
+  m.promoted[`${objectId}:${indexList}`] = {
+    indices,
+    createdObjectIds: res.created_object_ids,
+    usage: res.usage ?? null,
+  };
+  saveMan(subject, m);
+
+  console.log(`promoted frame(s) ${indices.join(', ')} of ${objectId}`);
+  for (const id of res.created_object_ids ?? []) console.log(`  object_id ${id}`);
+  console.log(`  usage: ${JSON.stringify(res.usage ?? 'none reported')}`);
+}
+
 function cmdSheet(subject) {
   const c = cfg(subject);
   const d = outDir(subject);
@@ -949,10 +982,11 @@ ${
 
 const [cmd, subject] = process.argv.slice(2);
 if (!cmd || !subject) {
-  console.log('usage: sprite-lab.mjs <gen|scene|recover|portrait|show|sheet> <subject>');
+  console.log('usage: sprite-lab.mjs <gen|scene|promote|recover|portrait|show|sheet> <subject> [args]');
   process.exit(1);
 }
 if (cmd === 'gen') await cmdGen(subject);
+else if (cmd === 'promote') await cmdPromote(subject, process.argv.slice(4));
 else if (cmd === 'scene') await cmdScene(subject);
 else if (cmd === 'recover') await cmdRecover(subject);
 else if (cmd === 'portrait') await cmdPortrait(subject);

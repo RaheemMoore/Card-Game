@@ -130,6 +130,8 @@ being raised in a chat and lost.*
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
 | Q8 | Now that the Studio Wiki replaced the old Production Guide link, does the guide itself retire? | The generated page at `docs/production/production.html` still exists and the `production-log` skill still ends by republishing it. The Wiki reads the same source and redeploys automatically. Keeping both means two versions of the truth and a manual step that will be skipped. |
+| Q10 | If forging stops making a live API call, do Forge Crystals still make sense as purchase-only? | They are purchase-only *because* each generation costs real money (economy plan §13). A pool weakens that rationale. Pricing changes need your explicit approval, so this needs your ruling before anything moves. |
+| Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
 | Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
 ---
@@ -840,6 +842,56 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-04 — Characters are 2D chibi, and a canonical doc was telling us otherwise
+
+The forge apprentice came back semi-realistic — tall, detailed, adult-proportioned — standing
+beside a game whose actual character is a big-headed chibi. Raheem, immediately: *"That's the
+vibe of the game, 2D chibi... what you did makes absolutely no sense."*
+
+**Two causes, and both are now fixed rather than noted.**
+
+`SHOPKEEPER_GUIDE.md` opened with *"THE QUALITY BAR IS THE DWARF, NOT THE HERO... the chibi hero
+is temporary... do NOT tone new characters down to match the hero."* That instruction was
+followed, and it is what steered the generation wrong. It is now **reversed**: the chibi hero is
+the anchor, and the dwarf is off-vibe too and queued for regeneration.
+
+The mechanical cause is sharper and worth more. **`/create-character-v3` has no `proportions`
+field.** "Chibi" can only be written in prose there, and prose lost — the model drew a detailed
+adult. `/create-character-with-4-directions` has a *real* proportions preset, and that is the
+route that made the hero in the game. Regenerating on the hero's exact style block produced the
+right character first try, for 8 generations.
+
+**The rule now: copy `hero-chibi.json`'s style block verbatim and change only the identity.**
+Vary body type, age, sex, ancestry and silhouette freely; never vary the register.
+
+The rejected apprentice is kept rather than deleted — Raheem likes the character and wants her
+in another zone. She is not wrong, she is in the wrong game's art style.
+
+*Why it matters:* a cast generated from different style blocks looks assembled from different
+games, and this project has now proved that a canonical document can be the thing causing the
+defect.
+
+
+### 2026-08-04 — Cards will come from a pre-generated pool, not a live forge
+
+Raheem: *"Right now people are using API calls to generate cards and it takes 20 to 60
+seconds. The intention was for the cards to be original. But now we're just gonna generate a
+number of cards for each archetype, so users will be able to just pull from an
+already-generated pool. It'll be much faster. We're just keeping the web access while we
+create these cards and improve the questionnaire process."*
+
+**Nothing has been built yet, and nothing has been removed.** The live forge is still the
+shipping path and stays until the pool exists.
+
+*Why it matters:* it removes the 20–60 second wait and takes a paid Claude + Leonardo call
+off the per-player path. It also changes what the Forge SURFACE is for — the rotating
+"summoning your champion…" messages are scaffolding for a delay that is going away, and the
+moment becomes a reveal rather than a progress bar. The questionnaire survives and is being
+improved; its job shifts from feeding a generator to narrowing which card you pull.
+
+*What it opens:* two things worth a deliberate ruling rather than a drift — see Q10 and Q11
+in §0.
 
 ### 2026-08-04 — This is a 2D pixel game, and the rule is "painted is what you look at, pixel is what you touch"
 

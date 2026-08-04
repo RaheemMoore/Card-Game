@@ -77,6 +77,27 @@ This is the second time this bug has hit the repo; `src/data/combat/heroSpriteMa
 
 Passing a scene plate as `color_image` for "harmony" dragged a chibi character toward dark stone tones; his face and apron lost contrast and he read muddy against sunlit paving. **Readability of the character the player controls beats palette cohesion.** Prefer no colour reference for player characters; reserve it for props that should recede.
 
+## The art register is a PARAMETER, not an adjective
+
+**`/create-character-v3` has no `proportions` field.** You can write "chibi, big-headed" in the
+description all you like; the model will hand back a detailed adult. That is exactly what
+happened to the forge apprentice — semi-realistic, adult proportions, standing beside a game
+made of big-headed chibis, and Raheem caught it immediately.
+
+**`/create-character-with-4-directions` has a real `proportions` preset**, and that is the route
+that produced the hero who is actually in the game.
+
+| Need | Route | Why |
+|---|---|---|
+| A chibi character for this game | `/create-character-with-4-directions` + `proportions: {type: preset, name: chibi}` | The preset is enforced, not suggested |
+| Maximum fidelity, register not critical | `/create-character-v3` | 8 rotations, ~64 colours, but proportions are prose-only |
+
+**The standing rule (Raheem, 2026-08-04):** *"Only generate characters for this game based on
+the other characters in the game."* Copy `hero-chibi.json`'s style block verbatim — view,
+proportions, outline, shading, detail and size — and change only the identity. Vary body type,
+age, sex and ancestry as much as you like; **never vary the register.** A cast generated with
+different style blocks looks assembled from different games, which is precisely what happened.
+
 ## Parameters worth knowing
 
 - `proportions` presets: `default`, `chibi`, `cartoon`, `stylized`, `realistic_male`, `realistic_female`, `heroic`, or custom head/limb multipliers. At ~100px display height, big heads read and realistic figures turn to mush.
