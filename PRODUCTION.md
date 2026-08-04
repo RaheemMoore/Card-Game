@@ -297,12 +297,12 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side |
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
-| IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
+| SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. The separate Studio Wiki remains its own in-flight workstream. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The live full-motion exchange reaches the next intent in about 6.2 seconds instead of racing through the reducer log. Boss-bound volleys land in a readable triangle instead of stacking three effect pieces on one point. Motion Off keeps the same readable order as still tableaux. The combined branch is not merged, pushed, or deployed. |
-| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible ability it could activate; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back to the waited hero. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
+| SHIPPED | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets run in the authentic `/battle` event stream. Combat follows **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The full-motion exchange reaches the next intent in about 6.2 seconds; boss-bound volleys land in a readable triangle, and Motion Off preserves the order as still tableaux. Released through PR #34 at production commit `98f66e7`. |
+| SHIPPED | Decision Experience System — Stage 1 | The selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible usable ability; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back. Projections, the Threat Translator, contextual explanations, shared confirmation policy, authoritative receipts, and `/dev/decision-lab` remain intact. **Encounter Briefing and dedicated Pilot A/B comprehension passes are still open Stage 2 work** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -314,15 +314,13 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Five. Everything else is merged.
+Three. Everything else is merged.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
-| `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
-| `decision-experience` | 8 | — | Combined local release candidate with the party plan, stable selected-card focus, explicit Wait/lockout guidance, triangular volley impacts, staged six-second party/boss cadence, and the Wait-only action rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
@@ -738,6 +736,24 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — The combined boss-combat overhaul ships to production
+
+Raheem approved the reviewed fight as a major improvement and authorized production release.
+Ability Performance and Decision Experience Stage 1 shipped together through PR #34 at
+production commit `98f66e7`: party planning, one-action-per-card lock-in, element-specific
+charges and travel, synchronized triangular impacts, readable boss response pacing, explicit
+Wait-only lockouts, projections, Threat Translator, confirmation policy, and receipts all run
+in the authentic `/battle` experience.
+
+GitHub's production build and Vercel deployment both passed. The production project retains
+its existing Vercel access protection; opening the live game from a new browser requires the
+owner's Vercel login and two-factor code. That security setting was preserved, not weakened
+for testing.
+
+*Why it matters:* the branch work is no longer a prototype or review lab. The approved combat
+flow is now the version served from `main`, while Encounter Briefing and the two remaining
+comprehension passes stay honestly scoped as later Stage 2 work.
 
 ### 2026-08-03 — Combat now moves in readable human beats
 
