@@ -579,24 +579,19 @@ async function cmdScene(subject) {
     // `reference_image` is MUTUALLY EXCLUSIVE with `style_image`, so a spec that
     // supplies one must not also carry the hero anchor. That is a hard API rule,
     // not a preference, hence the explicit clear rather than relying on config.
-    // PLATE PALETTE ANCHOR — the answer to "make everything match the bricks".
+    // NO PLATE PALETTE ANCHOR IS POSSIBLE HERE — VERIFIED, NOT ASSUMED.
     //
-    // `palette_ref.py` shrinks the courtyard plate to a 192px thumbnail and it
-    // goes in as `color_image`, so the model is generating INTO the plate's own
-    // colours instead of inventing neutral grey stone that reads as a sticker.
+    // `/create-1-direction-object` accepts only: description, size, view,
+    // style_images, item_descriptions. Passing `color_image` returns
+    // 422 "Extra inputs are not permitted". Only the CHARACTER endpoints take a
+    // colour reference, which is the opposite of what this project needs —
+    // characters are the one thing that must NOT be palette-matched, because
+    // the plate as a colour reference cost the chibi hero his face contrast.
     //
-    // This was wired for CHARACTERS only and never for scenery, which is
-    // precisely why the arch and the fissure came back off-palette.
-    //
-    // CHARACTERS STAY EXEMPT, deliberately. Passing the plate as `color_image`
-    // dragged the chibi hero toward dark stone and cost him face contrast —
-    // readability of a character the player tracks beats palette cohesion.
-    // Scenery is the opposite: it SHOULD recede into the plate.
-    const paletteImage = paletteReference(c, d);
-    if (paletteImage && spec.matchPlate !== false) {
-      body.color_image = paletteImage;
-      if (spec.forceColors) body.force_colors = true;
-    }
+    // So scenery matches the courtyard by the other three layers instead:
+    // naming the plate's real colours in the prompt, the deterministic grades in
+    // lib/relight.py and lib/harmonize.py, and Raheem cutting baked ground off
+    // in Figma. See COURTYARD_PALETTE.md.
 
     if (spec.referenceFile) {
       const rp = path.join(d, spec.referenceFile);

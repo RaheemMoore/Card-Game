@@ -1,0 +1,29 @@
+{
+  "subject": "quadrant-wellspring-v2",
+  "label": "The Wellspring \u2014 EXPLOSIVE fissure, four variants",
+  "notes": [
+    "RAHEEM'S NOTE ON V1: 'the fissure was a little boring. Make it explosive. Make it look like it would catch their attention when they're coming in.' So these are four different answers to that, not four dressings of the same idea.",
+    "ELEMENT COLOURS ARE MEASURED, NOT GUESSED. Sampled from the game's own 28 element crystal artworks in public/assets/elements/: sanguine crimson rgb(140,22,43), fire orange-red rgb(181,90,52), light gold rgb(202,168,76), poison green rgb(119,163,94), water blue rgb(52,134,171), spirit sky-blue rgb(115,175,206), plasma indigo rgb(79,102,161), shadow magenta rgb(119,42,153). Raheem: 'you don't have to use the exact same crystal colours all the time \u2014 use the elements that exist in the game.' The old rose/azure/green trio was the counter gems repeated three times and it read tame.",
+    "THE STONE MUST MATCH THE PLATE, THE CRYSTALS MUST NOT. Measured plate: sunlit paving rgb(229,202,115) warm honey, shadowed wall stone rgb(82,85,96) dark blue-grey. The first attempt came back neutral mid-grey rgb(173,181,175), which matches neither and read as a sticker. So the prompt names the plate's stone colours explicitly \u2014 and matchPlate is deliberately FALSE, because clamping to the plate palette would dull the very crystals that are supposed to explode.",
+    "NO BAKED GROUND. The first fissure arrived carrying its own square of pale paving, which cannot blend with the plate's honey paving. Raheem has offered to cut backing off in Figma, and that beats any auto-matte \u2014 but it is cheaper still to not generate it. Hence the explicit no-floor/no-paving/no-panel clause in every item.",
+    "matchPlate is FALSE here on purpose \u2014 see the stone note. The plate palette anchor is right for furniture that should recede and wrong for the one thing in the courtyard that should shout."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "fissure-v2",
+      "matchPlate": false,
+      "note": "Four escalations: a burst, a chasm with a light column, a shattered crater, and a geode split open. Each one uses a DIFFERENT slice of the element palette so they do not blur together.",
+      "params": {
+        "description": "explosive magical crystal eruption breaking up through warm honey-coloured stone paving, brilliant multicoloured crystals in crimson gold green blue indigo and magenta, blazing light shafting upward, shards suspended in mid-air, black pixel outline, basic shading, NO background panel, no floor tile, no square border",
+        "view": "top-down",
+        "item_descriptions": [
+          "a violent eruption of huge jagged crystals bursting upward out of a cracked opening in warm honey stone paving, crystals in crimson red, gold, poison green and deep indigo at wild angles, a blaze of white-gold light exploding upward between them, small shards flung out and hanging in mid-air, cracks radiating outward through the honey paving, no background panel, no square border",
+          "a deep chasm split open in warm honey stone paving with a solid COLUMN OF BRILLIANT LIGHT roaring straight up out of it, tall crystals in water blue, spirit sky-blue and plasma indigo ringing the rim and leaning inward, glowing motes streaming upward, the honey paving cracked and tilted around the edge, no background panel, no square border",
+          "a shattered crater blown into warm honey stone paving, a dense cluster of enormous crystals in magenta, gold and crimson erupting from its centre at every angle, broken paving slabs thrown up and tilted, radiant light spilling between the shards, floating fragments suspended above, no background panel, no square border",
+          "an enormous geode cracked wide open flush in warm honey stone paving, its hollow interior packed with dazzling crystals in gold, poison green and shadow magenta catching the light, brilliant glow pouring out of the opening, a few loose crystal shards on the stone around it, no background panel, no square border"
+        ]
+      }
+    }
+  ]
+}

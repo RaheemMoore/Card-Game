@@ -327,8 +327,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "THE ASCENT'S ANCHOR. Stairs climb through the arch and vanish into cold blue haze \u2014 you cannot see where they go, which is the hook. Teal lanterns tie it to the shipped counter's fittings."
+      "verdict": "rejected",
+      "note": "The Ascent quadrant is CUT \u2014 the keep already stands top-middle, so a second tower door is redundant. Raheem is redirecting that energy into redesigning the middle tower. The four v2 arch variants are SHELVED for that work, not discarded."
     },
     {
       "id": "ascent-rank-sigil",
@@ -360,8 +360,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "WEAKEST OF THE FOUR \u2014 it reads very close to the tally-pillar we already approved from the tower batch. Probably redundant."
+      "verdict": "rejected",
+      "note": "Redundant \u2014 we already approved a tally pillar. Raheem: 'don't make no more of those.'"
     },
     {
       "id": "well-fissure",
@@ -371,8 +371,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "THE WELLSPRING'S ANCHOR, and the strongest idea \u2014 rose/azure/green crystals in the SAME three colours as the counter gems, because this is where those crystals come from. DEFECT: it came back with its own square patch of paving baked in, which will not blend with the plate's paving. Either matte it out or treat it as a floor patch laid on top."
+      "verdict": "rejected",
+      "note": "Superseded by the v2 explosive set. Boring, and it carried its own square of pale paving."
     },
     {
       "id": "well-crystal-cart",
@@ -406,6 +406,50 @@
       "faces": "1 (front only)",
       "verdict": "pending",
       "note": ""
+    },
+    {
+      "id": "fissure-A-burst",
+      "file": "src/assets/dev-preview/quadrants/v2/a-burst.png",
+      "wall": "floor",
+      "source": "quadrant-wellspring-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "EXPLOSIVE v2. Crystals blasting upward through a gold light burst. Colours sampled from the game's own element art \u2014 crimson, gold, poison green, indigo, magenta \u2014 not the counter's three. Paving is warm honey now, so it sits in the plate instead of on it."
+    },
+    {
+      "id": "fissure-B-column",
+      "file": "src/assets/dev-preview/quadrants/v2/b-column.png",
+      "wall": "floor",
+      "source": "quadrant-wellspring-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "A solid column of light roaring out of the chasm, water/spirit/plasma blues around the rim. The most legible from a distance."
+    },
+    {
+      "id": "fissure-C-crater",
+      "file": "src/assets/dev-preview/quadrants/v2/c-crater.png",
+      "wall": "floor",
+      "source": "quadrant-wellspring-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "Shattered crater, magenta and crimson cluster, tumbled slabs."
+    },
+    {
+      "id": "fissure-D-geode",
+      "file": "src/assets/dev-preview/quadrants/v2/d-geode.png",
+      "wall": "floor",
+      "source": "quadrant-wellspring-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "Geode cracked open flush in the paving. Beautiful but the most contained \u2014 reads smaller than the others."
     }
   ]
 }

@@ -21,7 +21,21 @@ Mid-grey is neither, so it reads as pasted on.
 
 ---
 
-## Layer 1 — `color_image`, the plate itself (NOW WIRED, was not)
+## Layer 1 — ~~`color_image`, the plate itself~~ NOT POSSIBLE FOR SCENERY
+
+**Tested and rejected, 2026-08-04.** `/create-1-direction-object` accepts only `description`,
+`size`, `view`, `style_images` and `item_descriptions`. Passing `color_image` returns
+**422 "Extra inputs are not permitted"**.
+
+Only the **character** endpoints take a colour reference — which is the exact inverse of what
+this project needs, because characters are the one thing that must NOT be palette-matched:
+the plate as a colour reference dragged the chibi hero toward dark stone and cost him face
+contrast.
+
+So scenery matches the courtyard through layers 2, 3 and 4 only. **Layer 2 is doing the real
+work** — see below; it is what turned the v2 fissures' paving from neutral grey to warm honey.
+
+### The original (wrong) claim, kept so it is not re-attempted
 
 `lib/palette_ref.py` shrinks the plate to a 192px thumbnail and it goes to PixelLab as
 `color_image`, so generation happens **into** the plate's colours.
