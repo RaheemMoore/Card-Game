@@ -123,9 +123,24 @@ The tool is `card-engine/scripts/sprite-lab/lib/recolor.py`.
 |---|---|---|
 | Arch and fissure came back neutral grey against a warm honey plate | a proposed re-roll of both | *"Want me to remap the stone to the plate's cream and honey?"* |
 | The dwarf read Middle Eastern instead of Black | **8 generations** | *"Want me to try the skin ramp first?"* |
-| The 8-face weapon rack's teal fittings came back brown | logged as an accepted regression | *"The teal went brown — want me to put it back?"* |
+| ~~The 8-face weapon rack's teal fittings came back brown~~ **THIS CLAIM WAS FALSE** | measured on 2026-08-04: the rack is **0.2% teal**, i.e. noise. It never had teal fittings; the **trophy rack** (11.7%) is the asset that does. The rotations preserved it faithfully. | Measure before recording a regression |
 
 The last is the worst: the defect was noticed, written down, and still not offered.
+
+### Measure the complaint before acting on it
+
+Three assets were listed as off-palette on 2026-08-04. **Two of the three claims did not survive
+measurement**, and both had been written down from eyeballing a small composite:
+
+- *"The weapon rack's teal fittings came back brown"* — the rack is **0.2% teal**. It never had
+  them. The trophy rack (11.7%) is the asset with teal.
+- *"The v2 reliquary cases flattened to a uniform cyan"* — only partly. Hue histograms show the
+  staff kept its green (150°) and the blade kept its gold (30°). **Only the bow** genuinely lost
+  its identity: cyan 180° at 2022px edged out gold 30° at 1801px.
+
+A recolour is cheap, but recolouring the wrong thing still damages an asset that was correct.
+**Run the hue histogram first.** It takes seconds and it is the difference between a fix and a
+new defect.
 
 ### The caveat — ramps are shared
 

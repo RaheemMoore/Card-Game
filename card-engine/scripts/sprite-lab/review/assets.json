@@ -515,7 +515,7 @@
       "generations": 6,
       "faces": "1",
       "verdict": "pending",
-      "note": "THE BIG FIX. In v1 the bow read thin in a large empty case; here it fills a tighter case with a blazing energy bowstring. Best improvement of the four."
+      "note": "RECOLOURED, NOT REGENERATED \u2014 zero generations. Its glass was cyan-dominant; a region-constrained palette map warmed it to gold while KEEPING the teal frame and feet that match the other three cases. Alpha byte-identical, outline 615px unchanged. Distinct colours went 43 to 57, which is the tell that the region held: had it hit everything the count would have stayed level."
     },
     {
       "id": "case-v2-living-staff",
@@ -582,6 +582,17 @@
       "faces": "1",
       "verdict": "rejected",
       "note": "The model drew the transparency checkerboard as real pixels. Unusable."
+    },
+    {
+      "id": "case-v2-bow-BEFORE",
+      "file": "src/assets/dev-preview/proving-hall/v2/case-judgment-bow-BEFORE-recolor.png",
+      "wall": "back",
+      "source": "proving-hall-cases-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 0,
+      "faces": "1",
+      "verdict": "rejected",
+      "note": "Superseded by the recoloured version directly above. Kept only so the recolour can be judged against something."
     }
   ]
 }
