@@ -133,7 +133,7 @@ export function AdminOverview() {
       <AdminSection title="Game">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <AdminMetricCard label="Users" value={stats?.total_users ?? '—'} sub={stats ? `${stats.total_admins} admin` : undefined} icon={<UsersIcon size={16} />} href="/admin/users" state={stats ? 'live' : 'estimated'} />
-          <AdminMetricCard label="Cards" value={stats?.total_cards ?? '—'} icon={<Layers size={16} />} href="/admin/cards" state={stats ? 'live' : 'estimated'} />
+          <AdminMetricCard label="Live cards" value={stats?.total_cards ?? '—'} sub="Private audit" icon={<Layers size={16} />} href="/admin/cards" state={stats ? 'live' : 'estimated'} />
         </div>
       </AdminSection>
 

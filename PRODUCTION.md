@@ -113,7 +113,6 @@ being raised in a chat and lost.*
 |---|---|---|
 | Q1 | How many floors does the tower have? | Gates all planning behind it. See above. |
 | Q2 | Is `feat/warband-battle-mvp` worth reviving, or should the board game be rebuilt fresh? | A tested combat core is stranded 107 commits back. I can assess it if you want. |
-| Q3 | Does the Lycanthrope emblem ever get made? | It's the only one of 11 missing, and it's been pending since 2026-07-17. |
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
@@ -260,8 +259,10 @@ now has a development-only playable preview with a controllable chibi, soft whit
 forge surge/smoke/heat effects, Figma-traced counter/bench/forge occlusion, and imported
 ground-contact colliders. Both forge passages are walkable in named checks, including reduced
 motion. The other quadrants, full-map collision/occlusion, baked-shadow cleanup, and production
-route integration remain open. Review it locally at `/dev/courtyard-v2-preview` from the
-`codex/courtyard-forge-vfx` branch; the route and its assets are excluded from production builds.
+route integration remain open. The checkpoint is merged to `main`; review it locally at
+`/dev/courtyard-v2-preview`. The route and its assets are excluded from production builds —
+`App.tsx` only constructs the lazy import under `import.meta.env.DEV`, so being on `main` does
+not put it in front of a player.
 
 Deliberately kept out of the main nav — a player reaching it today would find four dead ends.
 
@@ -302,10 +303,11 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Collection + card detail | Grid, filters, tier-up, evolution history |
 | SHIPPED | Ability system | Typed catalogs, power budget validator, discovery rewards, codex |
 | SHIPPED | Persistence + auth + admin | Supabase, RLS, anonymous→email upgrade, admin RBAC |
-| SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side |
+| SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side. The Studio Wiki branch now keeps the sidebar operational: Ability Review remains, Live Card Audit moves behind Overview, and duplicate reference browsing is removed. |
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
-| SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. The separate Studio Wiki remains its own in-flight workstream. |
+| SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
+| IN FLIGHT | Studio Wiki | Merged to `main` and deployed as a separate Vercel project under the game's team at `https://card-engine-studio-wiki.vercel.app`. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions. Admin and lore-director partners share Ideas visibility while preserving author-only edits. **It replaces the old Production Guide artifact link in the admin sidebar** — that link is being removed, not kept alongside. Production deep-link routing, cloud build, environment configuration, and unauthenticated API enforcement are verified; the first Raheem/Tori signed-in walkthrough remains a human review. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -322,7 +324,8 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Three. Everything else is merged.
+Three. The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
+Courtyard V2 forge checkpoint both live on `main` now.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
@@ -338,6 +341,12 @@ Three. Everything else is merged.
 **54 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
+
+### Studio Wiki release — 1 item
+
+| What | Where |
+|---|---|
+| Raheem and Tori each complete one signed-in production walkthrough: shared Keep / X-out / undo, private portrait hydration, shared Ideas visibility, and owner-only Ideas editing | `https://card-engine-studio-wiki.vercel.app/characters/cards` and `/work/raheem` |
 
 ### Castle wiring — 4 items
 
@@ -386,13 +395,12 @@ The forge quadrant is a verified development checkpoint, not permission to repla
 | Decision Experience Pilots A (`Interest Accrues`) and B (`First Notice`) have fixtures and pass their contextual-note tests, but no dedicated end-to-end playtest pass the way `The Whole Ledger` got — Stage 2 | `pages/dev/decisionLabFixtures.ts` |
 | `ThreatTranslator.tsx`'s panel has no Figma reference — built to match the existing painted-panel family on judgment, not a spec. Needs a design pass before another boss's UI copies its geometry | `pages/battle/ThreatTranslator.tsx` |
 
-### Placeholder art — 9 items
+### Placeholder art — 8 items
 
 | What | Where |
 |---|---|
 | Shipped `human.png` violates all four of its own art rules | `SHOPKEEPER_GUIDE.md:75` |
 | Chibi hero is temporary, to be regenerated at final fidelity | `SHOPKEEPER_GUIDE.md:11` |
-| Lycanthrope emblem still pending — 10 of 11 approved | emblem library |
 | Ability art falls back to a family-tinted placeholder tile | `data/abilities/visualManifest.ts:23` |
 | Effect manifest still `approvalStatus: 'placeholder'` | `data/combat/effectManifest.ts:16` |
 | Forge Strike has no real audio | `minigames/forge-strike/ForgeStrikeViewport.tsx:313` |
@@ -1023,6 +1031,224 @@ change to the rules engine at all.
 *Why it matters:* combat maths and replay are untouched, so this cannot break a fight. The
 tidier fix stays available later as its own deliberate change rather than being smuggled in
 alongside a visual feature.
+### 2026-08-03 — Courtyard V2 is visible as pending work, not mistaken for production
+
+Raheem accepted the forge quadrant as a strong stopping point and asked for the work to be
+preserved across devices and shown in the Studio Wiki. The Wiki now distinguishes the current
+production courtyard from its pending V2 replacement and records exactly what the checkpoint
+proves: chibi movement and heel dust, forge atmosphere, Figma-derived colliders and
+walk-behind depth, and two passable forge aisles in normal and reduced motion.
+
+The remaining three quadrants, full-map collider/occluder coverage, baked-shadow cleanup, and
+production integration remain visible as open work. The existing `/castle` is unchanged.
+
+*Why it matters:* coworkers can see real progress without interpreting one finished quadrant
+as a finished replacement or losing the next steps when the original chat is gone.
+
+### 2026-08-03 — The Wiki is a shared partner studio with its own permanent link
+
+The Studio Wiki is a separate Vercel project under the same Dream Project team as the game.
+It has its own stable URL and deployment settings while sharing the team's Vercel plan. The
+game's admin sidebar keeps the existing **Production Guide** link and adds **Studio Wiki**
+directly beneath it; either partner can also bookmark the Wiki and open it without navigating
+through the game.
+
+Wiki Studio data requires a Card Engine login. The `admin` and `lore_director` roles can read
+the same development card pool, review history, and Ideas notebook. Each notebook entry keeps
+its author, and only that author may edit it. Ordinary player accounts do not gain Studio
+access.
+
+*Why it matters:* Raheem and Tori work from one shared production room without turning it into
+a public player surface or losing who authored a decision or note.
+
+### 2026-08-03 — Alpha cards share one reversible review room; Raheem's ideas remain notes
+
+During alpha, every current and newly created Supabase card belongs in the Wiki's shared
+Card Evaluation Room. The latest authorized verdict is the team's current state: **Needs
+Review**, **Keep in alpha**, or **X'd out**. These verdicts are append-only and reversible.
+X-out never deletes the character, and Keep never promotes it into the permanent game. The
+five repository fixtures remain available only as secondary layout evidence, not the roster.
+
+The Work Board also gains **Raheem's Desk**, containing one private, persistent Ideas Notepad.
+Notes can be captured and edited across devices, but they carry no priority, status, deadline,
+deletion action, or automatic conversion into work. Moving an idea into production remains a
+deliberate future decision.
+
+*Why it matters:* the whole alpha team can judge the same real cards without confusing review
+with canon or destroying work, while Raheem can preserve a new thought without letting it
+silently redirect the current goal.
+
+### 2026-08-03 — Card evaluation is evidence-led; permanent promotion stays a future workflow
+
+The Wiki's Cards destination is now the **Card Evaluation Room**, not a gallery. It inventories
+four named development candidates and one unnamed Druid tier-art study, filters them by
+archetype and evidence class, and opens a deep dossier for the selected record: uncropped art,
+known rank progression, lore, stats, ability loadout, repository sources, readiness evidence,
+and investigation notes. Art-only studies remain labeled **not a card**, missing ranks remain
+visible as missing evidence, and no percentage or automatic approval score is calculated.
+
+The page is read-only. It deliberately has no approve, promote, or production action; permanent
+acceptance still requires a later human-governed workflow and an explicit recorded decision.
+
+*Why it matters:* the studio can now understand what each development card does and why before
+deciding whether it deserves permanent work, without turning asset presence or a successful
+test into accidental canon.
+
+### 2026-08-03 — Cards is a first-class destination, and a card is shown whole
+
+Raheem reversed the earlier placement of Cards beneath Characters & Archetypes. **Cards**
+now has its own Explore navigation entry between **Bosses & Arenas** and **Elements**. The
+Cards page owns development artifacts and the future accepted roster. Characters &
+Archetypes remains archetype-led: selecting an emblem shows only the permanent cards accepted
+for that archetype, which is currently zero for all eleven.
+
+The three development assets are complete card compositions, not portrait crops. The Wiki
+now renders their native tall proportions with the full frame, name, artwork, and lower stats
+visible. Gryndak and Ashvara's crossed source filenames are corrected in the Wiki mapping so
+the visible card agrees with its explanation; the underlying game fixtures are unchanged.
+
+*Why it matters:* The card work is no longer hidden or visually diminished, and nobody has
+to choose between seeing the whole artifact and understanding that it is still development
+evidence rather than accepted canon.
+
+### 2026-08-03 — The Wiki owns reference; admin owns live operations
+
+The admin sidebar no longer presents Cards and Abilities as general libraries. **Ability
+Review** keeps the actions that change state: approve, reject, merge, generate candidate art,
+and accept or reject those candidates. The private cross-user card table remains available
+from the Overview metric as **Live Card Audit**, because owner identifiers and prompt
+provenance are operational records, not public Wiki material. The obsolete Production Guide
+link is removed; a Studio Wiki link returns only after the Wiki has an approved deployed URL.
+
+The Wiki's Cards page lives beneath Characters & Archetypes because the card is the format a
+character comes in. It records Gryndak, Seojin, and Ashvara as **TESTED · DEVELOPMENT
+ARTIFACT** examples and keeps **Permanent Archetype Cards** at **0 ACCEPTED**. No asset,
+database row, or successful test can promote a card. A permanent card requires Raheem's
+explicit human acceptance.
+
+*Why it matters:* The team can learn from every useful card test without accidentally turning
+practice work into canon, while the admin remains a focused place for private data and actions.
+
+### 2026-08-03 — Studio memory, current work, elements, and abilities keep separate jobs
+
+The Production navigation keeps its decision page, renamed **Decision Log**, because it
+answers a different question from the Work Board. The Decision Log is the append-only record
+of why Raheem and the studio chose a direction. The Work Board remains the place for advice,
+active execution, necessary debt, and assignments. The Wiki now links between them explicitly
+instead of making two pages appear to be competing task lists.
+
+The former Abilities & Elements page is also split. **Elements** owns crystals and the
+PixelLab charge, travel, and impact library. **Abilities** keeps the stable `/abilities`
+address and reads the game's current 41-ability seed roster and approved-art manifest directly.
+Only Thornmantle and Bearing Witness currently have art approved for the live roster; retired
+paintings remain on disk but are not presented as current ability art. A focused admin-dashboard
+audit is the next separate review, not part of this navigation change.
+
+*Why it matters:* Current work, historical reasoning, elemental language, and named powers can
+each grow without obscuring one another or creating a second source of truth.
+
+### 2026-08-03 — The Work Board is four views of one production ledger
+
+The Studio Wiki now has a third first-class navigation group named Work Board. AI Advice
+shows the Studio Lead's ranked recommendations and unresolved questions. Active Work shows
+only `IN FLIGHT` workstreams plus the branches carrying live work. Required & Deferred keeps
+the categorized unfinished obligations visible. Tori's Desk projects the existing Lore queue,
+including provisional boss writing, telegraphs, move names, and the need for an archetype prose
+voice.
+
+All four pages read from `PRODUCTION.md`; they do not keep a second task database or private
+browser state. A goal becomes locked only when Codex or Claude records its owner, state, next
+checkpoint, and blocker in that ledger through the production-log workflow. During development,
+the Wiki now reloads automatically when the ledger changes.
+
+*Why it matters:* Anyone joining a session can find useful work at the right level—advice,
+current execution, necessary debt, or a named collaborator's desk—while every assistant still
+updates one durable source of truth.
+
+### 2026-08-03 — Studio V2 is handed off as a workflow, not an agent collection
+
+The Studio Wiki now gives AI Studio V2 its own coworker handbook under Production. It leads
+with the repeatable path from idea through creation, implementation, evidence, and human-approved
+release. The specialist-agent and skill roster remains visible, but it is supporting reference:
+the valuable framework is the production process Raheem developed and proved while building the
+game.
+
+New collaborators create their own Figma and Leonardo accounts and personal spaces first. The
+team can then connect shared workspaces through those services without transferring personal
+credentials or provider keys. The handbook points every collaborator back to the repository's
+current production record, architecture, charter, and capability registry instead of depending
+on a past conversation.
+
+*Why it matters:* Another developer can learn how the studio actually makes and integrates game
+art, join the shared work safely, and preserve the reasoning behind each result without treating
+the agents themselves as the product.
+
+### 2026-08-03 — Element identity and battle expression are separate Wiki layers
+
+The Studio Wiki's Element Codex keeps each approved crystal as the dominant identity artwork,
+then presents a separate battle-expression theater for charge, delivery or manifestation, and
+impact. It covers all 29 canonical elements: 27 use the committed PixelLab combat-effect library
+from `ability-performance-system` at `c39304f`, Holy honestly uses the procedural ward renderer,
+and Time remains deliberately unmapped because no current archetype can reach it. The theater is
+keyboard-operable, responsive, playable on demand, and offers a motion-free three-beat tableau.
+
+Only the committed art library entered the Wiki. No combat code or uncommitted work from the
+Decision Experience worktree was copied, and every imported performance kit remains labeled
+`IN FLIGHT` candidate art until the separate gameplay-integration task lands and is reviewed.
+The full library remains discoverable through Art & Assets while representative playback lives
+on Abilities & Elements.
+
+*Why it matters:* Collaborators can now see what each element actually looks like in combat
+without mistaking candidate effects for shipped gameplay or replacing the crystal identity art.
+
+### 2026-08-03 — Battle Tower is the primary playable mode in the Studio Wiki
+
+The Wiki now presents Battle Tower as the castle's first great door and the place to explain
+party building, boss intent, action order, attacking, guarding, elements, damage, and the
+shared Mana and Tech chambers. The existing `/minigames` address remains stable for now, but
+its visible name is Battle Tower. Bosses & Arenas remains a separate production inspector for
+the art, animation states, and arena assets used on Tower floors.
+
+The Wiki does not invent a final floor count, rewards, or unverified elemental combat art. The
+new PixelLab effect assets will be handled in a later asset-verification pass.
+
+*Why it matters:* Players and collaborators can now understand the game's central play loop
+without confusing the playable mode with the library of assets used to build it.
+
+### 2026-08-03 — The Studio Wiki becomes a permanent repository-backed application
+
+The Wiki lives in its own `studio-wiki/` React/Vite package inside the Card Game repository.
+It shares canonical Markdown and optimized web assets with the game, but it will deploy as a
+separate Vercel project and URL so Wiki changes cannot break the playable game. The local
+implementation may continue without hosting cost; deployment and access protection remain a
+separate human gate.
+
+The active Wiki includes navigation, search, all eleven archetype emblems, the Debt-Bearer's
+real seven-state animation inspector, full-art element galleries, production reading pages,
+workshop documentation, responsive layouts, reduced-motion handling, and honest missing-media
+states. Minigames remains intentionally held and Forge Strike is not presented as active work.
+
+*Why it matters:* Claude and Codex can now improve one durable source with Git history instead
+of rebuilding a temporary conversation link, while the game and the Wiki keep separate failure
+and release boundaries.
+
+### 2026-08-03 — Full assets will live in OpenNest; GitHub keeps the web catalog
+
+The current repository keeps canonical documents, metadata, and web-sized previews. Raheem's
+planned OpenNest storage at home will hold the full-resolution generated originals. The Wiki is
+the visual catalog across both locations. No second GitHub repository will be created now; the
+metadata boundary allows storage to split later without redesigning the Wiki.
+
+*Why it matters:* The Wiki can grow into the studio's central information and asset-discovery
+surface without bloating normal Git history or depending on home storage to render day to day.
+
+### 2026-08-03 — The Lycanthrope emblem is integrated
+
+The generated Lycanthrope emblem now lives with the other ten archetype emblems and is used by
+the game and Studio Wiki. The old open question and missing-art entries are closed.
+
+*Why it matters:* Characters & Archetypes can present the complete eleven-emblem collection
+without a fabricated substitute or a pending tile.
 
 ### 2026-08-03 — Raheem accepts the private-device key exception
 
@@ -1181,6 +1407,9 @@ in common, and both tools get used across both subjects.
 - **Explore a generated combat-UI art pass** — Raheem raised PixelLab as a possible way to
   improve the boss-battle chrome after the interaction restructure is proven. This is not an
   approved generation run or a decision that PixelLab is the right UI tool.
+- **Promote evaluated cards into the permanent roster** — the Evaluation Room is read-only
+  for now. Design the explicit acceptance record, provenance gates, and promotion action only
+  after the team has used the dossiers enough to understand the real review process.
 
 ---
 
@@ -1206,7 +1435,7 @@ being wrong, you stop reading it, and then it's dead.
 
 # Game Mechanics
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 1. How the game works
 
 *Everything in Infrastructure describes how the project is built. This part describes the
@@ -1267,8 +1496,8 @@ stays that way. They are never indispensable because of a number.
 ### A note on the art
 
 The emblems and element crystals above were made for this game and are the best-looking thing
-the project owns. **Not everything is at that standard yet** — bosses and abilities still run on
-placeholders, the Lycanthrope emblem is unfinished, and the plan is custom art for abilities too.
+the project owns. **Not everything is at that standard yet** — some bosses and abilities still
+run on placeholders, and the plan is custom art for abilities too.
 Every one of those is a chance to make the game more beautiful, and the pipelines to do it
 already exist: see the workshops in Infrastructure §6.
 
@@ -1796,7 +2025,7 @@ above, it can be in the game in about a minute.**
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 3. Ideas worth making
 
 *Somewhere to put ideas so they stop evaporating. Add freely — an idea costs nothing, and
@@ -1823,10 +2052,7 @@ improvement in the project.*
 most have never been the subject of anything — Lunar is the Lycanthrope's alone, Sanguine and
 Nocturne the Vampire's. *~20–31 each.*
 
-### Characters — 3 items
-
-**The Lycanthrope emblem.** Ten of eleven archetypes have their selection art. This is the
-missing one, pending since 2026-07-17. *Leonardo, one square image.*
+### Characters — 2 items
 
 **Replace the placeholder hero.** `human.png` breaks all four of its own art rules and we
 know it. *~25 generations.*
