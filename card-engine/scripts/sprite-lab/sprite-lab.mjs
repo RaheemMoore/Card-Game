@@ -579,6 +579,25 @@ async function cmdScene(subject) {
     // `reference_image` is MUTUALLY EXCLUSIVE with `style_image`, so a spec that
     // supplies one must not also carry the hero anchor. That is a hard API rule,
     // not a preference, hence the explicit clear rather than relying on config.
+    // PLATE PALETTE ANCHOR — the answer to "make everything match the bricks".
+    //
+    // `palette_ref.py` shrinks the courtyard plate to a 192px thumbnail and it
+    // goes in as `color_image`, so the model is generating INTO the plate's own
+    // colours instead of inventing neutral grey stone that reads as a sticker.
+    //
+    // This was wired for CHARACTERS only and never for scenery, which is
+    // precisely why the arch and the fissure came back off-palette.
+    //
+    // CHARACTERS STAY EXEMPT, deliberately. Passing the plate as `color_image`
+    // dragged the chibi hero toward dark stone and cost him face contrast —
+    // readability of a character the player tracks beats palette cohesion.
+    // Scenery is the opposite: it SHOULD recede into the plate.
+    const paletteImage = paletteReference(c, d);
+    if (paletteImage && spec.matchPlate !== false) {
+      body.color_image = paletteImage;
+      if (spec.forceColors) body.force_colors = true;
+    }
+
     if (spec.referenceFile) {
       const rp = path.join(d, spec.referenceFile);
       if (!fs.existsSync(rp)) throw new Error(`missing reference image ${rp}`);
