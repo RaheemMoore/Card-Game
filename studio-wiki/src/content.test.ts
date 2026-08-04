@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
 import { sectionsFromMarkdown } from './markdown';
+import { isStudioPartnerRole } from './studioApi';
 
 describe('Studio Wiki content contracts', () => {
+  it('limits shared Studio work to the two partner role classes', () => {
+    expect(isStudioPartnerRole('admin')).toBe(true);
+    expect(isStudioPartnerRole('lore_director')).toBe(true);
+    expect(isStudioPartnerRole('user')).toBe(false);
+    expect(isStudioPartnerRole(undefined)).toBe(false);
+  });
   it('keeps the complete archetype and boss-state sets', () => {
     expect(archetypes).toHaveLength(11);
     expect(new Set(archetypes.map(([name]) => name)).size).toBe(11);

@@ -14,7 +14,7 @@ import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.pn
 import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
 import { SEED_ABILITIES } from '../../card-engine/src/data/abilities/seedAbilities';
 import { getApprovedArt } from '../../card-engine/src/data/abilities/visualManifest';
-import { createStudioIdea, getStudioSession, isStudioDataConfigured, listLiveReviewCards, listStudioIdeas, recordCardReview, restoreStudioSession, signInToStudio, signOutOfStudio, subscribeStudioSession, updateStudioIdea } from './studioApi';
+import { createStudioIdea, getStudioSession, isStudioDataConfigured, isStudioPartnerRole, listLiveReviewCards, listStudioIdeas, recordCardReview, restoreStudioSession, signInToStudio, signOutOfStudio, subscribeStudioSession, updateStudioIdea } from './studioApi';
 import type { LiveReviewCard, ReviewStatus, StudioIdea, StudioSession } from './studioApi';
 
 const iconsByPath = {
@@ -387,17 +387,17 @@ function Minigames() {
   </>;
 }
 
-function IdeaNote({ idea, onSaved }: { idea: StudioIdea; onSaved: (idea: StudioIdea) => void }) {
+function IdeaNote({ idea, onSaved, canEdit }: { idea: StudioIdea; onSaved: (idea: StudioIdea) => void; canEdit: boolean }) {
   const [body, setBody] = useState(idea.body);
   const [state, setState] = useState<'saved' | 'saving' | 'error'>('saved');
   useEffect(() => { setBody(idea.body); }, [idea.id, idea.body]);
   useEffect(() => {
-    if (body === idea.body || !body.trim()) return;
+    if (!canEdit || body === idea.body || !body.trim()) return;
     setState('saving');
     const timer = window.setTimeout(async () => { try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } }, 700);
     return () => window.clearTimeout(timer);
-  }, [body, idea.id, idea.body, onSaved]);
-  return <article className="idea-note"><header><span>{new Date(idea.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span><span className={`idea-save-state ${state}`} aria-live="polite">{state === 'saving' ? <><RefreshCw className="spin"/>Saving…</> : state === 'error' ? <><TriangleAlert/>Could not save</> : <><Check/>Saved</>}</span></header><textarea aria-label={`Idea from ${new Date(idea.createdAt).toLocaleDateString()}`} value={body} onChange={(event) => setBody(event.target.value)} onBlur={async () => { if (body.trim() && body !== idea.body) { setState('saving'); try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } } }}/><footer>Editable note · no task status · no delete action</footer></article>;
+  }, [body, canEdit, idea.id, idea.body, onSaved]);
+  return <article className="idea-note"><header><span>{canEdit ? 'YOUR NOTE' : 'STUDIO PARTNER'} · {new Date(idea.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>{canEdit && <span className={`idea-save-state ${state}`} aria-live="polite">{state === 'saving' ? <><RefreshCw className="spin"/>Saving…</> : state === 'error' ? <><TriangleAlert/>Could not save</> : <><Check/>Saved</>}</span>}</header><textarea aria-label={`Idea from ${new Date(idea.createdAt).toLocaleDateString()}`} value={body} readOnly={!canEdit} onChange={(event) => setBody(event.target.value)} onBlur={async () => { if (canEdit && body.trim() && body !== idea.body) { setState('saving'); try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } } }}/><footer>{canEdit ? 'Editable note' : 'Shared read-only note'} · no task status · no delete action</footer></article>;
 }
 
 function RaheemDesk() {
@@ -408,15 +408,15 @@ function RaheemDesk() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const load = async () => { setLoading(true); setError(''); try { setIdeas(await listStudioIdeas()); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not open the notebook.'); } finally { setLoading(false); } };
-  useEffect(() => { if (session?.role === 'admin') load(); }, [session?.userId, session?.role]);
+  useEffect(() => { if (isStudioPartnerRole(session?.role)) load(); }, [session?.userId, session?.role]);
   const add = async () => { if (!draft.trim() || saving) return; setSaving(true); setError(''); try { const idea = await createStudioIdea(draft); setIdeas((current) => [idea, ...current]); setDraft(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not save the idea.'); } finally { setSaving(false); } };
   const update = (saved: StudioIdea) => setIdeas((current) => current.map((idea) => idea.id === saved.id ? saved : idea));
   return <><PageHeader eyebrow="WORK BOARD · STUDIO LEAD" title="Raheem’s Desk" intro="A quiet place to capture ideas without letting them interrupt the work already in motion." status="IN FLIGHT"/><WorkBoardNav current="raheem"/>
-    <section className="desk-how"><div><NotebookPen/><p className="eyebrow">HOW THIS DESK WORKS</p><h2>Write it down. Keep your focus. Return when the time is right.</h2><p>Ideas here are durable private notes—not tasks, promises, priorities, or automatic instructions for Codex and Claude. When an idea is ready for production, deliberately move it into the Work Board through the normal planning process.</p></div><ol><li><span>1</span>Capture the thought in plain language.</li><li><span>2</span>Keep working on today’s goal.</li><li><span>3</span>Revisit and edit the note later.</li></ol></section>
-    {checking ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening Raheem’s desk…</Panel> : !session ? <StudioSignIn purpose="Raheem’s notebook is private and follows his Card Engine account across devices."/> : session.role !== 'admin' ? <Panel className="desk-locked"><Shield/><h2>This desk belongs to Raheem.</h2><p>You are signed in as {session.email}. The rest of the Work Board remains available, but these private notes are owner-only.</p><button className="studio-signout" onClick={signOutOfStudio}>Sign out</button></Panel> : <>
-      <Panel className="idea-composer" title="Capture an idea" action={<span>PRIVATE · DURABLE · NOT A TASK</span>}><label htmlFor="idea-draft">What do you want to remember?</label><textarea id="idea-draft" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); add(); } }} placeholder="Write the idea before it pulls you away from the current goal…"/><div><p><Command/>Ctrl/Cmd + Enter to save</p><button disabled={!draft.trim() || saving} onClick={add}>{saving ? <RefreshCw className="spin"/> : <Plus/>}{saving ? 'Saving…' : 'Add idea'}</button></div>{error && <p className="studio-form-error" role="alert">{error}</p>}</Panel>
+    <section className="desk-how"><div><NotebookPen/><p className="eyebrow">HOW THIS DESK WORKS</p><h2>Write it down. Keep your focus. Return when the time is right.</h2><p>Ideas here are durable shared Studio notes—not tasks, promises, priorities, or automatic instructions for Codex and Claude. Raheem and Tori can read the notebook together; each person edits only the notes they authored.</p></div><ol><li><span>1</span>Capture the thought in plain language.</li><li><span>2</span>Keep working on today’s goal.</li><li><span>3</span>Revisit and edit your note later.</li></ol></section>
+    {checking ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening Raheem’s desk…</Panel> : !session ? <StudioSignIn purpose="The shared Studio notebook follows Raheem and Tori across devices."/> : !isStudioPartnerRole(session.role) ? <Panel className="desk-locked"><Shield/><h2>This is a Studio partner space.</h2><p>You are signed in as {session.email}, but this notebook is limited to the admin and lore-director roles.</p><button className="studio-signout" onClick={signOutOfStudio}>Sign out</button></Panel> : <>
+      <Panel className="idea-composer" title="Capture an idea" action={<span>SHARED · DURABLE · NOT A TASK</span>}><label htmlFor="idea-draft">What do you want to remember?</label><textarea id="idea-draft" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); add(); } }} placeholder="Write the idea before it pulls you away from the current goal…"/><div><p><Command/>Ctrl/Cmd + Enter to save</p><button disabled={!draft.trim() || saving} onClick={add}>{saving ? <RefreshCw className="spin"/> : <Plus/>}{saving ? 'Saving…' : 'Add idea'}</button></div>{error && <p className="studio-form-error" role="alert">{error}</p>}</Panel>
       <div className="idea-notebook-heading"><div><p className="eyebrow">THE NOTEBOOK</p><h2>{ideas.length} saved {ideas.length === 1 ? 'idea' : 'ideas'}</h2></div><button className="studio-signout" onClick={signOutOfStudio}>Sign out · {session.email}</button></div>
-      {loading ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening the notebook…</Panel> : ideas.length ? <div className="idea-notebook">{ideas.map((idea) => <IdeaNote key={idea.id} idea={idea} onSaved={update}/>)}</div> : <Panel className="review-empty"><Feather/><h2>The first page is blank.</h2><p>Capture an idea above. It will remain here until you decide what, if anything, it should become.</p></Panel>}
+      {loading ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening the notebook…</Panel> : ideas.length ? <div className="idea-notebook">{ideas.map((idea) => <IdeaNote key={idea.id} idea={idea} onSaved={update} canEdit={idea.ownerId === session.userId}/>)}</div> : <Panel className="review-empty"><Feather/><h2>The first page is blank.</h2><p>Capture an idea above. It will remain here until you decide what, if anything, it should become.</p></Panel>}
     </>}
   </>;
 }

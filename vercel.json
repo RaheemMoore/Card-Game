@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm install --prefix studio-wiki",
+  "buildCommand": "npm run build --prefix studio-wiki",
+  "outputDirectory": "studio-wiki/dist",
+  "rewrites": [
+    { "source": "/((?!api/|src/|node_modules/|@).*)", "destination": "/index.html" }
+  ]
+}

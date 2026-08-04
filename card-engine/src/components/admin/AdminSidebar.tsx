@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Sparkles, FlaskConical, Hammer,
   Receipt, Activity, PanelLeftClose, PanelLeftOpen, LogOut, ArrowLeft,
-  ExternalLink,
+  BookOpen, LibraryBig, ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -18,6 +18,9 @@ interface NavRoute extends NavBase { to: string; end?: boolean; href?: undefined
 interface NavExternal extends NavBase { href: string; to?: undefined; end?: undefined }
 type NavItem = NavRoute | NavExternal;
 interface NavGroup { label: string; items: NavItem[] }
+
+const PRODUCTION_GUIDE_URL = 'https://claude.ai/code/artifact/d6c9c64f-1342-43cc-9b5f-6fdd87d98852';
+const STUDIO_WIKI_URL = 'https://card-engine-studio-wiki.vercel.app';
 
 const GROUPS: readonly NavGroup[] = [
   {
@@ -40,6 +43,13 @@ const GROUPS: readonly NavGroup[] = [
     items: [
       { label: 'Costs', to: '/admin/costs', icon: Receipt },
       { label: 'Diagnostics', to: '/admin/diagnostics', icon: Activity },
+    ],
+  },
+  {
+    label: 'Studio',
+    items: [
+      { label: 'Production Guide', href: PRODUCTION_GUIDE_URL, icon: BookOpen, directorOk: true },
+      { label: 'Studio Wiki', href: STUDIO_WIKI_URL, icon: LibraryBig, directorOk: true },
     ],
   },
 ];

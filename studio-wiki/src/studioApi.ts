@@ -3,6 +3,10 @@ import type { Card } from '../../card-engine/src/types/card';
 export type ReviewStatus = 'needs_review' | 'keep' | 'x_out';
 export type StudioRole = 'user' | 'admin' | 'lore_director';
 
+export function isStudioPartnerRole(role: StudioRole | undefined): boolean {
+  return role === 'admin' || role === 'lore_director';
+}
+
 export interface StudioSession {
   accessToken: string;
   refreshToken: string;

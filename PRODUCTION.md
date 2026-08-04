@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Cards is now designed around the live shared alpha pool: every eligible Supabase card enters automatically, full character evidence and current ability references are inspectable, and append-only Keep / X-out / Needs Review decisions preserve a reversible team verdict without deleting or promoting the card. Five local fixtures remain a secondary layout reference only. The Work Board now includes Raheem's private, durable Ideas Desk alongside Tori's lore desk. The additive migration, Wiki environment configuration, deployed API, and live-data runtime proof are still pending; nothing has been applied to production. |
+| SHIPPED | Studio Wiki | Live at `https://card-engine-studio-wiki.vercel.app` as a separate Vercel project under the game's team. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions. Admin and lore-director partners share Ideas visibility while preserving author-only edits. The game admin sidebar keeps Production Guide and adds Studio Wiki beneath it. Production deep-link routing, cloud build, environment configuration, and unauthenticated API enforcement are verified; the first Raheem/Tori signed-in walkthrough remains a human review. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -303,17 +303,15 @@ Four branches carry the work currently named in this guide.
 <!-- updated: 2026-08-03 -->
 ## 4. Open threads
 
-**51 things started and not finished.** This is the list that didn't exist before. It will
+**49 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
-### Studio Wiki release — 3 items
+### Studio Wiki release — 1 item
 
 | What | Where |
 |---|---|
-| Apply the additive live-review and private-ideas migration | `card-engine/supabase/migrations/20260803_studio_card_review_and_ideas.sql` |
-| Configure the separate Wiki deployment with Supabase public keys, service role, and its own URL | `studio-wiki/api/card-reviews.ts` |
-| Runtime-prove sign-in, shared Keep / X-out / undo, private portrait hydration, and Ideas autosave against the production-shaped database | `/characters/cards` and `/work/raheem` |
+| Raheem and Tori each complete one signed-in production walkthrough: shared Keep / X-out / undo, private portrait hydration, shared Ideas visibility, and owner-only Ideas editing | `https://card-engine-studio-wiki.vercel.app/characters/cards` and `/work/raheem` |
 
 ### Castle wiring — 4 items
 
@@ -711,6 +709,22 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — The Wiki is a shared partner studio with its own permanent link
+
+The Studio Wiki is a separate Vercel project under the same Dream Project team as the game.
+It has its own stable URL and deployment settings while sharing the team's Vercel plan. The
+game's admin sidebar keeps the existing **Production Guide** link and adds **Studio Wiki**
+directly beneath it; either partner can also bookmark the Wiki and open it without navigating
+through the game.
+
+Wiki Studio data requires a Card Engine login. The `admin` and `lore_director` roles can read
+the same development card pool, review history, and Ideas notebook. Each notebook entry keeps
+its author, and only that author may edit it. Ordinary player accounts do not gain Studio
+access.
+
+*Why it matters:* Raheem and Tori work from one shared production room without turning it into
+a public player surface or losing who authored a decision or note.
 
 ### 2026-08-03 — Alpha cards share one reversible review room; Raheem's ideas remain notes
 
