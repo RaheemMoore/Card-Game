@@ -8,8 +8,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
-      "verdict": "pending",
-      "note": "Wall anchor for the tower quadrant. Palette and outline weight match the shipped forge counter well."
+      "verdict": "rejected",
+      "note": "Ugly. Do not use."
     },
     {
       "id": "tower-muster-board",
@@ -19,8 +19,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
-      "verdict": "pending",
-      "note": ""
+      "verdict": "approved",
+      "note": "KEEP AT THIS EXACT ANGLE. No further faces needed - do not spend an 8-face pass on it."
     },
     {
       "id": "tower-trophy-rack",
@@ -30,8 +30,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
-      "verdict": "pending",
-      "note": ""
+      "verdict": "approved",
+      "note": "KEEP AS IS, HOLD. Save for later, no further work."
     },
     {
       "id": "tower-weapon-rack",
@@ -41,8 +41,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "8 shot - see weapon-rack-LEFT/RIGHT",
-      "verdict": "pending",
-      "note": ""
+      "verdict": "approved",
+      "note": "KEEP - already shot at every angle, so it is ready for any wall."
     },
     {
       "id": "tower-watch-brazier",
@@ -52,8 +52,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
-      "verdict": "pending",
-      "note": "Reads flatter than the counter's three-quarter view."
+      "verdict": "approved",
+      "note": "KEEP - Raheem: 'that one is awesome'. Use later."
     },
     {
       "id": "tower-tally-pillar",
@@ -63,8 +63,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
-      "verdict": "pending",
-      "note": "Came back ISOMETRIC - you can see its top face - while every other object is elevation or three-quarter. It is a floor object, so its projection is the one that has to agree with the counter."
+      "verdict": "approved",
+      "note": "KEEP, but HOLD. Save for later, no further work."
     },
     {
       "id": "tower-stone-winch",
@@ -74,8 +74,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only \u2014 needs an 8-face pass if approved)",
-      "verdict": "pending",
-      "note": "Never briefed. The API returned it to fill a slot in a call that requested only 2 items."
+      "verdict": "rejected",
+      "note": "Ugly. Do not use."
     },
     {
       "id": "weapon-rack-LEFT",
@@ -85,8 +85,8 @@
       "endpoint": "/create-8-direction-object",
       "generations": 25,
       "faces": "one of 8 from a single 25-gen run",
-      "verdict": "pending",
-      "note": "Proof an approved item can be re-shot from other angles. Regression: the teal-green fittings came back brown."
+      "verdict": "approved",
+      "note": "KEEP - left-wall face of the approved rack."
     },
     {
       "id": "weapon-rack-RIGHT",
@@ -96,8 +96,8 @@
       "endpoint": "/create-8-direction-object",
       "generations": 0,
       "faces": "same run as weapon-rack-LEFT",
-      "verdict": "pending",
-      "note": "Mirror-side face from the same run - one run serves both walls."
+      "verdict": "approved",
+      "note": "KEEP - right-wall face of the approved rack."
     }
   ]
 }

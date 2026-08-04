@@ -28,6 +28,7 @@ import { SpritePreview } from './pages/dev/SpritePreview';
 import { BossReadout } from './pages/dev/BossReadout';
 import { AbilityTheater } from './pages/dev/AbilityTheater';
 import { DecisionLab } from './pages/dev/DecisionLab';
+import { UiKit } from './pages/dev/UiKit';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
@@ -91,6 +92,14 @@ export default function App() {
               it perform?" Same tier: reads only frozen fixtures built by
               running the real reducer, touches no player data. */}
           <Route path="/dev/decision-lab" element={<DecisionLab />} />
+
+          {/* Pixel UI kit gallery. Same tier as the four above: it renders four
+              PNGs and touches no player data. It exists because the kit's
+              premise is that variants come from props rather than new art, and
+              the only way to keep that honest is to see every variant at once —
+              a `border-image` with a wrong slice compiles fine and renders as
+              mush, so a passing build proves nothing about this surface. */}
+          <Route path="/dev/ui-kit" element={<UiKit />} />
 
           {CourtyardV2Preview && (
             <Route

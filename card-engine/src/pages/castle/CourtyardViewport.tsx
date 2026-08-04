@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { usePhaserGame } from './usePhaserGame';
 import { CourtyardOverlay } from './CourtyardOverlay';
 import { DirectoryPanel, StallPlaceholder } from './CourtyardPanels';
+import { CollectionStall } from './stalls/CollectionStall';
 import { PauseMenu } from './PauseMenu';
 import { fetchMyRole, type SessionRole } from '../../services/persistence/supabaseClient';
 import { useMotionLevel } from '../../services/combat/presentation/useMotionLevel';
@@ -200,8 +201,14 @@ export function CourtyardViewport() {
           }}
         />
       )}
-      {openStall && (
-        <StallPlaceholder stall={openStall} onClose={() => setOpenStall(null)} />
+      {/* The Collection is the first stall with a real in-world menu behind it
+          (PRODUCTION.md §1 — the 2D pixel direction). The other three still
+          open the placeholder, so this switch is the seam where each stall
+          graduates from "not yet connected" to a built door. */}
+      {openStall?.id === 'collection' ? (
+        <CollectionStall onClose={() => setOpenStall(null)} />
+      ) : (
+        openStall && <StallPlaceholder stall={openStall} onClose={() => setOpenStall(null)} />
       )}
     </div>
   );

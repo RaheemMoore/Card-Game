@@ -64,17 +64,22 @@ yourself. **Lore** is Tori's.
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
 why in the decision log.*
 
-### ▲ Highest value — open one castle stall
+### ▲ Highest value — build the Collection stall as a real in-game menu
 
 Four stalls in the courtyard say *"not yet connected."* The castle is the hub your entire
 design rests on, and right now it's a beautiful room with four doors that go nowhere.
 
-Wiring **the tower gate to the real boss battle** is the smallest change with the biggest
-felt difference: it turns the castle from a demo into the thing you described — a place you
-hang out before you go somewhere. Everything else in the hub-and-doors model follows the
-same pattern, so the first one establishes it.
+**What changed on 2026-08-04:** a stall is no longer meant to open the existing web page. The
+Forge and Collection pages are slated to be *replaced* by pixel menus you open inside the
+world (see §1). So the job is bigger than wiring — it is building the first real in-game
+menu, and the other three stalls then follow the pattern it sets.
 
-*Where:* `card-engine/src/pages/castle/courtyard/stalls.ts:60`
+**The Collection goes first.** It is read-only, so it is the cheapest surface to prove a menu
+shell on, and it is where "a game, not a card-collection website" shows most. The art it
+needs is already generated and approved.
+
+*Where:* `card-engine/src/pages/castle/courtyard/stalls.ts:78` ·
+*Art:* `card-engine/public/assets/ui/kit/`
 
 ### ◆ Decide, don't build — how long is the tower?
 
@@ -127,7 +132,7 @@ being raised in a chat and lost.*
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 1. What this game is
 
 > **Card Engine is an adventure game with characters you made yourself.**
@@ -139,6 +144,38 @@ gets to make his own.
 this is built follows from that sentence. It's why the forge is a ritual and not a slot
 machine, and why identity fields are locked so advancement can never make someone younger,
 thinner, or less disabled.
+
+### It is a 2D pixel game — new, 2026-08-04
+
+Raheem, this session: *"This is a 2D pixel game where you collect cards and you battle with
+those cards. You're a fantasy character in a fantasy world… The actual visuals of the game
+are 2D pixel art."*
+
+This is a real change and it is worth reading twice. The project began as a painted fantasy
+card game — effectively a card-collection website with a castle attached. It is now **a 2D
+pixel world you walk around in, where cards are how you fight.** Everything that currently
+looks like a web page — the Forge, the Collection — is meant to become a stall you walk up
+to inside that world.
+
+**The rule that makes it buildable: painted is what you look at, pixel is what you touch.**
+
+| Painted (Leonardo) | Pixel (PixelLab) |
+|---|---|
+| Backdrops and environment plates | Characters, keepers, bosses |
+| Scenery painted *into* the plate | Objects placed *on* the plate — lamps, bridges, crates |
+| Card portrait art, and the card's painted frame | Moving effects — dust, sparks |
+| | **Menus, buttons, panels — all interface** |
+
+In Raheem's words: *"The water is Leonardo, but the bridge to go over the water is PixelLab."*
+
+Two things this deliberately does **not** mean. It is not "painted = still" — painted water
+and banners can move. And it does **not** mean the painted courtyard gets repainted: it is
+correct exactly as it is, and the pixel layer is what gets added on top of it. The reference
+here is Sea of Stars and Eastward, not Octopath's HD-2D — that one builds pixel sprites over
+3D environments, which is a different and more expensive technique.
+
+**The card stays painted.** It is the one exception, and it is a deliberate idea rather than
+an inconsistency: a painted artifact you hold inside a pixel world.
 
 ### The shape: a hub with doors
 
@@ -319,6 +356,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
+| IN FLIGHT | Pixel UI kit | The art exists and is approved; **no player can see any of it yet.** Three rounds generated 2026-08-04 (60 generations); Raheem picked Round 3 — wood body, slim gold trim, small turquoise crystal. Four pieces live in `public/assets/ui/kit/`, alternates kept in `public/assets/ui/library/` for other stalls. The frame is a verified 9-slice at 32px corners. **Next: the five React primitives and the Collection stall menu.** Contract: `card-engine-ui-kit-contract.md` |
 | SHIPPED | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets run in the authentic `/battle` event stream. Combat follows **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The full-motion exchange reaches the next intent in about 6.2 seconds; boss-bound volleys land in a readable triangle, and Motion Off preserves the order as still tableaux. Released through PR #34 at production commit `98f66e7`. |
 | SHIPPED | Decision Experience System — Stage 1 | The selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible usable ability; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back. Projections, the Threat Translator, contextual explanations, shared confirmation policy, authoritative receipts, and `/dev/decision-lab` remain intact. **Encounter Briefing and dedicated Pilot A/B comprehension passes are still open Stage 2 work** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
@@ -350,7 +388,7 @@ machine and will be silently absent from every other device you open. If it is w
 <!-- updated: 2026-08-04 -->
 ## 4. Open threads
 
-**65 things started and not finished.** This is the list that didn't exist before. It will
+**71 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -440,6 +478,19 @@ The forge quadrant is a verified development checkpoint, not permission to repla
 | `Card Images/` sources never wired into the pipeline | CLAUDE.md |
 | `balance-playtest` skill is a scaffold that can't run | `.claude/skills/balance-playtest/` |
 | Dice roll animation is CSS 3D cubes — works, never polished | `components/DiceRoll.tsx` |
+
+### Pixel UI kit — 6 items
+
+*Opened 2026-08-04. The art is approved and committed; none of it is on screen yet.*
+
+| What | Where |
+|---|---|
+| The five React primitives (Panel/Button/Bar/Chip/Scrim) don't exist yet | `card-engine-ui-kit-contract.md` §3 |
+| Collection stall menu — the first surface to use the kit | `castle/courtyard/stalls.ts:78` |
+| `BossHUDOverlay` still positions children at literal pixel offsets; needs the percentage contract before any re-skin | `pages/battle/BossHUDOverlay.tsx:55` |
+| `FantasyPanel.tsx` is dead code — zero callers. Safe to delete, awaiting Raheem's nod | `pages/battle/FantasyPanel.tsx` |
+| Mobile combat is CSS-drawn (`CombatFrame`) with no painted or pixel art at all — and iPhone portrait is launch-blocking | `pages/battle/mobile/MobileBossHeader.tsx:36` |
+| No return-to-courtyard affordance exists on Forge / Collection / Battle | — |
 
 ### Art prompting debt — 3 items
 
@@ -533,7 +584,7 @@ reversible and inside an approved direction, I just do it.
 ---
 
 <!-- updated: 2026-07-31 -->
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 6. The workshops
 
 **A workshop is a day you can step into.** Not a tool — a *way of working*. Pick one, say
@@ -724,7 +775,10 @@ The short version:
 | Tool | What it does |
 |---|---|
 | `bg-harness` | Environments and plates via Leonardo. 7 configs |
-| `sprite-lab` | Characters, bosses, props via PixelLab. 8 configs |
+| `sprite-lab` | Characters, bosses, props **and pixel UI chrome** via PixelLab. 9 configs |
+| `sprite-lab.mjs sheet` | Review gallery. Now renders object configs too, with acceptance criteria and in-context composites |
+| `ui_kit_review.py` | Puts UI chrome over the plate on light *and* dark ground, and 9-slices the frame at game scale |
+| `knockout_interior.py` | Clears a painted frame interior so it can 9-slice — repair instead of re-roll |
 | `boss-sheet.mjs` | Plays packed boss clips at real fps — motion review |
 | `/dev/boss-readout` | Measures the fight: beats, damage, telegraph timing |
 | `finish_arena.py` | Deterministic arena finishing — crop, grade, pixelize |
@@ -780,6 +834,78 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-04 — This is a 2D pixel game, and the rule is "painted is what you look at, pixel is what you touch"
+
+Raheem restated what the project is: a 2D pixel world you walk around in, where cards are how
+you fight — not a card-collection website with a castle attached. The menus become stalls you
+approach inside the world.
+
+He also settled how the two art styles divide, which is the part that makes it buildable:
+painted backdrops and scenery, pixel characters, props, effects and interface. The card is
+the single painted exception.
+
+*Why it matters:* it reverses a ruling Raheem made **earlier the same day**. He first chose
+painterly chrome; a few messages later he chose pixel. Both are recorded deliberately — the
+second one wins, and the reversal is why the six-piece art order moved from Leonardo to
+PixelLab.
+
+*What it closed:* a worry I had raised that the hand-painted courtyard was now off-direction.
+It is not. Under this rule the painted plate is exactly right and the pixel layer is added on
+top of it. **The courtyard does not get repainted.**
+
+### 2026-08-04 — The pixel-vs-painted courtyard question was already answered, and we nearly paid twice
+
+Before generating anything, the playbook turned out to already contain the verdict: a full
+pixel courtyard was built and compared against the painted plate in an earlier session — 68
+generations — and **the painting won**. The recorded standing direction was "PixelLab for
+characters and for new objects that don't already exist in the plate."
+
+*Why it matters:* that is almost word-for-word the direction Raheem described this session.
+He was not changing course; he was restating a conclusion the project had already paid to
+learn. Reading the playbook first saved re-running the experiment.
+
+### 2026-08-04 — Round 3 of the pixel UI kit is approved; the rejected rounds are kept on purpose
+
+Three rounds, 60 generations. R1 (plain carved wood) was *"a bit too plain."* R2 (heavy gold
+and crystal) was *"a bit too gaudy… too much gold."* R3 — wood body, slim gold trim, one small
+turquoise crystal — is approved.
+
+Raheem asked that the rejected art be kept rather than discarded: the alternate frames become
+UI for *other* stalls, and two accidental pieces (a potion and a key) become item art.
+
+*Why it matters:* nothing generated through this endpoint is reproducible — PixelLab's object
+route rejects a seed, so a re-roll returns different art, never the same art. Every file in
+`public/assets/ui/` is a one-of-one, and the provenance file says so in those words.
+
+*What it closed:* the real unknown, which was whether PixelLab could hold a **9-slice frame**
+at all — its advertised interface support is buttons and health bars, and frames are never
+mentioned. It can: the frame's centre came back genuinely hollow and its edges tile at a 32px
+corner slice, both measured rather than eyeballed.
+
+### 2026-08-04 — A frame with a painted interior was repaired locally instead of re-rolled
+
+R3's frame came back with a solid opaque centre, which makes a 9-slice impossible. Rather than
+spend 20 generations on an unreproducible re-roll — and risk losing a frame Raheem liked — the
+interior was cleared deterministically with a new flood-fill script.
+
+*Why it matters:* this is the playbook's correction ladder working as designed. The cheapest
+rung that solves the actual problem, no identity drift, no spend.
+
+### 2026-08-04 — The review harness was blank for every object config, and nobody had noticed
+
+Raheem, mid-session: *"The harness is blank. I don't see anything. I would like to actually be
+able to review them in the harness."* He was right. `sprite-lab.mjs sheet` only ever read the
+field that **character** configs write, so every object config — props, tiles, the UI kit —
+rendered an empty page. The art was on disk and paid for; the review surface silently showed
+nothing.
+
+Fixed for all object configs, not just this one. The sheet now also renders the acceptance
+criteria at the top, and promotes in-context composites (every piece over the light plate and
+a dark ground, plus the frame 9-sliced at real game scale) to full width.
+
+*Why it matters:* chrome approved on a checkerboard is how you ship chrome that vanishes
+against the plate — which is exactly what Round 1 did. The in-context view is what caught it.
 
 ### 2026-08-04 — The forge crystals are a code problem, and the tower is picked in Figma
 
@@ -1506,7 +1632,7 @@ in common, and both tools get used across both subjects.
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 9. Ideas raised, not committed
 
 *Said out loud, captured so they aren't lost, explicitly **not** promises.*
@@ -1518,9 +1644,10 @@ in common, and both tools get used across both subjects.
 - **More minigames as doors** — the shape accepts them; none are designed.
 - **Extract the harnesses as a reusable toolkit for future games** — Raheem explicitly
   deferred this. Focus is this game.
-- **Explore a generated combat-UI art pass** — Raheem raised PixelLab as a possible way to
-  improve the boss-battle chrome after the interaction restructure is proven. This is not an
-  approved generation run or a decision that PixelLab is the right UI tool.
+- ~~**Explore a generated combat-UI art pass**~~ — **committed 2026-08-04.** PixelLab *is*
+  the right UI tool, the art is generated and approved, and this is now a live workstream in
+  §3 with its own thread list in §4. Left here struck through so the trail from idea to
+  commitment is visible.
 - **Promote evaluated cards into the permanent roster** — the Evaluation Room is read-only
   for now. Design the explicit acceptance record, provenance gates, and promotion action only
   after the team has used the dossiers enough to understand the real review process.
