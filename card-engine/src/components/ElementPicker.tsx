@@ -49,17 +49,19 @@ interface ElementTileProps {
   rarityLabel: string;
   rarityClass: string;
   onPick: (element: ElementName) => void;
+  /** Fixed basis in the wide flex layout, so tiles never stretch to fill. */
+  className?: string;
 }
 
-function ElementTile({ element, rarityLabel, rarityClass, onPick }: ElementTileProps) {
+function ElementTile({ element, rarityLabel, rarityClass, onPick, className = '' }: ElementTileProps) {
   const image = getElementImage(element);
   const { color, glow } = getElementVisual(element);
 
   return (
     <button
       onClick={() => onPick(element)}
-      className="group relative rounded-xl border-2 bg-obsidian/70 p-2 text-center transition-all
-        hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-gold/60"
+      className={`group relative rounded-xl border-2 bg-obsidian/70 p-2 text-center transition-all
+        hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-gold/60 ${className}`}
       style={{ borderColor: `${color}66` }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = color;
@@ -118,14 +120,23 @@ export function ElementPicker({ archetype, onComplete, wide = false }: ElementPi
         </p>
       </header>
 
+      {/* WIDE USES FLEX-WRAP, NOT GRID. A grid left-aligns a partial row, so
+          five elements in a six-column grid left a hole on the right and the
+          set read as off-centre. Raheem: "could they be centered horizontally
+          and vertically?" Flex with `justify-center` centres the last row too,
+          which is the only layout that looks composed at every count from two
+          to six. Tiles take a fixed basis so they do not stretch to fill. */}
       <div
-        className={`grid gap-3 min-h-0 ${
-          wide ? 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3'
-        }`}
+        className={
+          wide
+            ? 'flex flex-wrap justify-center gap-3 min-h-0'
+            : 'grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-0'
+        }
       >
         {natural.map((element) => (
           <ElementTile
             key={element}
+            className={wide ? 'w-[172px] flex-none' : undefined}
             element={element}
             rarityLabel="Naturally Compatible"
             rarityClass="text-emerald-300/90"
@@ -136,6 +147,7 @@ export function ElementPicker({ archetype, onComplete, wide = false }: ElementPi
         {rare.map((element) => (
           <ElementTile
             key={element}
+            className={wide ? 'w-[172px] flex-none' : undefined}
             element={element}
             rarityLabel="Rare"
             rarityClass="text-fuchsia-300/90"
