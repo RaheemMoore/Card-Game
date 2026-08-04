@@ -61,7 +61,8 @@
       ],
       "frameCount": 8,
       "mode": "v3",
-      "note": "PROBE and the piece Raheem was most emphatic about: 'the lectern papers should one hundred percent flutter. That's the whole point.' SOUTH ONLY \u2014 this is an 8-direction object, and omitting `directions` would animate all eight and buy five loops the game never shows. Cost of object animation is unmeasured in this repo; this run measures it."
+      "note": "PROBE and the piece Raheem was most emphatic about: 'the lectern papers should one hundred percent flutter. That's the whole point.' SOUTH ONLY \u2014 this is an 8-direction object, and omitting `directions` would animate all eight and buy five loops the game never shows. Cost of object animation is unmeasured in this repo; this run measures it.",
+      "replaceExisting": true
     }
   ]
 }

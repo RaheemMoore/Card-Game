@@ -693,6 +693,8 @@ async function cmdScene(subject) {
       ...(a.frameCount ? { frame_count: a.frameCount } : {}),
       ...(a.displayName ? { display_name: a.displayName } : {}),
       ...(a.directions ? { directions: a.directions } : {}),
+      // Re-animating a direction that already has one is a 409 without this.
+      ...(a.replaceExisting ? { replace_existing: true } : {}),
     };
     const res = await api('POST', `/objects/${a.objectId}/animations`, body);
     const jobIds = (res.submissions ?? [])
@@ -713,9 +715,12 @@ async function cmdScene(subject) {
       JSON.stringify({ post: res, group }, null, 2),
     );
 
+    // Frames hang off each DIRECTION as `storage_urls.frames`, not off the job
+    // and not as `frame_urls`. Getting this wrong throws away a completed,
+    // paid-for animation — the same trap the rotation/tile paths already hit.
     const files = [];
     for (const dir of group?.directions ?? []) {
-      const urls = dir.frame_urls ?? dir.frames ?? [];
+      const urls = dir.storage_urls?.frames ?? dir.frame_urls ?? dir.frames ?? [];
       for (const [i, url] of urls.entries()) {
         if (!url) continue;
         const file = `anim-${a.id}-${dir.direction ?? 'single'}-${String(i).padStart(2, '0')}.png`;
