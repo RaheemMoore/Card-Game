@@ -129,8 +129,7 @@ being raised in a chat and lost.*
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
-| Q8 | Now that the Studio Wiki replaced the old Production Guide link, does the guide itself retire? | The generated page at `docs/production/production.html` still exists and the `production-log` skill still ends by republishing it. The Wiki reads the same source and redeploys automatically. Keeping both means two versions of the truth and a manual step that will be skipped. |
-| Q10 | If forging stops making a live API call, do Forge Crystals still make sense as purchase-only? | They are purchase-only *because* each generation costs real money (economy plan §13). A pool weakens that rationale. Pricing changes need your explicit approval, so this needs your ruling before anything moves. |
+| Q12 | Now that Crystals are earned, should the mine yield Crystals as well as Gold? | The mine yields Gold *because* Crystals could not be earned. That reason is gone, so this is a live design question rather than a settled rule. |
 | Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
 | Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
@@ -148,6 +147,18 @@ gets to make his own.
 this is built follows from that sentence. It's why the forge is a ritual and not a slot
 machine, and why identity fields are locked so advancement can never make someone younger,
 thinner, or less disabled.
+
+### It is a one-off indie game, sold on Steam — new, 2026-08-04
+
+Raheem: *"I am no longer going to make this an ever-ending game where you play with your
+friends. It's gonna be a one-off indie game that people buy on Steam. You purchase it, you
+play the card game, you challenge the tower."*
+
+You buy the game once. There is **no purchase system inside it** — Forge Crystals are earned
+by mining and other play, not bought. Multiplayer and the live-service framing are out.
+
+This reverses assumptions a lot of the existing code was built on, so §7 records what changed
+rather than quietly rewriting it.
 
 ### It is a 2D pixel game — new, 2026-08-04
 
@@ -368,9 +379,9 @@ Every paid provider call routes through a server-side Vercel function under
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
 | PLANNED | The mine | Gold only. Not designed |
-| PLANNED | Multiplayer courtyard | After the tower. Needs Supabase Realtime |
+| WON'T DO | Multiplayer courtyard | **Dropped 2026-08-04** with the live-service model. Raheem: "I am no longer going to make this an ever-ending game where you play with your friends." |
 | PLANNED | Cosmetics | After multiplayer. Intersects the Fashion Bible |
-| PLANNED | Payments / real money | Blocked on economy plan §9 security prerequisites |
+| WON'T DO | Payments / real money | **Removed 2026-08-04.** The game is a one-off Steam purchase, so there are no bundles, no payment rails, no receipt verification, and the economy plan §9 security prerequisites are moot. Do not build toward them. |
 | PLANNED | PvP battles + trading | Not started |
 
 ### Branches with live work
@@ -812,13 +823,27 @@ From [economy plan §13](card-engine-economy-currency-system-plan.md), which is 
 
 No component hardcodes a price. Everything reads from `src/data/economy/` catalogs.
 
-### Why Forge Crystals are purchase-only
+### ~~Why Forge Crystals are purchase-only~~ — REVERSED 2026-08-04
 
-Each forge spends real money at Leonardo and Anthropic. Crystals are the player-facing
-representation of that cost. If they could be earned, the generation bill would be unbounded
-and land on you.
+> **Crystals are EARNED now. There is no purchase system.**
+>
+> Raheem, 2026-08-04: *"It's gonna be a one-off indie game that people buy on Steam… People
+> will not be purchasing crystals anymore. They're gonna buy the game, and mine for crystals,
+> and do other things to get crystals. We're removing the whole purchase system."*
 
-**This is why the mine yields Gold, not Crystals.** *(Decided 2026-07-31 — see §8.)*
+The old rule below is kept struck through because it explains why a lot of the existing code
+looks the way it does — not because it still applies.
+
+> ~~Each forge spends real money at Leonardo and Anthropic. Crystals are the player-facing
+> representation of that cost. If they could be earned, the generation bill would be unbounded
+> and land on you.~~ *(Decided 2026-07-31, reversed 2026-08-04.)*
+
+**What makes the reversal affordable:** the pre-generated card pool takes the paid API call
+off the per-player path. Earning a crystal no longer maps to spending money on a live
+generation. The two decisions depend on each other — do not adopt one without the other.
+
+**Consequently the mine yielding Gold rather than Crystals is now an open design question,**
+not a settled rule. It was settled *by* the purchase-only rule that just went away.
 
 ### What blocks real money
 
@@ -872,6 +897,36 @@ in another zone. She is not wrong, she is in the wrong game's art style.
 games, and this project has now proved that a canonical document can be the thing causing the
 defect.
 
+
+### 2026-08-04 — It is an indie game you buy once, and the purchase system is removed
+
+Raheem: *"It's gonna be a one-off indie game that people buy on Steam… People will not be
+purchasing crystals anymore. They're gonna buy the game, and mine for crystals, and do other
+things to get crystals. We're removing the whole purchase system. We're just gonna sell the
+game."*
+
+*Why it matters:* it reverses the single load-bearing economy rule — that Forge Crystals are
+purchase-only because every forge spends real money at Leonardo and Anthropic. Crystals are
+now EARNED. Payments, bundles and the §9 production-security prerequisites move from PLANNED
+to WON'T DO, and multiplayer goes with the live-service model.
+
+*What makes it affordable:* the pre-generated card pool, decided the same day, takes the paid
+API call off the per-player path. The two decisions hold each other up — neither works alone.
+
+*What it re-opens:* the mine yields Gold rather than Crystals **because** crystals could not
+be earned. That reason is gone, so it is a live design question again rather than a rule.
+
+### 2026-08-04 — The generated Production Guide is retired; the Wiki is the record
+
+Raheem: *"The production guide that you linked is obsolete and has been retired… Don't update
+it anymore. We are updating the wiki."*
+
+`PRODUCTION.md` is still the written record and still gets updated every session. What is
+dead is the generated HTML page at `docs/production/production.html` and its artifact link —
+the Studio Wiki reads this same file and publishes itself. The `production-log` skill has had
+its regenerate-and-republish step removed so no future session recreates the second copy.
+
+*What it closed:* Q8, which had been sitting in §0 asking exactly this.
 
 ### 2026-08-04 — Cards will come from a pre-generated pool, not a live forge
 

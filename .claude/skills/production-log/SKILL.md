@@ -125,19 +125,26 @@ commits to it, and then it becomes a §3 row or a §4 thread.
 
 ---
 
-## Step 7 — Stamp, regenerate, redeploy
+## Step 7 — Stamp only
 
 1. Update the `<!-- updated: YYYY-MM-DD -->` marker on every section you touched, and the
    `**Last updated:**` line at the top.
-2. Regenerate:
-   ```bash
-   npm run production:page --prefix card-engine
-   ```
-3. Redeploy with the **Artifact** tool using the same file path,
-   `docs/production/production.html`, so the URL Raheem has bookmarked and shared with Tori
-   does not change. From a different conversation, pass the existing `url` explicitly — a
-   conversation that didn't publish it will otherwise mint a new one.
-4. Keep the favicon (🗝️) stable. A changed favicon reads as a different page.
+2. **Stop there.**
+
+> ### The generated page is RETIRED — do not publish it
+>
+> Raheem, 2026-08-04: *"The production guide that you linked is obsolete and has been
+> retired. You should retire that link. Don't update it anymore. We are updating the wiki.
+> There's a wiki for this entire game. That is what we update when we make changes."*
+>
+> So this skill no longer runs `npm run production:page`, no longer publishes
+> `docs/production/production.html`, and never links the old artifact. **The Studio Wiki
+> reads `PRODUCTION.md` directly and redeploys itself** — keeping a second generated copy
+> meant two versions of the truth and a manual step that would be skipped, which is exactly
+> what Q8 in §0 had been asking about for weeks.
+>
+> `PRODUCTION.md` itself is still the record and still gets updated. Only the generated HTML
+> and its artifact link are dead.
 
 ---
 
