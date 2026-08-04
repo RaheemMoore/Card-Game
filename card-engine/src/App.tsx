@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
 import { Landing } from './pages/Landing';
@@ -31,6 +32,12 @@ import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
 import { Login } from './pages/Login';
+
+const CourtyardV2Preview = import.meta.env.DEV
+  ? lazy(() =>
+      import('./pages/castle/v2-preview').then((module) => ({ default: module.CourtyardV2Preview })),
+    )
+  : null;
 
 // Wallet + card-store initialization now happens inside PersistenceGate,
 // which awaits Supabase auth + migration + hydrate before the router
@@ -84,6 +91,17 @@ export default function App() {
               it perform?" Same tier: reads only frozen fixtures built by
               running the real reducer, touches no player data. */}
           <Route path="/dev/decision-lab" element={<DecisionLab />} />
+
+          {CourtyardV2Preview && (
+            <Route
+              path="/dev/courtyard-v2-preview"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading preview…</p>}>
+                  <CourtyardV2Preview />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,

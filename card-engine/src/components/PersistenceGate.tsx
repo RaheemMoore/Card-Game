@@ -265,7 +265,11 @@ function extractErrorMessage(err: unknown): string {
  *      narrow exception turns into a general one. Adding a route here has to
  *      be a decision, not an accident of naming.
  */
-const DEV_ONLY_UNGATED_ROUTES = ['/dev/sprite-preview', '/dev/boss-readout'];
+const DEV_ONLY_UNGATED_ROUTES = [
+  '/dev/sprite-preview',
+  '/dev/boss-readout',
+  ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
+];
 
 function isDevOnlyArtRoute(): boolean {
   if (!import.meta.env.DEV) return false;

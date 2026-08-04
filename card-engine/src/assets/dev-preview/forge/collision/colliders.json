@@ -1,0 +1,80 @@
+{
+  "grid": 8,
+  "colliders": [
+    {
+      "id": "forge-footprint",
+      "boxes": [
+        {
+          "x": 872,
+          "y": 304,
+          "width": 264,
+          "height": 48
+        },
+        {
+          "x": 880,
+          "y": 352,
+          "width": 40,
+          "height": 8
+        },
+        {
+          "x": 1080,
+          "y": 352,
+          "width": 40,
+          "height": 8
+        }
+      ]
+    },
+    {
+      "id": "counter-cabinet-footprint",
+      "boxes": [
+        {
+          "x": 920,
+          "y": 392,
+          "width": 168,
+          "height": 24
+        },
+        {
+          "x": 920,
+          "y": 416,
+          "width": 176,
+          "height": 32
+        },
+        {
+          "x": 920,
+          "y": 448,
+          "width": 32,
+          "height": 8
+        },
+        {
+          "x": 1056,
+          "y": 448,
+          "width": 32,
+          "height": 16
+        },
+        {
+          "x": 920,
+          "y": 456,
+          "width": 24,
+          "height": 8
+        }
+      ]
+    },
+    {
+      "id": "bench-footprint",
+      "boxes": [
+        {
+          "x": 928,
+          "y": 488,
+          "width": 152,
+          "height": 8
+        },
+        {
+          "x": 920,
+          "y": 496,
+          "width": 160,
+          "height": 40
+        }
+      ]
+    }
+  ]
+}
