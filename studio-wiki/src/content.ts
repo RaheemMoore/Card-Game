@@ -316,7 +316,7 @@ export const searchEntries = [
   { path: '/bosses', title: 'Bosses & Arenas', text: 'Battle Tower floors Debt-Bearer Still Season PixelLab idle windup attack ultimate rage hit defeat' },
   { path: '/elements', title: 'Elements', text: '29 element crystals PixelLab charge delivery stream volley growth impact blast combat performance material language' },
   { path: '/abilities', title: 'Abilities', text: 'ability codex canonical roster core signature ultimate role family resource effects version artwork' },
-  { path: '/world', title: 'Game World', text: 'castle courtyard tower arenas colliders occluders Phaser Leonardo PixelLab' },
+  { path: '/world', title: 'Game World', text: 'castle courtyard v2 pending forge quadrant chibi footsteps dust colliders occluders Phaser Leonardo PixelLab Figma' },
   { path: '/minigames', title: 'Battle Tower', text: 'primary game mode floors party cards boss intent attack mana tech elements guard strike abilities' },
   { path: '/production', title: 'Current Build', text: 'production status open threads priorities shipped in flight' },
   { path: '/studio', title: 'AI Studio Handbook', text: 'coworker onboarding workflow accounts Figma Leonardo idea plan create build connect prove release agents skills evidence human approval' },

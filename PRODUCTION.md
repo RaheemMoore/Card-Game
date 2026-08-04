@@ -231,6 +231,14 @@ lets a 5000-run headless simulator check balance without playing anything.
 A painted, non-scrolling top-down courtyard in Phaser 3. Fixed cover-scaled camera, WASD
 walking, feet-anchored colliders traced onto the plate. Four stalls, all placeholders.
 
+**Courtyard V2 is a separate pending replacement, not the live courtyard.** Its forge quadrant
+now has a development-only playable preview with a controllable chibi, soft white heel dust,
+forge surge/smoke/heat effects, Figma-traced counter/bench/forge occlusion, and imported
+ground-contact colliders. Both forge passages are walkable in named checks, including reduced
+motion. The other quadrants, full-map collision/occlusion, baked-shadow cleanup, and production
+route integration remain open. The checkpoint is preserved on `codex/courtyard-forge-vfx`;
+the route and its assets are excluded from production builds.
+
 Deliberately kept out of the main nav — a player reaching it today would find four dead ends.
 
 *Lives in:* `src/pages/castle/` — `courtyard/layout.ts` derives the canvas size and is
@@ -276,7 +284,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
 | SHIPPED | Studio Wiki | Live at `https://card-engine-studio-wiki.vercel.app` as a separate Vercel project under the game's team. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions. Admin and lore-director partners share Ideas visibility while preserving author-only edits. The game admin sidebar keeps Production Guide and adds Studio Wiki beneath it. Production deep-link routing, cloud build, environment configuration, and unauthenticated API enforcement are verified; the first Raheem/Tori signed-in walkthrough remains a human review. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
-| IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
+| IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
@@ -289,12 +297,13 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Four branches carry the work currently named in this guide.
+Five branches carry the work currently named in this guide.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 11 | 0 | Repository-backed Studio Wiki; live alpha Card Evaluation Room, Raheem's Ideas Desk, Work Board, onboarding, reference libraries, lean admin navigation, and local verification |
+| `codex/studio-wiki-foundation` | 13 | 41 | Repository-backed Studio Wiki; live alpha Card Evaluation Room, Raheem's Ideas Desk, Work Board, onboarding, reference libraries, lean admin navigation, and the Courtyard V2 pending-project view |
+| `codex/courtyard-forge-vfx` | 2 | 0 | DEV-only Courtyard V2 forge checkpoint, runtime evidence, and production handoff; production `/castle` unchanged |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -303,7 +312,7 @@ Four branches carry the work currently named in this guide.
 <!-- updated: 2026-08-03 -->
 ## 4. Open threads
 
-**49 things started and not finished.** This is the list that didn't exist before. It will
+**54 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -327,6 +336,18 @@ The hub exists; nothing behind it does.
 *Also:* castle is held out of the main nav until these open (`components/nav/navConfig.ts:20`);
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
+
+### Courtyard V2 replacement — 5 items
+
+The forge quadrant is a verified development checkpoint, not permission to replace production.
+
+| What | Where |
+|---|---|
+| Finish collider and occluder traces for the remaining courtyard, including walls and fountain | `src/pages/castle/v2-preview/` + Figma Courtyard V2 file |
+| Design and build the top-left, bottom-left Archivist, and bottom-right quadrants | Figma Courtyard V2 file |
+| Remove the counter's baked shadow and reduce the bench shadow without damaging the rug | Courtyard V2 source art |
+| Replace preview-only walk bounds with the complete imported map collision set | `v2-preview/CourtyardV2PreviewScene.ts` |
+| Integrate V2 into the production castle only after full-map runtime and human visual approval | `src/pages/castle/` |
 
 ### Combat gaps — 7 items
 
@@ -709,6 +730,20 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Courtyard V2 is visible as pending work, not mistaken for production
+
+Raheem accepted the forge quadrant as a strong stopping point and asked for the work to be
+preserved across devices and shown in the Studio Wiki. The Wiki now distinguishes the current
+production courtyard from its pending V2 replacement and records exactly what the checkpoint
+proves: chibi movement and heel dust, forge atmosphere, Figma-derived colliders and
+walk-behind depth, and two passable forge aisles in normal and reduced motion.
+
+The remaining three quadrants, full-map collider/occluder coverage, baked-shadow cleanup, and
+production integration remain visible as open work. The existing `/castle` is unchanged.
+
+*Why it matters:* coworkers can see real progress without interpreting one finished quadrant
+as a finished replacement or losing the next steps when the original chat is gone.
 
 ### 2026-08-03 — The Wiki is a shared partner studio with its own permanent link
 
