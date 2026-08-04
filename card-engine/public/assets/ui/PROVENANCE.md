@@ -52,3 +52,56 @@ genuinely good assets — kept deliberately, per Raheem.
 **Painted is what you look at; pixel is what you touch.** Chrome is pixel because it is
 touched. The card — portrait and painted frame edges — stays painterly. See
 `card-engine-ui-kit-contract.md`.
+
+---
+
+## Assembly rules — learned expensively, 2026-08-04
+
+Every one of these came from a defect Raheem caught in review. The art was never
+the problem; the assembly was. Read this before wiring a new piece.
+
+### 1. `fill` for solid pieces. No `fill` for frames.
+
+`border-image` **paints only the ring** and discards the middle of the source.
+That is correct for `panel-frame.png`, whose centre is genuinely hollow, so the
+element's own `background` shows through.
+
+It is completely wrong for the button, bar and slot, whose art **is** their face.
+Without the `fill` keyword their generated wood and gold were thrown away and
+replaced by a flat CSS rectangle — the "giant dark boxes" in review.
+
+### 2. Trim before you slice.
+
+PixelLab returns every object on a fixed square canvas regardless of shape. As
+generated: button **112×34**, bar **120×30**, slot **45×47** — all inside 128×128.
+A slice measured from the canvas edge therefore samples mostly transparency.
+
+Run `scripts/sprite-lab/lib/trim_ui_piece.py` on every new piece. It crops to the
+content box and prints a usable slice.
+
+### 3. Measure the slice off the art. Never assume symmetry.
+
+The button's crystal cap is on the **left only** (16px); its right edge is a plain
+6px rim. A symmetric slice invented a cap on the right and shoved every label
+onto the real one. Its slice is `10 6 10 16 fill` — top/right/bottom/left.
+
+The bar's channel is x 14–106, y 6–24 of 120×30. The fill is inset to that, so it
+cannot cover the gold end caps.
+
+### 4. Rendered width is not the slice.
+
+`Slot` takes `frameWidth` separately from its fixed 13px slice. A smaller width
+draws the same beading **thinner**, it does not crop it. The crest rack uses 6 so
+the emblem gets the tile; card slots use the default.
+
+### 5. Pixel fills shade in bands, not gradients.
+
+The bar's fill is three flat bands with hard stops and no glow. A smooth gradient
+with a bloom is the single most obvious way to make CSS look like CSS sitting
+inside pixel art.
+
+### 6. Review over the plate, on both grounds.
+
+`lib/ui_kit_review.py` composites every piece over the courtyard on light AND dark
+and 9-slices the frame at game scale. Round 1 looked fine as loose PNGs and was
+tonally wrong the moment it sat on the courtyard.

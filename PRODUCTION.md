@@ -64,22 +64,24 @@ yourself. **Lore** is Tori's.
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
 why in the decision log.*
 
-### ▲ Highest value — build the Collection stall as a real in-game menu
+### ▲ Highest value — build the Forge menu next
 
 Four stalls in the courtyard say *"not yet connected."* The castle is the hub your entire
 design rests on, and right now it's a beautiful room with four doors that go nowhere.
 
-**What changed on 2026-08-04:** a stall is no longer meant to open the existing web page. The
-Forge and Collection pages are slated to be *replaced* by pixel menus you open inside the
-world (see §1). So the job is bigger than wiring — it is building the first real in-game
-menu, and the other three stalls then follow the pattern it sets.
+**The Collection is done** — it is a pixel case you reach from the pause menu today, with the
+old page's filters, sorting, detail view and deletion carried across. That proved the shell.
 
-**The Collection goes first.** It is read-only, so it is the cheapest surface to prove a menu
-shell on, and it is where "a game, not a card-collection website" shows most. The art it
-needs is already generated and approved.
+**The Forge is the right next one**, and deliberately the hardest: it is a five-stage ritual
+with dice, story pillars, element choice and a paid generation step. If the primitives cannot
+carry a multi-stage flow, that is much cheaper to discover now than after two easy stalls are
+built on the same assumptions.
 
-*Where:* `card-engine/src/pages/castle/courtyard/stalls.ts:78` ·
-*Art:* `card-engine/public/assets/ui/kit/`
+Your own sequencing holds — build all four menus, then connect them to stalls once the four
+quadrants are designed. Wiring now would mean wiring twice, since Courtyard V2 is still
+moving.
+
+*Where:* `card-engine/src/pages/CardForge.tsx` · *Kit:* `card-engine/src/components/ui/`
 
 ### ◆ Decide, don't build — how long is the tower?
 
@@ -356,7 +358,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Pixel UI kit | The art exists and is approved; **no player can see any of it yet.** Three rounds generated 2026-08-04 (60 generations); Raheem picked Round 3 — wood body, slim gold trim, small turquoise crystal. Four pieces live in `public/assets/ui/kit/`, alternates kept in `public/assets/ui/library/` for other stalls. The frame is a verified 9-slice at 32px corners. **Next: the five React primitives and the Collection stall menu.** Contract: `card-engine-ui-kit-contract.md` |
+| IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
+| SHIPPED | The Collection, as an in-world case | `/collection` renders the pixel case and the pause menu already pointed there, so a player reaches it today. Painted cards inside pixel chrome; filters are a rack of the eleven archetype crests rather than a dropdown, rank is three chips, sort is one cycling button, and Inspect/Release carry the old page's detail and deletion. Scroll edges fade and show a chevron only where content continues. Verified at 1280x620 and 375x812. Preview with a full case at `/dev/collection-stall`. **Not yet opened from a courtyard stall — that waits on the four-quadrant design.** |
 | SHIPPED | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets run in the authentic `/battle` event stream. Combat follows **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The full-motion exchange reaches the next intent in about 6.2 seconds; boss-bound volleys land in a readable triangle, and Motion Off preserves the order as still tableaux. Released through PR #34 at production commit `98f66e7`. |
 | SHIPPED | Decision Experience System — Stage 1 | The selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible usable ability; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back. Projections, the Threat Translator, contextual explanations, shared confirmation policy, authoritative receipts, and `/dev/decision-lab` remain intact. **Encounter Briefing and dedicated Pilot A/B comprehension passes are still open Stage 2 work** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
@@ -388,7 +391,7 @@ machine and will be silently absent from every other device you open. If it is w
 <!-- updated: 2026-08-04 -->
 ## 4. Open threads
 
-**71 things started and not finished.** This is the list that didn't exist before. It will
+**69 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -479,14 +482,17 @@ The forge quadrant is a verified development checkpoint, not permission to repla
 | `balance-playtest` skill is a scaffold that can't run | `.claude/skills/balance-playtest/` |
 | Dice roll animation is CSS 3D cubes — works, never polished | `components/DiceRoll.tsx` |
 
-### Pixel UI kit — 6 items
+### Pixel UI kit — 4 items
 
-*Opened 2026-08-04. The art is approved and committed; none of it is on screen yet.*
+*Opened 2026-08-04. The kit and the first surface are built; the remaining stalls
+are not. Six primitives now exist in `src/components/ui/`: Panel, PixelButton,
+Bar, Slot, Scrim and ScrollArea. The Collection is live at `/collection` and
+reachable from the pause menu — see the status board.*
 
 | What | Where |
 |---|---|
-| The five React primitives (Panel/Button/Bar/Chip/Scrim) don't exist yet | `card-engine-ui-kit-contract.md` §3 |
-| Collection stall menu — the first surface to use the kit | `castle/courtyard/stalls.ts:78` |
+| Forge, Battle Tower and Training Yard have no menu yet | `castle/courtyard/stalls.ts` |
+| Stalls are not wired to the menus — deliberate, pending Raheem's four-quadrant design | `castle/CourtyardViewport.tsx` |
 | `BossHUDOverlay` still positions children at literal pixel offsets; needs the percentage contract before any re-skin | `pages/battle/BossHUDOverlay.tsx:55` |
 | `FantasyPanel.tsx` is dead code — zero callers. Safe to delete, awaiting Raheem's nod | `pages/battle/FantasyPanel.tsx` |
 | Mobile combat is CSS-drawn (`CombatFrame`) with no painted or pixel art at all — and iPhone portrait is launch-blocking | `pages/battle/mobile/MobileBossHeader.tsx:36` |
