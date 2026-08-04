@@ -70,6 +70,7 @@ describe('Studio Wiki content contracts', () => {
       ['/work/active', 'Active Work'],
       ['/work/required', 'Required & Deferred'],
       ['/work/tori', "Tori's Desk"],
+      ['/work/raheem', "Raheem's Desk"],
     ]);
   });
 

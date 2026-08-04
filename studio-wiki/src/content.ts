@@ -307,7 +307,7 @@ export const bossStates = [
 export const navigation = [
   { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/characters/cards', 'Cards'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
   { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decision Log'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
-  { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"]] },
+  { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"], ['/work/raheem', "Raheem's Desk"]] },
 ] as const;
 
 export const searchEntries = [
@@ -328,4 +328,5 @@ export const searchEntries = [
   { path: '/work/active', title: 'Active Work', text: 'ongoing tasks in progress live branches current work status owners blockers checkpoints' },
   { path: '/work/required', title: 'Required & Deferred', text: 'open threads required blocked deferred sidestepped later functional gaps unfinished work' },
   { path: '/work/tori', title: "Tori's Desk", text: 'lore assignments bosses telegraphs move names archetype voice canon review Tori' },
+  { path: '/work/raheem', title: "Raheem's Desk", text: 'private ideas notebook capture remember focus notes not tasks' },
 ];

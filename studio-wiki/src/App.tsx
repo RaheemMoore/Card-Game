@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleDashed, CircleHelp, Command, ExternalLink, Eye, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, Menu, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleDashed, CircleHelp, Command, ExternalLink, Eye, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, LogIn, Menu, NotebookPen, Plus, RefreshCw, Save, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
@@ -14,11 +14,13 @@ import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.pn
 import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
 import { SEED_ABILITIES } from '../../card-engine/src/data/abilities/seedAbilities';
 import { getApprovedArt } from '../../card-engine/src/data/abilities/visualManifest';
+import { createStudioIdea, getStudioSession, isStudioDataConfigured, listLiveReviewCards, listStudioIdeas, recordCardReview, restoreStudioSession, signInToStudio, signOutOfStudio, subscribeStudioSession, updateStudioIdea } from './studioApi';
+import type { LiveReviewCard, ReviewStatus, StudioIdea, StudioSession } from './studioApi';
 
 const iconsByPath = {
   '/': Command, '/characters': Users, '/bosses': Swords, '/characters/cards': Layers, '/elements': Gem, '/abilities': Sparkles, '/world': Castle, '/minigames': CircleHelp,
   '/production': FileText, '/studio': Workflow, '/assets': Image, '/workshops': Hammer, '/decisions': BookOpen, '/technical': Boxes, '/archive': Archive,
-  '/work/advice': Lightbulb, '/work/active': ListChecks, '/work/required': TriangleAlert, '/work/tori': Feather,
+  '/work/advice': Lightbulb, '/work/active': ListChecks, '/work/required': TriangleAlert, '/work/tori': Feather, '/work/raheem': NotebookPen,
 } as const;
 
 const studioStages = [
@@ -71,7 +73,7 @@ function Shell() {
         '/': <Home/>, '/characters': <Characters/>, '/characters/cards': <Cards/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
         '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
-        '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>,
+        '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>, '/work/raheem': <RaheemDesk/>,
       } as Record<string, ReactNode>)[path] ?? <Home/>}</main>
     </div>
   </div>;
@@ -92,7 +94,101 @@ function Characters() {
   return <><PageHeader eyebrow="VISUAL WIKI" title="Characters & Archetypes" intro="The eleven collectible identities. Select an emblem to inspect its canon and the permanent cards accepted for that archetype." status="SHIPPED"/><div className="character-layout"><Panel title="The eleven archetypes" className="emblem-panel"><div className="emblem-grid">{archetypes.map((entry, index) => <button className={selected === index ? 'emblem-card selected' : 'emblem-card'} key={entry[0]} onClick={() => setSelected(index)} aria-pressed={selected === index}><img src={`/assets/archetype-emblems/${entry[1]}`} alt={`${entry[0]} emblem`}/><span>{entry[0]}</span></button>)}</div></Panel><Panel className="archetype-detail"><img className="detail-emblem" src={`/assets/archetype-emblems/${item[1]}`} alt=""/><p className="eyebrow">SELECTED ARCHETYPE</p><h2>{item[0]}</h2><p>{item[3]}</p><dl><div><dt>Primary symbol</dt><dd>{item[2]}</dd></div><div><dt>Progression</dt><dd>Foundation → Forged → Ascendant</dd></div><div><dt>Identity rule</dt><dd>Rank growth preserves the person.</dd></div></dl><RepoLink path="card-engine/src/data/archetypeBible/"/></Panel></div><Panel title={`${item[0]} permanent cards`} action={<span className="card-section-state card-section-empty">{acceptedCards.length} ACCEPTED</span>}><div className="archetype-card-roster" aria-live="polite">{acceptedCards.length === 0 ? <><img src={`/assets/archetype-emblems/${item[1]}`} alt=""/><div><p className="eyebrow">HUMAN-ACCEPTED PERMANENT</p><h3>No {item[0]} cards have been accepted into the game.</h3><p>Select another emblem to inspect its permanent roster. Development cards live on the first-class Cards page and never appear here unless they receive explicit human acceptance.</p></div></> : acceptedCards.map((card) => <article key={card.name}><img src={card.image} alt={`${card.title} permanent card`}/><h3>{card.title}</h3></article>)}</div></Panel></>;
 }
 
+function useStudioSession() {
+  const [session, setSession] = useState<StudioSession | null>(() => getStudioSession());
+  const [checking, setChecking] = useState(true);
+  useEffect(() => {
+    const sync = () => setSession(getStudioSession());
+    const unsubscribe = subscribeStudioSession(sync);
+    restoreStudioSession().finally(() => { sync(); setChecking(false); });
+    return unsubscribe;
+  }, []);
+  return { session, checking };
+}
+
+function StudioSignIn({ purpose }: { purpose: string }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [working, setWorking] = useState(false);
+  const configured = isStudioDataConfigured();
+  return <Panel className="studio-signin">
+    <LogIn/><div><p className="eyebrow">TEAM ACCESS</p><h2>Sign in with your Card Engine account</h2><p>{purpose} This uses the same account as the game; the Wiki never stores your password.</p>
+      {!configured ? <div className="studio-service-note"><TriangleAlert/><span>The live workspace will activate after Supabase environment configuration is added to this Wiki deployment.</span></div> : <form onSubmit={async (event) => { event.preventDefault(); setWorking(true); setError(''); try { await signInToStudio(email, password); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not sign in.'); } finally { setWorking(false); } }}><label>Email<input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)}/></label><button disabled={working}>{working ? <RefreshCw className="spin"/> : <LogIn/>}{working ? 'Signing in…' : 'Open the Studio'}</button>{error && <p className="studio-form-error" role="alert">{error}</p>}</form>}
+    </div>
+  </Panel>;
+}
+
+function cardStatEntries(card: LiveReviewCard) {
+  return Object.entries(card.card.stats ?? {}).filter((entry): entry is [string, { value: number }] => Boolean(entry[1] && typeof entry[1] === 'object' && 'value' in entry[1]));
+}
+
+function WikiCard({ record }: { record: LiveReviewCard }) {
+  const card = record.card;
+  const resource = card.stats?.Mana ?? card.stats?.Tech;
+  return <div className="wiki-card" aria-label={`${record.title} full card`}>
+    <img className="wiki-card-portrait" src={record.portraitUrl ?? card.portraitAsset} alt={`${record.title} portrait`}/>
+    {card.border?.baseSource && <img className="wiki-card-border" src={card.border.baseSource} alt=""/>}
+    <strong className="wiki-card-name">{card.cardName || record.cardName}</strong>
+    {resource && <strong className="wiki-card-resource">{resource.value}</strong>}
+    <span className="wiki-card-title">{card.nameAndTitle || record.title}</span>
+    <span className="wiki-card-power">{card.stats?.Atk?.value ?? '–'} / {card.stats?.Def?.value ?? '–'}</span>
+  </div>;
+}
+
+function objectLines(value: unknown): Array<[string, string]> {
+  if (!value || typeof value !== 'object') return [];
+  return Object.entries(value as Record<string, unknown>).map(([key, item]) => [key.replace(/([A-Z])/g, ' $1').replaceAll('_', ' '), typeof item === 'string' ? item : Array.isArray(item) ? item.join(', ') : JSON.stringify(item)]);
+}
+
+function LiveCardDossier({ record, onVerdict, working }: { record: LiveReviewCard; onVerdict: (status: ReviewStatus) => void; working: boolean }) {
+  const card = record.card;
+  const history = Object.entries(card.evolutionHistory ?? {}).flatMap(([stat, ranks]) => Object.entries(ranks ?? {}).flatMap(([rank, snapshot]) => snapshot ? [{ stat, rank, ...snapshot }] : []));
+  const pillars = objectLines(card.storyPillars);
+  const identity = objectLines(card.identity);
+  return <article className="live-card-dossier">
+    <header><div><p className="eyebrow">SELECTED DEVELOPMENT CARD</p><h2>{record.title}</h2><p>Forged by {record.creatorName} · {new Date(record.createdAt).toLocaleDateString()}</p></div><span className={`review-status review-status-${record.reviewStatus}`}>{record.reviewStatus === 'needs_review' ? 'NEEDS REVIEW' : record.reviewStatus === 'keep' ? 'KEEP IN ALPHA' : 'X’D OUT'}</span></header>
+    <div className="live-card-hero"><WikiCard record={record}/><div><p className="eyebrow">WHY THIS RECORD IS HERE</p><h3>Every alpha card enters this shared room automatically.</h3><p>Keep means this card remains worth developing. X out means the team is setting it aside. Neither action deletes the character or makes it permanent.</p><dl><div><dt>Archetype</dt><dd>{record.archetype}</dd></div><div><dt>Dominant trait</dt><dd>{card.dominantStat ?? 'Tie / default'}</dd></div><div><dt>Element</dt><dd>{card.currentElement ?? card.elementSelection?.element ?? 'Not recorded'}</dd></div></dl></div></div>
+    <div className="live-card-sections">
+      <details open><summary><BookOpen/>Lore and identity<ChevronDown/></summary><div><blockquote>{card.lore || 'No lore is attached to this development card yet.'}</blockquote>{identity.length ? <dl className="live-fact-list">{identity.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl> : <p className="missing-copy">No locked identity record is attached.</p>}</div></details>
+      <details open><summary><Swords/>Stats and current abilities<ChevronDown/></summary><div><div className="live-stat-grid">{cardStatEntries(record).map(([name, stat]) => <article key={name}><span>{name}</span><strong>{stat.value}</strong><i><b style={{ width: `${stat.value}%` }}/></i></article>)}</div>{record.abilities?.length ? <div className="live-ability-grid">{record.abilities.map((ability) => <article key={`${ability.abilityId}-${ability.slotType}`}><span>{ability.slotType} · {ability.localTier}</span><h3>{ability.displayName}</h3><p>{ability.description}</p></article>)}</div> : <p className="missing-copy">No current ability loadout is attached to this card.</p>}</div></details>
+      <details><summary><Sparkles/>Story Pillars and elemental bond<ChevronDown/></summary><div>{pillars.length ? <dl className="live-fact-list">{pillars.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl> : <p className="missing-copy">No Story Pillar answers are attached.</p>}<p className="element-line"><Gem/> {card.elementSelection ? `${card.elementSelection.element} · ${card.elementSelection.bond}` : 'No element and bond recorded'}</p></div></details>
+      <details><summary><Layers/>Rank history<ChevronDown/></summary><div>{history.length ? <div className="live-rank-grid">{history.map((snapshot, index) => <article key={`${snapshot.stat}-${snapshot.rank}-${index}`}><img src={snapshot.portraitUrl} alt={`${snapshot.rank} portrait`}/><span>{snapshot.rank} · {snapshot.stat}</span><strong>{snapshot.nameAndTitle}</strong></article>)}</div> : <p className="missing-copy">This card has no recorded tier-up snapshots yet.</p>}</div></details>
+    </div>
+    <div className="review-action-bar"><div><strong>Shared alpha verdict</strong><span>The latest decision becomes the team view. You can change it at any time.</span></div><button disabled={working || record.reviewStatus === 'keep'} className="keep" onClick={() => onVerdict('keep')}><Check/>Keep in alpha</button><button disabled={working || record.reviewStatus === 'x_out'} className="xout" onClick={() => onVerdict('x_out')}><X/>X out</button></div>
+  </article>;
+}
+
 function Cards() {
+  const { session, checking } = useStudioSession();
+  const [status, setStatus] = useState<ReviewStatus | 'all'>('needs_review');
+  const [archetype, setArchetype] = useState('all');
+  const [search, setSearch] = useState('');
+  const [cards, setCards] = useState<LiveReviewCard[]>([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [working, setWorking] = useState(false);
+  const selected = cards.find((card) => card.cardId === selectedId) ?? cards[0];
+  const load = async () => { if (!session) return; setLoading(true); setError(''); try { const result = await listLiveReviewCards({ status, archetype, search, limit: 100 }); setCards(result.cards); setTotal(result.totalCount); setSelectedId((current) => result.cards.some((card) => card.cardId === current) ? current : result.cards[0]?.cardId ?? ''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not load cards.'); } finally { setLoading(false); } };
+  useEffect(() => { const timer = window.setTimeout(load, search ? 300 : 0); return () => window.clearTimeout(timer); }, [session?.userId, status, archetype, search]);
+  const verdict = async (next: ReviewStatus) => { if (!selected) return; const previous = selected.reviewStatus; setWorking(true); setError(''); try { await recordCardReview(selected.cardId, next); await load(); if (status !== 'all' && status !== next) setError(`Saved. ${selected.title} moved to ${next === 'keep' ? 'Keep in alpha' : next === 'x_out' ? 'X’d out' : 'Needs review'}.`); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not save the verdict.'); setCards((current) => current.map((card) => card.cardId === selected.cardId ? { ...card, reviewStatus: previous } : card)); } finally { setWorking(false); } };
+  const archetypeNames = archetypes.map(([name]) => name);
+  return <><PageHeader eyebrow="CHARACTERS & ARCHETYPES · SHARED ALPHA REVIEW" title="Cards" intro="The team’s live card evaluation room: inspect every development character, understand its evidence, and decide together what deserves another pass." status="IN FLIGHT"/>
+    <div className="card-truth-banner"><Layers/><div><p className="eyebrow">THE ALPHA RULE</p><h2>Every card is development work until Raheem explicitly accepts it.</h2><p>Keep and X-out organize the shared review pool. They do not delete cards and they do not promote cards into the permanent game.</p></div><span>0 PERMANENT</span></div>
+    <section className="review-how"><article><span>01</span><strong>Cards arrive automatically</strong><p>Every current production card and every new alpha card appears here.</p></article><article><span>02</span><strong>Investigate the whole character</strong><p>Open the full card, lore, identity, stats, abilities, pillars, and rank evidence.</p></article><article><span>03</span><strong>Share one verdict</strong><p>The newest Keep or X-out decision becomes the team’s current view.</p></article><article><span>04</span><strong>Promotion comes later</strong><p>The permanent roster remains empty until its acceptance workflow is designed.</p></article></section>
+    {checking ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening the Studio session…</Panel> : !session ? <StudioSignIn purpose="Sign in to see the shared alpha pool and record team verdicts."/> : <Panel title="Live Alpha Card Pool" action={<button className="studio-signout" onClick={signOutOfStudio}>Sign out · {session.email}</button>} className="live-review-room">
+      <div className="live-review-controls"><div className="review-tabs" role="tablist">{([['needs_review','Needs review'],['keep','Kept'],['x_out','X’d out'],['all','All cards']] as const).map(([value,label]) => <button role="tab" aria-selected={status === value} className={status === value ? 'selected' : ''} onClick={() => setStatus(value)} key={value}>{label}</button>)}</div><label>Archetype<select value={archetype} onChange={(event) => setArchetype(event.target.value)}><option value="all">All archetypes</option>{archetypeNames.map((name) => <option key={name}>{name}</option>)}</select></label><label className="live-card-search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Name, creator, archetype…" aria-label="Search live cards"/></label></div>
+      {error && <div className={error.startsWith('Saved.') ? 'review-message saved' : 'review-message'} role="status">{error}</div>}
+      {loading ? <div className="review-loading"><RefreshCw className="spin"/>Loading the shared pool…</div> : cards.length ? <div className="live-review-layout"><aside className="live-card-roster"><header><strong>{total} cards</strong><span>Select one to investigate</span></header>{cards.map((card) => <button className={selected?.cardId === card.cardId ? 'selected' : ''} onClick={() => setSelectedId(card.cardId)} key={card.cardId}><img src={card.portraitUrl ?? card.card.portraitAsset} alt=""/><span><small>{card.archetype} · {card.creatorName}</small><strong>{card.title}</strong><em className={`review-status-${card.reviewStatus}`}>{card.reviewStatus.replace('_',' ')}</em></span></button>)}</aside>{selected && <LiveCardDossier record={selected} onVerdict={verdict} working={working}/>}</div> : <div className="review-empty"><CircleDashed/><h2>No cards match this view.</h2><p>Try another status, archetype, or search. New alpha cards will appear automatically when the live review migration is active.</p></div>}
+    </Panel>}
+    <details className="fixture-evidence"><summary>Open repository fixtures used to design this room <ChevronDown/></summary><p>These five local examples prove layout and tier presentation only. They are not the live team roster and do not affect review counts.</p><RepositoryCards/></details>
+    <Panel title="Permanent Archetype Cards" action={<span className="card-section-state card-section-empty">0 ACCEPTED</span>} className="permanent-card-section"><div className="permanent-empty"><div className="permanent-seal"><Shield/><span>NONE<br/>ACCEPTED</span></div><div><p className="eyebrow">PERMANENT ROSTER</p><h2>No cards have been accepted into the permanent game roster.</h2><p>This space stays empty until the studio designs and approves a separate promotion workflow. A Keep verdict is not permanent acceptance.</p></div></div></Panel>
+  </>;
+}
+
+function RepositoryCards() {
   const [kind, setKind] = useState<'all' | 'candidate' | 'study'>('all');
   const [archetype, setArchetype] = useState('all');
   const [cardSearch, setCardSearch] = useState('');
@@ -291,7 +387,41 @@ function Minigames() {
   </>;
 }
 
-type WorkBoardKind = 'advice' | 'active' | 'required' | 'tori';
+function IdeaNote({ idea, onSaved }: { idea: StudioIdea; onSaved: (idea: StudioIdea) => void }) {
+  const [body, setBody] = useState(idea.body);
+  const [state, setState] = useState<'saved' | 'saving' | 'error'>('saved');
+  useEffect(() => { setBody(idea.body); }, [idea.id, idea.body]);
+  useEffect(() => {
+    if (body === idea.body || !body.trim()) return;
+    setState('saving');
+    const timer = window.setTimeout(async () => { try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } }, 700);
+    return () => window.clearTimeout(timer);
+  }, [body, idea.id, idea.body, onSaved]);
+  return <article className="idea-note"><header><span>{new Date(idea.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span><span className={`idea-save-state ${state}`} aria-live="polite">{state === 'saving' ? <><RefreshCw className="spin"/>Saving…</> : state === 'error' ? <><TriangleAlert/>Could not save</> : <><Check/>Saved</>}</span></header><textarea aria-label={`Idea from ${new Date(idea.createdAt).toLocaleDateString()}`} value={body} onChange={(event) => setBody(event.target.value)} onBlur={async () => { if (body.trim() && body !== idea.body) { setState('saving'); try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } } }}/><footer>Editable note · no task status · no delete action</footer></article>;
+}
+
+function RaheemDesk() {
+  const { session, checking } = useStudioSession();
+  const [ideas, setIdeas] = useState<StudioIdea[]>([]);
+  const [draft, setDraft] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const load = async () => { setLoading(true); setError(''); try { setIdeas(await listStudioIdeas()); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not open the notebook.'); } finally { setLoading(false); } };
+  useEffect(() => { if (session?.role === 'admin') load(); }, [session?.userId, session?.role]);
+  const add = async () => { if (!draft.trim() || saving) return; setSaving(true); setError(''); try { const idea = await createStudioIdea(draft); setIdeas((current) => [idea, ...current]); setDraft(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not save the idea.'); } finally { setSaving(false); } };
+  const update = (saved: StudioIdea) => setIdeas((current) => current.map((idea) => idea.id === saved.id ? saved : idea));
+  return <><PageHeader eyebrow="WORK BOARD · STUDIO LEAD" title="Raheem’s Desk" intro="A quiet place to capture ideas without letting them interrupt the work already in motion." status="IN FLIGHT"/><WorkBoardNav current="raheem"/>
+    <section className="desk-how"><div><NotebookPen/><p className="eyebrow">HOW THIS DESK WORKS</p><h2>Write it down. Keep your focus. Return when the time is right.</h2><p>Ideas here are durable private notes—not tasks, promises, priorities, or automatic instructions for Codex and Claude. When an idea is ready for production, deliberately move it into the Work Board through the normal planning process.</p></div><ol><li><span>1</span>Capture the thought in plain language.</li><li><span>2</span>Keep working on today’s goal.</li><li><span>3</span>Revisit and edit the note later.</li></ol></section>
+    {checking ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening Raheem’s desk…</Panel> : !session ? <StudioSignIn purpose="Raheem’s notebook is private and follows his Card Engine account across devices."/> : session.role !== 'admin' ? <Panel className="desk-locked"><Shield/><h2>This desk belongs to Raheem.</h2><p>You are signed in as {session.email}. The rest of the Work Board remains available, but these private notes are owner-only.</p><button className="studio-signout" onClick={signOutOfStudio}>Sign out</button></Panel> : <>
+      <Panel className="idea-composer" title="Capture an idea" action={<span>PRIVATE · DURABLE · NOT A TASK</span>}><label htmlFor="idea-draft">What do you want to remember?</label><textarea id="idea-draft" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); add(); } }} placeholder="Write the idea before it pulls you away from the current goal…"/><div><p><Command/>Ctrl/Cmd + Enter to save</p><button disabled={!draft.trim() || saving} onClick={add}>{saving ? <RefreshCw className="spin"/> : <Plus/>}{saving ? 'Saving…' : 'Add idea'}</button></div>{error && <p className="studio-form-error" role="alert">{error}</p>}</Panel>
+      <div className="idea-notebook-heading"><div><p className="eyebrow">THE NOTEBOOK</p><h2>{ideas.length} saved {ideas.length === 1 ? 'idea' : 'ideas'}</h2></div><button className="studio-signout" onClick={signOutOfStudio}>Sign out · {session.email}</button></div>
+      {loading ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening the notebook…</Panel> : ideas.length ? <div className="idea-notebook">{ideas.map((idea) => <IdeaNote key={idea.id} idea={idea} onSaved={update}/>)}</div> : <Panel className="review-empty"><Feather/><h2>The first page is blank.</h2><p>Capture an idea above. It will remain here until you decide what, if anything, it should become.</p></Panel>}
+    </>}
+  </>;
+}
+
+type WorkBoardKind = 'advice' | 'active' | 'required' | 'tori' | 'raheem';
 
 function productionSectionGroup(heading: string) {
   const sections = sectionsFromMarkdown(productionMarkdown);
@@ -315,11 +445,12 @@ function WorkBoardNav({ current }: { current: WorkBoardKind }) {
     ['active', '/work/active', 'Active Work', 'What is in motion', ListChecks],
     ['required', '/work/required', 'Required & Deferred', 'Necessary and delayed', TriangleAlert],
     ['tori', '/work/tori', "Tori's Desk", 'Lore assignments', Feather],
+    ['raheem', '/work/raheem', "Raheem's Desk", 'Private ideas notebook', NotebookPen],
   ];
   return <section className="work-board-navigation" aria-labelledby="work-board-navigation-title">
     <div className="work-board-navigation-heading">
       <div><p className="eyebrow">NAVIGATE THE WORK BOARD</p><h2 id="work-board-navigation-title">Choose a work view</h2></div>
-      <p>Four linked pages · select one to open</p>
+      <p>Five linked pages · select one to open</p>
     </div>
     <nav className="work-board-switcher" aria-label="Work Board pages">{items.map(([kind, path, label, description, Icon], index) => {
       const selected = current === kind;
@@ -333,7 +464,7 @@ function WorkBoardNav({ current }: { current: WorkBoardKind }) {
   </section>;
 }
 
-function WorkBoardPage({ kind }: { kind: WorkBoardKind }) {
+function WorkBoardPage({ kind }: { kind: Exclude<WorkBoardKind, 'raheem'> }) {
   const configs = {
     advice: { eyebrow: 'WORK BOARD · STUDIO LEAD RECOMMENDATIONS', title: 'AI Advice', intro: 'What Codex and Claude think will most improve the game next—ranked, explained, and always yours to overrule.', heading: "0. What I'd work on next", source: 'PRODUCTION.md §0', icon: <Lightbulb/> },
     active: { eyebrow: 'WORK BOARD · CURRENT EXECUTION', title: 'Active Work', intro: 'The work that is genuinely in motion now, including its current state and the branches carrying it.', heading: '3. Status board', source: 'PRODUCTION.md §3', icon: <ListChecks/> },

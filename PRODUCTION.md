@@ -274,7 +274,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Battle Tower explains the primary loop; the Card Evaluation Room filters five repository-backed records by archetype and evidence class, then opens full dossiers for art, ranks, lore, stats, abilities, readiness evidence, and investigation notes while the permanent roster remains explicitly empty; Characters & Archetypes shows the selected archetype's accepted-card state; Elements owns the 29-crystal PixelLab performance library; Abilities projects the 41-item live seed roster and its two current art approvals; the AI Studio Handbook handles coworker onboarding; the Decision Log preserves append-only rationale; and the Work Board owns current advice, execution, obligations, and Tori's lore desk. Deployment waits on a separate Vercel URL and access-mode approval. |
+| IN FLIGHT | Studio Wiki | Independent repository-backed React/Vite app is locally built and runtime-verified on `codex/studio-wiki-foundation`. Cards is now designed around the live shared alpha pool: every eligible Supabase card enters automatically, full character evidence and current ability references are inspectable, and append-only Keep / X-out / Needs Review decisions preserve a reversible team verdict without deleting or promoting the card. Five local fixtures remain a secondary layout reference only. The Work Board now includes Raheem's private, durable Ideas Desk alongside Tori's lore desk. The additive migration, Wiki environment configuration, deployed API, and live-data runtime proof are still pending; nothing has been applied to production. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -294,7 +294,7 @@ Four branches carry the work currently named in this guide.
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `codex/studio-wiki-foundation` | 10 | 0 | Repository-backed Studio Wiki; Card Evaluation Room, Work Board, onboarding, separate Element and Ability references, lean admin navigation, studio memory, and local verification |
+| `codex/studio-wiki-foundation` | 11 | 0 | Repository-backed Studio Wiki; live alpha Card Evaluation Room, Raheem's Ideas Desk, Work Board, onboarding, reference libraries, lean admin navigation, and local verification |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 
@@ -303,9 +303,17 @@ Four branches carry the work currently named in this guide.
 <!-- updated: 2026-08-03 -->
 ## 4. Open threads
 
-**48 things started and not finished.** This is the list that didn't exist before. It will
+**51 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
+
+### Studio Wiki release — 3 items
+
+| What | Where |
+|---|---|
+| Apply the additive live-review and private-ideas migration | `card-engine/supabase/migrations/20260803_studio_card_review_and_ideas.sql` |
+| Configure the separate Wiki deployment with Supabase public keys, service role, and its own URL | `studio-wiki/api/card-reviews.ts` |
+| Runtime-prove sign-in, shared Keep / X-out / undo, private portrait hydration, and Ideas autosave against the production-shaped database | `/characters/cards` and `/work/raheem` |
 
 ### Castle wiring — 4 items
 
@@ -703,6 +711,23 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Alpha cards share one reversible review room; Raheem's ideas remain notes
+
+During alpha, every current and newly created Supabase card belongs in the Wiki's shared
+Card Evaluation Room. The latest authorized verdict is the team's current state: **Needs
+Review**, **Keep in alpha**, or **X'd out**. These verdicts are append-only and reversible.
+X-out never deletes the character, and Keep never promotes it into the permanent game. The
+five repository fixtures remain available only as secondary layout evidence, not the roster.
+
+The Work Board also gains **Raheem's Desk**, containing one private, persistent Ideas Notepad.
+Notes can be captured and edited across devices, but they carry no priority, status, deadline,
+deletion action, or automatic conversion into work. Moving an idea into production remains a
+deliberate future decision.
+
+*Why it matters:* the whole alpha team can judge the same real cards without confusing review
+with canon or destroying work, while Raheem can preserve a new thought without letting it
+silently redirect the current goal.
 
 ### 2026-08-03 — Card evaluation is evidence-led; permanent promotion stays a future workflow
 
