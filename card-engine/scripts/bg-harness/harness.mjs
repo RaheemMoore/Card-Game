@@ -89,17 +89,30 @@ async function uploadInitImage(absPath) {
   return u.id;
 }
 
-async function submit(prompt, { styleRefId, styleRefType, strength, width, height, negative, model, alchemy } = {}) {
+// Leonardo truncates an over-length prompt server-side rather than rejecting it,
+// which silently drops whatever sits at the END of the string — historically the
+// modesty and no-shadow bans. Fail locally instead, before the call is paid for.
+const PROMPT_MAX = 1500;
+const NEGATIVE_MAX = 1000;
+
+async function submit(prompt, { styleRefId, styleRefType, strength, width, height, negative, model, alchemy, tiling } = {}) {
+  const neg = negative || NEG;
+  if (prompt.length > PROMPT_MAX) throw new Error(`prompt is ${prompt.length} chars, max ${PROMPT_MAX}`);
+  if (neg.length > NEGATIVE_MAX) throw new Error(`negative_prompt is ${neg.length} chars, max ${NEGATIVE_MAX}`);
   const body = {
     modelId: MODELS[model] || PHOENIX,
     prompt,
-    negative_prompt: negative || NEG,
+    negative_prompt: neg,
     width: width || W,
     height: height || H,
     num_images: 1,
     alchemy: alchemy !== false,
     public: false,
   };
+  // Seamless-texture mode, for material swatches meant to be tiled in Phaser.
+  // Not every model honours it; see configs/courtyard-v2-floor.json for the
+  // record of what actually tiled.
+  if (tiling) body.tiling = true;
   if (styleRefId)
     body.controlnets = [{ initImageId: styleRefId, initImageType: styleRefType || 'GENERATED', preprocessorId: STYLE_REF_PREPROC, strengthType: strength || 'Mid' }];
   const r = await fetch(`${BASE}/generations`, { method: 'POST', headers: HDRS, body: JSON.stringify(body) });
@@ -127,7 +140,7 @@ const manFile = (a) => path.join(outDir(a), 'manifest.json');
 const loadMan = (a) => { try { return JSON.parse(fs.readFileSync(manFile(a), 'utf8')); } catch { return { anchors: {}, states: {} }; } };
 const saveMan = (a, m) => fs.writeFileSync(manFile(a), JSON.stringify(m, null, 2));
 /** Per-config image size + negatives, falling back to the forge defaults. */
-const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy });
+const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy, tiling: c.tiling });
 const promptFor = (c, line) => [c.styleHeader, line].filter(Boolean).join(' ');
 
 async function cmdGen(arch, only) {
