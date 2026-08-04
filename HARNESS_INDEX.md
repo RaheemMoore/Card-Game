@@ -10,6 +10,30 @@ behaving — the tool already exists and is listed below.
 
 ## RULE ZERO — never show work in chat. Show it in a harness.
 
+### Rule Zero (b) — present art as a SPRITE SHEET
+
+**Standing rule (Raheem, 2026-08-04):** *"Present data to me as spritesheets. Spritesheets are
+the way that most people who develop games view things, and that makes it clearer to know which
+angle you can put in and what other animations and angles you have."*
+
+Any object with more than one frame gets a sprite sheet, laid out the way game developers
+actually read one:
+
+- **Rows are the subject** (an object, or one of its animations). **Columns are frames** — the
+  eight facings, or the frames of a clip.
+- **One uniform cell for the whole sheet.** Variable-size cells are why a board reads as a pile
+  of pictures instead of a sheet.
+- **Row label on the left**, vertically centred. Column headers across the top.
+- **Frames bottom-centred in their cell**, so every subject shares a floor line and heights
+  compare honestly.
+- **It lives beside the thing it belongs to** — in the Courtyard V2 Figma file the sheet sits
+  directly below the plate, so the map and its parts are read together.
+- **Animations extend it downward**: each new clip is another labelled row under that object.
+
+Live example: `SPRITE SHEET — courtyard objects` in `MpUs9WJKMvwTtpH9Akz4Rm`, node `78:2`.
+
+
+
 **Standing rule (Raheem, 2026-08-04), and it applies to every discipline, not just art:**
 
 > *"I wanna see it in a harness. How can I hate looking at it in the chat? Harness every time.
