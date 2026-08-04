@@ -1,4 +1,5 @@
 import type { HeroCombatant, BossCombatant } from '../../../types/combat';
+import { rageFillPercent } from '../rageThreshold';
 
 interface Props {
   selectedHero: HeroCombatant;
@@ -28,8 +29,7 @@ export function MobileResourceRow({ selectedHero, boss, actionsRemaining }: Prop
   // as MobileBossHeader) so the row can compress the boss threat readout for
   // fast scanning.
   const hpPct = Math.max(0, boss.hp / boss.snapshot.maxHp);
-  const RAGE_THRESHOLD = 0.25;
-  const rageFillPct = Math.max(0, Math.min(1, ((RAGE_THRESHOLD - hpPct) / RAGE_THRESHOLD) * -1 + 1));
+  const rageFillPct = rageFillPercent(hpPct) / 100;
 
   return (
     <div

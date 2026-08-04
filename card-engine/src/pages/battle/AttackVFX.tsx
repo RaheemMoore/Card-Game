@@ -50,6 +50,13 @@ interface Shot {
  * feeds back into the reducer. Desktop only for now: the mobile party tray
  * rotates hero lanes on selection, so a stable per-hero anchor point would
  * need its own follow-up pass.
+ *
+ * BOSS-SOURCED HITS ONLY. Hero-sourced `damage_dealt` now gets the full
+ * Ability Performance System (`CombatPerformanceLayer`, mounted alongside
+ * this in `CombatScene`) — a lash/growth/barrier/drain shaped by the
+ * caster's own element, not a damage-type-coloured bolt. Drawing both for
+ * the same event would double the effect on every hero attack. The boss has
+ * no card and no element to resolve a material from, so it keeps this bolt.
  */
 export function AttackVFX({ state, currentBeat }: Props) {
   const [shots, setShots] = useState<Shot[]>([]);
@@ -59,6 +66,7 @@ export function AttackVFX({ state, currentBeat }: Props) {
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
     if (e.kind !== 'damage_dealt') return;
     lastBeatId.current = currentBeat.id;
@@ -69,6 +77,9 @@ export function AttackVFX({ state, currentBeat }: Props) {
     const anchors = resolveImpactAnchors(state, e.sourceActorId, e.targetActorId, viewportWidth);
     if (!anchors) return;
     const { from, to, sourceIsBoss } = anchors;
+    // Hero-sourced hits are drawn by CombatPerformanceLayer instead — see the
+    // docstring above.
+    if (!sourceIsBoss) return;
     const color = ELEMENT_COLOR[e.damageType] ?? ELEMENT_COLOR.kinetic;
     const heavy = sourceIsBoss && currentBeat.severity === 'heavy';
 
@@ -149,9 +160,17 @@ function Bolt({ from, to, color, heavy }: Shot) {
         }
         .attack-impact { animation: attack-impact-burst ${impactMs}ms ease-out forwards; }
 
+        /* Gated on BOTH the OS preference and the in-game Motion setting. This
+           rule used to be the media query alone, which meant a player who set
+           Motion → off in the combat HUD without setting the OS flag still got
+           the full bolt. Behaviour is otherwise unchanged — the bolt is
+           suppressed outright at motion off, as it always has been for
+           OS-flag users; the hit itself still reads from the card's own struck
+           state and the damage number, which are not part of this layer. */
         @media (prefers-reduced-motion: reduce) {
           .attack-bolt, .attack-impact { animation: none !important; display: none; }
         }
+        .motion-off .attack-bolt, .motion-off .attack-impact { animation: none !important; display: none; }
       `}</style>
     </>
   );

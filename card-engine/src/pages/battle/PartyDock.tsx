@@ -304,7 +304,7 @@ function DockCardVisual({
 }) {
   const isDefeated = combatant.defeated;
   const picking = onPick !== null;
-  const tappable = picking ? pickable : canAct && !isActing && !isDefeated;
+  const tappable = picking ? pickable : canAct && !isDefeated;
   const handleTap = picking ? onPick! : onSelect;
 
   const [shakeKey, setShakeKey] = useState(0);
@@ -312,6 +312,7 @@ function DockCardVisual({
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastShakeBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
     if (e.kind !== 'damage_dealt' || e.targetActorId !== combatant.actorId) return;
     lastShakeBeatId.current = currentBeat.id;
@@ -320,7 +321,7 @@ function DockCardVisual({
 
   const ariaLabel = `${combatant.snapshot.displayName}, ${combatant.hp} of ${combatant.snapshot.maxHp} HP${
     isActing ? ', acting' : ''
-  }${pickable ? ' — press Enter to target, or Space' : ' — press Enter to view card'}`;
+  }${pickable ? ' — press Enter to target' : ' — press Enter to select'}`;
 
   return (
     <div
@@ -370,13 +371,11 @@ function DockCardVisual({
       }}
       onClick={() => {
         if (tappable) handleTap();
-        else onOpen();
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           if (tappable) handleTap();
-          else onOpen();
         } else if (e.key === ' ' && tappable) {
           e.preventDefault();
           handleTap();
@@ -449,7 +448,7 @@ function DockCardVisual({
           onOpen();
         }}
         className="absolute top-1 right-1 flex items-center justify-center rounded-sm bg-void/70 hover:bg-void/90 text-bone/80 hover:text-gold transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-gold"
-        style={{ width: 20, height: 20, fontSize: 11, lineHeight: 1 }}
+        style={{ width: 32, height: 32, fontSize: 15, lineHeight: 1 }}
       >
         ⤢
       </button>
@@ -467,9 +466,14 @@ function DockCardVisual({
         }
         .dock-card-target-reticle { animation: dock-card-target-pulse 1.1s ease-in-out infinite; }
 
+        /* Gated on BOTH the OS preference and the in-game Motion setting. The
+           media query alone missed a player who turned motion off in the combat
+           HUD without setting the OS flag — see CardCombatFx's
+           REDUCED_MOTION_RULES for the same fix and the reasoning. */
         @media (prefers-reduced-motion: reduce) {
           .dock-card-target-reticle { animation: none !important; filter: drop-shadow(0 0 12px rgba(235,150,46,0.8)) !important; }
         }
+        .motion-off .dock-card-target-reticle { animation: none !important; filter: drop-shadow(0 0 12px rgba(235,150,46,0.8)) !important; }
       `}</style>
     </div>
   );
@@ -560,6 +564,7 @@ function DockStats({
         @media (prefers-reduced-motion: reduce) {
           .dock-bar-critical { animation: none !important; box-shadow: 0 0 0 1.5px rgba(220,38,38,0.9); }
         }
+        .motion-off .dock-bar-critical { animation: none !important; box-shadow: 0 0 0 1.5px rgba(220,38,38,0.9); }
       `}</style>
     </div>
   );

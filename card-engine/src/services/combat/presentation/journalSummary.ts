@@ -2,6 +2,7 @@ import type { BattleEvent, BattleIntent, BattleState } from '../../../types/comb
 import { getAbilityStore } from '../../abilities/registry';
 import { displayNameFor } from '../../../pages/battle/journalNames';
 import { formatEvent } from '../../../pages/battle/formatEvent';
+import { receiptsForEvents, type ResolutionReceipt } from '../decision/receipts';
 
 /**
  * A derived, human-readable view over the raw BattleEvent[] stream — one
@@ -18,6 +19,8 @@ export interface JournalEntry {
   text: string;
   kind: 'action' | 'boss_intent' | 'boss_action' | 'round_marker' | 'phase' | 'system' | 'battle_end';
   round: number;
+  /** Short authoritative confirmations retained with the action history. */
+  receipts: readonly ResolutionReceipt[];
   /** `boss_intent` only — who the telegraphed action is aimed at, and for how
    *  much. The removed upper-left Intent panel was the only surface carrying
    *  these; the journal is now their sole home, so they travel on the entry
@@ -49,7 +52,14 @@ export function summarizeJournal(events: readonly BattleEvent[], state: BattleSt
     if (!open) return;
     const text =
       open.kind === 'action' ? composeActionText(open.events, state) : composeBossActionText(open.events, state);
-    entries.push({ id: nextId(), sourceEvents: open.events, text, kind: open.kind, round: currentRound });
+    entries.push({
+      id: nextId(),
+      sourceEvents: open.events,
+      text,
+      kind: open.kind,
+      round: currentRound,
+      receipts: receiptsForEvents(open.events, state),
+    });
     open = null;
   };
 
@@ -60,7 +70,15 @@ export function summarizeJournal(events: readonly BattleEvent[], state: BattleSt
     extra?: Partial<JournalEntry>,
   ) => {
     flush();
-    entries.push({ id: nextId(), sourceEvents: [e], text, kind, round: currentRound, ...extra });
+    entries.push({
+      id: nextId(),
+      sourceEvents: [e],
+      text,
+      kind,
+      round: currentRound,
+      receipts: receiptsForEvents([e], state),
+      ...extra,
+    });
   };
 
   for (const e of events) {
@@ -68,7 +86,14 @@ export function summarizeJournal(events: readonly BattleEvent[], state: BattleSt
       case 'round_started':
         flush();
         currentRound = e.round;
-        entries.push({ id: nextId(), sourceEvents: [e], text: `Round ${e.round}`, kind: 'round_marker', round: currentRound });
+        entries.push({
+          id: nextId(),
+          sourceEvents: [e],
+          text: `Round ${e.round}`,
+          kind: 'round_marker',
+          round: currentRound,
+          receipts: [],
+        });
         continue;
 
       case 'boss_intent_declared':
@@ -186,6 +211,9 @@ function composeActionText(events: readonly BattleEvent[], state: BattleState): 
           e.kind === 'resource_changed' && e.source === 'focus',
       );
       return `${actorName} focused${gain ? ` (+${gain.delta} energy)` : ''}`;
+    }
+    if (start.action.kind === 'wait') {
+      return `${actorName} waited`;
     }
     return `${actorName} inspected`;
   }

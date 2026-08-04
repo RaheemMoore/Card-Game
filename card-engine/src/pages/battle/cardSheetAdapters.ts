@@ -7,12 +7,12 @@ import { getStatus } from '../../data/abilities/statuses';
 /** Builds the shared CardSheet's ability rows from a hero's frozen combat
  *  snapshot, including live status (ready/cooldown/no resource/locked) —
  *  the whole reason a player opens this mid-fight. */
-export function buildBattleCardSheetAbilities(hero: HeroCombatant): CardSheetAbility[] {
+export function buildBattleCardSheetAbilities(hero: HeroCombatant, availableResource = hero.resource): CardSheetAbility[] {
   const store = getAbilityStore();
   return hero.snapshot.abilities.map((a) => {
     const cooldownEntry = hero.cooldowns.find((c) => c.abilityDefinitionId === a.definitionId);
     const onCd = cooldownEntry !== undefined;
-    const short = hero.resource < a.resourceCost;
+    const short = availableResource < a.resourceCost;
     const notCharged = a.slot === 'ultimate' && hero.ultimateCharge < 100;
     const liveStatus = onCd ? 'cooldown' : short ? 'no_resource' : notCharged ? 'locked' : 'ready';
     const art = store.getArtForAbility(a.definitionId);
@@ -31,11 +31,11 @@ export function buildBattleCardSheetAbilities(hero: HeroCombatant): CardSheetAbi
   });
 }
 
-export function buildBattleLiveState(hero: HeroCombatant): CardSheetLiveState {
+export function buildBattleLiveState(hero: HeroCombatant, availableResource = hero.resource): CardSheetLiveState {
   return {
     hp: hero.hp,
     maxHp: hero.snapshot.maxHp,
-    resource: hero.resource,
+    resource: availableResource,
     maxResource: hero.snapshot.maxResource,
     resourceLabel: hero.snapshot.resourceType === 'mana' ? 'MANA' : 'TECH',
     ultimateChargePct: Math.max(0, Math.min(100, hero.ultimateCharge)),

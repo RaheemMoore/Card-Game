@@ -16,6 +16,7 @@ interface Props {
   selectedActorId: string;
   /** Fires when the user taps a side lane to switch selection. */
   onSelect: (actorId: string) => void;
+  onOpenCard: (card: Card, combatant: HeroCombatant) => void;
   canAct: boolean;
   currentBeat: AnimationBeat | null;
   /** Playback Mode: cards lower slightly, glow reduced. */
@@ -39,6 +40,7 @@ export function MobilePartyCardTray({
   partyCards,
   selectedActorId,
   onSelect,
+  onOpenCard,
   canAct,
   currentBeat,
   loweredForPlayback,
@@ -115,6 +117,7 @@ export function MobilePartyCardTray({
               lanePosition={lanePosition}
               canAct={canAct}
               onSelect={() => onSelect(combatant.actorId)}
+              onOpen={() => onOpenCard(card, combatant)}
               currentBeat={currentBeat}
               loweredForPlayback={loweredForPlayback}
               picking={targetPickMode ? { pickable, onPick: () => targetPickMode.onPick(combatant.actorId) } : null}
@@ -133,6 +136,7 @@ function MobileHeroLane({
   lanePosition,
   canAct,
   onSelect,
+  onOpen,
   currentBeat,
   loweredForPlayback,
   picking,
@@ -143,6 +147,7 @@ function MobileHeroLane({
   lanePosition: 'left' | 'center' | 'right';
   canAct: boolean;
   onSelect: () => void;
+  onOpen: () => void;
   currentBeat: AnimationBeat | null;
   loweredForPlayback: boolean;
   /** Non-null while an ability's target picker is active. */
@@ -257,6 +262,16 @@ function MobileHeroLane({
           )}
           <FloatingDamage currentBeat={currentBeat} actorId={combatant.actorId} />
         </div>
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`View ${combatant.snapshot.displayName}'s full card`}
+        className="absolute top-1 right-1 z-10 flex items-center justify-center rounded bg-void/80 text-bone focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        style={{ width: 40, height: 40, fontSize: 18 }}
+      >
+        ⤢
       </button>
 
       {/* Resource is shown for the selected hero only by MobileResourceRow

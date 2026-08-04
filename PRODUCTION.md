@@ -115,10 +115,12 @@ being raised in a chat and lost.*
 | Q2 | Is `feat/warband-battle-mvp` worth reviving, or should the board game be rebuilt fresh? | A tested combat core is stranded 107 commits back. I can assess it if you want. |
 | Q3 | Does the Lycanthrope emblem ever get made? | It's the only one of 11 missing, and it's been pending since 2026-07-17. |
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
+| Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
+| Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 1. What this game is
 
 > **Card Engine is an adventure game with characters you made yourself.**
@@ -177,7 +179,7 @@ find in the mine. Each mode is the key to another.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 2. The map
 
 *How the game is actually built. Aimed at making you fluent in your own codebase.*
@@ -221,6 +223,27 @@ boss declares intent  →  you see a telegraph  →  party acts  →  boss acts
 
 The reducer is **pure and deterministic** — same seed, same fight, every time. That's what
 lets a 5000-run headless simulator check balance without playing anything.
+
+**A combat round is planned as a party.** You choose one action for each living card; every
+attack leaves a large elemental charge above its card, while Wait leaves a neutral hold mark. Nothing resolves
+until all cards are ready and you press **Release Party**. The party holds a visible charge,
+the cards launch left to right in a tight *boom, boom, boom* rhythm, then their three impacts
+arrive together at distinct upper-left, upper-right, and lower-center points on the boss. The
+boss gets a held hit reaction and a short silence before visibly preparing its answer. Every
+targeted hero card reacts before the battlefield settles and control returns.
+
+Selecting a card now exposes that character's three ability rows immediately above the
+shared Mana/Tech controls. Ordinary legal abilities lock from that choice and move focus to
+the next unfinished card; only genuinely risky choices keep a confirmation. **Strike** is a
+voluntary resource-building attack, while **Wait** spends that character's command slot with
+no damage, resource, charge, or status effect. A card opens its full sheet only through the
+separate expand control. Strike and Guard are tactical alternatives only while that card has
+at least one visible ability it could activate now. If cooldown, charge, status, resource, or
+targeting leaves it with no legal ability, **Wait is the only planning command**.
+That lockout now appears as a full plain-language state rather than a tiny resource symbol:
+the ability rows name cooldown, charge, and resource reasons; **Wait & Continue** records the
+card as complete, advances to the next unfinished card, and never pulls focus backward when
+the next hero chooses an ability.
 
 **Cards are the characters on the field.** Hero cards replaced floor sprites.
 
@@ -278,6 +301,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
+| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The live full-motion exchange reaches the next intent in about 6.2 seconds instead of racing through the reducer log. Boss-bound volleys land in a readable triangle instead of stacking three effect pieces on one point. Motion Off keeps the same readable order as still tableaux. The combined branch is not merged, pushed, or deployed. |
+| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible ability it could activate; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back to the waited hero. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -289,20 +314,22 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Only three. Everything else is merged.
+Five. Everything else is merged.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
 | `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
+| `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
+| `decision-experience` | 8 | — | Combined local release candidate with the party plan, stable selected-card focus, explicit Wait/lockout guidance, triangular volley impacts, staged six-second party/boss cadence, and the Wait-only action rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 4. Open threads
 
-**49 things started and not finished.** This is the list that didn't exist before. It will
+**54 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -321,7 +348,7 @@ The hub exists; nothing behind it does.
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
 
-### Combat gaps — 7 items
+### Combat gaps — 15 items
 
 | What | Where |
 |---|---|
@@ -329,9 +356,17 @@ phone-portrait support is deferred pending its own crop of the art
 | Multi-enemy combat deliberately out of scope | `services/combat/reducer.ts:59` |
 | `summon_exists` condition can never evaluate true | `services/combat/reducer.ts:1938` |
 | Twilight dual-cast typed but never read by the reducer | `types/abilities.ts:501` |
+| Only `damage_dealt` carries `sourceActionId`; the other effect events carry none, so grouping is positional | `types/combat.ts:446` |
+| Nine family-default material kits remain as explicit fallbacks for elements/forms outside the 27 reviewed shipped element set | `data/combat/performance/materialKits.ts` |
 | Attack VFX needs its own follow-up pass | `battle/AttackVFX.tsx:49` |
 | Crit / dodge / miss deferred beyond B7 | boss battle spec §15 |
 | Server-authoritative combat validation deferred | boss battle spec §15 |
+| A `guard` ability EFFECT (e.g. Load-Bearing) does NOT count toward a `party_action: guard` charge break (First Notice) — only the literal Guard action does. Discovered building the Decision Experience System, which now states this plainly instead of implying it counts. Needs a ruling: is this the intended reading of "coordinated behaviour", or should an ability that grants guarding also count? | `services/combat/reducer.ts` `evaluateChargeProgress` |
+| Damage-over-time advances NEITHER a damage charge break (The Whole Ledger) nor the single-round interrupt bar — both only count `damage_dealt`, and DoT emits `dot_ticked`. Same discovery, same open question: intended, or should sustained damage count toward these objectives? | `services/combat/reducer.ts` `evaluateChargeProgress`, `damageToBossSinceIntent` |
+| `PendingCharge.progress` is a dead field — written `0` when a charge starts, never read or updated again. Harmless today (everything now reads the shared `evaluateChargeProgress` evaluator instead) but worth deleting in a future replay-format change rather than carrying a field that lies if anyone reads it directly | `types/combat.ts` |
+| Decision Experience System has no Encounter Briefing (party coverage vs. boss pressures) — Stage 2 of the reviewed plan, not started | `services/combat/decision/` |
+| Decision Experience Pilots A (`Interest Accrues`) and B (`First Notice`) have fixtures and pass their contextual-note tests, but no dedicated end-to-end playtest pass the way `The Whole Ledger` got — Stage 2 | `pages/dev/decisionLabFixtures.ts` |
+| `ThreatTranslator.tsx`'s panel has no Figma reference — built to match the existing painted-panel family on judgment, not a spec. Needs a design pass before another boss's UI copies its geometry | `pages/battle/ThreatTranslator.tsx` |
 
 ### Placeholder art — 9 items
 
@@ -704,6 +739,240 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-03 — Combat now moves in readable human beats
+
+Raheem compared the authentic fight with a commercial card battler and rejected the speed
+of the released party turn. The reducer was correct, but the whole exchange read like a log
+being drained: attacks, damage, boss answer, and control return arrived too close together to
+watch. The real battle now presents one deliberate sentence: a 0.7-second collective charge;
+three launches 0.18 seconds apart that converge on one contact moment; a held boss reaction;
+a 0.55-second silence; a 0.9-second boss preparation; the attack; every targeted card's hit
+reaction; recovery; then player control.
+
+The first live review caught a second bug: an area attack returned control after its first
+target, then played the other two damage receipts afterward. The presentation queue now gates
+recovery and control return on the final boss-damage target. The reducer, event log, damage,
+resources, cooldowns, and boss rules did not change.
+
+The authentic `/battle` route was exercised through the real party picker and four consecutive
+rounds. Full motion at desktop and 1024×768 tablet showed boss preparation, attack, three card
+hit beats, recovery, and return with input locked throughout; the measured exchange reached
+the next intent at about 6.2 seconds. Motion Off preserved the same phase order and holds as
+still tableaux. The browser console was clean. Build and lint pass; focused presentation tests
+pass; the named `battle-party-volley-impact` scenario passed with three simultaneous real
+performances, three casters, three boss targets, and three distinct contact points. 625 of 626
+full-suite tests pass, with the sole failure still the unrelated pre-existing
+ability-art `cobalt` expectation. The final feel remains **HUMAN REVIEW**. Nothing was pushed
+or deployed.
+
+*Why it matters:* combat now gives the eye one subject at a time — party intent, shared hit,
+boss thought, retaliation, consequence, recovery — while keeping deterministic combat truth
+unchanged.
+
+### 2026-08-03 — Wait completes the card and focus only moves forward
+
+Raheem found that a locked hero still behaved like unfinished work: the tiny resource mark
+did not explain why the card could not act, and after choosing Wait the next hero's ability
+could pull selection back to the first card. Combat focus is now separate from the reducer's
+pending resolution order. **Wait & Continue** records a zero-output command, advances to the
+next unfinished card in lane order, and remains complete while later abilities are chosen.
+
+The selected-card ability panel now states **No abilities this turn**, keeps each row's exact
+cooldown/charge/resource reason visible, and says plainly that the card cannot attack. If the
+player revisits it, the panel reads **Wait locked · choice complete**, names the next unfinished
+hero, and does not ask for another click. The same guidance exists in the compact layout.
+
+The authentic `/battle` route passed the reported sequence: Gryndak entered a cooldown-only
+round, Wait advanced to Seojin, Seojin's ready ability advanced to Ashvara, and focus never
+returned to Gryndak. The completed Wait state remained readable at desktop and 1024×768
+tablet sizes. Build, lint, focused regression tests, and the post-reload console check pass;
+623 of 624 full-suite tests pass. The sole failure remains the unrelated pre-existing
+ability-art `cobalt` expectation. Nothing was pushed or deployed.
+
+*Why it matters:* a player can now tell which card is blocked, why it is blocked, and that
+they are finished with it this round. UI focus no longer mutates combat engine order.
+
+### 2026-08-03 — Locked heroes wait, and party impacts spread across the boss
+
+Raheem ruled that a character with no ability it can activate does not get to manufacture
+another action. Strike and Guard now lock together when every visible ability is blocked by
+cooldown, shared Mana/Tech, Ultimate charge, stun, silence, or targeting. Wait remains active
+and spends that card's one command slot without producing an effect. The reducer, desktop,
+mobile, and headless simulator all read one rule; passive round regeneration remains the
+recovery path, and no combat values changed.
+
+The party's shared impact also stopped stacking three element pieces on the boss's center.
+The first release lands upper-left, the second upper-right, and the third lower-center. In
+the authentic fight, the live performance outputs reported all three simultaneously at
+`(41,28)`, `(59,28)`, and `(50,41)` while the reviewed element assets remained distinct.
+
+The real `/battle` route was manually exercised through party selection, three Strikes, a
+three-ability volley, boss response, cooldown lockout, and the next planning round. Build,
+lint, the focused combat and balance tests, and 620 of 621 full-suite tests pass;
+the sole failure remains the unrelated pre-existing ability-art `cobalt` expectation.
+
+The authentic React battle bridge now owns two named scenarios instead of the old generic
+observation label. `battle-party-volley-impact` passed with three simultaneous real
+performances, three casters, three distinct contact points, input locked, and no runtime
+errors. `battle-wait-only-lockout` passed with the player able to act, no usable ability,
+Strike and Guard disabled, Wait enabled, Release disabled, and the same result with Motion
+Off. The production bundle contains none of the bridge names or transport. The visual
+result remains **HUMAN REVIEW** for Raheem's feel/composition approval. Nothing has been
+pushed or deployed.
+
+*Why it matters:* characters can no longer escape cooldown/resource lockout through a free
+fallback, and three simultaneous hits finally read as three physical contacts. The release
+record also replaces a generic observation label with repeatable assertions.
+
+### 2026-08-03 — Selecting a card is the combat command, not a route to another menu
+
+Raheem approved removing the permanent Abilities disclosure. A single card selection now
+changes the visible ability rows immediately; choosing an ordinary legal ability locks that
+one action and moves to the next unfinished card. The full card sheet stays behind its own
+expand control instead of opening when the already-selected card is clicked.
+
+The same decision added **Wait** as a real combat command. It consumes one character's slot
+without damage, resource, ultimate charge, guard, taunt, or status. Strike remains available
+as the intentional light attack that builds the shared chamber, never as a forced way to
+finish planning. Desktop and 1024×768 tablet were exercised through the authentic
+party-picker and battle route with an ability, Wait, and Strike in the same released plan;
+the boss responded and the next round opened with no console errors.
+
+Build and targeted combat tests pass. The complete suite is 613 of 614 passing; the only
+failure is the unrelated pre-existing ability-art `cobalt` wording expectation. This is a
+local **HUMAN REVIEW** candidate. Nothing has been pushed or deployed.
+
+*Why it matters:* the card is finally the character and the command anchor. Planning no
+longer asks the player to select a card, open a menu, select again, or attack merely to make
+the turn continue.
+
+### 2026-08-03 — Party attacks release as a volley and land as one payoff
+
+Raheem approved the plan-all-three structure, then rejected the long presentation rhythm
+where each hero finished a private attack sequence before the next one began. Release Party
+now launches the three prepared actions 150 milliseconds apart, keeps their real element
+deliveries alive together, and retimes contact into one shared impact-and-aftermath window
+before the boss responds. The reducer still resolves the same addressed commands in card
+order; only their human-time presentation is composed as a volley.
+
+The persistent charge tells also moved into the open strip directly above the card fan. They
+are now 2.75 times the original tell rather than 4.5 times, with a tighter halo and smaller
+labels so the three elements remain distinct at 1024×768 instead of merging into one cloud.
+
+This remains a **local human-review candidate**. The focused volley contract, all combat tests,
+the production build, and lint pass. The complete suite remains 612 of 613 passing because of
+the unrelated pre-existing ability-art `cobalt` wording expectation. Nothing has been pushed
+or deployed.
+
+*Why it matters:* one click now produces the intended *boom, boom, boom → one heavy hit*
+rhythm. The party feels coordinated, while the boss still owns the response after the whole
+party payoff rather than interrupting between heroes.
+
+### 2026-08-03 — Boss combat is a party plan, not three interrupted mini-turns
+
+Raheem rejected the immediate one-card-at-a-time decision loop after playing it. A round now
+stays in planning while every living card chooses an action. Each confirmed choice creates a
+large, element-specific charge directly above that card. **Release Party** becomes available
+only when the party is complete; it resolves the three commands in visible card order and
+holds the boss until the last action, impact, aftermath, and receipt have played.
+
+The same pass removed the old generic travel beam from element-backed direct attacks. Those
+attacks now use the reviewed element stream and impact files already approved in Ability
+Theater. The authentic battle was exercised at desktop and 1024×768 tablet sizes: all three
+charges stayed visible, the active one changed to *Releasing*, the other two stayed *Armed*,
+input remained locked for the sequence, and the boss/next-round boundary followed it.
+
+This is still a **local release candidate**. Build and lint pass; 608 of 609 tests pass, with
+the one failure still the pre-existing ability-art `cobalt` wording expectation. Nothing has
+been pushed or deployed.
+
+*Why it matters:* the player now makes one legible party decision and watches one causal
+sequence, instead of being bounced between a card, the boss, and another card before the
+party's intent ever becomes clear.
+
+### 2026-08-03 — Ability Performance and Decision Experience release as one combat track
+
+The two branches were built to meet at the real fight, and they now do. The authentic
+`/battle` surface reads one reducer event stream for both: a card's ability performs from
+its real caster anchor while the Threat Translator and contextual ability explanation tell
+the player why the choice matters; the performance completes before the next card or boss
+responds; authoritative receipts then remain in the combat journal. The Ability Theater and
+Decision Lab remain focused review tools, not substitute implementations.
+
+The combined work is a local release candidate on `decision-experience`. Desktop and tablet
+were exercised through the real seed → picker → wallet → battle path with the named
+`battle-ability-decision-sequence` observation scenario. It is not merged, pushed, or
+deployed, and one pre-existing ability-art prompt test still fails on its old `cobalt`
+expectation.
+
+*Why it matters:* presentation time now matches reducer truth without letting synchronous
+combat resolution pile several characters and the boss onto the same visual moment. The
+review labs prove their own questions; the real battle proves the combined experience.
+
+### 2026-08-01 — The Decision Experience handoff got a corrected plan, not a blind build
+
+Raheem and ChatGPT produced a full handoff for a Decision Experience System (boss combat
+explaining itself before, during, and after a decision). Claude read it against the live repo
+before writing any code, rather than executing it as given, and found the architecture sound
+but three mechanical claims wrong, and the scope too large for one reviewable drop.
+
+Corrected before building: (1) an ability's `guard` EFFECT does not satisfy a coordinated-Guard
+charge break the way the handoff assumed — only the literal Guard action does; (2) the handoff
+implied damage-over-time would count toward damage objectives — it counts toward neither the
+Ledger's charge break nor the single-round interrupt; (3) the Ability Performance System the
+handoff assumed was already integrated is in fact still on its own unmerged branch, not wired
+into `/battle`. Stage 1 was re-scoped from "all three pilots + Encounter Briefing in one pass"
+to "engine truth + a real Decision Lab + one full pilot (`The Whole Ledger`) end to end" so the
+first review is of a working thing, not a six-system wall.
+
+*Why it matters:* the three mechanical corrections are now stated PLAINLY in the game's own UI
+(`decision/relationships.ts`) rather than quietly implying something the reducer doesn't do —
+which was the entire failure mode this system exists to prevent. Filed as open Combat-gaps
+threads for Raheem's ruling: should an ability-granted guard or sustained damage count toward
+these objectives, or is the current reducer behaviour correct as designed?
+
+### 2026-08-01 — An ability's look comes from the caster's element, not from its damage type
+
+Every attack in the game drew the same coloured bar, tinted by one of eight "damage types".
+Damage type is a rules concept — it decides who resists what — and it was quietly doing a
+second job it was never suited for: deciding what things look like. Blood, Void and Bone all
+count as the same damage type, so all three came out as the identical purple streak.
+
+From now on an ability's *shape* comes from what it does (a lash, a growth, a barrier, a
+drain) and its *substance* comes from the element of the character casting it. The same
+ability cast by a blood vampire and by a water druid runs the same code and looks like two
+different things.
+
+*Why it matters:* it makes element choice visible. Picking Blood over Water was previously a
+number on a card; now it changes what your character does on screen. It also means new
+abilities inherit a decent look for free instead of each needing bespoke effects.
+
+### 2026-08-01 — Build the whole performance system before generating any art
+
+Delivery 1 is deliberately code-only. Everything is drawn with shapes the code makes itself;
+not one image has been generated, and the art manifest is a list of specifications rather
+than files.
+
+*Why it matters:* art is the expensive, irreversible part. Reviewing motion and legibility
+first means the generation round is aimed at a known-good target instead of paying to
+discover the timing is wrong. There is a review page — `/dev/ability-theater` — built for
+exactly that judgement, including a control that hides all colour so the claim "you can tell
+these apart without colour" can be tested rather than asserted.
+
+### 2026-08-01 — Group an ability's effects by position, not by changing the rules engine
+
+A single ability like Sanguine Tithe produces three separate results (damage, healing, a
+debuff) and nothing in the data said they belonged together. The clean fix would be to tag
+every result with the ability that caused it — but that means editing the rules engine,
+whose output is the save-and-replay record for every battle.
+
+Chose instead to work it out from the order events arrive in, plus who caused each one. No
+change to the rules engine at all.
+
+*Why it matters:* combat maths and replay are untouched, so this cannot break a fight. The
+tidier fix stays available later as its own deliberate change rather than being smuggled in
+alongside a visual feature.
+
 ### 2026-08-03 — Raheem accepts the private-device key exception
 
 This supersedes the release requirement in the following earlier entry. Do not rotate,
@@ -846,7 +1115,7 @@ in common, and both tools get used across both subjects.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 9. Ideas raised, not committed
 
 *Said out loud, captured so they aren't lost, explicitly **not** promises.*
@@ -858,6 +1127,9 @@ in common, and both tools get used across both subjects.
 - **More minigames as doors** — the shape accepts them; none are designed.
 - **Extract the harnesses as a reusable toolkit for future games** — Raheem explicitly
   deferred this. Focus is this game.
+- **Explore a generated combat-UI art pass** — Raheem raised PixelLab as a possible way to
+  improve the boss-battle chrome after the interaction restructure is proven. This is not an
+  approved generation run or a decision that PixelLab is the right UI tool.
 
 ---
 

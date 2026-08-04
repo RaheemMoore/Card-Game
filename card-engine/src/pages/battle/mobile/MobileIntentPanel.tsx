@@ -1,46 +1,44 @@
-import type { BossCombatant, BattleIntent, BattleState } from '../../../types/combat';
+import type { BattleState } from '../../../types/combat';
+import { deriveThreat } from '../../../services/combat/decision/objectives';
 
 interface Props {
-  boss: BossCombatant;
-  intent: BattleIntent | null;
   state: BattleState;
 }
 
 /**
- * Mobile Intent chip — deliberately subtle. Single-line pill with attack
- * name → target · damage. Sits under the boss header (not in front of the
- * boss sprite) so it never competes with the arena for attention.
+ * Mobile Intent chip — deliberately subtle. Sits under the boss header (not
+ * in front of the boss sprite) so it never competes with the arena for
+ * attention.
  *
- * Uses translucent bg + hairline gold border instead of the full CombatFrame
- * treatment, keeping the boss and cards as the visual focus per Raheem's
- * direction.
+ * Now built on the same `deriveThreat` view model as the desktop Threat
+ * Translator, rather than a second read of `BossActionSnapshot`. The
+ * previous version computed `baseDamage + scalingPerRound * round` directly —
+ * correct for an unresolved single-round action, but silently WRONG for a
+ * charging one: it never applied the charge's partial-mitigation multiplier,
+ * so a charge the party had half-broken still showed full damage. Sharing
+ * the evaluator means this chip and the desktop panel cannot show two
+ * different numbers for the same fight.
  */
-export function MobileIntentPanel({ boss, intent, state }: Props) {
-  if (!intent) return null;
+export function MobileIntentPanel({ state }: Props) {
+  const threat = deriveThreat(state);
+  if (!threat) return null;
 
-  const currentPhase = boss.snapshot.phases.find((p) => p.id === boss.currentPhaseId);
-  const intentAction = currentPhase?.actions.find((a) => a.id === intent.actionId);
-  const projectedDamage = intentAction
-    ? intentAction.baseDamage + Math.floor(intentAction.scalingPerRound * state.round)
-    : 0;
-  const isInterruptible = !!intentAction?.interruptible;
+  const interrupt = threat.objectives.find((o) => o.kind === 'interrupt');
+  const charge = threat.objectives.find((o) => o.kind === 'charge');
 
-  const targetHero = state.heroes.find((h) => h.actorId === intent.targetActorIds[0]);
-  const targetLabel = targetHero
-    ? targetHero.snapshot.displayName
-    : intent.targetActorIds.length > 1
+  const targetLabel = threat.hitsWholeParty
     ? 'ALL'
+    : threat.targetActorIds[0]
+    ? (state.heroes.find((h) => h.actorId === threat.targetActorIds[0])?.snapshot.displayName ?? '—')
     : '—';
-
-  const attackName = intentAction?.displayName ?? 'Attack';
 
   return (
     <div
-      aria-label={`Boss intent: ${attackName} on ${targetLabel} for ${projectedDamage} damage`}
+      aria-label={`Boss intent: ${threat.displayName} on ${targetLabel}`}
       style={{
         display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
+        flexDirection: 'column',
+        gap: 2,
         padding: '3px 8px',
         borderRadius: 3,
         background: 'rgba(10,6,4,0.72)',
@@ -50,70 +48,78 @@ export function MobileIntentPanel({ boss, intent, state }: Props) {
         fontFamily: 'Inter, system-ui, sans-serif',
         letterSpacing: 0.3,
         backdropFilter: 'blur(2px)',
-        maxWidth: 200,
+        maxWidth: 220,
       }}
     >
-      <span
-        aria-hidden
-        style={{
-          color: '#e0912e',
-          fontWeight: 700,
-          fontSize: 8,
-          letterSpacing: 1.1,
-          flexShrink: 0,
-        }}
-      >
-        NEXT
-      </span>
-      <span
-        style={{
-          color: '#e8d3a8',
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          minWidth: 0,
-        }}
-      >
-        {attackName}
-      </span>
-      <span aria-hidden style={{ color: '#7a6a4c' }}>→</span>
-      <span
-        style={{
-          color: '#c8a86a',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          minWidth: 0,
-        }}
-      >
-        {targetLabel}
-      </span>
-      {projectedDamage > 0 && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span
+          aria-hidden
+          style={{ color: '#e0912e', fontWeight: 700, fontSize: 8, letterSpacing: 1.1, flexShrink: 0 }}
+        >
+          {threat.timing.kind === 'charged' ? `${threat.timing.roundsRemaining}⏳` : 'NEXT'}
+        </span>
         <span
           style={{
-            color: '#ff7a4f',
-            fontWeight: 700,
-            fontSize: 10,
-            fontVariantNumeric: 'tabular-nums',
-            flexShrink: 0,
+            color: '#e8d3a8',
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            minWidth: 0,
           }}
         >
-          {projectedDamage}
+          {threat.displayName}
         </span>
-      )}
-      {isInterruptible && (
+        <span aria-hidden style={{ color: '#7a6a4c' }}>
+          →
+        </span>
         <span
-          title="Interruptible — burst enough damage before the boss acts to fizzle it"
           style={{
-            color: '#ffd76a',
-            fontSize: 10,
-            fontWeight: 700,
-            flexShrink: 0,
+            color: '#c8a86a',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            minWidth: 0,
           }}
         >
-          ⚡
+          {targetLabel}
         </span>
+        {interrupt && (
+          <span
+            title={`Interrupt: ${interrupt.dealt} / ${interrupt.required} — no partial credit`}
+            style={{ color: '#ffd76a', fontSize: 10, fontWeight: 700, flexShrink: 0 }}
+          >
+            ⚡{interrupt.dealt}/{interrupt.required}
+          </span>
+        )}
+      </div>
+      {charge && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div
+            style={{
+              flex: 1,
+              height: 4,
+              background: '#1a1210',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.round(Math.min(1, Math.max(0, charge.progress)) * 100)}%`,
+                height: '100%',
+                background: '#ed8c1a',
+              }}
+            />
+          </div>
+          <span style={{ color: '#e6a04a', fontSize: 8, fontWeight: 700, flexShrink: 0 }}>
+            {charge.break.kind === 'damage' && charge.damage
+              ? `${charge.damage.dealt}/${charge.damage.required}`
+              : charge.break.kind === 'party_action'
+              ? `${charge.contributors?.length ?? 0}/${charge.contributorsRequired}`
+              : `${Math.round(charge.progress * 100)}%`}
+          </span>
+        </div>
       )}
     </div>
   );

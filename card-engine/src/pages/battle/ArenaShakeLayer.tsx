@@ -28,14 +28,14 @@ interface Props {
  * everything inside one wrapper shares a single z-index — and the world does
  * not live at a single depth. The required order is:
  *
- *     arena background  <  command shelf (15)  <  party dock (20)  <  sprites
+ *     arena background  <  command shelf (15)  <  party dock (22)  <  VFX
  *
  * The backdrop must stay BEHIND the shelf; the sprites must stay IN FRONT of
  * the dock, which is what stops them being hidden by the fanned cards. Those
  * are opposite sides of the chrome, so a single wrapper cannot satisfy both:
  * hoisting it high enough for the sprites drags the arena background up over
  * the shelf and the dock, and the entire bottom bar disappears. Hence two
- * wrappers at z 1 and z 21, driven by one shake so they move as one world.
+ * wrappers at z 1 and z 23, driven by one shake so they move as one world.
  *
  * The permanent `scale(1.02)` is NOT a zoom. It is overscan — ~14px of hidden
  * bleed per side at 1440px — so displacement never exposes the background's
@@ -76,7 +76,7 @@ export function ArenaShakeLayer({ currentBeat, motionLevel, backdrop, foreground
    * ── Both wrappers MUST be pointer-events: none ───────────────────────────
    * These are presentation only — they exist to translate the world on impact
    * and nothing inside them is meant to be clicked. But they are full-arena
-   * `inset: 0` boxes, and the FOREGROUND slot sits at z-21, above the command
+   * `inset: 0` boxes, and the FOREGROUND slot sits at z-23, above the command
    * shelf's z-15. With default `pointer-events: auto` they therefore swallowed
    * every click aimed at the shelf: Strike, End Turn and the ability list all
    * looked enabled and did nothing.
@@ -113,7 +113,7 @@ export function ArenaShakeLayer({ currentBeat, motionLevel, backdrop, foreground
   return (
     <>
       {slot(backdrop, 1)}
-      {slot(foreground, 21)}
+      {slot(foreground, 23)}
 
       <style>{`
         /* Decaying oscillation — each swing smaller than the last, so it

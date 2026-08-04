@@ -192,7 +192,9 @@ The player sees `intent.telegraphText`, the target(s), and the intent icon. **Th
 
 ## 10. Universal actions
 
-Guard, Focus, and Inspect are runtime primitives — not library abilities. They cannot be discovered, moderated, or evolved. They are always available.
+Guard, Focus, and Inspect are runtime primitives — not library abilities. They cannot be discovered, moderated, or evolved.
+
+**Current party-planning availability (supersedes the original “always available” fallback):** Strike and Guard are legal only while the acting hero has at least one visible snapshotted ability that is currently activatable — off cooldown, affordable from the shared chamber, charged when Ultimate, not blocked by stun/silence, and with a living legal target. If none is activatable, Wait is the sole planning command. The reducer owns this rule; desktop, mobile, and the headless policy read the same selector. Passive end-of-round regeneration remains the recovery path and no combat values change.
 
 **Guard**: adds `ShieldPool { amount: floor(Def.value/2) + 5, remainingRounds: 1, types: [] (all) }` to self and +5 ultimate charge. No resource cost.
 
@@ -273,7 +275,7 @@ Answering the questions raised at end of B0.
 
 **Q5. Ultimate Charge.** *Single scalar 0–100* (§8), earned from damage dealt/received/blocking/status. Rationale: simpler UI (one bar), easier to balance, matches Master Plan §32 examples.
 
-**Q6. Guard/Focus.** *Runtime primitives, not library abilities* (§10). Rationale: they must always be available (§29 "prevent dead turns"), can't be dispelled or missing, and shouldn't clutter the Codex.
+**Q6. Guard/Focus.** *Runtime primitives, not library abilities* (§10). They remain outside discovery and the Codex. **Revised 2026-08-03:** Raheem replaced the original “always available to prevent dead turns” fallback for the current party-planning surface: when no visible ability can be activated, Strike and Guard lock and Wait is the only command.
 
 **Q7. Difficulty.** *Ship Normal only for B4 vertical slice*; wire the `BattleDifficulty` type ('normal' | 'hard') so Hard is a config knob added in B7. Rationale: don't split balance effort until Normal is tuned.
 

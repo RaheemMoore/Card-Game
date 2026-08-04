@@ -1,5 +1,7 @@
 import type { AbilityCombatSnapshot, HeroCombatant } from '../../types/combat';
 import type { AbilityEffect, AbilitySlotType } from '../../types/abilities';
+import type { ConfirmationDecision } from '../../services/combat/decision/confirmation';
+import type { ContextualAbilityVM } from '../../services/combat/decision/relationships';
 import { getStatus } from '../../data/abilities/statuses';
 import { AbilityPreviewCard } from './AbilityPreviewCard';
 
@@ -17,6 +19,8 @@ interface Props {
   projectedDamage: number | null;
   targetName: string | null;
   needsTargetPick: boolean;
+  confirmation?: ConfirmationDecision;
+  decisionContext?: ContextualAbilityVM | null;
   onConfirm: () => void;
   onCancel: () => void;
   /** Hover-preview — shown only when nothing is armed. */
@@ -39,6 +43,8 @@ export function AbilityCodexPanel({
   projectedDamage,
   targetName,
   needsTargetPick,
+  confirmation,
+  decisionContext,
   onConfirm,
   onCancel,
   hoveredAbility,
@@ -53,6 +59,8 @@ export function AbilityCodexPanel({
           projectedDamage={projectedDamage}
           targetName={targetName}
           needsTargetPick={needsTargetPick}
+          confirmation={confirmation}
+          decisionContext={decisionContext}
           onConfirm={onConfirm}
           onCancel={onCancel}
         />

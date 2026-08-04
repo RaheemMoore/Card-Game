@@ -4,6 +4,7 @@ import { getAllCards, saveCard } from '../services/storage';
 import * as abilityRegistry from '../services/abilities/registry';
 import { SEED_ABILITIES } from '../data/abilities/seedAbilities';
 import type { Card } from '../types/card';
+import type { ElementSelection } from '../types/bible';
 
 /**
  * Dev-only route. Seeds three test cards + their ability references so the
@@ -35,6 +36,14 @@ interface SeedSpec {
   abilities: AbilitySlotSpec[];
   portrait: string;
   lore: string;
+  /** Naturally-compatible per data/elements.ts for this archetype. Without
+   *  this, `resolveCurrentElement` returns undefined and every ability
+   *  performance falls back to the dark, near-invisible `UNELEMENTED_KIT` —
+   *  which is exactly what made these seed heroes look like they had no
+   *  combat visuals at all when the Ability Performance System first went
+   *  live in /battle: the wiring was fine, this fixture just had no element
+   *  for it to read. */
+  elementSelection: ElementSelection;
 }
 
 /**
@@ -61,6 +70,7 @@ const SEED_PARTY: SeedSpec[] = [
     ],
     portrait: '/assets/dev-portraits/Gryndak.jpg',
     lore: 'Half his blood answered a whisper before the pact was sealed. He does not name what watches him.',
+    elementSelection: { element: 'Fire', bond: 'It is my weapon.', compatibility: 'naturally_compatible' },
   },
   {
     name: 'Seojin',
@@ -74,6 +84,7 @@ const SEED_PARTY: SeedSpec[] = [
     ],
     portrait: '/assets/dev-portraits/Seojin.jpg',
     lore: 'Once, she ran only under one moon. The pack sings her name in three tongues now.',
+    elementSelection: { element: 'Moon', bond: 'It is part of who I am.', compatibility: 'naturally_compatible' },
   },
   {
     name: 'Ashvara',
@@ -87,6 +98,7 @@ const SEED_PARTY: SeedSpec[] = [
     ],
     portrait: '/assets/dev-portraits/Ashvara.jpg',
     lore: 'She keeps her prayers unfinished so the dead have somewhere to arrive.',
+    elementSelection: { element: 'Bone', bond: 'It is my inheritance.', compatibility: 'naturally_compatible' },
   },
 ];
 
@@ -112,16 +124,24 @@ function ensureReferences(cardId: string, spec: SeedSpec) {
 }
 
 function seedCards(): { seeded: number; existing: number } {
-  const existingIds = new Set(getAllCards().map((c) => c.cardId));
+  const existingCards = getAllCards();
   let seeded = 0;
   let existing = 0;
   const now = new Date().toISOString();
   for (const spec of SEED_PARTY) {
     const cardId = slugId(spec.name);
-    if (existingIds.has(cardId)) {
+    const existingCard = existingCards.find((c) => c.cardId === cardId);
+    if (existingCard) {
       // Card exists but its ability references may not — heal that here so
       // the Picker's "battle-ready" filter never orphans a seeded card.
       ensureReferences(cardId, spec);
+      // A card seeded before `elementSelection` was added here has no
+      // element, which sends every ability performance to the dark,
+      // near-invisible `UNELEMENTED_KIT` fallback — re-save to heal it too,
+      // rather than leaving a stale local card silently un-elemented forever.
+      if (!existingCard.elementSelection) {
+        saveCard({ ...existingCard, elementSelection: spec.elementSelection });
+      }
       existing += 1;
       continue;
     }
@@ -151,6 +171,7 @@ function seedCards(): { seeded: number; existing: number } {
       dominantStat: dominant,
       border: { baseVariant: border, baseSource: '' },
       lore: spec.lore,
+      elementSelection: spec.elementSelection,
       whisperWords: [],
       evolutionHistory: {},
       createdAt: now,

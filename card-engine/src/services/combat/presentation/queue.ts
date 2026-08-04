@@ -2,12 +2,18 @@ import type { BattleEvent } from '../../../types/combat';
 import type { AbilitySlotType } from '../../../types/abilities';
 import { mapEventsToBeats } from './adapter';
 import type { AnimationBeat, BeatSeverity } from './types';
+import { pacePartyVolleyBeats } from './partyVolley';
+import { paceBossResponseBeats } from './bossResponse';
 
 /** Resolves an ability definition id to its slot, so an ultimate can be
  *  recognised at queue time. Built by the view from the already-frozen
  *  `snapshot.abilities` — deliberately a lookup rather than a new field, so
  *  nothing is added to the determinism payload. */
 export type AbilitySlotLookup = (definitionId: string) => AbilitySlotType | undefined;
+
+/** Presentation-only duration of the complete hero performance opened by an
+ * absolute event index. Built from the same resolved recipe the renderer uses. */
+export type PerformanceDurationLookup = (openerIndex: number) => number | undefined;
 
 /**
  * Tag a beat with the drama it has earned. Looks backward through the FULL
@@ -85,6 +91,7 @@ export function syncEvents(
   rawEvents: readonly BattleEvent[],
   bossActorId?: string,
   slotLookup?: AbilitySlotLookup,
+  performanceDurationLookup?: PerformanceDurationLookup,
 ): QueueState {
   if (rawEvents.length < state.consumedCount) {
     return createQueueState();
@@ -99,10 +106,24 @@ export function syncEvents(
     bossActorId
       ? severityFor(rawEvents, state.consumedCount + i, fresh[i], bossActorId, slotLookup)
       : undefined,
-  );
+  ).map((beat, i) => {
+    const event = fresh[i];
+    if (event.kind !== 'player_action_selected') return beat;
+    const openerIndex = state.consumedCount + i;
+    const performanceMs = performanceDurationLookup?.(openerIndex);
+    if (!performanceMs) return beat;
+    return { ...beat, durationMs: Math.max(beat.durationMs, performanceMs) };
+  });
+  const pacedBeats = bossActorId
+    ? paceBossResponseBeats(
+        pacePartyVolleyBeats(beats, rawEvents, bossActorId),
+        rawEvents,
+        bossActorId,
+      )
+    : beats;
   return {
     journal: state.journal,
-    pending: [...state.pending, ...beats],
+    pending: [...state.pending, ...pacedBeats],
     consumedCount: rawEvents.length,
   };
 }

@@ -27,6 +27,9 @@ export function bossClipForBeat(
   const resting: BossSpriteState = ctx.enraged ? 'rage' : 'idle';
   if (ctx.bossDefeated) return 'defeat';
   if (!beat) return resting;
+  if (beat.presentationPhase === 'boss_recovery' || beat.presentationPhase === 'player_turn_return') {
+    return resting;
+  }
 
   const e = beat.event;
   switch (e.kind) {

@@ -1,47 +1,64 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Card } from '../../types/card';
-import type { AbilityCombatSnapshot, BattleState, HeroCombatant, PlayerAction } from '../../types/combat';
+import type {
+  AbilityCombatSnapshot,
+  BattleEvent,
+  BattleState,
+  HeroCombatant,
+  PlayerAction,
+} from '../../types/combat';
 import type { AnimationBeat } from '../../services/combat/presentation/types';
 import type { MotionLevel } from '../../vfx/types';
 import { resolveArenaFor, resolveGroundTint } from '../../data/combat/arenaManifest';
 import { resolveCombatAssetUrl } from '../../data/combat/types';
 import { targetRuleNeedsPlayerPick, resolveTargetRule } from '../../services/combat/targeting';
-import { previewAbilityDamage } from '../../services/combat/reducer';
+import { projectAction } from '../../services/combat/decision/projectAction';
+import { requiresConfirmation } from '../../services/combat/decision/confirmation';
+import { deriveThreat } from '../../services/combat/decision/objectives';
+import { explainAbility } from '../../services/combat/decision/relationships';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
 import { displayNameFor } from './journalNames';
 import { BossHUDOverlay } from './BossHUDOverlay';
+import { ThreatTranslator } from './ThreatTranslator';
+import { ResolutionReceiptOverlay } from './ResolutionReceiptOverlay';
 import { BossStage } from './BossStage';
 import { ArenaShakeLayer } from './ArenaShakeLayer';
 import { ArenaAmbience } from './ArenaAmbience';
 import { ImpactFlash } from './ImpactFlash';
 import { PartyDock, computePartyDockWidth } from './PartyDock';
 import { useViewportWidth } from './useViewportWidth';
-import { AbilityCommandBar } from './AbilityCommandBar';
+import { SelectedAbilityPanel } from './SelectedAbilityPanel';
 import { AbilityCodexPanel } from './AbilityCodexPanel';
 import { BattleControls } from './BattleControls';
 import { AttackVFX } from './AttackVFX';
+import { CombatPerformanceLayer } from './performance/CombatPerformanceLayer';
+import { ArmedPartyCharges } from './performance/ArmedPartyCharges';
 import { PartyResourceVessel } from './PartyResourceVessel';
 import {
   abilityZoneWidth,
   abilityZonePadding,
   resourceZoneWidth,
-  resourceZonePadding,
   controlsPaddingRight,
 } from './shelfLayout';
 import { CombatGuideModal } from './CombatGuideModal';
 import { PaintedPanel } from './PaintedPanel';
 import { CardSheet } from '../../components/CardSheet';
 import { buildBattleCardSheetAbilities, buildBattleLiveState } from './cardSheetAdapters';
+import { hasCurrentlyUsableAbility } from '../../services/combat/actionAvailability';
 
 interface Props {
   state: BattleState;
+  events: readonly BattleEvent[];
   actingActorId: string | null;
   partyCards: Card[];
   currentBeat: AnimationBeat | null;
+  presentationLocked: boolean;
   motionLevel: MotionLevel;
   onChangeMotionLevel: (next: MotionLevel) => void;
-  onSubmit: (action: PlayerAction) => void;
+  plannedActions: Readonly<Record<string, PlayerAction>>;
+  onPlan: (action: PlayerAction) => void;
+  onReleasePlan: () => void;
   onSelectActor: (actorId: string) => void;
   onExit: () => void;
 }
@@ -67,12 +84,16 @@ interface Props {
  */
 export function CombatScene({
   state,
+  events,
   actingActorId,
   partyCards,
   currentBeat,
+  presentationLocked,
   motionLevel,
   onChangeMotionLevel,
-  onSubmit,
+  plannedActions,
+  onPlan,
+  onReleasePlan,
   onSelectActor,
   onExit,
 }: Props) {
@@ -87,7 +108,32 @@ export function CombatScene({
     (actingActorId ? state.heroes.find((h) => h.actorId === actingActorId) : null) ??
     state.heroes.find((h) => !h.defeated) ??
     state.heroes[0];
-  const canAct = state.phase === 'awaiting_player_action';
+  // The reducer resolves synchronously and may already be awaiting the next
+  // hero while the previous hero is still visibly casting. Presentation owns
+  // that human-time boundary: no new command (and no boss response) is allowed
+  // to visually pile into a performance that has not finished.
+  const canAct = state.phase === 'awaiting_player_action' && !presentationLocked;
+  const partyActorIds = state.heroes.filter((hero) => !hero.defeated).map((hero) => hero.actorId);
+  const plannedCount = partyActorIds.filter((id) => plannedActions[id]).length;
+  const tacticalFallbackAvailable = hasCurrentlyUsableAbility(state, actingHero);
+  const nextUnplannedHero = state.heroes.find((hero) =>
+    !hero.defeated &&
+    hero.actorId !== actingHero.actorId &&
+    state.pendingActorIds.includes(hero.actorId) &&
+    !plannedActions[hero.actorId]
+  );
+  const resolvingActorId = (() => {
+    if (!presentationLocked) return null;
+    if (
+      currentBeat?.presentationPhase !== 'party_launch' &&
+      currentBeat?.presentationPhase !== 'party_impact'
+    ) return null;
+    const event = currentBeat?.event;
+    if (!event) return null;
+    if ('actorId' in event && typeof event.actorId === 'string') return event.actorId;
+    if ('sourceActorId' in event && typeof event.sourceActorId === 'string') return event.sourceActorId;
+    return null;
+  })();
 
   // The boss's in-flight action name, shown as a caption on the command shelf
   // while its turn plays out. (Was the Turn Badge's second line; the badge is
@@ -117,6 +163,20 @@ export function CombatScene({
     return null;
   })();
   const [guideOpen, setGuideOpen] = useState(false);
+  const phaseAnnouncement = (() => {
+    switch (currentBeat?.presentationPhase) {
+      case 'party_charge': return 'Party charging.';
+      case 'party_launch': return 'Party attacks released.';
+      case 'party_impact': return 'Party attacks hit the boss.';
+      case 'party_silence': return 'The boss reels.';
+      case 'boss_prepare': return 'The boss prepares a response.';
+      case 'boss_attack': return 'The boss attacks.';
+      case 'party_hit': return 'The party takes the hit.';
+      case 'boss_recovery': return 'The battlefield settles.';
+      case 'player_turn_return': return 'Your turn.';
+      default: return '';
+    }
+  })();
 
   // The ability preview panel is rendered as a SIBLING of the command shelf,
   // not a child of it — the shelf's own z-index makes it a stacking context,
@@ -180,7 +240,32 @@ export function CombatScene({
       : null
     : resolveTargetRule(state, actingHero.actorId, pendingAbility.version.targetRule, []).targetActorIds;
   const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
-  const projectedDamage = pendingAbility ? previewAbilityDamage(state, actingHero, pendingAbility) : null;
+  // Reducer dry-run, not a copied formula — see decision/projectAction.ts.
+  // Only meaningful once a target is actually resolved; a still-unpicked
+  // manual target has nothing to project against, so this stays null rather
+  // than guessing.
+  const pendingProjection =
+    pendingAbility && resolvedTargetIds
+      ? projectAction(state, {
+          kind: 'ability',
+          abilityDefinitionId: pendingAbility.definitionId,
+          targetActorIds: resolvedTargetIds,
+        })
+      : null;
+  const projectedDamage =
+    pendingProjection && !pendingProjection.deniedReason && pendingProjection.damageToBoss > 0
+      ? pendingProjection.damageToBoss
+      : null;
+  const pendingConfirmation =
+    pendingAbility && pendingProjection
+      ? requiresConfirmation(state, pendingAbility, pendingProjection, {
+          targetResolved: resolvedTargetIds !== null,
+        })
+      : undefined;
+  const pendingDecisionContext =
+    pendingAbility && pendingProjection
+      ? explainAbility(state, deriveThreat(state), pendingAbility, pendingProjection)
+      : null;
   const abilityStore = getAbilityStore();
   const pendingArtUrl = pendingAbility
     ? (() => {
@@ -189,10 +274,25 @@ export function CombatScene({
       })()
     : null;
 
+  useEffect(() => {
+    if (!pendingAbility || !resolvedTargetIds || !pendingConfirmation) return;
+    if (pendingConfirmation.required) return;
+    onPlan({
+      kind: 'ability',
+      abilityDefinitionId: pendingAbility.definitionId,
+      targetActorIds: resolvedTargetIds,
+    });
+    armAbility(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAbilityId, pickedTargetActorId, pendingConfirmation?.required]);
+
   const [sheetHero, setSheetHero] = useState<{ card: Card; combatant: HeroCombatant } | null>(null);
 
   return (
     <div className="absolute inset-0">
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {phaseAnnouncement}
+      </div>
       {/* Everything DIEGETIC lives inside the shake layer: the arena, its
           atmosphere, the boss, and the party. Chrome (shelf, dock, HUD,
           journal, preview) stays outside it and never moves — translating a
@@ -255,10 +355,40 @@ export function CombatScene({
               - the boss's target is shown by brackets on the named card
                 (PartyDock), which is the job the sprites used to do. */}
 
-        {/* Attack VFX (bolt + impact burst). Inside the wrapper so beams stay
-            welded to what they are anchored to — outside it, a heavy hit would
-            shake the combatants out from under their own beam. */}
+        {/* Attack VFX (bolt + impact burst) — boss-sourced hits only now.
+            Hero-sourced hits get the full Ability Performance System below;
+            drawing both for the same `damage_dealt` would double the effect.
+            Inside the wrapper so beams stay welded to what they are anchored
+            to — outside it, a heavy hit would shake the combatants out from
+            under their own beam. */}
         <AttackVFX state={state} currentBeat={currentBeat} />
+
+        {/* Ability Performance System — delivery form x caster material,
+            resolved from the live event log. Hero actions only; see the
+            layer's own docstring for why the boss stays on AttackVFX. */}
+        <CombatPerformanceLayer
+          state={state}
+          events={events}
+          partyCards={partyCards}
+          currentBeat={currentBeat}
+          motionLevel={motionLevel}
+          viewportWidth={viewportWidth}
+        />
+        <ArmedPartyCharges
+          state={state}
+          partyCards={partyCards}
+          plannedActions={plannedActions}
+          motionLevel={motionLevel}
+          resolvingActorId={resolvingActorId}
+          partyChargeActive={currentBeat?.presentationPhase === 'party_charge'}
+        />
+        <ResolutionReceiptOverlay
+          state={state}
+          events={events}
+          currentBeat={currentBeat}
+          motionLevel={motionLevel}
+          viewportWidth={viewportWidth}
+        />
         </>}
       />
 
@@ -272,6 +402,7 @@ export function CombatScene({
           chrome, and its own z-30 keeps it above the world (21) and the
           flash (14) so boss HP stays readable straight through an impact. */}
       <BossHUDOverlay boss={boss} currentBeat={currentBeat} />
+      <ThreatTranslator state={state} />
 
       {/* Command Shelf — a real painted 9-slice frame (see PaintedPanel.tsx)
           holding just the ability bar + utility tray. Short on purpose: the
@@ -306,42 +437,32 @@ export function CombatScene({
             // Widths come from `shelfLayout`, which `shelfBudget.test.ts`
             // sums at every breakpoint. Inline clamp() strings here are what
             // let the shelf overflow twice without anything noticing.
-            flex: `0 0 ${abilityZoneWidth(viewportWidth)}px`,
+            flex: `0 0 ${abilityZoneWidth(viewportWidth) + resourceZoneWidth(viewportWidth)}px`,
             minWidth: 0,
             height: '100%',
             paddingLeft: abilityZonePadding(viewportWidth),
             paddingRight: abilityZonePadding(viewportWidth),
           }}
         >
-          <AbilityCommandBar
+          <SelectedAbilityPanel
             hero={actingHero}
+            availableResource={state.partyResource[actingHero.snapshot.resourceType]}
             disabled={!canAct}
             pendingId={pendingAbilityId}
+            plannedAction={plannedActions[actingHero.actorId]}
+            noAbilitiesThisTurn={!tacticalFallbackAvailable}
+            nextHeroName={nextUnplannedHero?.snapshot.displayName}
             onArm={armAbility}
+            onWait={() => onPlan({ kind: 'wait' })}
             onHoverAbility={setHoveredAbility}
           />
-        </div>
-
-        <ShelfSeam />
-
-        {/* The party's shared resource, in the gap that used to be empty
-            between the ability control and the cards. Deliberately adjacent to
-            the abilities: it is the thing they are paid for with. */}
-        <div
-          className="flex items-center justify-center"
-          style={{
-            flex: `0 0 ${resourceZoneWidth(viewportWidth)}px`,
-            minWidth: 0,
-            height: '100%',
-            paddingLeft: resourceZonePadding(viewportWidth),
-            paddingRight: resourceZonePadding(viewportWidth),
-          }}
-        >
           <PartyResourceVessel
             state={state}
             motionLevel={motionLevel}
             canAct={canAct}
-            onStrike={() => onSubmit({ kind: 'strike' })}
+            strikeAvailable={tacticalFallbackAvailable}
+            onStrike={() => onPlan({ kind: 'strike' })}
+            onWait={() => onPlan({ kind: 'wait' })}
           />
         </div>
 
@@ -363,9 +484,12 @@ export function CombatScene({
         <div style={{ paddingRight: controlsPaddingRight(viewportWidth), minWidth: 0 }}>
           <BattleControls
             onExit={onExit}
-            onSubmit={onSubmit}
             canAct={canAct}
-            pendingCount={state.pendingActorIds.length}
+            plannedCount={plannedCount}
+            partyCount={partyActorIds.length}
+            onPlanGuard={() => onPlan({ kind: 'guard' })}
+            guardAvailable={tacticalFallbackAvailable}
+            onReleasePlan={onReleasePlan}
             resolvingIntentName={resolvingIntentName}
             motionLevel={motionLevel}
             onChangeMotionLevel={onChangeMotionLevel}
@@ -411,9 +535,11 @@ export function CombatScene({
             projectedDamage={projectedDamage}
             targetName={targetName}
             needsTargetPick={needsTargetPick && !pickedTargetActorId}
+            confirmation={pendingConfirmation}
+            decisionContext={pendingDecisionContext}
             onConfirm={() => {
               if (!resolvedTargetIds || !pendingAbility) return;
-              onSubmit({
+              onPlan({
                 kind: 'ability',
                 abilityDefinitionId: pendingAbility.definitionId,
                 targetActorIds: resolvedTargetIds,
@@ -426,13 +552,17 @@ export function CombatScene({
         </div>
       )}
 
+      <div className="sr-only" aria-live="polite">
+        {plannedCount} of {partyActorIds.length} heroes armed.
+      </div>
+
       {guideOpen && <CombatGuideModal onClose={() => setGuideOpen(false)} />}
 
       {sheetHero && (
         <CardSheet
           card={sheetHero.card}
-          abilities={buildBattleCardSheetAbilities(sheetHero.combatant)}
-          liveState={buildBattleLiveState(sheetHero.combatant)}
+          abilities={buildBattleCardSheetAbilities(sheetHero.combatant, state.partyResource[sheetHero.combatant.snapshot.resourceType])}
+          liveState={buildBattleLiveState(sheetHero.combatant, state.partyResource[sheetHero.combatant.snapshot.resourceType])}
           onClose={() => setSheetHero(null)}
         />
       )}

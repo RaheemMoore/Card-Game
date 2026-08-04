@@ -10,11 +10,13 @@ import { TIMEOUT_ROUND_CAP } from '../../services/combat/reducer';
 import { useCombatPresentation } from '../../services/combat/presentation/useCombatPresentation';
 import { useMotionLevel } from '../../services/combat/presentation/useMotionLevel';
 import { summarizeJournal } from '../../services/combat/presentation/journalSummary';
+import { buildHeroPerformanceDurations } from '../../services/combat/presentation/performanceTiming';
 import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
 import { ResultModal } from './ResultModal';
 import { MobileCombatScene } from './mobile/MobileCombatScene';
 import { FullscreenGameShell } from '../games/FullscreenGameShell';
+import { BATTLE_STUDIO_SCENARIO, useBattleStudioBridge } from './studioBridge';
 
 interface Props {
   state: BattleState | null;
@@ -23,7 +25,9 @@ interface Props {
   partyCards: Card[];
   entryTxnId: string | null;
   error: string | null;
-  onSubmit: (action: PlayerAction) => void;
+  plannedActions: Readonly<Record<string, PlayerAction>>;
+  onPlan: (action: PlayerAction) => void;
+  onReleasePlan: (actions?: Readonly<Record<string, PlayerAction>>) => void;
   onSelectActor: (actorId: string) => void;
   onRestart: () => void;
   onExit: () => void;
@@ -73,12 +77,18 @@ export function CombatViewport({
   partyCards,
   entryTxnId,
   error,
-  onSubmit,
+  plannedActions,
+  onPlan,
+  onReleasePlan,
   onSelectActor,
   onRestart,
   onExit,
 }: Props) {
   const [rewardOutcome, setRewardOutcome] = useState<BattleRewardOutcome | null>(null);
+  const [releasedPlan, setReleasedPlan] = useState<{
+    actions: Readonly<Record<string, PlayerAction>>;
+    playbackStarted: boolean;
+  } | null>(null);
 
   // Lets the presentation queue recognise an ultimate and give it its own
   // pacing. Reads the ALREADY-FROZEN ability snapshots rather than adding a
@@ -98,12 +108,55 @@ export function CombatViewport({
   // would have added another copy of that read. One source, one answer.
   const [motionLevel, setMotionLevel] = useMotionLevel();
 
+  const performanceDurations = useMemo(() => {
+    if (!state) return new Map<number, number>();
+    return buildHeroPerformanceDurations(
+      events,
+      state.boss.actorId,
+      state.heroes.map((hero) => hero.actorId),
+      partyCards,
+      motionLevel,
+    );
+  }, [events, motionLevel, partyCards, state]);
+
+  const performanceDurationLookup = useMemo(
+    () => (openerIndex: number) => performanceDurations.get(openerIndex),
+    [performanceDurations],
+  );
+
   const presentationOptions = useMemo(
-    () => ({ slotLookup, motionLevel }),
-    [slotLookup, motionLevel],
+    () => ({ slotLookup, motionLevel, performanceDurationLookup }),
+    [slotLookup, motionLevel, performanceDurationLookup],
   );
   const presentation = useCombatPresentation(events, presentationOptions, state?.boss.actorId);
   const isMobile = useIsMobileCombatLayout();
+  const visiblePlannedActions = releasedPlan?.actions ?? plannedActions;
+  const handleReleasePlan = () => {
+    setReleasedPlan({ actions: { ...plannedActions }, playbackStarted: false });
+    onReleasePlan(plannedActions);
+  };
+
+  useEffect(() => {
+    if (!releasedPlan) return;
+    if (presentation.isPlaying && !releasedPlan.playbackStarted) {
+      setReleasedPlan((current) =>
+        current ? { ...current, playbackStarted: true } : current,
+      );
+      return;
+    }
+    if (!presentation.isPlaying && releasedPlan.playbackStarted) setReleasedPlan(null);
+  }, [presentation.isPlaying, releasedPlan]);
+
+  useBattleStudioBridge({
+    state,
+    events,
+    currentBeat: presentation.currentBeat,
+    isPlaying: presentation.isPlaying,
+    pendingCount: presentation.pendingCount,
+    motionLevel,
+    actingActorId,
+    plannedActions: visiblePlannedActions,
+  });
 
   // A separate condensed view over the same event stream, purely for the
   // journal panels — does not touch `presentation` (beat pacing/animation
@@ -130,8 +183,30 @@ export function CombatViewport({
 
   const mainColumn = (
     <div
-      className="relative w-full h-full min-h-0 overflow-hidden text-bone"
+      /* `motion-<level>` is what actually carries the player's Motion choice
+         into CSS. Several stylesheets under this root gate their animations on
+         `@media (prefers-reduced-motion: reduce)`, which only ever saw the OS
+         preference — a player who set Motion → off in the combat HUD without
+         the OS flag still got every one of them. Emitting the resolved level
+         here fixes all of them at once, and covers the mobile tree too, since
+         both layout dispatches live under this element. */
+      className={`relative w-full h-full min-h-0 overflow-hidden text-bone motion-${motionLevel}`}
       style={{ background: '#050308' }}
+      data-battle-runtime="authentic"
+      data-battle-scenario={import.meta.env.DEV ? BATTLE_STUDIO_SCENARIO : undefined}
+      data-battle-phase={import.meta.env.DEV ? state?.phase : undefined}
+      data-battle-id={import.meta.env.DEV ? state?.snapshot.battleId : undefined}
+      data-battle-round={import.meta.env.DEV ? state?.round : undefined}
+      data-battle-event-count={import.meta.env.DEV ? events.length : undefined}
+      data-battle-current-beat={import.meta.env.DEV ? presentation.currentBeat?.id : undefined}
+      data-battle-current-event={import.meta.env.DEV ? presentation.currentBeat?.event.kind : undefined}
+      data-battle-input-locked={import.meta.env.DEV ? presentation.isPlaying : undefined}
+      data-battle-queued-beats={import.meta.env.DEV ? presentation.pendingCount : undefined}
+      data-battle-motion={import.meta.env.DEV ? motionLevel : undefined}
+      data-battle-planned-count={
+        import.meta.env.DEV ? Object.keys(visiblePlannedActions).length : undefined
+      }
+      data-battle-release-held={import.meta.env.DEV ? Boolean(releasedPlan) : undefined}
     >
       {isMobile ? (
         <div className="w-full h-full">
@@ -150,7 +225,9 @@ export function CombatViewport({
               isPlaying={presentation.isPlaying}
               pendingCount={presentation.pendingCount}
               onSkip={presentation.skip}
-              onSubmit={onSubmit}
+              plannedActions={visiblePlannedActions}
+              onPlan={onPlan}
+              onReleasePlan={handleReleasePlan}
               onSelectActor={onSelectActor}
               onExit={onExit}
             />
@@ -169,12 +246,16 @@ export function CombatViewport({
             <>
               <CombatScene
                 state={state}
+                events={events}
                 actingActorId={actingActorId}
                 partyCards={partyCards}
                 currentBeat={presentation.currentBeat}
+                presentationLocked={presentation.isPlaying}
                 motionLevel={motionLevel}
                 onChangeMotionLevel={setMotionLevel}
-                onSubmit={onSubmit}
+                plannedActions={visiblePlannedActions}
+                onPlan={onPlan}
+                onReleasePlan={handleReleasePlan}
                 onSelectActor={onSelectActor}
                 onExit={onExit}
               />

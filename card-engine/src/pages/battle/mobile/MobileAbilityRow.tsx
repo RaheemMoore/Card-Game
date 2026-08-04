@@ -3,7 +3,10 @@ import type { HeroCombatant, PlayerAction, AbilityCombatSnapshot, BattleState } 
 import type { AbilitySlotType } from '../../../types/abilities';
 import { getAbilityStore } from '../../../services/abilities/registry';
 import { getArtCrops } from '../../../types/abilities';
-import { previewAbilityDamage } from '../../../services/combat/reducer';
+import { projectAction } from '../../../services/combat/decision/projectAction';
+import { requiresConfirmation } from '../../../services/combat/decision/confirmation';
+import { deriveThreat } from '../../../services/combat/decision/objectives';
+import { explainAbility } from '../../../services/combat/decision/relationships';
 import { resolveTargetRule, targetRuleNeedsPlayerPick } from '../../../services/combat/targeting';
 import { displayNameFor } from '../journalNames';
 import { AbilityPreviewCard } from '../AbilityPreviewCard';
@@ -17,7 +20,8 @@ interface Props {
   pendingId: string | null;
   onArm: (definitionId: string | null) => void;
   pickedTargetActorId: string | null;
-  onSubmit: (action: PlayerAction) => void;
+  plannedAction?: PlayerAction;
+  onPlan: (action: PlayerAction) => void;
 }
 
 const SLOT_ORDER: AbilitySlotType[] = ['core', 'signature', 'ultimate'];
@@ -47,14 +51,16 @@ export function MobileAbilityRow({
   pendingId,
   onArm,
   pickedTargetActorId,
-  onSubmit,
+  plannedAction,
+  onPlan,
 }: Props) {
   const store = getAbilityStore();
+  const availableResource = state.partyResource[hero.snapshot.resourceType];
 
   useEffect(() => {
     if (!pendingId) return;
     const a = hero.snapshot.abilities.find((x) => x.definitionId === pendingId);
-    if (!a || isDenied(hero, a, disabled)) onArm(null);
+    if (!a || isDenied(hero, a, availableResource, disabled)) onArm(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hero, disabled, pendingId]);
 
@@ -94,9 +100,42 @@ export function MobileAbilityRow({
       : null
     : resolveTargetRule(state, hero.actorId, pendingTargetRule, []).targetActorIds;
   const targetName = resolvedTargetIds?.[0] ? displayNameFor(state, resolvedTargetIds[0]) : null;
-  const pendingProjectedDamage = pendingAbility
-    ? previewAbilityDamage(state, hero, pendingAbility)
-    : null;
+  // Reducer dry-run — mirrors CombatScene's desktop projection so the two
+  // surfaces cannot show different numbers for the same action.
+  const pendingProjection =
+    pendingAbility && resolvedTargetIds
+      ? projectAction(state, {
+          kind: 'ability',
+          abilityDefinitionId: pendingAbility.definitionId,
+          targetActorIds: resolvedTargetIds,
+        })
+      : null;
+  const pendingProjectedDamage =
+    pendingProjection && !pendingProjection.deniedReason && pendingProjection.damageToBoss > 0
+      ? pendingProjection.damageToBoss
+      : null;
+  const pendingConfirmation =
+    pendingAbility && pendingProjection
+      ? requiresConfirmation(state, pendingAbility, pendingProjection, {
+          targetResolved: resolvedTargetIds !== null,
+        })
+      : undefined;
+  const pendingDecisionContext =
+    pendingAbility && pendingProjection
+      ? explainAbility(state, deriveThreat(state), pendingAbility, pendingProjection)
+      : null;
+
+  useEffect(() => {
+    if (!pendingAbility || !resolvedTargetIds || !pendingConfirmation) return;
+    if (pendingConfirmation.required) return;
+    onPlan({
+      kind: 'ability',
+      abilityDefinitionId: pendingAbility.definitionId,
+      targetActorIds: resolvedTargetIds,
+    });
+    onArm(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingId, pickedTargetActorId, pendingConfirmation?.required]);
 
   return (
     <div className="relative w-full" aria-label={`Abilities for ${hero.snapshot.displayName}`}>
@@ -110,9 +149,11 @@ export function MobileAbilityRow({
             projectedDamage={pendingProjectedDamage}
             targetName={targetName}
             needsTargetPick={needsPick && !pickedTargetActorId}
+            confirmation={pendingConfirmation}
+            decisionContext={pendingDecisionContext}
             onConfirm={() => {
               if (!resolvedTargetIds) return;
-              onSubmit({
+              onPlan({
                 kind: 'ability',
                 abilityDefinitionId: pendingAbility.definitionId,
                 targetActorIds: resolvedTargetIds,
@@ -139,11 +180,13 @@ export function MobileAbilityRow({
             slot={slot}
             ability={ability}
             hero={hero}
+            availableResource={availableResource}
             disabled={disabled}
             pending={ability ? pendingId === ability.definitionId : false}
+            planned={ability ? plannedAction?.kind === 'ability' && plannedAction.abilityDefinitionId === ability.definitionId : false}
             onClick={() => {
               if (!ability) return;
-              if (isDenied(hero, ability, disabled)) return;
+              if (isDenied(hero, ability, availableResource, disabled)) return;
               onArm(pendingId === ability.definitionId ? null : ability.definitionId);
             }}
           />
@@ -157,15 +200,19 @@ function MobileAbilityTile({
   slot,
   ability,
   hero,
+  availableResource,
   disabled,
   pending,
+  planned,
   onClick,
 }: {
   slot: AbilitySlotType;
   ability: AbilityCombatSnapshot | undefined;
   hero: HeroCombatant;
+  availableResource: number;
   disabled: boolean;
   pending: boolean;
+  planned: boolean;
   onClick: () => void;
 }) {
   const empty = !ability;
@@ -173,7 +220,7 @@ function MobileAbilityTile({
     ? hero.cooldowns.find((c) => c.abilityDefinitionId === ability!.definitionId)
     : undefined;
   const onCd = cooldownEntry !== undefined;
-  const short = !empty && hero.resource < ability!.resourceCost;
+  const short = !empty && availableResource < ability!.resourceCost;
   const notCharged = !empty && ability!.slot === 'ultimate' && hero.ultimateCharge < 100;
   const denied = disabled || onCd || short || notCharged || empty;
 
@@ -185,13 +232,15 @@ function MobileAbilityTile({
     ? 'NO MP'
     : notCharged
     ? 'LOCK'
+    : planned
+    ? 'PLANNED'
     : pending
     ? 'SELECTED'
     : 'READY';
   const statusColor =
     statusText === 'READY'
       ? '#8ab87d'
-      : statusText === 'SELECTED'
+      : statusText === 'SELECTED' || statusText === 'PLANNED'
       ? '#f0942e'
       : statusText === 'LOCK'
       ? '#c88a45'
@@ -297,10 +346,10 @@ function MobileAbilityTile({
   );
 }
 
-function isDenied(hero: HeroCombatant, a: AbilityCombatSnapshot, disabled: boolean): boolean {
+function isDenied(hero: HeroCombatant, a: AbilityCombatSnapshot, availableResource: number, disabled: boolean): boolean {
   if (disabled) return true;
   if (hero.cooldowns.some((c) => c.abilityDefinitionId === a.definitionId)) return true;
-  if (hero.resource < a.resourceCost) return true;
+  if (availableResource < a.resourceCost) return true;
   if (a.slot === 'ultimate' && hero.ultimateCharge < 100) return true;
   return false;
 }

@@ -694,3 +694,217 @@ The browser pane refuses `file://`, so there is a `sprite-lab-sheets` static ser
 player can only read in the banner text is not a telegraph. `windup` is now its own state
 and LOOPS — a charge stays on screen for however many hero turns the party takes, so a
 one-shot would freeze on a raised-fists pose for the rest of the round.
+
+## Combat effects: PixelLab makes MOMENTS, not repeating path pieces (6 generations)
+
+First effect-art batch for the Ability Performance System. Six 1-generation probes, all
+Blood except one Fire transfer test, deliberately cheap because the question was not "which
+material looks best" but **"does generated pixel art composite onto code-drawn SVG geometry
+at 32px?"** — the same two-register risk that lost the pixel-courtyard experiment above.
+
+**The finding, and it was predicted before a generation was spent:** ask for a *segment* and
+the model returns a *finished object*. Every one of the four "segment" probes came back as a
+complete thing with both ends resolved and closed — a claw at 32px on Pixen, a ribbon on
+Pixflux, a leather cuff at 64px, a whole flame icon for Fire. They look good in isolation,
+which is the trap. Tiled nine times along the lash spline the closed ends collide into a row
+of separate hooks instead of one continuous whip.
+
+**The impact burst succeeded, and succeeded easily.** A splash IS a self-contained object,
+so asking for a self-contained object was the right question. Radial splatter, heavy
+rounded droplets flung outward, wet highlight — legible as blood specifically, not as a
+generic red burst, and legible with the colour removed.
+
+**Standing direction:** the travelling BODY of an effect stays code-drawn — a spline with a
+per-material thickness profile and wobble tracks its target responsively and never seams,
+which is exactly what generated pieces cannot do. Spend generations on the moments that are
+already objects: **impacts, residue, ground tells, bursts, persistent barrier states.**
+
+Secondary results, all one generation each:
+- **Pixflux beats Pixen on material for small effect pieces.** Identical prompt and seed;
+  Pixflux read as a wet ribbon, Pixen as a horn. Permanent finding, one generation.
+- **A bigger canvas does not help a small piece.** 64px did not buy detail, it bought MASS —
+  the wetness that makes blood blood was gone entirely. Consistent with the never-downscale
+  rule above: author at display resolution.
+- **The material language transfers across elements.** The Fire probe failed structurally
+  for the same reason as the others but was unmistakably fire beside the blood pieces —
+  bright core, dark ember edge, jagged forks. Once the piece SHAPE is solved, the remaining
+  elements are cheap.
+- `create_image_pixen` has **no `shading` parameter** (Pixflux does). Its canvas sides must
+  be multiples of 4.
+
+Reviewed in `/dev/ability-theater` → **Generated art**, which shows every candidate at 1× on
+the real arena background, its cutout on three backgrounds, and — for anything meant to
+repeat — nine copies laid along the actual lash curve next to the procedural stroke they
+would replace. That tiling panel is what makes the failure visible in one glance rather than
+after an hour of debugging pivots.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch A | 4 lash segments, 1 tip, 1 impact | 6 | 1 recommend, 4 reject, 1 undecided |
+
+## The fix for "it returns objects, not pieces": ask for a TEXTURE (2 generations)
+
+Batch A concluded PixelLab cannot make repeating path pieces. Batch B narrows that: it
+cannot make **discrete segments**, but it will happily make a **continuous band** — and a
+band is what a stream actually needs.
+
+The prompt is the whole difference. Batch A asked for "a single short curved segment ... with
+open cut ends on both sides" and got a claw, a ribbon, a cuff and a flame icon. Batch B asked
+for:
+
+> a horizontal band of flowing blood, **continuous from left edge to right edge** ... seamless
+> repeating texture, **no ends, no tip, no tapering**, no droplets leaving the band
+
+and got exactly that, first try, 128×32, 1 generation. The words doing the work are
+*band*, *continuous*, and the three explicit negations. "Segment" and "piece" invite an
+object; "band" and "texture" do not.
+
+**Pair it with mirror-tiling and the seam question disappears.** Repeating the tile with
+every other copy flipped horizontally means each seam meets its own mirror image, so a
+discontinuity is geometrically impossible regardless of what the generator returned. That is
+what makes this technique safe where the segment approach was a gamble — see
+`pages/battle/performance/StreamBody.tsx`.
+
+**`animate_image` on a texture: promising, not settled.** 9 frames of the 128×32 band for 1
+generation. The highlights genuinely travel and the scallops shift, which is life that
+scrolling alone cannot supply. But the band thins around the middle frames, so a loop may
+pulse rather than flow. Verdict deferred to Raheem — for Blood a pulse may be perfect.
+
+**Frames come back as separate images, and this repo has no image-composition dependency.**
+Rather than adding one to pack a strip, the tiles are `<img>` elements whose `src` swaps per
+frame. That is also the technically correct choice here: a packed strip needs
+`background-repeat: no-repeat` to isolate a frame, which is exactly what a tiled stream
+cannot use. Scroll (`transform`) and churn (`src`) stay on independent axes.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch B | stream tile + 9-frame churn | 2 | 1 recommend, 1 undecided |
+
+## A second element cost 4 generations and zero code (Batch C — Water)
+
+The Blood recipe transferred to Water first try, with only the material words changed in the
+prompt. Stream tile + churn + splash + splash animation = **4 generations, no code edited** —
+a new element is a manifest entry, because the renderers read the material kit rather than
+hard-coding anything.
+
+The important part is that it did not come back as *blue blood*:
+
+- **Stream:** rolling foam crests along the top edge, where Blood is a smooth beaded band.
+- **Splash:** an upward crown, where Blood is a flat radial splatter. Water throws itself UP
+  off a surface; blood does not.
+
+Both are **silhouette** differences, so the two remain distinguishable with the colour off —
+which is the Bible rule the whole material axis exists to satisfy. Colour was doing none of
+the work.
+
+Also settled here: **a splash must not loop.** It resolves once and parks on its final frame,
+because the aftermath stage keeps it on the boss for most of a second. A looping splash reads
+as a sprinkler.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch C (Water) | stream + churn, splash + animation | 4 | all 4 kept |
+
+## Three elements in, the effect recipe is a process (Batch D — Fire)
+
+Fire landed on the identical 4-generation recipe: stream tile + churn, splash + animation, no
+code. Three for three now, which is enough to stop calling it luck.
+
+The three streams differ at the **top edge** — jagged licking tongues (Fire), rounded foam
+crests (Water), smooth beads (Blood) — and the three splashes differ in **silhouette** — a
+spiked starburst, an upward crown, a flat radial splatter. None of it is carried by hue, which
+is the Bible rule the material axis exists to satisfy.
+
+Fire is also the only kit whose **core is brighter than its edge**; the other two are darker in
+the middle. That inversion is the single strongest no-colour cue produced so far, and it came
+free from writing the palette in the kit as core/edge/accent rather than as a hue.
+
+**The standing recipe, now proven:**
+
+1. `create_image_pixen`, 128x32, `no_background`, `selective outline`, `low detail`, side view.
+   Prompt for a *band*: "continuous from left edge to right edge ... no ends, no tip, no
+   tapering".
+2. `animate_image` on it, 8 frames — returns 9 including the input.
+3. Same for a 64x64 impact, prompting for a complete object, because an impact IS one.
+4. Register in `assetKits.ts`. Nothing else.
+
+**A test lesson worth more than the art:** the guard asserting "these pieces are not generated
+yet" went stale three times in one afternoon, once per element. Naming subjects in a test that
+tracks a moving frontier guarantees churn. Rewritten to assert the RULE instead — availability
+follows `approvalStatus`, never a truthy path — and it can no longer go stale.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch D (Fire) | stream + churn, splash + animation | 4 | all 4 kept |
+
+## Materials are not all liquids — the assumption hiding in a "generic" component
+
+Two elements landed this round and both exposed the same design bug: the shared pieces had a
+LIQUID assumption baked into them under a generic-sounding name.
+
+- The charge tell drew a **pool** for every material, so Fire charged with a puddle of flame.
+- The stream body **scrolled** for every material, so anything non-liquid read as a hose.
+
+Fixed by making both an explicit axis on the material kit — `chargeForm`
+(pool / flame / ground / bloom / halo / motes) and `streamFlow` (jet / wisp / creep) — rather
+than a hardcoded default. The lesson generalises: when a shared renderer has exactly one
+behaviour and a generic name, check whether that behaviour is actually generic or is just the
+first case that was written.
+
+**Fire needed a different generation parameter, not a different prompt.** Every tile until now
+used `outline: 'selective outline'`, which is what made them all solid and hose-like. Asking
+for `lineless` returned translucent feathery streamers immediately. Outline is the single
+biggest lever on whether a piece reads as a substance or an object.
+
+**Explicit negations are how you escape a strong prior.** "A burst of flame spreading outward"
+returned a radial starburst twice, because *burst* and *outward* both point at a firework. The
+reroll only worked with "NOT a star, NOT radial, NOT symmetrical, wider than it is tall".
+
+**An accident became an element.** A Fire set came back as lava — solid, black-and-orange,
+mineral. Rather than discard it, it was rehomed as **Infernal**, and Fire was re-briefed as
+something airy. Two elements sharing a damage family and no movement at all is the strongest
+evidence so far that the material axis does real work.
+
+**And the no-colour guard earned its keep.** Authoring Infernal made it structurally identical
+to Fire — same silhouette, edge, particle, impact, residue — and the test failed immediately,
+correctly, because at that moment the only thing separating them was hue. Fire's impact became
+`spreading_sheet` (flame crawls along a surface) against Infernal's `ember_burst` (molten rock
+detonates off it). Without that test the collision would have shipped.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch E (Fire, re-briefed) | wispy stream + churn, spread impact + animation | 5 | 4 kept, 1 rejected starburst |
+| Effects batch F (Nature) | root wrap + churn, bloom + animation | 4 | all 4 kept |
+
+## Sanguine: the Batch A failure, finally cashed in (2 generations)
+
+Batch A established that PixelLab insists on returning **finished objects with resolved
+edges**, which is why lash segments could not be made — every "fragment" came back as a
+complete thing. Sanguine is the element where that stops being a limitation.
+
+A crystal shard SHOULD be a finished object with hard resolved edges. So the delivery is a
+**volley** — five discrete shards thrown in sequence with air between them — rather than a
+continuous body, and the generator's strongest habit becomes the requirement. Two
+generations, first try, no rerolls: one shard and one shatter.
+
+**A still, deliberately, not a flipbook.** Crystal has no internal motion; animating it would
+contradict the material. Blood churns, fire flickers, smoke billows — crystal is rigid, and
+the movement it has is the tumble the CODE gives it in flight.
+
+**Delivery grammars are now five, and none of them is a recolour of another:**
+
+| Element | Delivery |
+|---|---|
+| Blood, Water, Infernal | continuous pressurised jet |
+| Fire | airy wisp, blown and translucent |
+| Nature | erupts from the ground, does not travel at all |
+| Shadow | wisp, and an impact that hangs rather than resolves |
+| Sanguine | discrete solid shards with air between them |
+
+**Watch item recorded honestly:** Sanguine's shatter is radial like Infernal's starburst. The
+separator is faceted-geometric against glowing-rayed, which is real but narrower than the rest
+of the set enjoys. Worth a look if the two ever appear in the same fight.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Effects batch H (Sanguine) | shard + shatter | 2 | both kept, no rerolls |

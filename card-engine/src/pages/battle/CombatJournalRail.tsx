@@ -522,6 +522,24 @@ function JournalEventCard({
             </div>
           )}
         </div>
+        {entry.receipts.length > 0 && (
+          <div className="flex flex-wrap" style={{ gap: 4, marginTop: 5 }}>
+            {entry.receipts.slice(0, 3).map((receipt) => (
+              <span
+                key={receipt.text}
+                style={{
+                  color: receipt.tone === 'damage' ? '#ff7656' : receipt.tone === 'warning' ? '#f0a14a' : '#9fe0ab',
+                  fontSize: 8,
+                  fontWeight: 700,
+                  letterSpacing: 0.7,
+                  fontFamily: 'Inter, system-ui, sans-serif',
+                }}
+              >
+                {receipt.text}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

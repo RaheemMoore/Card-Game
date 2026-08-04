@@ -8,6 +8,7 @@ import {
   skipAll,
   syncEvents,
   type AbilitySlotLookup,
+  type PerformanceDurationLookup,
   type QueueState,
 } from './queue';
 import { REDUCED_MOTION_BY_CUE, type AnimationBeat } from './types';
@@ -33,6 +34,8 @@ export interface UseCombatPresentationOptions {
   motionLevel?: MotionLevel;
   /** Resolves an ability id to its slot so ultimates get their own pacing. */
   slotLookup?: AbilitySlotLookup;
+  /** Holds a hero opener until its complete approved performance has played. */
+  performanceDurationLookup?: PerformanceDurationLookup;
 }
 
 export function useCombatPresentation(
@@ -43,19 +46,23 @@ export function useCombatPresentation(
   const [queue, setQueue] = useState<QueueState>(() => createQueueState());
   const timerRef = useRef<number | null>(null);
 
-  const { slotLookup } = options;
+  const { slotLookup, performanceDurationLookup } = options;
   const motionLevel = options.motionLevel ?? (detectReducedMotion() ? 'off' : 'full');
 
   useEffect(() => {
-    setQueue((prev) => syncEvents(prev, rawEvents, bossActorId, slotLookup));
-  }, [rawEvents, bossActorId, slotLookup]);
+    setQueue((prev) =>
+      syncEvents(prev, rawEvents, bossActorId, slotLookup, performanceDurationLookup),
+    );
+  }, [rawEvents, bossActorId, slotLookup, performanceDurationLookup]);
 
   useEffect(() => {
     if (queue.pending.length === 0) return;
     if (timerRef.current !== null) return;
 
     const next = queue.pending[0];
-    const holdMs = motionLevel === 'off' ? REDUCED_MOTION_BY_CUE[next.cue] : next.durationMs;
+    const holdMs = motionLevel === 'off'
+      ? next.reducedDurationMs ?? REDUCED_MOTION_BY_CUE[next.cue]
+      : next.durationMs;
 
     const id = setTimeout(() => {
       timerRef.current = null;

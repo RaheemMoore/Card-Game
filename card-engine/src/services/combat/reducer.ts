@@ -7,6 +7,7 @@ import type {
 } from '../../types/abilities';
 import { STATUS_CATALOG, STATUS_DAMAGE_TYPE } from '../../data/abilities/statuses';
 import { resolveTargetRule } from './targeting';
+import { abilityDenialReason, hasCurrentlyUsableAbility } from './actionAvailability';
 import { RandomStream } from './RandomStream';
 import type {
   AbilityCombatSnapshot,
@@ -35,7 +36,6 @@ import {
   STRIKE_RESOURCE_GAIN,
   strikeDamage,
   deriveChamberMax,
-  ULTIMATE_CHARGE_MAX,
   resolveDamage,
   resolveHeal,
   tickCooldowns,
@@ -84,7 +84,7 @@ export const TIMEOUT_ROUND_CAP = 30;
  * spell — it just alternates into another action next round. Tune from
  * telemetry once we have it.
  */
-const INTERRUPT_DAMAGE_THRESHOLD = 0.15;
+export const INTERRUPT_DAMAGE_THRESHOLD = 0.15;
 
 /* ------------------------------------------------------------------ */
 /*  init                                                               */
@@ -224,6 +224,14 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
     { kind: 'player_action_selected', actorId: hero.actorId, action },
   ];
 
+  if (
+    (action.kind === 'strike' || action.kind === 'guard') &&
+    !hasCurrentlyUsableAbility(state, hero)
+  ) {
+    events.push({ kind: 'action_denied', actorId: hero.actorId, reason: 'no_usable_ability' });
+    return { state: { ...state, log: [...state.log, ...events] }, events };
+  }
+
   let next: BattleState = state;
 
   switch (action.kind) {
@@ -297,6 +305,12 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
       }
       break;
     }
+    case 'wait': {
+      // An explicit pass, never an automatic substitute for a denied action.
+      // It consumes this hero's command slot but intentionally produces no
+      // damage, resource, charge, status, guard, or action-kind trigger.
+      break;
+    }
     case 'inspect': {
       // No mechanical effect at B2 — UI-only reveal added in B4.
       break;
@@ -309,7 +323,7 @@ export function submitPlayerAction(state: BattleState, action: PlayerAction): St
         events.push({ kind: 'action_denied', actorId: hero.actorId, reason: 'invalid_target' });
         break;
       }
-      const denial = validateAbilityUsable(hero, abilityRef, next);
+      const denial = abilityDenialReason(next, hero, abilityRef);
       if (denial) {
         events.push({ kind: 'action_denied', actorId: hero.actorId, reason: denial });
         // The hero KEEPS their turn. Falling through to the pendingActorIds
@@ -944,7 +958,7 @@ function doResolveBoss(state: BattleState): StepResult {
  * Each break kind is a genuinely different question, which is the point: it
  * means knowing the boss is not enough, you need the right party.
  */
-function evaluateChargeProgress(
+export function evaluateChargeProgress(
   state: BattleState,
   charge: PendingCharge,
   spec: BossChargeSpec,
@@ -988,9 +1002,20 @@ function evaluateChargeProgress(
     case 'dispel': {
       // Binary by nature: the charge carries a status and removing it ends
       // the charge. No partial credit exists to give.
-      const cleansed = state.log.some(
-        (e) => e.kind === 'status_removed' && e.reason === 'dispelled',
-      );
+      //
+      // Windowed like the other three kinds. It used to scan the WHOLE log,
+      // so any dispel earlier in the fight pre-broke every future charge —
+      // latent because no shipped boss uses a dispel break yet.
+      let cleansed = false;
+      let dispelRound = 0;
+      for (const e of state.log) {
+        if (e.kind === 'round_started') dispelRound = e.round;
+        if (dispelRound < charge.startedRound) continue;
+        if (e.kind === 'status_removed' && e.reason === 'dispelled') {
+          cleansed = true;
+          break;
+        }
+      }
       return cleansed ? 1 : 0;
     }
     default:
@@ -1000,7 +1025,7 @@ function evaluateChargeProgress(
 
 /** Sum damage dealt to the boss between the most recent `boss_intent_declared`
  *  event and now. Used to check interrupt thresholds. */
-function damageToBossSinceIntent(state: BattleState): number {
+export function damageToBossSinceIntent(state: BattleState): number {
   let sum = 0;
   let counting = false;
   for (const e of state.log) {
@@ -1189,44 +1214,13 @@ function doCheckVictory(state: BattleState): StepResult {
 /*  Ability effect resolution                                          */
 /* ------------------------------------------------------------------ */
 
-function validateAbilityUsable(
-  hero: HeroCombatant,
-  ability: AbilityCombatSnapshot,
-  state: BattleState,
-): 'insufficient_resource' | 'on_cooldown' | 'stunned' | 'silenced' | null {
-  const version = ability.version;
-  // Stun costs the NEXT ACTION, not a whole round. Against a three-hero party
-  // a full-turn skip would prevent roughly an ultimate's worth of damage,
-  // which is far too much for a single status.
-  if (hero.statuses.some((st) => st.statusId === 'stunned')) return 'stunned';
-  if (hero.statuses.some((st) => st.statusId === 'silenced')) return 'silenced';
-  if (hero.cooldowns.some((c) => c.abilityDefinitionId === version.abilityId)) {
-    return 'on_cooldown';
-  }
-  // Against the PARTY chamber, not the hero's own pool.
-  if (version.resourceCost > state.partyResource[hero.snapshot.resourceType]) {
-    return 'insufficient_resource';
-  }
-  // Ultimates are gated on charge, and that gate now lives in the ENGINE.
-  // It was previously enforced only by the ability bar and the harness policy,
-  // so `submitPlayerAction` with an uncharged ultimate succeeded and silently
-  // reset an already-zero meter — boss-battle-spec §8 says the reducer owns
-  // this. Reported as 'on_cooldown': it is the existing "not available yet"
-  // reason, and inventing a new one would change a union every consumer
-  // switches on.
-  if (ability.slot === 'ultimate' && hero.ultimateCharge < ULTIMATE_CHARGE_MAX) {
-    return 'on_cooldown';
-  }
-  return null;
-}
-
 /**
  * The damage type one effect actually deals.
  *
- * The ONLY place this decision is made. `previewAbilityDamage` and
- * `resolveAbilityEffects` must both route through here, or the number shown
- * in the pre-commit UI drifts from the number the hit actually deals — an
- * invariant `previewAbilityDamage`'s own doc comment depends on.
+ * The ONLY place this decision is made. `resolveAbilityEffects` routes
+ * through here; the pre-commit UI no longer has a second copy of this
+ * decision to keep in sync — it gets its numbers from `decision/projectAction`,
+ * which runs this same function by running the real reducer.
  *
  * `damageTypeSource: 'element'` swaps in the hero's frozen element type (see
  * `HeroSnapshot.elementDamageType`); everything else uses the type the
@@ -1240,38 +1234,6 @@ function effectDamageType(
   return version.damageTypeSource === 'element'
     ? hero.snapshot.elementDamageType
     : effect.damageType ?? 'kinetic';
-}
-
-/**
- * Preview the direct-damage total an ability would deal to the boss right
- * now, using the exact same math + resistance lookup as `resolveAbilityEffects`
- * so the pre-commit UI preview never drifts from the real outcome. Read-only —
- * does not touch shields/state. Returns null if the ability has no
- * direct_damage effect (e.g. a pure heal/shield/status ability).
- */
-export function previewAbilityDamage(
-  state: BattleState,
-  hero: HeroCombatant,
-  ability: AbilityCombatSnapshot,
-): number | null {
-  const resistance = bossResistance(state);
-  let total = 0;
-  let any = false;
-  for (const effect of ability.version.effects) {
-    if (effect.type !== 'direct_damage') continue;
-    any = true;
-    const dmg = resolveDamage({
-      baseAmount: effect.amount,
-      damageType: effectDamageType(effect, ability.version, hero),
-      scaling: effect.scaling,
-      attackerStats: hero.snapshot.stats,
-      targetMitigation: 0,
-      targetResistance: resistance,
-      targetShields: state.boss.shields,
-    });
-    total += dmg.postShieldAmount;
-  }
-  return any ? total : null;
 }
 
 function resolveAbilityEffects(
@@ -2181,5 +2143,61 @@ export function submitPartyCommands(
       events.push(...adv.events);
     }
   }
+  return { state, events };
+}
+
+export interface PlannedPartyCommand {
+  actorId: string;
+  action: PlayerAction;
+}
+
+/**
+ * Commit an explicitly-addressed party plan in canonical card order.
+ *
+ * Planning lives above the reducer and does not mutate combat state. At the
+ * release boundary this helper binds each saved command back to its hero,
+ * while still routing every consequence through `submitPlayerAction`. That
+ * keeps one source of truth for costs, targeting, damage, reactions, receipts,
+ * and victory checks; the batch is orchestration, not a second combat engine.
+ */
+export function submitPartyPlan(
+  start: BattleState,
+  commands: readonly PlannedPartyCommand[],
+): StepResult {
+  let state = start;
+  const events: BattleEvent[] = [];
+
+  for (const command of commands) {
+    while (state.phase === 'resolving_reactions') {
+      const advanced = advance(state);
+      state = advanced.state;
+      events.push(...advanced.events);
+    }
+
+    if (state.phase !== 'awaiting_player_action') break;
+    if (!state.pendingActorIds.includes(command.actorId)) continue;
+
+    // UI focus may have reordered the pending queue while the plan was being
+    // edited. Release order is the visible card order supplied by the caller,
+    // so bind the next reducer submission to the addressed hero explicitly.
+    state = {
+      ...state,
+      pendingActorIds: [
+        command.actorId,
+        ...state.pendingActorIds.filter((id) => id !== command.actorId),
+      ],
+    };
+
+    const beforeCount = state.pendingActorIds.length;
+    const submitted = submitPlayerAction(state, command.action);
+    state = submitted.state;
+    events.push(...submitted.events);
+
+    // A denied command deliberately leaves the hero pending. Never let the
+    // batch slide past that failure and hand control to the boss as if the
+    // hero had acted.
+    if (state.pendingActorIds.length === beforeCount) break;
+  }
+
   return { state, events };
 }

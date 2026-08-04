@@ -31,14 +31,23 @@ const OUT =
   outFlag > -1 ? path.resolve(process.argv[outFlag + 1]) : path.join(DOCS, 'production.html');
 
 /**
+ * Normalize to LF before anything else touches it. `core.autocrlf=true` means
+ * PRODUCTION.md round-trips through CRLF on Windows checkouts, and render.mjs's
+ * line-oriented parsing was never exercised against `\r`-terminated lines —
+ * a real edited file (correct content, CRLF line endings) hung this script for
+ * six-plus minutes before OOM-crashing, while the identical content saved as
+ * LF rendered in under 150ms. Normalizing here, once, at the only read site,
+ * means every downstream regex can keep assuming `\n` and stay correct
+ * regardless of which line ending git handed back.
+ */
+const raw = fs.readFileSync(SRC, 'utf8').replace(/\r\n?/g, '\n');
+
+/**
  * Drop the markdown "## Contents" table. It earns its place in the .md — GitHub
  * and Claude both read it — but the page generates a real nav from the headings,
  * and shipping both would put two tables of contents above the fold on a phone.
  */
-const md = fs
-  .readFileSync(SRC, 'utf8')
-  .replace(/\r\n?/g, '\n')
-  .replace(/\n## Contents\n[\s\S]*?\n---\n/, '\n');
+const md = raw.replace(/\n## Contents\n[\s\S]*?\n---\n/, '\n');
 const { title, parts } = render(md, { assetsDir: ASSETS, docsDir: DOCS });
 const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
 
