@@ -1,12 +1,15 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { Card as CardType } from '../../../types/card';
-import { getAllCards } from '../../../services/storage';
+import type { ArchetypeName, Card as CardType, Rank } from '../../../types/card';
+import { deleteCard, getAllCards } from '../../../services/storage';
 import { getOverallRank } from '../../../data/powerSystem';
 import { CardRenderer } from '../../../components/CardRenderer';
 import { Panel } from '../../../components/ui/Panel';
 import { PixelButton } from '../../../components/ui/PixelButton';
 import { Scrim } from '../../../components/ui/Scrim';
 import { Slot } from '../../../components/ui/Slot';
+import { CardSheet } from '../../../components/CardSheet';
+import { buildStaticCardSheetAbilities } from '../../../services/abilities/cardSheetAdapter';
+import { CollectionFilters, type SortOption } from './CollectionFilters';
 
 /**
  * The Collection, as a stall you walk up to inside the courtyard.
@@ -42,8 +45,13 @@ interface Props {
 }
 
 export function CollectionStall({ onClose, cards: override }: Props) {
-  const [cards] = useState<CardType[]>(() => override ?? getAllCards());
+  const [cards, setCards] = useState<CardType[]>(() => override ?? getAllCards());
   const [selected, setSelected] = useState<CardType | null>(null);
+  const [filterArchetype, setFilterArchetype] = useState<ArchetypeName | ''>('');
+  const [filterRank, setFilterRank] = useState<Rank | ''>('');
+  const [sort, setSort] = useState<SortOption>('newest');
+  const [sheetCard, setSheetCard] = useState<CardType | null>(null);
+  const [confirmRelease, setConfirmRelease] = useState<string | null>(null);
   const [narrow, setNarrow] = useState(() => window.innerWidth < 720);
 
   useEffect(() => {
@@ -75,10 +83,37 @@ export function CollectionStall({ onClose, cards: override }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  const sorted = useMemo(
-    () => [...cards].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
-    [cards],
-  );
+  // Owned-per-archetype drives the crest rack's dimming, and is counted from
+  // the UNFILTERED set — a rack that re-counted itself after each filter would
+  // show every crest as empty the moment one was picked.
+  const counts = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const c of cards) out[c.archetype] = (out[c.archetype] ?? 0) + 1;
+    return out;
+  }, [cards]);
+
+  const sorted = useMemo(() => {
+    let out = [...cards];
+    if (filterArchetype) out = out.filter((c) => c.archetype === filterArchetype);
+    if (filterRank) out = out.filter((c) => getOverallRank(c.stats) === filterRank);
+    const total = (c: CardType) =>
+      c.stats.Atk.value + c.stats.Def.value + (c.stats.Mana?.value ?? c.stats.Tech?.value ?? 0);
+    const rankOrder: Record<Rank, number> = { Ascendant: 0, Forged: 1, Foundation: 2 };
+    switch (sort) {
+      case 'oldest':
+        out.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+        break;
+      case 'strongest':
+        out.sort((a, b) => total(b) - total(a));
+        break;
+      case 'by-rank':
+        out.sort((a, b) => rankOrder[getOverallRank(a.stats)] - rankOrder[getOverallRank(b.stats)]);
+        break;
+      default:
+        out.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+    return out;
+  }, [cards, filterArchetype, filterRank, sort]);
   const slots = Math.max(MIN_SLOTS, Math.ceil(sorted.length / 6) * 6);
 
   return (
@@ -103,11 +138,23 @@ export function CollectionStall({ onClose, cards: override }: Props) {
             The Collection
           </h2>
           <span style={{ fontSize: 12, color: '#b9a184' }}>
-            {sorted.length === 0
+            {cards.length === 0
               ? 'Nothing gathered yet'
-              : `${sorted.length} ${sorted.length === 1 ? 'character' : 'characters'}`}
+              : sorted.length === cards.length
+                ? `${cards.length} ${cards.length === 1 ? 'character' : 'characters'}`
+                : `${sorted.length} of ${cards.length} shown`}
           </span>
         </header>
+
+        <CollectionFilters
+          archetype={filterArchetype}
+          rank={filterRank}
+          sort={sort}
+          counts={counts}
+          onArchetype={setFilterArchetype}
+          onRank={setFilterRank}
+          onSort={setSort}
+        />
 
         {/* min-height:0 on the scroller — without it this grid child refuses to
             shrink and pushes the panel past the viewport. Same invariant the
@@ -188,9 +235,83 @@ export function CollectionStall({ onClose, cards: override }: Props) {
           <span style={{ fontSize: 12, color: '#b9a184', flex: 1, minWidth: '14ch' }}>
             {selected ? `${selected.cardName} · ${getOverallRank(selected.stats)}` : 'Pick a character'}
           </span>
+          {selected && (
+            <>
+              <PixelButton scale={1.2} onClick={() => setSheetCard(selected)}>
+                Inspect
+              </PixelButton>
+              {/* Release is destructive and permanent, so it asks — and it says
+                  the character's NAME, because "are you sure?" is not a question
+                  anyone can answer safely about a card they cannot see. */}
+              <PixelButton
+                scale={1.2}
+                onClick={() => setConfirmRelease(selected.cardId)}
+                style={{ filter: 'hue-rotate(-25deg) saturate(1.2)' }}
+              >
+                Release
+              </PixelButton>
+            </>
+          )}
           <PixelButton onClick={onClose}>Back to the courtyard</PixelButton>
         </footer>
       </Panel>
+
+      {sheetCard && (
+        <CardSheet
+          card={sheetCard}
+          abilities={buildStaticCardSheetAbilities(sheetCard)}
+          onClose={() => setSheetCard(null)}
+        />
+      )}
+
+      {confirmRelease && (
+        <div
+          role="alertdialog"
+          aria-label="Confirm release"
+          onClick={() => setConfirmRelease(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 80,
+            background: 'rgba(6,4,10,0.8)',
+            display: 'grid',
+            placeItems: 'center',
+            padding: 24,
+          }}
+        >
+          <Panel
+            variant="hud"
+            style={{ maxWidth: 380, padding: 8 }}
+            // Stop the backdrop's dismiss from firing when the panel is clicked.
+          >
+            <div onClick={(e) => e.stopPropagation()}>
+              <p style={{ color: '#f3d99b', fontSize: 15, margin: '0 0 6px' }}>
+                Release {cards.find((c) => c.cardId === confirmRelease)?.cardName}?
+              </p>
+              <p style={{ color: '#b9a184', fontSize: 12, margin: '0 0 14px' }}>
+                They leave your collection for good. This cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <PixelButton scale={1.2} onClick={() => setConfirmRelease(null)}>
+                  Keep
+                </PixelButton>
+                <PixelButton
+                  scale={1.2}
+                  onClick={() => {
+                    deleteCard(confirmRelease);
+                    setCards(override ?? getAllCards());
+                    setSelected(null);
+                    setConfirmRelease(null);
+                  }}
+                  style={{ filter: 'hue-rotate(-25deg) saturate(1.2)' }}
+                >
+                  Release
+                </PixelButton>
+              </div>
+            </div>
+          </Panel>
+        </div>
+      )}
     </Scrim>
   );
 }

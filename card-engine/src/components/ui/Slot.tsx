@@ -27,6 +27,13 @@ interface Props {
   onClick?: () => void;
   label?: string;
   selected?: boolean;
+  /**
+   * Forces the gem frame on even when the slot has content. Defaults to
+   * "framed only when empty", which is the CARD rule — a card is the star and
+   * gets no chrome. The archetype crest rack opts in, because there the frame
+   * is what makes a crest read as a pressable tile rather than a loose image.
+   */
+  framed?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -36,15 +43,16 @@ export function Slot({
   onClick,
   label,
   selected = false,
+  framed,
   className = '',
   style,
 }: Props) {
   const interactive = Boolean(onClick);
   const Tag = (interactive ? 'button' : 'div') as 'button';
-  const filled = Boolean(children);
+  const showFrame = framed ?? !children;
 
   // Empty: the generated gem frame marks the space. Filled: no frame at all.
-  const frame = filled
+  const frame = !showFrame
     ? { background: 'transparent', border: 'none', padding: 0 }
     : {
         borderStyle: 'solid' as const,
@@ -71,7 +79,7 @@ export function Slot({
         cursor: interactive ? 'pointer' : 'default',
         // A thin ring, never a heavier frame — see the note above.
         outline: selected ? '2px solid #63d7e8' : undefined,
-        outlineOffset: filled ? 2 : -2,
+        outlineOffset: showFrame ? -2 : 2,
         ...frame,
         ...style,
       }}

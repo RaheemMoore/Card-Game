@@ -71,7 +71,13 @@ export function Scrim({ children, onClose, label, bottomSheet = false }: Props) 
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 60,
+        // 45, deliberately. `CardSheet` portals to <body> at z-50, so it
+        // escapes this element entirely and only z-order decides which wins —
+        // at 60 the detail sheet opened silently BEHIND the case. 45 keeps this
+        // above the courtyard's proximity ribbons (30) while letting the sheet
+        // it opens sit on top, and stays below the pause menu (70), which
+        // should still cover everything.
+        zIndex: 45,
         background: 'rgba(6,4,10,0.72)',
         display: 'flex',
         alignItems: bottomSheet ? 'flex-end' : 'center',
