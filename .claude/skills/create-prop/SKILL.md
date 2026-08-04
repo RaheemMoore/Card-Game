@@ -92,6 +92,31 @@ head shake is not.
 **The cap is real.** When it is hit, ship static and move on. A static prop in the scene beats
 a perfect one that never lands.
 
+## Objects animate — and that is a different route from the one above
+
+Everything above concerns **quadruped/character-template** animation, which remains a bad bet
+here (0-for-3, two server-side stalls and an abandoned job). It does **not** apply to props
+built through the **object** endpoints.
+
+A prop created by `/create-1-direction-object` or `/create-8-direction-object` returns an
+`object_id`, and `POST /objects/{object_id}/animations` animates it:
+
+- **`mode='v3'`** — the default and the cheap path. `mode='pro'` costs **20-40 generations per
+  direction**; do not reach for it.
+- **Omit `directions` entirely for a 1-direction object** — it animates its single internal
+  direction, and passing the field returns 400.
+- `frame_count` is any even number 4-16. v3 also stores the reference frame, so 8 yields 9.
+- `end_frame` enables **interpolation** — you supply start and end poses and the model fills
+  the middle, which is the most controllable option available.
+
+This is what makes a brazier gutter, a banner ripple or a crystal pulse for real rather than
+being faked. **Design the prop with its moving parts already separated and airborne** — a piece
+drawn as one closed lump animates badly.
+
+Then layer Phaser on top for what belongs to the world rather than the object: sparkle, dust,
+bloom, and reactions to the player approaching. See PIXELLAB_PLAYBOOK.md §"What PixelLab can
+actually do", and `src/pages/castle/v2-preview/crystalVfx.ts` for the Phaser half.
+
 ---
 
 ## Step 4 — Generate and validate

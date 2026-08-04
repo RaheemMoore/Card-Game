@@ -56,6 +56,12 @@ PixelLab also covers surfaces beyond characters, which matter for a board game:
 - `create-tileset` (Wang tilesets) and `create-isometric-tile` — the board itself, castle interiors
 - `create-ui-asset` / `generate-ui-v2` — frames, buttons, duel HUD
 - `create-1-direction-object` / `create-8-direction-object` — props, tokens, card tables
+- `POST /objects/{object_id}/animations` — **objects animate.** `mode='v3'` is the default and
+  the cheap path (`'pro'` is 20-40 generations *per direction*). Omit `directions` for a
+  1-direction object. Do not repeat the retired claim that PixelLab objects cannot be animated;
+  it was corrected 2026-08-04. See PIXELLAB_PLAYBOOK.md §"What PixelLab can actually do" — the
+  API has 79 endpoints and this project uses about six, so check the live spec before calling
+  something impossible.
 
 **Cast coherence:** if 11 archetypes and a set of bosses are generated independently they will look assembled from different games. Anchor the whole cast to one visual register — `create-character-pro` accepts a `reference_image` (≤168×168) as a style reference. Recommend a deliberate cast style anchor before bulk generation, not after.
 

@@ -117,6 +117,123 @@ the real endpoint, not prompt tricks.
 *(Superseded original: objects return still images only and there is no object-animation
 endpoint.)*
 
+---
+
+# What PixelLab can actually do
+
+**Read this before deciding something is impossible.** The API exposes **79 endpoints**; this
+project has been using about six. The "objects can't be animated" mistake happened because a
+true-at-the-time limitation was written down and then never re-checked. The spec is one
+unauthenticated fetch away:
+
+```bash
+curl -s -H "authorization: Bearer $PIXELLAB_API_KEY" https://api.pixellab.ai/v2/openapi.json
+```
+
+There is also `GET /v2/llms.txt` — LLM-friendly documentation, written for exactly this purpose.
+
+## PixelLab and Phaser are partners, not alternatives
+
+This is the mental model to keep. They do different jobs and the courtyard needs both.
+
+| | PixelLab makes | Phaser makes |
+|---|---|---|
+| **What kind of motion** | Motion that belongs to the **object itself** — a banner rippling, a crystal pulsing, pages turning, a flame guttering, a creature breathing | Motion that belongs to the **world** — sparkles, dust, drifting motes, glow bloom, proximity reactions, parallax, screen-space light |
+| **Cost** | Generations, per animation | **Free**, and re-tunable forever |
+| **Changeable later** | Only by regenerating | Instantly, by editing a number |
+| **Can it react to the player?** | No — it is a fixed loop | Yes — this is Phaser's whole advantage |
+
+**The rule:** if the motion is *intrinsic to the thing*, PixelLab animates it. If the motion is
+*atmosphere around the thing*, or has to **respond to the player**, Phaser does it. A magical
+card stand should have PixelLab-animated cards lifting and turning, **and** Phaser sparkles that
+brighten as the hero approaches. That is not redundancy — it is the two halves of "alive".
+
+`src/pages/castle/v2-preview/crystalVfx.ts` is the reference implementation of the Phaser half.
+
+## Capability map
+
+### Things that move
+
+| Job | Endpoint | Notes |
+|---|---|---|
+| **Animate an object** | `POST /objects/{object_id}/animations` | **The one we were missing.** `mode='v3'` (default, cheap). 4–16 frames. 1-direction objects: omit `directions`. |
+| Animate a character | `POST /characters/animations` | v3 + per-direction pinning is the only method that has produced a correct walk here |
+| Animate between two poses you supply | `POST /interpolation-v2`, or `end_frame` on the object route | **Interpolation mode.** You draw the start and end; the model fills the middle. Enormous for exact control |
+| Skeleton-driven animation | `POST /animate-with-skeleton` + `POST /estimate-skeleton` | Unexplored |
+| Edit an existing animation | `POST /edit-animation-v2` | Fix a clip without re-rolling it |
+
+### Things that make new art
+
+| Job | Endpoint | Why we should care |
+|---|---|---|
+| Object, one face | `POST /create-1-direction-object` | 4 objects per call at a ≤170px style ref |
+| Object, eight faces | `POST /create-8-direction-object` | `reference_image` re-shoots an existing object from all angles |
+| **Map object** | `POST /map-objects` | Purpose-built for game-map props with transparent background. **We have never used it** and it may beat the generic object route for scenery |
+| **Convert existing art to pixel art** | `POST /image-to-pixelart` | **Potentially huge.** Input up to 1280², output up to 320². Our Leonardo plates, card art and element crystals could be brought into the pixel register instead of redrawn |
+| **UI panels** | `POST /create-ui-asset`, `POST /generate-ui-v2` | Shape-controlled pixel UI panels. Directly relevant to the UI-kit work |
+| Tilesets | `POST /create-tileset`, `/create-tiles-pro` | Seamless lower/upper terrain sets |
+| Pixel fonts | `POST /generate-font-pro` | Unexplored |
+
+### Things that change art we already have — the cheap correction ladder
+
+**Prefer these over regenerating.** Regeneration risks identity drift; these do not.
+
+| Job | Endpoint |
+|---|---|
+| **New state of an object** (lit/unlit brazier, open/closed chest) | `POST /objects/{object_id}/states` — a text edit, grouped with the source |
+| **New state of a character**, applied consistently across all directions | `POST /create-character-state` |
+| Targeted inpaint | `POST /inpaint-v3` — mask or bounding box, text-described |
+| Swap a costume across animation frames | `POST /transfer-outfit-v2` |
+| Re-angle one image | `POST /rotate` |
+| Background removal / resize | `POST /remove-background`, `POST /resize` |
+
+### Review and housekeeping we are not using
+
+| Job | Endpoint |
+|---|---|
+| **Keep only the good frames** | `POST /objects/{object_id}/select-frames` — promote chosen frames of a review object |
+| Throw away a bad generation | `POST /objects/{object_id}/dismiss-review` |
+| List everything we own | `GET /objects`, `GET /characters` |
+| Export a character | `GET /characters/{character_id}/zip` |
+| Tag assets | `PATCH /objects/{id}/tags`, `PATCH /characters/{id}/tags` |
+
+### Talking portraits — nearly free
+
+| Job | Endpoint | Cost |
+|---|---|---|
+| Generate mouth positions (visemes) for a portrait | `POST /vocal-animation` | **Paid once per expression** |
+| Get the frame-by-frame mouth plan for a line of text | `POST /lip-sync` | **FREE and unlimited** |
+| Render a talking GIF | `POST /talking-gif` | **FREE** |
+
+`/lip-sync` returns `grid_url`, `row` and `viseme_order` — everything needed to blit the right
+mouth cell in Phaser. So **once a keeper has a portrait and one paid viseme set, every line of
+dialogue she ever speaks animates for free.** That is the cheapest characterisation available
+to this project and nothing in the game uses it yet.
+
+## What this changes about the courtyard
+
+Raheem's brief is that each quadrant should make you want to walk over and explore — sparkle,
+movement, things waving in the air, papers drifting off a stand. Nearly all of that is now
+buyable rather than faked:
+
+- Cards **actually lifting and turning** on a forging stand — object animation
+- A crystal **actually pulsing**, shards **actually orbiting** — object animation
+- Pages **actually fluttering** off a lectern — object animation
+- A banner **actually rippling** on a side wall — object animation
+- Sparkles, dust, bloom, and the reaction when the hero gets close — **Phaser, free**
+
+Design objects with their moving parts already separated and airborne. A piece drawn as one
+closed lump animates badly; a piece drawn with its cards already off the stand animates well,
+and Phaser can move those parts too if the generation disappoints.
+
+## Standing rule
+
+**Check the live spec before designing around a provider limitation.** This entry exists
+because two canonical documents asserted a limitation that had stopped being true, and it
+silently shaped a design decision. Cost of checking: one `curl`. Cost of not checking: the
+wrong architecture.
+
+
 Do **not** work around this by prompting "fountain frame 1/2/3" as separate generations. Independent prompts have no shared anchor, and `template` mode drifted **43.7 palette units** even *with* a `character_id` anchoring it. Guaranteed drift, and no validator currently catches it.
 
 **Ambient motion is therefore a Phaser concern on static sprites, and costs zero generations:** glow pulses (additive quad + alpha/scale sine), water shimmer (UV/alpha scroll), banner sway (`Rope`/mesh or skew tween), dust motes (particle emitter), proximity glow (tint tween).
