@@ -94,6 +94,8 @@ a perfect one that never lands.
 
 ## Objects animate — and that is a different route from the one above
 
+> **CONFIRM THE ANGLE FIRST.** **Always confirm the angle before animating.** Animation is per-direction, so a clip only exists on the faces you paid for — animating `south` for an object destined for the left wall (`south-east`) buys a loop nobody sees. Generate angles → Raheem picks and places → confirm that face → animate. An `animation_group_id` lets the same clip be extended to more directions later, charging only for the new ones, so starting with one costs nothing. ~2 generations per direction.
+
 Everything above concerns **quadruped/character-template** animation, which remains a bad bet
 here (0-for-3, two server-side stalls and an abandoned job). It does **not** apply to props
 built through the **object** endpoints.

@@ -56,6 +56,10 @@ PixelLab also covers surfaces beyond characters, which matter for a board game:
 - `create-tileset` (Wang tilesets) and `create-isometric-tile` — the board itself, castle interiors
 - `create-ui-asset` / `generate-ui-v2` — frames, buttons, duel HUD
 - `create-1-direction-object` / `create-8-direction-object` — props, tokens, card tables
+- **ALWAYS CONFIRM THE ANGLE BEFORE ANIMATING** (Raheem, 2026-08-04). Animation is
+  per-direction; PixelLab's own docs say to ask the user which direction they want. An
+  animation_group_id extends the same clip to more directions later, so starting with one
+  costs nothing. ~2 generations per direction vs 40 for a rotation pass.
 - `POST /objects/{object_id}/animations` — **objects animate.** `mode='v3'` is the default and
   the cheap path (`'pro'` is 20-40 generations *per direction*). Omit `directions` for a
   1-direction object. Do not repeat the retired claim that PixelLab objects cannot be animated;

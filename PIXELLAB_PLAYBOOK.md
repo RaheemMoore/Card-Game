@@ -132,6 +132,33 @@ curl -s -H "authorization: Bearer $PIXELLAB_API_KEY" https://api.pixellab.ai/v2/
 
 There is also `GET /v2/llms.txt` — LLM-friendly documentation, written for exactly this purpose.
 
+## ALWAYS CONFIRM THE ANGLE BEFORE ANIMATING
+
+**Standing rule (Raheem, 2026-08-04):** *"Always confirm the angle before animating anything so
+we make sure we're animating the right side."*
+
+Animation is **per-direction** — `/objects/{object_id}/animations` queues one job per direction,
+so a clip exists only on the faces you paid for. Animating `south` when the object is going
+against the left wall (`south-east`) buys a loop the player never sees.
+
+PixelLab's own documentation says the same thing, in the parameter description for
+`custom_start_frame`: *"For AI agents calling this endpoint: ASK the user which direction they
+want."*
+
+**The workflow:**
+1. Generate the angles.
+2. Raheem picks the face and places it.
+3. **Confirm that face**, then animate it.
+
+**Nothing is lost by animating one direction first.** The response carries an
+`animation_group_id`; passing it back later extends the *same* animation to more directions and
+charges only for the new ones. So "flutter" is a named clip that can grow — starting narrow
+costs nothing.
+
+**Measured cost:** ~2 generations per direction for `mode='v3'` (9 frames). All eight faces
+would be ~16, against **40** for a rotation pass. Animation is the cheap half — the reason to
+confirm the angle is correctness, not money.
+
 ## PixelLab and Phaser are partners, not alternatives
 
 This is the mental model to keep. They do different jobs and the courtyard needs both.
