@@ -40,13 +40,9 @@ export function UiKit() {
           PixelLab Round 3, approved 2026-08-04. Every variant below uses the{' '}
           <strong>same four art files</strong> — only render size changes.
         </p>
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-          <PixelButton onClick={() => setGround('plate')} borderWidth={10}>
-            On the plate
-          </PixelButton>
-          <PixelButton onClick={() => setGround('dark')} borderWidth={10}>
-            On dark
-          </PixelButton>
+        <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+          <PixelButton onClick={() => setGround('plate')}>On the plate</PixelButton>
+          <PixelButton onClick={() => setGround('dark')}>On dark</PixelButton>
         </div>
       </header>
 
@@ -84,17 +80,18 @@ export function UiKit() {
 
         <Section title="Button">
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-            <PixelButton>Enter</PixelButton>
-            <PixelButton borderWidth={20}>Heavier ring</PixelButton>
+            <PixelButton scale={1.2}>Small</PixelButton>
+            <PixelButton>Enter the stall</PixelButton>
+            <PixelButton scale={2.2}>Large</PixelButton>
             <PixelButton disabled>Disabled</PixelButton>
           </div>
         </Section>
 
-        <Section title="Bar — one trough, three tones">
-          <div style={{ display: 'grid', gap: 10, maxWidth: 420 }}>
-            <Bar value={hp} tone="hp" label="Health" />
-            <Bar value={0.35} tone="rage" label="Rage" />
-            <Bar value={0.8} tone="resource" label="Mana" />
+        <Section title="Bar — one trough, three tones, drawn inside the channel">
+          <div style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
+            <Bar value={hp} tone="hp" label="Health" scale={2} />
+            <Bar value={0.35} tone="rage" label="Rage" scale={2} />
+            <Bar value={0.8} tone="resource" label="Mana" scale={2} />
             <input
               type="range"
               min={0}
@@ -102,22 +99,49 @@ export function UiKit() {
               value={Math.round(hp * 100)}
               onChange={(e) => setHp(Number(e.target.value) / 100)}
               aria-label="Health fill"
+              style={{ width: 360 }}
             />
           </div>
         </Section>
 
-        <Section title="Slot — filled, empty, selected">
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <Slot
-                key={i}
-                size={104}
-                onClick={() => setSelected(i)}
-                selected={selected === i}
-                label={`Slot ${i + 1}`}
-                style={{ aspectRatio: '326 / 470', width: 88, height: undefined }}
-              />
-            ))}
+        <Section title="Slot — empty is framed, a card is not">
+          <p style={{ fontSize: 13, color: '#cbb9a0', maxWidth: '58ch', marginTop: -4 }}>
+            An EMPTY slot wears the gem frame, to mark a place a character can go. A
+            FILLED one drops the frame entirely — the card is the star of this game and
+            chrome around it competes with the art you paid to generate.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
+            {[0, 1, 2, 3, 4, 5].map((i) => {
+              const filled = i < 3;
+              return (
+                <Slot
+                  key={i}
+                  onClick={() => setSelected(i)}
+                  selected={selected === i}
+                  label={filled ? `Character ${i + 1}` : 'Empty slot'}
+                  style={{ width: 104, aspectRatio: '326 / 470' }}
+                >
+                  {filled && (
+                    // Stand-in for a real card — this page touches no player
+                    // data, so it cannot read the collection.
+                    <span
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background:
+                          'linear-gradient(160deg,#5d4a7a 0%,#37507a 55%,#243046 100%)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        color: '#e8dcc4',
+                        fontSize: 11,
+                      }}
+                    >
+                      card
+                    </span>
+                  )}
+                </Slot>
+              );
+            })}
           </div>
         </Section>
       </div>

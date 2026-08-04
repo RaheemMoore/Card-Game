@@ -33,12 +33,19 @@ export type PanelVariant = 'hud' | 'shelf' | 'sheet' | 'tile' | 'pill';
  * That is the mechanism that keeps a whole-game UI to a handful of pieces
  * instead of one asset per surface. Adding a variant must not mean adding art.
  */
+/**
+ * `hud` at 16 is the REFERENCE WEIGHT — Raheem, 2026-08-04, reviewing all five
+ * side by side: "the third one that says HUD is probably the best one, is the
+ * good width of frame." The others are tuned around it rather than spanning a
+ * wide range; `sheet` was 32 and read as a heavy picture frame rather than a
+ * game menu. Keep changes here relative to 16.
+ */
 const VARIANTS: Record<PanelVariant, { borderWidth: number }> = {
   hud: { borderWidth: 16 },
-  shelf: { borderWidth: 24 },
-  sheet: { borderWidth: 32 },
+  shelf: { borderWidth: 16 },
+  sheet: { borderWidth: 18 },
   tile: { borderWidth: 12 },
-  pill: { borderWidth: 8 },
+  pill: { borderWidth: 10 },
 };
 
 interface Props {

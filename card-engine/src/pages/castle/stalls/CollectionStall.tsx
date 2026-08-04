@@ -102,7 +102,7 @@ export function CollectionStall({ onClose }: { onClose: () => void }) {
                     <div
                       style={{
                         position: 'absolute',
-                        inset: 8,
+                        inset: 0,
                         display: 'grid',
                         placeItems: 'center',
                         overflow: 'hidden',

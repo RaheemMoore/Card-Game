@@ -68,8 +68,21 @@ def save(reg):
 
 
 def b64(img):
+    """Sprite art — PNG, because alpha and hard pixel edges are the point."""
     buf = io.BytesIO()
     img.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def b64_photo(img, max_w=760):
+    """Plate composites — JPEG. These are painted, photographic, and there are a
+    dozen of them; as full-res PNG the page came out 7.3 MB and was unpleasant to
+    open, which defeats the entire purpose of a review harness."""
+    if img.width > max_w:
+        h = round(img.height * max_w / img.width)
+        img = img.resize((max_w, h), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.convert("RGB").save(buf, format="JPEG", quality=82, optimize=True)
     return base64.b64encode(buf.getvalue()).decode()
 
 
@@ -143,7 +156,7 @@ def build():
     <span class="badge {verdict}">{verdict.upper()}</span>
   </header>
   <div class="shots">
-    <figure><img src="data:image/png;base64,{b64(context_shot(sprite, wall))}"/>
+    <figure><img src="data:image/jpeg;base64,{b64_photo(context_shot(sprite, wall))}"/>
       <figcaption>IN CONTEXT &middot; {wl['label']} &middot; true game scale, standing on its feet</figcaption></figure>
     <figure><img class="pix" src="data:image/png;base64,{b64(swatch(sprite, scale))}"/>
       <figcaption>the asset alone &middot; {sprite.width}&times;{sprite.height}px &middot; {scale}&times;</figcaption></figure>
