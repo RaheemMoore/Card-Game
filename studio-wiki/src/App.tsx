@@ -523,8 +523,52 @@ function WorkBoardPage({ kind }: { kind: Exclude<WorkBoardKind, 'raheem'> }) {
 }
 
 function Production() {
-  const sections = useMemo(() => sectionsFromMarkdown(productionMarkdown), []); const [selected, setSelected] = useState(Math.max(0, sections.findIndex((section) => section.heading.includes('What I')))); const section = sections[selected];
-  return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Current Build" intro="A readable window into PRODUCTION.md. The Markdown file stays canonical; this page adapts it at build time." status="IN FLIGHT"/><div className="reading-layout"><aside className="toc"><p>IN THIS SOURCE</p>{sections.filter((item) => item.level <= 2).slice(0, 18).map((item) => { const index = sections.indexOf(item); return <button className={index === selected ? 'active' : ''} key={`${item.heading}-${index}`} onClick={() => setSelected(index)}>{item.heading}</button>; })}</aside><Panel className="article"><p className="eyebrow">PRODUCTION.MD · BUILD-TIME SOURCE</p><h2>{section?.heading}</h2>{section && <MarkdownBody lines={section.body}/>}<RepoLink path="PRODUCTION.md"/></Panel><aside className="facts"><div><span>Source of truth</span><strong>PRODUCTION.md</strong></div><div><span>Operational metrics</span><strong>Admin dashboard</strong></div><div><span>Update path</span><strong>production-log skill</strong></div></aside></div></>;
+  const sections = useMemo(() => sectionsFromMarkdown(productionMarkdown), []);
+
+  /**
+   * Group `###` subsections under the `##` section they belong to.
+   *
+   * sectionsFromMarkdown returns a flat list, and the table of contents only
+   * offered `level <= 2`. Every `###` block was therefore parsed, kept, and then
+   * made unreachable — which silently hid the recommendations in §0, every open-
+   * thread table in §4, and every entry in the decision log. The page showed
+   * section intros and nothing else, on the one page whose job is to show
+   * PRODUCTION.md. A `.slice(0, 18)` was also cutting the tail off the contents.
+   */
+  const chapters = useMemo(() => {
+    const grouped: { index: number; heading: string; body: string[]; parts: typeof sections }[] = [];
+    sections.forEach((section, index) => {
+      if (section.level <= 2 || grouped.length === 0) {
+        grouped.push({ index, heading: section.heading, body: section.body, parts: [] });
+      } else {
+        grouped[grouped.length - 1].parts.push(section);
+      }
+    });
+    return grouped;
+  }, [sections]);
+
+  const [selected, setSelected] = useState(() =>
+    Math.max(0, chapters.findIndex((chapter) => chapter.heading.includes('What I'))),
+  );
+  const chapter = chapters[selected];
+
+  return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Current Build" intro="A readable window into PRODUCTION.md. The Markdown file stays canonical; this page adapts it at build time." status="IN FLIGHT"/><div className="reading-layout">
+    <aside className="toc"><p>IN THIS SOURCE</p>{chapters.map((item, index) => <button className={index === selected ? 'active' : ''} key={`${item.heading}-${item.index}`} onClick={() => setSelected(index)}>{item.heading}</button>)}</aside>
+    <Panel className="article">
+      <p className="eyebrow">PRODUCTION.MD · BUILD-TIME SOURCE</p>
+      <h2>{chapter?.heading}</h2>
+      {/* No line limit here. MarkdownBody defaults to 18 lines, which is right for
+          the preview surfaces but silently truncates the longer tables in §4 on the
+          one page meant to show the whole document. */}
+      {chapter && <MarkdownBody lines={chapter.body} limit={Infinity}/>}
+      {chapter?.parts.map((part) => <section className="article-subsection" key={`${part.heading}-${part.level}`}>
+        <h3>{part.heading}</h3>
+        <MarkdownBody lines={part.body} limit={Infinity}/>
+      </section>)}
+      <RepoLink path="PRODUCTION.md"/>
+    </Panel>
+    <aside className="facts"><div><span>Source of truth</span><strong>PRODUCTION.md</strong></div><div><span>Operational metrics</span><strong>Admin dashboard</strong></div><div><span>Update path</span><strong>production-log skill</strong></div></aside>
+  </div></>;
 }
 
 function StudioHandbook() {

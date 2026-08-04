@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-03 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-04 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -58,7 +58,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -86,21 +86,27 @@ costs nothing to decide and unblocks all planning behind it.
 
 *Needs:* a ruling from you, ideally with `game-systems-designer` consulted on pacing.
 
-### ○ Cheap win — delete 17 dead branches
+### ○ Cheap win — delete 25 dead branches
 
-All 17 are fully merged into `main`. Git keeps every commit; the branch labels carry no
-information and actively mislead — your branch list currently suggests 20 things in flight
-when the real number is 3.
+All 25 are fully merged into `main`. Git keeps every commit; the branch labels carry no
+information and actively mislead — your branch list suggests dozens of things in flight when
+the real number is two.
 
 *Five minutes. Safe. See [§4 stranded branches](#stranded-branches).*
 
-### ⚠ Risk worth naming — the Still Season is uncommitted
+### ⚠ Risk worth naming — the Still Season still exists in only one place
 
 An entire boss and arena — sprites, clips, signature layers, arena plate, configs, two new
-manifests — is sitting on the working tree, unstaged. It represents days of work and real
-generation spend, and it exists in exactly one place: your laptop.
+manifests — representing days of work and real generation spend, is not in the repository.
+Only `debt-bearer` and `emberborn-wraith` are committed under
+`card-engine/public/assets/combat/bosses/`.
 
-*Commit it.*
+This got sharper on 2026-08-04, not softer. You just pulled two checkpoints onto `main` so
+you could work from any device — and the Still Season is the one thing that did **not** come
+with them. Whichever machine holds it is now the only copy, and every other device you sit
+down at will be missing it without saying so.
+
+*Open the laptop that has it and push it.*
 
 ---
 
@@ -116,6 +122,8 @@ being raised in a chat and lost.*
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
+| Q8 | Now that the Studio Wiki replaced the old Production Guide link, does the guide itself retire? | The generated page at `docs/production/production.html` still exists and the `production-log` skill still ends by republishing it. The Wiki reads the same source and redeploys automatically. Keeping both means two versions of the truth and a manual step that will be skipped. |
+| Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
 ---
 
@@ -291,7 +299,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -307,7 +315,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
-| IN FLIGHT | Studio Wiki | Merged to `main` and deployed as a separate Vercel project under the game's team at `https://card-engine-studio-wiki.vercel.app`. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions. Admin and lore-director partners share Ideas visibility while preserving author-only edits. **It replaces the old Production Guide artifact link in the admin sidebar** — that link is being removed, not kept alongside. Production deep-link routing, cloud build, environment configuration, and unauthenticated API enforcement are verified; the first Raheem/Tori signed-in walkthrough remains a human review. |
+| IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -329,24 +337,30 @@ Courtyard V2 forge checkpoint both live on `main` now.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
-| `combat-cards-and-resource` | 2 | 2 | Current. Boss readout + Debt-Bearer fix |
-| `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
-| `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
+| `combat-cards-and-resource` | 3 | 71 | Boss readout + Debt-Bearer fix |
+| `feat/warband-battle-mvp` | 1 | 186 | Tested warband combat core. **Local only — never pushed** |
+| `claude/vigilant-kowalevski-e30267` | 1 | 205 | One Workshop fix. Will conflict if revived |
+
+**`feat/warband-battle-mvp` has never been pushed.** Like the Still Season, it exists on one
+machine and will be silently absent from every other device you open. If it is worth keeping
+(Q2), push it; if it is not, say so and it becomes a `WON'T DO`.
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 4. Open threads
 
-**54 things started and not finished.** This is the list that didn't exist before. It will
+**65 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
-### Studio Wiki release — 1 item
+### Studio Wiki release — 3 items
 
 | What | Where |
 |---|---|
 | Raheem and Tori each complete one signed-in production walkthrough: shared Keep / X-out / undo, private portrait hydration, shared Ideas visibility, and owner-only Ideas editing | `https://card-engine-studio-wiki.vercel.app/characters/cards` and `/work/raheem` |
+| Build the forward-looking "where this project is going" surface — the Wiki records the present and the past well, but has no roadmap view. Raheem is writing this himself | Wiki navigation, alongside `/production` |
+| Decide whether the old Production Guide page retires now that the Wiki replaced its link (Q8) | `docs/production/production.html` + `.claude/skills/production-log/SKILL.md` step 7 |
 
 ### Castle wiring — 4 items
 
@@ -760,10 +774,76 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-04 — Being on `main` is not the same as being in the game
+
+Raheem pulled both August 3 checkpoints — the Courtyard V2 forge preview and the Studio Wiki
+— onto `main` so he can continue from any device. He was explicit that this is about not
+losing work, **not** about shipping: "just because they're in GitHub doesn't mean they're
+done and ready to go to production."
+
+Only the Wiki actually goes out to people. The Courtyard V2 preview is built so a player
+cannot reach it — the code that creates its route only exists in development builds, so
+merging it changed nothing a player sees. That was verified in the real production build,
+not assumed.
+
+*Why it matters:* it makes `main` safe to use as the place work is kept, rather than a place
+only finished things are allowed to go. Work stops living on one laptop.
+
+### 2026-08-04 — The Studio Wiki replaces the Production Guide, rather than joining it
+
+Raheem and ChatGPT rebuilt the production record as the Studio Wiki, and he asked for the
+old guide link to be removed from the admin sidebar rather than kept alongside it. The old
+guide was a generated page living on a personal Claude link: only republishable by hand from
+a chat, private to one account, and a wall of text.
+
+The Wiki reads the same `PRODUCTION.md`, redeploys on its own, and surrounds the text with
+the art, the animation, and the review rooms. Admin now has one door to the record.
+
+*What it closed:* two versions of the truth. It also leaves an open question (Q8) — whether
+the old page and the manual republish step retire completely.
+
+### 2026-08-04 — The Wiki gets smaller by shipping less, never by looking worse
+
+The Wiki was handing Vercel 93 MB per deploy because it served the game's entire public
+folder. Raheem's constraint was exact: make it faster and cheaper, **but do not damage the
+page** — the art is the reason the Wiki exists and it took a long time to make.
+
+So nothing was compressed, resized, or deleted. The Wiki was simply measured: it displays
+about 20 MB of that 77 MB, and the rest is card frames and forge plates no Wiki page renders.
+It now serves everything while you are working on it and ships only what it shows. 93 MB → 22
+MB, every displayed image byte-for-byte identical, confirmed by viewing the real build.
+
+*Why it matters:* the honest version of "make it smaller" was an inventory problem, not an
+image-quality problem. Re-encoding the art would have been the easy answer and the wrong one.
+
+### 2026-08-04 — The Wiki must fail loudly rather than quietly fall behind
+
+Raheem's goal for the Wiki is that it "stays updated as we complete things." Its element and
+archetype pages were hand-maintained copies that happened to match the game with nothing
+keeping them matched, and its tests checked those copies against numbers typed into the test
+file — which pass forever while the page silently goes stale.
+
+Both now come from the game's own definitions. Adding a new element to the game breaks the
+Wiki build until someone writes how that element looks in combat. Printed counts are counted,
+not typed; one of them was already wrong, claiming 29 element crystals when Time has none.
+
+*Why it matters:* a wiki that is quietly out of date is worse than one that refuses to build,
+because nobody can tell by looking. This also makes the page's own claims self-correcting
+instead of a maintenance chore.
+
+### 2026-08-04 — A deployed page says when it was built
+
+The Wiki reads `PRODUCTION.md` when it is built, so what you see is a snapshot. A three-week-old
+deploy looked identical to a fresh one. The sidebar now names the commit and date it was built
+from, and turns amber once that is more than a week old.
+
+*Why it matters:* people stop trusting a reference they cannot date. This is the cheapest way
+to keep the Wiki credible as it becomes the home for the project.
 
 ### 2026-08-03 — Courtyard V2 is a verified preview, not the production courtyard
 

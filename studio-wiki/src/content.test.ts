@@ -117,4 +117,21 @@ describe('Studio Wiki content contracts', () => {
       { heading: 'Status', level: 2, body: ['- Shipped'] },
     ]);
   });
+
+  it('keeps blank lines, because they are the only paragraph boundaries left', () => {
+    // PRODUCTION.md hard-wraps prose. Without the blanks there is no way to tell a
+    // wrapped line from a new paragraph, and rejoining welds them together.
+    const sections = sectionsFromMarkdown('## S\nfirst line\nwrapped on\n\nsecond para');
+    expect(sections[0].body).toEqual(['first line', 'wrapped on', '', 'second para']);
+  });
+
+  it('captures level-3 subsections, which the Current Build page must reach', () => {
+    // These were parsed and then made unreachable by a level<=2 table of contents,
+    // hiding every recommendation, open-thread table, and decision-log entry.
+    const sections = sectionsFromMarkdown('## Parent\nlead\n### Child\ndetail');
+    expect(sections.map((section) => [section.heading, section.level])).toEqual([
+      ['Parent', 2], ['Child', 3],
+    ]);
+    expect(sections[1].body).toEqual(['detail']);
+  });
 });

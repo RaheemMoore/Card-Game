@@ -80,3 +80,5 @@
 .sidebar-foot-stale{color:var(--warning)}
 .sidebar-foot-stale span:last-child{color:#c9973a}
 .live-dot-stale{background:var(--warning);box-shadow:0 0 10px var(--warning)}
+.article-subsection{margin-top:26px;padding-top:20px;border-top:1px solid #45445a}
+.article-subsection h3{font-size:17px;letter-spacing:-.01em;margin:0 0 12px}
