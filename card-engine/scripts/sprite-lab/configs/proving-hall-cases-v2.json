@@ -1,0 +1,31 @@
+{
+  "subject": "proving-hall-cases-v2",
+  "label": "The Proving Hall \u2014 reliquary cases, FLAIR pass (counter-top)",
+  "notes": [
+    "RAHEEM'S TWO NOTES, 2026-08-04: (1) 'add some flair, some pop, make them look like they're sparking with magic or crackling or cracked with magic'. (2) 'I would like these set on a beautiful shelf or a counter... I imagine all of these sitting on a counter.'",
+    "BOTH NOTES ARE ADDRESSED IN ONE CALL, and that is a deliberate call rather than an oversight. A heavy stone FLOOR plinth sitting on top of a counter reads as two bases stacked. So these are redesigned as COUNTER-TOP reliquaries \u2014 smaller, jewel-like, with a slim metal foot instead of a stone block. He explicitly wants them on a counter, so the base has to change with the flair.",
+    "THE V1 SET IS KEPT AS FALLBACK. Raheem: 'if it doesn't work, these are not bad.' Nothing is deleted; v1 remains registered and floor-standing if the counter idea is dropped.",
+    "FLAIR VOCABULARY, so it is pop and not noise: arcs of energy crackling between the frame and the weapon, cracks of light running through the glass itself, glowing runes etched into the frame, sparks and motes swirling inside. The weapon still FLOATS clear of everything so it stays animatable.",
+    "THE WEAPONS REMAIN CANON \u2014 Halo Blade (Seraph), Living Staff (Druid), Open-Hand Gauntlets (Monk), Judgment Bow (Seraph), from Archetype_Weapon_and_Companion_Reference.md.",
+    "THE BOW IS FIXED. In v1 it read thin inside a large mostly-empty case. Here the case is tighter around it and the bow is drawn larger with its energy string blazing.",
+    "PALETTE: the plate's own colours named explicitly \u2014 dark iron and TEAL-GREEN frames, honey-amber and brass trim. The teal fittings are the strongest single tell that an object belongs in this courtyard. The magic inside is allowed to be loud, and its colours come from the game's element art: nature green rgb(77,120,70), light gold rgb(202,168,76), spirit sky-blue rgb(115,175,206), holy gold rgb(193,144,84).",
+    "NO BAKED GROUND, and now also NO STONE PLINTH \u2014 these sit on a counter that is its own asset. No floor tile, no paving, no square backing panel."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "weapon-cases-v2",
+      "note": "Same four relics, but counter-top scale and crackling with magic. Silhouette variety kept \u2014 tall narrow, tight wide, small square, tall wide.",
+      "params": {
+        "description": "small ornate magical reliquary display cases sized to stand on a counter, seen from a low top-down angle, faceted glass with dark iron and teal-green metal frames and brass corner fittings on a slim metal foot, NO stone plinth, a single legendary weapon FLOATING and glowing fiercely in the middle of each, arcs of magic energy crackling inside the glass, glowing runes etched into the frame, bright sparks and motes swirling, black pixel outline, basic shading, no floor tile, no paving, no background panel, no square border",
+        "view": "top-down",
+        "item_descriptions": [
+          "tall narrow faceted glass reliquary on a slim teal-green metal foot, a gnarled living wooden staff FLOATING upright inside it sprouting bright green leaves and curling vines, green energy crackling in arcs between the staff and the frame, glowing runes etched around the metal rim, sparks swirling, no stone plinth, no floor",
+          "compact wide faceted glass reliquary on a slim teal-green metal foot, a large golden longbow FLOATING inside it filling the case, its bowstring a blazing line of white-gold energy, gold lightning arcing along the limbs, glowing runes on the brass frame, no stone plinth, no floor",
+          "small square faceted glass reliquary on a slim teal-green metal foot, a pair of wrapped brass open-fingered gauntlets FLOATING side by side inside, pale blue lightning crackling between the knuckles and across the glass, glowing runes on the frame, sparks swirling, no stone plinth, no floor",
+          "tall faceted glass reliquary on a slim teal-green metal foot, a radiant straight sword FLOATING point-down inside with a burning golden halo ring turning around its blade, brilliant white-gold light and cracks of light running through the glass itself, glowing runes on the brass frame, no stone plinth, no floor"
+        ]
+      }
+    }
+  ]
+}

@@ -494,6 +494,50 @@
       "faces": "1",
       "verdict": "pending",
       "note": "WEAKEST OF THE FOUR. Seraph's Judgment Bow. The bow reads thin inside a large mostly-empty case \u2014 the silhouette variety is right but this one needs either a bigger bow or a smaller case."
+    },
+    {
+      "id": "case-v2-halo-blade",
+      "file": "src/assets/dev-preview/proving-hall/v2/case-halo-blade.png",
+      "wall": "back",
+      "source": "proving-hall-cases-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "FLAIR PASS. Cracks of light running through the glass itself, halo ring turning around the blade, slim metal foot for a counter rather than a stone plinth."
+    },
+    {
+      "id": "case-v2-judgment-bow",
+      "file": "src/assets/dev-preview/proving-hall/v2/case-judgment-bow.png",
+      "wall": "back",
+      "source": "proving-hall-cases-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "THE BIG FIX. In v1 the bow read thin in a large empty case; here it fills a tighter case with a blazing energy bowstring. Best improvement of the four."
+    },
+    {
+      "id": "case-v2-living-staff",
+      "file": "src/assets/dev-preview/proving-hall/v2/case-living-staff.png",
+      "wall": "back",
+      "source": "proving-hall-cases-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "FLAIR PASS. Brighter leaves, more vines, energy in the glass, slim foot."
+    },
+    {
+      "id": "case-v2-gauntlets",
+      "file": "src/assets/dev-preview/proving-hall/v2/case-gauntlets.png",
+      "wall": "back",
+      "source": "proving-hall-cases-v2.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "FLAIR PASS. Tighter square case, runes etched on the frame, crackle across the glass."
     }
   ]
 }
