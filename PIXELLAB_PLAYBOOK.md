@@ -397,6 +397,42 @@ own and nobody noticed until they were told to look.
 | tower-quadrant: 4 wall-furniture objects, one call | 25 | ✅ Portcullis, muster board, trophy rack, weapon rack. Palette and outline weight match the shipped forge counter/bench closely — the hero-crop anchor held the register |
 | tower-quadrant: 2 yard fixtures, one call | 25 | ⚠️ **The call returned 4 objects, not the 2 requested.** Brazier and tally pillar came as asked; two unrequested extras (a stone winch, usable; a stone floor patch, not an object) filled the remaining slots of the 4-cap. The tally pillar came back **isometric** while every other object is elevation or three-quarter |
 
+| side-walls: 8 faces of the weapon rack via `/create-8-direction-object` + `reference_image` | 25 | ✅ **Genuinely turned faces, not skews.** `south-east` serves the left wall, `south-west` the right. Palette regressed — the teal-green fittings came back brown |
+
+### Objects CAN be re-shot from other angles — just not animated
+
+`/create-8-direction-object` accepts a **`reference_image`**, documented as
+*"generates 8 rotations of this exact image"*. So an object that already works can be turned
+into its other seven faces instead of re-invented from a description — which is what produced
+the wrong forge angle twice. This does **not** contradict the no-animation finding above:
+these are eight stills of one object, not motion.
+
+**Rotating a finished sprite in code is not a substitute and was tested.** It aligns the
+footprint to a diagonal wall but cannot invent the face the object should be showing — a
+rotated weapon rack still presents its front to the camera. Only convincing for thin flat
+things like boards and banners.
+
+| | Cost | Yield |
+|---|---|---|
+| `/create-1-direction-object` | 25 | **4 objects**, 1 face each |
+| `/create-8-direction-object` + `reference_image` | 25 | **1 object**, 8 faces |
+
+So a side-wall object is ~4× a back-wall object, but one run serves *both* side walls — no
+mirrored batches needed.
+
+**The response carries an `object_id`,** reusable as `style_object_id` on later calls. That
+anchors new objects to a real 8-angle sibling rather than to a single hero crop, which is the
+cheapest route to a set that agrees at every angle.
+
+**Three 422 traps, all distinct from the 1-direction endpoint:**
+1. `view` is `low top-down` | `high top-down` | `side` — **not** `top-down`.
+2. `size` caps at 168, where 1-direction allows 256.
+3. `size` **cannot be set at all** alongside `reference_image` — the reference's dimensions
+   determine output size.
+
+`reference_image` is also mutually exclusive with `style_image`, so a rotation spec must carry
+no hero anchor. `sprite-lab.mjs` clears it rather than trusting a config to remember.
+
 **Two object lessons from the tower batch:**
 
 1. **`item_descriptions` does not cap the object count — the style image does.** Asking for 2
