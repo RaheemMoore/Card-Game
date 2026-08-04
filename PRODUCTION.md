@@ -843,6 +843,31 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-04 — Colour is a post-process, and offering it is the assistant's job
+
+Raheem asked whether a simple colour swap was possible, then escalated it into a standing
+instruction: *"Not just known that you can do it — make it known that I WANT you to do it."*
+
+The rule: **when an asset's only problem is hue, saturation or value, offer a recolour before
+anything else, unprompted. Never regenerate for colour alone.**
+
+This cost three regenerations in a single session before it was written down — grey stone
+against a warm honey plate, eight generations re-rolling a dwarf for skin tone, and teal
+fittings that came back brown and were *logged as an accepted regression rather than fixed*.
+That last one is the telling failure: the defect was noticed, documented, and still not offered.
+
+`lib/recolor.py` now exists. It is deterministic, so one identical map applies across every
+frame and rotation — an AI inpaint runs per image and drifts, which is the failure that already
+produced a costume changing mid-walk-cycle.
+
+**Raheem's second point is the structural one:** this should not depend on the assistant
+remembering. So the mandate is wired into all three art directors' definitions AND their routing
+triggers in the capability registry, so the specialist consulted before any art spend is the one
+that raises it.
+
+*Why it matters:* a capability nobody offers is the same as a capability nobody has.
+
+
 ### 2026-08-04 — Characters are 2D chibi, and a canonical doc was telling us otherwise
 
 The forge apprentice came back semi-realistic — tall, detailed, adult-proportioned — standing
