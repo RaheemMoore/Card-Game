@@ -306,7 +306,18 @@
       "generations": 8,
       "faces": "4 directions; SOUTH is his counter facing",
       "verdict": "pending",
-      "note": "REGENERATED in the game's chibi register. Register is right, but IDENTITY DRIFTED: the beads in his dreads and the split braided beard did not survive, his skin reads lighter than the original, and he is proportioned more like the hero than short-and-broad. Seed 660418 IS recorded, so a sharper re-roll is cheap. Raheem's call."
+      "note": "RE-ROLLED. Skin now reads correctly as a Black man. WATCH: the EAST rotation picked up a large blade despite 'no sword, no weapons' in the avoid list \u2014 prompt bleed. His shipping face is SOUTH, which is clean."
+    },
+    {
+      "id": "archivist-chibi-south",
+      "file": "src/assets/dev-preview/forge-life/archivist-chibi-south.png",
+      "wall": "floor",
+      "source": "keeper-archivist-chibi.json",
+      "endpoint": "/create-character-with-4-directions",
+      "generations": 8,
+      "faces": "4 directions; SOUTH is her counter facing",
+      "verdict": "pending",
+      "note": "REDESIGNED. Deliberately NOT the old pale young red-haired woman, because that is now almost exactly the forge apprentice \u2014 two near-identical women in adjacent quadrants. She becomes the cast's older, spectacled, silver-bun silhouette instead. Seed 771902 recorded."
     }
   ]
 }

@@ -1,0 +1,42 @@
+{
+  "subject": "keeper-archivist-chibi",
+  "label": "The Archivist (CHIBI) \u2014 keeper of the Collection",
+  "notes": [
+    "REPLACES keeper-archivist.json, which was generated in the old semi-realistic register. Raheem, 2026-08-04: every character gets redesigned under the chibi rule. Her original seed was never recorded, so she could never have been re-rendered anyway \u2014 this had to be a fresh character.",
+    "IDENTITY IS DELIBERATELY DIFFERENT FROM THE OLD ONE. Raheem: 'she can be whatever, random. Just go for it.' The old archivist was a young slender pale red-haired woman \u2014 which is now almost exactly the new forge apprentice. Keeping her would have put two near-identical women in adjacent quadrants, so she becomes the cast's older, heavier, East Asian silhouette instead.",
+    "CAST VARIATION CHECK \u2014 hero: Black man, middle-aged, athletic. Apprentice: pale freckled young woman, red curls. Dwarf: Black dwarf man, short and broad. Archivist: older East Asian woman, plump, silver-streaked hair. Four different ages, builds and ancestries, four different silhouettes at 100px.",
+    "STYLE BLOCK COPIED VERBATIM FROM hero-chibi.json \u2014 /create-character-with-4-directions with the real chibi proportions preset. /create-character-v3 has no proportions field and its 'chibi' is prose that loses.",
+    "SOUTH IS HER FACING. She keeps the Collection and stands at its counter facing the approaching player.",
+    "SEED IS EXPLICIT \u2014 771902. Both previous keepers shipped without one and can never be rebuilt.",
+    "MODESTY M5.7: covered neck to feet, long over-robe over a high-collared tunic.",
+    "THE LEDGER IS BAKED INTO HER SPRITE. A held prop in its own layer drifts out of her hand the moment she is repositioned \u2014 the same reason the horse's hay was baked in.",
+    "DO NOT ANIMATE UNTIL RAHEEM CONFIRMS THE STILL AND THE FACING."
+  ],
+  "identity": {
+    "description": "An older East Asian woman drawn as a big-headed chibi game character, warm light brown skin, kind crinkled eyes behind round brass spectacles, plump and comfortably built. Black hair streaked with silver, gathered in a low bun with a brass writing brush pushed through it. She wears a long quilted indigo archivist's over-robe with wide ink-guard sleeves over a high-collared cream tunic, dark trousers and soft flat shoes, fully covered from neck to feet. She holds a thick bound ledger closed against her chest with both hands.",
+    "avoid": "no bare midriff, no cleavage, no exposed shoulders, no short skirt, no sword, no weapons, no armour, no wizard hat, no cape, no staff, no background, no floor, not young, not slender, not red hair, not realistic proportions, not an adult body plan"
+  },
+  "style": {
+    "view": "low top-down",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": {
+      "width": 128,
+      "height": 128
+    }
+  },
+  "palette": {
+    "reference": null,
+    "note": "No colour reference, matching the hero."
+  },
+  "seed": 771902,
+  "directions": [
+    "south"
+  ],
+  "animations": []
+}
