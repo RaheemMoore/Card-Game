@@ -339,7 +339,7 @@
       "generations": 6,
       "faces": "1 (front only)",
       "verdict": "pending",
-      "note": "Floats free with nothing supporting it, so it can be ROTATED as an object animation (~2 gens). This is the piece that moves and pulls the eye from the fountain."
+      "note": "SURVIVES THE ASCENT CUT \u2014 Raheem liked the floating rank sigil and it belongs in the Proving Hall, hovering over a plinth to show your achieved rank."
     },
     {
       "id": "ascent-cold-brazier",
@@ -450,6 +450,50 @@
       "faces": "1",
       "verdict": "pending",
       "note": "Geode cracked open flush in the paving. Beautiful but the most contained \u2014 reads smaller than the others."
+    },
+    {
+      "id": "case-halo-blade",
+      "file": "src/assets/dev-preview/proving-hall/case-halo-blade.png",
+      "wall": "back",
+      "source": "proving-hall-cases.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "STRONGEST OF THE FOUR. Seraph's Halo Blade \u2014 sword floating point-down with a gold halo ring around it. Canon weapon from Archetype_Weapon_and_Companion_Reference.md, so the hall displays the archetypes' real signature arms rather than generic loot."
+    },
+    {
+      "id": "case-living-staff",
+      "file": "src/assets/dev-preview/proving-hall/case-living-staff.png",
+      "wall": "back",
+      "source": "proving-hall-cases.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "Druid's Living Staff \u2014 'continues growing and changing with its wielder', so it is drawn still leafing inside the glass. Best silhouette: tall and narrow against the wider cases."
+    },
+    {
+      "id": "case-gauntlets",
+      "file": "src/assets/dev-preview/proving-hall/case-open-hand-gauntlets.png",
+      "wall": "back",
+      "source": "proving-hall-cases.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "Monk's Open-Hand Gauntlets \u2014 'protect the hands without replacing martial skill'. Exactly the gauntlets Raheem asked for."
+    },
+    {
+      "id": "case-judgment-bow",
+      "file": "src/assets/dev-preview/proving-hall/case-judgment-bow.png",
+      "wall": "back",
+      "source": "proving-hall-cases.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "WEAKEST OF THE FOUR. Seraph's Judgment Bow. The bow reads thin inside a large mostly-empty case \u2014 the silhouette variety is right but this one needs either a bigger bow or a smaller case."
     }
   ]
 }

@@ -108,6 +108,13 @@ invalidates it; changing only its surface does not.
   Raheem wants a **second sprite board to the LEFT of it**, reserved for quadrant assets.
 - **Review harness** — `python3 scripts/sprite-lab/lib/review_sheet.py build`, published at
   https://claude.ai/code/artifact/499f9a5c-fff1-4b92-9fd5-6bb2884d7eac
+- **The Proving Hall (top-left)** is now the pitch, and its centrepiece is a row of **floating
+  weapon reliquary cases** rather than a weapon rack — Raheem: *"not a regular weapon stand,
+  that's not cool."* The weapons in them are **canon**, taken from
+  `Archetype_Weapon_and_Companion_Reference.md`, so the hall displays the archetypes' real
+  signature arms: Halo Blade (Seraph), Living Staff (Druid), Open-Hand Gauntlets (Monk),
+  Judgment Bow (Seraph). Each weapon is drawn already floating clear of its base so it can be
+  bobbed or rotated as an object animation for ~2 generations.
 - **Quadrants:** forge built · collection/archive settled (the lectern goes there) ·
   bottom-left is **the Wellspring**, a crystal fissure, four explosive variants awaiting a pick ·
   top-left is **the Proving Hall**, pitched but not approved, and it reuses six already-approved
