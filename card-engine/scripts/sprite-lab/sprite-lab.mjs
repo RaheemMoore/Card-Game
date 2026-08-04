@@ -569,7 +569,29 @@ async function cmdScene(subject) {
     // endpoint here. Object output is therefore NOT reproducible; the config
     // records the intent, not a rebuildable result.
     if (spec.seed != null && route !== '/create-1-direction-object') body.seed = spec.seed;
-    if (spec.styleAnchor !== false) body.style_images = [styleImage];
+
+    // ROTATIONS: turn an object we ALREADY have into its other seven faces.
+    // `/create-8-direction-object` documents `reference_image` as "generates 8
+    // rotations of this exact image", which is the only way to get a genuine
+    // side face — rotating a finished sprite aligns its footprint to a wall but
+    // cannot invent the face it should be showing.
+    //
+    // `reference_image` is MUTUALLY EXCLUSIVE with `style_image`, so a spec that
+    // supplies one must not also carry the hero anchor. That is a hard API rule,
+    // not a preference, hence the explicit clear rather than relying on config.
+    if (spec.referenceFile) {
+      const rp = path.join(d, spec.referenceFile);
+      if (!fs.existsSync(rp)) throw new Error(`missing reference image ${rp}`);
+      body.reference_image = {
+        type: 'base64',
+        base64: fs.readFileSync(rp).toString('base64'),
+        format: 'png',
+      };
+      delete body.style_image;
+      delete body.style_images;
+    } else if (spec.styleAnchor !== false) {
+      body.style_images = [styleImage];
+    }
     const res = await api('POST', route, body);
 
     const jobId = res.job_id ?? res.background_job_id;
@@ -639,6 +661,11 @@ async function cmdScene(subject) {
 
   for (const t of c.tiles ?? []) await run('tiles', t, '/create-tiles-pro');
   for (const o of c.objects ?? []) await run('object', o, '/create-1-direction-object');
+  // NOTE the different `view` enum: 1-direction takes 'top-down'|'sidescroller',
+  // 8-direction takes 'low top-down'|'high top-down'|'side'. Passing the wrong
+  // one 422s. `size` is also capped at 168 here — the 8-rotation pipeline
+  // rejects anything larger, where 1-direction allows 256.
+  for (const o of c.rotations ?? []) await run('rot8', o, '/create-8-direction-object');
 
   const total = Object.values(m.assets).reduce((n, a) => n + (a.generations ?? 0), 0);
   m.totalGenerations = total;
@@ -787,26 +814,63 @@ function cmdSheet(subject) {
   const c = cfg(subject);
   const d = outDir(subject);
   const m = loadMan(subject);
-  const files = (m.frames ?? []).filter((f) => fs.existsSync(path.join(d, f.file)));
-  const figs = files
+
+  // Character configs record `m.frames`; scene/object configs record `m.assets`
+  // keyed `kind:id` with a `files` array. The sheet used to read `frames` only,
+  // so EVERY object config rendered a blank page — the assets were on disk and
+  // paid for, and the review surface silently showed nothing. Raheem caught it.
+  const rows = [];
+  for (const f of m.frames ?? []) {
+    if (fs.existsSync(path.join(d, f.file))) rows.push({ file: f.file, cap: f.trail.join(' · ') });
+  }
+  for (const [key, a] of Object.entries(m.assets ?? {})) {
+    for (const entry of a.files ?? []) {
+      // Object assets record {file, item}; tiles record a bare filename string.
+      const file = typeof entry === 'string' ? entry : entry.file;
+      const item = typeof entry === 'string' ? '' : ` · ${entry.item}`;
+      if (file && fs.existsSync(path.join(d, file))) rows.push({ file, cap: `${key}${item}` });
+    }
+  }
+  // In-context composites (light/dark contrast, 9-slice at game scale) are
+  // written next to the pieces by lib/ui_kit_review.py. They are the review
+  // that actually decides chrome — a piece approved on a checkerboard is how
+  // you ship chrome that vanishes against the plate.
+  for (const file of fs.readdirSync(d)) {
+    if (/^review-.*\.png$/.test(file)) rows.unshift({ file, cap: `IN CONTEXT · ${file}`, wide: true });
+  }
+
+  const figs = rows
     .map((f) => {
       const b64 = fs.readFileSync(path.join(d, f.file)).toString('base64');
-      return `<figure><img src="data:image/png;base64,${b64}"/><figcaption>${f.trail.join(' · ')}</figcaption></figure>`;
+      return `<figure${f.wide ? ' class="wide"' : ''}><img src="data:image/png;base64,${b64}"/><figcaption>${f.cap}</figcaption></figure>`;
     })
     .join('');
+  const lede = c.identity?.description ?? c.label ?? '';
   const html = `<title>${c.label}</title>
 <style>
   body{background:#14131a;color:#ece9da;font:14px/1.6 system-ui,sans-serif;margin:0;padding:28px}
   h1{font-size:26px;margin:0 0 6px}
   .lede{color:#9a94a8;max-width:70ch;margin:0 0 24px}
-  .grid{display:flex;flex-wrap:wrap;gap:14px}
+  .grid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
   figure{margin:0;width:150px}
+  figure.wide{width:100%}
   figure img{width:100%;image-rendering:pixelated;background:
     repeating-conic-gradient(#2a2833 0% 25%, #1d1b26 0% 50%) 50%/16px 16px;border-radius:8px}
   figcaption{color:#8d879b;font-size:11px;margin-top:6px;word-break:break-all}
+  figure.wide figcaption{color:#d6b45a;font-size:13px;letter-spacing:.06em}
+  .crit{background:#1c1a24;border-left:3px solid #d6b45a;padding:14px 18px;margin:0 0 24px;border-radius:0 6px 6px 0}
+  .crit h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d6b45a;margin:0 0 8px;font-weight:600}
+  .crit li{color:#b7b0c4;margin-bottom:5px}
 </style>
 <h1>${c.label}</h1>
-<p class="lede">${c.identity.description}</p>
+<p class="lede">${lede}</p>
+${
+  c.review?.acceptance
+    ? `<div class="crit"><h2>Acceptance criteria</h2><ul>${c.review.acceptance
+        .map((x) => `<li>${x}</li>`)
+        .join('')}</ul></div>`
+    : ''
+}
 <div class="grid">${figs}</div>`;
   const out = path.join(d, `${subject}-sheet.html`);
   fs.writeFileSync(out, html);

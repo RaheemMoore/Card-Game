@@ -53,3 +53,50 @@ cheapest possible way to change your mind, and it is the same convention the
 `place-` marks already use.
 
 Positions are not yet imported back into the scene, and no colliders are traced.
+
+---
+
+## `rotations/` — real side faces, for the left and right walls
+
+Every object above faces the camera, which only works against the **back** wall.
+Measured off the plate, the left wall runs about **13°** off vertical and the
+right about **12°**, mirrored, splaying outward toward the viewer. An object
+dropped against a side wall reads as dropped there rather than built there.
+
+**Rotating a finished sprite was tested and rejected.** It aligns the footprint
+to the wall but cannot invent the face the object should be showing — a rotated
+weapon rack still presents its front to the camera.
+
+The fix is `/create-8-direction-object` with `reference_image`, which the API
+documents as *"generates 8 rotations of this exact image"*. An object we already
+like becomes its other seven faces instead of being re-invented from a
+description — which is what produced the wrong forge angle twice.
+
+| Wall | Use this face |
+|---|---|
+| LEFT (west) | `south-east` |
+| RIGHT (east) | `south-west` |
+| Back (north) | `south` — the original |
+
+**Measured cost: 25 generations for all 8 faces of one object.** Compare
+`/create-1-direction-object`, which is also 25 but yields 4 objects at 1 face
+each. So a side-wall object is ~4× a back-wall object, and the two side walls
+share one run rather than needing mirrored batches.
+
+**Reusable style handle:** this run returned `object_id`
+`4cadad75-8989-4ff4-aa8f-48008d20d536`. Later calls can pass it as
+`style_object_id` to anchor new objects to a real 8-angle sibling instead of to a
+single hero crop — the cheapest route to a courtyard set that agrees at every
+angle.
+
+**Three 422 traps on this endpoint**, all learned for free:
+1. `view` is `low top-down` | `high top-down` | `side` — *not* the `top-down`
+   that `/create-1-direction-object` takes.
+2. `size` is capped at 168, where 1-direction allows 256.
+3. `size` **cannot be set at all** alongside `reference_image` — the reference's
+   dimensions determine output size.
+
+**Known regression:** the rotation pass lost the teal-green metal fittings; the
+faces read all-brown against the original's teal accents. The forms also read
+more three-dimensional than the flat original, which suits the perspective but
+is a change. Both are Raheem's call before this is repeated across a set.
