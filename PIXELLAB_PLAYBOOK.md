@@ -87,7 +87,35 @@ Passing a scene plate as `color_image` for "harmony" dragged a chibi character t
 
 ## Objects and scene layers
 
-**PixelLab objects cannot be animated.** `/create-1-direction-object` and `/create-8-direction-object` return **still images only**. `/animate-with-text` and `/characters/animations` are skeleton-driven and require a `character_id` — they animate a rigged humanoid, not a fountain. There is no object-animation endpoint.
+**~~PixelLab objects cannot be animated.~~ CORRECTED 2026-08-04 — THEY CAN.**
+`/objects/{object_id}/animations` ("Add an animation to an existing object") animates an object
+created by `/create-1-direction-object` or `/create-8-direction-object`. Both return an
+`object_id`; that id is the handle.
+
+- **`mode='v3'` is the default and the cheap one.** `mode='pro'` costs **20-40 generations per
+  direction** (160-320 for a full 8-direction set) — the API's own cost warning. Use v3.
+- **`frame_count`** is any even number 4-16 (default 8). v3 also stores the input reference
+  frame, so `frame_count=8` yields **9** stored frames.
+- **Do not pass `directions` for a 1-direction object** — it animates its single internal
+  direction and passing the field returns 400. For an 8-direction object, omitting `directions`
+  animates all eight, which is how you accidentally buy eight animations.
+- **Interpolation mode (v3 only):** pass `end_frame` (and optionally `custom_start_frame`) and
+  the model animates *between two poses you supply*. Requires exactly one direction.
+
+**Why this was wrong for so long:** the original finding was correct when written — the object
+endpoints themselves return stills, and the *character* animation routes need a `character_id`,
+so "objects cannot be animated" followed. PixelLab has since added a separate object-animation
+route, and nothing re-checked the spec. Raheem caught it. **Check `GET /openapi.json` against a
+claimed limitation before designing around it** — the whole "animate it in Phaser instead"
+decision rests on this, and the spec is one unauthenticated fetch away.
+
+Still true: `/animate-with-text` and `/characters/animations` are skeleton-driven and need a
+`character_id` — they animate a rigged humanoid, not a fountain. And faking motion with
+independent "frame 1/2/3" prompts remains the drift trap that cost 186 generations. The fix is
+the real endpoint, not prompt tricks.
+
+*(Superseded original: objects return still images only and there is no object-animation
+endpoint.)*
 
 Do **not** work around this by prompting "fountain frame 1/2/3" as separate generations. Independent prompts have no shared anchor, and `template` mode drifted **43.7 palette units** even *with* a `character_id` anchoring it. Guaranteed drift, and no validator currently catches it.
 
