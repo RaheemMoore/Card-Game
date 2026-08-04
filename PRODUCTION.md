@@ -240,6 +240,10 @@ no damage, resource, charge, or status effect. A card opens its full sheet only 
 separate expand control. Strike and Guard are tactical alternatives only while that card has
 at least one visible ability it could activate now. If cooldown, charge, status, resource, or
 targeting leaves it with no legal ability, **Wait is the only planning command**.
+That lockout now appears as a full plain-language state rather than a tiny resource symbol:
+the ability rows name cooldown, charge, and resource reasons; **Wait & Continue** records the
+card as complete, advances to the next unfinished card, and never pulls focus backward when
+the next hero chooses an ability.
 
 **Cards are the characters on the field.** Hero cards replaced floor sprites.
 
@@ -297,7 +301,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → hold three visible charges → Release Party → stagger three launches → shared impact → boss response**. Boss-bound volleys land in a readable triangle instead of stacking three effect pieces on one point. Unmapped direct attacks reuse the reviewed element stream/impact art instead of the old generic beam. The combined branch is not merged, pushed, or deployed. |
-| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible ability it could activate; otherwise Wait is the sole choice. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
+| IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible ability it could activate; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back to the waited hero. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
@@ -317,7 +321,7 @@ Five. Everything else is merged.
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 | `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
-| `decision-experience` | 6 | — | Combined local release candidate with the party-plan, selected-card command surface, explicit Wait action, triangular volley impacts, and the Wait-only lockout rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
+| `decision-experience` | 7 | — | Combined local release candidate with the party-plan, stable selected-card focus, explicit Wait/lockout guidance, triangular volley impacts, and the Wait-only action rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
@@ -727,6 +731,29 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Wait completes the card and focus only moves forward
+
+Raheem found that a locked hero still behaved like unfinished work: the tiny resource mark
+did not explain why the card could not act, and after choosing Wait the next hero's ability
+could pull selection back to the first card. Combat focus is now separate from the reducer's
+pending resolution order. **Wait & Continue** records a zero-output command, advances to the
+next unfinished card in lane order, and remains complete while later abilities are chosen.
+
+The selected-card ability panel now states **No abilities this turn**, keeps each row's exact
+cooldown/charge/resource reason visible, and says plainly that the card cannot attack. If the
+player revisits it, the panel reads **Wait locked · choice complete**, names the next unfinished
+hero, and does not ask for another click. The same guidance exists in the compact layout.
+
+The authentic `/battle` route passed the reported sequence: Gryndak entered a cooldown-only
+round, Wait advanced to Seojin, Seojin's ready ability advanced to Ashvara, and focus never
+returned to Gryndak. The completed Wait state remained readable at desktop and 1024×768
+tablet sizes. Build, lint, focused regression tests, and the post-reload console check pass;
+623 of 624 full-suite tests pass. The sole failure remains the unrelated pre-existing
+ability-art `cobalt` expectation. Nothing was pushed or deployed.
+
+*Why it matters:* a player can now tell which card is blocked, why it is blocked, and that
+they are finished with it this round. UI focus no longer mutates combat engine order.
 
 ### 2026-08-03 — Locked heroes wait, and party impacts spread across the boss
 

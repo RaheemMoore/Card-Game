@@ -5,6 +5,7 @@ import { AbilityCommandStrip } from '../../components/abilities';
 import type { AbilityCommandState, AbilityTier } from '../../components/abilities/types';
 import { getAbilityStore } from '../../services/abilities/registry';
 import { getArtCrops } from '../../types/abilities';
+import { NoAbilitiesTurnNotice } from './NoAbilitiesTurnNotice';
 
 interface Props {
   hero: HeroCombatant;
@@ -12,7 +13,10 @@ interface Props {
   disabled: boolean;
   pendingId: string | null;
   plannedAction?: PlayerAction;
+  noAbilitiesThisTurn: boolean;
+  nextHeroName?: string;
   onArm: (definitionId: string | null) => void;
+  onWait: () => void;
   onHoverAbility: (ability: AbilityCombatSnapshot | null) => void;
 }
 
@@ -25,7 +29,10 @@ export function SelectedAbilityPanel({
   disabled,
   pendingId,
   plannedAction,
+  noAbilitiesThisTurn,
+  nextHeroName,
   onArm,
+  onWait,
   onHoverAbility,
 }: Props) {
   const store = getAbilityStore();
@@ -70,6 +77,15 @@ export function SelectedAbilityPanel({
           {plannedAction ? 'PLANNED' : 'SELECTED'}
         </span>
       </header>
+
+      {noAbilitiesThisTurn && (
+        <NoAbilitiesTurnNotice
+          heroName={hero.snapshot.displayName}
+          completed={plannedAction?.kind === 'wait'}
+          nextHeroName={nextHeroName}
+          onWait={onWait}
+        />
+      )}
 
       {slots.map(({ slot, ability }) => (
         <AbilityRow

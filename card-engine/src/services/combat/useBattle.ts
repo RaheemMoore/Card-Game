@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Card } from '../../types/card';
 import type { BattleEvent, BattleState, PlayerAction, TurnPhase } from '../../types/combat';
 import {
@@ -19,6 +19,7 @@ import { getOverallRank, computeRankSum } from '../../data/powerSystem';
 import { PARTY_POWER_BUDGET, MAX_PARTY_SLOTS } from '../../data/bosses/towerCurve';
 import { resolveCurrentElement } from '../elementResolver';
 import { damageTypeForElement } from '../../data/abilities/elementDamageType';
+import { nextUnplannedActorId } from './planningFocus';
 
 /**
  * React hook that runs a battle inside a component. Wraps the pure reducer.
@@ -40,7 +41,7 @@ export interface UseBattleApi {
   state: BattleState | null;
   /** Every event emitted by the reducer since battle start. Fed to useCombatPresentation. */
   events: BattleEvent[];
-  /** actorId of the hero currently being asked for input, or null if not awaiting. */
+  /** actorId of the hero whose command palette is focused, or null if not awaiting. */
   actingActorId: string | null;
   submit(action: PlayerAction): void;
   /** Commands prepared this round, keyed by hero actor id. */
@@ -49,13 +50,7 @@ export interface UseBattleApi {
   plan(action: PlayerAction): void;
   /** Commit the complete party plan in visible card order. */
   releasePlan(actions?: Readonly<Record<string, PlayerAction>>): void;
-  /**
-   * Move a specific hero to the front of `pendingActorIds` so the next
-   * `submit()` acts as them. Lets the player choose their party's action
-   * order strategically instead of being locked into canonical lane order.
-   * No-op if the actor is already at the front, isn't pending, or the
-   * battle isn't awaiting input.
-   */
+  /** Focus a pending hero without changing reducer resolution order. */
   selectActor(actorId: string): void;
   restart(): void;
   error: string | null;
@@ -91,6 +86,8 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
   const [events, setEvents] = useState<BattleEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [plannedActions, setPlannedActions] = useState<Record<string, PlayerAction>>({});
+  const plannedActionsRef = useRef<Record<string, PlayerAction>>({});
+  const [focusedActorId, setFocusedActorId] = useState<string | null>(null);
   const [restartCount, setRestartCount] = useState(0);
   const partyKey = input?.heroCards.map((c) => c.cardId).join('|') ?? null;
 
@@ -100,6 +97,8 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       setEvents([]);
       setError(null);
       setPlannedActions({});
+      plannedActionsRef.current = {};
+      setFocusedActorId(null);
       return;
     }
     try {
@@ -172,6 +171,8 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       setEvents([...initial.log, ...flushedEvents]);
       setError(null);
       setPlannedActions({});
+      plannedActionsRef.current = {};
+      setFocusedActorId(flushed.pendingActorIds[0] ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setState(null);
@@ -215,29 +216,18 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
 
   const plan = useCallback((action: PlayerAction) => {
     if (!state || state.phase !== 'awaiting_player_action') return;
-    const actorId = state.pendingActorIds[0];
+    const actorId = focusedActorId && state.pendingActorIds.includes(focusedActorId)
+      ? focusedActorId
+      : state.pendingActorIds[0];
     if (!actorId) return;
-    const nextPlan = { ...plannedActions, [actorId]: action };
+    const nextPlan = { ...plannedActionsRef.current, [actorId]: action };
+    plannedActionsRef.current = nextPlan;
     setPlannedActions(nextPlan);
 
-    // Advance focus to the next unarmed card without consuming the current
-    // hero's reducer turn. Planned actions remain editable until release.
-    const unarmed = state.heroes.find(
-      (hero) =>
-        !hero.defeated &&
-        state.pendingActorIds.includes(hero.actorId) &&
-        hero.actorId !== actorId &&
-        !nextPlan[hero.actorId],
-    );
-    if (!unarmed) return;
-    setState({
-      ...state,
-      pendingActorIds: [
-        unarmed.actorId,
-        ...state.pendingActorIds.filter((id) => id !== unarmed.actorId),
-      ],
-    });
-  }, [plannedActions, state]);
+    // Wait is a completed choice just like an ability. Advance once, in lane
+    // order, and never let reducer order pull visible focus backward.
+    setFocusedActorId(nextUnplannedActorId(state, nextPlan, actorId) ?? actorId);
+  }, [focusedActorId, state]);
 
   const releasePlan = useCallback((submittedPlan?: Readonly<Record<string, PlayerAction>>) => {
     if (!state || state.phase !== 'awaiting_player_action') return;
@@ -260,6 +250,8 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
       if (allEvents.length > 0) setEvents((current) => [...current, ...allEvents]);
       setState(flushed);
       setPlannedActions({});
+      plannedActionsRef.current = {};
+      setFocusedActorId(flushed.pendingActorIds[0] ?? null);
       setError(null);
     } catch (err) {
       console.error('[combat] party release failed', { planToRelease }, err);
@@ -267,19 +259,13 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
     }
   }, [plannedActions, state]);
 
-  // Reorder pendingActorIds so `actorId` is next to act. Pure reordering —
-  // no events, no phase change. The reducer's contract stays "acts on
-  // pendingActorIds[0]"; we just let the view influence which pending id
-  // sits at index 0.
+  // Card selection is UI focus only. Reducer order remains canonical and the
+  // complete party plan is committed in visible lane order at release.
   const selectActor = useCallback((actorId: string) => {
-    setState((prev) => {
-      if (!prev || prev.phase !== 'awaiting_player_action') return prev;
-      if (!prev.pendingActorIds.includes(actorId)) return prev;
-      if (prev.pendingActorIds[0] === actorId) return prev;
-      const reordered = [actorId, ...prev.pendingActorIds.filter((id) => id !== actorId)];
-      return { ...prev, pendingActorIds: reordered };
-    });
-  }, []);
+    if (!state || state.phase !== 'awaiting_player_action') return;
+    if (!state.pendingActorIds.includes(actorId)) return;
+    setFocusedActorId(actorId);
+  }, [state]);
 
   const restart = useCallback(() => {
     setRestartCount((n) => n + 1);
@@ -287,7 +273,9 @@ export function useBattle(input: UseBattleInput | null): UseBattleApi {
 
   const actingActorId =
     state && state.phase === 'awaiting_player_action'
-      ? state.pendingActorIds[0] ?? null
+      ? focusedActorId && state.pendingActorIds.includes(focusedActorId)
+        ? focusedActorId
+        : state.pendingActorIds[0] ?? null
       : null;
 
   return useMemo(

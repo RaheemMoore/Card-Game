@@ -18,6 +18,7 @@ import { LeaveConfirmModal } from '../LeaveConfirmModal';
 import { CardSheet } from '../../../components/CardSheet';
 import { buildBattleCardSheetAbilities, buildBattleLiveState } from '../cardSheetAdapters';
 import { hasCurrentlyUsableAbility } from '../../../services/combat/actionAvailability';
+import { NoAbilitiesTurnNotice } from '../NoAbilitiesTurnNotice';
 
 interface Props {
   state: BattleState;
@@ -125,6 +126,14 @@ export function MobileCombatScene({
   const tacticalFallbackAvailable = selectedHero
     ? hasCurrentlyUsableAbility(state, selectedHero)
     : false;
+  const nextUnplannedHero = selectedHero
+    ? state.heroes.find((hero) =>
+        !hero.defeated &&
+        hero.actorId !== selectedHero.actorId &&
+        state.pendingActorIds.includes(hero.actorId) &&
+        !plannedActions[hero.actorId]
+      )
+    : undefined;
 
   // Armed-ability + target-pick state, mirroring desktop's CombatScene —
   // owned here so MobilePartyCardTray's target-pick mode shares the same
@@ -355,23 +364,40 @@ export function MobileCombatScene({
         <div
           className="px-2 pt-2 mobile-collapsible"
           style={{
-            maxHeight: isPlaybackMode || !selectedHero || selectedHero.defeated ? 0 : 60,
+            maxHeight: isPlaybackMode || !selectedHero || selectedHero.defeated
+              ? 0
+              : tacticalFallbackAvailable
+                ? 60
+                : 142,
             opacity: isPlaybackMode || !selectedHero || selectedHero.defeated ? 0 : 1,
             overflow: 'visible',
             transition: 'max-height 250ms ease-out, opacity 200ms',
           }}
         >
           {selectedHero && !selectedHero.defeated && (
-            <MobileAbilityRow
-              hero={selectedHero}
-              disabled={!canAct}
-              state={state}
-              pendingId={pendingAbilityId}
-              onArm={armAbility}
-              pickedTargetActorId={pickedTargetActorId}
-              plannedAction={plannedActions[selectedHero.actorId]}
-              onPlan={onPlan}
-            />
+            <>
+              {!tacticalFallbackAvailable && (
+                <div className="mb-1.5">
+                  <NoAbilitiesTurnNotice
+                    heroName={selectedHero.snapshot.displayName}
+                    completed={plannedActions[selectedHero.actorId]?.kind === 'wait'}
+                    nextHeroName={nextUnplannedHero?.snapshot.displayName}
+                    onWait={() => onPlan({ kind: 'wait' })}
+                    compact
+                  />
+                </div>
+              )}
+              <MobileAbilityRow
+                hero={selectedHero}
+                disabled={!canAct}
+                state={state}
+                pendingId={pendingAbilityId}
+                onArm={armAbility}
+                pickedTargetActorId={pickedTargetActorId}
+                plannedAction={plannedActions[selectedHero.actorId]}
+                onPlan={onPlan}
+              />
+            </>
           )}
         </div>
 

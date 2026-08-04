@@ -116,6 +116,12 @@ export function CombatScene({
   const partyActorIds = state.heroes.filter((hero) => !hero.defeated).map((hero) => hero.actorId);
   const plannedCount = partyActorIds.filter((id) => plannedActions[id]).length;
   const tacticalFallbackAvailable = hasCurrentlyUsableAbility(state, actingHero);
+  const nextUnplannedHero = state.heroes.find((hero) =>
+    !hero.defeated &&
+    hero.actorId !== actingHero.actorId &&
+    state.pendingActorIds.includes(hero.actorId) &&
+    !plannedActions[hero.actorId]
+  );
   const resolvingActorId = (() => {
     if (!presentationLocked) return null;
     const event = currentBeat?.event;
@@ -422,7 +428,10 @@ export function CombatScene({
             disabled={!canAct}
             pendingId={pendingAbilityId}
             plannedAction={plannedActions[actingHero.actorId]}
+            noAbilitiesThisTurn={!tacticalFallbackAvailable}
+            nextHeroName={nextUnplannedHero?.snapshot.displayName}
             onArm={armAbility}
+            onWait={() => onPlan({ kind: 'wait' })}
             onHoverAbility={setHoveredAbility}
           />
           <PartyResourceVessel
