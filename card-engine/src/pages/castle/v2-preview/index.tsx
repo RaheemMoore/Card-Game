@@ -140,6 +140,7 @@ export function CourtyardV2Preview() {
           status === 'ready' &&
           snapshot?.forge.withinBudget &&
           snapshot.footsteps.withinBudget &&
+          snapshot.crystals.withinBudget &&
           snapshot.hero.insidePreviewBounds
             ? 'pass'
             : status
@@ -148,7 +149,7 @@ export function CourtyardV2Preview() {
         className="mx-auto mt-3 block max-w-[1536px] text-xs text-white/45"
       >
         {snapshot
-          ? `Scenario ${SCENARIO_NAME} · hero ${snapshot.hero.facing} frame ${snapshot.hero.frame} · counter ${snapshot.occluders[0]?.heroRelation} · bench ${snapshot.occluders[1]?.heroRelation} · smoke ${snapshot.forge.smokeCount}/8 · energy ${snapshot.forge.activeParticleCount}/40 · dust ${snapshot.footsteps.activeCount}/6 (${snapshot.footsteps.emittedPuffs} emitted) · ${snapshot.forge.surgePhase} · ${snapshot.forge.withinBudget && snapshot.footsteps.withinBudget ? 'within budget' : 'over budget'}`
+          ? `Scenario ${SCENARIO_NAME} · hero ${snapshot.hero.facing} frame ${snapshot.hero.frame} · counter ${snapshot.occluders[0]?.heroRelation} · bench ${snapshot.occluders[1]?.heroRelation} · smoke ${snapshot.forge.smokeCount}/8 · energy ${snapshot.forge.activeParticleCount}/40 · dust ${snapshot.footsteps.activeCount}/6 (${snapshot.footsteps.emittedPuffs} emitted) · ${snapshot.forge.surgePhase} · ${snapshot.forge.withinBudget && snapshot.footsteps.withinBudget && snapshot.crystals.withinBudget ? 'within budget' : 'over budget'}`
           : 'Waiting for the preview scene…'}
       </output>
       {snapshot && (
@@ -168,6 +169,24 @@ export function CourtyardV2Preview() {
           {snapshot.aisle.availableClearance}px / {snapshot.aisle.requiredClearance}px required.
           Test: {snapshot.aisle.testStatus}
           {snapshot.aisle.finalX == null ? '' : ` at x=${snapshot.aisle.finalX.toFixed(1)}`}.
+        </output>
+      )}
+      {snapshot && (
+        <output
+          id="courtyard-v2-crystal-result"
+          data-status={snapshot.crystals.withinBudget ? 'pass' : 'fail'}
+          data-excitement={snapshot.crystals.excitement}
+          data-motes-muted={String(snapshot.crystals.motesMuted)}
+          data-motion-off={String(snapshot.crystals.motionOff)}
+          data-scenario="courtyard-v2-crystal-proximity-ramp"
+          className="mx-auto mt-1 block max-w-[1536px] text-xs text-white/45"
+        >
+          Counter crystals: hero {snapshot.crystals.heroDistance}px away · excitement{' '}
+          {snapshot.crystals.excitement.toFixed(2)} · bloom alphas{' '}
+          {snapshot.crystals.bloomAlphas.map((a) => a.toFixed(2)).join(' / ')} · motes{' '}
+          {snapshot.crystals.moteCount}/6{snapshot.crystals.motesMuted ? ' (muted, hero close)' : ''}{' '}
+          · {snapshot.crystals.glintsFired} glints fired
+          {snapshot.crystals.motionOff ? ' · MOTION OFF, held static' : ''}.
         </output>
       )}
     </main>
