@@ -276,6 +276,7 @@ const DEV_ONLY_UNGATED_ROUTES = [
   '/dev/ui-kit',
   '/dev/collection-stall',
   '/dev/stall-shell',
+  '/dev/forge-stall',
   ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
 ];
 

@@ -30,6 +30,7 @@ import { DecisionLab } from './pages/dev/DecisionLab';
 import { UiKit } from './pages/dev/UiKit';
 import { CollectionStallPreview } from './pages/dev/CollectionStallPreview';
 import { StallShellPreview } from './pages/dev/StallShellPreview';
+import { ForgeStallPreview } from './pages/dev/ForgeStallPreview';
 import { CollectionRoute } from './pages/CollectionRoute';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
@@ -112,6 +113,13 @@ export default function App() {
               Forge's real flow needs a session AND premium currency at its last
               step, so its shell cannot be reviewed through the Forge itself. */}
           <Route path="/dev/stall-shell" element={<StallShellPreview />} />
+
+          {/* Forge DESIGN PREVIEW. `/forge` and pages/CardForge.tsx are the real,
+              shipping flow and are deliberately untouched — Raheem: "do not
+              remove it until we completely approve this." This drives the real
+              stage components from local state and never calls the forge
+              controller or the wallet, so it is free to open. */}
+          <Route path="/dev/forge-stall" element={<ForgeStallPreview />} />
 
           {CourtyardV2Preview && (
             <Route
