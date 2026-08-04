@@ -155,10 +155,11 @@ friends. It's gonna be a one-off indie game that people buy on Steam. You purcha
 play the card game, you challenge the tower."*
 
 You buy the game once. There is **no purchase system inside it** — Forge Crystals are earned
-by mining and other play, not bought. Multiplayer and the live-service framing are out.
+by mining, challenges and play rather than bought. Multiplayer and the live-service framing
+are out.
 
-This reverses assumptions a lot of the existing code was built on, so §7 records what changed
-rather than quietly rewriting it.
+**The two currencies are unchanged.** Forge Crystals and Gold both stay, and a third may be
+added. What changed is where crystals come from, not what they are — see §7.
 
 ### It is a 2D pixel game — new, 2026-08-04
 
@@ -823,27 +824,38 @@ From [economy plan §13](card-engine-economy-currency-system-plan.md), which is 
 
 No component hardcodes a price. Everything reads from `src/data/economy/` catalogs.
 
-### ~~Why Forge Crystals are purchase-only~~ — REVERSED 2026-08-04
+### What changed on 2026-08-04 — how crystals are FUNDED, not what they are
 
-> **Crystals are EARNED now. There is no purchase system.**
+> **The two currencies stay exactly as they are.** Forge Crystals and Gold both remain, and
+> Raheem has floated possibly adding a third. Nothing about the currency model, the catalogs,
+> or the prices is being redesigned here.
 >
-> Raheem, 2026-08-04: *"It's gonna be a one-off indie game that people buy on Steam… People
-> will not be purchasing crystals anymore. They're gonna buy the game, and mine for crystals,
-> and do other things to get crystals. We're removing the whole purchase system."*
+> Raheem, correcting an over-broad reading of this: *"Don't change any of the currency. The
+> economy is still gonna be Forge Crystals and Gold, and maybe even something else. It's just
+> not gonna be linked to API tokens and the person actually spending money. They will earn
+> gold, they'll earn Forge Crystals. It's gonna be a normal indie game."*
 
-The old rule below is kept struck through because it explains why a lot of the existing code
-looks the way it does — not because it still applies.
+**The one thing that changed:** crystals are no longer *bought with real money*. They are
+earned — the mine, little challenges, play. There is no in-game purchase system, because the
+game is bought once on Steam.
+
+The old rationale is kept struck through because it explains why a lot of the existing code
+looks the way it does — not because it still applies:
 
 > ~~Each forge spends real money at Leonardo and Anthropic. Crystals are the player-facing
 > representation of that cost. If they could be earned, the generation bill would be unbounded
-> and land on you.~~ *(Decided 2026-07-31, reversed 2026-08-04.)*
+> and land on you.~~ *(Decided 2026-07-31; the funding half was reversed 2026-08-04.)*
 
-**What makes the reversal affordable:** the pre-generated card pool takes the paid API call
-off the per-player path. Earning a crystal no longer maps to spending money on a live
-generation. The two decisions depend on each other — do not adopt one without the other.
+**What makes that affordable:** the pre-generated card pool takes the paid API call off the
+per-player path, so earning a crystal no longer maps to spending money on a live generation.
+The two decisions depend on each other — do not adopt one without the other.
 
 **Consequently the mine yielding Gold rather than Crystals is now an open design question,**
-not a settled rule. It was settled *by* the purchase-only rule that just went away.
+not a settled rule. It was settled *by* the purchase-only rule that just changed.
+
+**No prices, rewards, balances or catalogs have been touched.** Economy plan §13 governance
+still stands: those need Raheem's explicit approval, and this was a funding-model ruling, not
+a numbers one.
 
 ### What blocks real money
 
@@ -909,6 +921,10 @@ game."*
 purchase-only because every forge spends real money at Leonardo and Anthropic. Crystals are
 now EARNED. Payments, bundles and the §9 production-security prerequisites move from PLANNED
 to WON'T DO, and multiplayer goes with the live-service model.
+
+*What it does NOT change, because I first wrote this too broadly and Raheem corrected it:*
+the currencies themselves. Forge Crystals and Gold both stay, possibly joined by a third.
+This is a ruling about how crystals are funded, not a redesign of the economy.
 
 *What makes it affordable:* the pre-generated card pool, decided the same day, takes the paid
 API call off the per-player path. The two decisions hold each other up — neither works alone.
