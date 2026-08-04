@@ -1,0 +1,17 @@
+{
+  "//": [
+    "Tests are typechecked separately because they legitimately use Node APIs the browser bundle must never see. Folding `types: [node]` into tsconfig.app.json instead would let application code reach for `fs` and still compile.",
+    "`exclude` must be reset to []: tsconfig.app.json excludes tests and `extends` inherits that, so without the override this project resolves to zero files and silently checks nothing.",
+    "`vite/client` is in `types` because tests import app modules that read import.meta.env, and specifying `types` at all opts out of automatic @types inclusion."
+  ],
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["node", "vitest/globals", "vite/client"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "exclude": [],
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "asset-manifest.ts"]
+}

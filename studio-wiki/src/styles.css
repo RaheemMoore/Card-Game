@@ -74,3 +74,9 @@
 @media(max-width:1050px){.review-how{grid-template-columns:repeat(2,1fr)}.live-review-controls{grid-template-columns:1fr 160px}.live-card-search{grid-column:1/-1}.live-review-layout{grid-template-columns:270px minmax(0,1fr)}.live-card-hero{grid-template-columns:260px minmax(0,1fr)}.work-board-switcher{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.live-review-layout{grid-template-columns:1fr}.live-card-roster{display:grid;grid-template-columns:repeat(2,1fr)}.live-card-roster header{grid-column:1/-1}.live-card-hero{grid-template-columns:1fr}.wiki-card{max-width:326px;margin:auto}.studio-signin form{grid-template-columns:1fr}.studio-form-error{grid-column:auto}.desk-how{grid-template-columns:1fr}.idea-notebook{grid-template-columns:1fr}.live-ability-grid,.live-rank-grid{grid-template-columns:1fr}.review-action-bar{grid-template-columns:1fr 1fr}.review-action-bar>div{grid-column:1/-1}}
 @media(max-width:540px){.review-how{grid-template-columns:1fr}.live-review-controls{display:flex;flex-direction:column;align-items:stretch}.review-tabs{display:grid;grid-template-columns:1fr 1fr}.live-card-roster{display:block}.live-card-dossier>header{align-items:flex-start;flex-direction:column}.live-card-hero{padding:15px}.live-card-sections{padding-inline:14px}.live-fact-list,.live-stat-grid{grid-template-columns:1fr}.review-action-bar{position:static}.studio-signin{grid-template-columns:1fr;padding:18px}.desk-how{padding:18px}.idea-composer{padding:16px}.idea-notebook-heading{align-items:flex-start;flex-direction:column;gap:9px}}
+
+/* Build freshness. Amber, not red: a week-old snapshot is worth noticing, not an error. */
+.sidebar-foot code{font-size:10px;background:#252435;padding:1px 4px;border-radius:3px;color:#c0bbff}
+.sidebar-foot-stale{color:var(--warning)}
+.sidebar-foot-stale span:last-child{color:#c9973a}
+.live-dot-stale{background:var(--warning);box-shadow:0 0 10px var(--warning)}

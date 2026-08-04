@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleDashed, CircleHelp, Command, ExternalLink, Eye, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, LogIn, Menu, NotebookPen, Plus, RefreshCw, Save, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
-import { productionMarkdown } from 'virtual:studio-content';
+import { buildStamp, productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
 import type { CardEvidenceState, DevelopmentCardRecord } from './content';
 import { MarkdownBody, sectionsFromMarkdown } from './markdown';
 import { ElementPerformancePlayer } from './ElementPerformancePlayer';
-import workshopArena from '../../docs/production/screenshots/workshop-arena.png';
-import workshopBoss from '../../docs/production/screenshots/workshop-boss.png';
-import workshopSprite from '../../docs/production/screenshots/workshop-sprite.png';
+import workshopArena from './assets/workshop-arena.png';
+import workshopBoss from './assets/workshop-boss.png';
+import workshopSprite from './assets/workshop-sprite.png';
 import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.png';
 import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
 import { SEED_ABILITIES } from '../../card-engine/src/data/abilities/seedAbilities';
@@ -65,7 +65,7 @@ function Shell() {
       <nav aria-label="Studio Wiki">
         {navigation.map((group) => <div className="nav-group" key={group.group}><p>{group.group}</p>{group.items.map(([itemPath, label]) => { const Icon = iconsByPath[itemPath]; return <a href={itemPath} className={path === itemPath ? 'active' : ''} aria-current={path === itemPath ? 'page' : undefined} key={itemPath} onClick={() => setMenu(false)}><Icon/><span>{label}</span></a>; })}</div>)}
       </nav>
-      <div className="sidebar-foot"><span className="live-dot"/>Repository-backed<span>Local build</span></div>
+      <BuildStamp/>
     </aside>
     <div className="main-column">
       <header className="topbar"><button className="menu-button" onClick={() => setMenu(true)} aria-label="Open navigation"><Menu/></button><div className="search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the studio…" aria-label="Search the Studio Wiki" onKeyDown={(event) => { if (event.key === 'Enter' && matches[0]) { navigate(matches[0].path); setSearch(''); } }}/>{search && <div className="search-results">{matches.length ? matches.map((entry) => <button key={entry.path} onClick={() => { navigate(entry.path); setSearch(''); }}><strong>{entry.title}</strong><span>{entry.text}</span></button>) : <p>No matching section</p>}</div>}</div><span className="crumb">{searchEntries.find((entry) => entry.path === path)?.title ?? 'Studio Home'}</span></header>
@@ -80,6 +80,38 @@ function Shell() {
 }
 
 export function App() { return <Shell/>; }
+
+/**
+ * How current is this page?
+ *
+ * PRODUCTION.md is read at build time, so a deployed Wiki is a snapshot. Without a
+ * stamp, a deploy from three weeks ago is indistinguishable from one from an hour
+ * ago — and a wiki nobody can date is a wiki nobody trusts. This shows the commit
+ * the content came from and goes amber once the snapshot is over a week old.
+ */
+function BuildStamp() {
+  const { commit, commitDate, subject, dev } = buildStamp;
+  const ageDays = commitDate ? (Date.now() - new Date(commitDate).getTime()) / 86_400_000 : null;
+  const stale = ageDays !== null && ageDays > 7;
+  const when = commitDate
+    ? new Date(commitDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : null;
+
+  if (dev) {
+    return <div className="sidebar-foot"><span className="live-dot"/>Repository-backed<span>Live from your working tree</span></div>;
+  }
+  return (
+    <div className={stale ? 'sidebar-foot sidebar-foot-stale' : 'sidebar-foot'}>
+      <span className={stale ? 'live-dot live-dot-stale' : 'live-dot'}/>
+      Repository-backed
+      <span title={subject ?? undefined}>
+        {commit ? <>Built from <code>{commit}</code></> : 'Build source unknown'}
+        {when && ` · ${when}`}
+        {stale && ` · ${Math.floor(ageDays)} days old`}
+      </span>
+    </div>
+  );
+}
 
 function Home() {
   return <><PageHeader eyebrow="CARD ENGINE · STUDIO CONTROL CENTER" title="Everything we know, somewhere worth exploring." intro="A visual, searchable home for the game’s characters, worlds, production truth, and the tools used to make them." status="IN FLIGHT"/>
@@ -267,7 +299,7 @@ function Elements() {
   const [selected, setSelected] = useState(0);
   const element = elements[selected];
   return <><PageHeader eyebrow="VISUAL WIKI · ELEMENT CODEX" title="Elements" intro="Every element has two lives: the crystal establishes its identity, and the combat performance shows how that material charges, travels, and lands." status="IN FLIGHT"/>
-    <Panel title="Choose an element" action={<span className="element-count">29 canonical elements · 27 PixelLab combat kits</span>} className="element-browser">
+    <Panel title="Choose an element" action={<span className="element-count">{elements.length} canonical elements · {elements.filter(({ artStatus }) => artStatus === 'candidate').length} PixelLab combat kits</span>} className="element-browser">
       <div className="crystal-grid" role="listbox" aria-label="Element library">
         {elements.map((item, index) => <button className={selected === index ? 'selected' : ''} onClick={() => setSelected(index)} key={item.slug} role="option" aria-selected={selected === index} tabIndex={selected === index ? 0 : -1} onKeyDown={(event) => {
           const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('button');
@@ -563,7 +595,10 @@ function StudioHandbook() {
   </>;
 }
 
-function Assets() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Art & Assets" intro="The web-sized catalog now; a clean bridge to OpenNest full-resolution storage later." status="IN FLIGHT"/><div className="asset-stats"><div><strong>11</strong><span>Integrated emblems</span></div><div><strong>29</strong><span>Element crystals</span></div><div><strong>7</strong><span>Debt-Bearer clips</span></div><div><strong>2</strong><span>Approved arenas</span></div></div><Panel title="Storage contract"><div className="storage-flow"><div><Image/><strong>Studio Wiki</strong><span>Metadata + web previews</span></div><ChevronDown/><div><Boxes/><strong>GitHub repository</strong><span>Canonical docs + optimized assets</span></div><ChevronDown/><div><Castle/><strong>OpenNest at home</strong><span>Full-resolution sources later</span></div></div></Panel><Panel title="Asset truth"><div className="fact-grid"><div><Status value="APPROVED"/><strong>Ready for canonical display</strong></div><div><Status value="IN FLIGHT"/><strong>Visible with status and provenance</strong></div><div><Status value="MISSING ASSET"/><strong>Honest placeholder; no substitution</strong></div><div><Status value="PARKED"/><strong>Preserved without implying commitment</strong></div></div></Panel></>; }
+function Assets() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Art & Assets" intro="The web-sized catalog now; a clean bridge to OpenNest full-resolution storage later." status="IN FLIGHT"/>{/* Counted, never typed. These tiles read as authoritative, so a stale number
+    here is a lie the page tells confidently. Only the arena count is literal —
+    there is no arena registry for the Wiki to count yet. */}
+<div className="asset-stats"><div><strong>{archetypes.length}</strong><span>Integrated emblems</span></div><div><strong>{elements.filter(({ crystal }) => crystal).length}</strong><span>Element crystals</span></div><div><strong>{bossStates.length}</strong><span>Debt-Bearer clips</span></div><div><strong>2</strong><span>Approved arenas</span></div></div><Panel title="Storage contract"><div className="storage-flow"><div><Image/><strong>Studio Wiki</strong><span>Metadata + web previews</span></div><ChevronDown/><div><Boxes/><strong>GitHub repository</strong><span>Canonical docs + optimized assets</span></div><ChevronDown/><div><Castle/><strong>OpenNest at home</strong><span>Full-resolution sources later</span></div></div></Panel><Panel title="Asset truth"><div className="fact-grid"><div><Status value="APPROVED"/><strong>Ready for canonical display</strong></div><div><Status value="IN FLIGHT"/><strong>Visible with status and provenance</strong></div><div><Status value="MISSING ASSET"/><strong>Honest placeholder; no substitution</strong></div><div><Status value="PARKED"/><strong>Preserved without implying commitment</strong></div></div></Panel></>; }
 
 function Workshops() { return <><PageHeader eyebrow="PRODUCTION LIBRARY" title="Workshops" intro="The repeatable harnesses and review surfaces that let the studio see how something is being made." status="IN FLIGHT"/><div className="workshop-grid"><Workshop image={workshopSprite} title="Sprite Lab" copy="Generate, recover, pack, and validate PixelLab characters and bosses." path="card-engine/scripts/sprite-lab"/><Workshop image={workshopArena} title="Background Harness" copy="Prompt, compare, finish, and approve environment plates." path="card-engine/scripts/bg-harness"/><Workshop image={workshopBoss} title="Boss Readout" copy="Review animation states, frame geometry, and combat presentation." path="card-engine/scripts"/></div><Panel title="A harness is a window"><p className="large-copy">A generation run is not complete merely because files exist. The harness exposes the prompt, candidates, provenance, cost, validation, and human approval point so the next person can reproduce the work.</p><RepoLink path="HARNESS_INDEX.md"/></Panel></>; }
 function Workshop({image,title,copy,path}:{image:string;title:string;copy:string;path:string}) { return <Panel className="workshop-card"><img src={image} alt="" onError={(event) => { event.currentTarget.style.display='none'; }}/><h2>{title}</h2><p>{copy}</p><RepoLink path={path}/></Panel>; }

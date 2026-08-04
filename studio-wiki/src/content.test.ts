@@ -1,7 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
 import { sectionsFromMarkdown } from './markdown';
 import { isStudioPartnerRole } from './studioApi';
+import { ARCHETYPE_NAMES } from '../../card-engine/src/types/card';
+import { ELEMENT_NAMES } from '../../card-engine/src/types/bible';
 
 describe('Studio Wiki content contracts', () => {
   it('limits shared Studio work to the two partner role classes', () => {
@@ -10,20 +14,45 @@ describe('Studio Wiki content contracts', () => {
     expect(isStudioPartnerRole('user')).toBe(false);
     expect(isStudioPartnerRole(undefined)).toBe(false);
   });
-  it('keeps the complete archetype and boss-state sets', () => {
-    expect(archetypes).toHaveLength(11);
-    expect(new Set(archetypes.map(([name]) => name)).size).toBe(11);
+  // These two compare the Wiki against the GAME, not against a number written
+  // here. A count assertion passes forever while the Wiki quietly falls behind;
+  // an equality assertion fails the moment the game grows, which is the only
+  // signal that actually keeps this page honest.
+  it('presents exactly the archetypes the game defines, in the game order', () => {
+    expect(archetypes.map(([name]) => name)).toEqual([...ARCHETYPE_NAMES]);
+  });
+
+  it('presents exactly the elements the game defines, in the game order', () => {
+    expect(elements.map(({ name }) => name)).toEqual([...ELEMENT_NAMES]);
+    expect(elements.map(({ slug }) => slug)).toEqual(ELEMENT_NAMES.map((name) => name.toLowerCase()));
+  });
+
+  it('keeps the complete boss-state set', () => {
     expect(bossStates.map(({ id }) => id)).toEqual([
       'idle', 'windup', 'attack', 'ultimate', 'rage', 'hit', 'defeat',
     ]);
   });
 
-  it('indexes the complete element language and the committed combat-art coverage', () => {
-    expect(elements).toHaveLength(29);
-    expect(new Set(elements.map(({ slug }) => slug)).size).toBe(29);
-    expect(elements.filter(({ artStatus }) => artStatus === 'candidate')).toHaveLength(27);
+  it('records combat-art coverage honestly rather than implying every element is done', () => {
+    // Holy is procedural and Time is unauthored. If either gains real art the
+    // count moves — that is a content decision worth failing a test over.
     expect(elements.find(({ slug }) => slug === 'holy')?.artStatus).toBe('procedural');
     expect(elements.find(({ slug }) => slug === 'time')?.artStatus).toBe('missing');
+    expect(elements.filter(({ artStatus }) => artStatus === 'candidate')).toHaveLength(elements.length - 2);
+  });
+
+  it('states counts the page can derive rather than numbers typed into the markup', () => {
+    // The Art & Assets tiles used to read "29 Element crystals" as a literal. That
+    // was already wrong — Time has no crystal — and nothing would ever have caught
+    // it. Any count the Wiki prints has to be countable from this module.
+    const withCrystal = elements.filter(({ crystal }) => crystal);
+    expect(withCrystal.length).toBeLessThan(elements.length);
+    expect(elements.find(({ slug }) => slug === 'time')?.crystal).toBe('');
+
+    const source = readFileSync(resolve(import.meta.dirname, 'App.tsx'), 'utf8');
+    expect(source).not.toContain('>29 canonical elements');
+    expect(source).not.toContain('<strong>29</strong><span>Element crystals');
+    expect(source).not.toContain('<strong>11</strong><span>Integrated emblems');
   });
 
   it('does not expose duplicate routes', () => {

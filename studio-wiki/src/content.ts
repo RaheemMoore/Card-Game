@@ -1,18 +1,35 @@
+import { ARCHETYPE_NAMES, type ArchetypeName } from '../../card-engine/src/types/card';
+import { ELEMENT_NAMES, type ElementName } from '../../card-engine/src/types/bible';
+
 export type TruthStatus = 'SHIPPED' | 'IN FLIGHT' | 'PLANNED' | 'PARKED' | 'APPROVED' | 'MISSING ASSET';
 
-export const archetypes = [
-  ['Barbarian', 'barbarian.jpg', 'Blood-Iron clan crest', 'ATK-led warrior tradition'],
-  ['Monk', 'monk.jpg', 'Circular monastery seal', 'Discipline made visible'],
-  ['Beastmaster', 'beastmaster.jpg', 'Ceremonial beast totem', 'Bond before command'],
-  ['Druid', 'druid.jpg', 'Rootweaver open hand', 'Nature as relationship'],
-  ['Necromancer', 'necromancer.jpg', 'Skull and black crescent', 'Memory, cost, and the dead'],
-  ['Vampire', 'vampire.jpg', 'Blood-moon relic', 'Hunger under control'],
-  ['Lycanthrope', 'lycanthrope.jpg', 'Wolf over the silver moon', 'Pack trust and lunar duty'],
-  ['Mech Pilot', 'mech-pilot.jpg', 'Techno-arcane pilot helm', 'Human judgment inside machinery'],
-  ['Android', 'android.png', 'Synthetic mechanical eye', 'Personhood beyond origin'],
-  ['Seraph', 'seraph.jpg', 'Six-winged celestial mask', 'A contested divine spark'],
-  ['Human', 'human.jpg', 'Fingerprint-ridge knight', 'Adaptability without destiny'],
-] as const;
+/**
+ * How the Wiki presents each archetype. The *set* of archetypes is not decided
+ * here — it comes from the game's `ARCHETYPE_NAMES`. Because this is a
+ * `Record<ArchetypeName, …>`, adding a twelfth archetype to the game fails the
+ * Wiki's typecheck until someone writes its emblem and identity line.
+ *
+ * That is deliberate. The Wiki used to keep its own hand-copied list, which
+ * happened to be correct but had nothing keeping it correct.
+ */
+const ARCHETYPE_PRESENTATION: Record<ArchetypeName, { emblem: string; symbol: string; identity: string }> = {
+  Barbarian: { emblem: 'barbarian.jpg', symbol: 'Blood-Iron clan crest', identity: 'ATK-led warrior tradition' },
+  Monk: { emblem: 'monk.jpg', symbol: 'Circular monastery seal', identity: 'Discipline made visible' },
+  Beastmaster: { emblem: 'beastmaster.jpg', symbol: 'Ceremonial beast totem', identity: 'Bond before command' },
+  Druid: { emblem: 'druid.jpg', symbol: 'Rootweaver open hand', identity: 'Nature as relationship' },
+  Necromancer: { emblem: 'necromancer.jpg', symbol: 'Skull and black crescent', identity: 'Memory, cost, and the dead' },
+  Vampire: { emblem: 'vampire.jpg', symbol: 'Blood-moon relic', identity: 'Hunger under control' },
+  Lycanthrope: { emblem: 'lycanthrope.jpg', symbol: 'Wolf over the silver moon', identity: 'Pack trust and lunar duty' },
+  'Mech Pilot': { emblem: 'mech-pilot.jpg', symbol: 'Techno-arcane pilot helm', identity: 'Human judgment inside machinery' },
+  Android: { emblem: 'android.png', symbol: 'Synthetic mechanical eye', identity: 'Personhood beyond origin' },
+  Seraph: { emblem: 'seraph.jpg', symbol: 'Six-winged celestial mask', identity: 'A contested divine spark' },
+  Human: { emblem: 'human.jpg', symbol: 'Fingerprint-ridge knight', identity: 'Adaptability without destiny' },
+};
+
+/** `[name, emblemFile, symbol, identity]`, in the game's own canonical order. */
+export const archetypes = ARCHETYPE_NAMES.map(
+  (name) => [name, ARCHETYPE_PRESENTATION[name].emblem, ARCHETYPE_PRESENTATION[name].symbol, ARCHETYPE_PRESENTATION[name].identity] as const,
+);
 
 export type CardEvidenceState = 'present' | 'review' | 'missing';
 export type CardRecordKind = 'candidate' | 'study';
@@ -235,25 +252,39 @@ export type ElementPerformance = {
   artStatus: 'candidate' | 'procedural' | 'missing';
 };
 
-const performance = (
-  slug: string,
+type PerformanceSpec = [
   charge: ElementPerformance['charge'],
   delivery: ElementPerformance['delivery'],
   impact: string,
   palette: ElementPerformance['palette'],
-  options: Partial<Pick<ElementPerformance, 'streamAnimated' | 'impactAnimated' | 'crystal' | 'artStatus'>> = {},
-): ElementPerformance => ({
-  slug,
-  name: slug[0].toUpperCase() + slug.slice(1),
-  charge,
-  delivery,
-  impact,
-  palette,
-  streamAnimated: options.streamAnimated ?? true,
-  impactAnimated: options.impactAnimated ?? true,
-  crystal: options.crystal === undefined ? `/assets/elements/${slug}.jpg` : options.crystal,
-  artStatus: options.artStatus ?? 'candidate',
-});
+  options?: Partial<Pick<ElementPerformance, 'streamAnimated' | 'impactAnimated' | 'crystal' | 'artStatus'>>,
+];
+
+const performance = (name: ElementName, spec: PerformanceSpec | undefined): ElementPerformance => {
+  if (!spec) {
+    // Reachable when the game adds an element and the Wiki has not been taught how
+    // to show it. TypeScript catches this first; this covers the untyped paths and,
+    // more importantly, says what to do instead of failing on a destructure.
+    throw new Error(
+      `The game defines the element "${name}" but the Studio Wiki has no performance for it. ` +
+        'Add an entry to ELEMENT_PERFORMANCE in studio-wiki/src/content.ts (charge, delivery, impact, palette).',
+    );
+  }
+  const [charge, delivery, impact, palette, options = {}] = spec;
+  const slug = name.toLowerCase();
+  return {
+    slug,
+    name,
+    charge,
+    delivery,
+    impact,
+    palette,
+    streamAnimated: options.streamAnimated ?? true,
+    impactAnimated: options.impactAnimated ?? true,
+    crystal: options.crystal === undefined ? `/assets/elements/${slug}.jpg` : options.crystal,
+    artStatus: options.artStatus ?? 'candidate',
+  };
+};
 
 /**
  * Wiki-facing projection of the committed Ability Performance material table
@@ -262,37 +293,46 @@ const performance = (
  * stable, reviewable index without importing game logic or uncommitted battle
  * integration.
  */
-export const elements = [
-  performance('fire', 'flame', 'wisp', 'spreading sheet', ['#ffd88a', '#e8541c', '#3a1408']),
-  performance('water', 'pool', 'jet', 'foam crown', ['#0e5a72', '#2aa6c4', '#eaf7fb']),
-  performance('earth', 'ground', 'jet', 'splintering stone', ['#6b6459', '#3f382e', '#c9a227'], { impactAnimated: false }),
-  performance('wind', 'motes', 'wisp', 'gust scatter', ['#8fbf9e', '#c9e8d6', '#eaf9f2']),
-  performance('ice', 'motes', 'jet', 'shard burst', ['#a8d8e8', '#4a9bc4', '#eaf9ff']),
-  performance('storm', 'motes', 'wisp', 'radial stormbreak', ['#4a5568', '#7a8fa8', '#eaf2ff']),
-  performance('nature', 'bloom', 'growth', 'root bloom', ['#1e3d1a', '#4a7c2f', '#c9a227']),
-  performance('beast', 'ground', 'lunge', 'four-claw break', ['#8a6b47', '#4a3826', '#e8b923']),
-  performance('blood', 'pool', 'jet', 'wet splatter', ['#7d1220', '#c8203a', '#f2b8bd'], { impactAnimated: false }),
-  performance('poison', 'pool', 'creep', 'toxic fan', ['#5a7a1a', '#4a2a5a', '#c4d43a']),
-  performance('metal', 'motes', 'jet', 'metallic burst', ['#8a8f96', '#c4a668', '#e8c468'], { impactAnimated: false }),
-  performance('spirit', 'halo', 'wisp', 'engulfing spirit', ['#a8c4d8', '#e8f4f8', '#f8fbff']),
-  performance('shadow', 'motes', 'wisp', 'ink bloom', ['#1a1424', '#4a3a63', '#9d8fb5'], { impactAnimated: false }),
-  performance('light', 'halo', 'jet', 'sunburst', ['#fff4d4', '#e8d488', '#ffffff']),
-  performance('holy', 'halo', 'barrier', 'refracting ward', ['#f7e7a8', '#d9a625', '#fffdf2'], { streamAnimated: false, impactAnimated: false, artStatus: 'procedural' }),
-  performance('void', 'motes', 'wisp', 'unmaking bloom', ['#0a0612', '#3a1a52', '#8a4ac9']),
-  performance('time', 'motes', 'unmapped', 'not authored', ['#3b1152', '#c026d3', '#fce7ff'], { streamAnimated: false, impactAnimated: false, crystal: '', artStatus: 'missing' }),
-  performance('cosmic', 'halo', 'wisp', 'nebula bloom', ['#1a1a3a', '#4a3a6a', '#f0c848']),
-  performance('psychic', 'motes', 'jet', 'psychic pulse', ['#7a3a9a', '#c44ab8', '#c896e8']),
-  performance('moon', 'motes', 'jet', 'silver crown', ['#c8d4e8', '#2a3a5a', '#f0f4ff']),
-  performance('dream', 'motes', 'wisp', 'nightmare bloom', ['#0d0512', '#3a1550', '#a855e8']),
-  performance('bone', 'motes', 'volley', 'bone splinter', ['#e8e0d0', '#8a8478', '#6ac4a8'], { streamAnimated: false, impactAnimated: false }),
-  performance('nocturne', 'halo', 'wisp', 'blood-moon veil', ['#4a0f18', '#8a1428', '#c4a8a8']),
-  performance('sanguine', 'crystallize', 'volley', 'garnet shatter', ['#8c0f2a', '#d4224a', '#ffd9e2'], { streamAnimated: false, impactAnimated: false }),
-  performance('lunar', 'halo', 'wisp', 'silver flare', ['#f0f4ff', '#a8c4e8', '#ffffff']),
-  performance('plasma', 'contained', 'jet', 'contained flare', ['#e8f8ff', '#4a1a8a', '#8affff']),
-  performance('nanite', 'motes', 'volley', 'swarm burst', ['#c4c8cc', '#6a6e74', '#4ae8e8'], { streamAnimated: false, impactAnimated: false }),
-  performance('prism', 'motes', 'wisp', 'prismatic flare', ['#f8f4ff', '#4ae8c8', '#e84ac8']),
-  performance('infernal', 'pool', 'jet', 'molten starburst', ['#ffb347', '#7a2408', '#1a0f0a']),
-] as const;
+/**
+ * As with archetypes: the *set* of elements comes from the game's `ELEMENT_NAMES`,
+ * and this record only says how each one is presented. Add a thirtieth element to
+ * the game and the Wiki stops typechecking until its charge, delivery, impact, and
+ * palette are authored — which is the point. A Wiki that quietly omits an element
+ * is worse than one that refuses to build.
+ */
+const ELEMENT_PERFORMANCE: Record<ElementName, PerformanceSpec> = {
+  Fire: ['flame', 'wisp', 'spreading sheet', ['#ffd88a', '#e8541c', '#3a1408']],
+  Water: ['pool', 'jet', 'foam crown', ['#0e5a72', '#2aa6c4', '#eaf7fb']],
+  Earth: ['ground', 'jet', 'splintering stone', ['#6b6459', '#3f382e', '#c9a227'], { impactAnimated: false }],
+  Wind: ['motes', 'wisp', 'gust scatter', ['#8fbf9e', '#c9e8d6', '#eaf9f2']],
+  Ice: ['motes', 'jet', 'shard burst', ['#a8d8e8', '#4a9bc4', '#eaf9ff']],
+  Storm: ['motes', 'wisp', 'radial stormbreak', ['#4a5568', '#7a8fa8', '#eaf2ff']],
+  Nature: ['bloom', 'growth', 'root bloom', ['#1e3d1a', '#4a7c2f', '#c9a227']],
+  Beast: ['ground', 'lunge', 'four-claw break', ['#8a6b47', '#4a3826', '#e8b923']],
+  Blood: ['pool', 'jet', 'wet splatter', ['#7d1220', '#c8203a', '#f2b8bd'], { impactAnimated: false }],
+  Poison: ['pool', 'creep', 'toxic fan', ['#5a7a1a', '#4a2a5a', '#c4d43a']],
+  Metal: ['motes', 'jet', 'metallic burst', ['#8a8f96', '#c4a668', '#e8c468'], { impactAnimated: false }],
+  Spirit: ['halo', 'wisp', 'engulfing spirit', ['#a8c4d8', '#e8f4f8', '#f8fbff']],
+  Shadow: ['motes', 'wisp', 'ink bloom', ['#1a1424', '#4a3a63', '#9d8fb5'], { impactAnimated: false }],
+  Light: ['halo', 'jet', 'sunburst', ['#fff4d4', '#e8d488', '#ffffff']],
+  Holy: ['halo', 'barrier', 'refracting ward', ['#f7e7a8', '#d9a625', '#fffdf2'], { streamAnimated: false, impactAnimated: false, artStatus: 'procedural' }],
+  Void: ['motes', 'wisp', 'unmaking bloom', ['#0a0612', '#3a1a52', '#8a4ac9']],
+  Time: ['motes', 'unmapped', 'not authored', ['#3b1152', '#c026d3', '#fce7ff'], { streamAnimated: false, impactAnimated: false, crystal: '', artStatus: 'missing' }],
+  Cosmic: ['halo', 'wisp', 'nebula bloom', ['#1a1a3a', '#4a3a6a', '#f0c848']],
+  Psychic: ['motes', 'jet', 'psychic pulse', ['#7a3a9a', '#c44ab8', '#c896e8']],
+  Moon: ['motes', 'jet', 'silver crown', ['#c8d4e8', '#2a3a5a', '#f0f4ff']],
+  Dream: ['motes', 'wisp', 'nightmare bloom', ['#0d0512', '#3a1550', '#a855e8']],
+  Bone: ['motes', 'volley', 'bone splinter', ['#e8e0d0', '#8a8478', '#6ac4a8'], { streamAnimated: false, impactAnimated: false }],
+  Nocturne: ['halo', 'wisp', 'blood-moon veil', ['#4a0f18', '#8a1428', '#c4a8a8']],
+  Sanguine: ['crystallize', 'volley', 'garnet shatter', ['#8c0f2a', '#d4224a', '#ffd9e2'], { streamAnimated: false, impactAnimated: false }],
+  Lunar: ['halo', 'wisp', 'silver flare', ['#f0f4ff', '#a8c4e8', '#ffffff']],
+  Plasma: ['contained', 'jet', 'contained flare', ['#e8f8ff', '#4a1a8a', '#8affff']],
+  Nanite: ['motes', 'volley', 'swarm burst', ['#c4c8cc', '#6a6e74', '#4ae8e8'], { streamAnimated: false, impactAnimated: false }],
+  Prism: ['motes', 'wisp', 'prismatic flare', ['#f8f4ff', '#4ae8c8', '#e84ac8']],
+  Infernal: ['pool', 'jet', 'molten starburst', ['#ffb347', '#7a2408', '#1a0f0a']],
+};
+
+export const elements = ELEMENT_NAMES.map((name) => performance(name, ELEMENT_PERFORMANCE[name]));
 
 export const bossStates = [
   { id: 'idle', file: 'idle', frames: 5, fps: 3, loop: true, label: 'Idle' },
