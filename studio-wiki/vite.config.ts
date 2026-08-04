@@ -37,6 +37,9 @@ export default defineConfig({
   plugins: [react(), studioContent()],
   publicDir: resolve(repositoryRoot, 'card-engine/public'),
   server: {
+    // 5174, not the default 5173 — the game's dev server owns that port, and the
+    // Wiki is most useful running beside it while you cross-check what it claims.
+    port: 5174,
     fs: { allow: [repositoryRoot] },
   },
   build: { outDir: 'dist' },

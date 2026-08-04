@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Sparkles, FlaskConical, Hammer,
   Receipt, Activity, PanelLeftClose, PanelLeftOpen, LogOut, ArrowLeft,
-  BookOpen, LibraryBig, ExternalLink,
+  LibraryBig, ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -19,7 +19,12 @@ interface NavExternal extends NavBase { href: string; to?: undefined; end?: unde
 type NavItem = NavRoute | NavExternal;
 interface NavGroup { label: string; items: NavItem[] }
 
-const PRODUCTION_GUIDE_URL = 'https://claude.ai/code/artifact/d6c9c64f-1342-43cc-9b5f-6fdd87d98852';
+// The Studio Wiki replaced the old Production Guide artifact link. The guide was a
+// generated single-page export hosted on a personal Claude artifact URL — it could
+// only be republished from a chat, it was private to one account, and it presented
+// PRODUCTION.md as a wall of text. The Wiki reads the same PRODUCTION.md at build
+// time and surrounds it with the art, animation, and review surfaces, so there is
+// no reason to keep two doors to the same source.
 const STUDIO_WIKI_URL = 'https://card-engine-studio-wiki.vercel.app';
 
 const GROUPS: readonly NavGroup[] = [
@@ -48,7 +53,6 @@ const GROUPS: readonly NavGroup[] = [
   {
     label: 'Studio',
     items: [
-      { label: 'Production Guide', href: PRODUCTION_GUIDE_URL, icon: BookOpen, directorOk: true },
       { label: 'Studio Wiki', href: STUDIO_WIKI_URL, icon: LibraryBig, directorOk: true },
     ],
   },

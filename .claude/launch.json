@@ -9,6 +9,14 @@
       "autoPort": true
     },
     {
+      "//": "The Studio Wiki is its own Vite app and its own Vercel project. It reads PRODUCTION.md at build time and serves card-engine/public as its publicDir, so it must run from the repo root context, not standalone.",
+      "name": "studio-wiki-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "studio-wiki"],
+      "port": 5174,
+      "autoPort": true
+    },
+    {
       "//": "Static server for sprite-lab review sheets. The browser pane refuses file:// URLs, and boss clip sheets must be WATCHED to be reviewed — stills cannot show drift, and every defect this repo has shipped was found by looking at motion.",
       "name": "sprite-lab-sheets",
       "runtimeExecutable": "python3",
