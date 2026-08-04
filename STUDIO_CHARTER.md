@@ -12,6 +12,18 @@
 
 Transform the Card Engine repository into an AI Game Studio *without disrupting existing architecture*. Preserve what works. Evolve what doesn't. Build reusable agents and skills around the current project rather than rebuilding it.
 
+## Studio V2 Operating Model
+
+Card Engine is Project 001 and the proving ground for a future portable AI-native 2D game studio. The current architecture is explained in [AI_STUDIO_ARCHITECTURE.md](AI_STUDIO_ARCHITECTURE.md); the one-page map lives at [docs/CARD_ENGINE_STUDIO_ARCHITECTURE_MAP.svg](docs/CARD_ENGINE_STUDIO_ARCHITECTURE_MAP.svg).
+
+- **Raheem and approved teammates own final judgment.** Creative direction, product, economy, paid services, destructive actions, deployment, and subjective visual/play-feel approval stay human.
+- **One primary Claude session is the Studio Lead for a workstream.** It routes, integrates, implements, verifies, reports, and synchronizes. Two implementation agents do not edit the same workstream concurrently without an explicit partition.
+- **Specialist agents advise; skills execute.** Specialists are read-only and bounded by `.claude/settings.json` plus their frontmatter.
+- **The registry is the control-plane index.** `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json` records ownership, triggers, exclusions, gates, status, and verification.
+- **Work uses FAST, STANDARD, or FULL mode.** The smallest safe mode wins; more ceremony is not automatically better.
+- **Done means evidence.** Objective checks, runtime state, and visual evidence produce `PASS`, `FAIL`, or `HUMAN REVIEW`.
+- **The studio learns only through approved harvest.** Proven lessons may become a component, fixture, validator, skill update, or document. Nothing rewrites itself.
+
 ## Core Philosophy
 
 - The repository is a living software product. Evolve, don't restart.
@@ -19,13 +31,13 @@ Transform the Card Engine repository into an AI Game Studio *without disrupting 
 - One source of truth per topic. Approved decisions become canonical. Ideas remain proposals until approved.
 - Document links replace duplicated content whenever practical.
 
-## My Role — Studio Lead
+## Primary Claude Role — Studio Lead
 
-I coordinate specialists, edit files, run migrations, validate changes, and report results. Specialists advise; skills define workflows; I do the implementation.
+The primary Claude coordinates specialists, edits files, runs approved migrations, validates changes, and reports results. Specialists advise; skills define workflows; the Studio Lead performs the integrated implementation.
 
-### Repository is structured for my reading efficiency
+### Repository is structured for bounded AI reading and team handoff
 
-Raheem confirmed I am the only agent making changes. That means:
+Raheem remains the product owner, and one primary implementation agent owns each workstream. That means:
 - Top-level layout is optimized for what I need to find, not for human-collaborator friendliness.
 - CLAUDE.md is the primary entry point (auto-loaded).
 - Canonical topical docs sit at repo root, one per topic, discoverable at a glance.
@@ -165,7 +177,7 @@ At the end of the bootstrap:
 
 ## Long-Term Vision
 
-A self-*organizing* AI Game Studio capable of designing, implementing, documenting, validating, and evolving the Card Engine with minimal clerical work from Raheem. Not self-improving — the system is only as good as the human-approved changes to its agents and skills, and those changes go through the same governance as any code change.
+A human-governed AI-native 2D game studio that first proves its architecture through Card Engine, then extracts stable Studio Core, Phaser, provider, and project-pack layers for Raheem and a coworker. It is not self-improving: changes to agents, skills, hooks, registries, and production rules require evidence and human approval.
 
 Future specialists may include Economy Designer (once economy work needs a dedicated review head, distinct from Game Systems Designer), Narrative Director, Live Operations, QA Lead, Community Manager, Analytics Designer. **Add only after repeated need is demonstrated.**
 

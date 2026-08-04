@@ -74,7 +74,20 @@ vite.config.ts.timestamp-*
 !.claude/agents/
 !.claude/skills/
 !.claude/verify/
+!.claude/scripts/
+!.claude/studio/
+!.claude/settings.json
 !.claude/launch.json
+
+# Codex adapters. Canonical studio policy remains under .claude; these files
+# make the same advisers, skills, and hooks discoverable in Codex.
+!.agents/
+!.agents/skills/
+!.codex/
+!.codex/agents/
+!.codex/config.toml
+!.codex/hooks.json
+!AGENTS.md
 
 # yarn v3
 .pnp.*

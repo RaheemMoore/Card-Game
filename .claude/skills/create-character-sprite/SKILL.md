@@ -5,6 +5,9 @@ description: Design and generate a directional, animated character sprite set (4
 
 # Skill: create-character-sprite
 
+
+> **Studio V2 contracts:** Before any paid call, follow [PAID_OPERATION_POLICY.md](../../studio/PAID_OPERATION_POLICY.md). Final acceptance uses [EVIDENCE_VERDICT_CONTRACT.md](../../studio/EVIDENCE_VERDICT_CONTRACT.md). Group expected provider calls into one approved batch with a stop limit; recovery, download, sheet, validation, and local finishing steps are not new paid approval events.
+
 PixelLab is the character pipeline. Leonardo is **not** — it has no concept of a frame sequence, pins identity with reference images and hope, and in practice returned the same character in two different art styles with two failed attempts at a front-facing view. PixelLab models a character as a first-class object you derive from.
 
 Tooling: `card-engine/scripts/sprite-lab/` (`sprite-lab.mjs`, `configs/*.json`, `lib/palette_ref.py`). Key: `PIXELLAB_API_KEY` in `card-engine/.env.local` — build-time only, never in Vercel env, never `VITE_`-prefixed.

@@ -1,6 +1,6 @@
 ---
 name: trace-environment
-description: Turn a painted environment plate into a walkable scene by tracing its occluders and colliders in Figma. Use when a new environment plate has been generated, when an existing environment's objects are wrong (character walks through things, or gets cut off by invisible ground), or when re-tracing after a plate is regenerated.
+description: Turn an approved painted environment plate into Phaser occluder/collider data by tracing exact shapes in Figma, importing them losslessly, and mechanically verifying alignment/depth. Use for a new or regenerated plate and collision/occlusion defects. Do NOT use to redesign the environment, generate PixelLab art, estimate coordinates, or replace runtime visual-playtest.
 ---
 
 # Trace an environment
@@ -71,6 +71,20 @@ Rules that matter:
 
 - **Frame origin must be (0,0) and its size must equal the plate's pixel size.**
   Everything is read in frame coordinates and lands on the plate 1:1.
+
+- **NEVER convert a coordinate by hand. Ever.** If a plate ships a `@2x-trace`
+  copy for zooming comfort, drop THAT image into the frame as its fill and leave
+  the frame at the plate's pixel size. Figma renders an image fill at the file's
+  native resolution, so a 3072px image inside a 1536px frame stays crisp when you
+  zoom in — while every node coordinate is still plate-space, because the frame
+  is. You get the sharpness of the big file and the numbers of the small one, and
+  nothing has to be halved.
+
+  Belt and braces: if a trace export records a `frame: {width, height}` that is
+  not the plate's size, `import_traces.py` derives the scale and applies it
+  itself, and aborts if the aspect ratios disagree. A rule that depends on a
+  human remembering to divide is a rule that fails once and silently corrupts
+  every collider in the scene.
 - **Names are the contract.** An occluder and its collider share a name. Claude
   matches them by name, so a typo silently orphans a shape.
 - Fill colour and opacity are irrelevant — only the shape is read. Solid white

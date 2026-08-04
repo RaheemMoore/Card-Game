@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1030" viewBox="0 0 1600 1030" role="img" aria-labelledby="title desc">
+  <title id="title">Card Engine AI Studio V2 installed agents and skills</title>
+  <desc id="desc">A list of nine read-only specialist agents and twenty-three installed workflow skills, including inactive and retired workflows.</desc>
+  <rect width="1600" height="1030" fill="#f8fafc"/>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #102044; }
+    .title { font-size: 38px; font-weight: 700; }
+    .subtitle { font-size: 20px; fill: #40516f; }
+    .head { font-size: 27px; font-weight: 700; }
+    .item { font-size: 20px; }
+    .note { font-size: 15px; fill: #52627b; }
+    .footer { font-size: 16px; fill: #ffffff; }
+    .panel { fill: #ffffff; stroke-width: 2; rx: 18; }
+    .agent { stroke: #6651c6; }
+    .skill { stroke: #12837a; }
+    .row { fill: #f8fafc; stroke: #cad3e0; rx: 10; }
+    .inactive { fill: #f1f4f8; stroke: #8995a7; }
+    .retired { fill: #fff8e6; stroke: #c97913; }
+  </style>
+  <text class="title" x="800" y="58" text-anchor="middle">CARD ENGINE AI STUDIO V2 — INSTALLED AGENTS + SKILLS</text>
+  <text class="subtitle" x="800" y="92" text-anchor="middle">The current checked-in roster. Agents advise; skills are repeatable workflows.</text>
+
+  <rect class="panel agent" x="34" y="125" width="540" height="820"/>
+  <text class="head" x="65" y="175">READ-ONLY SPECIALIST AGENTS — 9</text>
+  <g class="item">
+    <rect class="row" x="65" y="205" width="478" height="58"/><text x="90" y="242">art-prompt-director</text>
+    <rect class="row" x="65" y="278" width="478" height="58"/><text x="90" y="315">environment-art-director</text>
+    <rect class="row" x="65" y="351" width="478" height="58"/><text x="90" y="388">game-systems-designer</text>
+    <rect class="row" x="65" y="424" width="478" height="58"/><text x="90" y="461">lore-fantasy-director</text>
+    <rect class="row" x="65" y="497" width="478" height="58"/><text x="90" y="534">minigame-designer</text>
+    <rect class="row" x="65" y="570" width="478" height="58"/><text x="90" y="607">phaser-runtime-director</text>
+    <rect class="row" x="65" y="643" width="478" height="58"/><text x="90" y="680">pixel-sprite-director</text>
+    <rect class="row" x="65" y="716" width="478" height="58"/><text x="90" y="753">technical-architect</text>
+    <rect class="row" x="65" y="789" width="478" height="58"/><text x="90" y="826">ui-ux-director</text>
+  </g>
+  <text class="note" x="65" y="890">They provide bounded advice and never edit, spend, or deploy.</text>
+
+  <rect class="panel skill" x="602" y="125" width="964" height="820"/>
+  <text class="head" x="633" y="175">PRODUCTION WORKFLOW SKILLS — 23 INSTALLED</text>
+  <g class="item">
+    <rect class="row" x="633" y="205" width="430" height="48"/><text x="653" y="236">art-pipeline</text>
+    <rect class="row" x="1102" y="205" width="430" height="48"/><text x="1122" y="236">design-minigame</text>
+    <rect class="row" x="633" y="263" width="430" height="48"/><text x="653" y="294">audit-project-knowledge</text>
+    <rect class="retired" x="1102" y="263" width="430" height="48" rx="10"/><text x="1122" y="294">extract-fullscreen-shell</text><text class="note" x="1475" y="294" text-anchor="end">retired</text>
+    <rect class="inactive" x="633" y="321" width="430" height="48" rx="10"/><text x="653" y="352">balance-playtest</text><text class="note" x="1006" y="352" text-anchor="end">inactive</text>
+    <rect class="row" x="1102" y="321" width="430" height="48"/><text x="1122" y="352">place-character-in-scene</text>
+    <rect class="row" x="633" y="379" width="430" height="48"/><text x="653" y="410">build-phaser-feature</text>
+    <rect class="row" x="1102" y="379" width="430" height="48"/><text x="1122" y="410">production-log</text>
+    <rect class="row" x="633" y="437" width="430" height="48"/><text x="653" y="468">consult-specialist</text>
+    <rect class="row" x="1102" y="437" width="430" height="48"/><text x="1122" y="468">ship-approved-plan</text>
+    <rect class="row" x="633" y="495" width="430" height="48"/><text x="653" y="526">create-archetype</text>
+    <rect class="retired" x="1102" y="495" width="430" height="48" rx="10"/><text x="1122" y="526">ship-minigame</text><text class="note" x="1475" y="526" text-anchor="end">retired</text>
+    <rect class="row" x="633" y="553" width="430" height="48"/><text x="653" y="584">create-arena</text>
+    <rect class="row" x="1102" y="553" width="430" height="48"/><text x="1122" y="584">studio-health</text>
+    <rect class="row" x="633" y="611" width="430" height="48"/><text x="653" y="642">create-boss</text>
+    <rect class="row" x="1102" y="611" width="430" height="48"/><text x="1122" y="642">sync-project-knowledge</text>
+    <rect class="row" x="633" y="669" width="430" height="48"/><text x="653" y="700">create-character-sprite</text>
+    <rect class="row" x="1102" y="669" width="430" height="48"/><text x="1122" y="700">trace-environment</text>
+    <rect class="row" x="633" y="727" width="430" height="48"/><text x="653" y="758">create-prop</text>
+    <rect class="row" x="1102" y="727" width="430" height="48"/><text x="1122" y="758">visual-playtest</text>
+    <rect class="row" x="633" y="785" width="430" height="48"/><text x="653" y="816">design-archetype-emblem</text>
+    <rect class="row" x="1102" y="785" width="430" height="48"/><text x="1122" y="816">work-proposal</text>
+    <rect class="row" x="633" y="843" width="430" height="48"/><text x="653" y="874">design-feature</text>
+  </g>
+  <text class="note" x="633" y="916">Retired and inactive files remain installed as governed historical records.</text>
+
+  <rect x="34" y="970" width="1532" height="38" rx="12" fill="#102d54"/>
+  <text class="footer" x="800" y="996" text-anchor="middle">Detailed rules live in the capability registry and each agent or skill file. This chart stays the quick handoff index.</text>
+</svg>

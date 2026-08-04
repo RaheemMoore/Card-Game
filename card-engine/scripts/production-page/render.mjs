@@ -18,6 +18,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
+const PYTHON = process.platform === 'win32' ? 'python' : 'python3';
+
 export const esc = (s) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -74,7 +76,7 @@ function makeImageInliner(assetsDir) {
     if (!fs.existsSync(abs)) return null;
     try {
       const b64 = execFileSync(
-        'python3',
+        PYTHON,
         [
           '-c',
           `
@@ -294,7 +296,9 @@ export function render(md, { assetsDir, docsDir }) {
     return '';
   }
 
-  const lines = md.split('\n');
+  // PRODUCTION.md has existed on both Windows and Unix. Normalize before
+  // parsing so a trailing CR cannot make a heading look unsupported.
+  const lines = md.replace(/\r\n?/g, '\n').split('\n');
   let i = 0;
   let title = '';
 
@@ -540,6 +544,10 @@ export function render(md, { assetsDir, docsDir }) {
     ) {
       buf.push(lines[i++]);
     }
+    // A line shape the compact parser does not recognize must still advance.
+    // Without this guard, one unsupported construct can loop forever and grow
+    // the output array until Node exhausts its heap.
+    if (buf.length === 0) buf.push(lines[i++]);
     out.push(`<p>${inline(buf.join(' '))}</p>`);
   }
 

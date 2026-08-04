@@ -40,7 +40,7 @@ const OUT =
  * means every downstream regex can keep assuming `\n` and stay correct
  * regardless of which line ending git handed back.
  */
-const raw = fs.readFileSync(SRC, 'utf8').replace(/\r\n/g, '\n');
+const raw = fs.readFileSync(SRC, 'utf8').replace(/\r\n?/g, '\n');
 
 /**
  * Drop the markdown "## Contents" table. It earns its place in the .md — GitHub

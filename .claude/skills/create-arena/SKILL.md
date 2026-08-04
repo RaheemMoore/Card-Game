@@ -5,6 +5,9 @@ description: Produce a new battle arena or environment plate end to end — brie
 
 # Skill: create-arena
 
+
+> **Studio V2 contracts:** Before any paid call, follow [PAID_OPERATION_POLICY.md](../../studio/PAID_OPERATION_POLICY.md). Final acceptance uses [EVIDENCE_VERDICT_CONTRACT.md](../../studio/EVIDENCE_VERDICT_CONTRACT.md). Group expected provider calls into one approved batch with a stop limit; recovery, download, sheet, validation, and local finishing steps are not new paid approval events.
+
 An arena is not a picture, it is a **stage with contracts**. The HUD sits on it, the party
 stands on it, the boss's platform is drawn in code on top of it, and its colours are
 reserved against the VFX that will fire over it. Get the picture right and the contracts

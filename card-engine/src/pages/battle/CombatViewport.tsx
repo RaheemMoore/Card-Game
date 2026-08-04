@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { Card } from '../../types/card';
 import type { AbilitySlotType } from '../../types/abilities';
 import type { BattleEvent, BattleState, PlayerAction } from '../../types/combat';
@@ -16,6 +15,7 @@ import { CombatScene } from './CombatScene';
 import { CombatJournalRail } from './CombatJournalRail';
 import { ResultModal } from './ResultModal';
 import { MobileCombatScene } from './mobile/MobileCombatScene';
+import { FullscreenGameShell } from '../games/FullscreenGameShell';
 import { BATTLE_STUDIO_SCENARIO, useBattleStudioBridge } from './studioBridge';
 
 interface Props {
@@ -167,14 +167,6 @@ export function CombatViewport({
   );
 
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, []);
-
-  useEffect(() => {
     if (!state || !state.result || state.phase !== 'battle_over') {
       setRewardOutcome(null);
       return;
@@ -189,7 +181,7 @@ export function CombatViewport({
     setRewardOutcome(outcome);
   }, [state, entryTxnId]);
 
-  const body = (
+  const mainColumn = (
     <div
       /* `motion-<level>` is what actually carries the player's Motion choice
          into CSS. Several stylesheets under this root gate their animations on
@@ -198,11 +190,8 @@ export function CombatViewport({
          the OS flag still got every one of them. Emitting the resolved level
          here fixes all of them at once, and covers the mobile tree too, since
          both layout dispatches live under this element. */
-      className={`fixed inset-0 z-50 w-screen h-[100dvh] overflow-hidden text-bone motion-${motionLevel}`}
+      className={`relative w-full h-full min-h-0 overflow-hidden text-bone motion-${motionLevel}`}
       style={{ background: '#050308' }}
-      aria-label="Active combat"
-      role="dialog"
-      aria-modal="true"
       data-battle-runtime="authentic"
       data-battle-scenario={import.meta.env.DEV ? BATTLE_STUDIO_SCENARIO : undefined}
       data-battle-phase={import.meta.env.DEV ? state?.phase : undefined}
@@ -283,34 +272,20 @@ export function CombatViewport({
         </div>
       )}
 
-      {state?.phase === 'battle_over' && state.result && (
-        <ResultModal
-          outcome={state.result.outcome}
-          roundsElapsed={state.result.roundsElapsed}
-          reward={rewardOutcome}
-          onRestart={onRestart}
-          onExit={onExit}
-        />
-      )}
-
-      <style>{`
-        /* Journal owns the top-right corner outright — the Turn Badge that
-           used to share this row was removed; its round counter and timeout
-           clock live in the journal header now, and its resolve state moved
-           next to End Turn. */
-        .combat-journal-box { top: 12px; right: 12px; width: 320px; }
-
-        /* Under ~720px the 372px Boss HUD and a 320px journal can no longer
-           share a row without overlapping, so the journal drops below the
-           Boss HUD's band. */
-        @media (max-width: 720px) {
-          .combat-journal-box { top: 216px; width: 280px; }
-        }
-      `}</style>
     </div>
   );
 
-  return createPortal(body, document.body);
+  const overlay = state?.phase === 'battle_over' && state.result ? (
+    <ResultModal
+      outcome={state.result.outcome}
+      roundsElapsed={state.result.roundsElapsed}
+      reward={rewardOutcome}
+      onRestart={onRestart}
+      onExit={onExit}
+    />
+  ) : undefined;
+
+  return <FullscreenGameShell ariaLabel="Active combat" mainColumn={mainColumn} overlay={overlay} />;
 }
 
 function ErrorPanel({ error, onExit }: { error: string; onExit: () => void }) {

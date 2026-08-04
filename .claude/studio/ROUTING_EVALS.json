@@ -1,0 +1,248 @@
+{
+  "version": "1.0.0",
+  "purpose": "Static routing expectations for live Claude validation. These fixtures validate the architecture contract; they do not pretend keyword matching proves model behavior.",
+  "cases": [
+    {
+      "id": "economy-price-change",
+      "request": "Change the price of a card pack.",
+      "mode": "FULL",
+      "agents": [
+        "game-systems-designer"
+      ],
+      "skills": [
+        "design-feature",
+        "ship-approved-plan"
+      ],
+      "humanGates": [
+        "economy approval"
+      ],
+      "forbiddenAgents": [
+        "art-prompt-director"
+      ]
+    },
+    {
+      "id": "walking-npc",
+      "request": "Create a new PixelLab castle NPC and make it walk in the courtyard.",
+      "mode": "FULL",
+      "agents": [
+        "pixel-sprite-director"
+      ],
+      "skills": [
+        "create-character-sprite",
+        "place-character-in-scene",
+        "visual-playtest"
+      ],
+      "humanGates": [
+        "paid batch approval",
+        "subjective visual approval"
+      ],
+      "forbiddenAgents": [
+        "art-prompt-director"
+      ]
+    },
+    {
+      "id": "fountain-collider",
+      "request": "The hero walks through the fountain; repair the traced footprint without changing the art.",
+      "mode": "STANDARD",
+      "agents": [],
+      "skills": [
+        "trace-environment",
+        "visual-playtest"
+      ],
+      "humanGates": [],
+      "forbiddenAgents": [
+        "environment-art-director"
+      ]
+    },
+    {
+      "id": "new-table",
+      "request": "Add a Supabase table for player expeditions.",
+      "mode": "FULL",
+      "agents": [
+        "technical-architect"
+      ],
+      "skills": [
+        "design-feature",
+        "ship-approved-plan"
+      ],
+      "humanGates": [
+        "schema approval"
+      ],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "small-padding",
+      "request": "Increase this existing button padding by the exact approved token.",
+      "mode": "FAST",
+      "agents": [],
+      "skills": [],
+      "humanGates": [],
+      "forbiddenAgents": [
+        "ui-ux-director"
+      ]
+    },
+    {
+      "id": "camera-transition",
+      "request": "Create a reusable camera transition between tower rooms.",
+      "mode": "FULL",
+      "agents": [
+        "phaser-runtime-director"
+      ],
+      "skills": [
+        "design-feature",
+        "build-phaser-feature",
+        "visual-playtest"
+      ],
+      "humanGates": [
+        "architecture approval"
+      ],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "exact-recolor",
+      "request": "Replace one exact blue with the approved teal across every sprite frame and change nothing else.",
+      "mode": "FAST",
+      "agents": [],
+      "skills": [],
+      "humanGates": [],
+      "forbiddenAgents": [
+        "pixel-sprite-director"
+      ],
+      "notes": "Prefer deterministic local color replacement; do not spend PixelLab credits."
+    },
+    {
+      "id": "new-arena",
+      "request": "Create a new painted battle arena plate and integrate it.",
+      "mode": "FULL",
+      "agents": [
+        "environment-art-director"
+      ],
+      "skills": [
+        "create-arena",
+        "visual-playtest"
+      ],
+      "humanGates": [
+        "paid batch approval",
+        "subjective visual approval"
+      ],
+      "forbiddenAgents": [
+        "art-prompt-director"
+      ]
+    },
+    {
+      "id": "new-element",
+      "request": "Add a new narrative element and define which archetypes can receive it.",
+      "mode": "FULL",
+      "agents": [
+        "lore-fantasy-director",
+        "game-systems-designer"
+      ],
+      "skills": [
+        "design-feature",
+        "ship-approved-plan"
+      ],
+      "humanGates": [
+        "creative approval"
+      ],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "emblem-revision",
+      "request": "Revise the approved Druid emblem palette without overwriting the approved asset.",
+      "mode": "STANDARD",
+      "agents": [
+        "art-prompt-director"
+      ],
+      "skills": [
+        "design-archetype-emblem"
+      ],
+      "humanGates": [
+        "paid batch approval",
+        "promote draft approval"
+      ],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "readme-typo",
+      "request": "Fix a typo in README.md.",
+      "mode": "FAST",
+      "agents": [],
+      "skills": [],
+      "humanGates": [],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "new-minigame",
+      "request": "Design and build a new ability-powered training minigame.",
+      "mode": "FULL",
+      "agents": [
+        "minigame-designer",
+        "game-systems-designer"
+      ],
+      "skills": [
+        "design-minigame",
+        "ship-minigame",
+        "visual-playtest"
+      ],
+      "humanGates": [
+        "design approval",
+        "economy approval if applicable"
+      ],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "documentation-audit",
+      "request": "Check whether our project documentation still matches the live code.",
+      "mode": "STANDARD",
+      "agents": [],
+      "skills": [
+        "audit-project-knowledge"
+      ],
+      "humanGates": [],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "documentation-sync",
+      "request": "The feature landed; update current documentation to match it.",
+      "mode": "STANDARD",
+      "agents": [],
+      "skills": [
+        "sync-project-knowledge",
+        "production-log"
+      ],
+      "humanGates": [],
+      "forbiddenAgents": []
+    },
+    {
+      "id": "inactive-balance",
+      "request": "Run balance-playtest now even though no governed telemetry exists.",
+      "mode": "FULL",
+      "agents": [
+        "game-systems-designer"
+      ],
+      "skills": [],
+      "humanGates": [
+        "activate scaffold after telemetry exists"
+      ],
+      "forbiddenAgents": [],
+      "expectedOutcome": "BLOCKED"
+    },
+    {
+      "id": "fullscreen-migration",
+      "request": "Run the one-time fullscreen shell extraction.",
+      "mode": "FULL",
+      "agents": [
+        "technical-architect",
+        "ui-ux-director"
+      ],
+      "skills": [
+        "extract-fullscreen-shell"
+      ],
+      "humanGates": [
+        "manual migration approval"
+      ],
+      "forbiddenAgents": [],
+      "expectedOutcome": "MANUAL_ONLY"
+    }
+  ]
+}

@@ -6,6 +6,8 @@ The shape is a **hub with doors** — the castle courtyard is where you hang out
 
 > **Read [PRODUCTION.md](PRODUCTION.md) at the start of every session.** It is the living record of what the game is, what's in flight, what got started and abandoned, and why every decision was made — the things this file cannot carry because they change weekly. Update it via the `production-log` skill whenever work lands, a decision is made, or a question needs Raheem's ruling.
 
+> **Studio control plane:** Read [AI_STUDIO_ARCHITECTURE.md](AI_STUDIO_ARCHITECTURE.md) for the simple operating model and `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json` for routing/status. Choose FAST, STANDARD, or FULL mode. Agents advise; skills execute; the primary Claude integrates. Runtime/visual work returns PASS, FAIL, or HUMAN REVIEW. Project permissions and hooks live in `.claude/settings.json`.
+
 **Canonical creative source:** [Character_Generation_Bible_Canonical_v1.md](Character_Generation_Bible_Canonical_v1.md) governs every aspect of character generation, archetype identity, story pillars, element compatibility, hidden fate, prestige inference, and future narrative content. When the Bible conflicts with implementation, the Bible wins. The [Lore & Fantasy Director](.claude/agents/lore-fantasy-director.md) agent is the standing authority for interpretive questions.
 
 ## Quick Start
@@ -29,7 +31,7 @@ Requires a `.env` file in `card-engine/` with the client keys (`VITE_SUPABASE_UR
 - **Leonardo Phoenix** for portrait + emblem art via `/api/leonardo` (allowlisted sub-paths, Supabase-JWT gated)
 - **Leonardo Lucid Origin** for flat top-down environment plates (Phoenix pulls hard toward perspective matte painting and cannot hold a 2D game-map read). Offline via `card-engine/scripts/bg-harness`.
 - **Phaser 3** for the castle's 2D top-down scene, lazy-loaded via dynamic `import()` into its own async chunk so the ~1.2 MB engine never enters the main bundle.
-- **PixelLab** for character sprites — directional, animated, identity-consistent. Offline via `card-engine/scripts/sprite-lab`; `PIXELLAB_API_KEY` is **build-time only** (never in Vercel env, no `/api/*` reads it). Workflows: [create-character-sprite](.claude/skills/create-character-sprite/SKILL.md), [place-character-in-scene](.claude/skills/place-character-in-scene/SKILL.md).
+- **PixelLab** for character sprites — directional, animated, identity-consistent. The reproducible production harness remains `card-engine/scripts/sprite-lab`; the official PixelLab MCP and Pixelorama web editor support targeted generation/editing and manual correction. `PIXELLAB_API_KEY` is build-time/local only (never `VITE_`-prefixed or shipped to the browser). Workflows: [create-character-sprite](.claude/skills/create-character-sprite/SKILL.md), [place-character-in-scene](.claude/skills/place-character-in-scene/SKILL.md). Aseprite is optional/deferred until deterministic precision editing is a repeated measured need.
 
 ## Project Structure
 
@@ -50,6 +52,8 @@ Card Game/                          # Git root
 │   │   │   ├── NavBar.tsx
 │   │   │   └── economy/           # CurrencyBalance, CurrencyCost, WalletPopover, etc.
 │   │   ├── pages/
+│   │   │   ├── games/FullscreenGameShell.tsx # Shared portal, 100dvh, scroll lock, and min-size layout boundary
+│   │   │   ├── castle/courtyard/studioBridge.ts # DEV-only snapshots and three named Phaser scenarios
 │   │   │   ├── CardForge.tsx       # 5-stage flow: archetype → stats → pillars → element+bond → forge → reveal
 │   │   │   ├── Collection.tsx      # Card grid with filters/sort
 │   │   │   ├── CardDetail.tsx      # Full card view — Story Pillar Q&A, elemental bond, prestige (when earned)
@@ -233,11 +237,12 @@ Two standing rules that are not "limitations" and stay in this file:
 
 This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER.md)). I am the Studio Lead — I do all implementation. Specialist subagents advise, skills define reusable workflows.
 
-- `.claude/agents/` — specialists: game-systems-designer, art-prompt-director, ui-ux-director, technical-architect, minigame-designer, **lore-fantasy-director** (Bible authority — consulted for any new narrative content, archetype identity questions, prestige eligibility, element compatibility), **environment-art-director** (places and things — arenas, plates, floors, scenery layers, props; owns the composition contracts, the bg-harness configs and the "solve framing in code, not in generation" rule), **pixel-sprite-director** (PixelLab character sprites — generation mode, direction mapping, packing, the quality gate; keeps [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) current). Invoke only for open-ended design questions.
-- `.claude/skills/` — workflows: design-feature, ship-approved-plan, create-archetype, design-archetype-emblem, sync-project-knowledge, audit-project-knowledge, art-pipeline, balance-playtest (scaffold-only), design-minigame, ship-minigame, **create-character-sprite**, **place-character-in-scene**, **create-arena**, **create-boss**, **create-prop**, trace-environment.
+- `.claude/agents/` — read-only specialist directors: game-systems, lore/fantasy, minigame, UI/UX, technical architecture, **Phaser runtime**, art/prompt, environment art, and pixel sprites. Invoke only when the registry trigger matches an open decision; FAST work normally uses none. Their tool surface is enforced as Read/Grep/Glob only.
+- `.claude/skills/` — repeatable workflows, including design/ship/sync, art and PixelLab production, environment/boss/prop workflows, `studio-health`, `build-phaser-feature`, and `visual-playtest`. `balance-playtest` remains hidden/inactive; `ship-minigame` and the completed `extract-fullscreen-shell` migration are retired and hidden.
 - **[HARNESS_INDEX.md](HARNESS_INDEX.md) — the catalogue of every reusable harness, readout, library script, review sheet and registration point.** Read it BEFORE any art, boss, arena, sprite or prop work, and **name the relevant tools to Raheem before starting** — the harnesses are how he and the team see what is happening, and a run that does not offer them is a miss. Every new harness or readout is added here in the same commit that builds it.
 - **Art playbooks** — [LEONARDO_PLAYBOOK.md](LEONARDO_PLAYBOOK.md) (portraits, environment plates) and [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) (character sprites). Both are running records of what actually worked and what it cost; append after every run. `card-engine/scripts/sprite-lab/test-validator.sh` guards the sprite quality gate against regression.
-- `.claude/verify/card-engine.sh` — project verify script the built-in `verify` skill bootstraps.
+- `.claude/settings.json` + `.claude/scripts/` — shareable permission, human-gate, secret-protection, and studio-lint enforcement.
+- `.claude/verify/card-engine.sh` — objective project checks. It never installs dependencies automatically or claims visual acceptance.
 - `.claude/launch.json` — dev-server preview config (`card-engine-dev` on :5173).
 - **Skill/agent opportunities:** I raise credible candidates proactively (Reuse Forecast in `design-feature`, Reuse Review in `ship-approved-plan`); Raheem approves before I create anything. See [STUDIO_CHARTER.md](STUDIO_CHARTER.md) — *Proactive Workflow Discovery*.
 
@@ -246,7 +251,7 @@ This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER
 - Tailwind v4 `@theme` block for design tokens — do not use `tailwind.config`
 - Fantasy-themed UI: dark backgrounds, parchment/gold accents, `font-fantasy` (Cinzel) for headings
 - Card rendering uses absolute positioning with percentage values overlaid on border frame PNGs
-- Economy modules have vitest unit tests (`services/economy/*.test.ts`). Other code has no tests yet — verify UI/renderer changes visually using the dev server (see `.claude/verify/card-engine.sh`).
+- Economy and several engine modules have deterministic tests. UI/Phaser changes must use relevant static checks plus a named runtime/visual scenario; do not treat a build or casual eyeballing as complete evidence. See `visual-playtest` and `.claude/studio/PHASER_RUNTIME_BRIDGE_SPEC.md`.
 - **Bible §Rank continuity is inviolable:** rank progression preserves sex, age, body type, ancestry, disability, physical condition, defining scars, and core identity. Advancement must NOT automatically make a character younger, thinner, more muscular, healthier, less disabled, or more conventionally attractive. Locked HiddenFate fields carry across ranks verbatim (see `services/hiddenFate.ts` LOCKED_HIDDEN_FATE_FIELDS).
 - **Lycanthrope pipeline deviation (retired):** the pre-Bible Lycanthrope had a forced "MORE wolf each rank" mandate with `init_strength = 0.15/0.30`. The Bible reframes Lycans as Guardians of the Moon Goddess whose rank progression deepens pack trust and lunar responsibility, NOT bestial morphology. `init_strength` may still drop for Lycan to allow the subtle wolfish tells to shift, but the mandated escalation prompt is gone. See Bible §Lycanthrope §9.
 - **Figure modesty (M5.7) — applies to EVERY generated figure, no exceptions:** heroes, card portraits, NPCs, **bosses, monsters and non-human creatures alike**. Every figure is clothed, armoured or otherwise covered from neck to feet. NEVER bras, panties, lingerie, chainmail bikinis, cleavage cutouts, hip cutouts, bare-midriff gear, loincloths, **bare chests, bare torsos, shirtless figures, visible nipples of any sex, or nude/near-nude anatomy**. The strong don't reveal themselves that way, and **this game is for everyone**.

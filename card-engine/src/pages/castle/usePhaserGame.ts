@@ -30,6 +30,7 @@ export function usePhaserGame(containerRef: RefObject<HTMLDivElement | null>): P
   useEffect(() => {
     let alive = true;
     let game: Phaser.Game | null = null;
+    let disposeStudioBridge: (() => void) | null = null;
 
     const container = containerRef.current;
     if (!container) return;
@@ -40,6 +41,15 @@ export function usePhaserGame(containerRef: RefObject<HTMLDivElement | null>): P
         // Cleanup may have run while the engine chunk was in flight.
         if (!alive) return;
         game = createGame(container);
+        if (import.meta.env.DEV) {
+          const { installCourtyardStudioBridge } = await import('./courtyard/studioBridge');
+          if (!alive) {
+            game.destroy(true, false);
+            game = null;
+            return;
+          }
+          disposeStudioBridge = installCourtyardStudioBridge(game);
+        }
         setInstance(game);
         setStatus('ready');
       } catch (err) {
@@ -50,6 +60,8 @@ export function usePhaserGame(containerRef: RefObject<HTMLDivElement | null>): P
 
     return () => {
       alive = false;
+      disposeStudioBridge?.();
+      disposeStudioBridge = null;
       // destroy(removeCanvas, noReturn) — drop the canvas, keep Phaser's
       // globals so a later re-entry can construct a fresh game.
       game?.destroy(true, false);

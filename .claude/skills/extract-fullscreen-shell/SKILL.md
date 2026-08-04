@@ -1,9 +1,12 @@
 ---
 name: extract-fullscreen-shell
-description: One-time refactor to promote the CombatViewport portal + grid pattern into a reusable `<FullscreenGameShell>` primitive at `card-engine/src/pages/games/FullscreenGameShell.tsx` so every future mini-game inherits the correct layout invariants (portal to body, 100dvh, overflow-hidden, `min-h-0` on every grid child) instead of rediscovering the CSS Grid `min-height: auto` trap. Invoke ONCE before mini-game #1. Do NOT re-invoke — after extraction, `ship-minigame` requires the shell to exist.
+description: "RETIRED after the approved FullscreenGameShell migration was implemented and live-verified on 2026-08-03. Historical record only; do not invoke."
+disable-model-invocation: true
 ---
 
 # Skill: extract-fullscreen-shell
+
+> **RETIRED 2026-08-03:** `FullscreenGameShell.tsx` now exists, combat consumes it, and desktop/mobile/Turn-2 live checks passed. This file remains only as the migration record.
 
 ## Inputs
 

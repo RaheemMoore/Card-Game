@@ -1,9 +1,11 @@
 ---
 name: design-archetype-emblem
-description: Produce a strong, lore-consistent first emblem concept and Leonardo prompt for an archetype selection tile, auto-fire the Leonardo generation, and manage the draft → revision → approved status flow. Callable independently to revise an existing emblem OR from create-archetype during new-archetype creation. Do NOT use for full-body character portraits — that pipeline lives in services/leonardoApi.ts + card-engine-archetype-prompt-library.md. Do NOT use for cosmetic UI icons.
+description: Design and produce a lore-consistent archetype selection emblem candidate through the approved Leonardo integration, with prompt validation, distinctness review, provenance, and draft-to-approved status flow. Use for a new or revised emblem. Every paid generation requires explicit batch approval; do NOT auto-fire, overwrite approved assets, or confuse emblems with full-body portraits.
 ---
 
 # Skill: design-archetype-emblem
+
+Read [PAID_OPERATION_POLICY.md](../../studio/PAID_OPERATION_POLICY.md) before any provider call and [EVIDENCE_VERDICT_CONTRACT.md](../../studio/EVIDENCE_VERDICT_CONTRACT.md) before declaring a candidate complete.
 
 ## Purpose
 
@@ -14,7 +16,7 @@ Emblems are lore identity symbols, not gameplay explainers, and are a **separate
 ## Reading list (canonical)
 
 - [card-engine-archetype-emblem-library.md](../../../card-engine-archetype-emblem-library.md) — the source of truth for emblem rules, benchmarks, palettes, prompts, and status
-- [card-engine-archetype-prompt-library.md](../../../card-engine-archetype-prompt-library.md) — sibling portrait system (do NOT confuse the two)
+- [IMAGE_ENGINE_REFERENCE.md](../../../IMAGE_ENGINE_REFERENCE.md) — generated current portrait-system reference (do NOT confuse portraits with emblems)
 - `card-engine/src/data/archetypeEmblems.ts` — runtime metadata + status per archetype
 - `card-engine/src/services/leonardoEmblemApi.ts` — the emblem-specific Leonardo integration
 - `card-engine/src/components/ArchetypeSelector.tsx` — the render target
@@ -36,20 +38,13 @@ The skill accepts or derives:
 
 Most inputs derive from repo context. Do NOT ask Raheem to repeat data already recorded in `archetypeEmblems.ts` or the library.
 
-## First-pass autonomy rule (critical)
+## First-pass recommendation rule
 
-Produce **one strong recommendation and one paste-ready Leonardo prompt without a pre-generation approval gate.**
+Produce one strong recommendation, one paste-ready Leonardo prompt, a measured character count, an expected-cost estimate, and a bounded call plan. Do not return a vague option tree.
 
-Fire the Leonardo API call immediately after prompt validation, then let Raheem review the returned image live in the UI.
+**Stop before every paid generation or edit.** Present the provider operation, expected call count/cost, stop limit, and what will be reviewed. Continue only after Raheem explicitly approves that batch. New-archetype creation is not an exception.
 
-### Only stop for approval when
-- The lore is materially incomplete or contradictory.
-- The requested imagery risks copying a real franchise or protected logo.
-- The design would rely on a real-world religious, political, military, or occult symbol that needs clarification.
-- Two approved project rules directly conflict.
-- Raheem explicitly asks to review concepts before a prompt is written.
-
-Otherwise: recommend, prompt, fire, review live.
+Stop earlier for clarification when the lore is materially incomplete, approved rules conflict, the request risks copying protected imagery, or the proposed symbol has real-world religious/political/military significance that needs a human decision.
 
 ## Workflow
 
@@ -99,11 +94,9 @@ Follow library §5 structure and rules:
 - If > 1450, trim repetition before removing important visual direction.
 - If > 1500, hard-fail — the `generateEmblem` service will reject.
 
-### 6. Fire the generation
+### 6. Run the approved generation batch
 
-**When invoked from `create-archetype`:** fire automatically via `generateEmblem(prompt)`.
-
-**When invoked standalone (revision of an existing archetype):** produce the prompt and expected-cost estimate, then wait for Raheem's "go" before calling `generateEmblem`. Standalone revision cost accountability is stricter than new-archetype creation.
+**For every invocation:** produce the prompt, expected-cost estimate, call count, and stop limit; wait for Raheem's explicit approval before calling `generateEmblem`.
 
 ### 7. Save the draft
 
@@ -185,17 +178,16 @@ Full rules in library §5. Highlights:
 
 ## Human approval gates
 
-- **First image generated** — always.
-- **Substantial redesign** — always.
-- **Promote draft → approved** — always.
-- **Standalone revision on an already-approved emblem** — before firing the Leonardo call (cost accountability).
+- **Before every paid generation or edit batch**, including new-archetype creation.
+- **Before a substantial redesign** that changes an approved direction.
+- **Before promoting a draft to approved/integrated.**
 
 ## Failure modes to prevent
 
-1. **Portrait/emblem confusion.** Don't pull DNA blocks from `card-engine-archetype-prompt-library.md` verbatim into an emblem prompt. Portrait DNA describes a person; emblem prompts describe a relic. Palettes overlap but are not identical (library §9).
+1. **Portrait/emblem confusion.** Don't pull DNA blocks from `IMAGE_ENGINE_REFERENCE.md` verbatim into an emblem prompt. Portrait DNA describes a person; emblem prompts describe a relic. Palettes overlap but are not identical (library §9).
 2. **Default-shield syndrome.** If a new archetype's first draft is a shield or medallion and 3+ approved emblems already are, break the silhouette (library §7 do-not list).
 3. **Silent status drift.** If the approved image and the recorded prompt diverge and you don't mark it, future edits will target the wrong baseline. Always keep §10 and §11 in sync with reality.
-4. **Cost creep.** The auto-fire rule applies to `create-archetype`-invoked new-generations only. Standalone revisions still require a go-ahead. One un-authorized Leonardo call per archetype during revisions is the ceiling.
+4. **Cost creep.** No path auto-fires. Every paid batch requires explicit approval, a call ceiling, and recorded actual cost.
 5. **Overwriting an approved asset.** Never overwrite `Approved/<archetype>.<ext>` or the `public/assets/` copy with a draft. Drafts get their own timestamped filename.
 
 ## Validation checklist
@@ -207,13 +199,13 @@ Full rules in library §5. Highlights:
 - [ ] Draft saved to `Drafts/<archetype>/gen-<timestamp>.<ext>`.
 - [ ] `archetypeEmblems.ts` status updated.
 - [ ] Library §10 / §11 / §16 updated (or scheduled to be updated on approval).
-- [ ] No paid Leonardo call for standalone revision without Raheem's authorization.
+- [ ] No paid Leonardo call in any path without Raheem's explicit batch authorization.
 - [ ] Existing approved assets not overwritten.
 
 ## Expected outputs
 
 - One paste-ready Leonardo prompt (measured).
-- One draft image (auto-fired for `create-archetype` invocations; on-approval for standalone).
+- One draft image from an explicitly approved generation batch.
 - Updated `archetypeEmblems.ts` metadata.
 - Updated `card-engine-archetype-emblem-library.md` entry.
 - Draft path + public asset path.
@@ -221,7 +213,7 @@ Full rules in library §5. Highlights:
 
 ## When NOT to use
 
-- Full-body character portrait work → use `art-pipeline` skill + character-portrait prompt library.
+- Full-body character portrait work → use `art-pipeline` and the current deterministic Image Engine.
 - Cosmetic UI icons (stat icons, badges, currency icons) → those are static assets, not emblems.
 - The archetype's design has not been approved by Raheem → hand back to `design-feature`.
 - Purely a filename or asset-path rename → direct edit, no skill needed.

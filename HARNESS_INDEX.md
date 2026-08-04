@@ -45,6 +45,16 @@ Re-running `gen` is cheap — it skips anything already in the manifest and only
 | `pixelize.py` | Deterministic pixel grid (the thing that makes plates look like one game) |
 | `cutout.py` / `nobg.sh` | Matte a subject off its background |
 | `process_plume.py` | Seat + white-fog an element plume for the forge scene |
+| `placement_brief.py` | **Placement-first.** Reads Raheem's Figma `place-*` footprint marks and derives each object's size and REQUIRED FACING from where it sits — against a wall means square-on, open floor means free-standing. Built because the forge came back catty-corner twice while the angle was being written from a description instead of read off a position. |
+| `zone_mock.py` / `area_mock.py` | Render traced areas on a plate and place objects in them at true world scale, with welded cast shadows — judge a room before buying it |
+| `review_sheet.py` | The asset review harness: one self-contained page per config, every attempt at game scale with its seed, cost and verdict |
+| `cut_flat_background.py` | Flood-fill a flat background off a generated sprite from the frame edge (PixelLab's `no_background` is a request, not a guarantee) |
+| `trim_forge.py` | Trim an approved asset down to the part that belongs, by measured crop rather than a re-roll |
+| `compose_from_figma.py` | **Composition is Raheem's, arithmetic is mine.** Bakes a multi-piece object from the arrangement he makes on the Figma composition bench — his positions, his scales, and a hand-drawn ground line used as a per-column CUT PROFILE rather than a level. Standing rule (Raheem, 2026-08-01): *"let's do this process in the future for all our objects... whenever we have confusion, remember that I can do this faster and a little bit clearer than you can."* |
+| `cap_run.py` | **End caps.** Weld a cap onto both ends of a trimmed asset so its cut edges read as deliberate. Aligns on the ground line, overlaps rather than abuts (a butt join leaves a seam that reads as the cut), mirrors one asset for both ends, and bakes the result to one PNG so the seam is solved offline instead of every frame |
+| `lay_flat.py` — `lay_symmetric()` | **The standard ground-plane warp.** Symmetric trapezoid, no sideways lean, gentle top-down recession only. Default for ANY floor-plane asset placed among square-on furniture; the organic hand-trace path is for when the object itself is turned to match a wall |
+| `lay_flat.py` | Map a flat-drawn texture (a rug, a floor patch) into the plate's raised three-quarter ground plane via a true 8-coefficient perspective solve — an affine shear cannot shorten the far edge, so it produces a rug that leans instead of lies |
+| `palette_swatch.py` | Build the forced-palette PNG for `create_image_pixflux`'s `color_image_base64`, from a plate's own quantised colours plus a bounded accent ramp |
 | `leo.sh` | Raw Leonardo call |
 
 ### `card-engine/scripts/sprite-lab/sprite-lab.mjs` — characters, bosses, props
@@ -125,12 +135,26 @@ PixelLab are used across all three.
 
 ---
 
+## Phaser runtime and visual evidence
+
+**Status:** implemented and locally verified for the courtyard on 2026-08-03.
+
+| Capability | Purpose |
+|---|---|
+| `.claude/studio/PHASER_RUNTIME_BRIDGE_SPEC.md` | Versioned, dev-only `window.__CARD_ENGINE_STUDIO__` contract. Scenes expose safe snapshots and bounded scenario actions instead of tests poking private fields. |
+| `phaser-runtime-director` | Read-only advice for Scene ownership, lifecycle, camera, physics, coordinate contracts, observation, and Phaser Editor decisions. |
+| `build-phaser-feature` | Approved implementation workflow: define scenario first, preserve React/Phaser lifecycle, implement, then verify. |
+| `visual-playtest` | Runtime snapshot + console + screenshot/video; returns PASS / FAIL / HUMAN REVIEW. |
+
+Current scenario set: `courtyard-direction-validation`, `courtyard-collision-and-occlusion`, and `courtyard-reduced-motion-walk`. Development automation can run one through `/castle?studioScenario=<name>&studioRun=<unique-nonce>` and read the sanitized `#card-engine-studio-result` output. Unknown scenarios fail without moving the player. Tower scenarios are future work; Forge Strike is not a Phaser scene and its shipping workflow is retired.
+
 ## 5. Playbooks — the memory layer
 
 | File | Contents |
 |---|---|
 | `LEONARDO_PLAYBOOK.md` | What worked, what it cost, per Leonardo run |
 | `PIXELLAB_PLAYBOOK.md` | Same, for sprites |
+| `PIXELLAB_CAPABILITIES.md` | The map of what PixelLab can do vs what we call — ~40 endpoints available, 6 used. Read before assuming a thing must be hand-built or bought from Leonardo. |
 | `scripts/bg-harness/FORGE_MANIFEST.md` | Forge scene layer model + Figma nodes |
 | `scripts/bg-harness/ARENA_HANDOFF_*.md` | Per-arena composition contract given to whoever paints the plate |
 
@@ -157,7 +181,8 @@ The most common way work is "done" but invisible is a missed registration.
 
 ## 7. Building for reuse across future games
 
-The portable layer is **not** the agents or the skills — those encode this game's canon.
-It is `scripts/bg-harness` + `scripts/sprite-lab` + the two playbooks + the validator
+The first portable layer remains the deterministic machinery: `scripts/bg-harness`, `scripts/sprite-lab`, validators, fixtures, and playbooks. Studio V2 adds a second portable layer only after it survives real Card Engine production: project-neutral contracts, routing, permissions/hooks, and selected agents/skills become Studio Core or Phaser/provider packs. Card Engine canon, economy, archetypes, and project-specific registrations stay in the Card Engine project pack.
+
+The portability rule is therefore **extract after proof, not before**. The architecture map and registry classify each capability so future packaging does not drag Card Engine lore into another game.
 fixtures. Extract those into a standalone plugin **after arena #3**, when the shape has
 stopped moving. Extracting earlier freezes an interface still being learned.

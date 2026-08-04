@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-03 · **Maintained by:** Claude, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-03 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -58,7 +58,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-01 -->
+<!-- updated: 2026-08-03 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -115,7 +115,6 @@ being raised in a chat and lost.*
 | Q2 | Is `feat/warband-battle-mvp` worth reviving, or should the board game be rebuilt fresh? | A tested combat core is stranded 107 commits back. I can assess it if you want. |
 | Q3 | Does the Lycanthrope emblem ever get made? | It's the only one of 11 missing, and it's been pending since 2026-07-17. |
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
-| Q5 | Should `.claude/hooks/` be tracked in git? | `.gitignore` excludes them, so the build check and the freshness warning live only on your laptop. Nobody else gets either. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
 
@@ -298,6 +297,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side |
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
+| IN FLIGHT | AI Studio V2 | Control plane, Codex adapters, fullscreen shell, and courtyard scenarios are locally verified. Release is complete when this commit reaches `main`; local secret files remain ignored and untracked. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
@@ -491,6 +491,7 @@ reversible and inside an approved direction, I just do it.
 ---
 
 <!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-03 -->
 ## 6. The workshops
 
 **A workshop is a day you can step into.** Not a tool — a *way of working*. Pick one, say
@@ -651,6 +652,7 @@ mentions the simulator it could be using today**.
 | `game-systems-designer` | Stats, ranks, balance, prices, power budgets | Numbers set from vibes that violate economy §13 |
 | `ui-ux-director` | New pages, flows, mobile behavior | Surfaces that ship without a mobile story |
 | `technical-architect` | Schemas, tables, RLS, API routes, integrations | Archetype-specific fields in shared schemas; leaked provider keys |
+| `phaser-runtime-director` | Phaser lifecycle, camera, collisions, runtime evidence | Game behavior that compiles but fails in play; duplicate scene/canvas ownership |
 | `minigame-designer` | Mini-game loops, session length, reward feel | — |
 
 ### Skills — repeatable workflows
@@ -660,10 +662,14 @@ mentions the simulator it could be using today**.
 `art-pipeline` · `design-archetype-emblem`
 
 **Design and delivery:** `design-feature` · `ship-approved-plan` · `design-minigame` ·
-`ship-minigame` · `create-archetype` · `work-proposal` · `consult-specialist`
+`create-archetype` · `work-proposal` · `consult-specialist` · `build-phaser-feature` ·
+`visual-playtest`
 
 **Upkeep:** `production-log` · `sync-project-knowledge` · `audit-project-knowledge` ·
-`extract-fullscreen-shell` · `balance-playtest` *(scaffold)*
+`studio-health` · `balance-playtest` *(scaffold)*
+
+**Retired records:** `ship-minigame` (the minigame is no longer wanted) ·
+`extract-fullscreen-shell` (migration completed and verified 2026-08-03)
 
 ### Tools and readouts
 
@@ -966,6 +972,39 @@ change to the rules engine at all.
 *Why it matters:* combat maths and replay are untouched, so this cannot break a fight. The
 tidier fix stays available later as its own deliberate change rather than being smuggled in
 alongside a visual feature.
+
+### 2026-08-03 — Raheem accepts the private-device key exception
+
+This supersedes the release requirement in the following earlier entry. Do not rotate,
+inspect, or alter the current local provider credentials. Their files remain private to
+Raheem's devices, covered by Git ignore rules, untracked, and protected from AI-tool reads
+and edits. Studio health verifies only the filenames' Git protection, never secret contents.
+Reopen the key-hygiene decision before the repository becomes shared or public, or when the
+production security model changes.
+
+*Why it matters:* Studio V2 can proceed to its human release gate without disrupting the
+current private setup, while Git still has an objective guard against publishing the files.
+
+### 2026-08-03 — Studio V2 is locally complete; release waits on key hygiene and human approval
+
+The shared `.claude` control plane now has checked-in Codex adapters under `.agents` and
+`.codex`, read-only specialist sandboxes, fail-closed hooks, a passing health/routing/
+regression suite, a live-verified shared combat shell, and a development-only Phaser bridge.
+All three real courtyard scenarios pass with screenshots and clean consoles. The bridge is
+absent from production bundles. Nothing has been pushed or deployed yet.
+
+The live check also found two legacy provider variables using the unsafe `VITE_` prefix in
+the local `.env`. Current runtime code uses server-side proxies and does not depend on those
+variables. Raheem must remove those two local entries and rotate the affected Anthropic and
+Leonardo credentials before release; Studio hooks deliberately prevent an automated session
+from editing secret files.
+
+### 2026-08-03 — The minigame shipping workflow is retired
+
+Raheem no longer wants that minigame. `ship-minigame` is hidden and non-invocable; it is not
+unblocked merely because the shared fullscreen shell now exists. Existing code is preserved
+until Raheem explicitly asks for removal. The one-time fullscreen extraction workflow is
+also retired because its migration is complete.
 
 ### 2026-07-31 — This guide is linked from the admin sidebar
 
