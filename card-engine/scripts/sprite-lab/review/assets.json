@@ -338,8 +338,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "SURVIVES THE ASCENT CUT \u2014 Raheem liked the floating rank sigil and it belongs in the Proving Hall, hovering over a plinth to show your achieved rank."
+      "verdict": "approved",
+      "note": "SURVIVES THE ASCENT CUT and moves to the Proving Hall. Floats free of any support, so it can be ROTATED as an object animation for ~2 generations \u2014 the piece that gives the quadrant motion."
     },
     {
       "id": "ascent-cold-brazier",
@@ -349,8 +349,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 (front only)",
-      "verdict": "pending",
-      "note": "COLD blue-white flame, deliberately not orange \u2014 the forge owns warm fire, and the tower must not read as a second forge. Flame stands clear of the bowl so it can be animated."
+      "verdict": "approved",
+      "note": "SURVIVES THE ASCENT CUT and moves to the Proving Hall. COLD blue-white flame, deliberately not orange: the forge owns warm fire and a second orange flame would read as a second forge."
     },
     {
       "id": "ascent-tally-marker",
@@ -481,8 +481,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "Monk's Open-Hand Gauntlets \u2014 'protect the hands without replacing martial skill'. Exactly the gauntlets Raheem asked for."
+      "verdict": "approved",
+      "note": "V1 GAUNTLETS WIN. Raheem: 'put back the v1 gauntlets instead of the v2, those looked a little bit cooler.' Swapped in Figma; the v2 pair is out."
     },
     {
       "id": "case-judgment-bow",
@@ -536,8 +536,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "FLAIR PASS. Tighter square case, runes etched on the frame, crackle across the glass."
+      "verdict": "rejected",
+      "note": "Superseded by v1, which Raheem preferred. The v2 flair pass helped the bow and the blade but did not help these."
     },
     {
       "id": "wallcrack-violet-web",
