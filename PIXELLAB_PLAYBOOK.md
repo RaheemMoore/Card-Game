@@ -94,6 +94,48 @@ specifically a risk when the subject has little substance of its own.
 
 Related and already recorded: PixelLab's `no_background` flag is a request, not a guarantee.
 
+
+## Colour is a post-process, and offering it is my job
+
+**Standing rule (Raheem, 2026-08-04):** *"Not just known that you can do it — make it known that
+I WANT you to do it. Let me know: 'hey, you want me to tweak the colour and make it match the
+palette, because this one was a little bit off?' Yes I do. I want you to do it."*
+
+**When an asset's only problem is hue, saturation or value, offer a recolour BEFORE anything
+else, unprompted.** Regenerate for composition, pose, silhouette or content. **No paid
+generation is ever spent on colour alone.**
+
+The tool is `card-engine/scripts/sprite-lab/lib/recolor.py`.
+
+### Why this is safe
+
+- Generated sprites carry a small fixed palette — the chibi archivist is **23 distinct colours**
+  in her whole sprite — so a colour *map* is exact, not approximate.
+- A map is deterministic: same input colour, same output, **every frame and every rotation,
+  forever**. An AI inpaint runs per image and drifts — the failure that already produced a
+  costume changing mid-walk-cycle at 43.7 palette units.
+- The correction ladder above already ranked "palette map" at rung one. The policy existed and
+  was not followed.
+
+### It cost three regenerations in one session before this was written down
+
+| What happened | Cost | What should have been said |
+|---|---|---|
+| Arch and fissure came back neutral grey against a warm honey plate | a proposed re-roll of both | *"Want me to remap the stone to the plate's cream and honey?"* |
+| The dwarf read Middle Eastern instead of Black | **8 generations** | *"Want me to try the skin ramp first?"* |
+| The 8-face weapon rack's teal fittings came back brown | logged as an accepted regression | *"The teal went brown — want me to put it back?"* |
+
+The last is the worst: the defect was noticed, written down, and still not offered.
+
+### The caveat — ramps are shared
+
+Measured, not assumed: the archivist's five silver hair greys **also appear in her tunic, hem
+and shoes**. A global swap recolours her outfit, so use `--region x0,y0,x1,y1` (fractional
+against the sprite's own bounding box, so one call works across frames at different offsets).
+
+**A quick tell:** after a hue swap, if the distinct-colour count is **unchanged**, the map hit
+everything. If it **rises**, the region held and the original ramp survives outside it.
+
 ## The art register is a PARAMETER, not an adjective
 
 **`/create-character-v3` has no `proportions` field.** You can write "chibi, big-headed" in the

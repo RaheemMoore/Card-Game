@@ -31,6 +31,7 @@ import { UiKit } from './pages/dev/UiKit';
 import { CollectionStallPreview } from './pages/dev/CollectionStallPreview';
 import { StallShellPreview } from './pages/dev/StallShellPreview';
 import { ForgeStallPreview } from './pages/dev/ForgeStallPreview';
+import { CodexStallPreview } from './pages/dev/CodexStallPreview';
 import { CollectionRoute } from './pages/CollectionRoute';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
@@ -120,6 +121,10 @@ export default function App() {
               stage components from local state and never calls the forge
               controller or the wallet, so it is free to open. */}
           <Route path="/dev/forge-stall" element={<ForgeStallPreview />} />
+
+          {/* The Codex as a book. Reads shipped element/emblem art and Bible
+              prose only — no player data, nothing spent. `/codex` is untouched. */}
+          <Route path="/dev/codex-stall" element={<CodexStallPreview />} />
 
           {CourtyardV2Preview && (
             <Route

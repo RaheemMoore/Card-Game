@@ -92,6 +92,10 @@ head shake is not.
 **The cap is real.** When it is hit, ship static and move on. A static prop in the scene beats
 a perfect one that never lands.
 
+## A colour complaint is NOT a re-roll trigger
+
+If the prop came back the wrong hue, too saturated, or off the plate's palette, **do not regenerate** — run `lib/recolor.py`. It is free, exact, and applies one identical map to every frame. Regenerate only for composition, pose, silhouette or content. Offer the recolour unprompted; Raheem has asked for that explicitly.
+
 ## Objects animate — and that is a different route from the one above
 
 > **CONFIRM THE ANGLE FIRST.** **Always confirm the angle before animating.** Animation is per-direction, so a clip only exists on the faces you paid for — animating `south` for an object destined for the left wall (`south-east`) buys a loop nobody sees. Generate angles → Raheem picks and places → confirm that face → animate. An `animation_group_id` lets the same clip be extended to more directions later, charging only for the new ones, so starting with one costs nothing. ~2 generations per direction.
