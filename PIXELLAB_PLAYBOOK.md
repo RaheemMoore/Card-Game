@@ -394,6 +394,30 @@ A well-posed still reads fine at 84px; the grazing pose carried the courtyard on
 own and nobody noticed until they were told to look.
 | pixel courtyard sample: ground tileset 20 + wall kit 20 + 4 props 25 | 65 | ❌ **Painting won** — see the verdict section above. Cheap answer to a months-long question |
 | hero-chibi v2: character + 4× v3 pinned walk (3 gen each) | ~25 | ✅ **Passed the gate first try** — drift 5.2–9.3, heights identical, baselines aligned, correct mirror, and verified facing correctly in game |
+| tower-quadrant: 4 wall-furniture objects, one call | 25 | ✅ Portcullis, muster board, trophy rack, weapon rack. Palette and outline weight match the shipped forge counter/bench closely — the hero-crop anchor held the register |
+| tower-quadrant: 2 yard fixtures, one call | 25 | ⚠️ **The call returned 4 objects, not the 2 requested.** Brazier and tally pillar came as asked; two unrequested extras (a stone winch, usable; a stone floor patch, not an object) filled the remaining slots of the 4-cap. The tally pillar came back **isometric** while every other object is elevation or three-quarter |
+
+**Two object lessons from the tower batch:**
+
+1. **`item_descriptions` does not cap the object count — the style image does.** Asking for 2
+   items against a 146px reference still returns 4, because the cap comes from the reference's
+   size bucket (`<=85` → 8, `<=170` → 4, else 1). **Always request a full bucket.** Two calls
+   of 4+2 cost the same 50 generations as 4+4 would have, so the 2-item call wasted half its
+   slots on inventions nobody briefed.
+2. **Objects arrive untrimmed and fail the anchor check by construction.** All 8 came back on
+   a 146² canvas with the subject floating 5–21px above the bottom, which
+   `validate_object.py` correctly rejects ("the object will float when anchored on its
+   baseline"). Trimming to the alpha bounding box fixes every one and flips the gate to PASS.
+   This is a mandatory post-process, not a defect — do it before judging anything.
+
+**Style-anchor ruling (environment-art-director, 2026-08-04):** objects stay anchored to the
+**hero crop**, never to a crop of shipped furniture. `counter-depth.png` and `bench-depth.png`
+are small and dense with unique content (a gem cluster and a card; a folded item and thin
+legs), so any 85px crop lands on either a one-off feature or featureless wood — the Still
+Season failure in miniature, where a shipped asset's incidental detail rides into an unrelated
+brief. Re-extracting the hero at `<=85px` to unlock the 8-object bucket was also rejected: his
+source frames are 152px, so an 85px cap is a **56% downscale**, and 46% already shredded him.
+Pay the extra call instead of shredding the reference that defines the register.
 | **Still Season** (boss 2): create 1 + idle v1 4 + idle v2 4 + windup 6 + attack 6 + defeat 6 + hit 4 | **31** | ✅ **4 of 5 clips shipped.** Seated pose held across all 31 frames (bbox bottom y=208 throughout); packer reported zero clipped frames and one clean 155×170 shared box. idle v1 wasted 4 gens by asking a glow to animate and not naming the flowers. `hit` dropped — invented a crown and sparkles |
 
 **The comparison that matters:** `pro` cost **~186 generations** and produced an unusable sheet (drift 191, both sides facing the same way). `v3` with per-direction pinning cost **~25** and passed the gate on the first attempt. Cheaper *and* better — do not reach for `pro` again without a specific reason.
@@ -908,3 +932,42 @@ of the set enjoys. Worth a look if the two ever appear in the same fight.
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Effects batch H (Sanguine) | shard + shatter | 2 | both kept, no rerolls |
+
+## UI chrome IS generatable — the 9-slice probe passed (20 generations)
+
+`configs/ui-kit-pixel.json`. Four core UI pieces (panel frame, button, slot, bar trough) in
+one `/create-1-direction-object` call. The open question was whether PixelLab can hold a
+**9-slice frame** — its advertised UI surface is buttons, health bars and menu items, and
+frames are never mentioned.
+
+**It can.** Measured on the returned frame:
+
+- **Centre came back genuinely hollow** — 0 opaque pixels out of 1849 in the centre third.
+  A frame with a painted interior cannot become a 9-slice; this one can.
+- **The edges tile.** Top-edge brightness from x=32→96 is flat (50–58), and the gold
+  ornaments sit at x≈16–24 and 104–112 — *inside* the corner regions. So a **32px corner
+  slice on a 128px source** captures the ornaments and leaves a stretchable middle. Verified
+  by actually 9-slicing it to 860×560 over the courtyard plate: no seams, corners intact.
+
+### Costs and API facts (correcting the table above)
+
+- `/create-1-direction-object` with 4 `item_descriptions` came back at **20 generations**,
+  not the 25 recorded from the courtyard run. Budget 20–25.
+- **Three free 422s taught the object endpoint's real schema** (validation precedes billing):
+  `size` is a **single integer**, not `{width,height}`; `view` accepts only **`top-down` or
+  `sidescroller`** (there is no `side`); `outline_mode` is **not permitted** here (it is a
+  tiles parameter) — steer outline through the description instead.
+- `cmdScene` requires `styleReference` to **exist on disk** even when every spec sets
+  `styleAnchor: false`. Stage the file regardless.
+
+### The real defect is value range, not geometry
+
+The pieces came back dark-brown-and-gold against a courtyard plate that is bright honey,
+turquoise and red. Technically correct, tonally from a grimmer game. Chrome must be judged
+**over the plate at game scale on both a light and a dark ground** — `review-contrast.png`
+in the out dir is that test, and it is what caught this. On the light plate the slot reads as
+a black hole and the bar trough nearly vanishes; the button is the strongest piece.
+
+**Next attempt should raise value and saturation to meet the plate**, and make the bar
+chunkier. Do not re-roll blind: `/create-1-direction-object` **rejects `seed`**, so nothing
+here is reproducible — keep anything good.
