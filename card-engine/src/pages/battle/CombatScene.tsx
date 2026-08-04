@@ -124,6 +124,10 @@ export function CombatScene({
   );
   const resolvingActorId = (() => {
     if (!presentationLocked) return null;
+    if (
+      currentBeat?.presentationPhase !== 'party_launch' &&
+      currentBeat?.presentationPhase !== 'party_impact'
+    ) return null;
     const event = currentBeat?.event;
     if (!event) return null;
     if ('actorId' in event && typeof event.actorId === 'string') return event.actorId;
@@ -159,6 +163,20 @@ export function CombatScene({
     return null;
   })();
   const [guideOpen, setGuideOpen] = useState(false);
+  const phaseAnnouncement = (() => {
+    switch (currentBeat?.presentationPhase) {
+      case 'party_charge': return 'Party charging.';
+      case 'party_launch': return 'Party attacks released.';
+      case 'party_impact': return 'Party attacks hit the boss.';
+      case 'party_silence': return 'The boss reels.';
+      case 'boss_prepare': return 'The boss prepares a response.';
+      case 'boss_attack': return 'The boss attacks.';
+      case 'party_hit': return 'The party takes the hit.';
+      case 'boss_recovery': return 'The battlefield settles.';
+      case 'player_turn_return': return 'Your turn.';
+      default: return '';
+    }
+  })();
 
   // The ability preview panel is rendered as a SIBLING of the command shelf,
   // not a child of it — the shelf's own z-index makes it a stacking context,
@@ -272,6 +290,9 @@ export function CombatScene({
 
   return (
     <div className="absolute inset-0">
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {phaseAnnouncement}
+      </div>
       {/* Everything DIEGETIC lives inside the shake layer: the arena, its
           atmosphere, the boss, and the party. Chrome (shelf, dock, HUD,
           journal, preview) stays outside it and never moves — translating a
@@ -359,6 +380,7 @@ export function CombatScene({
           plannedActions={plannedActions}
           motionLevel={motionLevel}
           resolvingActorId={resolvingActorId}
+          partyChargeActive={currentBeat?.presentationPhase === 'party_charge'}
         />
         <ResolutionReceiptOverlay
           state={state}

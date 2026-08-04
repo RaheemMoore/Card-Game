@@ -66,6 +66,7 @@ export function AttackVFX({ state, currentBeat }: Props) {
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
     if (e.kind !== 'damage_dealt') return;
     lastBeatId.current = currentBeat.id;

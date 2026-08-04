@@ -312,6 +312,7 @@ function DockCardVisual({
   useEffect(() => {
     if (!currentBeat) return;
     if (currentBeat.id === lastShakeBeatId.current) return;
+    if (currentBeat.suppressEffects) return;
     const e = currentBeat.event;
     if (e.kind !== 'damage_dealt' || e.targetActorId !== combatant.actorId) return;
     lastShakeBeatId.current = currentBeat.id;

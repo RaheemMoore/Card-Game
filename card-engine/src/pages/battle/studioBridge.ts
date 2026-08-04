@@ -73,6 +73,7 @@ export interface BattleStudioSnapshot {
     inputLocked: boolean;
     currentBeatId: string | null;
     currentEventKind: BattleEvent['kind'] | null;
+    phase: AnimationBeat['presentationPhase'] | null;
     queuedBeatCount: number;
   };
   performances: ObservedPerformance[];
@@ -229,6 +230,7 @@ function buildSnapshot(
       inputLocked: source.isPlaying,
       currentBeatId: source.currentBeat?.id ?? null,
       currentEventKind: source.currentBeat?.event.kind ?? null,
+      phase: source.currentBeat?.presentationPhase ?? null,
       queuedBeatCount: source.pendingCount,
     },
     performances: observePerformances(),

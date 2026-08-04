@@ -3,11 +3,13 @@ import type { BattleEvent } from '../../../types/combat';
 import type { ResolvedPerformance } from '../performance/types';
 import { materialKitFor } from '../../../data/combat/performance/materialKits';
 import {
+  PARTY_VOLLEY_CHARGE_MS,
   PARTY_VOLLEY_AFTERMATH_MS,
   PARTY_VOLLEY_CONTACT_AFTER_LAST_LAUNCH_MS,
   PARTY_VOLLEY_MOUNT_COMPENSATION_MS,
   PARTY_VOLLEY_IMPACT_MS,
   PARTY_VOLLEY_LAUNCH_GAP_MS,
+  PARTY_VOLLEY_SILENCE_MS,
   compilePartyVolleySlots,
   pacePartyVolleyBeats,
   retimePerformanceForPartyVolley,
@@ -70,24 +72,39 @@ describe('party volley presentation', () => {
       durationMs: 999,
     }));
     const paced = pacePartyVolleyBeats(beats, events, bossId);
-    expect(paced[0].durationMs).toBe(PARTY_VOLLEY_LAUNCH_GAP_MS);
+    expect(paced[0]).toMatchObject({
+      durationMs: PARTY_VOLLEY_CHARGE_MS,
+      reducedDurationMs: PARTY_VOLLEY_CHARGE_MS,
+      presentationPhase: 'party_charge',
+      suppressEffects: true,
+    });
     expect(paced[1]).toMatchObject({
+      durationMs: PARTY_VOLLEY_LAUNCH_GAP_MS,
+      presentationPhase: 'party_launch',
+    });
+    expect(paced[2]).toMatchObject({
       durationMs: 1,
       suppressEffects: true,
       preserveActivePerformance: true,
     });
-    expect(paced[2].durationMs).toBe(PARTY_VOLLEY_LAUNCH_GAP_MS);
-    expect(paced[4].durationMs).toBe(
+    expect(paced[3].durationMs).toBe(PARTY_VOLLEY_LAUNCH_GAP_MS);
+    expect(paced[5]).toMatchObject({
+      presentationPhase: 'party_impact',
+      durationMs:
       PARTY_VOLLEY_CONTACT_AFTER_LAST_LAUNCH_MS +
       PARTY_VOLLEY_IMPACT_MS +
       PARTY_VOLLEY_AFTERMATH_MS,
-    );
-    expect(paced[5]).toMatchObject({
+    });
+    expect(paced[6]).toMatchObject({
       durationMs: 1,
       suppressEffects: true,
       preserveActivePerformance: true,
     });
-    expect(paced[6].durationMs).toBe(999);
+    expect(paced[7]).toMatchObject({
+      durationMs: PARTY_VOLLEY_SILENCE_MS,
+      presentationPhase: 'party_silence',
+    });
+    expect(paced[8].durationMs).toBe(999);
   });
 
   it('drops the duplicate charge and normalizes shared impact and aftermath', () => {

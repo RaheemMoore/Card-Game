@@ -3,6 +3,7 @@ import type { AbilitySlotType } from '../../../types/abilities';
 import { mapEventsToBeats } from './adapter';
 import type { AnimationBeat, BeatSeverity } from './types';
 import { pacePartyVolleyBeats } from './partyVolley';
+import { paceBossResponseBeats } from './bossResponse';
 
 /** Resolves an ability definition id to its slot, so an ultimate can be
  *  recognised at queue time. Built by the view from the already-frozen
@@ -114,7 +115,11 @@ export function syncEvents(
     return { ...beat, durationMs: Math.max(beat.durationMs, performanceMs) };
   });
   const pacedBeats = bossActorId
-    ? pacePartyVolleyBeats(beats, rawEvents, bossActorId)
+    ? paceBossResponseBeats(
+        pacePartyVolleyBeats(beats, rawEvents, bossActorId),
+        rawEvents,
+        bossActorId,
+      )
     : beats;
   return {
     journal: state.journal,

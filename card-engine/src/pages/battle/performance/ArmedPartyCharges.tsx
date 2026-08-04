@@ -20,6 +20,7 @@ interface Props {
   plannedActions: Readonly<Record<string, PlayerAction>>;
   motionLevel: MotionLevel;
   resolvingActorId?: string | null;
+  partyChargeActive?: boolean;
 }
 
 /** Persistent, card-bound readiness tells for the plan-then-release round. */
@@ -29,6 +30,7 @@ export function ArmedPartyCharges({
   plannedActions,
   motionLevel,
   resolvingActorId = null,
+  partyChargeActive = false,
 }: Props) {
   const viewportWidth = useViewportWidth();
   const [releaseThroughIndex, setReleaseThroughIndex] = useState(-1);
@@ -105,7 +107,7 @@ export function ArmedPartyCharges({
                 chargeMs={320}
                 armed={!releasing}
                 firing={releasing}
-                flaring={releasing}
+                flaring={releasing || partyChargeActive}
                 art={
                   charge
                     ? {
@@ -136,7 +138,7 @@ export function ArmedPartyCharges({
                 boxShadow: '0 0 12px rgba(235,150,46,0.24)',
               }}
             >
-              {index + 1} · {releasing ? 'RELEASING' : 'ARMED'} · {abilityName}
+              {index + 1} · {partyChargeActive ? 'CHARGING' : releasing ? 'RELEASING' : 'ARMED'} · {abilityName}
             </div>
           </div>
         );

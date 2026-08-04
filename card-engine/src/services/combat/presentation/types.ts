@@ -26,6 +26,17 @@ export type BeatCue =
  */
 export type BeatSeverity = 'normal' | 'heavy' | 'ultimate';
 
+export type PresentationPhase =
+  | 'party_charge'
+  | 'party_launch'
+  | 'party_impact'
+  | 'party_silence'
+  | 'boss_prepare'
+  | 'boss_attack'
+  | 'party_hit'
+  | 'boss_recovery'
+  | 'player_turn_return';
+
 export interface AnimationBeat {
   /** Stable id — assigned by adapter, monotonic per event index. */
   id: string;
@@ -33,7 +44,12 @@ export interface AnimationBeat {
   event: BattleEvent;
   /** How long the beat should hold before advancing (ms). */
   durationMs: number;
+  /** Motion-off keeps the same semantic tableaux instead of collapsing the
+   *  whole exchange to cue defaults. Omitted beats use the cue table. */
+  reducedDurationMs?: number;
   cue: BeatCue;
+  /** Presentation-only chapter marker. It never feeds the reducer. */
+  presentationPhase?: PresentationPhase;
   /** Set on `boss_intent_declared`, the boss's own `damage_dealt`, and an
    *  ultimate-slot `player_action_selected`. Derived once at queue time
    *  rather than from live state, which may already have moved past the

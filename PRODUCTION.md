@@ -227,10 +227,11 @@ lets a 5000-run headless simulator check balance without playing anything.
 
 **A combat round is planned as a party.** You choose one action for each living card; every
 attack leaves a large elemental charge above its card, while Wait leaves a neutral hold mark. Nothing resolves
-until all cards are ready and you press **Release Party**. The cards launch left to right in
-a tight *boom, boom, boom* rhythm, then their three impacts arrive together at distinct
-upper-left, upper-right, and lower-center points on the boss. The shared aftermath finishes
-before the boss responds.
+until all cards are ready and you press **Release Party**. The party holds a visible charge,
+the cards launch left to right in a tight *boom, boom, boom* rhythm, then their three impacts
+arrive together at distinct upper-left, upper-right, and lower-center points on the boss. The
+boss gets a held hit reaction and a short silence before visibly preparing its answer. Every
+targeted hero card reacts before the battlefield settles and control returns.
 
 Selecting a card now exposes that character's three ability rows immediately above the
 shared Mana/Tech controls. Ordinary legal abilities lock from that choice and move focus to
@@ -300,7 +301,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | Walkable and lovely. **All 4 stalls unwired** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
-| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → hold three visible charges → Release Party → stagger three launches → shared impact → boss response**. Boss-bound volleys land in a readable triangle instead of stacking three effect pieces on one point. Unmapped direct attacks reuse the reviewed element stream/impact art instead of the old generic beam. The combined branch is not merged, pushed, or deployed. |
+| IN FLIGHT | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets now run in the authentic `/battle` event stream. Combat has been restructured around **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The live full-motion exchange reaches the next intent in about 6.2 seconds instead of racing through the reducer log. Boss-bound volleys land in a readable triangle instead of stacking three effect pieces on one point. Motion Off keeps the same readable order as still tableaux. The combined branch is not merged, pushed, or deployed. |
 | IN FLIGHT | Decision Experience System | Stage 1 now runs in `/battle` alongside Ability Performance: the selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible ability it could activate; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back to the waited hero. Projections, the Threat Translator, contextual explanations, shared confirmation policy, and authoritative receipts remain intact. `/dev/decision-lab` still owns the three frozen comprehension pilots. **No Encounter Briefing yet, and Pilots A/B still need their own dedicated comprehension pass** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
@@ -321,7 +322,7 @@ Five. Everything else is merged.
 | `feat/warband-battle-mvp` | 1 | 107 | Tested warband combat core. Stranded |
 | `claude/vigilant-kowalevski-e30267` | 1 | 126 | One Workshop fix. Will conflict if revived |
 | `ability-performance-system` | 3 | — | Clean source branch at `c39304f`: Ability Performance spine, reviewed assets, element kits, and Ability Theater. Its work is contained by the combined branch below. |
-| `decision-experience` | 7 | — | Combined local release candidate with the party-plan, stable selected-card focus, explicit Wait/lockout guidance, triangular volley impacts, and the Wait-only action rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
+| `decision-experience` | 8 | — | Combined local release candidate with the party plan, stable selected-card focus, explicit Wait/lockout guidance, triangular volley impacts, staged six-second party/boss cadence, and the Wait-only action rule. Branched from `ability-performance-system`; now carries both tracks in the authentic battle. Nothing has been pushed or deployed. Worktree: `.claude/worktrees/decision-experience`. |
 
 ---
 
@@ -731,6 +732,36 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-03 — Combat now moves in readable human beats
+
+Raheem compared the authentic fight with a commercial card battler and rejected the speed
+of the released party turn. The reducer was correct, but the whole exchange read like a log
+being drained: attacks, damage, boss answer, and control return arrived too close together to
+watch. The real battle now presents one deliberate sentence: a 0.7-second collective charge;
+three launches 0.18 seconds apart that converge on one contact moment; a held boss reaction;
+a 0.55-second silence; a 0.9-second boss preparation; the attack; every targeted card's hit
+reaction; recovery; then player control.
+
+The first live review caught a second bug: an area attack returned control after its first
+target, then played the other two damage receipts afterward. The presentation queue now gates
+recovery and control return on the final boss-damage target. The reducer, event log, damage,
+resources, cooldowns, and boss rules did not change.
+
+The authentic `/battle` route was exercised through the real party picker and four consecutive
+rounds. Full motion at desktop and 1024×768 tablet showed boss preparation, attack, three card
+hit beats, recovery, and return with input locked throughout; the measured exchange reached
+the next intent at about 6.2 seconds. Motion Off preserved the same phase order and holds as
+still tableaux. The browser console was clean. Build and lint pass; focused presentation tests
+pass; the named `battle-party-volley-impact` scenario passed with three simultaneous real
+performances, three casters, three boss targets, and three distinct contact points. 625 of 626
+full-suite tests pass, with the sole failure still the unrelated pre-existing
+ability-art `cobalt` expectation. The final feel remains **HUMAN REVIEW**. Nothing was pushed
+or deployed.
+
+*Why it matters:* combat now gives the eye one subject at a time — party intent, shared hit,
+boss thought, retaliation, consequence, recovery — while keeping deterministic combat truth
+unchanged.
 
 ### 2026-08-03 — Wait completes the card and focus only moves forward
 

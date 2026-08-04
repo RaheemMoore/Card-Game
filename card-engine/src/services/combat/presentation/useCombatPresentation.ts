@@ -60,7 +60,9 @@ export function useCombatPresentation(
     if (timerRef.current !== null) return;
 
     const next = queue.pending[0];
-    const holdMs = motionLevel === 'off' ? REDUCED_MOTION_BY_CUE[next.cue] : next.durationMs;
+    const holdMs = motionLevel === 'off'
+      ? next.reducedDurationMs ?? REDUCED_MOTION_BY_CUE[next.cue]
+      : next.durationMs;
 
     const id = setTimeout(() => {
       timerRef.current = null;

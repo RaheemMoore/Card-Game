@@ -4,10 +4,12 @@ import { compileActionScopes, type ActionScope } from '../performance/actionScop
 import type { AnimationBeat } from './types';
 
 /** The party should read as one volley: fire, fire, fire, then one payoff. */
-export const PARTY_VOLLEY_LAUNCH_GAP_MS = 150;
-export const PARTY_VOLLEY_CONTACT_AFTER_LAST_LAUNCH_MS = 320;
-export const PARTY_VOLLEY_IMPACT_MS = 520;
-export const PARTY_VOLLEY_AFTERMATH_MS = 260;
+export const PARTY_VOLLEY_CHARGE_MS = 700;
+export const PARTY_VOLLEY_LAUNCH_GAP_MS = 180;
+export const PARTY_VOLLEY_CONTACT_AFTER_LAST_LAUNCH_MS = 740;
+export const PARTY_VOLLEY_IMPACT_MS = 650;
+export const PARTY_VOLLEY_AFTERMATH_MS = 1;
+export const PARTY_VOLLEY_SILENCE_MS = 550;
 /**
  * Later performances pay an extra React mount/queue boundary before their
  * clock starts. Quadratic compensation matches the measured 3-card runtime:
@@ -82,7 +84,7 @@ export function pacePartyVolleyBeats(
     }
   }
 
-  return beats.map((beat) => {
+  const paced = beats.map<AnimationBeat>((beat) => {
     const match = /^beat_(\d+)$/.exec(beat.id);
     const index = match ? Number(match[1]) : -1;
     const slot = byEventIndex.get(index);
@@ -91,11 +93,16 @@ export function pacePartyVolleyBeats(
     if (index === slot.scope.openerIndex) {
       return {
         ...beat,
+        presentationPhase: slot.order === slot.count - 1 ? 'party_impact' : 'party_launch',
         durationMs:
           slot.order === slot.count - 1
             ? PARTY_VOLLEY_CONTACT_AFTER_LAST_LAUNCH_MS +
               PARTY_VOLLEY_IMPACT_MS +
               PARTY_VOLLEY_AFTERMATH_MS
+            : PARTY_VOLLEY_LAUNCH_GAP_MS,
+        reducedDurationMs:
+          slot.order === slot.count - 1
+            ? PARTY_VOLLEY_CONTACT_AFTER_LAST_LAUNCH_MS + PARTY_VOLLEY_IMPACT_MS
             : PARTY_VOLLEY_LAUNCH_GAP_MS,
       };
     }
@@ -106,6 +113,40 @@ export function pacePartyVolleyBeats(
       preserveActivePerformance: true,
     };
   });
+
+  const firstSlot = [...slots.values()].sort((a, b) => a.order - b.order)[0];
+  if (!firstSlot) return paced;
+  const firstPosition = paced.findIndex((beat) => beat.id === `beat_${firstSlot.scope.openerIndex}`);
+  if (firstPosition < 0) return paced;
+  const lastMemberIndex = Math.max(
+    firstSlot.scope.openerIndex,
+    ...[...slots.values()].flatMap((slot) => [slot.scope.openerIndex, ...slot.scope.memberIndices]),
+  );
+  const afterVolley = paced.findIndex((beat) => beat.id === `beat_${lastMemberIndex}`);
+  const charge: AnimationBeat = {
+    id: `presentation_party_charge_${firstSlot.scope.openerIndex}`,
+    event: events[firstSlot.scope.openerIndex],
+    cue: 'wind_up',
+    durationMs: PARTY_VOLLEY_CHARGE_MS,
+    reducedDurationMs: PARTY_VOLLEY_CHARGE_MS,
+    presentationPhase: 'party_charge',
+    suppressEffects: true,
+    preserveActivePerformance: true,
+  };
+  const silence: AnimationBeat = {
+    id: `presentation_party_silence_${lastMemberIndex}`,
+    event: events[lastMemberIndex],
+    cue: 'handoff',
+    durationMs: PARTY_VOLLEY_SILENCE_MS,
+    reducedDurationMs: PARTY_VOLLEY_SILENCE_MS,
+    presentationPhase: 'party_silence',
+    suppressEffects: true,
+    preserveActivePerformance: true,
+  };
+  const result = [...paced];
+  result.splice(firstPosition, 0, charge);
+  result.splice(afterVolley + 2, 0, silence);
+  return result;
 }
 
 /**
