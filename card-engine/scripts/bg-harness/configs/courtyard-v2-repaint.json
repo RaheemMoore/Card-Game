@@ -1,0 +1,96 @@
+{
+  "_readme": [
+    "Courtyard V2 — REPAINT THE GROUND IN PLACE (image-to-image).",
+    "",
+    "RAHEEM'S IDEA, 2026-08-04: 'take the original image with the original castle, the",
+    "original lighting and all that, put it into Leonardo, jack the image-to-image",
+    "confidence up high, and just ask, can we change the castle floor to dirt... without",
+    "changing the castle or the angle. We could just swap them in and out.'",
+    "",
+    "WHY THIS IS THE BETTER IDEA. Every earlier attempt generated a NEW floor and then",
+    "tried to make it agree with a castle it had never seen — which is why the angle, the",
+    "register and the palette each had to be fought separately. Image-to-image starts from",
+    "the finished plate, so the castle, the camera and the lighting are already correct by",
+    "construction and the only thing being asked for is the ground. It also sidesteps the",
+    "cut-out entirely: the output is a whole plate that drops in as a straight swap.",
+    "",
+    "INIT IMAGE: public/assets/castle/courtyard.png — the real shipped v2 plate. This is",
+    "the painted Leonardo background, NOT src/assets/dev-preview/courtyard-v2-figma.png,",
+    "which is a Figma-assembled dev mock carrying a fountain, rugs and characters that",
+    "Raheem does not want and that misled an earlier round into thinking the game's",
+    "backgrounds were flat pixel art. Backgrounds are Leonardo; sprites are PixelLab.",
+    "",
+    "INIT STRENGTH IS THE WHOLE EXPERIMENT. In Leonardo, init_strength is how strongly the",
+    "result holds to the original, so HIGH preserves the castle and LOW lets the model",
+    "reinvent. Raheem wants it high. The ladder below brackets it — too high and the stone",
+    "paving survives untouched, too low and the towers start drifting. Read the results",
+    "before spending more: the useful value is the highest one that actually changed the",
+    "ground. Leonardo caps init_strength at 0.9.",
+    "",
+    "NEGATIVE PROMPT IS DELIBERATELY SHORT. The usual anti-shadow and anti-perspective",
+    "bans are wrong here — we are KEEPING this plate's lighting and camera, not fighting",
+    "them. Banning shadow would ask the model to relight the castle, which is the opposite",
+    "of the brief. The day/night work goes back to being a separate job on a later pass.",
+    "",
+    "COST: 4 generations, one per rung of the ladder.",
+    "  node harness.mjs gen courtyard-v2-repaint"
+  ],
+  "model": "phoenix",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "initImageFile": "../../public/assets/castle/courtyard.png",
+  "negative": "text, watermark, logo, signature, ui, hud, frame, border, blurry, people, person, figure, character, nudity, bare chest, bare torso, shirtless, cleavage, lingerie",
+  "styleHeader": "",
+  "anchors": {},
+  "familyLabels": {
+    "repaint": "Courtyard V2 — ground repainted in place (image-to-image)"
+  },
+  "states": [
+    {
+      "id": "ground-s75",
+      "label": "0.75 + paving banned — the prompt fix, not the strength",
+      "family": "repaint",
+      "initStrength": 0.75,
+      "negative": "stone paving, paved, cobblestone, flagstone, stone slabs, stone floor, stone tiles, tiled floor, brick floor, pavement, text, watermark, logo, ui, blurry, people, person, figure, character, nudity, bare chest, shirtless, cleavage",
+      "line": "The courtyard ground is bare earth and grass. Rich brown and honey-ochre dirt, dry packed soil, patches of green grass and weeds growing across it. An unpaved earthen courtyard floor."
+    },
+    {
+      "id": "ground-s60",
+      "label": "0.60 + paving banned",
+      "family": "repaint",
+      "initStrength": 0.6,
+      "negative": "stone paving, paved, cobblestone, flagstone, stone slabs, stone floor, stone tiles, tiled floor, brick floor, pavement, text, watermark, logo, ui, blurry, people, person, figure, character, nudity, bare chest, shirtless, cleavage",
+      "line": "The courtyard ground is bare earth and grass. Rich brown and honey-ochre dirt, dry packed soil, patches of green grass and weeds growing across it. An unpaved earthen courtyard floor."
+    },
+    {
+      "id": "repaint-s85",
+      "label": "init_strength 0.85 — most faithful to the castle",
+      "family": "repaint",
+      "initStrength": 0.85,
+      "line": "The same castle courtyard, completely unchanged — same walls, same towers, same gate, same props, same camera angle, same sunlight and same shadows — except the stone paving of the courtyard floor is now bare dirt and grass: warm honey-amber and ochre packed earth with patches of green turf worn through it. Only the ground surface is different. Everything else is identical."
+    },
+    {
+      "id": "repaint-s75",
+      "label": "init_strength 0.75",
+      "family": "repaint",
+      "initStrength": 0.75,
+      "line": "The same castle courtyard, completely unchanged — same walls, same towers, same gate, same props, same camera angle, same sunlight and same shadows — except the stone paving of the courtyard floor is now bare dirt and grass: warm honey-amber and ochre packed earth with patches of green turf worn through it. Only the ground surface is different. Everything else is identical."
+    },
+    {
+      "id": "repaint-s65",
+      "label": "init_strength 0.65",
+      "family": "repaint",
+      "initStrength": 0.65,
+      "line": "The same castle courtyard, completely unchanged — same walls, same towers, same gate, same props, same camera angle, same sunlight and same shadows — except the stone paving of the courtyard floor is now bare dirt and grass: warm honey-amber and ochre packed earth with patches of green turf worn through it. Only the ground surface is different. Everything else is identical."
+    },
+    {
+      "id": "repaint-s50",
+      "label": "init_strength 0.50 — loosest, expect the castle to drift",
+      "family": "repaint",
+      "initStrength": 0.5,
+      "line": "The same castle courtyard, completely unchanged — same walls, same towers, same gate, same props, same camera angle, same sunlight and same shadows — except the stone paving of the courtyard floor is now bare dirt and grass: warm honey-amber and ochre packed earth with patches of green turf worn through it. Only the ground surface is different. Everything else is identical."
+    }
+  ]
+}

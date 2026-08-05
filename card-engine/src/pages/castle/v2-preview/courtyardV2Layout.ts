@@ -37,6 +37,15 @@ const A = (p: string) => new URL(`../../../assets/dev-preview/${p}`, import.meta
  * artwork's silhouette blocks the player from walking behind things they should
  * be able to walk behind.
  *
+ * ALL THIRTEEN OF THE NON-TRACED BOXES ARE NOW DERIVED FROM SPRITE ALPHA by
+ * `scripts/sprite-lab/lib/derive_colliders.py`, not typed by hand. It scans up
+ * from each sprite's lowest opaque row and measures the horizontal extent of the
+ * band that actually touches the ground. That is why `case-living-staff` is 12px
+ * wide and `case-halo-blade` is 14px — they stand on slim metal feet, and a box
+ * around the artwork would have blocked several times the floor they occupy.
+ *
+ * Verified: none of them intrudes on any of the five walk routes Raheem traced.
+ *
  * The forge, counter and bench boxes come from Raheem's own traced footprints in
  * `scripts/sprite-lab/figma-traces/courtyard-v2-forge-preview.json` and are
  * already proven in play. The rest are derived from each sprite's bottom band
@@ -51,6 +60,8 @@ export const COURTYARD_V2_ART: PlacedArt[] = [
     collider: { x: 869, y: 303, width: 265, height: 56 },   // traced
   },
   {
+    // Shadow lifted 2026-08-04 — the rug now shows through underneath.
+    // The original is kept as counter-depth-WITH-shadow.png.
     id: 'counter', node: '18:2', url: A('forge/counter-depth.png'),
     x: 894, y: 357, width: 214, height: 110, groundY: 467,
     collider: { x: 917, y: 390, width: 181, height: 75 },   // traced
@@ -63,23 +74,25 @@ export const COURTYARD_V2_ART: PlacedArt[] = [
   {
     id: 'dwarf', node: '102:8', url: A('forge-life/dwarf-chibi-south.png'),
     x: 1025, y: 312, width: 36, height: 64, groundY: 376,
-    // The keeper stands BEHIND his counter, which already blocks the player.
-    // Giving him his own collider would wall off the aisle he works in.
+    // Raheem asked for one. Kept TIGHT TO HIS FEET (21x7) rather than boxing his
+    // body, so the aisle he works in stays walkable — verified: it intrudes on
+    // none of the five traced routes.
+    collider: { x: 1032, y: 369, width: 21, height: 7 },
   },
   {
     id: 'apprentice', node: '100:2', url: A('forge-life/apprentice-chibi-east.png'),
     x: 1108, y: 344, width: 41, height: 66, groundY: 410,
-    collider: { x: 1114, y: 401, width: 29, height: 12 },
+    collider: { x: 1123, y: 403, width: 11, height: 7 },
   },
   {
     id: 'element-crystal', node: '74:8', url: A('magical/element-crystal.png'),
     x: 1154, y: 328, width: 68, height: 90, groundY: 418,
-    collider: { x: 1162, y: 405, width: 52, height: 14 },
+    collider: { x: 1169, y: 408, width: 38, height: 10 },
   },
   {
     id: 'forge-brazier', node: '108:64', url: A('tower/watch-brazier.png'),
     x: 1174, y: 401, width: 48, height: 70, groundY: 471,
-    collider: { x: 1186, y: 460, width: 24, height: 11 },
+    collider: { x: 1196, y: 463, width: 8, height: 8 },
   },
   {
     id: 'griffin-cub', node: '100:10', url: A('forge-life/curled-asleep.png'),
@@ -94,49 +107,49 @@ export const COURTYARD_V2_ART: PlacedArt[] = [
   {
     id: 'muster-board', node: '108:48', url: A('tower/muster-board.png'),
     x: 575, y: 265, width: 100, height: 79, groundY: 344,
-    collider: { x: 588, y: 334, width: 74, height: 12 },
+    collider: { x: 587, y: 336, width: 78, height: 8 },
   },
   {
     id: 'archivist', node: '108:50', url: A('forge-life/archivist-chibi-south.png'),
     x: 575, y: 287, width: 35, height: 67, groundY: 354,
-    collider: { x: 581, y: 346, width: 23, height: 10 },
+    collider: { x: 579, y: 347, width: 27, height: 7 },
   },
   {
     id: 'card-stand', node: '108:60', url: A('magical/card-stand.png'),
     x: 421, y: 277, width: 70, height: 77, groundY: 354,
-    collider: { x: 433, y: 342, width: 46, height: 14 },
+    collider: { x: 438, y: 346, width: 37, height: 8 },
   },
   {
     id: 'hall-brazier', node: '108:62', url: A('tower/watch-brazier.png'),
     x: 551, y: 305, width: 24, height: 43, groundY: 348,
-    collider: { x: 557, y: 341, width: 12, height: 8 },
+    collider: { x: 562, y: 343, width: 8, height: 6 },
   },
   {
     id: 'mana-font', node: '108:58', url: A('magical/mana-font.png'),
     x: 493, y: 354, width: 106, height: 106, groundY: 460,
-    collider: { x: 508, y: 441, width: 76, height: 20 },
+    collider: { x: 508, y: 449, width: 77, height: 11 },
   },
 
   // ── Reliquary row, mid-left ───────────────────────────────────────────────
   {
     id: 'case-gauntlets', node: '108:74', url: A('proving-hall/case-open-hand-gauntlets.png'),
     x: 256, y: 589, width: 69, height: 71, groundY: 660,
-    collider: { x: 268, y: 649, width: 45, height: 12 },
+    collider: { x: 263, y: 653, width: 55, height: 7 },
   },
   {
     id: 'case-living-staff', node: '108:70', url: A('proving-hall/v2/case-living-staff.png'),
     x: 330, y: 553, width: 39, height: 110, groundY: 663,
-    collider: { x: 337, y: 652, width: 25, height: 12 },
+    collider: { x: 344, y: 652, width: 12, height: 11 },
   },
   {
     id: 'case-judgment-bow', node: '108:68', url: A('proving-hall/v2/case-judgment-bow.png'),
     x: 381, y: 562, width: 64, height: 103, groundY: 665,
-    collider: { x: 393, y: 654, width: 40, height: 12 },
+    collider: { x: 390, y: 654, width: 45, height: 11 },
   },
   {
     id: 'case-halo-blade', node: '108:76', url: A('proving-hall/v2/case-halo-blade.png'),
     x: 457, y: 525, width: 53, height: 145, groundY: 670,
-    collider: { x: 467, y: 659, width: 33, height: 12 },
+    collider: { x: 477, y: 655, width: 14, height: 15 },
   },
 ];
 
@@ -145,6 +158,9 @@ export const COURTYARD_V2_ART: PlacedArt[] = [
  * collider. Traced by Raheem as `fountain-footprint` (node 94:6).
  */
 export const COURTYARD_V2_STATIC_COLLIDERS = [
+  // NOTE: this sits inside `fountain-ring` by design. The ring is a route AROUND
+  // the fountain and a rectangle cannot express an annulus, so the route check
+  // reports the overlap and it is expected rather than a failure.
   { id: 'fountain', node: '94:6', x: 649, y: 557, width: 253, height: 158 },
 ] as const;
 
