@@ -84,7 +84,6 @@ const ASSET_PREFIX_RULES = [
   { prefix: 'Card Images/', category: 'reference-art', force: 'exclude' },
   { prefix: 'Card Game Architype Symbols & Prompts/', category: 'reference-art', force: 'exclude' },
   { prefix: 'Classes and Boss Battles/', category: 'reference-art', force: 'exclude' },
-  { prefix: 'Combat_Fullscreen_Correction_Handoff/', category: 'reference-art', force: 'exclude' },
 ];
 
 // Never printed — only pattern name + file path are reported.

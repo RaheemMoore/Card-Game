@@ -94,7 +94,7 @@ Card Game/                          # Git root
 │           ├── icons/              # Stat icons (fist, castle-turret, star, etc.)
 │           ├── archetype-emblems/  # 10 approved 1:1 selection emblems (Lycanthrope pending)
 │           └── backgrounds/        # Fantasy landscape background
-├── Card Images/                    # Portrait sources + approved emblems (Archetype Emblems/Approved)
+├── Card Images/                    # Two hand-made source files: the ability-art bundle + emblem prompts
 ├── STUDIO_CHARTER.md               # Studio structure, roles, approval rules
 ├── WORKFLOW.md                     # How to work with this repo (day-to-day)
 ├── card-engine-power-system-spec.md         # Stats, bias tiers, rank derivation, rank-sum cap
