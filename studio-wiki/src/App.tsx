@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Archive, BookOpen, Boxes, Castle, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleDashed, CircleHelp, Command, ExternalLink, Eye, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, LogIn, Menu, NotebookPen, Plus, RefreshCw, Save, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
+import { Archive, BookOpen, Boxes, Castle, LayoutPanelLeft, Check, ChevronDown, ChevronRight, CircleAlert, CircleCheck, CircleDashed, CircleHelp, Command, ExternalLink, Eye, Feather, FileText, FlaskConical, Gem, Hammer, Image, Layers, Lightbulb, ListChecks, LogIn, Menu, NotebookPen, Plus, RefreshCw, Save, Search, Shield, Sparkles, Swords, TriangleAlert, Users, Workflow, X } from 'lucide-react';
 import { buildStamp, productionMarkdown } from 'virtual:studio-content';
 import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Status } from './components';
 import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
@@ -18,7 +18,7 @@ import { createStudioIdea, getStudioSession, isStudioDataConfigured, isStudioPar
 import type { LiveReviewCard, ReviewStatus, StudioIdea, StudioSession } from './studioApi';
 
 const iconsByPath = {
-  '/': Command, '/characters': Users, '/bosses': Swords, '/characters/cards': Layers, '/elements': Gem, '/abilities': Sparkles, '/world': Castle, '/minigames': CircleHelp,
+  '/': Command, '/characters': Users, '/bosses': Swords, '/characters/cards': Layers, '/elements': Gem, '/abilities': Sparkles, '/world': Castle, '/interface': LayoutPanelLeft, '/minigames': CircleHelp,
   '/production': FileText, '/studio': Workflow, '/assets': Image, '/workshops': Hammer, '/decisions': BookOpen, '/technical': Boxes, '/archive': Archive,
   '/work/advice': Lightbulb, '/work/active': ListChecks, '/work/required': TriangleAlert, '/work/tori': Feather, '/work/raheem': NotebookPen,
 } as const;
@@ -71,7 +71,7 @@ function Shell() {
       <header className="topbar"><button className="menu-button" onClick={() => setMenu(true)} aria-label="Open navigation"><Menu/></button><div className="search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the studio…" aria-label="Search the Studio Wiki" onKeyDown={(event) => { if (event.key === 'Enter' && matches[0]) { navigate(matches[0].path); setSearch(''); } }}/>{search && <div className="search-results">{matches.length ? matches.map((entry) => <button key={entry.path} onClick={() => { navigate(entry.path); setSearch(''); }}><strong>{entry.title}</strong><span>{entry.text}</span></button>) : <p>No matching section</p>}</div>}</div><span className="crumb">{searchEntries.find((entry) => entry.path === path)?.title ?? 'Studio Home'}</span></header>
       <main>{({
         '/': <Home/>, '/characters': <Characters/>, '/characters/cards': <Cards/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
-        '/world': <World/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
+        '/world': <World/>, '/interface': <Interface/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
         '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>, '/work/raheem': <RaheemDesk/>,
       } as Record<string, ReactNode>)[path] ?? <Home/>}</main>
@@ -355,6 +355,79 @@ function Abilities() {
     </div>
     <div className="ability-principles"><Panel title="Identity"><p>One named ability remains recognizable across balance passes, cards, and discoveries.</p></Panel><Panel title="Progression"><p>Core abilities establish the kit. Signature and ultimate slots expand as the character advances.</p></Panel><Panel title="Artwork"><p>Leonardo art is generated once for a genuinely new permanent ability—not per card and not per tier.</p></Panel></div>
     <Panel className="ability-next-pass"><div><p className="eyebrow">NEXT PRODUCTION PASS</p><h2>{SEED_ABILITIES.length - approvedArtCount} abilities still need canonical art.</h2><p>The catalog is ready for the deeper ability-generation and picture workflow you plan to develop next. Missing art stays explicit instead of borrowing retired paintings from the old roster.</p></div><div><a className="tower-related" href="/elements">Looking for elemental charge and blast art? Open Elements →</a><RepoLink path="card-engine/src/data/abilities/visualManifest.ts"/></div></Panel>
+  </>;
+}
+
+
+/**
+ * Interface & Menus — the pixel UI system built 2026-08-04.
+ *
+ * Lives under Explore rather than Production because it is a player-facing
+ * system like Elements or Abilities, not a status report. Status words stay
+ * honest: the Collection is the only surface a player can currently reach.
+ */
+function Interface() {
+  return <>
+    <PageHeader eyebrow="VISUAL WIKI" title="Interface & Menus" intro="The pixel UI the game wears, the surfaces built on it, and the web pages it is replacing." status="IN FLIGHT"/>
+
+    <Panel title="The rule the interface follows">
+      <p><strong>Painted is what you look at. Pixel is what you touch.</strong> Backdrops, environment plates and card portraits are painted through Leonardo. Characters, props, effects and every piece of interface are pixel through PixelLab. Menus are pixel because you touch them; the card stays painted because you look at it.</p>
+      <p>A pixel case holding painted cards is the idea made literal — and it is why the card slots carry no frame at all. Raheem: <em>“The cards are the key of the game, so they should be the star, not those gem frames.”</em></p>
+      <RepoLink path="card-engine/public/assets/ui/PROVENANCE.md"/>
+    </Panel>
+
+    <Panel title="The kit" action={<Status value="SHIPPED"/>}>
+      <p>Four PixelLab pieces — a panel frame, a button, a slot and a bar trough — approved after three rounds and 60 generations. Six React primitives are built on them, and <strong>every variant comes from props rather than new art</strong>. That is the mechanism that keeps a whole-game interface to four files.</p>
+      <div className="fact-grid">
+        <div><strong>Panel</strong><span>Five weights from one 9-slice frame</span></div>
+        <div><strong>PixelButton</strong><span>One face; states derived in CSS</span></div>
+        <div><strong>Bar</strong><span>One trough, three tones, banded fill</span></div>
+        <div><strong>Slot</strong><span>Framed when empty, frameless behind a card</span></div>
+        <div><strong>Scrim</strong><span>One dismiss and focus-trap for every menu</span></div>
+        <div><strong>ScrollArea</strong><span>Fades and a chevron only where content continues</span></div>
+      </div>
+      <RepoLink path="card-engine/src/components/ui/"/>
+    </Panel>
+
+    <Panel title="Surfaces built">
+      <div className="fact-grid">
+        <div><strong>The Collection</strong><span>LIVE at /collection and from the pause menu</span></div>
+        <div><strong>The Forge</strong><span>Preview only — the web forge is untouched</span></div>
+        <div><strong>The Codex</strong><span>Preview only — elements, archetypes, abilities</span></div>
+        <div><strong>Card Detail</strong><span>Opens from the Collection, read-only</span></div>
+        <div><strong>Pause menu</strong><span>Re-skinned; behaviour unchanged</span></div>
+        <div><strong>Stall doorway</strong><span>Enter or walk away, before a menu opens</span></div>
+      </div>
+      <p>The Forge goes full-bleed and fills the screen with the chosen archetype’s commissioned background, so that art is experienced rather than glimpsed behind a boxed column.</p>
+    </Panel>
+
+    <Panel title="Retiring the web pages" action={<Status value="PLANNED"/>}>
+      <p>The intent is that these menus <strong>replace</strong> the browser pages rather than sit beside them — the game should read as a game rather than a card-collection website.</p>
+      <p><strong>Done:</strong> <code>/collection</code> now renders the in-world case. The old page component still exists but is no longer routed. Filters, sorting, detail and deletion all came across; archetype filtering is a rack of the eleven crests instead of a dropdown.</p>
+      <p><strong>Not done, deliberately:</strong> <code>/forge</code> and <code>/codex</code> are untouched and remain the shipping paths. Raheem on the forge: <em>“Do not remove it until we completely approve this, because this is the most critical aspect of the game.”</em> The boss battle interface is explicitly out of scope for now.</p>
+    </Panel>
+
+    <Panel title="Waiting on the courtyard">
+      <p>The three stall menus are built and <strong>unwired on purpose</strong>. Wiring waits on Courtyard V2 and its quadrants. A stall listed in <code>BUILT_STALLS</code> offers “Enter”; one outside it says the door is not open yet, so connecting a menu is one id and one branch.</p>
+      <div className="fact-grid">
+        <div><strong>The Forge</strong><span>The dwarf keeper</span></div>
+        <div><strong>The Collection</strong><span>The Archivist, grey bangs, on the left</span></div>
+        <div><strong>The Codex</strong><span>Undecided — a book or a card stand</span></div>
+      </div>
+      <RepoLink path="card-engine/src/pages/castle/courtyard/stalls.ts"/>
+    </Panel>
+
+    <Panel title="Review these without an account">
+      <p>Every surface has an ungated dev route, because the real ones sit behind sign-in and the Forge spends currency at its last step. A preview that costs money is not a preview.</p>
+      <div className="fact-grid">
+        <div><strong>/dev/collection-stall</strong><span>The case, filled</span></div>
+        <div><strong>/dev/forge-stall</strong><span>The forge ritual</span></div>
+        <div><strong>/dev/codex-stall</strong><span>The book</span></div>
+        <div><strong>/dev/ui-kit</strong><span>Every primitive and variant</span></div>
+        <div><strong>/dev/pause-menu</strong><span>Player and admin</span></div>
+        <div><strong>/dev/stall-shell</strong><span>Shell, rail and doorway</span></div>
+      </div>
+    </Panel>
   </>;
 }
 

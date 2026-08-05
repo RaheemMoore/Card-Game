@@ -345,7 +345,7 @@ export const bossStates = [
 ] as const;
 
 export const navigation = [
-  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/characters/cards', 'Cards'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/minigames', 'Battle Tower']] },
+  { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/characters/cards', 'Cards'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/interface', 'Interface & Menus'], ['/minigames', 'Battle Tower']] },
   { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decision Log'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
   { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"], ['/work/raheem', "Raheem's Desk"]] },
 ] as const;
@@ -357,6 +357,7 @@ export const searchEntries = [
   { path: '/elements', title: 'Elements', text: '29 element crystals PixelLab charge delivery stream volley growth impact blast combat performance material language' },
   { path: '/abilities', title: 'Abilities', text: 'ability codex canonical roster core signature ultimate role family resource effects version artwork' },
   { path: '/world', title: 'Game World', text: 'castle courtyard v2 pending forge quadrant chibi footsteps dust colliders occluders Phaser Leonardo PixelLab Figma' },
+  { path: '/interface', title: 'Interface & Menus', text: 'pixel UI kit stall menus collection forge codex panel button bar slot scrim scroll doorway pause menu card detail retiring web pages PixelLab chrome' },
   { path: '/minigames', title: 'Battle Tower', text: 'primary game mode floors party cards boss intent attack mana tech elements guard strike abilities' },
   { path: '/production', title: 'Current Build', text: 'production status open threads priorities shipped in flight' },
   { path: '/studio', title: 'AI Studio Handbook', text: 'coworker onboarding workflow accounts Figma Leonardo idea plan create build connect prove release agents skills evidence human approval' },
