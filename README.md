@@ -1,0 +1,131 @@
+# Card Engine
+
+An adventure game where you forge your own characters. Yu-Gi-Oh and Pokémon by way of
+fantasy adventure: you make a character through a guided ritual — archetype, dice roll,
+story pillars, element and bond — and then grow them across game modes.
+
+**The card is the format a character comes in. It is not the point.** That distinction is
+load-bearing. It is why the forge is a ritual rather than a slot machine, and why identity
+fields are locked so that levelling up can never make someone younger, thinner, or less
+disabled.
+
+The shape is **a hub with doors**. The castle courtyard is where you stand before you go
+somewhere, and each game mode is a door off it. The tower is the main feature and the gate:
+beating it unlocks the rest.
+
+---
+
+## Run it
+
+```bash
+cd card-engine
+npm install
+npm run dev
+```
+
+That serves the app on <http://localhost:5173>. You need a `.env` in `card-engine/` with
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+
+**Image and text generation cannot run locally.** The provider keys are server-side and
+scoped to Vercel Preview and Production, so anything that calls Claude, Leonardo or PixelLab
+has to be exercised on a preview deploy rather than on your machine.
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server on :5173 |
+| `npm run build` | Type-check and build. **Use this, not `tsc --noEmit`** — that skips `noUnusedLocals` and lets deploys break |
+| `npm run test` | The full suite |
+| `npm run assets:pack` | Regenerate `public/asset-pack.json` after adding or changing castle art |
+| `npm run assets:pack:check` | Fail if the committed pack is stale |
+
+---
+
+## Where things live
+
+```
+Card Game/                  ← you are here (git root, docs and pipelines)
+├── card-engine/            THE APP. Almost all code is here.
+│   ├── src/                React + Phaser source
+│   ├── public/assets/      Art the game loads at runtime, by string path
+│   ├── scripts/            Art generation harnesses and build tooling
+│   └── api/                Server-side functions that hold the provider keys
+├── studio-wiki/            A separate small site. Not the game.
+├── scripts/                Repo-level tooling (AI snapshots)
+└── docs/archive/           Retired designs. NOT current — do not read as truth.
+```
+
+**If you are looking for the game, it is `card-engine/`.** Everything at this root is
+documentation, specification, or an art pipeline.
+
+---
+
+## The four documents that matter
+
+The root holds a lot of reference material. These four are the ones that are actually
+canonical — start here and follow their links:
+
+| Read this | For |
+|---|---|
+| **[CLAUDE.md](CLAUDE.md)** | How the project is built. Tech stack, conventions, and the standing rules |
+| **[PRODUCTION.md](PRODUCTION.md)** | What is true *right now* — status, open threads, and why every decision was made. Updated every session |
+| **[HARNESS_INDEX.md](HARNESS_INDEX.md)** | Every tool for looking at work: art harnesses, review readouts, dev routes |
+| **[Character_Generation_Bible_Canonical_v1.md](Character_Generation_Bible_Canonical_v1.md)** | The creative source of truth. **When the Bible and the code disagree, the Bible wins** |
+
+When PRODUCTION.md contradicts anything else about current status, PRODUCTION.md is right —
+it is the only file updated every session.
+
+---
+
+## Where art comes from
+
+Three providers, three jobs. Getting this wrong is expensive, because generations cost money.
+
+| Tool | Makes |
+|---|---|
+| **Phaser Editor** | Nothing — it is where the *world is assembled*. Raheem places pieces, sets layering, draws colliders |
+| **PixelLab** | Every actor and kit piece: walls, trees, rocks, tiles, characters, bosses |
+| **Leonardo** | Card portraits, skies, distant backdrops. Static things with no life |
+| **Figma** | Card frames only, on the free tier. **No longer a world-authoring surface** |
+
+Two rules worth knowing before you touch any of it:
+
+- **Colour is a post-process.** If the only problem with an asset is its hue, run
+  `scripts/sprite-lab/lib/recolor.py`. It is free and exact across every frame. Regenerate for
+  composition or pose — **never for colour alone.**
+- **The angle is locked.** Every character is `low top-down` ("face visible, like Pokémon").
+  The *camera* is free to change at no cost; the *angle* is not.
+
+The playbooks — [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) and
+[LEONARDO_PLAYBOOK.md](LEONARDO_PLAYBOOK.md) — are running records of what worked and what it
+cost. Read the relevant one before spending a generation.
+
+---
+
+## How Phaser Editor fits
+
+The castle already runs on Phaser 3. Phaser Editor is not something the project migrates
+*to* — it sits alongside the existing code and writes two things it already understands:
+
+1. **`card-engine/public/asset-pack.json`** — a *native* Phaser asset pack, which is also what
+   the Editor's Asset Pack Editor reads. One manifest serves both the Editor and the game, so
+   what you see while composing is what the game loads. Generated by `npm run assets:pack`;
+   never edit it by hand.
+2. **A compiled scene class.** The Editor turns a `.scene` file into ordinary TypeScript, and
+   preserves anything inside `/* START-USER-CODE */` regions across re-saves — so placement can
+   be redone without touching game logic.
+
+---
+
+## Things that will trip you up
+
+- **`docs/archive/` is not current.** It says so, but it is easy to grep into by accident.
+- **Dev routes are gated by a flag, not by `DEV`.** `VITE_DEV_ROUTES` defaults to on, and is set
+  to `false` only on production, so review harnesses survive on preview deploys. See the comment
+  at the top of `card-engine/src/App.tsx`.
+- **Generated art is not in git.** `scripts/sprite-lab/out/` and `scripts/bg-harness/out/` are
+  gitignored — roughly 196 MB living on one machine. `scripts/asset-provenance.json` indexes
+  every PixelLab and Leonardo id so the originals stay re-downloadable, but the finished,
+  post-processed art has no backup yet.
+- **Object generations are not reproducible.** PixelLab's object endpoint rejects `seed`, so a
+  lost object is a re-brief at full price, not a re-roll.
+- **Real-money sales are blocked.** The wallet is client-trusted. See §9 of the economy plan.
