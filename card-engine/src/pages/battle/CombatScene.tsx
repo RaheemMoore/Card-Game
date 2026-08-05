@@ -200,8 +200,8 @@ export function CombatScene({
     return () => observer.disconnect();
   }, []);
 
-  // Armed-ability + target-pick state lives here (not inside AbilityCommandBar)
-  // so PartyDock's target-pick mode can share the same source of truth.
+  // Armed-ability + target-pick state lives here rather than inside the ability
+  // strip, so PartyDock's target-pick mode shares the same source of truth.
   const [pendingAbilityId, setPendingAbilityId] = useState<string | null>(null);
   const [pickedTargetActorId, setPickedTargetActorId] = useState<string | null>(null);
   // Hover-preview state for the Ability Codex panel — cleared whenever
