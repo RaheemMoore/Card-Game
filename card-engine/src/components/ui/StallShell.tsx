@@ -91,7 +91,13 @@ export function StallShell({
           // Full-bleed keeps the frame as a border on the screen edge rather
           // than a floating box, so the art reads as the room you are standing
           // in instead of a picture hung on a wall.
-          background: backdrop ? 'transparent' : undefined,
+          //
+          // SPREAD THE KEY ONLY WHEN THERE IS A BACKDROP. `background: undefined`
+          // is not the same as omitting it — Panel spreads `style` AFTER its own
+          // computed background, so an explicit undefined ERASES the default
+          // instead of falling back to it. That made the Card Detail surface
+          // fully transparent, with the Collection showing through its text.
+          ...(backdrop ? { background: 'transparent' } : null),
         }}
       >
         {backdrop && (

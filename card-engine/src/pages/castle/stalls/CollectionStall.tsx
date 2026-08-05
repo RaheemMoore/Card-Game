@@ -8,8 +8,7 @@ import { PixelButton } from '../../../components/ui/PixelButton';
 import { Scrim } from '../../../components/ui/Scrim';
 import { ScrollArea } from '../../../components/ui/ScrollArea';
 import { Slot } from '../../../components/ui/Slot';
-import { CardSheet } from '../../../components/CardSheet';
-import { buildStaticCardSheetAbilities } from '../../../services/abilities/cardSheetAdapter';
+import { CardDetailStall } from './CardDetailStall';
 import { CollectionFilters, type SortOption } from './CollectionFilters';
 
 /**
@@ -263,12 +262,10 @@ export function CollectionStall({ onClose, cards: override }: Props) {
         </footer>
       </Panel>
 
+      {/* Inspect opens the pixel detail surface, not the shared CardSheet —
+          that one is still battle's, and battle is deferred. */}
       {sheetCard && (
-        <CardSheet
-          card={sheetCard}
-          abilities={buildStaticCardSheetAbilities(sheetCard)}
-          onClose={() => setSheetCard(null)}
-        />
+        <CardDetailStall card={sheetCard} onClose={() => setSheetCard(null)} />
       )}
 
       {confirmRelease && (
