@@ -843,6 +843,40 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-04 — The counter's baked shadow CAN come off, and the rug shows through
+
+Raheem asked for a direct answer before offering to help cut it. Measured: the shadow is
+**opaque baked pixels, not a soft alpha layer** — only 2.7% of that sprite is
+semi-transparent. But it is a **flat, enclosed grey-green region** bounded by the counter's
+underside above and its legs either side, so it removes cleanly with a region-plus-colour
+selection. 2,227 pixels. The rug now shows through underneath, and the legs and the iron
+scrollwork between them survived.
+
+This closes an open thread that has been sitting in §4 since the forge preview landed.
+
+*Why it matters:* it was recorded as an art problem needing a regeneration, and it was a
+free local edit all along — the same lesson as the colour rule written earlier today.
+
+### 2026-08-04 — Raheem's Figma placement is now game data
+
+He has laid out three characters, the forge, counter, bench, four reliquary cases, the mana
+font, card stand, muster board, two braziers, the element crystal and the griffin cub asleep
+ON the counter — plus five walk routes and a fountain footprint he traced himself.
+
+All of it is read into `src/pages/castle/v2-preview/courtyardV2Layout.ts`. **Every number came
+off the Figma file rather than being estimated**, which is possible only because the plate is
+locked at 1536x1152 — the game's own coordinate space — so a layer's Figma position IS its
+world position.
+
+Two deliberate decisions in the collider set. The **dwarf has none**: he stands behind a
+counter that already blocks the player, and giving him one would wall off the aisle he works
+in. The **griffin cub has none**: it sits on the counter, and a collider floating at counter
+height would block the walkway beside it.
+
+The forge, counter and bench boxes are Raheem's own traces and are already proven in play. The
+rest are derived from each sprite's bottom band and are explicitly marked preliminary.
+
+
 ### 2026-08-04 — Colour is a post-process, and offering it is the assistant's job
 
 Raheem asked whether a simple colour swap was possible, then escalated it into a standing
