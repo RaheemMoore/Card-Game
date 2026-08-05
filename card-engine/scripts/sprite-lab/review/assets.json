@@ -195,8 +195,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1 \u2014 a rug has no front",
-      "verdict": "pending",
-      "note": "TOWER quadrant. Midnight blue, gold summit star, climbing-stair border. Shown laid into the ground plane by lib/lay_flat.py."
+      "verdict": "rejected",
+      "note": "Superseded by the hi-res version. Generated at 88px and upscaled 3.5x, which is exactly the blur Raheem saw when he expanded it."
     },
     {
       "id": "rug-forge",
@@ -615,6 +615,17 @@
       "faces": "8 of 8 clean",
       "verdict": "pending",
       "note": "All eight faces correct, including the pure profiles. The lantern and trays read at every angle."
+    },
+    {
+      "id": "rug-tower-HIRES",
+      "file": "src/assets/dev-preview/rugs/hires/rug-tower.png",
+      "wall": "floor",
+      "source": "courtyard-rugs-hires.json",
+      "endpoint": "/create-image-pixen",
+      "generations": 1,
+      "faces": "1 \u2014 a rug has no front",
+      "verdict": "pending",
+      "note": "THE FIX. Generated 448px wide via /create-image-pixen instead of 88px via the object route \u2014 5.1x the linear resolution, and ONE generation instead of 25. It is now scaled DOWN into place instead of up 3.5x, which is what made the v1 blurry. Background flood-cut cleanly. This is the rug Raheem placed and disliked; compare it to rug-tower."
     }
   ]
 }

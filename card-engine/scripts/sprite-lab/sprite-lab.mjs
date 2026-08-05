@@ -539,8 +539,14 @@ async function cmdScene(subject) {
   const m = loadMan(subject);
   m.assets = m.assets ?? {};
 
-  const refPath = path.join(d, c.styleReference);
-  if (!fs.existsSync(refPath)) {
+  // Only the style-anchored routes need a reference. /create-image-pixen does
+  // not take one, so a config that is purely images must not be blocked by it.
+  const needsStyleRef = (c.tiles?.length || c.objects?.length || 0) > 0;
+  const refPath = c.styleReference ? path.join(d, c.styleReference) : null;
+  if (needsStyleRef && !refPath) {
+    throw new Error(`${subject}: tiles/objects need a styleReference`);
+  }
+  if (refPath && needsStyleRef && !fs.existsSync(refPath)) {
     throw new Error(
       `missing style reference ${refPath} — build it with lib/style_ref.py first`,
     );
@@ -550,11 +556,9 @@ async function cmdScene(subject) {
   // (tile_type/tile_size/tile_view are ignored when supplied) — so a character
   // crop would produce character-shaped "tiles". Tiles therefore opt out via
   // "styleAnchor": false and steer register through description + outline_mode.
-  const styleImage = {
-    type: 'base64',
-    base64: fs.readFileSync(refPath).toString('base64'),
-    format: 'png',
-  };
+  const styleImage = refPath && fs.existsSync(refPath)
+    ? { type: 'base64', base64: fs.readFileSync(refPath).toString('base64'), format: 'png' }
+    : null;
 
   const run = async (kind, spec, route) => {
     const key = `${kind}:${spec.id}`;
@@ -603,7 +607,7 @@ async function cmdScene(subject) {
       };
       delete body.style_image;
       delete body.style_images;
-    } else if (spec.styleAnchor !== false) {
+    } else if (spec.styleAnchor !== false && styleImage) {
       body.style_images = [styleImage];
     }
     const res = await api('POST', route, body);
@@ -680,6 +684,55 @@ async function cmdScene(subject) {
   // one 422s. `size` is also capped at 168 here — the 8-rotation pipeline
   // rejects anything larger, where 1-direction allows 256.
   for (const o of c.rotations ?? []) await run('rot8', o, '/create-8-direction-object');
+
+  /**
+   * HIGH-RESOLUTION FLAT ART via /create-image-pixen.
+   *
+   * WHY THIS EXISTS: /create-1-direction-object caps at 256px AND refuses `size`
+   * whenever `style_images` is supplied — so anchored objects come back tiny.
+   * The first rug set was generated at 88px wide and then upscaled 3.5x by
+   * lay_flat.py to fill a quadrant, which is exactly why Raheem saw it go blurry
+   * the moment he expanded it. No warp can invent detail that was never drawn.
+   *
+   * `/create-image-pixen` allows up to 768px wide (max area 512x512, sides
+   * divisible by 4) on the same Pixen model that set the cast quality bar. A rug
+   * generated at 512 and placed at 400 is scaled DOWN, which pixel art tolerates,
+   * instead of up, which it does not.
+   *
+   * Use this for anything FLAT and LARGE — rugs, floor patches, banners. Small
+   * discrete props stay on the object route, which is cheaper per item.
+   */
+  for (const im of c.images ?? []) {
+    const key = `image:${im.id}`;
+    if (m.assets[key]?.files?.length) { console.log(`= ${key} exists`); continue; }
+    console.log(`> ${key} …`);
+    const body = { ...im.params };
+    if (im.seed != null) body.seed = im.seed;
+    const res = await api('POST', '/create-image-pixen', body);
+
+    const jobId = res.job_id ?? res.background_job_id;
+    let images = res.images ?? (res.image ? [res.image] : []);
+    let generations = res.usage?.generations ?? 0;
+    if (jobId) {
+      const jobs = await waitForJobs([jobId], key);
+      const job = jobs[jobId];
+      images = imagesFromJob(job);
+      if (!images.length && job?.last_response?.image) images = [job.last_response.image];
+      generations = job?.usage?.generations ?? generations;
+      fs.writeFileSync(path.join(d, `image-${im.id}-job.json`), JSON.stringify(job, null, 2));
+    }
+    if (!images.length) throw new Error(`${key}: no image returned — raw job saved`);
+
+    const files = [];
+    for (const [i, img] of images.entries()) {
+      const file = images.length > 1 ? `image-${im.id}-${i}.png` : `image-${im.id}.png`;
+      fs.writeFileSync(path.join(d, file), Buffer.from(img.base64, 'base64'));
+      files.push({ file, width: img.width, height: img.height });
+    }
+    m.assets[key] = { spec: im, files, generations };
+    saveMan(subject, m);
+    console.log(`  ${files.length} image(s) at ${files[0].width}x${files[0].height}, ${generations} generation(s)`);
+  }
 
   /**
    * OBJECT ANIMATION. `/objects/{id}/animations` animates an object we already
