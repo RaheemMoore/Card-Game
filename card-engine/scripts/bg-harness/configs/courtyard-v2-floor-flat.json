@@ -1,0 +1,77 @@
+{
+  "_readme": [
+    "Courtyard V2 floor — FLAT REGISTER. The same vast-courtyard floors that worked,",
+    "repainted in the plate's actual art style so they can be cut in Figma and dropped in.",
+    "",
+    "WHY THIS CONFIG EXISTS. courtyard-v2-floor-options.json solved the hard problem: a",
+    "courtyard painted as VAST keeps its middle free of the wall's baked shadow. The centre",
+    "930x500 crop measured 1.68 and 2.12 light spread RAW, against 2.59 for the swatch we",
+    "had been calling the shadowless benchmark. That part is settled and is inherited here",
+    "verbatim. What those images got WRONG was the register: they are soft painterly matte",
+    "paintings, and the plate they must live inside (src/assets/dev-preview/courtyard-v2-figma.png)",
+    "is flat game art — solid honey fill, crisp dark ink outlines, no brush texture at all.",
+    "Dropped in as-is they read as a photograph pasted into a cartoon.",
+    "",
+    "This is the same class of failure as the camera angle, quoted in",
+    "sprite-lab/configs/scene-courtyard-pixel.json:10: 'View consistency is the subtle",
+    "killer: a mismatch reads as wrong without being nameable.' Style consistency is the",
+    "same killer and it is not even subtle.",
+    "",
+    "INHERITED AND NOT UP FOR DEBATE — all four of these were paid for already:",
+    "  1. VAST FRAMING. The wall casts the shadow and the wall lives at the frame edge, so",
+    "     the courtyard is painted enormous with the wall a thin strip at the extreme edge",
+    "     and the shadow explicitly hugging its base. This is what keeps the middle clean.",
+    "     Raheem's idea, 2026-08-04: 'make a much bigger courtyard to where even us cutting",
+    "     out the middle won't touch the shadows.'",
+    "  2. THE ANGLE. Anchored to configs/courtyard.json:5 verbatim — the styleHeader that",
+    "     actually produced the plate. NEVER add a 'constant across the image' or 'no",
+    "     vanishing point' clause: plan view satisfies those better than a real oblique does,",
+    "     and that is exactly how the first attempt lost the angle.",
+    "  3. SHADOWLESS. The whole point is a day/night cycle, and a baked shadow is a fixed sun.",
+    "  4. PALETTE. COURTYARD_PALETTE.md Layer 2 — name the colours or you get neutral grey.",
+    "     Plate paving measures 229,202,115.",
+    "",
+    "THE ONLY THING THAT CHANGES IS THE RENDERING STYLE. Measured off the plate: flat solid",
+    "fills, dark ink outlines around every stone, cel shading in two or three tones per",
+    "material, zero gradient, zero visible brushwork.",
+    "",
+    "AFTER GENERATION: crop the centre 930x500 (the walkable floor, PREVIEW_WALK_BOUNDS in",
+    "v2-preview/CourtyardV2PreviewScene.ts), then upscale in Leonardo before Figma. The",
+    "camera zoom is min(screenW/1536, screenH/1152), which EXCEEDS 1.0 on any display larger",
+    "than the plate — roughly 1.25x in a 1440p window — so the plate is already shown above",
+    "native resolution and the extra pixels are real, not vanity.",
+    "",
+    "deshadow.py stays available as insurance but is no longer load-bearing: the vast",
+    "framing already puts the centre below the benchmark before it runs."
+  ],
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+  "negative": "painterly, brush texture, oil painting, matte painting, soft blended shading, airbrush, gradient, photorealistic, photograph, 3d render, cgi, top-down plan view, straight-down view, satellite view, overhead map, blueprint, eye-level view, horizon, sky, isometric, text, watermark, logo, signature, ui, hud, frame, border, blurry, dull green, muddy green, drab green, olive, neutral grey, dark, gloomy, grim, ruins, decay, cast shadow, drop shadow, shadow, directional light, sun glare, sunbeam, lens flare, rim light, spotlight, vignette, dark corners, people, person, figure, character, statue, nudity, bare chest, bare torso, shirtless, cleavage, lingerie, fountain, buildings, furniture, animal, creature, path, pathway, walkway, road, trail, paving, paved, cobblestone, stone slabs, flagstone, tiles, bricks",
+  "styleHeader": "Flat 2D game art for a fantasy game map, drawn as solid blocks of colour with crisp dark ink outlines around every shape, cel-shaded in only two or three flat tones per material, with no gradients, no brush texture and no soft blending anywhere — the clean hand-drawn look of a classic 2D adventure game map. High-angle oblique view looking down at roughly 55 degrees, the camera of a classic Pokemon or JRPG overworld town, tilted enough that anything resting on the ground shows a sliver of its front face and a circle drawn on the ground reads as a wide ellipse. This is emphatically NOT a straight-down plan view. Bright, sunny and cheerful. Flat even shadowless light spread uniformly across the whole surface, as if lit from everywhere at once — no light source, no highlight, no glare, no corner vignette.",
+  "familyLabels": {
+    "flat": "Courtyard V2 floor — flat register, vast framing (Lucid Origin)"
+  },
+  "states": [
+    {
+      "id": "flat-open-balanced",
+      "label": "F1 — Open ground, grass and dirt in balance",
+      "family": "flat",
+      "line": "An immense castle courtyard seen from far above. Bare open ground stretches unbroken across the whole frame with nothing laid across it, the surrounding wall only a thin strip at the extreme outer edge, and the sun nearly overhead so the wall's shadow hugs its own base and never reaches the open ground. Flat blocks of bright verdant green turf outlined in dark ink, mingling in soft irregular patches with bare warm honey-amber and ochre packed earth, each rendered in a few flat tones."
+    },
+    {
+      "id": "flat-open-grassy",
+      "label": "F2 — Open ground, mostly turf",
+      "family": "flat",
+      "line": "An immense castle courtyard seen from far above. Bare open ground stretches unbroken across the whole frame with nothing laid across it, the surrounding wall only a thin strip at the extreme outer edge, and the sun nearly overhead so the wall's shadow hugs its own base and never reaches the open ground. Mostly flat blocks of bright verdant green courtyard turf outlined in dark ink, with smaller scuffed patches of bare warm honey-amber earth showing through where feet have crossed, all in a few flat tones."
+    },
+    {
+      "id": "flat-open-earthy",
+      "label": "F3 — Open ground, mostly packed earth",
+      "family": "flat",
+      "line": "An immense castle courtyard seen from far above. Bare open ground stretches unbroken across the whole frame with nothing laid across it, the surrounding wall only a thin strip at the extreme outer edge, and the sun nearly overhead so the wall's shadow hugs its own base and never reaches the open ground. Mostly flat blocks of bare warm honey-amber and ochre packed earth outlined in dark ink, with drifts of bright verdant green turf surviving across it, all in a few flat tones."
+    }
+  ]
+}
