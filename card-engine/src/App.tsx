@@ -32,6 +32,7 @@ import { CollectionStallPreview } from './pages/dev/CollectionStallPreview';
 import { StallShellPreview } from './pages/dev/StallShellPreview';
 import { ForgeStallPreview } from './pages/dev/ForgeStallPreview';
 import { CodexStallPreview } from './pages/dev/CodexStallPreview';
+import { PauseMenuPreview } from './pages/dev/PauseMenuPreview';
 import { CollectionRoute } from './pages/CollectionRoute';
 import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
@@ -125,6 +126,11 @@ export default function App() {
           {/* The Codex as a book. Reads shipped element/emblem art and Bible
               prose only — no player data, nothing spent. `/codex` is untouched. */}
           <Route path="/dev/codex-stall" element={<CodexStallPreview />} />
+
+          {/* The castle's pause menu, which otherwise only exists behind
+              sign-in — the most-used surface in the game and the one nobody
+              could review. Renders the real component. */}
+          <Route path="/dev/pause-menu" element={<PauseMenuPreview />} />
 
           {CourtyardV2Preview && (
             <Route

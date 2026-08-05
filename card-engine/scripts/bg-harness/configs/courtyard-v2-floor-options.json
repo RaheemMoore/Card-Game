@@ -94,6 +94,18 @@
       "line": "An immense castle courtyard seen from far above. The open ground stretches unbroken right across the whole frame, and the surrounding wall is only a thin strip along the extreme outer edge, tiny against all that ground. The sun is nearly overhead, so what little shadow the wall casts hugs the base of the wall itself and never reaches out across the open ground, which is evenly lit everywhere. Deep verdant sunlit turf with real blade texture and clover, and broad soft paths of warm honey-amber and ochre packed earth worn across it. Beautiful, hand-painted."
     },
     {
+      "id": "vast-open-lush",
+      "label": "V3 — Open courtyard, grass leading, no paths",
+      "family": "options",
+      "line": "An immense castle courtyard of open ground seen from far above, with nothing laid across it and nothing standing on it. The surrounding wall is only a thin strip at the extreme outer edge, and the sun is nearly overhead so the wall's shadow hugs its own base and never reaches the open ground. Deep verdant sunlit turf richly painted with blade texture, clover and tiny wildflowers, mingling in soft organic patches with bare warm honey-amber and ochre packed earth worn bare by generations of feet. Beautiful, hand-painted."
+    },
+    {
+      "id": "vast-open-earthy",
+      "label": "V4 — Open courtyard, earth leading, no paths",
+      "family": "options",
+      "line": "An immense castle courtyard of open ground seen from far above, with nothing laid across it and nothing standing on it. The surrounding wall is only a thin strip at the extreme outer edge, and the sun is nearly overhead so the wall's shadow hugs its own base and never reaches the open ground. A broad sweep of bare warm honey-amber and ochre packed earth, richly painted with fine granular texture and faint scuffs, with drifts of deep verdant sunlit turf and clover surviving in soft organic patches across it. Beautiful, hand-painted."
+    },
+    {
       "id": "vast-grass-dirt-stone",
       "label": "V2 — Vast courtyard, grass, dirt and stone paths",
       "family": "options",
