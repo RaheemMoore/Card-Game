@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "docs:engines": "GEN_DOCS=1 vitest run src/services/engineReference/generateEngineReference.test.ts",
+    "assets:pack": "node scripts/phaser-editor/build-asset-pack.mjs",
+    "assets:pack:check": "node scripts/phaser-editor/build-asset-pack.mjs --check",
     "snapshot:ai": "node ../scripts/create-ai-snapshot.mjs",
     "production:page": "node scripts/production-page/build.mjs"
   },

@@ -843,6 +843,48 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-05 — Phaser Editor replaces Figma as the world-authoring surface
+
+Raheem is buying Phaser Editor and will author the world in it — placing pieces, setting
+layering, drawing colliders. Figma drops to the free tier and keeps one job: the card frames,
+in personal drafts.
+
+The trigger was the vision changing rather than the tooling being disliked. The goal is now a
+world that *moves* — scenery that has states and reacts — and that cannot be built from one
+painted plate with holes traced out of it in Figma, because a painted object cannot change.
+Raheem's own rule is the architecture: **anything I want to move or change needs to be an actor
+or an asset.**
+
+A sweep established that Figma was load-bearing in exactly one place: castle spatial authoring
+(`courtyardV2Layout.ts` plus the `trace-environment` skill). The cards, the UI components, the
+design tokens and the icons are all committed PNGs and literals — `CardRenderer.tsx` contains
+zero occurrences of "figma". So the migration surface was one job, and it is precisely the job
+the Editor takes over.
+
+**Nothing was migrated.** `/castle` already ran Phaser 3.90. The bridge is a single file,
+`public/asset-pack.json` — a *native* Phaser Asset Pack that is also what the Editor's Asset
+Pack Editor reads, so one manifest serves both tools and there is no export step. Verified in
+Phaser's own loader source: `addPack` only processes top-level keys carrying a `files` array, so
+the Editor's `meta` block is skipped rather than erroring. The courtyard now preloads via
+`load.pack()`; all 41 assets resolve; the build and 43 castle tests pass.
+
+Two things came out of the work that were not the point of it. The generated pack refuses to
+emit a frame size that does not tile its PNG, and on its first run that caught a **stale
+manifest** claiming the archivist was 31×69 with 4 frames against an image that is 30×69 with 1
+— a shearing bug that Phaser would have rendered silently. And the direction of the tooling was
+already predicted: the PixelLab playbook says that if a fully interactive courtyard is ever
+wanted, the coherent path is rebuilding it in pixel art via tilesets, *"not hybridising by
+accretion."*
+
+**The angle is locked, the camera is not.** Every character is `low top-down`. It stays. The
+camera — scale, framing, scrolling — is free to change at zero asset cost.
+
+*Why it matters:* it removes a subscription and a manual transcription step at the same time.
+The Figma loop required hand-copying coordinates into TypeScript with a "do not hand-tune these"
+policy holding it together; the Editor emits data the game loads directly. Downgrade order is
+load-bearing — the free tier drops Dev Mode, and the Figma MCP trace tools ride on it, so the
+Editor work lands before the plan changes.
+
 ### 2026-08-04 — The counter's baked shadow CAN come off, and the rug shows through
 
 Raheem asked for a direct answer before offering to help cut it. Measured: the shadow is

@@ -246,6 +246,26 @@ The most common way work is "done" but invisible is a missed registration.
 | Boss stats / moveset | `src/services/bosses/registry.ts` + seed |
 | Hero sprite | `src/data/combat/heroSpriteManifest.ts` |
 | Castle prop | Phaser scene under `src/pages/castle/courtyard/` |
+| **Any castle texture** | **`public/asset-pack.json` — never by hand. Run `npm run assets:pack`.** |
+
+### The Asset Pack — the one bridge to Phaser Editor
+
+`public/asset-pack.json` is a **native Phaser Asset Pack** (`this.load.pack()`), which is also
+the file Phaser Editor's Asset Pack Editor reads. One manifest, both tools: the assets Raheem
+sees when composing a scene are by construction the assets the game loads, with no export step.
+
+- **Generate:** `npm run assets:pack` — reads the art on disk plus the JSON twins written by
+  `sprite-lab/lib/pack.py`. Never hand-edit the output.
+- **Verify:** `npm run assets:pack:check` fails if the committed pack is stale.
+- **Guarded by:** `src/pages/castle/assetPack.test.ts` — asserts every key, path and frame size
+  matches the runtime data modules, that every entry exists on disk, and that no key is
+  duplicated. A wrong path does not throw in Phaser; it renders a green box.
+- The generator **refuses to emit a frame size that does not tile its PNG**. This is not
+  theoretical: on its first run it caught a stale twin claiming the archivist was 31×69 with 4
+  frames against an image that is 30×69 with 1.
+
+Adopting the Editor adds **no runtime dependency** on it — this is stock Phaser loading, and it
+keeps working if the Editor is ever dropped.
 
 ---
 

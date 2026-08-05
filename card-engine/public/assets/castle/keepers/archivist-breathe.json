@@ -1,8 +1,8 @@
 {
   "image": "archivist-breathe.png",
-  "frameWidth": 31,
+  "frameWidth": 30,
   "frameHeight": 69,
-  "frameCount": 4,
+  "frameCount": 1,
   "baselineY": 217,
   "targetBodyHeight": 214,
   "note": "Area-averaged down to display resolution ONCE, offline, then re-quantised. Render this at ~1:1 or upscaled \u2014 never downscale pixel art at runtime.",

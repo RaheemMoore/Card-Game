@@ -184,12 +184,45 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 4. **Element + Bond** — Bible §Global Element Pillar. Elements bucketed per archetype (Naturally Compatible / Compatible Through Reinterpretation / Rare), Rare gated by narrative eligibility from Story Pillar answers. Ten approved bonds shown after element pick.
 5. **Forge** — Calls Claude API following Bible §Claude Generation Pipeline (14 steps): archetype chapter → answers → element+bond → classify tensions → Hidden Fate → visual summary → Leonardo prompt ≤1300 chars. Portrait via Leonardo. Reveals with fade-in.
 
-## Figma Design Reference
+## World authoring — Phaser Editor, not Figma (Raheem, 2026-08-05)
+
+**Phaser Editor is the world-authoring surface. Figma is no longer a primary editing tool.**
+Raheem places pieces, sets layering and draws colliders in the Editor; Claude owns the code
+beneath it. The decision was driven by the vision changing — a *dynamic* world where the wall
+cracks and trees part cannot be built from one painted plate with holes traced out of it.
+
+| Tool | Role |
+|---|---|
+| **Phaser Editor** | Raheem's surface — placement, layering, depth, colliders, animation preview. |
+| **PixelLab** | Every actor and kit piece. **Kits are the cheapest thing it makes** — a 56-piece wall kit is 20 generations, the same as one large object. |
+| **Leonardo** | Skies, distant backdrops, card portraits. Static things with no life. |
+| **Figma (free tier)** | Card frames only, in personal drafts. **Not an authoring surface.** |
+| **Pixelorama** | Hand trimming. Aseprite only if Pixelorama actually frustrates. |
+
+**Nothing was migrated** — `/castle` already ran Phaser 3.90. The bridge is one file:
+`public/asset-pack.json`, a native Phaser Asset Pack that is *also* what the Editor's Asset Pack
+Editor reads. See [HARNESS_INDEX.md](HARNESS_INDEX.md) §6. Never hand-edit it; run
+`npm run assets:pack`.
+
+**The angle is locked; the camera is not.** Every character is `low top-down` (*"face visible —
+what Pokémon does"*). Do not change it — it is paid for, and three-quarter is what lets a hero on
+a wall, an ogre below it, and a fireball between them all read. The **camera** (scale, framing,
+scrolling) is free to change at zero asset cost. Note the `view` enum **differs per endpoint**:
+character routes take `low top-down | high top-down | side`, object and tile routes take only
+`top-down | sidescroller`. On kit calls the angle is held by the **style reference image**, not
+the `view` parameter — a tower batch already came back part-isometric for want of this.
+
+### Figma Design Reference (card frames only)
 
 - **File key:** `J8RTVE4x69tAiVU0DGv5zq`
 - **Components page:** `1:2`
-- **Card type (Dominance):** `1:182` — use this as the positioning reference
+- **Card type (Dominance):** `1:182` — the positioning reference
 - **Icons section:** `1:72` — ATK uses HandFist (`1:94`), DEF uses CastleTurret (`1:120`)
+
+Card frames stay as they are. **PNG is what gives us liberties, not what limits them** —
+`scripts/sprite-lab/lib/recolor.py` produces orange/purple/verdigris variants for zero
+generations and zero Figma. Rainbow and crystal are *not* recolours (gradient and specular
+structure); those need generation or hand work.
 
 ## Subsystem Reference
 

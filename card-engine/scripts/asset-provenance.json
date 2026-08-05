@@ -1,0 +1,1018 @@
+{
+  "generated": "2026-08-05",
+  "harnesses": {
+    "sprite-lab": {
+      "provider": "pixellab",
+      "subjects": {
+        "boss-debt-bearer": {
+          "manifest": "scripts/sprite-lab/out/boss-debt-bearer/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 77,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "9e7ee0c4-4913-4c01-864f-b0604c7d7e32",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "20260730",
+              "at": "request.seed"
+            }
+          ]
+        },
+        "boss-still-season": {
+          "manifest": "scripts/sprite-lab/out/boss-still-season/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 62,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "bffcc8f2-8a76-4100-b684-4ab04174c5e0",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "20260802",
+              "at": "request.seed"
+            }
+          ]
+        },
+        "courtyard-magical": {
+          "manifest": "scripts/sprite-lab/out/courtyard-magical/manifest.json",
+          "totalGenerations": 107,
+          "pngCount": 32,
+          "ids": [
+            {
+              "key": "objectId",
+              "value": "c89da42e-832f-420d-ae54-4eac718f338e",
+              "at": "assets.anim:lectern-flutter.spec.objectId"
+            },
+            {
+              "key": "animationGroupId",
+              "value": "901d2f26-9b28-404a-bb3d-af2d422a75d5",
+              "at": "assets.anim:lectern-flutter.animationGroupId"
+            }
+          ]
+        },
+        "courtyard-rugs": {
+          "manifest": "scripts/sprite-lab/out/courtyard-rugs/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "courtyard-rugs-hires": {
+          "manifest": "scripts/sprite-lab/out/courtyard-rugs-hires/manifest.json",
+          "totalGenerations": 4,
+          "pngCount": 12,
+          "ids": [
+            {
+              "key": "seed",
+              "value": "771330",
+              "at": "assets.image:rug-tower-hires.spec.seed"
+            },
+            {
+              "key": "seed",
+              "value": "771331",
+              "at": "assets.image:rug-forge-hires.spec.seed"
+            },
+            {
+              "key": "seed",
+              "value": "771332",
+              "at": "assets.image:rug-collection-hires.spec.seed"
+            },
+            {
+              "key": "seed",
+              "value": "771333",
+              "at": "assets.image:rug-training-hires.spec.seed"
+            }
+          ]
+        },
+        "courtyard-side-walls": {
+          "manifest": "scripts/sprite-lab/out/courtyard-side-walls/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 10,
+          "ids": []
+        },
+        "hero-cardwright": {
+          "manifest": "scripts/sprite-lab/out/hero-cardwright/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 37,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "9f2b667b-e1c1-40e7-9375-b0a944554cf5",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "730294",
+              "at": "seed"
+            }
+          ]
+        },
+        "hero-chibi": {
+          "manifest": "scripts/sprite-lab/out/hero-chibi/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 32,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "902551",
+              "at": "seed"
+            }
+          ]
+        },
+        "hero-chibi-v1-pro-failed": {
+          "manifest": "scripts/sprite-lab/out/hero-chibi-v1-pro-failed/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 21,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "f44307d4-7b98-4ddc-9110-354a83980386",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "481207",
+              "at": "seed"
+            }
+          ]
+        },
+        "keeper-archivist": {
+          "manifest": "scripts/sprite-lab/out/keeper-archivist/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 12,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "ce9561fa-a13f-4a94-b0c9-a9cf24fa7af1",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "640913",
+              "at": "seed"
+            }
+          ]
+        },
+        "keeper-archivist-chibi": {
+          "manifest": "scripts/sprite-lab/out/keeper-archivist-chibi/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 4,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "09b3df5e-9eb9-4135-80b4-64f84367d616",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "771902",
+              "at": "seed"
+            }
+          ]
+        },
+        "keeper-dwarf": {
+          "manifest": "scripts/sprite-lab/out/keeper-dwarf/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 12,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "93941297-2772-4a36-b473-b8b7d7a22711",
+              "at": "characterId"
+            }
+          ]
+        },
+        "keeper-dwarf-chibi": {
+          "manifest": "scripts/sprite-lab/out/keeper-dwarf-chibi/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 4,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "b5b54927-7067-4833-9c0a-0ba23d28ba94",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "660591",
+              "at": "seed"
+            }
+          ]
+        },
+        "keeper-forge-apprentice": {
+          "manifest": "scripts/sprite-lab/out/keeper-forge-apprentice/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 8,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "7a75384e-9ff8-4de3-a9ac-c9cf7822975c",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "480915",
+              "at": "seed"
+            }
+          ]
+        },
+        "keeper-forge-apprentice-chibi": {
+          "manifest": "scripts/sprite-lab/out/keeper-forge-apprentice-chibi/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 11,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "b814894b-8a9b-4167-afe3-b02e41f01dd8",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "771244",
+              "at": "seed"
+            }
+          ]
+        },
+        "prop-forge-pet": {
+          "manifest": "scripts/sprite-lab/out/prop-forge-pet/manifest.json",
+          "totalGenerations": 31,
+          "pngCount": 25,
+          "ids": [
+            {
+              "key": "objectId",
+              "value": "a5614b63-fa6b-4633-b56e-361537b11c87",
+              "at": "assets.anim:pet-sleep.spec.objectId"
+            },
+            {
+              "key": "animationGroupId",
+              "value": "05ee5800-4e7d-46c0-8871-1919bb43f823",
+              "at": "assets.anim:pet-sleep.animationGroupId"
+            },
+            {
+              "key": "animationGroupId",
+              "value": "9a58f377-3356-46a8-8bf2-2717250e774d",
+              "at": "assets.anim:pet-wake-stretch.animationGroupId"
+            },
+            {
+              "key": "createdObjectIds",
+              "value": "a5614b63-fa6b-4633-b56e-361537b11c87",
+              "at": "promoted.a67b2e5c-eb50-4205-b557-4f90a6426d3e:0,1,2,3.createdObjectIds"
+            },
+            {
+              "key": "createdObjectIds",
+              "value": "507a23ed-e5f5-45be-b88c-25dc28c11f6e",
+              "at": "promoted.a67b2e5c-eb50-4205-b557-4f90a6426d3e:0,1,2,3.createdObjectIds"
+            },
+            {
+              "key": "createdObjectIds",
+              "value": "67769d74-ecfd-4ea7-8408-562fc5de2562",
+              "at": "promoted.a67b2e5c-eb50-4205-b557-4f90a6426d3e:0,1,2,3.createdObjectIds"
+            },
+            {
+              "key": "createdObjectIds",
+              "value": "02c629f9-9116-4f5e-9034-c7a46e441e16",
+              "at": "promoted.a67b2e5c-eb50-4205-b557-4f90a6426d3e:0,1,2,3.createdObjectIds"
+            }
+          ]
+        },
+        "prop-horse": {
+          "manifest": "scripts/sprite-lab/out/prop-horse/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 8,
+          "ids": [
+            {
+              "key": "characterId",
+              "value": "7501b1ed-5b9a-4cc8-8788-987d8483641c",
+              "at": "characterId"
+            },
+            {
+              "key": "seed",
+              "value": "118427",
+              "at": "seed"
+            }
+          ]
+        },
+        "prop-still-season-flowers": {
+          "manifest": "scripts/sprite-lab/out/prop-still-season-flowers/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": [
+            {
+              "key": "seed",
+              "value": "20260731",
+              "at": "assets.object:blight-flowers.spec.seed"
+            }
+          ]
+        },
+        "proving-hall-cases": {
+          "manifest": "scripts/sprite-lab/out/proving-hall-cases/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "proving-hall-cases-v2": {
+          "manifest": "scripts/sprite-lab/out/proving-hall-cases-v2/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "quadrant-ascent": {
+          "manifest": "scripts/sprite-lab/out/quadrant-ascent/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "quadrant-ascent-v2": {
+          "manifest": "scripts/sprite-lab/out/quadrant-ascent-v2/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 6,
+          "ids": []
+        },
+        "quadrant-wellspring": {
+          "manifest": "scripts/sprite-lab/out/quadrant-wellspring/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "quadrant-wellspring-v2": {
+          "manifest": "scripts/sprite-lab/out/quadrant-wellspring-v2/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "scene-courtyard-pixel": {
+          "manifest": "scripts/sprite-lab/out/scene-courtyard-pixel/manifest.json",
+          "totalGenerations": 65,
+          "pngCount": 62,
+          "ids": [
+            {
+              "key": "seed",
+              "value": "771020",
+              "at": "assets.tiles:ground.spec.seed"
+            }
+          ]
+        },
+        "tower-quadrant": {
+          "manifest": "scripts/sprite-lab/out/tower-quadrant/manifest.json",
+          "totalGenerations": 50,
+          "pngCount": 8,
+          "ids": []
+        },
+        "ui-kit-pixel": {
+          "manifest": "scripts/sprite-lab/out/ui-kit-pixel/manifest.json",
+          "totalGenerations": 60,
+          "pngCount": 19,
+          "ids": []
+        },
+        "wall-fissure": {
+          "manifest": "scripts/sprite-lab/out/wall-fissure/manifest.json",
+          "totalGenerations": 25,
+          "pngCount": 5,
+          "ids": []
+        },
+        "wellspring-rotations": {
+          "manifest": "scripts/sprite-lab/out/wellspring-rotations/manifest.json",
+          "totalGenerations": 50,
+          "pngCount": 19,
+          "ids": []
+        }
+      }
+    },
+    "bg-harness": {
+      "provider": "leonardo",
+      "subjects": {
+        "arena-debt-bearer": {
+          "manifest": "scripts/bg-harness/out/arena-debt-bearer/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 18,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "f4d758bf-2125-453b-9545-c853a261272c",
+              "at": "anchors.arena.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "da63ca80-5242-4cd2-b699-ef743258024f",
+              "at": "states.hall-of-forebears.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "593f6afb-d336-41da-af5b-98f9278f0aa7",
+              "at": "states.cairn-terrace.imageId"
+            },
+            {
+              "key": "styleRefUploadId",
+              "value": "e1607006-5b3f-4a76-b028-59ad310976e6",
+              "at": "styleRefUploadId"
+            }
+          ]
+        },
+        "arena-still-season": {
+          "manifest": "scripts/bg-harness/out/arena-still-season/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 4,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "0ba76804-5f6e-4cc3-a0bd-ff7294522bb0",
+              "at": "anchors.arena.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "7074d8c4-84ae-404b-86f1-a0f787273f7b",
+              "at": "states.root-split.imageId"
+            },
+            {
+              "key": "styleRefUploadId",
+              "value": "774a95f0-d4d0-45e2-8e96-8bb532aa35b3",
+              "at": "styleRefUploadId"
+            }
+          ]
+        },
+        "bosses": {
+          "manifest": "scripts/bg-harness/out/bosses/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 9,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "80becb79-9850-4cfe-88e4-93434eb58f4f",
+              "at": "anchors.cast.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "aac8242d-3a02-4e6b-98f4-e56263f0f5da",
+              "at": "states.still-season-b.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "fe7bfbbe-22e6-4157-b8c2-55c0e714acdd",
+              "at": "states.still-season-c.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "5681f4e5-0205-44cf-bf0b-c4981dfec89e",
+              "at": "states.debt-bearer-b.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "9b9ffb0d-667f-4ecb-98b2-3d94534ec846",
+              "at": "states.debt-bearer-c.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "a6ebff08-11c5-407f-80d0-f421efe72550",
+              "at": "states.still-season-a.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "47103fc2-4c56-43a1-a176-8b15b6b94e96",
+              "at": "states.unclosed-a.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "e825c648-9f80-476b-9247-bfaef942dd0e",
+              "at": "states.unclosed-b.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "9262aca1-6df5-4f55-a6c9-f0510206dd63",
+              "at": "states.unclosed-c.imageId"
+            }
+          ]
+        },
+        "bosses-v1-human": {
+          "manifest": "scripts/bg-harness/out/bosses-v1-human/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 9,
+          "ids": []
+        },
+        "courtyard": {
+          "manifest": "scripts/bg-harness/out/courtyard/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 4,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "d181ffda-f249-4905-b8bf-bded490db958",
+              "at": "anchors.courtyard.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "9f6fd4bb-57b1-43bd-9532-9a3f3e0bf217",
+              "at": "anchors.hero.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "cae1b263-3a24-444c-9a4a-1ef14bfc0cad",
+              "at": "states.courtyard-plate-b.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "e3295358-3647-494d-a20a-b0fb9a4ddffe",
+              "at": "states.black-gate.imageId"
+            }
+          ]
+        },
+        "courtyard-v2": {
+          "manifest": "scripts/bg-harness/out/courtyard-v2/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 4,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "c720bc2a-44cb-4a32-b554-b8c84c54837b",
+              "at": "anchors.courtyard.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "6c72de5a-80e0-4e3e-aa57-3c96d7246845",
+              "at": "anchors.hero.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "3bff632f-202c-44b6-9172-6a7d4de0789d",
+              "at": "states.hero-front.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "bff9d09e-1bf3-4205-b9cd-243ab5a3c134",
+              "at": "states.hero-side.imageId"
+            }
+          ]
+        },
+        "courtyard-v2-floor": {
+          "manifest": "scripts/bg-harness/out/courtyard-v2-floor/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 6,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "402c613b-c201-4a8a-8a3c-318a4e6f9544",
+              "at": "anchors.floor.imageId"
+            }
+          ]
+        },
+        "courtyard-v2-floor-flat": {
+          "manifest": "scripts/bg-harness/out/courtyard-v2-floor-flat/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 10,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "720bc000-18a7-4ec7-b218-1311e9bd54ab",
+              "at": "states.flat-open-balanced.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "594180be-543e-44b6-8d70-a6e48af9911f",
+              "at": "states.flat-open-grassy.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "0ea26c22-4d58-4106-a8cf-632dc0e39c65",
+              "at": "states.flat-open-earthy.imageId"
+            }
+          ]
+        },
+        "courtyard-v2-floor-options": {
+          "manifest": "scripts/bg-harness/out/courtyard-v2-floor-options/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 32,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "f40e1c70-e82c-4afc-b5c6-dd5796062fbe",
+              "at": "states.opt-grass-dirt-stone.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "bcc08fe9-0de2-435a-b3d7-40f346b0a858",
+              "at": "states.opt-grass-dirt.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "87b32d15-df4e-4b7d-8305-ed3fd8b11095",
+              "at": "states.opt-grass-dirt-noon.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "e71397ba-fbdf-4ca9-8c88-b564511b34b1",
+              "at": "states.vast-grass-dirt.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "e525b9cd-fe69-4245-9d7b-85bce89ec630",
+              "at": "states.vast-grass-dirt-stone.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "495903c1-1007-4759-b983-f9fb93624588",
+              "at": "states.vast-open-lush.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "125f03c5-2c10-4a5b-83ce-31e6ed7571d1",
+              "at": "states.vast-open-earthy.imageId"
+            }
+          ]
+        },
+        "courtyard-v2-repaint": {
+          "manifest": "scripts/bg-harness/out/courtyard-v2-repaint/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 6,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "2ffd5d31-b442-463f-8a12-31486836bffe",
+              "at": "states.repaint-s85.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "fff0ef8b-0eef-4e32-9a70-307e67427692",
+              "at": "states.repaint-s75.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "5596b7a2-1964-4796-ae51-e876a067e700",
+              "at": "states.repaint-s65.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "2055552c-81aa-40da-9e05-f30c5e1861ea",
+              "at": "states.repaint-s50.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "778b9c71-bc89-429d-a920-d5b0e473c027",
+              "at": "states.ground-s75.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "affc03d3-c42d-4ffa-9a67-8e261611eaa1",
+              "at": "states.ground-s60.imageId"
+            }
+          ]
+        },
+        "druid": {
+          "manifest": "scripts/bg-harness/out/druid/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 7,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "650ee205-61f1-4d35-b12a-f9388d5597bc",
+              "at": "anchors.light.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "e43ee562-83d6-46f1-ae53-e405f34e97a4",
+              "at": "anchors.dark.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "e10ace1e-5b20-4afa-b4ea-7e53c07c5b67",
+              "at": "states.nature-element.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "299812cc-f337-480b-8c8f-4a46707669d5",
+              "at": "states.nature-forge.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "42937a02-df86-4016-8877-f3c4a49a8bd4",
+              "at": "states.poison-forge.imageId"
+            }
+          ]
+        },
+        "tower": {
+          "manifest": "scripts/bg-harness/out/tower/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 38,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "436e999e-9ef9-42ab-a7e9-6d16581edf42",
+              "at": "anchors.peristyle.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "744ca1eb-13d7-46d2-ab98-5ec20f1983b8",
+              "at": "anchors.brokencrown.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "1230aab0-1d5b-4403-b352-d242ff580316",
+              "at": "anchors.astronomer.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "cce6c6b1-8af5-4d24-8feb-a462aee73f7a",
+              "at": "anchors.hangingtier.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "f31ae913-f100-45dd-9d13-b8773555fad4",
+              "at": "anchors.hall.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "c947cebc-4d32-4777-adba-496d53c914d0",
+              "at": "anchors.free.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "c731076e-7087-44a1-a3f3-5cb330cfe522",
+              "at": "anchors.floors.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "db206bf2-f408-4f1d-aafc-b1966e3ad1a7",
+              "at": "anchors.floors2.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "47abf29f-4b00-481b-938f-1d005c858b2d",
+              "at": "anchors.floors3.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "cf4ceaab-55aa-49ed-b69e-04701601eb04",
+              "at": "anchors.rings.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "49a9ca69-9c54-461c-aa57-5a0409584545",
+              "at": "anchors.rings2.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "60934974-38a9-4cbd-b684-610e660fa2a3",
+              "at": "anchors.dais.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "d9b123fb-abc8-4a88-b79a-e7c1120404fc",
+              "at": "states.room-r2-hall-2.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "eaf8c81e-72b3-4301-98a9-a363cdc3b4eb",
+              "at": "states.room-r3-glass.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "2b6f1e21-c29a-406f-aa5e-074825361804",
+              "at": "states.room-r3-orrery.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "146de8cd-b371-4915-bfa9-e975675048d0",
+              "at": "states.room-r3-obsidian.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "3e8b5056-189b-401c-82cf-8dec6076d11c",
+              "at": "states.room-r3-verdant.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "acd34225-588e-411d-8374-c7b8b340fe20",
+              "at": "states.floor-druid.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "58b3e117-c308-4b50-9ff3-17a01232dca6",
+              "at": "states.floor-seraph.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "ed3e1b62-1e34-437a-a3e5-1c0064deb43d",
+              "at": "states.floor-druid-v2.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "0302bd2e-b2a4-4c3f-8e48-bf05346305eb",
+              "at": "states.floor-seraph-v2.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "7cd107a9-4933-4001-a556-f358ccebea99",
+              "at": "states.floor-druid-v3.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "6e99c7c3-6527-46fb-a32f-f6e76d809e59",
+              "at": "states.floor-seraph-v3.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "8d3bbd85-1617-4db3-b408-6c94abc82645",
+              "at": "states.ring-armillary.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "9ae7874d-5f52-4071-a3a8-157ce0b3cdea",
+              "at": "states.ring-crystal.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "29ff197b-13fe-4a34-94e1-d1fa5f7802c4",
+              "at": "states.ring-leviathan.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "b36171ca-e12c-40e6-b09c-1324f473003c",
+              "at": "states.ring-stormforge.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "ac167daa-b51e-4dbb-94df-cc9f34d1abd9",
+              "at": "states.ring-sunspire.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "7836fe52-b46d-4ab4-8b7d-415c7eb80e57",
+              "at": "states.ring2-armillary.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "ecba3583-0304-4f7a-b79e-4ea02156e9d4",
+              "at": "states.ring2-sunspire.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "a83d16a0-ea9f-4aec-a106-6ad8aebe29a6",
+              "at": "states.dais-runestone.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "f909d2d2-148e-4672-bed6-5f215dcb677f",
+              "at": "states.dais-goldmarble.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "17c5a857-ef0b-476a-9837-8387edb8cd6c",
+              "at": "states.dais-obsidian.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "9862fd31-62a5-42c5-b177-c200487fbe6d",
+              "at": "states.dais-rootstone.imageId"
+            }
+          ]
+        },
+        "tower-clouds": {
+          "manifest": "scripts/bg-harness/out/tower-clouds/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 5,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "59aa246c-b2ad-47a0-ab3f-3d1ba6b16d57",
+              "at": "anchors.cloud.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "347261fb-d639-4ac3-9ff0-be73229567e1",
+              "at": "states.cloud-puffs-near.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "83993424-ee46-4852-a02b-0fb619aeea16",
+              "at": "states.cloud-wisps-high.imageId"
+            }
+          ]
+        },
+        "tower-dais": {
+          "manifest": "scripts/bg-harness/out/tower-dais/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 4,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "5b36998e-22ec-414e-8192-bdc60b962c86",
+              "at": "anchors.dais.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "2c1bbcd4-e4c3-4f27-9819-00d23643d3e1",
+              "at": "states.dais-gate.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "f152d6b5-c313-4f82-ae14-6f8b5f8418bf",
+              "at": "states.dais-ashlar.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "768e5e3a-e253-455c-9b41-b03ad36c3cc8",
+              "at": "states.dais-celestial.imageId"
+            }
+          ]
+        },
+        "tower-ring": {
+          "manifest": "scripts/bg-harness/out/tower-ring/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 7,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "1289fd51-b802-42b8-9cf4-0d33aa3206bf",
+              "at": "anchors.ring.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "ebe18bcd-7386-4026-a24b-d64ef5b08cb2",
+              "at": "states.ring-cutaway-b.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "cde4ba4f-47bf-4cb0-8ee3-aa044d1e7e7f",
+              "at": "states.ring-cutaway-c.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "23837991-3000-4bf3-b1c3-cddee7946876",
+              "at": "states.ring-cutaway-a2.imageId"
+            }
+          ]
+        },
+        "tower-ring-segments": {
+          "manifest": "scripts/bg-harness/out/tower-ring-segments/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 6,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "7486b6df-d02e-41f1-9965-c01d8b62fea3",
+              "at": "anchors.seg.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "8eb54753-7584-448d-bfe4-9cc7d92599c1",
+              "at": "states.seg-diagonal.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "64773942-12b7-479a-bb37-3b79df4a424f",
+              "at": "states.seg-side.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "dd462aff-f4d8-44e6-88d8-cc0686cbb5ec",
+              "at": "states.seg-front-rim.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "c31d710b-cd15-4618-ac72-ce3e9abac1e4",
+              "at": "states.seg-terrace.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "ae307509-d4ed-4035-a8d0-1071133dd0be",
+              "at": "states.seg-rail-curved.imageId"
+            }
+          ]
+        },
+        "tower-sky": {
+          "manifest": "scripts/bg-harness/out/tower-sky/manifest.json",
+          "totalGenerations": null,
+          "pngCount": 6,
+          "ids": [
+            {
+              "key": "imageId",
+              "value": "49edec74-b964-4e7d-82e5-91bc0704e4e7",
+              "at": "anchors.sky.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "7f22162d-54b2-4e72-86b0-2dfd96ad4e81",
+              "at": "states.sky-floor-02.imageId"
+            },
+            {
+              "key": "imageId",
+              "value": "7e1d61bb-be67-4f86-95da-d1edbfc12266",
+              "at": "states.sky-floor-03.imageId"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "summary": {
+    "subjects": 46,
+    "ids": 138
+  }
+}
