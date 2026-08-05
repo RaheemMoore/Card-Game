@@ -6,8 +6,6 @@ import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const claude = path.join(root, '.claude');
-const codex = path.join(root, '.codex');
-const codexSkills = path.join(root, '.agents', 'skills');
 const jsonMode = process.argv.includes('--json');
 const errors = [];
 const warnings = [];
@@ -107,49 +105,6 @@ function validateLocalLinks(file, text) {
   }
 }
 
-// Codex imports are adapters, not a second control plane. They must stay in
-// name parity with canonical .claude components and point back to real shared
-// contracts/scripts instead of an invented .Codex tree.
-const codexSkillFiles = filesUnder(codexSkills, f => path.basename(f) === 'SKILL.md');
-const canonicalSkillNames = new Set(components.filter(x => x.type === 'skill').map(x => x.name));
-const adapterSkillNames = new Set();
-for (const file of codexSkillFiles) {
-  const text = read(file);
-  const r = rel(file);
-  if (text.includes('\r')) add(errors, 'line-endings', r, 'CR/CRLF found; studio text must be LF');
-  if (/\.Codex(?:\/|\\)/.test(text)) add(errors, 'codex-adapter-path', r, 'references nonexistent .Codex tree; use canonical .claude paths');
-  const fm = frontmatter(text);
-  if (!fm || fm.error) { add(errors, 'frontmatter', r, fm?.error ?? 'missing/unterminated frontmatter'); continue; }
-  const name = fm.values.name;
-  if (!name) add(errors, 'frontmatter', r, 'missing name');
-  else {
-    adapterSkillNames.add(name);
-    if (!canonicalSkillNames.has(name)) add(errors, 'codex-skill-parity', r, `no canonical .claude skill named ${name}`);
-  }
-  if (!fm.values.description) add(errors, 'frontmatter', r, 'missing description');
-  validateLocalLinks(file, text);
-}
-for (const name of canonicalSkillNames) if (!adapterSkillNames.has(name)) add(errors, 'codex-skill-parity', '.agents/skills', `missing Codex skill adapter for ${name}`);
-
-const codexAgentFiles = filesUnder(path.join(codex, 'agents'), f => f.endsWith('.toml'));
-const canonicalAgentNames = new Set(components.filter(x => x.type === 'agent').map(x => x.name));
-const adapterAgentNames = new Set();
-for (const file of codexAgentFiles) {
-  const text = read(file);
-  const r = rel(file);
-  if (text.includes('\r')) add(errors, 'line-endings', r, 'CR/CRLF found; studio text must be LF');
-  const name = /^name\s*=\s*"([^"]+)"/m.exec(text)?.[1];
-  if (!name) add(errors, 'codex-agent-schema', r, 'missing name');
-  else {
-    adapterAgentNames.add(name);
-    if (!canonicalAgentNames.has(name)) add(errors, 'codex-agent-parity', r, `no canonical .claude agent named ${name}`);
-  }
-  if (!/^description\s*=\s*/m.test(text)) add(errors, 'codex-agent-schema', r, 'missing description');
-  if (!/^developer_instructions\s*=\s*"""/m.test(text)) add(errors, 'codex-agent-schema', r, 'missing developer_instructions');
-  if (!/^sandbox_mode\s*=\s*"read-only"\s*$/m.test(text)) add(errors, 'codex-agent-policy', r, 'specialist adapter must use sandbox_mode = "read-only"');
-  validateLocalLinks(file, text);
-}
-for (const name of canonicalAgentNames) if (!adapterAgentNames.has(name)) add(errors, 'codex-agent-parity', '.codex/agents', `missing Codex agent adapter for ${name}`);
 
 const registryPath = path.join(claude, 'studio', 'STUDIO_CAPABILITY_REGISTRY.json');
 let registry = null;
@@ -184,37 +139,12 @@ try {
   }
 } catch (e) { add(errors, 'settings-json', rel(settingsPath), String(e.message)); }
 
-const codexHooksPath = path.join(codex, 'hooks.json');
-try {
-  const hooks = JSON.parse(read(codexHooksPath));
-  const handlers = [];
-  for (const groups of Object.values(hooks.hooks ?? {})) {
-    for (const group of groups ?? []) for (const hook of group.hooks ?? []) handlers.push(hook);
-  }
-  if (handlers.length === 0) add(errors, 'codex-hooks', rel(codexHooksPath), 'no hook handlers configured');
-  for (const hook of handlers) {
-    if (!hook.command) add(errors, 'codex-hooks', rel(codexHooksPath), 'hook handler missing command');
-    if (!hook.commandWindows) add(errors, 'codex-hooks', rel(codexHooksPath), 'hook handler missing Windows command override');
-    for (const command of [hook.command, hook.commandWindows].filter(Boolean)) {
-      if (command.includes('CLAUDE_PROJECT_DIR')) add(errors, 'codex-hooks', rel(codexHooksPath), 'Codex hook depends on Claude-only CLAUDE_PROJECT_DIR');
-      if (!command.includes('.claude/scripts/studio-hook.mjs')) add(errors, 'codex-hooks', rel(codexHooksPath), 'hook does not target the shared studio policy script');
-      if (!command.includes('codex-')) add(errors, 'codex-hooks', rel(codexHooksPath), 'hook must invoke a Codex compatibility mode');
-    }
-  }
-} catch (e) { add(errors, 'codex-hooks', rel(codexHooksPath), String(e.message)); }
-
-const codexConfigPath = path.join(codex, 'config.toml');
-try {
-  const config = read(codexConfigPath);
-  if (!/^\[features\][\s\S]*?^hooks\s*=\s*true\s*$/m.test(config)) add(errors, 'codex-config', rel(codexConfigPath), 'features.hooks must be explicitly enabled');
-} catch (e) { add(errors, 'codex-config', rel(codexConfigPath), String(e.message)); }
-
 const gitignore = read(path.join(root, '.gitignore'));
-for (const required of ['!.claude/agents/','!.claude/skills/','!.claude/verify/','!.claude/scripts/','!.claude/studio/','!.claude/settings.json','!.claude/launch.json','!.agents/skills/','!.codex/agents/','!.codex/config.toml','!.codex/hooks.json','!AGENTS.md']) {
+for (const required of ['!.claude/agents/','!.claude/skills/','!.claude/verify/','!.claude/scripts/','!.claude/studio/','!.claude/settings.json','!.claude/launch.json']) {
   if (!gitignore.includes(required)) add(errors, 'git-tracking', '.gitignore', `missing ${required}`);
 }
 const attributes = read(path.join(root, '.gitattributes'));
-for (const required of ['.agents/**/*.md text eol=lf','.codex/**/*.toml text eol=lf','.codex/**/*.json text eol=lf','AGENTS.md text eol=lf']) {
+for (const required of ['.claude/**/*.md text eol=lf','.claude/**/*.json text eol=lf']) {
   if (!attributes.includes(required)) add(errors, 'line-endings-policy', '.gitattributes', `missing ${required}`);
 }
 const shellFiles = filesUnder(claude, f => /\.(sh|mjs)$/.test(f));
@@ -235,7 +165,7 @@ for (const envPath of ['card-engine/.env', 'card-engine/.env.local']) {
 const balance = path.join(claude, 'skills', 'balance-playtest', 'SKILL.md');
 if (fs.existsSync(balance) && !/disable-model-invocation:\s*true/.test(read(balance))) add(errors, 'inactive-skill', rel(balance), 'scaffold must be hidden from model invocation');
 
-const result = { ok: errors.length === 0, errors, warnings, counts: { agents: agentFiles.length, skills: skillFiles.length, codexAgents: codexAgentFiles.length, codexSkills: codexSkillFiles.length } };
+const result = { ok: errors.length === 0, errors, warnings, counts: { agents: agentFiles.length, skills: skillFiles.length } };
 if (jsonMode) console.log(JSON.stringify(result, null, 2));
 else {
   console.log(`Studio health: ${result.ok ? 'PASS' : 'FAIL'} — ${errors.length} error(s), ${warnings.length} warning(s)`);
