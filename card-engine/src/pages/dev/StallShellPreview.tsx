@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { PixelButton } from '../../components/ui/PixelButton';
 import { StallShell } from '../../components/ui/StallShell';
+import { StallDoorway } from '../castle/stalls/StallDoorway';
+import { DESTINATIONS } from '../castle/courtyard/stalls';
 import type { Stage } from '../../components/ui/StageRail';
 
 /**
@@ -27,6 +29,10 @@ const FORGE_STAGES: Stage[] = [
 
 export function StallShellPreview() {
   const [step, setStep] = useState(0);
+  // The doorway is the other half of the shell: the beat between walking up to
+  // a stall and being inside it. Shown here against the REAL courtyard stalls
+  // so its copy and its "not open yet" state can be read per door.
+  const [doorway, setDoorway] = useState<number | null>(null);
   const [narrow, setNarrow] = useState(() => window.innerWidth < 720);
 
   useEffect(() => {
@@ -60,6 +66,9 @@ export function StallShellPreview() {
             >
               Next step
             </PixelButton>
+            <PixelButton scale={1.2} onClick={() => setDoorway(0)}>
+              Doorway
+            </PixelButton>
           </>
         }
       >
@@ -82,6 +91,19 @@ export function StallShellPreview() {
           ))}
         </div>
       </StallShell>
+
+      {/* AFTER the shell. Both use Scrim at the same z-index, so in this preview
+          — where the shell is permanently mounted — DOM order decides which
+          paints on top. In the courtyard they are mutually exclusive: the
+          doorway is only up when nothing has been entered. */}
+      {doorway !== null && (
+        <StallDoorway
+          stall={DESTINATIONS[doorway]}
+          unbuilt={DESTINATIONS[doorway].id !== 'collection'}
+          onEnter={() => setDoorway(null)}
+          onClose={() => setDoorway(null)}
+        />
+      )}
     </div>
   );
 }

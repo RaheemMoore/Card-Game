@@ -33,6 +33,15 @@ interface Props {
    * immersion.
    */
   fullBleed?: boolean;
+  /**
+   * Content-sized instead of case-sized.
+   *
+   * The definite height below exists so a SCROLLER inside can resolve — without
+   * it a flex child with `flex-basis: 0` contributes nothing and the box
+   * collapses around it. A small dialog with no scroller has no such problem,
+   * and forcing one to 780px stretched the stall doorway into a letterbox.
+   */
+  compact?: boolean;
 }
 
 export function Scrim({
@@ -41,6 +50,7 @@ export function Scrim({
   label,
   bottomSheet = false,
   fullBleed = false,
+  compact = false,
 }: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const restoreTo = useRef<HTMLElement | null>(null);
@@ -111,7 +121,13 @@ export function Scrim({
           // WIDTH, not just max-width. With only a max-width the box shrinks to
           // its content, so a menu that should span 960px rendered as a narrow
           // two-column column on desktop.
-          width: fullBleed ? '100%' : bottomSheet ? '100%' : 'min(960px, 100%)',
+          width: fullBleed
+            ? '100%'
+            : bottomSheet
+              ? '100%'
+              : compact
+                ? 'min(420px, 100%)'
+                : 'min(960px, 100%)',
           // A DEFINITE height, not just a max. A flex child with `flex-basis: 0`
           // contributes nothing to a content-sized parent, so a scroller inside
           // a max-height-only box collapsed to 8px and the box shrank around it.
@@ -120,7 +136,14 @@ export function Scrim({
           // It is also the better game surface: the case stays the same size
           // while you filter, instead of the panel jumping every time the result
           // count changes.
-          height: fullBleed ? '100dvh' : bottomSheet ? '85dvh' : 'min(90dvh, 780px)',
+          height: fullBleed
+            ? '100dvh'
+            : compact
+              ? 'auto'
+              : bottomSheet
+                ? '85dvh'
+                : 'min(90dvh, 780px)',
+          maxHeight: compact ? '85dvh' : undefined,
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,

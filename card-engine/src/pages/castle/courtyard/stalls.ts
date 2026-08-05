@@ -108,6 +108,13 @@ export const STALLS: Stall[] = [
   },
 ];
 
+/**
+ * Stalls whose destination actually exists. The courtyard's doorway reads this
+ * to decide whether to offer "Enter" or say the door is not open yet, so adding
+ * an id here is the single step that graduates a stall from placeholder to real.
+ */
+export const BUILT_STALLS = new Set<string>(['collection']);
+
 /** Stalls a player can actually interact with — excludes reserved plinths. */
 export const DESTINATIONS = STALLS.filter((s) => !s.reserved);
 
