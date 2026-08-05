@@ -17,28 +17,91 @@ import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
 import { MiniGamesHub } from './pages/minigames/MiniGamesHub';
 import { Castle } from './pages/castle';
-import { CourtyardSample } from './pages/castle/sample';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
 import { CodexElements } from './pages/CodexElements';
-import { DevAbilities } from './pages/DevAbilities';
-import { DevSeedBattle } from './pages/DevSeedBattle';
-import { SpritePreview } from './pages/dev/SpritePreview';
-import { BossReadout } from './pages/dev/BossReadout';
-import { AbilityTheater } from './pages/dev/AbilityTheater';
-import { DecisionLab } from './pages/dev/DecisionLab';
-import { UiKit } from './pages/dev/UiKit';
-import { CollectionStallPreview } from './pages/dev/CollectionStallPreview';
-import { StallShellPreview } from './pages/dev/StallShellPreview';
-import { ForgeStallPreview } from './pages/dev/ForgeStallPreview';
-import { CodexStallPreview } from './pages/dev/CodexStallPreview';
-import { PauseMenuPreview } from './pages/dev/PauseMenuPreview';
 import { CollectionRoute } from './pages/CollectionRoute';
-import { M55Harness } from './pages/M55Harness';
 import { PlayerShell } from './layouts/PlayerShell';
 import { PersistenceGate } from './components/PersistenceGate';
 import { Login } from './pages/Login';
 
+/**
+ * Whether the /dev/* review surfaces are built into this bundle.
+ *
+ * NOT `import.meta.env.DEV`. That is false for every `vite build`, including
+ * Vercel PREVIEW deploys — and preview is where the harnesses actually get used,
+ * because the provider secrets are Preview/Prod-only and generation cannot run
+ * locally. Gating on DEV would have deleted /dev/boss-readout,
+ * /dev/ability-theater, /dev/decision-lab and /dev/ui-kit from the one build
+ * they are reviewed on.
+ *
+ * So it is an explicit flag, and it DEFAULTS TO ON: an unset variable keeps the
+ * routes, which means forgetting to configure an environment can never silently
+ * remove a review surface. Only a deliberate `VITE_DEV_ROUTES=false` — set on the
+ * production environment in Vercel — drops them.
+ *
+ * Vite statically replaces `import.meta.env.*` at build time, so this folds to a
+ * literal and the lazy chunks below are never emitted when it is false. That is
+ * what keeps ~290 KB of dev tooling out of the player download.
+ */
+const DEV_ROUTES = import.meta.env.VITE_DEV_ROUTES !== 'false';
+
+/**
+ * Each ternary wraps its own `import()` INLINE rather than going through a helper.
+ * That is load-bearing, not style: routing the import through a shared function hid
+ * it from static analysis, the bundler could not prove the loader was unreachable,
+ * and every chunk was emitted anyway — a verified build with the flag off was byte
+ * for byte the same size. Folding the condition must delete the `import()` itself.
+ */
+
+const CourtyardSample = DEV_ROUTES
+  ? lazy(() => import('./pages/castle/sample').then((m) => ({ default: m.CourtyardSample })))
+  : null;
+const DevAbilities = DEV_ROUTES
+  ? lazy(() => import('./pages/DevAbilities').then((m) => ({ default: m.DevAbilities })))
+  : null;
+const DevSeedBattle = DEV_ROUTES
+  ? lazy(() => import('./pages/DevSeedBattle').then((m) => ({ default: m.DevSeedBattle })))
+  : null;
+const SpritePreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/SpritePreview').then((m) => ({ default: m.SpritePreview })))
+  : null;
+const BossReadout = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/BossReadout').then((m) => ({ default: m.BossReadout })))
+  : null;
+const AbilityTheater = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/AbilityTheater').then((m) => ({ default: m.AbilityTheater })))
+  : null;
+const DecisionLab = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/DecisionLab').then((m) => ({ default: m.DecisionLab })))
+  : null;
+const UiKit = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/UiKit').then((m) => ({ default: m.UiKit })))
+  : null;
+const CollectionStallPreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/CollectionStallPreview').then((m) => ({ default: m.CollectionStallPreview })))
+  : null;
+const StallShellPreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/StallShellPreview').then((m) => ({ default: m.StallShellPreview })))
+  : null;
+const ForgeStallPreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/ForgeStallPreview').then((m) => ({ default: m.ForgeStallPreview })))
+  : null;
+const CodexStallPreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/CodexStallPreview').then((m) => ({ default: m.CodexStallPreview })))
+  : null;
+const PauseMenuPreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/PauseMenuPreview').then((m) => ({ default: m.PauseMenuPreview })))
+  : null;
+const M55Harness = DEV_ROUTES
+  ? lazy(() => import('./pages/M55Harness').then((m) => ({ default: m.M55Harness })))
+  : null;
+
+/**
+ * The V2 courtyard preview stays on `DEV` rather than the flag above: it pulls in
+ * 5.6 MB of dev-preview art, and it is a local walk-through rather than something
+ * reviewed on a deploy.
+ */
 const CourtyardV2Preview = import.meta.env.DEV
   ? lazy(() =>
       import('./pages/castle/v2-preview').then((module) => ({ default: module.CourtyardV2Preview })),
@@ -75,14 +138,32 @@ export default function App() {
               player data, and is used while iterating on generated sprites —
               needing a signed-in session to look at a sprite sheet is friction
               with nothing behind it. */}
-          <Route path="/dev/sprite-preview" element={<SpritePreview />} />
+          {SpritePreview && (
+            <Route
+              path="/dev/sprite-preview"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <SpritePreview />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* Boss readout — the fight on paper, for review and for showing
               people. Same reasoning as above: it reads the shipped boss
               definitions and runs the combat reducer in-memory, so it touches
               no player data and gating it behind a login would only add
               friction to sharing it. */}
-          <Route path="/dev/boss-readout" element={<BossReadout />} />
+          {BossReadout && (
+            <Route
+              path="/dev/boss-readout"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <BossReadout />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* Ability Theater — build and judge ability performances without
               playing a battle. Same tier as the two above: it replays canned
@@ -90,13 +171,31 @@ export default function App() {
               manifests, and touches no player data. Iterating on a lash by
               fighting to your turn and hoping the RNG cooperates is not a
               workflow, and it is not repeatable enough to review a change. */}
-          <Route path="/dev/ability-theater" element={<AbilityTheater />} />
+          {AbilityTheater && (
+            <Route
+              path="/dev/ability-theater"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <AbilityTheater />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* Decision Lab — "can the player understand why this action
               matters?", the companion question to Ability Theater's "how does
               it perform?" Same tier: reads only frozen fixtures built by
               running the real reducer, touches no player data. */}
-          <Route path="/dev/decision-lab" element={<DecisionLab />} />
+          {DecisionLab && (
+            <Route
+              path="/dev/decision-lab"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <DecisionLab />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* Pixel UI kit gallery. Same tier as the four above: it renders four
               PNGs and touches no player data. It exists because the kit's
@@ -104,33 +203,87 @@ export default function App() {
               the only way to keep that honest is to see every variant at once —
               a `border-image` with a wrong slice compiles fine and renders as
               mush, so a passing build proves nothing about this surface. */}
-          <Route path="/dev/ui-kit" element={<UiKit />} />
+          {UiKit && (
+            <Route
+              path="/dev/ui-kit"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <UiKit />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* The Collection case, filled from the real card factory so it can be
               reviewed without an account. Same tier: builds its own cards in
               memory, reads no player data, spends nothing. */}
-          <Route path="/dev/collection-stall" element={<CollectionStallPreview />} />
+          {CollectionStallPreview && (
+            <Route
+              path="/dev/collection-stall"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <CollectionStallPreview />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* The shared stall case + stage rail against filler content. The
               Forge's real flow needs a session AND premium currency at its last
               step, so its shell cannot be reviewed through the Forge itself. */}
-          <Route path="/dev/stall-shell" element={<StallShellPreview />} />
+          {StallShellPreview && (
+            <Route
+              path="/dev/stall-shell"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <StallShellPreview />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* Forge DESIGN PREVIEW. `/forge` and pages/CardForge.tsx are the real,
               shipping flow and are deliberately untouched — Raheem: "do not
               remove it until we completely approve this." This drives the real
               stage components from local state and never calls the forge
               controller or the wallet, so it is free to open. */}
-          <Route path="/dev/forge-stall" element={<ForgeStallPreview />} />
+          {ForgeStallPreview && (
+            <Route
+              path="/dev/forge-stall"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <ForgeStallPreview />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* The Codex as a book. Reads shipped element/emblem art and Bible
               prose only — no player data, nothing spent. `/codex` is untouched. */}
-          <Route path="/dev/codex-stall" element={<CodexStallPreview />} />
+          {CodexStallPreview && (
+            <Route
+              path="/dev/codex-stall"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <CodexStallPreview />
+                </Suspense>
+              }
+            />
+          )}
 
           {/* The castle's pause menu, which otherwise only exists behind
               sign-in — the most-used surface in the game and the one nobody
               could review. Renders the real component. */}
-          <Route path="/dev/pause-menu" element={<PauseMenuPreview />} />
+          {PauseMenuPreview && (
+            <Route
+              path="/dev/pause-menu"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <PauseMenuPreview />
+                </Suspense>
+              }
+            />
+          )}
 
           {CourtyardV2Preview && (
             <Route
@@ -180,10 +333,46 @@ export default function App() {
             <Route path="/minigames" element={<MiniGamesHub />} />
             <Route path="/minigames/forge-strike" element={<ForgeStrike />} />
             <Route path="/castle" element={<Castle />} />
-            <Route path="/dev/courtyard-sample" element={<CourtyardSample />} />
-            <Route path="/dev/abilities" element={<DevAbilities />} />
-            <Route path="/dev/seed-battle" element={<DevSeedBattle />} />
-            <Route path="/m55harness" element={<M55Harness />} />
+            {CourtyardSample && (
+              <Route
+                path="/dev/courtyard-sample"
+                element={
+                  <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                    <CourtyardSample />
+                  </Suspense>
+                }
+              />
+            )}
+            {DevAbilities && (
+              <Route
+                path="/dev/abilities"
+                element={
+                  <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                    <DevAbilities />
+                  </Suspense>
+                }
+              />
+            )}
+            {DevSeedBattle && (
+              <Route
+                path="/dev/seed-battle"
+                element={
+                  <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                    <DevSeedBattle />
+                  </Suspense>
+                }
+              />
+            )}
+            {M55Harness && (
+              <Route
+                path="/m55harness"
+                element={
+                  <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                    <M55Harness />
+                  </Suspense>
+                }
+              />
+            )}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
