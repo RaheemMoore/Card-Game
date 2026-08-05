@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getSupabaseClient, fetchMyRole, type SessionRole } from '../services/persistence/supabaseClient';
+import { getSupabaseClient, fetchMyRole, type SessionRole } from '../../services/persistence/supabaseClient';
 import {
   createArchetypeProposal,
   listArchetypeProposals,
@@ -13,9 +13,9 @@ import {
   deleteArchetypeProposal,
   getCardForAdmin,
   checkApprovalReadiness,
-} from '../services/persistence/adminService';
-import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../services/labWorkshopHandoff';
-import { runRegenVerify, runCardRegenVerify, saveVerifyVerdict, signedUrl } from '../services/regenVerify';
+} from '../../services/persistence/adminService';
+import { readLabHandoff, clearLabHandoff, type LabHandoff } from '../../services/labWorkshopHandoff';
+import { runRegenVerify, runCardRegenVerify, saveVerifyVerdict, signedUrl } from '../../services/regenVerify';
 import type {
   ArchetypeProposal,
   ArchetypeProposalPayload,
@@ -26,13 +26,13 @@ import type {
   ProposalFailureType,
   ProposalLayer,
   VerifyEvidence,
-} from '../types/archetypeProposal';
-import type { ArchetypeName, Card, Rank, StatName } from '../types/card';
-import { ARCHETYPE_NAMES } from '../types/card';
-import { ARCHETYPES } from '../data/archetypes';
-import { ARCHETYPE_BIBLE } from '../data/archetypeBible';
-import { getQuestionsForArchetype, getOptionsForQuestion } from '../data/storyPillars';
-import { ELEMENT_COMPATIBILITY, elementsAvailableToArchetype } from '../data/elements';
+} from '../../types/archetypeProposal';
+import type { ArchetypeName, Card, Rank, StatName } from '../../types/card';
+import { ARCHETYPE_NAMES } from '../../types/card';
+import { ARCHETYPES } from '../../data/archetypes';
+import { ARCHETYPE_BIBLE } from '../../data/archetypeBible';
+import { getQuestionsForArchetype, getOptionsForQuestion } from '../../data/storyPillars';
+import { ELEMENT_COMPATIBILITY, elementsAvailableToArchetype } from '../../data/elements';
 import {
   ARCHETYPE_LAYERS,
   FAILURE_TYPES,
@@ -42,18 +42,18 @@ import {
   areaToLayer,
   failureTypesForEngine,
   engineFromLayer,
-} from '../data/archetypeLayers';
-import { buildImageEngineSnapshot } from '../services/portraitAssembler';
-import { getEnvironmentPool } from '../data/archetypeEnvironments';
+} from '../../data/archetypeLayers';
+import { buildImageEngineSnapshot } from '../../services/portraitAssembler';
+import { getEnvironmentPool } from '../../data/archetypeEnvironments';
 import {
   getPortraitHooks,
   hookMandatorySegment,
   hookNarrativeAnchor,
-} from '../services/portrait/archetypeHooks';
-import { COMPACT_STYLE_LEAD } from '../services/portraitAssembler';
-import { BASE_NEGATIVE } from '../services/imageEngine/imageConstants';
-import type { CharacterSheet } from '../types/characterSheet';
-import { getOverallRank } from '../data/powerSystem';
+} from '../../services/portrait/archetypeHooks';
+import { COMPACT_STYLE_LEAD } from '../../services/portraitAssembler';
+import { BASE_NEGATIVE } from '../../services/imageEngine/imageConstants';
+import type { CharacterSheet } from '../../types/characterSheet';
+import { getOverallRank } from '../../data/powerSystem';
 import {
   AdminPage,
   AdminSection,
@@ -63,7 +63,7 @@ import {
   AdminAlert,
   AdminSelect,
   AdminTextArea,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 const RANK_ORDER: Rank[] = ['Foundation', 'Forged', 'Ascendant'];
 const STAT_ORDER: StatName[] = ['Atk', 'Def', 'Mana', 'Tech'];

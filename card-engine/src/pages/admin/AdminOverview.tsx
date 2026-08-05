@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users as UsersIcon, Layers, ChevronRight } from 'lucide-react';
-import { getSystemStats, type SystemStats } from '../services/persistence/adminService';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
-import { FAILURE_TYPES } from '../data/archetypeLayers';
-import type { ProposalFailureType } from '../types/archetypeProposal';
+import { getSystemStats, type SystemStats } from '../../services/persistence/adminService';
+import { getSupabaseClient } from '../../services/persistence/supabaseClient';
+import { FAILURE_TYPES } from '../../data/archetypeLayers';
+import type { ProposalFailureType } from '../../types/archetypeProposal';
 import {
   AdminPage, AdminSection, AdminCard, AdminMetricCard,
   AdminStatusBadge, AdminEmptyState, AdminSkeleton,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 // Tiny relative-time helper. Age is plain text ("filed 3d ago") so urgency
 // never rides on color alone.

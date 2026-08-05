@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllCards, saveCard } from '../services/storage';
-import * as abilityRegistry from '../services/abilities/registry';
-import { SEED_ABILITIES } from '../data/abilities/seedAbilities';
-import type { Card } from '../types/card';
-import type { ElementSelection } from '../types/bible';
+import { getAllCards, saveCard } from '../../services/storage';
+import * as abilityRegistry from '../../services/abilities/registry';
+import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
+import type { Card } from '../../types/card';
+import type { ElementSelection } from '../../types/bible';
 
 /**
  * Dev-only route. Seeds three test cards + their ability references so the

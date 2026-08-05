@@ -10,17 +10,17 @@ import {
   type AdminUserRow,
   type SystemStats,
   type UserRole,
-} from '../services/persistence/adminService';
-import { fetchMyRole } from '../services/persistence/supabaseClient';
-import type { Card } from '../types/card';
-import type { CurrencyId, EconomyTransaction } from '../types/economy';
-import { CardRenderer } from '../components/CardRenderer';
-import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
+} from '../../services/persistence/adminService';
+import { fetchMyRole } from '../../services/persistence/supabaseClient';
+import type { Card } from '../../types/card';
+import type { CurrencyId, EconomyTransaction } from '../../types/economy';
+import { CardRenderer } from '../../components/CardRenderer';
+import { AdminPreviewPanel } from '../../components/admin/AdminPreviewPanel';
 import {
   AdminPage, AdminFilterBar, AdminField, AdminSelect, AdminButton,
   AdminDataTable, AdminStatusBadge, AdminAlert, AdminCard, AdminEmptyState,
   type AdminColumn,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 // Users destination. Shell (guard, sub-nav, header) is provided by
 // AdminShell — this page renders inside its Outlet.

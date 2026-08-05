@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Hammer } from 'lucide-react';
-import { ARCHETYPE_NAMES, type ArchetypeName, type Card, type CardStats, type Rank } from '../types/card';
-import { stashLabHandoff } from '../services/labWorkshopHandoff';
+import { ARCHETYPE_NAMES, type ArchetypeName, type Card, type CardStats, type Rank } from '../../types/card';
+import { stashLabHandoff } from '../../services/labWorkshopHandoff';
 import {
   AdminPage,
   AdminCard,
@@ -11,30 +11,30 @@ import {
   AdminStatusBadge,
   AdminUnsupportedDevice,
   type BadgeTone,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 import type {
   ElementBond,
   ElementCompatibility,
   ElementName,
   ElementSelection,
   HiddenFate,
-} from '../types/bible';
-import { ELEMENT_BONDS } from '../types/bible';
-import { getQuestionsForArchetype, getOptionsForQuestion } from '../data/storyPillars';
+} from '../../types/bible';
+import { ELEMENT_BONDS } from '../../types/bible';
+import { getQuestionsForArchetype, getOptionsForQuestion } from '../../data/storyPillars';
 import {
   bucketFor,
   elementIsNarrativelyEligible,
   elementsAvailableToArchetype,
-} from '../data/elements';
-import { rollElement } from '../services/elementRoller';
-import { buildCardShell } from '../services/cardGenerator';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
-import { API_COST_CATALOG } from '../data/economy/apiCostCatalog';
-import { CardRenderer } from '../components/CardRenderer';
-import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
-import * as lab from '../services/forge/promptLabController';
-import { usePromptLabChain } from '../services/forge/usePromptLabChain';
-import type { TierResult, TierSlot } from '../services/forge/promptLabController';
+} from '../../data/elements';
+import { rollElement } from '../../services/elementRoller';
+import { buildCardShell } from '../../services/cardGenerator';
+import { getSupabaseClient } from '../../services/persistence/supabaseClient';
+import { API_COST_CATALOG } from '../../data/economy/apiCostCatalog';
+import { CardRenderer } from '../../components/CardRenderer';
+import { AdminPreviewPanel } from '../../components/admin/AdminPreviewPanel';
+import * as lab from '../../services/forge/promptLabController';
+import { usePromptLabChain } from '../../services/forge/usePromptLabChain';
+import type { TierResult, TierSlot } from '../../services/forge/promptLabController';
 
 // Prompt Lab — realistic tier chain tester.
 //

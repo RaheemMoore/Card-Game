@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
-import { API_COST_CATALOG } from '../data/economy/apiCostCatalog';
+import { getSupabaseClient } from '../../services/persistence/supabaseClient';
+import { API_COST_CATALOG } from '../../data/economy/apiCostCatalog';
 import {
   AdminPage, AdminSection, AdminCard, AdminStatusBadge, AdminAlert,
   AdminSkeleton, AdminDataTable, type AdminColumn,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 // Costs & System. First-cut Phase 2 dashboard: provider spend (MTD +
 // today + 7d avg), per-game-action rollup, and catalog-vs-observed

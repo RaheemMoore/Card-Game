@@ -4,14 +4,14 @@ import { CardForge } from './pages/CardForge';
 import { Landing } from './pages/Landing';
 import { CardDetail } from './pages/CardDetail';
 import { AdminShell } from './components/admin/AdminShell';
-import { AdminOverview } from './pages/AdminOverview';
-import { AdminUsers } from './pages/AdminUsers';
-import { AdminCards } from './pages/AdminCards';
-import { AdminCosts } from './pages/AdminCosts';
-import { AdminAbilities } from './pages/AdminAbilities';
-import { AdminDiagnostics } from './pages/AdminDiagnostics';
-import { AdminPromptLab } from './pages/AdminPromptLab';
-import { ArchetypeWorkshop } from './pages/ArchetypeWorkshop';
+import { AdminOverview } from './pages/admin/AdminOverview';
+import { AdminUsers } from './pages/admin/AdminUsers';
+import { AdminCards } from './pages/admin/AdminCards';
+import { AdminCosts } from './pages/admin/AdminCosts';
+import { AdminAbilities } from './pages/admin/AdminAbilities';
+import { AdminDiagnostics } from './pages/admin/AdminDiagnostics';
+import { AdminPromptLab } from './pages/admin/AdminPromptLab';
+import { ArchetypeWorkshop } from './pages/admin/ArchetypeWorkshop';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
@@ -58,10 +58,10 @@ const CourtyardSample = DEV_ROUTES
   ? lazy(() => import('./pages/castle/sample').then((m) => ({ default: m.CourtyardSample })))
   : null;
 const DevAbilities = DEV_ROUTES
-  ? lazy(() => import('./pages/DevAbilities').then((m) => ({ default: m.DevAbilities })))
+  ? lazy(() => import('./pages/dev/DevAbilities').then((m) => ({ default: m.DevAbilities })))
   : null;
 const DevSeedBattle = DEV_ROUTES
-  ? lazy(() => import('./pages/DevSeedBattle').then((m) => ({ default: m.DevSeedBattle })))
+  ? lazy(() => import('./pages/dev/DevSeedBattle').then((m) => ({ default: m.DevSeedBattle })))
   : null;
 const SpritePreview = DEV_ROUTES
   ? lazy(() => import('./pages/dev/SpritePreview').then((m) => ({ default: m.SpritePreview })))
@@ -94,7 +94,7 @@ const PauseMenuPreview = DEV_ROUTES
   ? lazy(() => import('./pages/dev/PauseMenuPreview').then((m) => ({ default: m.PauseMenuPreview })))
   : null;
 const M55Harness = DEV_ROUTES
-  ? lazy(() => import('./pages/M55Harness').then((m) => ({ default: m.M55Harness })))
+  ? lazy(() => import('./pages/dev/M55Harness').then((m) => ({ default: m.M55Harness })))
   : null;
 
 /**

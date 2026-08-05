@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
-import type { ArchetypeName, CardStats, Rank } from '../types/card';
+import type { ArchetypeName, CardStats, Rank } from '../../types/card';
 import type {
   ElementName,
   ElementSelection,
   StoryPillarAnswers,
   HiddenFate,
-} from '../types/bible';
-import { generateCardTextWithRetry } from '../services/claudeApi';
-import { generatePortrait, getInitStrengthForArchetype } from '../services/leonardoApi';
-import { getQuestionsForArchetype, sampleOptions } from '../data/storyPillars';
-import { ELEMENT_VISUAL_LANGUAGE } from '../data/elementVisualLanguage';
+} from '../../types/bible';
+import { generateCardTextWithRetry } from '../../services/claudeApi';
+import { generatePortrait, getInitStrengthForArchetype } from '../../services/leonardoApi';
+import { getQuestionsForArchetype, sampleOptions } from '../../data/storyPillars';
+import { ELEMENT_VISUAL_LANGUAGE } from '../../data/elementVisualLanguage';
 
 /**
  * M5.5 verification harness — 10 fresh Foundation forges + optional tier-up

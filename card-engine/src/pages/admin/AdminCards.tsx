@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CardRenderer } from '../components/CardRenderer';
-import { ARCHETYPE_NAMES, type ArchetypeName } from '../types/card';
-import type { Card } from '../types/card';
+import { CardRenderer } from '../../components/CardRenderer';
+import { ARCHETYPE_NAMES, type ArchetypeName } from '../../types/card';
+import type { Card } from '../../types/card';
 import {
   listAllCards,
   getCardForAdmin,
   type AdminCardListEntry,
-} from '../services/persistence/adminService';
-import { AdminPreviewPanel } from '../components/admin/AdminPreviewPanel';
+} from '../../services/persistence/adminService';
+import { AdminPreviewPanel } from '../../components/admin/AdminPreviewPanel';
 import {
   AdminPage, AdminFilterBar, AdminField, AdminSelect, AdminButton,
   AdminDataTable, AdminAlert, AdminCard as AdminCardBox, type AdminColumn,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 // Cross-user card gallery. Search by card name / owner email / uid /
 // card_id, filter by archetype, paginate server-side (limit/offset).

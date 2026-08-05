@@ -2,24 +2,24 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   getAbilityStore,
   getAllDefinitions,
-} from '../services/abilities/registry';
+} from '../../services/abilities/registry';
 import {
   approveAbility,
   rejectAbility,
   mergeAbility,
   listReviewQueue,
-} from '../services/abilities/moderation';
+} from '../../services/abilities/moderation';
 import {
   generateCanonicalArt,
   promoteCandidateArt,
   rejectCandidateArt,
-} from '../services/abilities/canonicalArtPipeline';
-import type { AbilityDefinition, CanonicalArtAsset } from '../types/abilities';
-import { getArtCrops } from '../types/abilities';
+} from '../../services/abilities/canonicalArtPipeline';
+import type { AbilityDefinition, CanonicalArtAsset } from '../../types/abilities';
+import { getArtCrops } from '../../types/abilities';
 import {
   AdminPage, AdminButton, AdminStatusBadge, AdminAlert,
   AdminEmptyState, AdminCard, AdminField, AdminSelect,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 // Operational ability workspace. The Studio Wiki owns reference browsing;
 // this page keeps only actions that change moderation or art state:

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { fetchIsAdmin } from '../services/persistence/supabaseClient';
+import { fetchIsAdmin } from '../../services/persistence/supabaseClient';
 import {
   AbilityCommandStateOverlay,
   AbilityCommandStrip,
@@ -11,8 +11,8 @@ import {
   type AbilityOverlayVariant,
   type AbilityTier,
   type RelicMoment,
-} from '../components/abilities';
-import { getApprovedArt } from '../data/abilities/visualManifest';
+} from '../../components/abilities';
+import { getApprovedArt } from '../../data/abilities/visualManifest';
 
 type Guard = 'checking' | 'allowed' | 'denied';
 

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { getSupabaseClient } from '../services/persistence/supabaseClient';
+import { getSupabaseClient } from '../../services/persistence/supabaseClient';
 import {
   AdminPage, AdminSection, AdminCard, AdminButton, AdminStatusBadge, AdminAlert,
-} from '../components/admin/ui';
+} from '../../components/admin/ui';
 
 // Phase-0 spike display for the provider diagnostic endpoints. Guard +
 // header live on AdminShell now — this page just renders the two Run
