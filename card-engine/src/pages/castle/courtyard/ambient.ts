@@ -3,6 +3,7 @@ import {
   AMBIENT,
   GLOW_SPOTS,
   HERO_SHADOW,
+  SPARKLE_SPAWN,
   WATER_LAYER,
 } from '../../../data/castle/courtyardLayers';
 
@@ -163,8 +164,8 @@ export function createAmbient(
 
   // Surface sparkles.
   const sparkles = scene.add.particles(0, 0, 'ambient-dot', {
-    x: { min: WATER_LAYER.box.x + 22, max: WATER_LAYER.box.x + WATER_LAYER.box.width - 22 },
-    y: { min: WATER_LAYER.box.y + 40, max: WATER_LAYER.box.y + WATER_LAYER.box.height - 26 },
+    x: { min: SPARKLE_SPAWN.x, max: SPARKLE_SPAWN.x + SPARKLE_SPAWN.width },
+    y: { min: SPARKLE_SPAWN.y, max: SPARKLE_SPAWN.y + SPARKLE_SPAWN.height },
     scale: { start: 0.14, end: 0 },
     alpha: { start: 0.9, end: 0 },
     lifespan: 900,
