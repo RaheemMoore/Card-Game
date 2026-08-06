@@ -1,0 +1,247 @@
+{
+  "meta": {
+    "app": "Phaser Editor 2D - Asset Pack Editor",
+    "contentType": "Phaser v3 Asset Pack",
+    "apiVersion": 2,
+    "generated": "scripts/phaser-editor/build-asset-pack.mjs — do not hand-edit"
+  },
+  "castle-plate": {
+    "path": "assets/castle/",
+    "files": [
+      {
+        "type": "image",
+        "key": "courtyard",
+        "url": "courtyard.png"
+      },
+      {
+        "type": "image",
+        "key": "courtyard-water",
+        "url": "layers/water.png"
+      }
+    ]
+  },
+  "castle-occluders": {
+    "path": "assets/castle/occluders/",
+    "files": [
+      {
+        "type": "image",
+        "key": "occluder-lamp-upper-left",
+        "url": "lamp-upper-left.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-lamp-mid-left",
+        "url": "lamp-mid-left.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-lamp-lower-left",
+        "url": "lamp-lower-left.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-lamp-lower-right",
+        "url": "lamp-lower-right.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-brazier",
+        "url": "brazier.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-produce-table",
+        "url": "produce-table.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-water-barrel",
+        "url": "water-barrel.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-bush-south",
+        "url": "bush-south.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-crates-south",
+        "url": "crates-south.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-bush-south-east",
+        "url": "bush-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-awning-tent",
+        "url": "awning-tent.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-booth",
+        "url": "booth.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band0",
+        "url": "fountain-band0.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band1",
+        "url": "fountain-band1.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band2",
+        "url": "fountain-band2.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band3",
+        "url": "fountain-band3.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band4",
+        "url": "fountain-band4.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band5",
+        "url": "fountain-band5.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band6",
+        "url": "fountain-band6.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band7",
+        "url": "fountain-band7.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band8",
+        "url": "fountain-band8.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band9",
+        "url": "fountain-band9.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band10",
+        "url": "fountain-band10.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band11",
+        "url": "fountain-band11.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band12",
+        "url": "fountain-band12.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band13",
+        "url": "fountain-band13.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band14",
+        "url": "fountain-band14.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band15",
+        "url": "fountain-band15.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band16",
+        "url": "fountain-band16.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band17",
+        "url": "fountain-band17.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band18",
+        "url": "fountain-band18.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band19",
+        "url": "fountain-band19.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-fountain-band20",
+        "url": "fountain-band20.png"
+      },
+      {
+        "type": "image",
+        "key": "occluder-cart",
+        "url": "cart.png"
+      }
+    ]
+  },
+  "castle-characters": {
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "hero-chibi",
+        "url": "assets/castle/hero/chibi.png",
+        "frameConfig": {
+          "frameWidth": 36,
+          "frameHeight": 71
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-cardwright",
+        "url": "assets/castle/hero/cardwright.png",
+        "frameConfig": {
+          "frameWidth": 77,
+          "frameHeight": 160
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "keeper-dwarf",
+        "url": "assets/castle/keepers/dwarf-breathe.png",
+        "frameConfig": {
+          "frameWidth": 37,
+          "frameHeight": 58
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "keeper-archivist",
+        "url": "assets/castle/keepers/archivist-breathe.png",
+        "frameConfig": {
+          "frameWidth": 30,
+          "frameHeight": 69
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "prop-horse",
+        "url": "assets/castle/keepers/horse-eating.png",
+        "frameConfig": {
+          "frameWidth": 58,
+          "frameHeight": 59
+        }
+      }
+    ]
+  }
+}

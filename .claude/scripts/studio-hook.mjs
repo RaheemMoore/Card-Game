@@ -108,10 +108,7 @@ if (action === 'pre-tool') {
 if (action === 'post-write') {
   const files = toolTargets(input.tool_name ?? '', input.tool_input ?? {});
   const touchesStudio = files.some((file) =>
-    file.includes('/.claude/') || file.startsWith('.claude/') ||
-    file.includes('/.agents/') || file.startsWith('.agents/') ||
-    file.includes('/.codex/') || file.startsWith('.codex/') ||
-    /(^|\/)AGENTS\.md$/.test(file)
+    file.includes('/.claude/') || file.startsWith('.claude/')
   );
   if (!touchesStudio) process.exit(0);
   const lint = spawnSync(process.execPath, [path.join(root, '.claude/scripts/studio-lint.mjs')], { cwd: root, encoding: 'utf8' });

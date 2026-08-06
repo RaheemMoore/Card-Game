@@ -1,0 +1,30 @@
+{
+  "subject": "proving-hall-cases",
+  "label": "The Proving Hall \u2014 floating weapon reliquary cases",
+  "notes": [
+    "RAHEEM'S BRIEF, 2026-08-04: 'not a regular weapon stand, that's not cool. Maybe a weapon altar, a weapon showcase \u2014 one weapon of each. A magical staff in a glass case, a magical bow, magical gauntlets, and they're all FLOATING.' The approved tower batch's weapon rack is furniture; this is a monument.",
+    "THE WEAPONS ARE CANON, NOT INVENTED. Archetype_Weapon_and_Companion_Reference.md gives ten named weapons per archetype with a stated fantasy role. Using them makes the Proving Hall mean something: it displays the archetypes' signature arms rather than generic loot. Living Staff (Druid \u2014 'continues growing and changing with its wielder'), Judgment Bow (Seraph \u2014 'distant, deliberate punishment'), Open-Hand Gauntlets (Monk \u2014 'protect the hands without replacing martial skill'), Halo Blade (Seraph \u2014 'channels sacred authority').",
+    "EVERY WEAPON FLOATS INSIDE ITS CASE, drawn already suspended and clear of the base. That is what makes them animatable \u2014 a slow bob or a rotation via POST /objects/{id}/animations at ~2 generations each \u2014 and it is why they must not be drawn resting on anything.",
+    "PALETTE: the plate's own colours are named explicitly, because that is the layer that actually works for objects. Warm cream sunlit stone and honey-amber wood for the plinths, dark iron and TEAL-GREEN metal for the case frames \u2014 the teal fittings are the single strongest tell that an object belongs in this courtyard. The magic glow inside each case is the weapon's own element and is allowed to be loud.",
+    "COLOURS SAMPLED FROM THE GAME'S ELEMENT ART (public/assets/elements/): nature green rgb(77,120,70), holy gold rgb(193,144,84), light gold rgb(202,168,76), spirit sky-blue rgb(115,175,206). Each case gets a different one so four cases in a row do not blur together.",
+    "NO BAKED GROUND. No floor tile, no paving, no square backing panel. The first fissure arrived with its own slab and it could not blend.",
+    "M5.7 is not engaged \u2014 no figures. No real-world heraldry."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "weapon-cases",
+      "note": "Four reliquary cases, one weapon each, all floating. Different silhouette per case \u2014 tall narrow, wide low, short square, tall wide \u2014 so a row of them has rhythm instead of repetition.",
+      "params": {
+        "description": "magical museum reliquary display cases seen from a low top-down angle, tall glass and crystal cases with dark iron and teal-green metal frames on warm cream stone plinths with honey-amber trim, a single legendary weapon FLOATING and slowly turning in the middle of each case, soft coloured magic glow inside the glass, black pixel outline, basic shading, no floor tile, no paving, no background panel, no square border",
+        "view": "top-down",
+        "item_descriptions": [
+          "tall narrow glass reliquary case with a dark iron and teal-green frame on a warm cream stone plinth, a gnarled living wooden staff FLOATING upright inside it with green leaves and small vines still growing from the wood, soft green glow filling the glass, no floor, no background panel",
+          "wide low glass reliquary case with a dark iron and teal-green frame on a warm cream stone plinth, an elegant golden longbow FLOATING horizontally inside it, its string drawn taut and glowing, warm gold light filling the glass, no floor, no background panel",
+          "short square glass reliquary case with a dark iron and teal-green frame on a warm cream stone plinth, a pair of wrapped cloth-and-brass open-fingered gauntlets FLOATING side by side inside it, pale blue light around the knuckles, no floor, no background panel",
+          "tall wide glass reliquary case with a dark iron and teal-green frame on a warm cream stone plinth, a radiant straight sword FLOATING point-down inside it with a glowing golden halo ring hanging around its blade, brilliant white-gold light filling the glass, no floor, no background panel"
+        ]
+      }
+    }
+  ]
+}

@@ -4,7 +4,37 @@ How to design and generate a courtyard shopkeeper. Written so Raheem can drive t
 
 ---
 
-## THE QUALITY BAR IS THE DWARF, NOT THE HERO
+## ⚠️ REVERSED 2026-08-04 — THE STYLE ANCHOR IS THE CHIBI HERO, NOT THE DWARF
+
+**Raheem, 2026-08-04:** *"That's the vibe of the game, 2D chibi... Only generate characters for
+this game based on the other characters in the game. Use the same style. Different body types,
+different people, same 2D chibi style."*
+
+**The section below is retained for its recipe details but its central instruction is WRONG and
+actively caused a bad generation.** Following "match the dwarf, do not tone down to the hero"
+produced a tall, semi-realistic, adult-proportioned apprentice standing beside a game whose
+actual character is a big-headed chibi. The dwarf is **also** off-vibe and is queued for
+regeneration.
+
+**The rule now:** every new character matches `hero-chibi.json` — the character actually in the
+game. Vary body type, age, sex, ancestry and silhouette freely; **never vary the art register.**
+
+**And the mechanical trap that made it possible:** `/create-character-v3` **has no
+`proportions` field.** Chibi can only be described in prose there, and prose loses. The hero was
+made with `/create-character-with-4-directions`, which has a **real `proportions` preset**. Use
+that route for any chibi character and set the preset explicitly:
+
+```json
+"style": { "view": "low top-down",
+           "proportions": { "type": "preset", "name": "chibi" },
+           "outline": "single color black outline",
+           "shading": "basic shading", "detail": "medium detail",
+           "size": { "width": 128, "height": 128 } }
+```
+
+---
+
+## ~~THE QUALITY BAR IS THE DWARF, NOT THE HERO~~ (superseded — see above)
 
 The first keeper (character `93941297-2772-4a36-b473-b8b7d7a22711` — dark-skinned dwarf, beaded dreads, split braided beard, fur shoulders) is **the standard every future character matches**. Measured against the current hero he is a much richer sprite: **64 colours vs 33, and 2.7× the edge detail**.
 

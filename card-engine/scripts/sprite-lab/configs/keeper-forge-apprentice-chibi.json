@@ -1,0 +1,62 @@
+{
+  "subject": "keeper-forge-apprentice-chibi",
+  "label": "The Forge Apprentice (CHIBI) \u2014 studying the element crystal",
+  "notes": [
+    "THIS REPLACES keeper-forge-apprentice, WHICH WAS THE WRONG ART REGISTER. That one came back semi-realistic \u2014 tall, detailed, adult proportions \u2014 beside a game whose actual character is a big-headed chibi. Raheem: 'that's the vibe of the game, 2D chibi... what you did makes absolutely no sense.' He is right.",
+    "THE MECHANICAL CAUSE, so it cannot recur: `/create-character-v3` HAS NO `proportions` FIELD. Chibi can only be described in prose there, and prose lost \u2014 the model drew a detailed adult. `/create-character-with-4-directions` has a REAL `proportions` preset, and that is the route that produced the hero who is actually in the game. So this config omits `pipeline` entirely to take the 4-direction route, and sets the preset explicitly.",
+    "THE STYLE ANCHOR IS THE CHIBI HERO \u2014 hero-chibi.json \u2014 not the dwarf. SHOPKEEPER_GUIDE.md said the opposite ('the quality bar is the dwarf, not the hero') and that instruction is what steered this wrong. Raheem has reversed it: the dwarf is also off-vibe and is queued for regeneration. Every new character matches the hero's register.",
+    "SETTINGS COPIED FROM hero-chibi.json DELIBERATELY: same view, same proportions preset, same outline/shading/detail, same 128x128. Matching the numbers is what makes a cast look like one game rather than four.",
+    "IDENTITY IS RAHEEM'S CALL: a red curly-haired woman reading a book. He specified this directly, including that she must NOT be another Black man beside the dwarf. Note for later: the Archivist is also a red-haired woman, so if both end up on screen together one of them wants a different palette \u2014 flagged, not silently changed.",
+    "FACING EAST \u2014 SCREEN RIGHT. The crystal sits on the forge's right-hand side against the wall and she stands in front of it looking at it. Verify by looking at the sprite; this mapping shipped backwards once and made the hero walk right while facing left.",
+    "DO NOT ANIMATE UNTIL RAHEEM CONFIRMS THE STILL AND THE FACING. Standing rule, 2026-08-04.",
+    "MODESTY M5.7: covered neck to feet, apron over a long-sleeved tunic. The avoid list names the failure modes rather than trusting the positive prompt.",
+    "THE BOOK IS BAKED INTO HER SPRITE, not a separate layer \u2014 a held prop in its own layer drifts out of her hand the moment she is repositioned.",
+    "NO CRYSTAL IN THE PROMPT. She looks at one that already exists in the scene as its own object; generating one here would double it.",
+    "SEED IS EXPLICIT. The dwarf and the archivist both shipped without one and can never be rebuilt. Twice is enough."
+  ],
+  "identity": {
+    "description": "A young woman drawn as a big-headed chibi game character, warm pale freckled skin, bright copper-red curly hair tied back with a loose strand at her temple, friendly readable face. She wears a scorched tan leather forge apron over a long-sleeved moss-green tunic, dark work trousers and sturdy brown boots. She holds a large open book braced in both hands in front of her, head tilted down toward it as if reading, fully covered from neck to feet.",
+    "avoid": "no bare midriff, no cleavage, no exposed shoulders, no short skirt, no sword, no weapons, no shield, no armour, no wizard robe, no cape, no staff, no hammer, no anvil, no crystal in her hands, no pet, no animal, no background, no floor, not realistic proportions, not an adult body plan"
+  },
+  "style": {
+    "view": "low top-down",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": {
+      "width": 128,
+      "height": 128
+    }
+  },
+  "palette": {
+    "reference": null,
+    "note": "No colour reference, matching the hero. Passing the courtyard plate as color_image dragged him toward dark stone and cost his face contrast."
+  },
+  "seed": 771244,
+  "directions": [
+    "east"
+  ],
+  "animations": [
+    {
+      "id": "study-east",
+      "name": "study",
+      "mode": "v3",
+      "action": "standing still in side profile reading, turning a page of the open book, glancing up and away from the book for a moment, then looking back down at the page",
+      "frameCount": 6,
+      "directions": [
+        "east"
+      ],
+      "startFromRotation": "east"
+    }
+  ],
+  "animationNotes": [
+    "EAST ONLY, and the angle was confirmed by Raheem before generating \u2014 standing rule, 2026-08-04. She stands in front of the element crystal on the forge's right-hand wall and looks at it, so east (screen RIGHT) is the only face this animation will ever need.",
+    "PINNED via startFromRotation to her own east rotation. v3 + per-direction pinning is the only method that has produced a correct result in this pipeline; template mode drifted 43.7 palette units and pro cost ~186 generations for unusable frames.",
+    "The glance up is the whole point \u2014 it is what makes her read as STUDYING the crystal rather than just holding a book. Raheem: 'she'll look like she's studying or like she's researching over and over.'",
+    "6 frames. Enough for page-turn, glance, return; more would slow a loop that should feel absent-minded."
+  ]
+}

@@ -64,17 +64,24 @@ yourself. **Lore** is Tori's.
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
 why in the decision log.*
 
-### ▲ Highest value — open one castle stall
+### ▲ Highest value — build the Forge menu next
 
 Four stalls in the courtyard say *"not yet connected."* The castle is the hub your entire
 design rests on, and right now it's a beautiful room with four doors that go nowhere.
 
-Wiring **the tower gate to the real boss battle** is the smallest change with the biggest
-felt difference: it turns the castle from a demo into the thing you described — a place you
-hang out before you go somewhere. Everything else in the hub-and-doors model follows the
-same pattern, so the first one establishes it.
+**The Collection is done** — it is a pixel case you reach from the pause menu today, with the
+old page's filters, sorting, detail view and deletion carried across. That proved the shell.
 
-*Where:* `card-engine/src/pages/castle/courtyard/stalls.ts:60`
+**The Forge is the right next one**, and deliberately the hardest: it is a five-stage ritual
+with dice, story pillars, element choice and a paid generation step. If the primitives cannot
+carry a multi-stage flow, that is much cheaper to discover now than after two easy stalls are
+built on the same assumptions.
+
+Your own sequencing holds — build all four menus, then connect them to stalls once the four
+quadrants are designed. Wiring now would mean wiring twice, since Courtyard V2 is still
+moving.
+
+*Where:* `card-engine/src/pages/CardForge.tsx` · *Kit:* `card-engine/src/components/ui/`
 
 ### ◆ Decide, don't build — how long is the tower?
 
@@ -123,11 +130,13 @@ being raised in a chat and lost.*
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
 | Q8 | Now that the Studio Wiki replaced the old Production Guide link, does the guide itself retire? | The generated page at `docs/production/production.html` still exists and the `production-log` skill still ends by republishing it. The Wiki reads the same source and redeploys automatically. Keeping both means two versions of the truth and a manual step that will be skipped. |
+| Q10 | If forging stops making a live API call, do Forge Crystals still make sense as purchase-only? | They are purchase-only *because* each generation costs real money (economy plan §13). A pool weakens that rationale. Pricing changes need your explicit approval, so this needs your ruling before anything moves. |
+| Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
 | Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 1. What this game is
 
 > **Card Engine is an adventure game with characters you made yourself.**
@@ -139,6 +148,38 @@ gets to make his own.
 this is built follows from that sentence. It's why the forge is a ritual and not a slot
 machine, and why identity fields are locked so advancement can never make someone younger,
 thinner, or less disabled.
+
+### It is a 2D pixel game — new, 2026-08-04
+
+Raheem, this session: *"This is a 2D pixel game where you collect cards and you battle with
+those cards. You're a fantasy character in a fantasy world… The actual visuals of the game
+are 2D pixel art."*
+
+This is a real change and it is worth reading twice. The project began as a painted fantasy
+card game — effectively a card-collection website with a castle attached. It is now **a 2D
+pixel world you walk around in, where cards are how you fight.** Everything that currently
+looks like a web page — the Forge, the Collection — is meant to become a stall you walk up
+to inside that world.
+
+**The rule that makes it buildable: painted is what you look at, pixel is what you touch.**
+
+| Painted (Leonardo) | Pixel (PixelLab) |
+|---|---|
+| Backdrops and environment plates | Characters, keepers, bosses |
+| Scenery painted *into* the plate | Objects placed *on* the plate — lamps, bridges, crates |
+| Card portrait art, and the card's painted frame | Moving effects — dust, sparks |
+| | **Menus, buttons, panels — all interface** |
+
+In Raheem's words: *"The water is Leonardo, but the bridge to go over the water is PixelLab."*
+
+Two things this deliberately does **not** mean. It is not "painted = still" — painted water
+and banners can move. And it does **not** mean the painted courtyard gets repainted: it is
+correct exactly as it is, and the pixel layer is what gets added on top of it. The reference
+here is Sea of Stars and Eastward, not Octopath's HD-2D — that one builds pixel sprites over
+3D environments, which is a different and more expensive technique.
+
+**The card stays painted.** It is the one exception, and it is a deliberate idea rather than
+an inconsistency: a painted artifact you hold inside a pixel world.
 
 ### The shape: a hub with doors
 
@@ -319,6 +360,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
+| IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
+| SHIPPED | The Collection, as an in-world case | `/collection` renders the pixel case and the pause menu already pointed there, so a player reaches it today. Painted cards inside pixel chrome; filters are a rack of the eleven archetype crests rather than a dropdown, rank is three chips, sort is one cycling button, and Inspect/Release carry the old page's detail and deletion. Scroll edges fade and show a chevron only where content continues. Verified at 1280x620 and 375x812. Preview with a full case at `/dev/collection-stall`. **Not yet opened from a courtyard stall — that waits on the four-quadrant design.** |
 | SHIPPED | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets run in the authentic `/battle` event stream. Combat follows **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The full-motion exchange reaches the next intent in about 6.2 seconds; boss-bound volleys land in a readable triangle, and Motion Off preserves the order as still tableaux. Released through PR #34 at production commit `98f66e7`. |
 | SHIPPED | Decision Experience System — Stage 1 | The selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible usable ability; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back. Projections, the Threat Translator, contextual explanations, shared confirmation policy, authoritative receipts, and `/dev/decision-lab` remain intact. **Encounter Briefing and dedicated Pilot A/B comprehension passes are still open Stage 2 work** — see Combat gaps below. |
 | PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
@@ -350,7 +393,7 @@ machine and will be silently absent from every other device you open. If it is w
 <!-- updated: 2026-08-04 -->
 ## 4. Open threads
 
-**65 things started and not finished.** This is the list that didn't exist before. It will
+**69 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -384,7 +427,9 @@ The forge quadrant is a verified development checkpoint, not permission to repla
 | What | Where |
 |---|---|
 | Finish collider and occluder traces for the remaining courtyard, including walls and fountain | `src/pages/castle/v2-preview/` + Figma Courtyard V2 file |
-| Design and build the top-left, bottom-left Archivist, and bottom-right quadrants | Figma Courtyard V2 file |
+| ~~Design~~ and build the top-left, bottom-left Archivist, and bottom-right quadrants — **all three are now designed** in `card-engine-courtyard-v2-quadrants.md`; the tower's six objects are generated and awaiting Raheem's pick | Figma Courtyard V2 file |
+| Decide the tower objects: keep, cut, or re-roll each of the seven `art-tower-*` layers now sitting in the plate frame | Figma Courtyard V2 file |
+| Find or generate the forge apprentice and forge pet — neither exists in git, and neither is an `art-` layer in `MpUs9WJKMvwTtpH9Akz4Rm` | unknown; blocking |
 | Remove the counter's baked shadow and reduce the bench shadow without damaging the rug | Courtyard V2 source art |
 | Replace preview-only walk bounds with the complete imported map collision set | `v2-preview/CourtyardV2PreviewScene.ts` |
 | Integrate V2 into the production castle only after full-map runtime and human visual approval | `src/pages/castle/` |
@@ -438,6 +483,22 @@ The forge quadrant is a verified development checkpoint, not permission to repla
 | `Card Images/` sources never wired into the pipeline | CLAUDE.md |
 | `balance-playtest` skill is a scaffold that can't run | `.claude/skills/balance-playtest/` |
 | Dice roll animation is CSS 3D cubes — works, never polished | `components/DiceRoll.tsx` |
+
+### Pixel UI kit — 4 items
+
+*Opened 2026-08-04. The kit and the first surface are built; the remaining stalls
+are not. Six primitives now exist in `src/components/ui/`: Panel, PixelButton,
+Bar, Slot, Scrim and ScrollArea. The Collection is live at `/collection` and
+reachable from the pause menu — see the status board.*
+
+| What | Where |
+|---|---|
+| Forge, Battle Tower and Training Yard have no menu yet | `castle/courtyard/stalls.ts` |
+| Stalls are not wired to the menus — deliberate, pending Raheem's four-quadrant design | `castle/CourtyardViewport.tsx` |
+| `BossHUDOverlay` still positions children at literal pixel offsets; needs the percentage contract before any re-skin | `pages/battle/BossHUDOverlay.tsx:55` |
+| `FantasyPanel.tsx` is dead code — zero callers. Safe to delete, awaiting Raheem's nod | `pages/battle/FantasyPanel.tsx` |
+| Mobile combat is CSS-drawn (`CombatFrame`) with no painted or pixel art at all — and iPhone portrait is launch-blocking | `pages/battle/mobile/MobileBossHeader.tsx:36` |
+| No return-to-courtyard affordance exists on Forge / Collection / Battle | — |
 
 ### Art prompting debt — 3 items
 
@@ -531,7 +592,7 @@ reversible and inside an approved direction, I just do it.
 ---
 
 <!-- updated: 2026-07-31 -->
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 6. The workshops
 
 **A workshop is a day you can step into.** Not a tool — a *way of working*. Pick one, say
@@ -722,7 +783,10 @@ The short version:
 | Tool | What it does |
 |---|---|
 | `bg-harness` | Environments and plates via Leonardo. 7 configs |
-| `sprite-lab` | Characters, bosses, props via PixelLab. 8 configs |
+| `sprite-lab` | Characters, bosses, props **and pixel UI chrome** via PixelLab. 9 configs |
+| `sprite-lab.mjs sheet` | Review gallery. Now renders object configs too, with acceptance criteria and in-context composites |
+| `ui_kit_review.py` | Puts UI chrome over the plate on light *and* dark ground, and 9-slices the frame at game scale |
+| `knockout_interior.py` | Clears a painted frame interior so it can 9-slice — repair instead of re-roll |
 | `boss-sheet.mjs` | Plays packed boss clips at real fps — motion review |
 | `/dev/boss-readout` | Measures the fight: beats, damage, telegraph timing |
 | `finish_arena.py` | Deterministic arena finishing — crop, grade, pixelize |
@@ -778,6 +842,261 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-05 — Phaser Editor replaces Figma as the world-authoring surface
+
+Raheem is buying Phaser Editor and will author the world in it — placing pieces, setting
+layering, drawing colliders. Figma drops to the free tier and keeps one job: the card frames,
+in personal drafts.
+
+The trigger was the vision changing rather than the tooling being disliked. The goal is now a
+world that *moves* — scenery that has states and reacts — and that cannot be built from one
+painted plate with holes traced out of it in Figma, because a painted object cannot change.
+Raheem's own rule is the architecture: **anything I want to move or change needs to be an actor
+or an asset.**
+
+A sweep established that Figma was load-bearing in exactly one place: castle spatial authoring
+(`courtyardV2Layout.ts` plus the `trace-environment` skill). The cards, the UI components, the
+design tokens and the icons are all committed PNGs and literals — `CardRenderer.tsx` contains
+zero occurrences of "figma". So the migration surface was one job, and it is precisely the job
+the Editor takes over.
+
+**Nothing was migrated.** `/castle` already ran Phaser 3.90. The bridge is a single file,
+`public/asset-pack.json` — a *native* Phaser Asset Pack that is also what the Editor's Asset
+Pack Editor reads, so one manifest serves both tools and there is no export step. Verified in
+Phaser's own loader source: `addPack` only processes top-level keys carrying a `files` array, so
+the Editor's `meta` block is skipped rather than erroring. The courtyard now preloads via
+`load.pack()`; all 41 assets resolve; the build and 43 castle tests pass.
+
+Two things came out of the work that were not the point of it. The generated pack refuses to
+emit a frame size that does not tile its PNG, and on its first run that caught a **stale
+manifest** claiming the archivist was 31×69 with 4 frames against an image that is 30×69 with 1
+— a shearing bug that Phaser would have rendered silently. And the direction of the tooling was
+already predicted: the PixelLab playbook says that if a fully interactive courtyard is ever
+wanted, the coherent path is rebuilding it in pixel art via tilesets, *"not hybridising by
+accretion."*
+
+**The angle is locked, the camera is not.** Every character is `low top-down`. It stays. The
+camera — scale, framing, scrolling — is free to change at zero asset cost.
+
+*Why it matters:* it removes a subscription and a manual transcription step at the same time.
+The Figma loop required hand-copying coordinates into TypeScript with a "do not hand-tune these"
+policy holding it together; the Editor emits data the game loads directly. Downgrade order is
+load-bearing — the free tier drops Dev Mode, and the Figma MCP trace tools ride on it, so the
+Editor work lands before the plan changes.
+
+### 2026-08-04 — The counter's baked shadow CAN come off, and the rug shows through
+
+Raheem asked for a direct answer before offering to help cut it. Measured: the shadow is
+**opaque baked pixels, not a soft alpha layer** — only 2.7% of that sprite is
+semi-transparent. But it is a **flat, enclosed grey-green region** bounded by the counter's
+underside above and its legs either side, so it removes cleanly with a region-plus-colour
+selection. 2,227 pixels. The rug now shows through underneath, and the legs and the iron
+scrollwork between them survived.
+
+This closes an open thread that has been sitting in §4 since the forge preview landed.
+
+*Why it matters:* it was recorded as an art problem needing a regeneration, and it was a
+free local edit all along — the same lesson as the colour rule written earlier today.
+
+### 2026-08-04 — Raheem's Figma placement is now game data
+
+He has laid out three characters, the forge, counter, bench, four reliquary cases, the mana
+font, card stand, muster board, two braziers, the element crystal and the griffin cub asleep
+ON the counter — plus five walk routes and a fountain footprint he traced himself.
+
+All of it is read into `src/pages/castle/v2-preview/courtyardV2Layout.ts`. **Every number came
+off the Figma file rather than being estimated**, which is possible only because the plate is
+locked at 1536x1152 — the game's own coordinate space — so a layer's Figma position IS its
+world position.
+
+Two deliberate decisions in the collider set. The **dwarf has none**: he stands behind a
+counter that already blocks the player, and giving him one would wall off the aisle he works
+in. The **griffin cub has none**: it sits on the counter, and a collider floating at counter
+height would block the walkway beside it.
+
+The forge, counter and bench boxes are Raheem's own traces and are already proven in play. The
+rest are derived from each sprite's bottom band and are explicitly marked preliminary.
+
+
+### 2026-08-04 — Colour is a post-process, and offering it is the assistant's job
+
+Raheem asked whether a simple colour swap was possible, then escalated it into a standing
+instruction: *"Not just known that you can do it — make it known that I WANT you to do it."*
+
+The rule: **when an asset's only problem is hue, saturation or value, offer a recolour before
+anything else, unprompted. Never regenerate for colour alone.**
+
+This cost three regenerations in a single session before it was written down — grey stone
+against a warm honey plate, eight generations re-rolling a dwarf for skin tone, and teal
+fittings that came back brown and were *logged as an accepted regression rather than fixed*.
+That last one is the telling failure: the defect was noticed, documented, and still not offered.
+
+`lib/recolor.py` now exists. It is deterministic, so one identical map applies across every
+frame and rotation — an AI inpaint runs per image and drifts, which is the failure that already
+produced a costume changing mid-walk-cycle.
+
+**Raheem's second point is the structural one:** this should not depend on the assistant
+remembering. So the mandate is wired into all three art directors' definitions AND their routing
+triggers in the capability registry, so the specialist consulted before any art spend is the one
+that raises it.
+
+*Why it matters:* a capability nobody offers is the same as a capability nobody has.
+
+
+### 2026-08-04 — Characters are 2D chibi, and a canonical doc was telling us otherwise
+
+The forge apprentice came back semi-realistic — tall, detailed, adult-proportioned — standing
+beside a game whose actual character is a big-headed chibi. Raheem, immediately: *"That's the
+vibe of the game, 2D chibi... what you did makes absolutely no sense."*
+
+**Two causes, and both are now fixed rather than noted.**
+
+`SHOPKEEPER_GUIDE.md` opened with *"THE QUALITY BAR IS THE DWARF, NOT THE HERO... the chibi hero
+is temporary... do NOT tone new characters down to match the hero."* That instruction was
+followed, and it is what steered the generation wrong. It is now **reversed**: the chibi hero is
+the anchor, and the dwarf is off-vibe too and queued for regeneration.
+
+The mechanical cause is sharper and worth more. **`/create-character-v3` has no `proportions`
+field.** "Chibi" can only be written in prose there, and prose lost — the model drew a detailed
+adult. `/create-character-with-4-directions` has a *real* proportions preset, and that is the
+route that made the hero in the game. Regenerating on the hero's exact style block produced the
+right character first try, for 8 generations.
+
+**The rule now: copy `hero-chibi.json`'s style block verbatim and change only the identity.**
+Vary body type, age, sex, ancestry and silhouette freely; never vary the register.
+
+The rejected apprentice is kept rather than deleted — Raheem likes the character and wants her
+in another zone. She is not wrong, she is in the wrong game's art style.
+
+*Why it matters:* a cast generated from different style blocks looks assembled from different
+games, and this project has now proved that a canonical document can be the thing causing the
+defect.
+
+
+### 2026-08-04 — Cards will come from a pre-generated pool, not a live forge
+
+Raheem: *"Right now people are using API calls to generate cards and it takes 20 to 60
+seconds. The intention was for the cards to be original. But now we're just gonna generate a
+number of cards for each archetype, so users will be able to just pull from an
+already-generated pool. It'll be much faster. We're just keeping the web access while we
+create these cards and improve the questionnaire process."*
+
+**Nothing has been built yet, and nothing has been removed.** The live forge is still the
+shipping path and stays until the pool exists.
+
+*Why it matters:* it removes the 20–60 second wait and takes a paid Claude + Leonardo call
+off the per-player path. It also changes what the Forge SURFACE is for — the rotating
+"summoning your champion…" messages are scaffolding for a delay that is going away, and the
+moment becomes a reveal rather than a progress bar. The questionnaire survives and is being
+improved; its job shifts from feeding a generator to narrowing which card you pull.
+
+*What it opens:* two things worth a deliberate ruling rather than a drift — see Q10 and Q11
+in §0.
+
+### 2026-08-04 — This is a 2D pixel game, and the rule is "painted is what you look at, pixel is what you touch"
+
+Raheem restated what the project is: a 2D pixel world you walk around in, where cards are how
+you fight — not a card-collection website with a castle attached. The menus become stalls you
+approach inside the world.
+
+He also settled how the two art styles divide, which is the part that makes it buildable:
+painted backdrops and scenery, pixel characters, props, effects and interface. The card is
+the single painted exception.
+
+*Why it matters:* it reverses a ruling Raheem made **earlier the same day**. He first chose
+painterly chrome; a few messages later he chose pixel. Both are recorded deliberately — the
+second one wins, and the reversal is why the six-piece art order moved from Leonardo to
+PixelLab.
+
+*What it closed:* a worry I had raised that the hand-painted courtyard was now off-direction.
+It is not. Under this rule the painted plate is exactly right and the pixel layer is added on
+top of it. **The courtyard does not get repainted.**
+
+### 2026-08-04 — The pixel-vs-painted courtyard question was already answered, and we nearly paid twice
+
+Before generating anything, the playbook turned out to already contain the verdict: a full
+pixel courtyard was built and compared against the painted plate in an earlier session — 68
+generations — and **the painting won**. The recorded standing direction was "PixelLab for
+characters and for new objects that don't already exist in the plate."
+
+*Why it matters:* that is almost word-for-word the direction Raheem described this session.
+He was not changing course; he was restating a conclusion the project had already paid to
+learn. Reading the playbook first saved re-running the experiment.
+
+### 2026-08-04 — Round 3 of the pixel UI kit is approved; the rejected rounds are kept on purpose
+
+Three rounds, 60 generations. R1 (plain carved wood) was *"a bit too plain."* R2 (heavy gold
+and crystal) was *"a bit too gaudy… too much gold."* R3 — wood body, slim gold trim, one small
+turquoise crystal — is approved.
+
+Raheem asked that the rejected art be kept rather than discarded: the alternate frames become
+UI for *other* stalls, and two accidental pieces (a potion and a key) become item art.
+
+*Why it matters:* nothing generated through this endpoint is reproducible — PixelLab's object
+route rejects a seed, so a re-roll returns different art, never the same art. Every file in
+`public/assets/ui/` is a one-of-one, and the provenance file says so in those words.
+
+*What it closed:* the real unknown, which was whether PixelLab could hold a **9-slice frame**
+at all — its advertised interface support is buttons and health bars, and frames are never
+mentioned. It can: the frame's centre came back genuinely hollow and its edges tile at a 32px
+corner slice, both measured rather than eyeballed.
+
+### 2026-08-04 — A frame with a painted interior was repaired locally instead of re-rolled
+
+R3's frame came back with a solid opaque centre, which makes a 9-slice impossible. Rather than
+spend 20 generations on an unreproducible re-roll — and risk losing a frame Raheem liked — the
+interior was cleared deterministically with a new flood-fill script.
+
+*Why it matters:* this is the playbook's correction ladder working as designed. The cheapest
+rung that solves the actual problem, no identity drift, no spend.
+
+### 2026-08-04 — The review harness was blank for every object config, and nobody had noticed
+
+Raheem, mid-session: *"The harness is blank. I don't see anything. I would like to actually be
+able to review them in the harness."* He was right. `sprite-lab.mjs sheet` only ever read the
+field that **character** configs write, so every object config — props, tiles, the UI kit —
+rendered an empty page. The art was on disk and paid for; the review surface silently showed
+nothing.
+
+Fixed for all object configs, not just this one. The sheet now also renders the acceptance
+criteria at the top, and promotes in-context composites (every piece over the light plate and
+a dark ground, plus the frame 9-sliced at real game scale) to full width.
+
+*Why it matters:* chrome approved on a checkerboard is how you ship chrome that vanishes
+against the plate — which is exactly what Round 1 did. The in-context view is what caught it.
+
+### 2026-08-04 — The forge crystals are a code problem, and the tower is picked in Figma
+
+Two things settled today that had been treated as art questions.
+
+**The counter crystals will never be animated art.** PixelLab has no object-animation endpoint
+at all: the object route returns a still, and the animation route is skeleton-driven and needs
+a character, so it animates a rigged humanoid rather than a gem. Faking it with independent
+"frame 1/2/3" prompts is the drift trap that already cost 186 generations. So the gems stay
+static paint and every bit of their life is synthesized in Phaser for free. One rule was bent
+deliberately: the courtyard life plan mutes every emitter within 80px of the hero, but the gems
+are the forge's attractor, so their glow **ramps up** on approach and only the drifting motes
+mute. Muting the counter exactly when the player walks up to it is the opposite of the ask.
+
+**The tower quadrant's objects are generated and chosen in Figma, not in code.** Six objects
+plus two the API volunteered, 50 generations, anchored to the hero crop. Anchoring instead to a
+crop of the shipped forge counter was considered and rejected: that art is small and dense with
+one-off content, so any usable crop lands on a gem, a card or a leg finial, and rides it into
+whatever is generated next — the Still Season failure in miniature. They now sit in the plate
+frame at true game scale for Raheem to keep or cut, because he is picking, not cutting.
+
+*Two things this cost us that are now written down.* `item_descriptions` does not cap how many
+objects a call returns — the style image's size does — so a two-item request still returned
+four and spent half its slots on inventions nobody briefed. And objects always arrive untrimmed
+and floating above the canvas bottom, failing the anchor gate by construction; trimming to the
+alpha box is a mandatory post-process, not a defect.
+
+**Still open, and blocking:** the forge apprentice and forge pet do not exist in git and are not
+`art-` layers in the Courtyard v2 file, contrary to what we believed when the session started.
+
+*Why it matters:* the expensive half of this work was the half nobody spent money on.
+
 
 ### 2026-08-04 — Being on `main` is not the same as being in the game
 
@@ -1472,7 +1791,7 @@ in common, and both tools get used across both subjects.
 
 ---
 
-<!-- updated: 2026-08-03 -->
+<!-- updated: 2026-08-04 -->
 ## 9. Ideas raised, not committed
 
 *Said out loud, captured so they aren't lost, explicitly **not** promises.*
@@ -1484,9 +1803,10 @@ in common, and both tools get used across both subjects.
 - **More minigames as doors** — the shape accepts them; none are designed.
 - **Extract the harnesses as a reusable toolkit for future games** — Raheem explicitly
   deferred this. Focus is this game.
-- **Explore a generated combat-UI art pass** — Raheem raised PixelLab as a possible way to
-  improve the boss-battle chrome after the interaction restructure is proven. This is not an
-  approved generation run or a decision that PixelLab is the right UI tool.
+- ~~**Explore a generated combat-UI art pass**~~ — **committed 2026-08-04.** PixelLab *is*
+  the right UI tool, the art is generated and approved, and this is now a live workstream in
+  §3 with its own thread list in §4. Left here struck through so the trail from idea to
+  commitment is visible.
 - **Promote evaluated cards into the permanent roster** — the Evaluation Room is read-only
   for now. Design the explicit acceptance record, provenance gates, and promotion action only
   after the team has used the dossiers enough to understand the real review process.

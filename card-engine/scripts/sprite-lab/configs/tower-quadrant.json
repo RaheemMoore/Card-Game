@@ -1,0 +1,47 @@
+{
+  "subject": "tower-quadrant",
+  "label": "Courtyard V2 tower quadrant — the muster point for the Battle Tower climb",
+
+  "notes": [
+    "Design brief: card-engine-courtyard-v2-quadrants.md. The tower is the game's gate, so this quadrant is built first.",
+    "LOW-DIRECTIONAL BATCH by instruction: every item here is a 1-direction static object. No walkers, no rotations. The team is still learning the pipeline and the walk cycle is where every documented defect in this project has lived.",
+    "STYLE ANCHOR IS THE HERO CROP, NOT THE FORGE FURNITURE. Anchoring to counter-depth.png or bench-depth.png was considered and rejected: both are small and dense with unique content (a teal/pink gem cluster and a card on the counter, a folded item and thin legs on the bench), so any 85px crop lands either on one of those unique features or on featureless honey wood. That is the Still Season failure in miniature — a shipped asset's incidental detail imported wholesale onto an unrelated brief, i.e. a portcullis coming back with a gem-glow baked into its ironwork.",
+    "TWO CALLS OF FOUR AND TWO, NOT ONE CALL OF SIX. When style_images is supplied the output size derives from the largest style image, and that size caps objects per call: <=85 -> 8, <=170 -> 4, else 1. The hero crop is 146px, so the cap is 4. Re-extracting the hero at <=85px to unlock the 8-bucket was considered and REJECTED: his source frames are 152px tall, so an 85px cap is a 56% downscale, and this repo already measured that downscaling this pixel art destroys it (at 46% the GPU dropped over half his rows and shredded the outline). Paying one extra call is cheaper than shredding the reference that defines the register.",
+    "GROUPED BY MATERIAL so each call makes one coherent lighting/palette pass: call A is the wood-and-iron wall furniture, call B is the freestanding metal and stone.",
+    "/create-1-direction-object REJECTS `seed` ('Extra inputs are not permitted'), so nothing here is reproducible. The config records intent, not a rebuildable result. A bad object is a REROLL, not a fix — change the description rather than re-rolling blind.",
+    "View is 'top-down', matching the precedent props object in scene-courtyard-pixel.json. Do NOT use 'low top-down' here — that is the tile/character value, and the mismatch reads as wrong without being nameable.",
+    "Each item_descriptions entry restates its own wall-mounted / freestanding cue rather than inheriting it from the shared description. A per-item line that silently drops the wall cue is how a portcullis comes back floating with no anchor logic.",
+    "Modesty rule M5.7 is not applicable here (no figures), but the trophy rack must carry shields and cups, never trophies of bodies or heads."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "objects": [
+    {
+      "id": "tower-wall-furniture",
+      "note": "Call A — four wall-mounted wood-and-iron pieces. Cap is 4 because the hero style image is 146px. Do NOT set `size` alongside style_images; the API rejects that combination.",
+      "params": {
+        "description": "fantasy castle tower-yard wall furniture seen from directly above, honey-amber wood with dark iron and teal-green metal fittings, black pixel outline, basic shading, matching a castle forge's furniture: 1). raised iron portcullis gate with chain-and-winch 2). chalked muster board 3). trophy rack of shields 4). weapon-return rack",
+        "view": "top-down",
+        "item_descriptions": [
+          "raised iron portcullis gate with a chain-and-winch mechanism, dark iron bars drawn up into a honey-wood winch frame, grey stone surround, mounted flush against a castle wall, black pixel outline",
+          "wooden muster board on a wall-mounted stand, honey-amber wood frame with dark iron corner brackets, board face covered in white chalk tally lines and a chalked name list",
+          "wooden trophy rack standing against a wall, honey-amber wood with teal-green metal fittings, holding two small mounted shields and a battered metal cup",
+          "wooden weapon-return rack standing against a wall, honey-amber wood frame with dark iron slots holding two blunt practice spears and a wooden practice sword"
+        ]
+      }
+    },
+    {
+      "id": "tower-yard-fixtures",
+      "note": "Call B — two freestanding metal and stone pieces, split from call A so the warm wood pass does not drag the stone pillar toward honey.",
+      "params": {
+        "description": "fantasy castle tower-yard fixtures seen from directly above, dark iron and weathered grey stone with honey-toned highlights, black pixel outline, basic shading: 1). iron watch-brazier on a tripod 2). scratched stone tally pillar",
+        "view": "top-down",
+        "item_descriptions": [
+          "freestanding iron watch-brazier on a three-legged dark iron tripod stand, shallow bowl filled with glowing orange embers and a faint warm glow, no flames reaching past the rim",
+          "freestanding weathered grey stone tally pillar, waist high, its faces densely covered in small carved tally marks and chips, honey-toned stone base"
+        ]
+      }
+    }
+  ]
+}

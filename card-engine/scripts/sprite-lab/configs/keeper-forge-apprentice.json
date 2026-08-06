@@ -1,0 +1,38 @@
+{
+  "subject": "keeper-forge-apprentice",
+  "label": "The Forge Apprentice — studying the element crystal",
+
+  "pipeline": "v3",
+
+  "identity": {
+    "description": "A young Black woman with warm dark brown skin, tightly coiled black hair gathered under a faded indigo headwrap, sturdy broad-shouldered build. Chibi proportions, large head. She wears a heavy scorched leather forge apron over a long-sleeved rust-brown tunic, thick canvas trousers and sturdy work boots, fully covered from neck to feet. She holds a large open book braced against her forearm with one hand, and her other hand is raised as if tracing a line of text. Soot smudges on her hands and one cheek. Her head is tilted slightly upward and to the side, studying something above her. Detailed pixel art, single colour black outline, basic shading, medium detail.",
+    "avoid": "no bare midriff, no cleavage, no exposed shoulders, no short skirt, no weapon, no sword, no staff, no hammer, no anvil, no crystal in her hands, no pet, no animal, no background, no floor"
+  },
+
+  "notes": [
+    "SHE IS THE FORGE'S APPRENTICE and she is the reason the forge feels inhabited. Raheem, 2026-08-04: 'the apprentice will be looking at the elemental crystal, and she'll have a book in her hand, and she'll look like she's studying or like she's researching over and over. That'll be the animation.'",
+    "FACING EAST — SCREEN RIGHT. The crystal sits on the right-hand side of the forge, hard against the wall, and she stands in front of it looking at it. `east` = screen RIGHT in this API. That mapping SHIPPED BACKWARDS ONCE and made the hero walk right while facing left, and two separate static checks 'verified' it wrongly in opposite directions. Look at the sprite before believing the label.",
+    "DO NOT ANIMATE UNTIL RAHEEM HAS SEEN THE STILL AND CONFIRMED THE FACING. Standing rule, 2026-08-04: always confirm the angle before animating. He asked for the character image first, explicitly.",
+    "IDENTITY VARIATION IS DELIBERATE. The cast so far is a Black male dwarf (stocky, beaded dreads) and a pale freckled slender red-haired woman. She is a third silhouette: broad-shouldered, headwrapped, apron over tunic. SHOPKEEPER_GUIDE warns specifically against a cast that converges on one body.",
+    "MODESTY M5.7: covered neck to feet, apron over a long-sleeved tunic. The avoid list names the failure modes explicitly rather than trusting the positive prompt.",
+    "THE BOOK IS PART OF HER SPRITE, not a separate object — the same reason the horse's hay was baked in. A held prop that lives in another layer drifts out of her hand the moment she is repositioned.",
+    "NO CRYSTAL IN THE PROMPT. She looks AT a crystal that already exists in the scene as its own object. Generating one in her hands would double it.",
+    "SEED IS EXPLICIT. keeper-dwarf and keeper-archivist both shipped without one and can never be rebuilt — twice, by two different people. A config without a seed is a blocking review comment.",
+    "PLANNED ANIMATION once the facing is confirmed: a study loop — she turns a page, glances up at the crystal, returns to the book. EAST ONLY, ~1-2 generations. Nothing else."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "templateId": "mannequin",
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 244, "height": 244 }
+  },
+
+  "seed": 480915,
+
+  "directions": ["east"],
+
+  "animations": []
+}

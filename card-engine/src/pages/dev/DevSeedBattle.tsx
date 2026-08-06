@@ -1,0 +1,269 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getAllCards, saveCard } from '../../services/storage';
+import * as abilityRegistry from '../../services/abilities/registry';
+import { SEED_ABILITIES } from '../../data/abilities/seedAbilities';
+import type { Card } from '../../types/card';
+import type { ElementSelection } from '../../types/bible';
+
+/**
+ * Dev-only route. Seeds three test cards + their ability references so the
+ * battle route can be exercised without going through the paid Forge flow.
+ * Idempotent — re-runs on the same session don't duplicate cards.
+ *
+ * Routed at /dev/seed-battle. NOT for production.
+ */
+
+interface AbilitySlotSpec {
+  abilityId: string;
+  slot: 'core' | 'signature' | 'ultimate';
+}
+
+interface SeedSpec {
+  name: string;
+  title: string;
+  archetype: Card['archetype'];
+  atk: number;
+  def: number;
+  /** Bias tier drives realistic scarcity testing — matches this archetype's
+   *  real Mana bias from card-engine-power-system-spec.md, not an arbitrary
+   *  'Mid' for everyone (that's what was masking resource scarcity in the
+   *  balance sims — see balancePass.test.ts fixture fix in the same pass). */
+  mana: number;
+  manaBias: 'Very Low' | 'Low' | 'Mid' | 'Mid-High' | 'High' | 'Very High';
+  /** Full core + signature + ultimate loadout — a real hero's kit, not just
+   *  one ability, so playtesting reflects actual difficulty. */
+  abilities: AbilitySlotSpec[];
+  portrait: string;
+  lore: string;
+  /** Naturally-compatible per data/elements.ts for this archetype. Without
+   *  this, `resolveCurrentElement` returns undefined and every ability
+   *  performance falls back to the dark, near-invisible `UNELEMENTED_KIT` —
+   *  which is exactly what made these seed heroes look like they had no
+   *  combat visuals at all when the Ability Performance System first went
+   *  live in /battle: the wiring was fine, this fixture just had no element
+   *  for it to read. */
+  elementSelection: ElementSelection;
+}
+
+/**
+ * The three heroes borrow reference portraits from the C0 handoff so the
+ * visual QA can judge card-first composition. Each archetype maps to a
+ * different silhouette so combat sprites read distinctly.
+ *
+ * Mana values/bias are deliberately spread across the real per-archetype
+ * bias table (Barbarian Very Low, Lycanthrope Mid, Necromancer Very High)
+ * so a single playtest party covers scarce, moderate, and resource-fluid
+ * casters at once — a single "Mid" hero can't surface a scarcity bug the
+ * way an off-bias low-Mana hero can.
+ */
+const SEED_PARTY: SeedSpec[] = [
+  {
+    name: 'Gryndak',
+    title: 'Gryndak, the Half-Claimed',
+    archetype: 'Barbarian',
+    atk: 62, def: 55, mana: 30, manaBias: 'Very Low',
+    abilities: [
+      { abilityId: 'ability_thornmantle', slot: 'core' },
+      { abilityId: 'ability_oathbreakers_answer', slot: 'signature' },
+      { abilityId: 'ability_the_name_they_left_me', slot: 'ultimate' },
+    ],
+    portrait: '/assets/dev-portraits/Gryndak.jpg',
+    lore: 'Half his blood answered a whisper before the pact was sealed. He does not name what watches him.',
+    elementSelection: { element: 'Fire', bond: 'It is my weapon.', compatibility: 'naturally_compatible' },
+  },
+  {
+    name: 'Seojin',
+    title: 'Seojin, Lycanthrope of the Infinite',
+    archetype: 'Lycanthrope',
+    atk: 45, def: 68, mana: 58, manaBias: 'Mid',
+    abilities: [
+      { abilityId: 'ability_inherited_guard', slot: 'core' },
+      { abilityId: 'ability_bearing_witness', slot: 'signature' },
+      { abilityId: 'ability_the_name_they_left_me', slot: 'ultimate' },
+    ],
+    portrait: '/assets/dev-portraits/Seojin.jpg',
+    lore: 'Once, she ran only under one moon. The pack sings her name in three tongues now.',
+    elementSelection: { element: 'Moon', bond: 'It is part of who I am.', compatibility: 'naturally_compatible' },
+  },
+  {
+    name: 'Ashvara',
+    title: 'Ashvara, the Void-Synchronized',
+    archetype: 'Necromancer',
+    atk: 55, def: 45, mana: 82, manaBias: 'Very High',
+    abilities: [
+      { abilityId: 'ability_inherited_guard', slot: 'core' },
+      { abilityId: 'ability_bearing_witness', slot: 'signature' },
+      { abilityId: 'ability_the_name_they_left_me', slot: 'ultimate' },
+    ],
+    portrait: '/assets/dev-portraits/Ashvara.jpg',
+    lore: 'She keeps her prayers unfinished so the dead have somewhere to arrive.',
+    elementSelection: { element: 'Bone', bond: 'It is my inheritance.', compatibility: 'naturally_compatible' },
+  },
+];
+
+function slugId(name: string): string {
+  return 'test_' + name.toLowerCase().replace(/\s+/g, '_');
+}
+
+function ensureReferences(cardId: string, spec: SeedSpec) {
+  const existing = abilityRegistry.getReferencesForCard(cardId);
+  for (const abilitySpec of spec.abilities) {
+    if (existing.some((r) => r.abilityId === abilitySpec.abilityId)) continue;
+    const abilityDef = SEED_ABILITIES.find((s) => s.definition.id === abilitySpec.abilityId);
+    if (!abilityDef) continue;
+    abilityRegistry.saveReference({
+      cardId,
+      abilityId: abilitySpec.abilityId,
+      abilityVersionId: abilityDef.version.id,
+      slotType: abilitySpec.slot,
+      localTier: 'Forged',
+      displayOrder: 0,
+    });
+  }
+}
+
+function seedCards(): { seeded: number; existing: number } {
+  const existingCards = getAllCards();
+  let seeded = 0;
+  let existing = 0;
+  const now = new Date().toISOString();
+  for (const spec of SEED_PARTY) {
+    const cardId = slugId(spec.name);
+    const existingCard = existingCards.find((c) => c.cardId === cardId);
+    if (existingCard) {
+      // Card exists but its ability references may not — heal that here so
+      // the Picker's "battle-ready" filter never orphans a seeded card.
+      ensureReferences(cardId, spec);
+      // A card seeded before `elementSelection` was added here has no
+      // element, which sends every ability performance to the dark,
+      // near-invisible `UNELEMENTED_KIT` fallback — re-save to heal it too,
+      // rather than leaving a stale local card silently un-elemented forever.
+      if (!existingCard.elementSelection) {
+        saveCard({ ...existingCard, elementSelection: spec.elementSelection });
+      }
+      existing += 1;
+      continue;
+    }
+    const dominant =
+      spec.atk >= spec.def && spec.atk >= spec.mana
+        ? ('Atk' as const)
+        : spec.def >= spec.mana
+        ? ('Def' as const)
+        : ('Mana' as const);
+    const border =
+      dominant === 'Atk'
+        ? ('Dominance' as const)
+        : dominant === 'Def'
+        ? ('Steadiness' as const)
+        : ('Conscientiousness' as const);
+    saveCard({
+      cardId,
+      archetype: spec.archetype,
+      cardName: spec.name,
+      nameAndTitle: spec.title,
+      portraitAsset: spec.portrait,
+      stats: {
+        Atk: { value: spec.atk, bias: 'Mid', hardCap: 100 },
+        Def: { value: spec.def, bias: 'Mid', hardCap: 100 },
+        Mana: { value: spec.mana, bias: spec.manaBias, hardCap: 100 },
+      },
+      dominantStat: dominant,
+      border: { baseVariant: border, baseSource: '' },
+      lore: spec.lore,
+      elementSelection: spec.elementSelection,
+      whisperWords: [],
+      evolutionHistory: {},
+      createdAt: now,
+    });
+    ensureReferences(cardId, spec);
+    seeded += 1;
+  }
+  return { seeded, existing };
+}
+
+export function DevSeedBattle() {
+  const navigate = useNavigate();
+  const [status, setStatus] = useState<
+    | { kind: 'idle' }
+    | { kind: 'seeding' }
+    | { kind: 'ready'; seeded: number; existing: number }
+    | { kind: 'error'; message: string }
+  >({ kind: 'idle' });
+
+  useEffect(() => {
+    setStatus({ kind: 'seeding' });
+    try {
+      const result = seedCards();
+      setStatus({ kind: 'ready', ...result });
+    } catch (err) {
+      setStatus({ kind: 'error', message: err instanceof Error ? err.message : String(err) });
+    }
+  }, []);
+
+  return (
+    <div className="max-w-lg mx-auto mt-16 p-6 rounded border border-gold/40 bg-void/70 text-bone">
+      <h1 className="font-fantasy text-2xl text-gold mb-2">Dev — Seed Battle</h1>
+      <p className="text-sm text-bone/70 mb-4">
+        Injects three test cards (Gryndak the Barbarian, Seojin the Lycanthrope, Ashvara the
+        Necromancer) with a full core + signature + ultimate ability loadout each and
+        archetype-realistic Mana bias (Very Low / Mid / Very High), then drops you into the
+        Picker with a party ready to go. Runs the same wallet / combat / journal path as
+        production — the only shortcut is skipping the Forge.
+      </p>
+
+      {status.kind === 'seeding' && (
+        <div className="text-sm text-bone/60">Seeding party…</div>
+      )}
+
+      {status.kind === 'error' && (
+        <div className="p-3 rounded border border-crimson/50 bg-crimson/10 text-sm">
+          Failed to seed: {status.message}
+        </div>
+      )}
+
+      {status.kind === 'ready' && (
+        <div>
+          <div className="text-sm text-bone/80 mb-4">
+            {status.seeded > 0 && (
+              <div>
+                ✓ Seeded <span className="text-gold">{status.seeded}</span> new card
+                {status.seeded === 1 ? '' : 's'}.
+              </div>
+            )}
+            {status.existing > 0 && (
+              <div>
+                • <span className="text-gold">{status.existing}</span> card
+                {status.existing === 1 ? ' was' : 's were'} already present (idempotent).
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/battle')}
+              className="flex-1 py-2 rounded font-fantasy text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              style={{
+                background: 'linear-gradient(to bottom, #b8860b, #8a1c1c)',
+                color: '#faeaca',
+              }}
+            >
+              Open Picker →
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/collection')}
+              className="px-4 py-2 rounded text-sm border border-bone/30 text-bone/80 hover:border-bone/60"
+            >
+              View Collection
+            </button>
+          </div>
+          <p className="text-[10px] text-bone/40 mt-3">
+            Costs 50 Gold per battle attempt. Starting balance is 500 Gold.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

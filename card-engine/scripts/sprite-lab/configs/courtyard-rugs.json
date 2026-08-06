@@ -1,0 +1,34 @@
+{
+  "subject": "courtyard-rugs",
+  "label": "Courtyard V2 — a rug for each quadrant (DRAFT 1)",
+
+  "notes": [
+    "WHY RUGS: Raheem, 2026-08-04 — 'there will be a rug in each quadrant, and that'll be one of the things that helps people identify the quadrant'. They also do a quiet practical job: a rug covers the paving grid, and paving grid is what makes objects hard to align by eye.",
+    "EACH RUG CARRIES ITS QUADRANT'S IDENTITY. Not four variations of one rug — four rugs a player could tell apart from across the courtyard, by colour first and motif second, the way a shop awning reads before you can see the goods.",
+    "DRAWN FLAT, WARPED LATER. These are generated as if seen from DIRECTLY ABOVE — a true plan view, square to the frame. The courtyard floor is a raised three-quarter plane, so a flat rug dropped straight on will read as leaning. lib/lay_flat.py does the perspective solve afterwards. Generating them pre-tilted instead would bake one position into the art and make them unusable anywhere else.",
+    "NO ANGLES NEEDED, EVER. A rug lies on the floor; there is no face to turn. This is the same test applied to the crystal and the font — does this thing have a front? A rug does not, so one image is the whole asset.",
+    "Palette continuity with the shipped plate: honey-amber paving, pale weathered stone, teal-green metal, and the rose/azure/verdant magic light of the counter gems. Each rug leans on ONE of those so the four do not blur together.",
+    "Style anchor is the hero crop, per the standing ruling — never a crop of shipped furniture.",
+    "Four items in one call: 25 generations for four concepts, the same price as one.",
+    "No figures, so modesty rule M5.7 is not engaged. No real-world flags or heraldry in any weave."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "objects": [
+    {
+      "id": "rug-draft-1",
+      "note": "One rug per quadrant. Tower = the climb. Forge = heat. Collection = knowledge. Training = the sparring ring. Judged in the review harness on the actual plate before any of them is warped or placed.",
+      "params": {
+        "description": "four fantasy woven rugs seen from DIRECTLY ABOVE in flat plan view, square to the frame, lying flat on the ground, ornate woven borders and tasselled or fringed edges, worn pixel-art textile, black pixel outline, basic shading: 1). deep blue tower rug 2). ember red forge rug 3). teal and parchment collection rug 4). rust and sand training ring rug",
+        "view": "top-down",
+        "item_descriptions": [
+          "rectangular woven rug seen from directly above, deep midnight blue with pale gold thread, the border woven as a repeating climbing stair motif and a single gold summit star at its centre, fringed short ends, worn and slightly faded",
+          "rectangular woven rug seen from directly above, deep ember red and charcoal with warm orange highlights, a woven anvil-and-flame roundel at its centre, scorched frayed edges, heavy dark border",
+          "rectangular woven rug seen from directly above, deep teal and parchment cream with brass thread, the border woven as a repeating card-back lattice and a constellation of small stars across the field, neat tasselled ends",
+          "round woven rug seen from directly above, rust orange and sand with a heavy braided rim, concentric rings like a sparring circle worn pale through the middle where feet have scuffed it"
+        ]
+      }
+    }
+  ]
+}

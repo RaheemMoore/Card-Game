@@ -30,6 +30,18 @@ const DEFAULT_BOND = 'It is part of who I am.' as const;
 interface ElementPickerProps {
   archetype: ArchetypeName;
   onComplete: (selection: ElementSelection) => void;
+  /**
+   * Opt-in wider layout for the full-bleed stall, which has a whole screen to
+   * spend. Defaults to false so the web forge at /forge renders EXACTLY as it
+   * did — Raheem: "do not remove it until we completely approve this," and a
+   * silent layout change to the shipping ritual is a kind of removal.
+   *
+   * The narrow default caps at max-w-2xl with three columns, which on a
+   * full-bleed screen wasted half the width and pushed an archetype with more
+   * than three elements into a scroll. Raheem: "There should be no scroll. Just
+   * lay out each of the elements... don't shrink the images."
+   */
+  wide?: boolean;
 }
 
 interface ElementTileProps {
@@ -37,17 +49,19 @@ interface ElementTileProps {
   rarityLabel: string;
   rarityClass: string;
   onPick: (element: ElementName) => void;
+  /** Fixed basis in the wide flex layout, so tiles never stretch to fill. */
+  className?: string;
 }
 
-function ElementTile({ element, rarityLabel, rarityClass, onPick }: ElementTileProps) {
+function ElementTile({ element, rarityLabel, rarityClass, onPick, className = '' }: ElementTileProps) {
   const image = getElementImage(element);
   const { color, glow } = getElementVisual(element);
 
   return (
     <button
       onClick={() => onPick(element)}
-      className="group relative rounded-xl border-2 bg-obsidian/70 p-2 text-center transition-all
-        hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-gold/60"
+      className={`group relative rounded-xl border-2 bg-obsidian/70 p-2 text-center transition-all
+        hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-gold/60 ${className}`}
       style={{ borderColor: `${color}66` }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = color;
@@ -83,7 +97,7 @@ function ElementTile({ element, rarityLabel, rarityClass, onPick }: ElementTileP
   );
 }
 
-export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
+export function ElementPicker({ archetype, onComplete, wide = false }: ElementPickerProps) {
   const buckets = ELEMENT_COMPATIBILITY[archetype];
   const natural = buckets.naturally_compatible;
   // Rares are FULLY SELECTABLE during testing (Raheem 2026-07-24) — the "Rare"
@@ -96,7 +110,9 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6 min-h-0">
+    <div
+      className={`w-full mx-auto space-y-6 min-h-0 ${wide ? 'max-w-6xl' : 'max-w-2xl'}`}
+    >
       <header className="text-center space-y-2">
         <h2 className="font-fantasy text-2xl font-bold text-ivory">Your Power</h2>
         <p className="text-ash text-sm italic">
@@ -104,10 +120,23 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-0">
+      {/* WIDE USES FLEX-WRAP, NOT GRID. A grid left-aligns a partial row, so
+          five elements in a six-column grid left a hole on the right and the
+          set read as off-centre. Raheem: "could they be centered horizontally
+          and vertically?" Flex with `justify-center` centres the last row too,
+          which is the only layout that looks composed at every count from two
+          to six. Tiles take a fixed basis so they do not stretch to fill. */}
+      <div
+        className={
+          wide
+            ? 'flex flex-wrap justify-center gap-3 min-h-0'
+            : 'grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-0'
+        }
+      >
         {natural.map((element) => (
           <ElementTile
             key={element}
+            className={wide ? 'w-[172px] flex-none' : undefined}
             element={element}
             rarityLabel="Naturally Compatible"
             rarityClass="text-emerald-300/90"
@@ -118,6 +147,7 @@ export function ElementPicker({ archetype, onComplete }: ElementPickerProps) {
         {rare.map((element) => (
           <ElementTile
             key={element}
+            className={wide ? 'w-[172px] flex-none' : undefined}
             element={element}
             rarityLabel="Rare"
             rarityClass="text-fuchsia-300/90"

@@ -1,0 +1,29 @@
+{
+  "subject": "courtyard-side-walls",
+  "label": "Courtyard V2 — getting real side faces for the LEFT and RIGHT walls",
+
+  "notes": [
+    "WHY THIS EXISTS: every object generated so far faces the camera, which only works against the back wall. Measured off the plate, the left wall runs about 13 degrees off vertical and the right about 12, mirrored, splaying outward toward the viewer. An object dropped against a side wall reads as dropped there rather than built there.",
+    "ROTATING A FINISHED SPRITE IS NOT THE FIX AND WAS TESTED AND REJECTED. It aligns the footprint to the wall but cannot invent the face the object should be showing — a rotated weapon rack still presents its FRONT to the camera. Raheem's call: do it right from the beginning.",
+    "THE ANSWER IS /create-8-direction-object WITH `reference_image`, which the API documents as 'generates 8 rotations of this exact image'. So an object we already like can be turned into its other seven faces instead of being re-invented from a description — which is what went wrong twice on the forge angle.",
+    "THREE TRAPS, ALL 422s. (1) `view` here is 'low top-down' | 'high top-down' | 'side' — NOT the 'top-down' that /create-1-direction-object takes. (2) `size` is capped at 168 (1-direction allows 256) because the 8-rotation pipeline rejects anything larger. (3) `size` CANNOT BE SET AT ALL alongside `reference_image` — 'the image dimensions determine the output size'. Setting it is a hard 422, learned the expensive-looking but free way. The reference is 102x106, so that is the output size, which happens to sit right at plate scale.",
+    "`reference_image` is MUTUALLY EXCLUSIVE with `style_image`, so these specs carry no hero anchor. The reference IS the anchor, which is stronger — it is the actual object, not a stylistic cousin.",
+    "COST IS UNMEASURED for this endpoint. This config is deliberately a ONE-OBJECT PROBE so the price is discovered for a single item rather than a full batch. The measured number goes in PIXELLAB_PLAYBOOK.md.",
+    "IF IT WORKS, the payoff is bigger than one object: a successful 8-direction object returns an id usable as `style_object_id` on later calls, which anchors every subsequent object to a real 8-angle sibling rather than to a single hero crop. That is the cheapest route to a whole courtyard set that agrees at every angle.",
+    "'low top-down' is chosen to match the hero and the keepers, who were all generated at that view. View mismatch is the subtle killer — it reads as wrong without being nameable."
+  ],
+
+  "styleReference": "style-ref-hero.png",
+
+  "rotations": [
+    {
+      "id": "weapon-rack-8",
+      "referenceFile": "ref-weapon-rack.png",
+      "note": "PROBE. The weapon rack is the right test subject: it is strongly front-facing with clear depth (a frame, spears standing in it, a sword hung across), so if the side faces come back genuinely turned it will be obvious, and if the model just skews the same picture that will be equally obvious.",
+      "params": {
+        "description": "wooden weapon-return rack, honey-amber wood frame with dark iron slots holding two blunt practice spears and a wooden practice sword, black pixel outline, basic shading",
+        "view": "low top-down"
+      }
+    }
+  ]
+}

@@ -49,7 +49,7 @@ The architecture has five operating layers:
 | Area | Current truth |
 |---|---|
 | Studio control plane | Implemented under `.claude/`. Structural checks, routing fixtures, failure-prevention tests, and release health checks pass. |
-| Codex support | Checked-in adapters under `.agents/` and `.codex/`, including read-only specialist sandboxes and fail-closed human gates. |
+| Codex support | Removed 2026-08-05. The adapters under `.agents/` and `.codex/` were a second copy of the control plane, and they had drifted — 14 of 24 skills differed, and `AGENTS.md` was a find-and-replace fork that named a model which does not exist. `.claude/` is now the only place studio policy lives. |
 | Shared fullscreen shell | Implemented at `card-engine/src/pages/games/FullscreenGameShell.tsx`; combat uses it and has passed desktop, phone, Turn 1 → Turn 2, screenshot, and clean-console checks. |
 | Phaser observation bridge | Implemented as a development-only courtyard adapter. Direction, collision/occlusion, and reduced-motion scenarios all pass live with clean consoles and screenshots; production-bundle exclusion is separately verified. |
 | Minigame shipping | Retired by Raheem. Existing game code is not deleted, but the `ship-minigame` workflow is hidden and cannot be invoked. |

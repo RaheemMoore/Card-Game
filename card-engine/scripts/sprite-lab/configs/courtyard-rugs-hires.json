@@ -1,0 +1,77 @@
+{
+  "subject": "courtyard-rugs-hires",
+  "label": "Courtyard rugs \u2014 HIGH RESOLUTION (probe: the tower rug)",
+  "notes": [
+    "RAHEEM: 'I placed a blue rug and it has nowhere near the quality of the black rug... as soon as I expanded it, it's blurry. I need something I can resize to fit the actual quadrant.'",
+    "DIAGNOSED, NOT GUESSED. The v1 rugs were generated 88-110px wide and lay_flat.py then upscaled them 3.5x to fill a quadrant. The charcoal rug he likes is 326px of real painted data cut from the 1536px plate. No warp can invent detail that was never drawn.",
+    "ROOT CAUSE: /create-1-direction-object caps at 256px AND rejects `size` whenever `style_images` is supplied. Every rug in the v1 batch carried the hero style anchor, so its size was dictated by that 146px anchor.",
+    "THE FIX: /create-image-pixen allows up to 768 wide (max area 512x512, sides divisible by 4), on the same Pixen model that set the cast quality bar. At 512 the rug is scaled DOWN into place instead of up.",
+    "THIS IS A ONE-RUG PROBE. Pixen's per-image cost is unmeasured in this repo, so the tower rug \u2014 the exact one Raheem placed and disliked \u2014 is generated alone to price it and prove the quality before the other three are re-run.",
+    "no_background is requested, which also helps the cutting problem: PixelLab documents it as a request rather than a guarantee, so verify rather than assume.",
+    "TRAP: /create-image-pixen does NOT accept a shading field \u2014 passing it returns 422 'Extra inputs are not permitted'. Its allowed set is exactly: description, image_size, outline, detail, view, direction, no_background, background_removal_task, seed, enhance_prompt. Shading must be described in prose instead. Its view enum is also only side | low top-down | high top-down.",
+    "MEASURED COST: /create-image-pixen is 1 GENERATION per image, against 25 for a 4-item object call. For large flat art it is both higher resolution and an order of magnitude cheaper.",
+    "no_background: true did NOT produce transparency \u2014 the rug came back fully opaque on flat grey rgb(128,129,128). lib/cut_flat_background.py flood-fills it from the frame edge, which only removes background CONNECTED to the edge so enclosed greys inside the artwork survive."
+  ],
+  "images": [
+    {
+      "id": "rug-tower-hires",
+      "seed": 771330,
+      "params": {
+        "description": "a rectangular woven fantasy rug seen from DIRECTLY ABOVE in flat plan view, square to the frame, deep midnight blue field with pale gold thread, an ornate border woven as a repeating climbing-stair motif, a single gold summit star at its centre, short fringed ends, worn and slightly faded, detailed pixel art, single colour black outline, basic shading",
+        "image_size": {
+          "width": 448,
+          "height": 576
+        },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "high top-down",
+        "no_background": true
+      }
+    },
+    {
+      "id": "rug-forge-hires",
+      "seed": 771331,
+      "params": {
+        "description": "a rectangular woven fantasy rug seen from DIRECTLY ABOVE in flat plan view, square to the frame, deep ember red and charcoal field with warm orange highlights, a woven anvil-and-flame roundel at its centre, heavy dark border, scorched frayed edges, detailed pixel art, single colour black outline, simple flat shading",
+        "image_size": {
+          "width": 448,
+          "height": 576
+        },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "high top-down",
+        "no_background": true
+      }
+    },
+    {
+      "id": "rug-collection-hires",
+      "seed": 771332,
+      "params": {
+        "description": "a rectangular woven fantasy rug seen from DIRECTLY ABOVE in flat plan view, square to the frame, deep teal and parchment cream field with brass thread, the border woven as a repeating card-back lattice, a constellation of small stars scattered across the field, neat tasselled ends, detailed pixel art, single colour black outline, simple flat shading",
+        "image_size": {
+          "width": 448,
+          "height": 576
+        },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "high top-down",
+        "no_background": true
+      }
+    },
+    {
+      "id": "rug-training-hires",
+      "seed": 771333,
+      "params": {
+        "description": "a ROUND woven fantasy rug seen from DIRECTLY ABOVE in flat plan view, rust orange and sand, a heavy braided rim, concentric rings like a sparring circle, worn pale through the middle where feet have scuffed it, detailed pixel art, single colour black outline, simple flat shading",
+        "image_size": {
+          "width": 448,
+          "height": 576
+        },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "high top-down",
+        "no_background": true
+      }
+    }
+  ]
+}

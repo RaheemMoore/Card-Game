@@ -1,0 +1,30 @@
+{
+  "subject": "quadrant-ascent-v2",
+  "label": "The Ascent \u2014 the way up, four variants",
+  "notes": [
+    "V1 PROBLEM: the arch came back with its own pale rounded backing panel, so it read as a freestanding tower standing IN the courtyard rather than a way INTO the wall. It also came back neutral mid-grey against a plate whose stone is warm cream in sun and dark blue-grey in shadow.",
+    "SO EVERY VARIANT HERE IS CUT INTO A WALL, not a standalone structure, and every one names the plate's own stone colours.",
+    "THE STONE MUST MATCH THE PLATE, THE CRYSTALS MUST NOT. Measured plate: sunlit paving rgb(229,202,115) warm honey, shadowed wall stone rgb(82,85,96) dark blue-grey. The first attempt came back neutral mid-grey rgb(173,181,175), which matches neither and read as a sticker. So the prompt names the plate's stone colours explicitly \u2014 and matchPlate is left ON for the arch, because clamping to the plate palette would dull the very crystals that are supposed to explode.",
+    "NO BAKED GROUND. The first fissure arrived carrying its own square of pale paving, which cannot blend with the plate's honey paving. Raheem has offered to cut backing off in Figma, and that beats any auto-matte \u2014 but it is cheaper still to not generate it. Hence the explicit no-floor/no-paving/no-panel clause in every item.",
+    "The stair still vanishes into light \u2014 that is the hook Raheem approved and it survives every variant. The light stays COLD; the forge owns warm fire and a second orange glow would read as a second forge.",
+    "matchPlate is ON here. An archway is architecture and SHOULD recede into the castle it belongs to.",
+    "CORRECTION: an attempt to pass the plate as color_image here returned 422 \u2014 /create-1-direction-object has no such field. Only character endpoints take a colour reference. Scenery matches the plate through the prompt clause, the post-grade scripts, and Raheem cutting in Figma. See COURTYARD_PALETTE.md."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "arch-v2",
+      "note": "Four ways into the wall: a cut arch, a ruined breach, a portcullis gatehouse mouth, and a stair tower doorway. All warm cream stone, all with the stair fading into cold light.",
+      "params": {
+        "description": "a way up into a castle tower CUT INTO A STONE WALL, warm cream sunlit castle stone with honey trim and dark blue-grey shadowed stone, worn steps climbing up and fading into cold pale blue and white light, teal-green metal lanterns, black pixel outline, basic shading, no background panel, no floor tile, no square border, not a freestanding tower",
+        "view": "top-down",
+        "item_descriptions": [
+          "a tall arched opening CUT INTO a warm cream castle wall, honey stone voussoirs around the arch, worn steps climbing up through it and fading into cold pale blue light so the top cannot be seen, a small teal-green lantern bracketed on each side, no background panel, no freestanding structure",
+          "a ragged breach smashed through a warm cream castle wall, broken honey stone blocks tumbled at its edges, a rough stair climbing up through the gap into cold white-blue haze, roots and moss in the cracks, no background panel, no freestanding structure",
+          "a gatehouse mouth set into a warm cream castle wall with a raised iron portcullis above the opening, dark blue-grey shadowed stone inside, steps climbing up beyond the gate and fading into cold blue light, teal-green iron fittings, no background panel, no freestanding structure",
+          "a narrow stair-tower doorway set into a warm cream castle wall, honey stone door surround, a spiral stair visible climbing up inside and disappearing into cold pale light, a hanging teal-green crystal lantern above the door, no background panel, no freestanding structure"
+        ]
+      }
+    }
+  ]
+}

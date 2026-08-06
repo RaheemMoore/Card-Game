@@ -268,6 +268,17 @@ function extractErrorMessage(err: unknown): string {
 const DEV_ONLY_UNGATED_ROUTES = [
   '/dev/sprite-preview',
   '/dev/boss-readout',
+  // The pixel UI kit gallery renders four PNGs from `public/assets/ui/kit/`
+  // and reads nothing else — no cards, no wallet, no session. It is the only
+  // way to see whether a `border-image` slice is right, which a passing build
+  // cannot tell you, so gating it behind a login would put a review surface
+  // behind a wall for no protection.
+  '/dev/ui-kit',
+  '/dev/collection-stall',
+  '/dev/stall-shell',
+  '/dev/forge-stall',
+  '/dev/codex-stall',
+  '/dev/pause-menu',
   ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
 ];
 

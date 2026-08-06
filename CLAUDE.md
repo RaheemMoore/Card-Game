@@ -31,7 +31,7 @@ Requires a `.env` file in `card-engine/` with the client keys (`VITE_SUPABASE_UR
 - **Leonardo Phoenix** for portrait + emblem art via `/api/leonardo` (allowlisted sub-paths, Supabase-JWT gated)
 - **Leonardo Lucid Origin** for flat top-down environment plates (Phoenix pulls hard toward perspective matte painting and cannot hold a 2D game-map read). Offline via `card-engine/scripts/bg-harness`.
 - **Phaser 3** for the castle's 2D top-down scene, lazy-loaded via dynamic `import()` into its own async chunk so the ~1.2 MB engine never enters the main bundle.
-- **PixelLab** for character sprites — directional, animated, identity-consistent. The reproducible production harness remains `card-engine/scripts/sprite-lab`; the official PixelLab MCP and Pixelorama web editor support targeted generation/editing and manual correction. `PIXELLAB_API_KEY` is build-time/local only (never `VITE_`-prefixed or shipped to the browser). Workflows: [create-character-sprite](.claude/skills/create-character-sprite/SKILL.md), [place-character-in-scene](.claude/skills/place-character-in-scene/SKILL.md). Aseprite is optional/deferred until deterministic precision editing is a repeated measured need.
+- **PixelLab** for character sprites **and animated objects** — directional, animated, identity-consistent. **Objects animate too** (`/objects/{object_id}/animations`, `mode='v3'`): banners ripple, crystals pulse, pages flutter. A playbook claim that they could not was corrected 2026-08-04 — we use ~6 of 79 endpoints, so **read [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) §"What PixelLab can actually do" before concluding anything is impossible.** PixelLab animates what belongs to the *object*; Phaser layers the world's motion — sparkle, dust, bloom, player proximity — on top, for free. They are partners, not alternatives. The reproducible production harness remains `card-engine/scripts/sprite-lab`; the official PixelLab MCP and Pixelorama web editor support targeted generation/editing and manual correction. `PIXELLAB_API_KEY` is build-time/local only (never `VITE_`-prefixed or shipped to the browser). Workflows: [create-character-sprite](.claude/skills/create-character-sprite/SKILL.md), [place-character-in-scene](.claude/skills/place-character-in-scene/SKILL.md). Aseprite is optional/deferred until deterministic precision editing is a repeated measured need.
 
 ## Project Structure
 
@@ -94,7 +94,7 @@ Card Game/                          # Git root
 │           ├── icons/              # Stat icons (fist, castle-turret, star, etc.)
 │           ├── archetype-emblems/  # 10 approved 1:1 selection emblems (Lycanthrope pending)
 │           └── backgrounds/        # Fantasy landscape background
-├── Card Images/                    # Portrait sources + approved emblems (Archetype Emblems/Approved)
+├── Card Images/                    # Two hand-made source files: the ability-art bundle + emblem prompts
 ├── STUDIO_CHARTER.md               # Studio structure, roles, approval rules
 ├── WORKFLOW.md                     # How to work with this repo (day-to-day)
 ├── card-engine-power-system-spec.md         # Stats, bias tiers, rank derivation, rank-sum cap
@@ -184,12 +184,45 @@ All positions are percentage-based, derived from the Figma template (`J8RTVE4x69
 4. **Element + Bond** — Bible §Global Element Pillar. Elements bucketed per archetype (Naturally Compatible / Compatible Through Reinterpretation / Rare), Rare gated by narrative eligibility from Story Pillar answers. Ten approved bonds shown after element pick.
 5. **Forge** — Calls Claude API following Bible §Claude Generation Pipeline (14 steps): archetype chapter → answers → element+bond → classify tensions → Hidden Fate → visual summary → Leonardo prompt ≤1300 chars. Portrait via Leonardo. Reveals with fade-in.
 
-## Figma Design Reference
+## World authoring — Phaser Editor, not Figma (Raheem, 2026-08-05)
+
+**Phaser Editor is the world-authoring surface. Figma is no longer a primary editing tool.**
+Raheem places pieces, sets layering and draws colliders in the Editor; Claude owns the code
+beneath it. The decision was driven by the vision changing — a *dynamic* world where the wall
+cracks and trees part cannot be built from one painted plate with holes traced out of it.
+
+| Tool | Role |
+|---|---|
+| **Phaser Editor** | Raheem's surface — placement, layering, depth, colliders, animation preview. |
+| **PixelLab** | Every actor and kit piece. **Kits are the cheapest thing it makes** — a 56-piece wall kit is 20 generations, the same as one large object. |
+| **Leonardo** | Skies, distant backdrops, card portraits. Static things with no life. |
+| **Figma (free tier)** | Card frames only, in personal drafts. **Not an authoring surface.** |
+| **Pixelorama** | Hand trimming. Aseprite only if Pixelorama actually frustrates. |
+
+**Nothing was migrated** — `/castle` already ran Phaser 3.90. The bridge is one file:
+`public/asset-pack.json`, a native Phaser Asset Pack that is *also* what the Editor's Asset Pack
+Editor reads. See [HARNESS_INDEX.md](HARNESS_INDEX.md) §6. Never hand-edit it; run
+`npm run assets:pack`.
+
+**The angle is locked; the camera is not.** Every character is `low top-down` (*"face visible —
+what Pokémon does"*). Do not change it — it is paid for, and three-quarter is what lets a hero on
+a wall, an ogre below it, and a fireball between them all read. The **camera** (scale, framing,
+scrolling) is free to change at zero asset cost. Note the `view` enum **differs per endpoint**:
+character routes take `low top-down | high top-down | side`, object and tile routes take only
+`top-down | sidescroller`. On kit calls the angle is held by the **style reference image**, not
+the `view` parameter — a tower batch already came back part-isometric for want of this.
+
+### Figma Design Reference (card frames only)
 
 - **File key:** `J8RTVE4x69tAiVU0DGv5zq`
 - **Components page:** `1:2`
-- **Card type (Dominance):** `1:182` — use this as the positioning reference
+- **Card type (Dominance):** `1:182` — the positioning reference
 - **Icons section:** `1:72` — ATK uses HandFist (`1:94`), DEF uses CastleTurret (`1:120`)
+
+Card frames stay as they are. **PNG is what gives us liberties, not what limits them** —
+`scripts/sprite-lab/lib/recolor.py` produces orange/purple/verdigris variants for zero
+generations and zero Figma. Rainbow and crystal are *not* recolours (gradient and specular
+structure); those need generation or hand work.
 
 ## Subsystem Reference
 
@@ -239,6 +272,11 @@ This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER
 
 - `.claude/agents/` — read-only specialist directors: game-systems, lore/fantasy, minigame, UI/UX, technical architecture, **Phaser runtime**, art/prompt, environment art, and pixel sprites. Invoke only when the registry trigger matches an open decision; FAST work normally uses none. Their tool surface is enforced as Read/Grep/Glob only.
 - `.claude/skills/` — repeatable workflows, including design/ship/sync, art and PixelLab production, environment/boss/prop workflows, `studio-health`, `build-phaser-feature`, and `visual-playtest`. `balance-playtest` remains hidden/inactive; `ship-minigame` and the completed `extract-fullscreen-shell` migration are retired and hidden.
+- **Colour is a post-process — offer it, never re-roll for it.** Standing rule (Raheem, 2026-08-04): when an asset's only problem is hue, saturation or value, proactively offer a recolour via `scripts/sprite-lab/lib/recolor.py` — free, exact, and applied identically across every frame, which an AI inpaint cannot manage. Regenerate for composition, pose, silhouette or content; **never for colour alone.** Three regenerations were spent on colour before this was written down. Ramps are shared, so region-constrain the swap. See [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md).
+- **Characters are 2D chibi, always — copy `hero-chibi.json`'s style block verbatim.** Vary body type, age, sex and ancestry freely; never vary the art register. `/create-character-v3` has **no `proportions` field** so "chibi" written in prose does not hold — use `/create-character-with-4-directions` with `proportions: {type: preset, name: chibi}`, which is what made the hero actually in the game. `SHOPKEEPER_GUIDE.md`'s old "match the dwarf, not the hero" instruction is **reversed** as of 2026-08-04 and the dwarf is queued for regeneration.
+- **Always confirm the angle before animating.** Animation is per-direction, so a clip only exists on the faces you paid for — animating `south` for an object destined for the left wall (`south-east`) buys a loop nobody sees. Generate angles → Raheem picks and places → confirm that face → animate. An `animation_group_id` lets the same clip be extended to more directions later, charging only for the new ones, so starting with one costs nothing. ~2 generations per direction. See [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md).
+- **Present art as a sprite sheet.** Standing rule (Raheem, 2026-08-04): rows are the object or its animation, columns are frames, **one uniform cell throughout**, row label left, frames bottom-centred on a shared floor line, and the sheet lives beside the thing it belongs to. Animations extend it downward as further rows. It is how game developers actually read art, and it makes the available angles and clips legible at a glance. See [HARNESS_INDEX.md](HARNESS_INDEX.md) §Rule Zero (b).
+- **Never show work in chat — show it in a harness.** Standing rule (Raheem, 2026-08-04): *"Harness every time. We always use a harness. Make another harness if you need one."* A pasted screenshot is not a deliverable; a page he can open, scroll and come back to is. Use the harness that fits, build one if none does, register assets in it **before** showing them, and give him a real way in (an Artifact URL or a dev-server route, not a file path to hunt for). See [HARNESS_INDEX.md](HARNESS_INDEX.md) §Rule Zero.
 - **[HARNESS_INDEX.md](HARNESS_INDEX.md) — the catalogue of every reusable harness, readout, library script, review sheet and registration point.** Read it BEFORE any art, boss, arena, sprite or prop work, and **name the relevant tools to Raheem before starting** — the harnesses are how he and the team see what is happening, and a run that does not offer them is a miss. Every new harness or readout is added here in the same commit that builds it.
 - **Art playbooks** — [LEONARDO_PLAYBOOK.md](LEONARDO_PLAYBOOK.md) (portraits, environment plates) and [PIXELLAB_PLAYBOOK.md](PIXELLAB_PLAYBOOK.md) (character sprites). Both are running records of what actually worked and what it cost; append after every run. `card-engine/scripts/sprite-lab/test-validator.sh` guards the sprite quality gate against regression.
 - `.claude/settings.json` + `.claude/scripts/` — shareable permission, human-gate, secret-protection, and studio-lint enforcement.

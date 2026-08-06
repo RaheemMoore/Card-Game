@@ -10,9 +10,9 @@ const SLOT_LABEL: Record<AbilitySlotType, string> = {
 };
 
 /**
- * Shared select→preview→confirm body, used by both the desktop
- * AbilityCommandBar (rendered as a panel expanding above the clicked slot)
- * and the mobile MobileAbilityRow (rendered as a popover above the strip).
+ * Shared select→preview→confirm body, used by the ability strip on desktop
+ * (a panel expanding above the clicked slot) and by the mobile MobileAbilityRow
+ * (a popover above the strip).
  * Positioning is the parent's job — this component only owns the content
  * and the Confirm/Cancel affordance, so both surfaces stay in lockstep
  * instead of drifting into two separate confirm flows.

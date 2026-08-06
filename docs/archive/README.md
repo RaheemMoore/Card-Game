@@ -39,7 +39,7 @@ When a specialist asks "what's the source of truth for X" and I'm tempted to poi
 |---|---|
 | Everything | [CLAUDE.md](../../CLAUDE.md) |
 | Stat/rank system | [card-engine-power-system-spec.md](../../card-engine-power-system-spec.md) |
-| Modifier pools | [card-engine-modifier-pools.md](../../card-engine-modifier-pools.md) |
-| Art prompts | [card-engine-archetype-prompt-library.md](../../card-engine-archetype-prompt-library.md) |
+| Character generation | [Character_Generation_Bible_Canonical_v1.md](../../Character_Generation_Bible_Canonical_v1.md) |
+| Art prompts | [IMAGE_ENGINE_REFERENCE.md](../../IMAGE_ENGINE_REFERENCE.md) (generated) and [LEONARDO_PLAYBOOK.md](../../LEONARDO_PLAYBOOK.md) |
 | Economy | [card-engine-economy-currency-system-plan.md](../../card-engine-economy-currency-system-plan.md) |
 | Studio process | [STUDIO_CHARTER.md](../../STUDIO_CHARTER.md) |

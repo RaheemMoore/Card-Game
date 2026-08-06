@@ -539,8 +539,14 @@ async function cmdScene(subject) {
   const m = loadMan(subject);
   m.assets = m.assets ?? {};
 
-  const refPath = path.join(d, c.styleReference);
-  if (!fs.existsSync(refPath)) {
+  // Only the style-anchored routes need a reference. /create-image-pixen does
+  // not take one, so a config that is purely images must not be blocked by it.
+  const needsStyleRef = (c.tiles?.length || c.objects?.length || 0) > 0;
+  const refPath = c.styleReference ? path.join(d, c.styleReference) : null;
+  if (needsStyleRef && !refPath) {
+    throw new Error(`${subject}: tiles/objects need a styleReference`);
+  }
+  if (refPath && needsStyleRef && !fs.existsSync(refPath)) {
     throw new Error(
       `missing style reference ${refPath} — build it with lib/style_ref.py first`,
     );
@@ -550,11 +556,9 @@ async function cmdScene(subject) {
   // (tile_type/tile_size/tile_view are ignored when supplied) — so a character
   // crop would produce character-shaped "tiles". Tiles therefore opt out via
   // "styleAnchor": false and steer register through description + outline_mode.
-  const styleImage = {
-    type: 'base64',
-    base64: fs.readFileSync(refPath).toString('base64'),
-    format: 'png',
-  };
+  const styleImage = refPath && fs.existsSync(refPath)
+    ? { type: 'base64', base64: fs.readFileSync(refPath).toString('base64'), format: 'png' }
+    : null;
 
   const run = async (kind, spec, route) => {
     const key = `${kind}:${spec.id}`;
@@ -569,7 +573,43 @@ async function cmdScene(subject) {
     // endpoint here. Object output is therefore NOT reproducible; the config
     // records the intent, not a rebuildable result.
     if (spec.seed != null && route !== '/create-1-direction-object') body.seed = spec.seed;
-    if (spec.styleAnchor !== false) body.style_images = [styleImage];
+
+    // ROTATIONS: turn an object we ALREADY have into its other seven faces.
+    // `/create-8-direction-object` documents `reference_image` as "generates 8
+    // rotations of this exact image", which is the only way to get a genuine
+    // side face — rotating a finished sprite aligns its footprint to a wall but
+    // cannot invent the face it should be showing.
+    //
+    // `reference_image` is MUTUALLY EXCLUSIVE with `style_image`, so a spec that
+    // supplies one must not also carry the hero anchor. That is a hard API rule,
+    // not a preference, hence the explicit clear rather than relying on config.
+    // NO PLATE PALETTE ANCHOR IS POSSIBLE HERE — VERIFIED, NOT ASSUMED.
+    //
+    // `/create-1-direction-object` accepts only: description, size, view,
+    // style_images, item_descriptions. Passing `color_image` returns
+    // 422 "Extra inputs are not permitted". Only the CHARACTER endpoints take a
+    // colour reference, which is the opposite of what this project needs —
+    // characters are the one thing that must NOT be palette-matched, because
+    // the plate as a colour reference cost the chibi hero his face contrast.
+    //
+    // So scenery matches the courtyard by the other three layers instead:
+    // naming the plate's real colours in the prompt, the deterministic grades in
+    // lib/relight.py and lib/harmonize.py, and Raheem cutting baked ground off
+    // in Figma. See COURTYARD_PALETTE.md.
+
+    if (spec.referenceFile) {
+      const rp = path.join(d, spec.referenceFile);
+      if (!fs.existsSync(rp)) throw new Error(`missing reference image ${rp}`);
+      body.reference_image = {
+        type: 'base64',
+        base64: fs.readFileSync(rp).toString('base64'),
+        format: 'png',
+      };
+      delete body.style_image;
+      delete body.style_images;
+    } else if (spec.styleAnchor !== false && styleImage) {
+      body.style_images = [styleImage];
+    }
     const res = await api('POST', route, body);
 
     const jobId = res.job_id ?? res.background_job_id;
@@ -639,6 +679,130 @@ async function cmdScene(subject) {
 
   for (const t of c.tiles ?? []) await run('tiles', t, '/create-tiles-pro');
   for (const o of c.objects ?? []) await run('object', o, '/create-1-direction-object');
+  // NOTE the different `view` enum: 1-direction takes 'top-down'|'sidescroller',
+  // 8-direction takes 'low top-down'|'high top-down'|'side'. Passing the wrong
+  // one 422s. `size` is also capped at 168 here — the 8-rotation pipeline
+  // rejects anything larger, where 1-direction allows 256.
+  for (const o of c.rotations ?? []) await run('rot8', o, '/create-8-direction-object');
+
+  /**
+   * HIGH-RESOLUTION FLAT ART via /create-image-pixen.
+   *
+   * WHY THIS EXISTS: /create-1-direction-object caps at 256px AND refuses `size`
+   * whenever `style_images` is supplied — so anchored objects come back tiny.
+   * The first rug set was generated at 88px wide and then upscaled 3.5x by
+   * lay_flat.py to fill a quadrant, which is exactly why Raheem saw it go blurry
+   * the moment he expanded it. No warp can invent detail that was never drawn.
+   *
+   * `/create-image-pixen` allows up to 768px wide (max area 512x512, sides
+   * divisible by 4) on the same Pixen model that set the cast quality bar. A rug
+   * generated at 512 and placed at 400 is scaled DOWN, which pixel art tolerates,
+   * instead of up, which it does not.
+   *
+   * Use this for anything FLAT and LARGE — rugs, floor patches, banners. Small
+   * discrete props stay on the object route, which is cheaper per item.
+   */
+  for (const im of c.images ?? []) {
+    const key = `image:${im.id}`;
+    if (m.assets[key]?.files?.length) { console.log(`= ${key} exists`); continue; }
+    console.log(`> ${key} …`);
+    const body = { ...im.params };
+    if (im.seed != null) body.seed = im.seed;
+    const res = await api('POST', '/create-image-pixen', body);
+
+    const jobId = res.job_id ?? res.background_job_id;
+    let images = res.images ?? (res.image ? [res.image] : []);
+    let generations = res.usage?.generations ?? 0;
+    if (jobId) {
+      const jobs = await waitForJobs([jobId], key);
+      const job = jobs[jobId];
+      images = imagesFromJob(job);
+      if (!images.length && job?.last_response?.image) images = [job.last_response.image];
+      generations = job?.usage?.generations ?? generations;
+      fs.writeFileSync(path.join(d, `image-${im.id}-job.json`), JSON.stringify(job, null, 2));
+    }
+    if (!images.length) throw new Error(`${key}: no image returned — raw job saved`);
+
+    const files = [];
+    for (const [i, img] of images.entries()) {
+      const file = images.length > 1 ? `image-${im.id}-${i}.png` : `image-${im.id}.png`;
+      fs.writeFileSync(path.join(d, file), Buffer.from(img.base64, 'base64'));
+      files.push({ file, width: img.width, height: img.height });
+    }
+    m.assets[key] = { spec: im, files, generations };
+    saveMan(subject, m);
+    console.log(`  ${files.length} image(s) at ${files[0].width}x${files[0].height}, ${generations} generation(s)`);
+  }
+
+  /**
+   * OBJECT ANIMATION. `/objects/{id}/animations` animates an object we already
+   * have — banners ripple, crystals pulse, pages flutter. The claim that
+   * PixelLab objects cannot be animated was WRONG and was corrected 2026-08-04;
+   * see PIXELLAB_PLAYBOOK.md §"What PixelLab can actually do".
+   *
+   * Two ways to spend far more than you meant to:
+   *  - `mode: 'pro'` is 20-40 generations PER DIRECTION. Always leave it on v3.
+   *  - Omitting `directions` on an 8-direction object animates ALL EIGHT. The
+   *    game only ever shows south / south-east / south-west, so name them.
+   *    (For a 1-direction object the field must be omitted entirely — passing
+   *    it is a 400.)
+   */
+  for (const a of c.objectAnimations ?? []) {
+    const key = `anim:${a.id}`;
+    if (m.assets[key]?.files?.length) {
+      console.log(`= ${key} exists`);
+      continue;
+    }
+    console.log(`> ${key} …`);
+    const body = {
+      mode: a.mode ?? 'v3',
+      animation_description: a.description,
+      ...(a.frameCount ? { frame_count: a.frameCount } : {}),
+      ...(a.displayName ? { display_name: a.displayName } : {}),
+      ...(a.directions ? { directions: a.directions } : {}),
+      // Re-animating a direction that already has one is a 409 without this.
+      ...(a.replaceExisting ? { replace_existing: true } : {}),
+    };
+    const res = await api('POST', `/objects/${a.objectId}/animations`, body);
+    const jobIds = (res.submissions ?? [])
+      .map((s) => s.job_id ?? s.background_job_id ?? s.id)
+      .filter(Boolean);
+    if (!jobIds.length) throw new Error(`${key}: no jobs returned — ${JSON.stringify(res).slice(0, 400)}`);
+
+    const jobs = await waitForJobs(jobIds, key);
+    const generations = Object.values(jobs).reduce((n, j) => n + (j.usage?.generations ?? 0), 0);
+
+    // Frames live on the OBJECT once the jobs land, not on the job response.
+    const detail = await api('GET', `/objects/${a.objectId}`);
+    const group = (detail.animations ?? []).find(
+      (g) => g.animation_group_id === res.animation_group_id,
+    ) ?? (detail.animations ?? []).slice(-1)[0];
+    fs.writeFileSync(
+      path.join(d, `anim-${a.id}-detail.json`),
+      JSON.stringify({ post: res, group }, null, 2),
+    );
+
+    // Frames hang off each DIRECTION as `storage_urls.frames`, not off the job
+    // and not as `frame_urls`. Getting this wrong throws away a completed,
+    // paid-for animation — the same trap the rotation/tile paths already hit.
+    const files = [];
+    for (const dir of group?.directions ?? []) {
+      const urls = dir.storage_urls?.frames ?? dir.frame_urls ?? dir.frames ?? [];
+      for (const [i, url] of urls.entries()) {
+        if (!url) continue;
+        const file = `anim-${a.id}-${dir.direction ?? 'single'}-${String(i).padStart(2, '0')}.png`;
+        await download(typeof url === 'string' ? url : url.url, path.join(d, file));
+        files.push({ file, direction: dir.direction ?? 'single', frame: i });
+      }
+    }
+    if (!files.length) {
+      throw new Error(`${key}: jobs completed but no frame urls found — inspect anim-${a.id}-detail.json`);
+    }
+
+    m.assets[key] = { spec: a, files, generations, animationGroupId: res.animation_group_id };
+    saveMan(subject, m);
+    console.log(`  ${files.length} frame(s), ${generations} generation(s)`);
+  }
 
   const total = Object.values(m.assets).reduce((n, a) => n + (a.generations ?? 0), 0);
   m.totalGenerations = total;
@@ -783,30 +947,100 @@ function cmdShow(subject) {
   );
 }
 
+/**
+ * Promote chosen frames of a REVIEW object into their own completed objects.
+ *
+ * A multi-item `/create-1-direction-object` call returns ONE object holding
+ * several candidate frames, and a review object cannot be animated. Selecting a
+ * frame is what turns "one of four sketches" into an asset with its own
+ * object_id — which is the handle `/objects/{id}/animations` needs.
+ *
+ *   node sprite-lab.mjs promote <subject> <objectId> <index[,index...]> [tag]
+ */
+async function cmdPromote(subject, args) {
+  const [objectId, indexList, tag] = args;
+  if (!objectId || !indexList) {
+    throw new Error('usage: promote <subject> <objectId> <indices> [tag]');
+  }
+  const indices = indexList.split(',').map((n) => Number(n.trim()));
+  const body = { indices, ...(tag ? { common_tag: tag } : {}) };
+  const res = await api('POST', `/objects/${objectId}/select-frames`, body);
+
+  const m = loadMan(subject);
+  m.promoted = m.promoted ?? {};
+  m.promoted[`${objectId}:${indexList}`] = {
+    indices,
+    createdObjectIds: res.created_object_ids,
+    usage: res.usage ?? null,
+  };
+  saveMan(subject, m);
+
+  console.log(`promoted frame(s) ${indices.join(', ')} of ${objectId}`);
+  for (const id of res.created_object_ids ?? []) console.log(`  object_id ${id}`);
+  console.log(`  usage: ${JSON.stringify(res.usage ?? 'none reported')}`);
+}
+
 function cmdSheet(subject) {
   const c = cfg(subject);
   const d = outDir(subject);
   const m = loadMan(subject);
-  const files = (m.frames ?? []).filter((f) => fs.existsSync(path.join(d, f.file)));
-  const figs = files
+
+  // Character configs record `m.frames`; scene/object configs record `m.assets`
+  // keyed `kind:id` with a `files` array. The sheet used to read `frames` only,
+  // so EVERY object config rendered a blank page — the assets were on disk and
+  // paid for, and the review surface silently showed nothing. Raheem caught it.
+  const rows = [];
+  for (const f of m.frames ?? []) {
+    if (fs.existsSync(path.join(d, f.file))) rows.push({ file: f.file, cap: f.trail.join(' · ') });
+  }
+  for (const [key, a] of Object.entries(m.assets ?? {})) {
+    for (const entry of a.files ?? []) {
+      // Object assets record {file, item}; tiles record a bare filename string.
+      const file = typeof entry === 'string' ? entry : entry.file;
+      const item = typeof entry === 'string' ? '' : ` · ${entry.item}`;
+      if (file && fs.existsSync(path.join(d, file))) rows.push({ file, cap: `${key}${item}` });
+    }
+  }
+  // In-context composites (light/dark contrast, 9-slice at game scale) are
+  // written next to the pieces by lib/ui_kit_review.py. They are the review
+  // that actually decides chrome — a piece approved on a checkerboard is how
+  // you ship chrome that vanishes against the plate.
+  for (const file of fs.readdirSync(d)) {
+    if (/^review-.*\.png$/.test(file)) rows.unshift({ file, cap: `IN CONTEXT · ${file}`, wide: true });
+  }
+
+  const figs = rows
     .map((f) => {
       const b64 = fs.readFileSync(path.join(d, f.file)).toString('base64');
-      return `<figure><img src="data:image/png;base64,${b64}"/><figcaption>${f.trail.join(' · ')}</figcaption></figure>`;
+      return `<figure${f.wide ? ' class="wide"' : ''}><img src="data:image/png;base64,${b64}"/><figcaption>${f.cap}</figcaption></figure>`;
     })
     .join('');
+  const lede = c.identity?.description ?? c.label ?? '';
   const html = `<title>${c.label}</title>
 <style>
   body{background:#14131a;color:#ece9da;font:14px/1.6 system-ui,sans-serif;margin:0;padding:28px}
   h1{font-size:26px;margin:0 0 6px}
   .lede{color:#9a94a8;max-width:70ch;margin:0 0 24px}
-  .grid{display:flex;flex-wrap:wrap;gap:14px}
+  .grid{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
   figure{margin:0;width:150px}
+  figure.wide{width:100%}
   figure img{width:100%;image-rendering:pixelated;background:
     repeating-conic-gradient(#2a2833 0% 25%, #1d1b26 0% 50%) 50%/16px 16px;border-radius:8px}
   figcaption{color:#8d879b;font-size:11px;margin-top:6px;word-break:break-all}
+  figure.wide figcaption{color:#d6b45a;font-size:13px;letter-spacing:.06em}
+  .crit{background:#1c1a24;border-left:3px solid #d6b45a;padding:14px 18px;margin:0 0 24px;border-radius:0 6px 6px 0}
+  .crit h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#d6b45a;margin:0 0 8px;font-weight:600}
+  .crit li{color:#b7b0c4;margin-bottom:5px}
 </style>
 <h1>${c.label}</h1>
-<p class="lede">${c.identity.description}</p>
+<p class="lede">${lede}</p>
+${
+  c.review?.acceptance
+    ? `<div class="crit"><h2>Acceptance criteria</h2><ul>${c.review.acceptance
+        .map((x) => `<li>${x}</li>`)
+        .join('')}</ul></div>`
+    : ''
+}
 <div class="grid">${figs}</div>`;
   const out = path.join(d, `${subject}-sheet.html`);
   fs.writeFileSync(out, html);
@@ -815,10 +1049,11 @@ function cmdSheet(subject) {
 
 const [cmd, subject] = process.argv.slice(2);
 if (!cmd || !subject) {
-  console.log('usage: sprite-lab.mjs <gen|scene|recover|portrait|show|sheet> <subject>');
+  console.log('usage: sprite-lab.mjs <gen|scene|promote|recover|portrait|show|sheet> <subject> [args]');
   process.exit(1);
 }
 if (cmd === 'gen') await cmdGen(subject);
+else if (cmd === 'promote') await cmdPromote(subject, process.argv.slice(4));
 else if (cmd === 'scene') await cmdScene(subject);
 else if (cmd === 'recover') await cmdRecover(subject);
 else if (cmd === 'portrait') await cmdPortrait(subject);

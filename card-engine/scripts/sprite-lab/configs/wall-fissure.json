@@ -1,0 +1,30 @@
+{
+  "subject": "wall-fissure",
+  "label": "The Wellspring \u2014 VERTICAL crack climbing a side wall",
+  "notes": [
+    "RAHEEM'S REDIRECT, 2026-08-04: 'I don't love either of the fissures, and it was kinda hard to cut out. I think it would look cool if it looked like it cracked at the ground and went up the castle wall. Can we get a vertical crack that I can put up against the left or the right side of the castle? Not the north side.'",
+    "SO THIS IS A WALL FEATURE, NOT A FLOOR FEATURE. It starts at the paving and climbs the stone. That is a better idea than the floor version for a practical reason too: a floor crack has to sit inside the courtyard's perspective plane, while a wall crack sits on a near-flat vertical face and is far more forgiving to place.",
+    "GENERATED WITH NOTHING BEHIND IT. Raheem said the floor fissures were hard to cut out, and the reason was that they arrived carrying their own slab of paving. These are the crack and the crystals ONLY \u2014 no wall panel, no stone block, no background, no square border \u2014 so they overlay the castle's real wall and there is almost nothing to cut.",
+    "PLUMB VERTICAL IS SAFE HERE. The courtyard's side walls lean about 13 degrees on the left and 12 on the right, measured off the plate. Normally that would mean generating at an angle \u2014 but a crack is an IRREGULAR ORGANIC SHAPE with no straight parallel edges, so rotating it at placement does not read as distorted the way rotating a weapon rack does. Generate plumb, rotate to taste.",
+    "ELEMENT COLOURS, MEASURED from the game's own crystal art in public/assets/elements/: sanguine crimson rgb(140,22,43), light gold rgb(202,168,76), poison green rgb(119,163,94), water blue rgb(52,134,171), plasma indigo rgb(79,102,161), shadow magenta rgb(119,42,153). Each variant uses a different slice so four of them do not blur together.",
+    "THE WALL'S OWN COLOURS ARE NAMED \u2014 warm cream sunlit castle stone, dark blue-grey stone in shadow \u2014 because that is the layer of palette matching that actually works for objects. The v2 floor fissures proved it: naming the plate's stone turned their paving from neutral grey to warm honey.",
+    "M5.7 not engaged. No figures."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "wall-crack",
+      "note": "Four vertical treatments: a climbing vein, a blown-open breach, a seam pouring light, and a spreading web. All start at the ground and rise. Different colour families and different widths so a choice is a real choice.",
+      "params": {
+        "description": "a tall vertical crack splitting warm cream castle stone from the ground upward, brilliant magical crystals growing out along the split, glowing light pouring from inside the fissure, loose crystal shards and broken stone at the base, black pixel outline, basic shading, TRANSPARENT background, no wall panel, no stone slab behind it, no square border, nothing behind the crack",
+        "view": "top-down",
+        "item_descriptions": [
+          "a tall narrow jagged crack climbing straight up warm cream castle stone from the ground, crimson red and gold crystals sprouting out along its whole length at angles, warm light glowing from deep inside the split, a few loose shards fallen at its foot, transparent background, nothing behind it",
+          "a wide blown-open breach in warm cream castle stone running from the ground upward, big blue and indigo crystals bursting outward through the broken edge, broken blocks tilted around the opening, cold bright light spilling out, transparent background, nothing behind it",
+          "a long clean vertical seam split in warm cream castle stone from the ground up, a solid blade of brilliant white-gold light pouring out of the seam along its entire height, slender green and gold crystals lining both edges, transparent background, nothing behind it",
+          "a spreading web of cracks across warm cream castle stone rising from the ground, magenta and violet crystals pushing out through every fracture, dark blue-grey shadowed stone in the deepest cracks, violet glow bleeding along the fracture lines, transparent background, nothing behind it"
+        ]
+      }
+    }
+  ]
+}

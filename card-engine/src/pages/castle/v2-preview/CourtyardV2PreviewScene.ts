@@ -15,6 +15,7 @@ import {
   type HeroFacing,
 } from '../../../data/castle/heroSprite';
 import { createForgeVfx, type ForgeVfxController, type ForgeVfxSnapshot } from './forgeVfx';
+import { createCrystalVfx, type CrystalVfxController, type CrystalVfxSnapshot } from './crystalVfx';
 import { COURTYARD_V2_PREVIEW_EVENTS } from './events';
 import {
   createHeroFootsteps,
@@ -105,10 +106,12 @@ export interface CourtyardV2PreviewSnapshot {
   };
   footsteps: FootstepSnapshot;
   forge: ForgeVfxSnapshot;
+  crystals: CrystalVfxSnapshot;
 }
 
 export class CourtyardV2PreviewScene extends Phaser.Scene {
   private forgeVfx: ForgeVfxController | null = null;
+  private crystalVfx: CrystalVfxController | null = null;
   private footsteps: HeroFootstepsController | null = null;
   private player!: Phaser.GameObjects.Sprite & { body: Phaser.Physics.Arcade.Body };
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -161,6 +164,7 @@ export class CourtyardV2PreviewScene extends Phaser.Scene {
     this.scale.on('resize', fit, this);
 
     this.forgeVfx = createForgeVfx(this);
+    this.crystalVfx = createCrystalVfx(this);
     this.footsteps = createHeroFootsteps(this);
 
     this.textures.get(HERO_SHEET.key).setFilter(Phaser.Textures.FilterMode.NEAREST);
@@ -227,6 +231,8 @@ export class CourtyardV2PreviewScene extends Phaser.Scene {
       this.input.off('pointerdown');
       this.footsteps?.destroy();
       this.footsteps = null;
+      this.crystalVfx?.destroy();
+      this.crystalVfx = null;
       this.forgeVfx?.destroy();
       this.forgeVfx = null;
     });
@@ -292,6 +298,7 @@ export class CourtyardV2PreviewScene extends Phaser.Scene {
       this.walking = false;
     }
     this.footsteps?.setMotionOff(off);
+    this.crystalVfx?.setMotionOff(off);
     this.forgeVfx?.setMotionOff(off);
     this.publishSnapshot();
   }
@@ -391,6 +398,7 @@ export class CourtyardV2PreviewScene extends Phaser.Scene {
       this.player.y,
       direction,
     );
+    this.crystalVfx?.update(this.player.x, this.player.y);
 
     if (this.aisleTest.status === 'running') {
       if (this.player.x >= 1157) {
@@ -420,7 +428,7 @@ export class CourtyardV2PreviewScene extends Phaser.Scene {
   }
 
   private publishSnapshot() {
-    if (!this.forgeVfx || !this.footsteps || !this.player?.body) return;
+    if (!this.forgeVfx || !this.crystalVfx || !this.footsteps || !this.player?.body) return;
     const velocity = this.player.body.velocity;
     const insidePreviewBounds =
       this.player.x >= PREVIEW_WALK_BOUNDS.x &&
@@ -498,6 +506,7 @@ export class CourtyardV2PreviewScene extends Phaser.Scene {
       },
       footsteps: this.footsteps.getSnapshot(),
       forge: this.forgeVfx.getSnapshot(),
+      crystals: this.crystalVfx.getSnapshot(),
     };
     this.game.events.emit(`${COURTYARD_V2_PREVIEW_EVENTS.snapshot}:result`, snapshot);
   }

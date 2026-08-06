@@ -41,7 +41,7 @@ function cardWidth(viewportWidth: number): number {
   // Grown from clamp(96, 0.115, 168). The cards are the characters now — they
   // rise, tilt, crack and flip — and they were the SMALLEST element on screen
   // while three ability tiles were the largest. The ability bar gave up the
-  // width for this (see AbilityCommandBar).
+  // width for this.
   //
   // The CAP is held down deliberately. Card height is width × 470/326, and the
   // dock is now centred directly beneath a centre-anchored boss — at a 204px

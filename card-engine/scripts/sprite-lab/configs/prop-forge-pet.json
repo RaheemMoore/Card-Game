@@ -1,0 +1,59 @@
+{
+  "subject": "prop-forge-pet",
+  "label": "The Forge Pet \u2014 a griffin cub asleep on the counter",
+  "notes": [
+    "RAHEEM'S BRIEF, 2026-08-04: 'nothing too crazy to animate. Something cute. Griffin or something. Something magical that can sit on the table. We can get it to stand up and stretch, like a cat stretch.'",
+    "BUILT AS AN OBJECT, NOT A CHARACTER \u2014 this is the load-bearing decision. Quadruped CHARACTER animation is 0-for-3 in this repo: `eating` stalled server-side twice and `rest-idle` was abandoned in flight after fifteen minutes. Object animation, by contrast, worked first try for 2 generations on the lectern. A creature that sits on a counter needs no walk cycle, so nothing is lost by taking the reliable route.",
+    "WHY A GRIFFIN CUB AND NOT SOMETHING STRANGER: the last attempt reached for the exotic and the model struggled. A cub is unmistakably magical (feathers, beak, wings) while having a CAT'S BODY PLAN \u2014 and a cat body is what makes a stretch read. The motion has to be legible at ~70px, so the pose has to be one everyone already recognises.",
+    "DRAWN CURLED AND SETTLED, the resting pose of the loop. The stretch is generated from this as its animation, so the still is the anchor rather than one frame of four.",
+    "IT SITS ON THE COUNTER, so it gets NO ground footprint and NO collider of its own \u2014 the counter already has one. It is scenery with charm, not an obstacle.",
+    "SIZE: it must sit on the counter without dominating it. The counter is 214x110 on the plate, so the cub wants to land around 70px \u2014 roughly a third of the counter's width, the size of a real cat curled on a real workbench.",
+    "PLANNED ANIMATION once Raheem confirms: a stand-and-stretch loop \u2014 curled, lifts head, rises, arches into a long cat stretch, settles back. ~2 generations, single direction. Confirm the facing first, per the standing rule.",
+    "Style anchor is the hero crop. Modesty M5.7 is not engaged \u2014 no figures.",
+    "/create-1-direction-object rejects `seed`, so this is not reproducible. A bad result is a reroll with a changed description, not a re-roll of the same prompt."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "forge-pet",
+      "note": "Four takes on the same cub in one call \u2014 25 generations buys four attempts at the pose rather than one, and the pose is the whole risk.",
+      "params": {
+        "description": "a tiny cute magical griffin cub curled up asleep, seen from a low top-down angle, cat-sized, soft cream and warm tawny feathers on its head and folded wings with a fluffy honey-brown lion body and tail, small golden beak, oversized ears, black pixel outline, basic shading, no background",
+        "view": "top-down",
+        "item_descriptions": [
+          "tiny cute griffin cub curled up asleep in a tight circle with its tail wrapped around itself, small folded cream feathered wings on its back, tawny lion hindquarters, soft golden beak tucked into its chest, eyes closed",
+          "tiny cute griffin cub sitting upright and alert on its haunches like a cat, cream feathered head and chest, small folded wings, tawny lion body, tail curled around its front paws, golden beak, big round eyes",
+          "tiny cute griffin cub mid-stretch with its front legs stretched forward and its rump raised in a long cat stretch, cream feathered wings half open, tawny lion hindquarters, golden beak open in a small yawn",
+          "tiny cute griffin cub lying flat and relaxed on its side with legs loosely tucked, cream feathered wings folded against its back, tawny lion body, golden beak resting on its paws, content and sleepy"
+        ]
+      }
+    }
+  ],
+  "_objectIds": {
+    "curled-asleep": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "sitting-alert": "507a23ed-e5f5-45be-b88c-25dc28c11f6e",
+    "mid-stretch": "67769d74-ecfd-4ea7-8408-562fc5de2562",
+    "lying-relaxed": "02c629f9-9116-4f5e-9034-c7a46e441e16",
+    "_note": "Promoted out of review object a67b2e5c via POST /objects/{id}/select-frames. Promotion reported NO usage \u2014 it is free, and it is what turns a candidate frame into something animatable."
+  },
+  "objectAnimations": [
+    {
+      "id": "pet-sleep",
+      "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+      "displayName": "sleep",
+      "description": "the sleeping griffin cub breathes slowly and softly, its ribcage and folded wings rising and falling gently, tail tip twitching once, staying curled up and asleep the whole time",
+      "frameCount": 6,
+      "mode": "v3",
+      "note": "THE RESTING STATE. Raheem: 'the regular state should be sleep'. A cub that is perfectly still reads as an ornament, so the idle still breathes \u2014 this is what makes it read as a live creature the player has not disturbed yet. 1-direction object, so `directions` is deliberately OMITTED (passing it is a 400)."
+    },
+    {
+      "id": "pet-wake-stretch",
+      "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+      "displayName": "wake-stretch",
+      "description": "the curled sleeping griffin cub wakes, lifts its head, rises onto its paws and arches into a long cat stretch with its front legs pushed forward and its rump raised, wings spreading slightly, then settles back down curled up",
+      "frameCount": 12,
+      "mode": "v3",
+      "note": "THE EVENT. Raheem: 'standing up, stretching... like a cat stretch'. Triggered in Phaser when the player walks past, not on a timer. Starts and ends curled so it returns cleanly to the sleep idle. 12 frames because the arc is the whole point and 8 clips it."
+    }
+  ]
+}

@@ -108,6 +108,28 @@ export const STALLS: Stall[] = [
   },
 ];
 
+/**
+ * Stalls whose destination actually exists. The courtyard's doorway reads this
+ * to decide whether to offer "Enter" or say the door is not open yet, so adding
+ * an id here is the single step that graduates a stall from placeholder to real.
+ */
+export const BUILT_STALLS = new Set<string>(['collection']);
+
+/**
+ * WHICH KEEPER FRONTS WHICH DOOR — Raheem, 2026-08-04, while Courtyard V2 is
+ * still being built. Recorded here because this is where the wiring happens.
+ *
+ *   forge      -> the DWARF keeper        (sprite-lab/out/keeper-dwarf)
+ *   collection -> the ARCHIVIST, grey bangs, on the LEFT
+ *                                          (sprite-lab/out/keeper-archivist)
+ *   codex      -> UNDECIDED. "A book or a card stand or something. I'll let you
+ *                 know when it's ready to be connected."
+ *
+ * There is deliberately no `codex` id in STALLS yet — its menu is built and
+ * reachable from the pause menu, and its door waits on Raheem placing it.
+ * Do not invent positions on the V2 plate; he said "just be ready for now."
+ */
+
 /** Stalls a player can actually interact with — excludes reserved plinths. */
 export const DESTINATIONS = STALLS.filter((s) => !s.reserved);
 

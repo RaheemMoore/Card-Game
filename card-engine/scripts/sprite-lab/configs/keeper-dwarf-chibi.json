@@ -1,0 +1,42 @@
+{
+  "subject": "keeper-dwarf-chibi",
+  "label": "The Forge Dwarf (CHIBI) \u2014 regenerated in the game's actual register",
+  "notes": [
+    "REPLACES keeper-dwarf.json. The original was generated under SHOPKEEPER_GUIDE's old instruction that 'the quality bar is the dwarf, not the hero', which is the rule that produced a cast in two different art styles. Raheem, 2026-08-04: the dwarf 'is not even for the game, it's a completely different vibe'. That instruction is now reversed and every character matches hero-chibi.json.",
+    "RE-ROLL 2026-08-04. The first chibi attempt read Middle Eastern rather than Black \u2014 Raheem: 'we need him to be a black man, he looks Middle Eastern at the moment'. A single positive adjective ('warm dark brown skin') did not hold. The fix is to state the ancestry explicitly, say the complexion twice in different words, AND put every wrong reading in the avoid list. The beads and the split braided beard also failed to survive and are now called out with their gold rings. Same lesson as the modesty rule: a negative list that does not name the failure mode does not implement the requirement.",
+    "HIS IDENTITY CARRIES OVER UNCHANGED \u2014 only the art register moves. Dark-skinned Black dwarf, short thick dreads with beads, long beard split into two braids, fur-trimmed shoulders. That is who he already is to anyone who has met him, and changing a person because the art pipeline changed is exactly what Bible \u00a7Rank continuity exists to forbid.",
+    "THE ROUTE IS THE POINT: /create-character-with-4-directions, because it has a REAL `proportions` preset. /create-character-v3 has none, so 'chibi' there is prose and prose loses \u2014 that is precisely how the first apprentice came back a detailed adult.",
+    "STYLE BLOCK COPIED VERBATIM FROM hero-chibi.json. Same view, proportions, outline, shading, detail and size. Matching the numbers is what makes a cast look like one game.",
+    "SOUTH IS HIS FACING. He stands behind the forge counter facing out at the approaching player. A stationary keeper needs one direction; the original's eight rotations were seven views a vendor never shows.",
+    "SEED IS EXPLICIT \u2014 660418. The original dwarf's seed was never recorded and he can never be rebuilt, which is half the reason this regeneration is a fresh character rather than a re-roll. The archivist has the identical problem and is queued next.",
+    "MODESTY M5.7: covered neck to feet. Tunic, apron, fur shoulders, boots.",
+    "DO NOT ANIMATE UNTIL RAHEEM CONFIRMS THE STILL. Standing rule. His breathing idle is south-only when approved."
+  ],
+  "identity": {
+    "description": "A Black African dwarf smith with very dark brown skin, drawn as a big-headed chibi game character. Deep rich dark brown complexion, broad nose, friendly readable face. Short thick black dreadlocks with small gold beads threaded through them, and a long black beard split into two thick braids each bound with a gold ring. He wears a fur-trimmed leather shoulder mantle over a rust-brown tunic, a scorched work apron, dark trousers and heavy boots, fully covered from neck to feet. Very short and very broad, wider than he is tall, standing squarely.",
+    "avoid": "not light skin, not pale skin, not tan skin, not olive skin, not Middle Eastern, not white, no straight loose hair, no unbraided beard, no sword, no weapons, no shield, no armour, no wizard robe, no cape, no helmet, no bare chest, no bare arms, no background, no floor, not realistic proportions, not tall, not slender"
+  },
+  "style": {
+    "view": "low top-down",
+    "proportions": {
+      "type": "preset",
+      "name": "chibi"
+    },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": {
+      "width": 128,
+      "height": 128
+    }
+  },
+  "palette": {
+    "reference": null,
+    "note": "No colour reference, matching the hero. The courtyard plate as color_image dragged the hero toward dark stone and cost his face contrast."
+  },
+  "seed": 660591,
+  "directions": [
+    "south"
+  ],
+  "animations": []
+}

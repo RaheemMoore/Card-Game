@@ -89,17 +89,38 @@ async function uploadInitImage(absPath) {
   return u.id;
 }
 
-async function submit(prompt, { styleRefId, styleRefType, strength, width, height, negative, model, alchemy } = {}) {
+// Leonardo truncates an over-length prompt server-side rather than rejecting it,
+// which silently drops whatever sits at the END of the string — historically the
+// modesty and no-shadow bans. Fail locally instead, before the call is paid for.
+const PROMPT_MAX = 1500;
+const NEGATIVE_MAX = 1000;
+
+async function submit(prompt, { styleRefId, styleRefType, strength, width, height, negative, model, alchemy, tiling, initImageId, initStrength } = {}) {
+  const neg = negative || NEG;
+  if (prompt.length > PROMPT_MAX) throw new Error(`prompt is ${prompt.length} chars, max ${PROMPT_MAX}`);
+  if (neg.length > NEGATIVE_MAX) throw new Error(`negative_prompt is ${neg.length} chars, max ${NEGATIVE_MAX}`);
   const body = {
     modelId: MODELS[model] || PHOENIX,
     prompt,
-    negative_prompt: negative || NEG,
+    negative_prompt: neg,
     width: width || W,
     height: height || H,
     num_images: 1,
     alchemy: alchemy !== false,
     public: false,
   };
+  // Seamless-texture mode, for material swatches meant to be tiled in Phaser.
+  // Not every model honours it; see configs/courtyard-v2-floor.json for the
+  // record of what actually tiled.
+  if (tiling) body.tiling = true;
+  // Image-to-image: repaint ONE thing in an existing plate and leave the rest
+  // alone. init_strength is how strongly the result holds to the original, so
+  // HIGH keeps the castle, the angle and the lighting and only lets the prompt
+  // move the ground. Leonardo caps it at 0.9.
+  if (initImageId) {
+    body.init_image_id = initImageId;
+    body.init_strength = Math.min(initStrength ?? 0.6, 0.9);
+  }
   if (styleRefId)
     body.controlnets = [{ initImageId: styleRefId, initImageType: styleRefType || 'GENERATED', preprocessorId: STYLE_REF_PREPROC, strengthType: strength || 'Mid' }];
   const r = await fetch(`${BASE}/generations`, { method: 'POST', headers: HDRS, body: JSON.stringify(body) });
@@ -127,7 +148,10 @@ const manFile = (a) => path.join(outDir(a), 'manifest.json');
 const loadMan = (a) => { try { return JSON.parse(fs.readFileSync(manFile(a), 'utf8')); } catch { return { anchors: {}, states: {} }; } };
 const saveMan = (a, m) => fs.writeFileSync(manFile(a), JSON.stringify(m, null, 2));
 /** Per-config image size + negatives, falling back to the forge defaults. */
-const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy });
+const dims = (c) => ({ width: c.width, height: c.height, negative: c.negative, model: c.model, alchemy: c.alchemy, tiling: c.tiling });
+/** Image-to-image opts for a state, when the config carries an init image. */
+const initOpts = (c, m, s) =>
+  m.initImageUploadId ? { initImageId: m.initImageUploadId, initStrength: s.initStrength ?? c.initStrength } : {};
 const promptFor = (c, line) => [c.styleHeader, line].filter(Boolean).join(' ');
 
 async function cmdGen(arch, only) {
@@ -141,7 +165,17 @@ async function cmdGen(arch, only) {
     m.styleRefUploadId = await uploadInitImage(abs);
     saveMan(arch, m);
   }
-  for (const [fam, a] of Object.entries(c.anchors)) {
+  // An init image is the plate we are repainting INTO, uploaded once and cached.
+  if (c.initImageFile && !m.initImageUploadId) {
+    const abs = path.resolve(ROOT, c.initImageFile);
+    console.log('> uploading init image', path.basename(abs), '…');
+    m.initImageUploadId = await uploadInitImage(abs);
+    saveMan(arch, m);
+  }
+  // A config whose states are each an independent direction has no anchor to
+  // share (and with styleRef:false nothing would read one anyway), so "anchors"
+  // is optional rather than required.
+  for (const [fam, a] of Object.entries(c.anchors || {})) {
     if (m.anchors[fam]?.imageId) continue;
     console.log(`> anchor ${fam}…`);
     const res = await generate(promptFor(c, a.line), {
@@ -175,6 +209,10 @@ async function cmdGen(arch, only) {
       : null;
     const res = await generate(promptFor(c, s.line), {
       ...dims(c),
+      // A state may carry its own negative: when one state is banning what the
+      // others are keeping (paving, say), a shared negative cannot express it.
+      ...(s.negative ? { negative: s.negative } : {}),
+      ...initOpts(c, m, s),
       ...(refFromFile
         ? refFromFile
         : useRef

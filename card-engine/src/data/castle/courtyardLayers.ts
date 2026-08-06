@@ -1,11 +1,28 @@
 /**
  * Animatable layers cut out of the painted courtyard plate.
  *
- * The machine-readable twin of this file is
- * public/assets/castle/layers/layers.json, written by
- * scripts/sprite-lab/lib/slice_plate.py. Keep them in step, and re-run the
- * slicer if the plate is ever regenerated — these boxes are TRACED onto the
- * painting, not derived from it.
+ * public/assets/castle/layers/layers.json is written by
+ * scripts/sprite-lab/lib/slice_plate.py when the layers are cut.
+ *
+ * THESE TWO FILES ARE NOT TWINS, despite both carrying a "water box". They
+ * measure different things and are supposed to differ:
+ *
+ *   layers.json `waterBox`   the region CUT OUT of the plate. A production fact
+ *                            about the asset, owned by slice_plate.py.
+ *   WATER_LAYER.box (below)  where the surface sparkle may spawn. A visual
+ *                            tuning decision, owned by whoever made it look right.
+ *
+ * This header used to say "keep them in step", and they had drifted by up to
+ * 14px — which read as a bug and is not one. Forcing them equal would move the
+ * sparkle. The real invariant is CONTAINMENT: the spawn region must sit inside
+ * the water that was actually cut, or sparkles appear on dry stone. That is
+ * asserted in courtyardLayers.test.ts.
+ *
+ * Note the two use different notation: slice_plate.py's WATER_BOX is corners
+ * (x0, y0, x1, y1); everything here is x/y/width/height.
+ *
+ * Re-run the slicer if the plate is ever regenerated — these boxes are TRACED
+ * onto the painting, not derived from it.
  *
  * Why layers are cut from the plate rather than generated: a pixel prop next to
  * a painted prop reads as a bug. A layer taken out of the painting matches it
@@ -17,7 +34,10 @@
 export const WATER_LAYER = {
   key: 'courtyard-water',
   path: '/assets/castle/layers/water.png',
-  /** Where the water sits, for proximity and particle bounds. */
+  /**
+   * Sparkle spawn bounds — NOT the cut region (see the header). Tuned by eye
+   * against the painted basin, then inset further at the emitter in ambient.ts.
+   */
   box: { x: 658, y: 545, width: 216, height: 153 },
   /** Top of the central spout — droplets fall from here. */
   spout: { x: 768, y: 566 },
@@ -25,6 +45,22 @@ export const WATER_LAYER = {
   rippleCentre: { x: 768, y: 618 },
   /** Ripples stop growing here so they never crawl over the stone rim. */
   rippleMaxRadius: 88,
+} as const;
+
+/**
+ * The region surface sparkles actually spawn in — `WATER_LAYER.box` pulled in
+ * further so motes stay off the painted rim.
+ *
+ * Lives here rather than inline in the emitter so the numbers exist once and can
+ * be asserted against the cut water without re-typing them into a test. The
+ * asymmetric top inset is deliberate: the basin is seen at an angle, so its far
+ * edge occupies more of the box than its near edge.
+ */
+export const SPARKLE_SPAWN = {
+  x: WATER_LAYER.box.x + 22,
+  y: WATER_LAYER.box.y + 40,
+  width: WATER_LAYER.box.width - 44,
+  height: WATER_LAYER.box.height - 66,
 } as const;
 
 export interface GlowSpot {

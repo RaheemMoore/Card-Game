@@ -3,10 +3,13 @@ import { createPortal } from 'react-dom';
 import { usePhaserGame } from './usePhaserGame';
 import { CourtyardOverlay } from './CourtyardOverlay';
 import { DirectoryPanel, StallPlaceholder } from './CourtyardPanels';
+import { CollectionStall } from './stalls/CollectionStall';
+import { StallDoorway } from './stalls/StallDoorway';
 import { PauseMenu } from './PauseMenu';
 import { fetchMyRole, type SessionRole } from '../../services/persistence/supabaseClient';
 import { useMotionLevel } from '../../services/combat/presentation/useMotionLevel';
 import { COURTYARD_EVENTS } from './courtyard/events';
+import { BUILT_STALLS } from './courtyard/stalls';
 import type { Stall } from './courtyard/stalls';
 
 /**
@@ -29,6 +32,10 @@ export function CourtyardViewport() {
   const [motionLevel] = useMotionLevel();
 
   const [openStall, setOpenStall] = useState<Stall | null>(null);
+  // Approaching a stall opens its DOORWAY; entering is a second, deliberate
+  // step. You brush stalls constantly while crossing the courtyard, and a door
+  // that teleports you the instant you touch it makes walking feel dangerous.
+  const [enteredStall, setEnteredStall] = useState<Stall | null>(null);
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [paused, setPaused] = useState(false);
   // Only decides whether the pause menu lists Admin. Defaults to 'user', so a
@@ -38,6 +45,13 @@ export function CourtyardViewport() {
     void fetchMyRole().then(setRole);
   }, []);
   const isPrivileged = role === 'admin' || role === 'lore_director';
+  // Closing a destination returns you to the courtyard, not to its doorway —
+  // stepping back out of a room should not make you decline the door again.
+  const closeStall = () => {
+    setEnteredStall(null);
+    setOpenStall(null);
+  };
+
   const [viewport, setViewport] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -200,8 +214,31 @@ export function CourtyardViewport() {
           }}
         />
       )}
-      {openStall && (
-        <StallPlaceholder stall={openStall} onClose={() => setOpenStall(null)} />
+      {/* THE DOORWAY, then the destination. `BUILT_STALLS` is the seam where a
+          stall graduates from "not yet connected" to a real door — add an id
+          here the moment its menu exists, and the doorway starts offering
+          Enter instead of explaining that the door is shut. */}
+      {openStall && !enteredStall && (
+        <StallDoorway
+          stall={openStall}
+          unbuilt={!BUILT_STALLS.has(openStall.id)}
+          onEnter={() => setEnteredStall(openStall)}
+          onClose={() => setOpenStall(null)}
+        />
+      )}
+
+      {enteredStall?.id === 'collection' && <CollectionStall onClose={closeStall} />}
+
+      {/* NO CODEX DOOR EXISTS YET. The courtyard defines five ids — battles,
+          forge, collection, minigames and the reserved fountain — so the Codex
+          is currently reached only from the pause menu. Raheem wants it as "a
+          little book" you walk up to, which needs a stall placed on the V2
+          plate; the menu itself is already built and waiting. */}
+
+      {/* Anything entered that has no menu yet still lands on the old
+          placeholder rather than a blank screen. */}
+      {enteredStall && !BUILT_STALLS.has(enteredStall.id) && (
+        <StallPlaceholder stall={enteredStall} onClose={closeStall} />
       )}
     </div>
   );

@@ -1,0 +1,57 @@
+{
+  "subject": "ui-kit-pixel",
+  "label": "Pixel UI kit — core chrome probe (Collection stall)",
+
+  "notes": [
+    "PROBE, not production art. The single unproven question: can PixelLab hold a clean 9-SLICE FRAME? Its advertised UI surface is buttons, health bars and menu items — frames are never mentioned. If the ring comes back with baked-in corner illustration that cannot tile, the kit needs a different route and we learn that for 25 generations instead of for the price of a full six-piece order.",
+
+    "COST: one /create-1-direction-object call = 25 generations, flat, whether it returns 1 item or 4. So this asks for all four core pieces in ONE call. Asking for three would cost exactly the same and teach us less.",
+
+    "NOT REPRODUCIBLE. /create-1-direction-object REJECTS `seed` ('Extra inputs are not permitted'). Unlike every other endpoint in this harness, a re-roll cannot be pinned. If a result is good, KEEP IT — there is no re-running it to get the same thing back.",
+
+    "NO STYLE ANCHOR on attempt 1, deliberately. Objects CAN be style-anchored, but the output size then derives from the style image and `size` is rejected alongside it — and anchoring chrome to a CHARACTER risks importing character-ness (cloth folds, skin tones) into what should read as carved wood and metal. Attempt 1 therefore steers by description + outline_mode and pins an explicit size. FALLBACK if the four pieces do not read as one family: re-run anchored to a keeper-archivist crop and accept the size cap.",
+
+    "DENSITY TARGET is the keeper-archivist / prop-horse register: single black outline, medium detail. NOT hero-cardwright, which is flatter and outline-less. Those two already disagree with each other in-repo; the kit picks the Archivist side and the hero is expected to be regenerated to match eventually. Raheem flagged, 2026-08-04.",
+
+    "VIEW is 'side'. Every other object config here is top-down because it lies on a walkable plate. UI chrome faces the player, so it is the one asset class in this project that is NOT top-down. A top-down frame would render as a plank seen from above.",
+
+    "The four pieces map to the primitives in card-engine-ui-kit-contract.md §3: Panel, Button, Chip/tile, Bar. Scrim/Sheet is deliberately NOT in this batch — it is the heavy variant of the same ring and only worth ordering once the ring itself is proven."
+  ],
+
+  "styleReference": "style-ref-archivist.png",
+
+  "objects": [
+    {
+      "id": "core-v3",
+      "styleAnchor": false,
+      "round": "R3 — the in-between. Raheem 2026-08-04, seeing R1 and R2 side by side in the sheet: 'This one is a bit too gaudy, but the other one is a bit too plain… it's too much gold. If the wood could maybe be trimmed with gold, let's find the in between of both.' So: WOOD IS THE BODY, GOLD IS TRIM ONLY — slim banding and corner brackets, not a gold frame with wood in it. Magic drops to small accents. R1 and R2 are both archived; the final kit will mix pieces from all three rounds ('we'll use items from each one').\n\nSECOND FIX: R2 lost the button and the bar because the prompt led with 'enchanted' on an OBJECT endpoint, so the model built enchanted ITEMS — a potion bottle and a key. Every item description here now leads with the widget ('a blank rectangular game menu button') and treats magic as trailing decoration. The potion and key are KEPT as item art (inventory/ability icons later), just not as chrome.",
+      "supersededRound": "R2 — enchanted. R1 (plain carved wood + gold) is archived in out/ui-kit-pixel/round1-wood/. Raheem 2026-08-04: 'I like the style of it, but it's kinda boring. It's just wood… we want magical fantasy related things.' R1's 9-slice geometry PASSED and is not the thing being changed — hollow centre, 32px tileable corner slice. R2 keeps that structure and fixes two recorded defects: (a) value/saturation too dark against the bright plate, (b) the bar trough too spindly. NEW id so R1 files survive — /create-1-direction-object rejects `seed`, so nothing here is ever reproducible.",
+      "magicRationale": "The magic colour is NOT invented. The painted courtyard already carries pink-and-cyan magic crystal lampposts and a turquoise fountain. Arcane light in the chrome echoes the world it sits on, instead of introducing a third palette the plate never agreed to.",
+      "note": "Four pieces, one call, 25 generations. Frame first — it is the piece the whole kit depends on and the one most likely to fail. `styleAnchor: false` per the reasoning in notes; the reference is built and staged anyway because cmdScene requires the file to exist unconditionally, AND because the anchored fallback needs it ready.",
+      "params": {
+        "description": "fantasy game user interface widgets for a bright colourful 2D pixel art RPG menu, carved warm honey-brown wood as the main material with slim polished gold trim along the edges and small gold corner brackets, one small turquoise crystal accent on each piece, warm saturated colour, single colour black outline, medium detail, viewed straight on: 1). an empty menu frame border 2). a blank raised button 3). a small square slot 4). a horizontal meter bar",
+        "view": "sidescroller",
+        "size": 128,
+        "item_descriptions": [
+          "an empty rectangular game menu panel frame border, thick carved warm honey-brown wood with visible woodgrain, edged with a slim polished gold band and a small gold bracket at each of the four corners, one tiny turquoise crystal set in each corner bracket, and a completely hollow empty transparent centre, warm saturated colour, straight-on front view",
+          "a blank rectangular game menu button widget, raised carved warm honey-brown wood face with visible woodgrain, a slim polished gold rim around the edge, a soft highlight along the top, and one tiny turquoise crystal centred at the left end, absolutely no text and no lettering, warm saturated colour, straight-on front view",
+          "a small square empty game inventory slot widget, recessed mid-brown wooden interior with a slim gold beaded border and a tiny turquoise crystal at the top edge, empty with nothing inside it, warm saturated colour, straight-on front view",
+          "a thick chunky horizontal game meter bar widget, deep empty channel of dark wood with a slim polished gold rim and rounded gold caps at both ends, one tiny turquoise crystal on the left cap, substantial and heavy not thin, completely empty with no coloured fill, warm saturated colour, straight-on front view"
+        ]
+      }
+    }
+  ],
+
+  "avoid": "no text, no letters, no numbers, no words, no icons, no faces, no characters, no people, no bare skin, no cloth folds, no drop shadow on a background, no photorealism, no 3d render, no perspective, no angled view",
+
+  "review": {
+    "acceptance": [
+      "The frame's centre is genuinely EMPTY and transparent — a frame with a painted interior cannot become a 9-slice and fails the probe outright.",
+      "The frame's edges are regular enough to tile: the middle of each side must be repeatable without an obvious seam or a one-off illustrated detail.",
+      "All four pieces read as ONE family — same outline weight, same gold, same wood value range.",
+      "Density matches keeper-archivist, not hero-cardwright.",
+      "Legible at real game scale over the painted courtyard plate, not just at 128px on white."
+    ],
+    "sheetContext": "Review over public/assets/castle/courtyard.png at game scale. Chrome approved on a white background is how you ship chrome that vanishes against the plate."
+  }
+}

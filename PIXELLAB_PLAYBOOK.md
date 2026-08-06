@@ -77,6 +77,101 @@ This is the second time this bug has hit the repo; `src/data/combat/heroSpriteMa
 
 Passing a scene plate as `color_image` for "harmony" dragged a chibi character toward dark stone tones; his face and apron lost contrast and he read muddy against sunlit paving. **Readability of the character the player controls beats palette cohesion.** Prefer no colour reference for player characters; reserve it for props that should recede.
 
+## "Transparent background" can be drawn LITERALLY
+
+A wall-crack prompt asked for a *"solid blade of brilliant light"* on a *"transparent
+background"*. The model returned a **literal transparency checkerboard rendered as actual
+pixels** — the grey-and-white squares baked into the image — around a white bar.
+
+The failure mode: when the subject itself is mostly light and the rest of the frame is
+described as transparent, there is almost nothing left to draw, so the model draws the
+convention for "nothing". Its training data is full of checkerboards meaning transparency.
+
+**Say `no background, no floor, no panel, no square border` instead.** Those describe what must
+not be present; "transparent background" names a *thing* the model can render. The three
+sibling items in the same call that had solid subjects came back correctly, so this is
+specifically a risk when the subject has little substance of its own.
+
+Related and already recorded: PixelLab's `no_background` flag is a request, not a guarantee.
+
+
+## Colour is a post-process, and offering it is my job
+
+**Standing rule (Raheem, 2026-08-04):** *"Not just known that you can do it — make it known that
+I WANT you to do it. Let me know: 'hey, you want me to tweak the colour and make it match the
+palette, because this one was a little bit off?' Yes I do. I want you to do it."*
+
+**When an asset's only problem is hue, saturation or value, offer a recolour BEFORE anything
+else, unprompted.** Regenerate for composition, pose, silhouette or content. **No paid
+generation is ever spent on colour alone.**
+
+The tool is `card-engine/scripts/sprite-lab/lib/recolor.py`.
+
+### Why this is safe
+
+- Generated sprites carry a small fixed palette — the chibi archivist is **23 distinct colours**
+  in her whole sprite — so a colour *map* is exact, not approximate.
+- A map is deterministic: same input colour, same output, **every frame and every rotation,
+  forever**. An AI inpaint runs per image and drifts — the failure that already produced a
+  costume changing mid-walk-cycle at 43.7 palette units.
+- The correction ladder above already ranked "palette map" at rung one. The policy existed and
+  was not followed.
+
+### It cost three regenerations in one session before this was written down
+
+| What happened | Cost | What should have been said |
+|---|---|---|
+| Arch and fissure came back neutral grey against a warm honey plate | a proposed re-roll of both | *"Want me to remap the stone to the plate's cream and honey?"* |
+| The dwarf read Middle Eastern instead of Black | **8 generations** | *"Want me to try the skin ramp first?"* |
+| ~~The 8-face weapon rack's teal fittings came back brown~~ **THIS CLAIM WAS FALSE** | measured on 2026-08-04: the rack is **0.2% teal**, i.e. noise. It never had teal fittings; the **trophy rack** (11.7%) is the asset that does. The rotations preserved it faithfully. | Measure before recording a regression |
+
+The last is the worst: the defect was noticed, written down, and still not offered.
+
+### Measure the complaint before acting on it
+
+Three assets were listed as off-palette on 2026-08-04. **Two of the three claims did not survive
+measurement**, and both had been written down from eyeballing a small composite:
+
+- *"The weapon rack's teal fittings came back brown"* — the rack is **0.2% teal**. It never had
+  them. The trophy rack (11.7%) is the asset with teal.
+- *"The v2 reliquary cases flattened to a uniform cyan"* — only partly. Hue histograms show the
+  staff kept its green (150°) and the blade kept its gold (30°). **Only the bow** genuinely lost
+  its identity: cyan 180° at 2022px edged out gold 30° at 1801px.
+
+A recolour is cheap, but recolouring the wrong thing still damages an asset that was correct.
+**Run the hue histogram first.** It takes seconds and it is the difference between a fix and a
+new defect.
+
+### The caveat — ramps are shared
+
+Measured, not assumed: the archivist's five silver hair greys **also appear in her tunic, hem
+and shoes**. A global swap recolours her outfit, so use `--region x0,y0,x1,y1` (fractional
+against the sprite's own bounding box, so one call works across frames at different offsets).
+
+**A quick tell:** after a hue swap, if the distinct-colour count is **unchanged**, the map hit
+everything. If it **rises**, the region held and the original ramp survives outside it.
+
+## The art register is a PARAMETER, not an adjective
+
+**`/create-character-v3` has no `proportions` field.** You can write "chibi, big-headed" in the
+description all you like; the model will hand back a detailed adult. That is exactly what
+happened to the forge apprentice — semi-realistic, adult proportions, standing beside a game
+made of big-headed chibis, and Raheem caught it immediately.
+
+**`/create-character-with-4-directions` has a real `proportions` preset**, and that is the route
+that produced the hero who is actually in the game.
+
+| Need | Route | Why |
+|---|---|---|
+| A chibi character for this game | `/create-character-with-4-directions` + `proportions: {type: preset, name: chibi}` | The preset is enforced, not suggested |
+| Maximum fidelity, register not critical | `/create-character-v3` | 8 rotations, ~64 colours, but proportions are prose-only |
+
+**The standing rule (Raheem, 2026-08-04):** *"Only generate characters for this game based on
+the other characters in the game."* Copy `hero-chibi.json`'s style block verbatim — view,
+proportions, outline, shading, detail and size — and change only the identity. Vary body type,
+age, sex and ancestry as much as you like; **never vary the register.** A cast generated with
+different style blocks looks assembled from different games, which is precisely what happened.
+
 ## Parameters worth knowing
 
 - `proportions` presets: `default`, `chibi`, `cartoon`, `stylized`, `realistic_male`, `realistic_female`, `heroic`, or custom head/limb multipliers. At ~100px display height, big heads read and realistic figures turn to mush.
@@ -87,7 +182,179 @@ Passing a scene plate as `color_image` for "harmony" dragged a chibi character t
 
 ## Objects and scene layers
 
-**PixelLab objects cannot be animated.** `/create-1-direction-object` and `/create-8-direction-object` return **still images only**. `/animate-with-text` and `/characters/animations` are skeleton-driven and require a `character_id` — they animate a rigged humanoid, not a fountain. There is no object-animation endpoint.
+**~~PixelLab objects cannot be animated.~~ CORRECTED 2026-08-04 — THEY CAN.**
+`/objects/{object_id}/animations` ("Add an animation to an existing object") animates an object
+created by `/create-1-direction-object` or `/create-8-direction-object`. Both return an
+`object_id`; that id is the handle.
+
+- **`mode='v3'` is the default and the cheap one.** `mode='pro'` costs **20-40 generations per
+  direction** (160-320 for a full 8-direction set) — the API's own cost warning. Use v3.
+- **`frame_count`** is any even number 4-16 (default 8). v3 also stores the input reference
+  frame, so `frame_count=8` yields **9** stored frames.
+- **Do not pass `directions` for a 1-direction object** — it animates its single internal
+  direction and passing the field returns 400. For an 8-direction object, omitting `directions`
+  animates all eight, which is how you accidentally buy eight animations.
+- **Interpolation mode (v3 only):** pass `end_frame` (and optionally `custom_start_frame`) and
+  the model animates *between two poses you supply*. Requires exactly one direction.
+
+**Why this was wrong for so long:** the original finding was correct when written — the object
+endpoints themselves return stills, and the *character* animation routes need a `character_id`,
+so "objects cannot be animated" followed. PixelLab has since added a separate object-animation
+route, and nothing re-checked the spec. Raheem caught it. **Check `GET /openapi.json` against a
+claimed limitation before designing around it** — the whole "animate it in Phaser instead"
+decision rests on this, and the spec is one unauthenticated fetch away.
+
+Still true: `/animate-with-text` and `/characters/animations` are skeleton-driven and need a
+`character_id` — they animate a rigged humanoid, not a fountain. And faking motion with
+independent "frame 1/2/3" prompts remains the drift trap that cost 186 generations. The fix is
+the real endpoint, not prompt tricks.
+
+*(Superseded original: objects return still images only and there is no object-animation
+endpoint.)*
+
+---
+
+# What PixelLab can actually do
+
+**Read this before deciding something is impossible.** The API exposes **79 endpoints**; this
+project has been using about six. The "objects can't be animated" mistake happened because a
+true-at-the-time limitation was written down and then never re-checked. The spec is one
+unauthenticated fetch away:
+
+```bash
+curl -s -H "authorization: Bearer $PIXELLAB_API_KEY" https://api.pixellab.ai/v2/openapi.json
+```
+
+There is also `GET /v2/llms.txt` — LLM-friendly documentation, written for exactly this purpose.
+
+## ALWAYS CONFIRM THE ANGLE BEFORE ANIMATING
+
+**Standing rule (Raheem, 2026-08-04):** *"Always confirm the angle before animating anything so
+we make sure we're animating the right side."*
+
+Animation is **per-direction** — `/objects/{object_id}/animations` queues one job per direction,
+so a clip exists only on the faces you paid for. Animating `south` when the object is going
+against the left wall (`south-east`) buys a loop the player never sees.
+
+PixelLab's own documentation says the same thing, in the parameter description for
+`custom_start_frame`: *"For AI agents calling this endpoint: ASK the user which direction they
+want."*
+
+**The workflow:**
+1. Generate the angles.
+2. Raheem picks the face and places it.
+3. **Confirm that face**, then animate it.
+
+**Nothing is lost by animating one direction first.** The response carries an
+`animation_group_id`; passing it back later extends the *same* animation to more directions and
+charges only for the new ones. So "flutter" is a named clip that can grow — starting narrow
+costs nothing.
+
+**Measured cost:** ~2 generations per direction for `mode='v3'` (9 frames). All eight faces
+would be ~16, against **40** for a rotation pass. Animation is the cheap half — the reason to
+confirm the angle is correctness, not money.
+
+## PixelLab and Phaser are partners, not alternatives
+
+This is the mental model to keep. They do different jobs and the courtyard needs both.
+
+| | PixelLab makes | Phaser makes |
+|---|---|---|
+| **What kind of motion** | Motion that belongs to the **object itself** — a banner rippling, a crystal pulsing, pages turning, a flame guttering, a creature breathing | Motion that belongs to the **world** — sparkles, dust, drifting motes, glow bloom, proximity reactions, parallax, screen-space light |
+| **Cost** | Generations, per animation | **Free**, and re-tunable forever |
+| **Changeable later** | Only by regenerating | Instantly, by editing a number |
+| **Can it react to the player?** | No — it is a fixed loop | Yes — this is Phaser's whole advantage |
+
+**The rule:** if the motion is *intrinsic to the thing*, PixelLab animates it. If the motion is
+*atmosphere around the thing*, or has to **respond to the player**, Phaser does it. A magical
+card stand should have PixelLab-animated cards lifting and turning, **and** Phaser sparkles that
+brighten as the hero approaches. That is not redundancy — it is the two halves of "alive".
+
+`src/pages/castle/v2-preview/crystalVfx.ts` is the reference implementation of the Phaser half.
+
+## Capability map
+
+### Things that move
+
+| Job | Endpoint | Notes |
+|---|---|---|
+| **Animate an object** | `POST /objects/{object_id}/animations` | **The one we were missing.** `mode='v3'` (default, cheap). 4–16 frames. 1-direction objects: omit `directions`. |
+| Animate a character | `POST /characters/animations` | v3 + per-direction pinning is the only method that has produced a correct walk here |
+| Animate between two poses you supply | `POST /interpolation-v2`, or `end_frame` on the object route | **Interpolation mode.** You draw the start and end; the model fills the middle. Enormous for exact control |
+| Skeleton-driven animation | `POST /animate-with-skeleton` + `POST /estimate-skeleton` | Unexplored |
+| Edit an existing animation | `POST /edit-animation-v2` | Fix a clip without re-rolling it |
+
+### Things that make new art
+
+| Job | Endpoint | Why we should care |
+|---|---|---|
+| Object, one face | `POST /create-1-direction-object` | 4 objects per call at a ≤170px style ref |
+| Object, eight faces | `POST /create-8-direction-object` | `reference_image` re-shoots an existing object from all angles |
+| **Map object** | `POST /map-objects` | Purpose-built for game-map props with transparent background. **We have never used it** and it may beat the generic object route for scenery |
+| **Convert existing art to pixel art** | `POST /image-to-pixelart` | **Potentially huge.** Input up to 1280², output up to 320². Our Leonardo plates, card art and element crystals could be brought into the pixel register instead of redrawn |
+| **UI panels** | `POST /create-ui-asset`, `POST /generate-ui-v2` | Shape-controlled pixel UI panels. Directly relevant to the UI-kit work |
+| Tilesets | `POST /create-tileset`, `/create-tiles-pro` | Seamless lower/upper terrain sets |
+| Pixel fonts | `POST /generate-font-pro` | Unexplored |
+
+### Things that change art we already have — the cheap correction ladder
+
+**Prefer these over regenerating.** Regeneration risks identity drift; these do not.
+
+| Job | Endpoint |
+|---|---|
+| **New state of an object** (lit/unlit brazier, open/closed chest) | `POST /objects/{object_id}/states` — a text edit, grouped with the source |
+| **New state of a character**, applied consistently across all directions | `POST /create-character-state` |
+| Targeted inpaint | `POST /inpaint-v3` — mask or bounding box, text-described |
+| Swap a costume across animation frames | `POST /transfer-outfit-v2` |
+| Re-angle one image | `POST /rotate` |
+| Background removal / resize | `POST /remove-background`, `POST /resize` |
+
+### Review and housekeeping we are not using
+
+| Job | Endpoint |
+|---|---|
+| **Keep only the good frames** | `POST /objects/{object_id}/select-frames` — promote chosen frames of a review object |
+| Throw away a bad generation | `POST /objects/{object_id}/dismiss-review` |
+| List everything we own | `GET /objects`, `GET /characters` |
+| Export a character | `GET /characters/{character_id}/zip` |
+| Tag assets | `PATCH /objects/{id}/tags`, `PATCH /characters/{id}/tags` |
+
+### Talking portraits — nearly free
+
+| Job | Endpoint | Cost |
+|---|---|---|
+| Generate mouth positions (visemes) for a portrait | `POST /vocal-animation` | **Paid once per expression** |
+| Get the frame-by-frame mouth plan for a line of text | `POST /lip-sync` | **FREE and unlimited** |
+| Render a talking GIF | `POST /talking-gif` | **FREE** |
+
+`/lip-sync` returns `grid_url`, `row` and `viseme_order` — everything needed to blit the right
+mouth cell in Phaser. So **once a keeper has a portrait and one paid viseme set, every line of
+dialogue she ever speaks animates for free.** That is the cheapest characterisation available
+to this project and nothing in the game uses it yet.
+
+## What this changes about the courtyard
+
+Raheem's brief is that each quadrant should make you want to walk over and explore — sparkle,
+movement, things waving in the air, papers drifting off a stand. Nearly all of that is now
+buyable rather than faked:
+
+- Cards **actually lifting and turning** on a forging stand — object animation
+- A crystal **actually pulsing**, shards **actually orbiting** — object animation
+- Pages **actually fluttering** off a lectern — object animation
+- A banner **actually rippling** on a side wall — object animation
+- Sparkles, dust, bloom, and the reaction when the hero gets close — **Phaser, free**
+
+Design objects with their moving parts already separated and airborne. A piece drawn as one
+closed lump animates badly; a piece drawn with its cards already off the stand animates well,
+and Phaser can move those parts too if the generation disappoints.
+
+## Standing rule
+
+**Check the live spec before designing around a provider limitation.** This entry exists
+because two canonical documents asserted a limitation that had stopped being true, and it
+silently shaped a design decision. Cost of checking: one `curl`. Cost of not checking: the
+wrong architecture.
+
 
 Do **not** work around this by prompting "fountain frame 1/2/3" as separate generations. Independent prompts have no shared anchor, and `template` mode drifted **43.7 palette units** even *with* a `character_id` anchoring it. Guaranteed drift, and no validator currently catches it.
 
@@ -394,6 +661,66 @@ A well-posed still reads fine at 84px; the grazing pose carried the courtyard on
 own and nobody noticed until they were told to look.
 | pixel courtyard sample: ground tileset 20 + wall kit 20 + 4 props 25 | 65 | ❌ **Painting won** — see the verdict section above. Cheap answer to a months-long question |
 | hero-chibi v2: character + 4× v3 pinned walk (3 gen each) | ~25 | ✅ **Passed the gate first try** — drift 5.2–9.3, heights identical, baselines aligned, correct mirror, and verified facing correctly in game |
+| tower-quadrant: 4 wall-furniture objects, one call | 25 | ✅ Portcullis, muster board, trophy rack, weapon rack. Palette and outline weight match the shipped forge counter/bench closely — the hero-crop anchor held the register |
+| tower-quadrant: 2 yard fixtures, one call | 25 | ⚠️ **The call returned 4 objects, not the 2 requested.** Brazier and tally pillar came as asked; two unrequested extras (a stone winch, usable; a stone floor patch, not an object) filled the remaining slots of the 4-cap. The tally pillar came back **isometric** while every other object is elevation or three-quarter |
+
+| side-walls: 8 faces of the weapon rack via `/create-8-direction-object` + `reference_image` | 25 | ✅ **Genuinely turned faces, not skews.** `south-east` serves the left wall, `south-west` the right. Palette regressed — the teal-green fittings came back brown |
+
+### Objects CAN be re-shot from other angles — just not animated
+
+`/create-8-direction-object` accepts a **`reference_image`**, documented as
+*"generates 8 rotations of this exact image"*. So an object that already works can be turned
+into its other seven faces instead of re-invented from a description — which is what produced
+the wrong forge angle twice. This does **not** contradict the no-animation finding above:
+these are eight stills of one object, not motion.
+
+**Rotating a finished sprite in code is not a substitute and was tested.** It aligns the
+footprint to a diagonal wall but cannot invent the face the object should be showing — a
+rotated weapon rack still presents its front to the camera. Only convincing for thin flat
+things like boards and banners.
+
+| | Cost | Yield |
+|---|---|---|
+| `/create-1-direction-object` | 25 | **4 objects**, 1 face each |
+| `/create-8-direction-object` + `reference_image` | 25 | **1 object**, 8 faces |
+
+So a side-wall object is ~4× a back-wall object, but one run serves *both* side walls — no
+mirrored batches needed.
+
+**The response carries an `object_id`,** reusable as `style_object_id` on later calls. That
+anchors new objects to a real 8-angle sibling rather than to a single hero crop, which is the
+cheapest route to a set that agrees at every angle.
+
+**Three 422 traps, all distinct from the 1-direction endpoint:**
+1. `view` is `low top-down` | `high top-down` | `side` — **not** `top-down`.
+2. `size` caps at 168, where 1-direction allows 256.
+3. `size` **cannot be set at all** alongside `reference_image` — the reference's dimensions
+   determine output size.
+
+`reference_image` is also mutually exclusive with `style_image`, so a rotation spec must carry
+no hero anchor. `sprite-lab.mjs` clears it rather than trusting a config to remember.
+
+**Two object lessons from the tower batch:**
+
+1. **`item_descriptions` does not cap the object count — the style image does.** Asking for 2
+   items against a 146px reference still returns 4, because the cap comes from the reference's
+   size bucket (`<=85` → 8, `<=170` → 4, else 1). **Always request a full bucket.** Two calls
+   of 4+2 cost the same 50 generations as 4+4 would have, so the 2-item call wasted half its
+   slots on inventions nobody briefed.
+2. **Objects arrive untrimmed and fail the anchor check by construction.** All 8 came back on
+   a 146² canvas with the subject floating 5–21px above the bottom, which
+   `validate_object.py` correctly rejects ("the object will float when anchored on its
+   baseline"). Trimming to the alpha bounding box fixes every one and flips the gate to PASS.
+   This is a mandatory post-process, not a defect — do it before judging anything.
+
+**Style-anchor ruling (environment-art-director, 2026-08-04):** objects stay anchored to the
+**hero crop**, never to a crop of shipped furniture. `counter-depth.png` and `bench-depth.png`
+are small and dense with unique content (a gem cluster and a card; a folded item and thin
+legs), so any 85px crop lands on either a one-off feature or featureless wood — the Still
+Season failure in miniature, where a shipped asset's incidental detail rides into an unrelated
+brief. Re-extracting the hero at `<=85px` to unlock the 8-object bucket was also rejected: his
+source frames are 152px, so an 85px cap is a **56% downscale**, and 46% already shredded him.
+Pay the extra call instead of shredding the reference that defines the register.
 | **Still Season** (boss 2): create 1 + idle v1 4 + idle v2 4 + windup 6 + attack 6 + defeat 6 + hit 4 | **31** | ✅ **4 of 5 clips shipped.** Seated pose held across all 31 frames (bbox bottom y=208 throughout); packer reported zero clipped frames and one clean 155×170 shared box. idle v1 wasted 4 gens by asking a glow to animate and not naming the flowers. `hit` dropped — invented a crown and sparkles |
 
 **The comparison that matters:** `pro` cost **~186 generations** and produced an unusable sheet (drift 191, both sides facing the same way). `v3` with per-direction pinning cost **~25** and passed the gate on the first attempt. Cheaper *and* better — do not reach for `pro` again without a specific reason.
@@ -908,3 +1235,42 @@ of the set enjoys. Worth a look if the two ever appear in the same fight.
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Effects batch H (Sanguine) | shard + shatter | 2 | both kept, no rerolls |
+
+## UI chrome IS generatable — the 9-slice probe passed (20 generations)
+
+`configs/ui-kit-pixel.json`. Four core UI pieces (panel frame, button, slot, bar trough) in
+one `/create-1-direction-object` call. The open question was whether PixelLab can hold a
+**9-slice frame** — its advertised UI surface is buttons, health bars and menu items, and
+frames are never mentioned.
+
+**It can.** Measured on the returned frame:
+
+- **Centre came back genuinely hollow** — 0 opaque pixels out of 1849 in the centre third.
+  A frame with a painted interior cannot become a 9-slice; this one can.
+- **The edges tile.** Top-edge brightness from x=32→96 is flat (50–58), and the gold
+  ornaments sit at x≈16–24 and 104–112 — *inside* the corner regions. So a **32px corner
+  slice on a 128px source** captures the ornaments and leaves a stretchable middle. Verified
+  by actually 9-slicing it to 860×560 over the courtyard plate: no seams, corners intact.
+
+### Costs and API facts (correcting the table above)
+
+- `/create-1-direction-object` with 4 `item_descriptions` came back at **20 generations**,
+  not the 25 recorded from the courtyard run. Budget 20–25.
+- **Three free 422s taught the object endpoint's real schema** (validation precedes billing):
+  `size` is a **single integer**, not `{width,height}`; `view` accepts only **`top-down` or
+  `sidescroller`** (there is no `side`); `outline_mode` is **not permitted** here (it is a
+  tiles parameter) — steer outline through the description instead.
+- `cmdScene` requires `styleReference` to **exist on disk** even when every spec sets
+  `styleAnchor: false`. Stage the file regardless.
+
+### The real defect is value range, not geometry
+
+The pieces came back dark-brown-and-gold against a courtyard plate that is bright honey,
+turquoise and red. Technically correct, tonally from a grimmer game. Chrome must be judged
+**over the plate at game scale on both a light and a dark ground** — `review-contrast.png`
+in the out dir is that test, and it is what caught this. On the light plate the slot reads as
+a black hole and the bar trough nearly vanishes; the button is the strongest piece.
+
+**Next attempt should raise value and saturation to meet the plate**, and make the bar
+chunkier. Do not re-roll blind: `/create-1-direction-object` **rejects `seed`**, so nothing
+here is reproducible — keep anything good.

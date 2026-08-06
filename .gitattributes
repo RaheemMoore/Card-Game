@@ -4,7 +4,3 @@
 .claude/**/*.md text eol=lf
 .claude/**/*.json text eol=lf
 .claude/**/*.py text eol=lf
-.agents/**/*.md text eol=lf
-.codex/**/*.toml text eol=lf
-.codex/**/*.json text eol=lf
-AGENTS.md text eol=lf
