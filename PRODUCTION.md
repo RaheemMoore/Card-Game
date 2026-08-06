@@ -420,12 +420,30 @@ The hub exists; nothing behind it does.
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
 
-### Courtyard V2 replacement — 5 items
+### Courtyard V2 replacement — 7 items
 
 The forge quadrant is a verified development checkpoint, not permission to replace production.
 
+**BLOCKING, opened 2026-08-06 — the Halo Stone wall kit does not tile.** Laid six
+`castle-wall-straight-front-healthy` pieces at exactly their content width (122px, and the
+bounding-box tool confirms zero transparent padding) and every joint shows a wedge-shaped gap.
+Cause: each segment's top edge sits shifted right of its bottom edge, so at any horizontal line
+the stone spans less than the full 122px. The pieces appear to have been authored for a
+diagonal run, not a horizontal one. Raheem's reaction on seeing it: unsure he likes the angle at
+all — *"it's gonna look like the whole building might be slanted."* An overlap test was started
+and deliberately abandoned before it produced an answer. **Nothing should be built out of this
+kit until the projection is ruled on**, because the straight wall is the most-repeated asset in
+the castle and an error in it repeats fifty times. Options: accept and overlap, regenerate the 7
+wall pieces with the tower as style reference, or re-art-direct the whole kit.
+
+Scale was tested at the same time and is **not** the problem: at 2× the wall reads ~1.5× hero
+height and the gatewatch tower ~2.2×, which both look right. Scale is a placement multiplier and
+costs nothing to change.
+
 | What | Where |
 |---|---|
+| **Rule on the wall kit's projection before placing any castle piece** — see the blocking note above | `public/assets/kits/halo-stone-castle/structures/walls/` |
+| Rebuild the interior ground pattern (grass/dirt/stone) from a Leonardo reference using our own 32px Wang tilesets. The horizontal corridor is **interior-only** — there are no east or west gates | `CourtyardV2.scene` |
 | Finish collider and occluder traces for the remaining courtyard, including walls and fountain | `src/pages/castle/v2-preview/` + Figma Courtyard V2 file |
 | ~~Design~~ and build the top-left, bottom-left Archivist, and bottom-right quadrants — **all three are now designed** in `card-engine-courtyard-v2-quadrants.md`; the tower's six objects are generated and awaiting Raheem's pick | Figma Courtyard V2 file |
 | Decide the tower objects: keep, cut, or re-roll each of the seven `art-tower-*` layers now sitting in the plate frame | Figma Courtyard V2 file |
