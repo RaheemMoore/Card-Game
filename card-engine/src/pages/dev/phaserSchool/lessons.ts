@@ -49,7 +49,19 @@ export type Block =
       left: { title: string; points: string[] };
       right: { title: string; points: string[] };
     }
-  | { kind: 'table'; head: string[]; rows: string[][] };
+  | { kind: 'table'; head: string[]; rows: string[][] }
+  /**
+   * Interactive: drag the origin of a real sprite and watch it move against a
+   * ground line. Origin is the single most-explained-badly concept in 2D — it
+   * is spatial, so it gets a spatial widget instead of a paragraph.
+   */
+  | { kind: 'originLab'; src: string }
+  /**
+   * Interactive: the real 16-tile Wang sheet, sliced live via CSS background
+   * position, each tile labelled with its index and its four corner types.
+   * Reads the actual PNG, so it cannot drift from the art.
+   */
+  | { kind: 'wangLab'; src: string; a: string; b: string };
 
 export interface Section {
   id: string;
@@ -104,6 +116,35 @@ export const LESSONS: Lesson[] = [
         ],
       },
       {
+        id: 'how',
+        title: 'How we work — the 75 / 25 rule',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Claude builds about 75%. Raheem finishes the last 25%.',
+            text:
+              'Agreed 2026-08-06. I do the bulk of the work so you can watch what is happening, then hand you the final stretch with instructions so you actually get your hands on it. Learning by watching, then doing.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'I do the **setup and the repetitive bulk** — scene creation, pack wiring, flood-fills, seam math, bulk placement.',
+              'You do the **judgement work** — where the path bends, where the trees look right, the piece that needs nudging.',
+              'Every lesson\'s step list is already split this way. Purple `Claude`, green `You`.',
+              '**The escape hatch is always open.** If a handoff is too fiddly or you just want to keep moving, say "finish it" and I will. No lesson is worth stalling the build.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The point of the 25%',
+            text:
+              'Not ceremony. The better you can picture what the editor is doing, the better your instructions to me get — and vague instructions are the single biggest cost in this kind of work.',
+          },
+        ],
+      },
+      {
         id: 'panels',
         title: 'The four panels',
         blocks: [
@@ -151,16 +192,66 @@ export const LESSONS: Lesson[] = [
               },
               {
                 term: 'Origin',
-                plain:
-                  'The anchor point, 0–1 per axis. 0.5 / 1 = "centred, anchored at the feet" — what makes a tree stand instead of float.',
+                plain: 'The sprite\'s anchor point. Gets its own section below.',
                 where: 'Right-bottom panel (Inspector) → Transform',
               },
-              {
-                term: 'Wang tileset',
-                plain:
-                  'A tile sheet laid out so edges and corners join seamlessly. The "-wang-" in our filenames.',
-              },
             ],
+          },
+        ],
+      },
+      {
+        id: 'origin',
+        title: 'Origin, properly',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Origin answers one question: which point of the picture is "the object"?',
+            text:
+              'A sprite is a rectangle of pixels. Its x/y has to mean SOMETHING — but which pixel? Origin is how you answer that. It is not a position; it is the handle you hold the picture by.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Origin is **two numbers, each 0 to 1** — a fraction across the image, not pixels.',
+              '`originX = 0` is the left edge, `0.5` the middle, `1` the right edge.',
+              '`originY = 0` is the top edge, `0.5` the middle, `1` the bottom edge.',
+              'Change the origin and **the sprite moves on screen, but x/y never changes** — because you moved the handle, not the object.',
+            ],
+          },
+          {
+            kind: 'originLab',
+            src: '/assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-large.png',
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Why 0.5 / 1 is the answer for almost everything in a top-down game',
+            text:
+              'It puts the handle at the bottom-centre — where the trunk meets the ground. Then "where is this tree standing?" and "what is this tree\'s y?" become the same question. That is what makes depth sorting work: sort by y, and you are really sorting by where things touch the floor.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Origin 0.5 / 0.5 (default)',
+              points: [
+                'Handle at the centre of the picture',
+                'y = the tree\'s waist, roughly',
+                'Taller trees sink into the ground',
+                'Depth sorting goes wrong — a big tree and a small one at the same y do not touch the floor at the same place',
+                'Fine for: bullets, sparks, UI, anything with no feet',
+              ],
+            },
+            right: {
+              title: 'Origin 0.5 / 1 (what we use)',
+              points: [
+                'Handle at bottom-centre — the base',
+                'y = exactly where it meets the ground',
+                'Swap a small tree for a large one and it stays planted',
+                'Depth sorting is just `depth = y`',
+                'Use for: trees, walls, characters, props, anything standing',
+              ],
+            },
           },
         ],
       },
@@ -170,14 +261,26 @@ export const LESSONS: Lesson[] = [
         blocks: [
           {
             kind: 'try',
-            title: 'Prove the scene is just text',
+            title: 'Prove a scene is just text — works on an empty scene',
             steps: [
-              'In the left panel, click any `.scene` file once to select it.',
-              'Open the same file in a normal text editor (or ask me to print it).',
-              'Move an object in the Scene Editor, save, and look at the text again.',
+              'Ask me to place a single tree in the scene. **One object is enough** — an empty scene has nothing to show you, which is exactly what you hit.',
+              'Ask me to print the `.scene` file. Find the `"x"` and `"y"` numbers.',
+              'Drag the tree in the Scene Editor and save (Cmd+S).',
+              'Ask me to print it again — the same two numbers, changed.',
             ],
             proves:
-              'The editor is a friendly front-end for a JSON file. Once you believe that, nothing it does is mysterious — and you can always ask me to fix a scene by editing text.',
+              'The editor is a front-end for a JSON file. Dragging with a mouse and me editing text are the same operation. That is why you can always ask me to fix a scene you cannot fix by clicking.',
+          },
+          {
+            kind: 'try',
+            title: 'Feel the difference between origin and position',
+            steps: [
+              'In the widget above, set origin to `0.5 / 0.5` and note the x/y readout.',
+              'Now set it to `0.5 / 1`. Watch the tree jump up.',
+              'Look at the x/y readout again — **it did not change.**',
+            ],
+            proves:
+              'Origin and position are independent. The tree moved without moving. Once that clicks, "my sprite is in the wrong place and I did not move it" stops being mysterious.',
           },
         ],
       },
@@ -185,7 +288,8 @@ export const LESSONS: Lesson[] = [
     checkpoint: [
       'You can point at four panels and name them.',
       'You can say why an asset must be in an asset pack.',
-      'You know depth = draw order and origin = anchor point.',
+      'You can explain origin as "which pixel is the handle" and say why 0.5 / 1 is the top-down default.',
+      'You know depth = draw order.',
     ],
   },
 
@@ -261,20 +365,55 @@ export const LESSONS: Lesson[] = [
             kind: 'bullets',
             items: [
               'A **tile index** is just its position in the sheet, counting from 0.',
-              'The centre tiles are the plain fills. The edge and corner tiles are what blend.',
               'Same PNG, two readings: a *spritesheet* to the asset pack, a *tileset* to the tilemap.',
             ],
           },
+        ],
+      },
+      {
+        id: 'wang',
+        title: 'What "Wang" actually means',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A Wang tile is defined by its four CORNERS, not by its picture.',
+            text:
+              'Forget "edge tiles" and "corner tiles" as a list to memorise. There is one rule: each corner of a tile is either material A or material B. Four corners, two choices each = 2×2×2×2 = 16 combinations. That is why the sheet has exactly 16 tiles. Not 15, not 20. Sixteen, always.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Two tiles fit together **when their touching corners agree.** That is the whole system.',
+              'The tile\'s index is the four corners read as a binary number: **TL=8, TR=4, BL=2, BR=1**.',
+              'So index 0 = all dirt. Index 15 = all grass. Index 12 = both top corners grass.',
+              'You never have to memorise which tile is "the top-left corner piece" — you count corners.',
+            ],
+          },
+          {
+            kind: 'wangLab',
+            src: `${KIT}/ground/tilesets/castle-ground-grass-dirt-wang-32.png`,
+            a: 'dirt',
+            b: 'grass',
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Do we have one, or do we need to make one?',
+            text:
+              'We have one. This was verified, not assumed — I decoded all 16 tiles of the sheet above by sampling their corner pixels, and every combination appears exactly once, in correct binary order. It is a textbook 2-corner Wang set. Both our tilesets are.',
+          },
           {
             kind: 'try',
-            title: 'Read a tileset like the editor does',
+            title: 'Predict a tile before you look at it',
             steps: [
-              'Zoom the grass sheet above until you can see the 4×4 grid.',
-              'Point at the top-left tile — that is index 0.',
-              'Count across then down to find index 5. That is the tile you will flood-fill with.',
+              'Cover the labels in the widget above (or just look away from them).',
+              'Ask yourself: which tile has grass on the LEFT half only? Left half = TL + BL = 8 + 2 = **index 10**.',
+              'Now check tile 10. Grass on the left, dirt on the right.',
+              'One more: grass in the bottom-right corner only = BR = **index 1**.',
             ],
             proves:
-              'Tile indices are not arbitrary. Once you can read them off the sheet, you can tell me exactly which tile you want without describing it.',
+              'You can now name any tile in the sheet by arithmetic instead of by hunting. When I say "fill with 15 and edge with 10", you know exactly what the ground will look like before it renders.',
           },
         ],
       },

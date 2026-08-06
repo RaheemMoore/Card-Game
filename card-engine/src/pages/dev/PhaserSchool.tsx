@@ -59,6 +59,216 @@ const TONE = {
   warn: { bar: '#f5b544', bg: 'rgba(245,181,68,.08)', label: 'Watch out' },
 } as const;
 
+/**
+ * Origin is spatial, so it gets a spatial explanation. Shows a real kit tree at
+ * a FIXED x/y against a ground line, with the origin adjustable. The readout
+ * deliberately keeps x/y pinned while the sprite visibly jumps — that
+ * contradiction is the whole lesson and cannot be delivered by prose.
+ */
+function OriginLab({ src }: { src: string }) {
+  const [ox, setOx] = useState(0.5);
+  const [oy, setOy] = useState(1);
+  const W = 300;
+  const H = 210;
+  const ANCHOR = { x: 150, y: 150 }; // the object's fixed x/y in the little world
+  const IMG = { w: 128, h: 142 }; // castle-tree-broadleaf-large, real size
+
+  const preset = (x: number, y: number, label: string) => (
+    <button
+      key={label}
+      onClick={() => {
+        setOx(x);
+        setOy(y);
+      }}
+      style={{
+        ...S.originBtn,
+        ...(ox === x && oy === y ? S.originBtnOn : null),
+      }}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div style={S.lab}>
+      <div style={{ ...S.labStage, width: W, height: H }}>
+        {/* the ground line — the thing origin is measured against */}
+        <div style={{ ...S.ground, top: ANCHOR.y }} />
+        <span style={{ ...S.groundLabel, top: ANCHOR.y + 5 }}>ground</span>
+
+        {/* the sprite, positioned by the origin formula Phaser itself uses */}
+        <img
+          src={src}
+          alt="tree"
+          style={{
+            position: 'absolute',
+            width: IMG.w,
+            height: IMG.h,
+            left: ANCHOR.x - IMG.w * ox,
+            top: ANCHOR.y - IMG.h * oy,
+            transition: 'left .18s, top .18s',
+          }}
+        />
+        {/* bounding box, so you can see WHICH corner the handle sits on */}
+        <div
+          style={{
+            position: 'absolute',
+            width: IMG.w,
+            height: IMG.h,
+            left: ANCHOR.x - IMG.w * ox,
+            top: ANCHOR.y - IMG.h * oy,
+            border: '1px dashed rgba(124,112,255,.55)',
+            transition: 'left .18s, top .18s',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* the handle itself, which never moves — because x/y never changes */}
+        <div style={{ ...S.anchorDot, left: ANCHOR.x - 5, top: ANCHOR.y - 5 }} />
+      </div>
+
+      <div style={{ flex: 1, minWidth: 210 }}>
+        <p style={S.labHead}>Origin</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+          {preset(0.5, 1, '0.5 / 1  ·  feet')}
+          {preset(0.5, 0.5, '0.5 / 0.5  ·  centre')}
+          {preset(0, 0, '0 / 0  ·  top-left')}
+          {preset(1, 1, '1 / 1  ·  bottom-right')}
+        </div>
+
+        {(
+          [
+            ['originX', ox, setOx],
+            ['originY', oy, setOy],
+          ] as const
+        ).map(([label, val, set]) => (
+          <div key={label} style={{ marginBottom: 10 }}>
+            <div style={S.sliderRow}>
+              <span>{label}</span>
+              <code style={S.code}>{val.toFixed(2)}</code>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={val}
+              onChange={(e) => set(Number(e.target.value))}
+              style={{ width: '100%', accentColor: '#7c70ff' }}
+            />
+          </div>
+        ))}
+
+        <div style={S.readout}>
+          <span style={{ color: '#f5b544' }}>x = 150 · y = 150</span>
+          <span style={{ color: '#828097' }}> — unchanged, always</span>
+        </div>
+        <p style={S.labNote}>
+          The <span style={{ color: '#f5b544' }}>gold dot</span> is the object's x/y. It never
+          moves. Only the picture slides around it.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Slices the REAL 16-tile Wang sheet live via CSS background-position and
+ * labels each tile with its index and its four corner materials, derived from
+ * the index bits (TL=8, TR=4, BL=2, BR=1).
+ *
+ * The corner mapping was verified against the actual pixels of
+ * castle-ground-grass-dirt-wang-32.png — all 16 combinations present, in binary
+ * order — rather than assumed from the filename.
+ */
+function WangLab({ src, a, b }: { src: string; a: string; b: string }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const CELL = 76;
+  const corners = (i: number) => ({
+    tl: !!(i & 8),
+    tr: !!(i & 4),
+    bl: !!(i & 2),
+    br: !!(i & 1),
+  });
+
+  return (
+    <div>
+      <div style={S.wangGrid}>
+        {Array.from({ length: 16 }, (_, i) => {
+          const row = Math.floor(i / 4);
+          const col = i % 4;
+          const c = corners(i);
+          const on = hover === i;
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setHover(i)}
+              onMouseLeave={() => setHover(null)}
+              style={{ ...S.wangCell, borderColor: on ? '#7c70ff' : '#3f3e54' }}
+            >
+              <div
+                style={{
+                  width: CELL,
+                  height: CELL,
+                  imageRendering: 'pixelated',
+                  backgroundImage: `url(${src})`,
+                  backgroundSize: `${CELL * 4}px ${CELL * 4}px`,
+                  backgroundPosition: `-${col * CELL}px -${row * CELL}px`,
+                  position: 'relative',
+                }}
+              >
+                {/* corner dots: green = material B, brown = material A */}
+                {(
+                  [
+                    ['tl', 3, 3],
+                    ['tr', 3, undefined],
+                    ['bl', undefined, 3],
+                    ['br', undefined, undefined],
+                  ] as const
+                ).map(([k, top, left]) => (
+                  <span
+                    key={k}
+                    style={{
+                      position: 'absolute',
+                      width: 9,
+                      height: 9,
+                      borderRadius: '50%',
+                      border: '1.5px solid rgba(0,0,0,.55)',
+                      background: c[k] ? '#5fd97a' : '#9c6b3f',
+                      top: top ?? undefined,
+                      bottom: top === undefined ? 3 : undefined,
+                      left: left ?? undefined,
+                      right: left === undefined ? 3 : undefined,
+                    }}
+                  />
+                ))}
+              </div>
+              <div style={S.wangMeta}>
+                <strong style={{ color: on ? '#fff' : '#c9c3ff' }}>{i}</strong>
+                <span style={S.wangBits}>
+                  {[c.tl, c.tr, c.bl, c.br].map((g) => (g ? 'G' : 'D')).join('')}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={S.wangKey}>
+        <span>
+          <i style={{ ...S.keyDot, background: '#9c6b3f' }} /> D = {a} corner
+        </span>
+        <span>
+          <i style={{ ...S.keyDot, background: '#5fd97a' }} /> G = {b} corner
+        </span>
+        <span style={{ color: '#828097' }}>corners read TL · TR · BL · BR</span>
+      </div>
+      <p style={S.caption}>
+        The real sheet, sliced live. Index = TL×8 + TR×4 + BL×2 + BR×1. Tile 0 is all {a}; tile 15
+        is all {b}.
+      </p>
+    </div>
+  );
+}
+
 function BlockView({ block }: { block: Block }) {
   switch (block.kind) {
     case 'bullets':
@@ -204,6 +414,12 @@ function BlockView({ block }: { block: Block }) {
           ))}
         </div>
       );
+
+    case 'originLab':
+      return <OriginLab src={block.src} />;
+
+    case 'wangLab':
+      return <WangLab src={block.src} a={block.a} b={block.b} />;
 
     case 'table':
       return (
@@ -651,6 +867,114 @@ const S: Record<string, React.CSSProperties> = {
     borderBottom: '1px solid #4a4960',
   },
   td: { padding: '10px 12px', borderBottom: '1px solid #35344a', color: '#d6d4e8', lineHeight: 1.5 },
+
+  lab: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 22,
+    background: '#2a2939',
+    border: '1px solid #3f3e54',
+    borderRadius: 12,
+    padding: 18,
+  },
+  labStage: {
+    position: 'relative',
+    background: 'linear-gradient(#23222f,#1b1a26)',
+    border: '1px solid #3f3e54',
+    borderRadius: 10,
+    overflow: 'hidden',
+    flexShrink: 0,
+  },
+  ground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    background: 'repeating-linear-gradient(90deg,#5a5870 0 6px,transparent 6px 12px)',
+  },
+  groundLabel: { position: 'absolute', left: 6, fontSize: 10, color: '#6c6a80' },
+  anchorDot: {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    borderRadius: '50%',
+    background: '#f5b544',
+    boxShadow: '0 0 0 2px rgba(0,0,0,.5), 0 0 10px rgba(245,181,68,.7)',
+  },
+  labHead: {
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: '.12em',
+    textTransform: 'uppercase',
+    color: '#828097',
+    margin: '0 0 9px',
+  },
+  originBtn: {
+    background: 'rgba(255,255,255,.05)',
+    border: '1px solid #3f3e54',
+    color: '#b8b7c9',
+    borderRadius: 7,
+    padding: '6px 10px',
+    fontSize: 11.5,
+    cursor: 'pointer',
+  },
+  originBtnOn: { background: 'rgba(124,112,255,.2)', borderColor: '#7c70ff', color: '#fff' },
+  sliderRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: 12,
+    color: '#aaa9bd',
+    marginBottom: 4,
+  },
+  readout: {
+    background: 'rgba(245,181,68,.08)',
+    border: '1px solid rgba(245,181,68,.25)',
+    borderRadius: 7,
+    padding: '8px 11px',
+    fontSize: 12.5,
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+    marginTop: 4,
+  },
+  labNote: { fontSize: 12, color: '#9997ad', lineHeight: 1.55, margin: '9px 0 0' },
+
+  wangGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(78px,78px))', gap: 10 },
+  wangCell: {
+    border: '1px solid',
+    borderRadius: 8,
+    overflow: 'hidden',
+    background: '#1b1a26',
+    transition: 'border-color .15s',
+  },
+  wangMeta: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '4px 6px',
+    fontSize: 11,
+  },
+  wangBits: {
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+    fontSize: 9.5,
+    color: '#828097',
+    letterSpacing: '.06em',
+  },
+  wangKey: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 16,
+    fontSize: 12,
+    color: '#b8b7c9',
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  keyDot: {
+    display: 'inline-block',
+    width: 9,
+    height: 9,
+    borderRadius: '50%',
+    marginRight: 6,
+    border: '1.5px solid rgba(0,0,0,.5)',
+  },
 
   check: {
     display: 'flex',
