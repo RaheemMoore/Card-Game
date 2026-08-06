@@ -1,0 +1,15 @@
+Marks this folder as the game's web root for Phaser Editor.
+
+WHY IT EXISTS. Phaser Editor resolves the URLs inside an Asset Pack from the PROJECT
+root by default. Our packs live here and their URLs read "assets/castle/courtyard.png",
+because Vite serves this folder at "/" — so at runtime the browser resolves them
+against public/, not against card-engine/ and not against the repo root.
+
+Without this marker the Editor would look for "<project>/assets/castle/courtyard.png",
+find nothing, and show every asset as broken while the game itself worked fine.
+
+With it, the project folder can be opened anywhere above this point — the repo root is
+fine, so you can see the docs and the app together — and the paths still resolve the
+same way they do in the running game.
+
+The file is deliberately empty apart from this note. Its presence is the signal.
