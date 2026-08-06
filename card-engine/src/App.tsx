@@ -96,6 +96,9 @@ const PauseMenuPreview = DEV_ROUTES
 const M55Harness = DEV_ROUTES
   ? lazy(() => import('./pages/dev/M55Harness').then((m) => ({ default: m.M55Harness })))
   : null;
+const PhaserSchool = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/PhaserSchool').then((m) => ({ default: m.PhaserSchool })))
+  : null;
 
 /**
  * The V2 courtyard preview stays on `DEV` rather than the flag above: it pulls in
@@ -129,6 +132,21 @@ export default function App() {
     <PersistenceGate>
       <BrowserRouter>
         <Routes>
+          {/* Phaser School — the world-authoring syllabus. Outside PlayerShell
+              and the session gate for the same reason as the art tooling: it is
+              a studio surface with its own full-viewport chrome, reads no player
+              data, and is used with Phaser Editor open beside it. */}
+          {PhaserSchool && (
+            <Route
+              path="/dev/phaser-school"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <PhaserSchool />
+                </Suspense>
+              }
+            />
+          )}
+
           {/* The real login screen. Stays a route so the art can be checked
               directly; the session gate renders the same page when signed out. */}
           <Route path="/login" element={<Login />} />

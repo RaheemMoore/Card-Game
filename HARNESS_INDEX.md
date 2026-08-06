@@ -170,6 +170,7 @@ These are how a human decides. **Every one of them is offered, not requested.**
 | **Battle seed** | `/dev/seed-battle` | Jump straight into a fight |
 | **Courtyard sample** | `/dev/courtyard-sample` | Castle scene composition |
 | **Courtyard V2 forge preview** | `/dev/courtyard-v2-preview` | DEV-only walk-through of the pending V2 forge quadrant: Figma-derived colliders/occlusion, chibi movement, heel dust, forge atmosphere, named aisle checks, and reduced-motion behavior. It does not replace `/castle` and is excluded from production builds. |
+| **Phaser School** | `/dev/phaser-school` | How do I do this myself next time? The world-authoring syllabus — one lesson per build (Ground, Castle, Forest), each with a table of contents, a single "key idea", the real kit art shown inline, a who-does-what step list (Claude drives MCP, Raheem drives the mouse), `Try it` experiments that prove a claim rather than asserting it, and persisted checkpoints. Built 2026-08-06 because Phaser Editor knowledge was living in chat transcripts. **Lessons are data** in `src/pages/dev/phaserSchool/lessons.ts` — adding one never touches the renderer, which is what lets it grow. Images point at real files in `public/assets/`, so a lesson cannot drift from the art it describes without visibly breaking. |
 | **Validator regression** | `scripts/sprite-lab/test-validator.sh` | Does the quality gate still catch the known-bad fixtures? |
 
 **Known-good / known-bad fixtures** live at `sprite-lab/fixtures/` — the drifting

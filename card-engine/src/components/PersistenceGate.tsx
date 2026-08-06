@@ -279,6 +279,9 @@ const DEV_ONLY_UNGATED_ROUTES = [
   '/dev/forge-stall',
   '/dev/codex-stall',
   '/dev/pause-menu',
+  // Phaser School: a syllabus read beside Phaser Editor. Static lesson data and
+  // asset PNGs only, no player data.
+  '/dev/phaser-school',
   ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
 ];
 
