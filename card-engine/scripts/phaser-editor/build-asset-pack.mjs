@@ -152,20 +152,97 @@ function buildPack() {
   };
 }
 
+const PACK_META = {
+  app: 'Phaser Editor 2D - Asset Pack Editor',
+  contentType: 'Phaser v3 Asset Pack',
+  apiVersion: 2,
+  generated: 'scripts/phaser-editor/build-asset-pack.mjs — do not hand-edit',
+};
+
+/**
+ * One pack per AREA, rather than one pack for the whole game.
+ *
+ * This is Phaser Editor's own recommendation, and the reason is practical: the
+ * Editor's asset browser shows you a pack at a time, so a per-area pack means
+ * building the forest shows forest assets and nothing else. A single global pack
+ * turns into a scroll the moment the game has more than one place in it.
+ *
+ * Keys are namespaced `<area>-<layer>-<stem>` because Phaser texture keys share
+ * one global namespace — two areas each with a `tree-oak` would silently collide,
+ * and Phaser keeps the first, so the wrong art renders with no error anywhere.
+ */
+function buildAreaPacks() {
+  const areasDir = join(PUBLIC, 'assets/areas');
+  if (!existsSync(join(areasDir, 'areas.json'))) return [];
+
+  const registry = readJson(join(areasDir, 'areas.json'));
+  const layers = registry.layers.map((l) => l.id);
+  const out = [];
+
+  for (const area of registry.areas) {
+    const areaPath = join(areasDir, area.id);
+    if (!existsSync(areaPath)) continue;
+
+    const pack = { meta: { ...PACK_META, area: area.id, label: area.label } };
+    let count = 0;
+
+    for (const layer of layers) {
+      const layerPath = join(areaPath, layer);
+      if (!existsSync(layerPath)) continue;
+
+      const files = readdirSync(layerPath)
+        .filter((f) => f.endsWith('.png'))
+        .sort();
+      if (!files.length) continue;
+
+      pack[`${area.id}-${layer}`] = {
+        path: `assets/areas/${area.id}/${layer}/`,
+        files: files.map((f) => ({
+          type: 'image',
+          key: `${area.id}-${layer}-${f.replace(/\.png$/, '')}`,
+          url: f,
+        })),
+      };
+      count += files.length;
+    }
+
+    out.push({
+      path: join(areaPath, 'area.json'),
+      label: `areas/${area.id}/area.json`,
+      serialised: JSON.stringify(pack, null, 2) + '\n',
+      count,
+    });
+  }
+  return out;
+}
+
 const pack = buildPack();
 const serialised = JSON.stringify(pack, null, 2) + '\n';
+const areaPacks = buildAreaPacks();
 
 if (process.argv.includes('--check')) {
+  const stale = [];
   const current = existsSync(OUT) ? readFileSync(OUT, 'utf8') : '';
-  if (current !== serialised) {
-    console.error('asset-pack.json is stale. Run: node scripts/phaser-editor/build-asset-pack.mjs');
+  if (current !== serialised) stale.push('asset-pack.json');
+  for (const a of areaPacks) {
+    const now = existsSync(a.path) ? readFileSync(a.path, 'utf8') : '';
+    if (now !== a.serialised) stale.push(a.label);
+  }
+  if (stale.length) {
+    console.error('Stale, run `npm run assets:pack`:');
+    for (const s of stale) console.error('  - ' + s);
     process.exit(1);
   }
-  console.log('asset-pack.json is up to date.');
+  console.log(`Packs are up to date (asset-pack.json + ${areaPacks.length} area pack(s)).`);
 } else {
   writeFileSync(OUT, serialised);
   const count = Object.values(pack)
     .filter((s) => Array.isArray(s?.files))
     .reduce((n, s) => n + s.files.length, 0);
-  console.log(`Wrote ${OUT} — ${count} assets across 3 sections.`);
+  console.log(`Wrote public/asset-pack.json — ${count} castle assets across 3 sections.`);
+
+  for (const a of areaPacks) {
+    writeFileSync(a.path, a.serialised);
+    console.log(`Wrote ${a.label} — ${a.count} asset(s).`);
+  }
 }

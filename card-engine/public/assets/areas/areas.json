@@ -1,0 +1,19 @@
+{
+  "_note": "The registry of game areas. An area folder is only valid if it is declared here — lint-assets.mjs rejects anything else. That is deliberate: a stray mkdir is how a structure grows sideways. Read _AREAS.md before editing.",
+
+  "layers": [
+    { "id": "ground", "what": "What you stand on — tiles, floor, paths" },
+    { "id": "props", "what": "What stands on it — trees, rocks, walls, fences" },
+    { "id": "actors", "what": "What moves — creatures, NPCs" },
+    { "id": "fx", "what": "What plays over it — dust, sparks, weather" }
+  ],
+
+  "areas": [
+    {
+      "id": "forest",
+      "label": "The forest outside the castle",
+      "status": "building",
+      "note": "First area built from PixelLab kits rather than a painted plate. Where the ogre arrives."
+    }
+  ]
+}

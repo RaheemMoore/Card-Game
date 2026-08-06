@@ -35,8 +35,9 @@ has to be exercised on a preview deploy rather than on your machine.
 | `npm run dev` | Dev server on :5173 |
 | `npm run build` | Type-check and build. **Use this, not `tsc --noEmit`** — that skips `noUnusedLocals` and lets deploys break |
 | `npm run test` | The full suite |
-| `npm run assets:pack` | Regenerate `public/asset-pack.json` after adding or changing castle art |
-| `npm run assets:pack:check` | Fail if the committed pack is stale |
+| `npm run assets:pack` | Regenerate the asset packs after adding or changing art |
+| `npm run assets:pack:check` | Fail if a committed pack is stale |
+| `npm run assets:lint` | Check the area/layer structure and asset naming |
 
 ---
 
@@ -47,6 +48,9 @@ Card Game/                  ← you are here (git root, docs and pipelines)
 ├── card-engine/            THE APP. Almost all code is here.
 │   ├── src/                React + Phaser source
 │   ├── public/assets/      Art the game loads at runtime, by string path
+│   │   └── areas/          NEW WORLD ART GOES HERE — one folder per place,
+│   │                       split into ground / props / actors / fx.
+│   │                       Read areas/_AREAS.md before adding anything.
 │   ├── scripts/            Art generation harnesses and build tooling
 │   └── api/                Server-side functions that hold the provider keys
 ├── studio-wiki/            A separate small site. Not the game.

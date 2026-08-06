@@ -247,6 +247,38 @@ The most common way work is "done" but invisible is a missed registration.
 | Hero sprite | `src/data/combat/heroSpriteManifest.ts` |
 | Castle prop | Phaser scene under `src/pages/castle/courtyard/` |
 | **Any castle texture** | **`public/asset-pack.json` — never by hand. Run `npm run assets:pack`.** |
+| **Any NEW area's art** | **Drop it in `public/assets/areas/<area>/<layer>/`, then `npm run assets:pack`. See §Areas below.** |
+
+### Areas — where new world art goes
+
+Everything built from here on lives under `public/assets/areas/<area>/`, split into four
+layers bottom-to-top: **`ground`** (what you stand on), **`props`** (what stands on it),
+**`actors`** (what moves), **`fx`** (what plays over it). Each area gets its own generated
+`area.json` — a Phaser asset pack that is also what Phaser Editor's Asset Pack Editor opens,
+so building the forest shows forest assets and nothing else. That per-area split is Phaser
+Editor's own documented recommendation, not a local invention.
+
+- **Add an asset:** drop the PNG in the right layer → `npm run assets:pack` → done.
+- **Add an area:** declare it in `areas/areas.json` first. An undeclared folder is rejected.
+- **Naming:** `<kind>-<subject>[-<variant>].png`, lowercase and hyphens.
+  States belong in the name (`wall-stone-cracked.png`); **verdicts never do** — no `candidate`,
+  `best`, `final`, `wip`. Choosing happens in the review sheet.
+- **Enforced by `npm run assets:lint`**, wired into `npm test` via
+  `src/data/areas/areaStructure.test.ts`. Wrong folder, wrong case, verdict word, unpadded
+  frame number, or a file missing from its pack all fail with the file named and the fix given.
+
+The full rules live beside the assets in
+[`public/assets/areas/_AREAS.md`](card-engine/public/assets/areas/_AREAS.md).
+
+**Why a linter and not a convention doc:** this index and CLAUDE.md already documented asset
+conventions, and six competing naming schemes grew anyway — SHOUTING verdict prefixes, letter
+candidates, number candidates, stage suffixes. Nothing could fail, so nothing held. The
+existing asset packs are the one convention that never drifted, and the only thing special
+about them is `assetPack.test.ts`.
+
+Older directories (`castle/`, `combat/`, `borders/`, `elements/`) predate this and are
+deliberately left alone — several are imported directly by TypeScript. They migrate one at a
+time, when someone is already working on them.
 
 ### The Asset Pack — the one bridge to Phaser Editor
 
