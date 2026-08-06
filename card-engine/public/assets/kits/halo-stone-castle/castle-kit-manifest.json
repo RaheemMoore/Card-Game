@@ -1,0 +1,270 @@
+{
+  "kitId": "halo-stone-castle-kit",
+  "version": 1,
+  "sourceFamily": "scene-castle-kit-family-review",
+  "rawOutputsPreserved": true,
+  "assetCount": 29,
+  "assets": [
+    {
+      "assetId": "castle.wall.straight.front.healthy",
+      "label": "Straight Curtain Wall \u2014 Front Run",
+      "status": "KEEP",
+      "path": "structures/walls/castle-wall-straight-front-healthy.png",
+      "sourceSubject": "scene-castle-kit-poc",
+      "rawSource": "object-healthy-structures-frame_0.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.wall.corner.outer.healthy",
+      "label": "Outer Wall Corner",
+      "status": "KEEP",
+      "path": "structures/walls/castle-wall-corner-outer-healthy.png",
+      "sourceSubject": "scene-castle-kit-poc",
+      "rawSource": "object-healthy-structures-frame_1.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.proof.tower.square.original",
+      "label": "Original Square Tower Proof",
+      "status": "NEEDS ADJUSTMENT",
+      "path": "archive/proofs/castle-tower-square-original-needs-adjustment.png",
+      "sourceSubject": "scene-castle-kit-poc",
+      "rawSource": "object-healthy-structures-frame_2.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.proof.gatehouse.closed.original",
+      "label": "Original Closed Gatehouse Proof",
+      "status": "NEEDS ADJUSTMENT",
+      "path": "archive/proofs/castle-gatehouse-closed-original-needs-adjustment.png",
+      "sourceSubject": "scene-castle-kit-poc",
+      "rawSource": "object-healthy-structures-frame_3.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.tower.gatewatch.healthy",
+      "label": "Gatewatch Tower",
+      "status": "HUMAN REVIEW",
+      "path": "structures/towers/castle-tower-gatewatch-healthy.png",
+      "sourceSubject": "scene-castle-kit-towers",
+      "rawSource": "object-arcane-watch-towers-frame_0.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.tower.aegis.healthy",
+      "label": "Aegis Tower",
+      "status": "HUMAN REVIEW",
+      "path": "structures/towers/castle-tower-aegis-healthy.png",
+      "sourceSubject": "scene-castle-kit-towers",
+      "rawSource": "object-arcane-watch-towers-frame_1.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.tower.starward.healthy",
+      "label": "Starward Tower",
+      "status": "HUMAN REVIEW",
+      "path": "structures/towers/castle-tower-starward-healthy.png",
+      "sourceSubject": "scene-castle-kit-towers",
+      "rawSource": "object-arcane-watch-towers-frame_2.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.tower.beacon.healthy",
+      "label": "Beacon Tower",
+      "status": "HUMAN REVIEW",
+      "path": "structures/towers/castle-tower-beacon-healthy.png",
+      "sourceSubject": "scene-castle-kit-towers",
+      "rawSource": "object-arcane-watch-towers-frame_3.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.ground.tileset.grass-dirt.32",
+      "label": "Grass \u2194 Packed Dirt Tileset \u2014 32 px",
+      "status": "HUMAN REVIEW",
+      "path": "ground/tilesets/castle-ground-grass-dirt-wang-32.png",
+      "sourceSubject": "scene-castle-ground-gate",
+      "rawSource": "tiles-grass-dirt.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.review.ground.neutral",
+      "label": "Ground Assembly \u2014 Neutral Source",
+      "status": "REVIEW BOARD",
+      "path": "review/ground/castle-ground-layout-neutral.png",
+      "sourceSubject": "scene-castle-ground-gate",
+      "rawSource": "courtyard-neutral.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.review.ground.day",
+      "label": "Ground Assembly \u2014 Day Lighting",
+      "status": "REVIEW BOARD",
+      "path": "review/ground/castle-ground-layout-day.png",
+      "sourceSubject": "scene-castle-ground-gate",
+      "rawSource": "courtyard-day.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.review.ground.night",
+      "label": "Ground Assembly \u2014 Night Lighting",
+      "status": "REVIEW BOARD",
+      "path": "review/ground/castle-ground-layout-night.png",
+      "sourceSubject": "scene-castle-ground-gate",
+      "rawSource": "courtyard-night.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.ground.tileset.dirt-paving.32",
+      "label": "Packed Dirt \u2194 Scholar Paving Tileset \u2014 32 px",
+      "status": "HUMAN REVIEW",
+      "path": "ground/tilesets/castle-ground-dirt-paving-wang-32.png",
+      "sourceSubject": "scene-castle-ground-paving",
+      "rawSource": "tiles-dirt-paving.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.ground.overlay.grass-clover",
+      "label": "Grass and Clover Scatter",
+      "status": "HUMAN REVIEW",
+      "path": "ground/overlays/castle-ground-overlay-grass-clover.png",
+      "sourceSubject": "scene-castle-ground-details",
+      "rawSource": "object-ground-details-frame_0.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.ground.overlay.pebbles-scuffs",
+      "label": "Pebbles and Dirt Scuffs",
+      "status": "HUMAN REVIEW",
+      "path": "ground/overlays/castle-ground-overlay-pebbles-scuffs.png",
+      "sourceSubject": "scene-castle-ground-details",
+      "rawSource": "object-ground-details-frame_1.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.ground.overlay.weeds-dense",
+      "label": "Dense Weed Patch",
+      "status": "NEEDS CLEANUP",
+      "path": "ground/overlays/castle-ground-overlay-weeds-dense-needs-cut.png",
+      "sourceSubject": "scene-castle-ground-details",
+      "rawSource": "object-ground-details-frame_2.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.ground.overlay.cart-ruts",
+      "label": "Cart Ruts and Foot Wear",
+      "status": "HUMAN REVIEW",
+      "path": "ground/overlays/castle-ground-overlay-cart-ruts.png",
+      "sourceSubject": "scene-castle-ground-details",
+      "rawSource": "object-ground-details-frame_3.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.wall.straight.side.healthy",
+      "label": "Straight Curtain Wall \u2014 Side Run",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-straight-side-healthy.png",
+      "sourceSubject": "scene-castle-kit-topology",
+      "rawSource": "object-wall-topology-frame_0.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.wall.corner.inner.healthy",
+      "label": "Inner Wall Corner",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-corner-inner-healthy.png",
+      "sourceSubject": "scene-castle-kit-topology",
+      "rawSource": "object-wall-topology-frame_1.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.wall.endcap.buttressed.healthy",
+      "label": "Buttressed Wall End Cap",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-endcap-buttressed-healthy.png",
+      "sourceSubject": "scene-castle-kit-topology",
+      "rawSource": "object-wall-topology-frame_2.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.wall.connector.tower.healthy",
+      "label": "Wall-to-Tower Connector",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-connector-tower-healthy.png",
+      "sourceSubject": "scene-castle-kit-topology",
+      "rawSource": "object-wall-topology-frame_3.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.gate.arch.open.healthy",
+      "label": "Open Castle Gate Arch",
+      "status": "HUMAN REVIEW",
+      "path": "structures/gate/castle-gate-arch-open-healthy.png",
+      "sourceSubject": "scene-castle-kit-gate",
+      "rawSource": "object-functional-gate-frame_0.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.gate.door.double.closed.raw",
+      "label": "Closed Double-Door Insert",
+      "status": "NEEDS SEPARATION",
+      "path": "structures/gate/castle-gate-door-double-closed-needs-separation.png",
+      "sourceSubject": "scene-castle-kit-gate",
+      "rawSource": "object-functional-gate-frame_1.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.gate.portcullis.raised.raw",
+      "label": "Raised Portcullis Insert",
+      "status": "NEEDS SEPARATION",
+      "path": "structures/gate/castle-gate-portcullis-raised-needs-separation.png",
+      "sourceSubject": "scene-castle-kit-gate",
+      "rawSource": "object-functional-gate-frame_2.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.gate.threshold.steps",
+      "label": "Gate Threshold and Steps",
+      "status": "HUMAN REVIEW",
+      "path": "structures/gate/castle-gate-threshold-steps.png",
+      "sourceSubject": "scene-castle-kit-gate",
+      "rawSource": "object-functional-gate-frame_3.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.nature.tree.broadleaf.large",
+      "label": "Large Broadleaf Tree",
+      "status": "HUMAN REVIEW",
+      "path": "nature/trees/castle-tree-broadleaf-large.png",
+      "sourceSubject": "scene-castle-kit-perimeter",
+      "rawSource": "object-perimeter-nature-frame_0.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.nature.tree.broadleaf.small",
+      "label": "Small Broadleaf Tree",
+      "status": "HUMAN REVIEW",
+      "path": "nature/trees/castle-tree-broadleaf-small.png",
+      "sourceSubject": "scene-castle-kit-perimeter",
+      "rawSource": "object-perimeter-nature-frame_1.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.nature.shrub.young-tree.cluster",
+      "label": "Shrub and Young-Tree Cluster",
+      "status": "HUMAN REVIEW",
+      "path": "nature/shrubs/castle-shrub-young-tree-cluster.png",
+      "sourceSubject": "scene-castle-kit-perimeter",
+      "rawSource": "object-perimeter-nature-frame_2.png",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.nature.rocks.scrub.cluster",
+      "label": "Rock and Low-Scrub Cluster",
+      "status": "HUMAN REVIEW",
+      "path": "nature/rocks/castle-rock-low-scrub-cluster.png",
+      "sourceSubject": "scene-castle-kit-perimeter",
+      "rawSource": "object-perimeter-nature-frame_3.png",
+      "usedTrimmedExport": true
+    }
+  ]
+}

@@ -28,7 +28,7 @@
  *   --check   exit non-zero if the committed pack is stale, and write nothing.
  *             For CI and the pre-push hook.
  */
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -74,14 +74,18 @@ function buildPack() {
   const occluders = readJson(join(CASTLE, 'occluders/occluders.json')).occluders;
 
   /**
-   * The painted plate and its animated water layer. `path` is a loader prefix,
-   * so entries stay short and one edit moves the whole section.
+   * Every `url` is written in full, from the public root.
+   *
+   * A section-level `path` prefix reads better and Phaser's runtime loader
+   * honours it — but Phaser Editor does NOT. Its ImageAssetPackItem is literally
+   * `getUrl() { return this.getData()["url"]; }`, so a prefixed entry resolves to
+   * nothing and the Editor silently substitutes a 10x10 placeholder. The game
+   * looked fine while the Editor showed 38 broken images. Keep the paths full.
    */
   const plate = {
-    path: 'assets/castle/',
     files: [
-      { type: 'image', key: 'courtyard', url: 'courtyard.png' },
-      { type: 'image', key: 'courtyard-water', url: 'layers/water.png' },
+      { type: 'image', key: 'courtyard', url: 'assets/castle/courtyard.png' },
+      { type: 'image', key: 'courtyard-water', url: 'assets/castle/layers/water.png' },
     ],
   };
 
@@ -91,11 +95,10 @@ function buildPack() {
    * bottom of the image.
    */
   const occluderSection = {
-    path: 'assets/castle/occluders/',
     files: occluders.map((o) => ({
       type: 'image',
       key: `occluder-${o.id}`,
-      url: `${o.id}.png`,
+      url: `assets/castle/occluders/${o.id}.png`,
     })),
   };
 
@@ -140,23 +143,29 @@ function buildPack() {
      * Phaser skips this block (no `files` array). Phaser Editor reads it to
      * recognise the file as one of its own.
      */
-    meta: {
-      app: 'Phaser Editor 2D - Asset Pack Editor',
-      contentType: 'Phaser v3 Asset Pack',
-      apiVersion: 2,
-      generated: 'scripts/phaser-editor/build-asset-pack.mjs — do not hand-edit',
-    },
+    meta: PACK_META,
     'castle-plate': plate,
     'castle-occluders': occluderSection,
     'castle-characters': characters,
   };
 }
 
+/**
+ * Phaser skips this block (no `files` array). Phaser Editor reads it to recognise
+ * the file as one of its own.
+ *
+ * These four values are NOT descriptive — the Editor matches `contentType` and
+ * `version` exactly, and silently treats the file as plain JSON when they differ.
+ * A hand-written `contentType: 'Phaser v3 Asset Pack'` with `apiVersion: 2` is
+ * what shipped first, and it cost an hour of hunting an "empty Blocks panel"
+ * that was really an unrecognised pack. Copy these from a pack the Editor itself
+ * wrote; do not paraphrase them.
+ */
 const PACK_META = {
   app: 'Phaser Editor 2D - Asset Pack Editor',
-  contentType: 'Phaser v3 Asset Pack',
-  apiVersion: 2,
-  generated: 'scripts/phaser-editor/build-asset-pack.mjs — do not hand-edit',
+  contentType: 'phasereditor2d.pack.core.AssetContentType',
+  url: 'https://phasereditor2d.com',
+  version: 2,
 };
 
 /**
@@ -195,12 +204,12 @@ function buildAreaPacks() {
         .sort();
       if (!files.length) continue;
 
+      // Full urls, no section `path` prefix — see buildPack() for why.
       pack[`${area.id}-${layer}`] = {
-        path: `assets/areas/${area.id}/${layer}/`,
         files: files.map((f) => ({
           type: 'image',
           key: `${area.id}-${layer}-${f.replace(/\.png$/, '')}`,
-          url: f,
+          url: `assets/areas/${area.id}/${layer}/${f}`,
         })),
       };
       count += files.length;
@@ -216,9 +225,87 @@ function buildAreaPacks() {
   return out;
 }
 
+/**
+ * KIT PACKS ARE FOR THE EDITOR, NOT THE GAME.
+ *
+ * A kit lands as a folder of PNGs plus the generator's own manifest, and most of
+ * it arrives un-reviewed — the Halo Stone castle kit was 2 KEEP out of 29. The
+ * runtime must not load that, and `CourtyardScene.ts` never does: it loads
+ * `/asset-pack.json` by name, and no kit pack is ever named there.
+ *
+ * But art that cannot be seen cannot be reviewed, and Phaser Editor only shows
+ * what a pack declares. So kits get their own pack file, visible in the Editor's
+ * asset browser and invisible to the running game. That is the whole point of the
+ * split — registering a kit here is NOT a claim that it is production-ready.
+ *
+ * Sections are grouped by review status so the Blocks panel sorts cleared work
+ * away from work that still needs Raheem's eyes.
+ */
+function buildKitPacks() {
+  const kitsDir = join(PUBLIC, 'assets/kits');
+  if (!existsSync(kitsDir)) return [];
+
+  const out = [];
+  for (const kitId of readdirSync(kitsDir).sort()) {
+    const kitPath = join(kitsDir, kitId);
+    if (!statSync(kitPath).isDirectory()) continue;
+
+    const manifestPath = join(kitPath, 'castle-kit-manifest.json');
+    if (!existsSync(manifestPath)) continue;
+    const manifest = readJson(manifestPath);
+
+    const pack = { meta: { ...PACK_META, kit: kitId, editorOnly: true } };
+    const bucketed = new Map();
+    let count = 0;
+    const missing = [];
+
+    for (const asset of manifest.assets) {
+      const rel = `assets/kits/${kitId}/${asset.path}`;
+      if (!existsSync(join(PUBLIC, rel))) {
+        missing.push(asset.path);
+        continue;
+      }
+      // `castle.wall.straight.front.healthy` -> `halo-stone-castle-wall-straight-front-healthy`
+      const key = `${kitId}-${asset.assetId.replace(/^castle\./, '').replace(/\./g, '-')}`;
+      const section = `${kitId}--${asset.status.toLowerCase().replace(/\s+/g, '-')}`;
+
+      /**
+       * A `-wang-<N>` suffix means the PNG is an N-pixel TILE GRID, not one object.
+       * Registered flat as an `image` it still previews fine in the Blocks panel —
+       * which is exactly the trap, because it looks correct and cannot be painted
+       * onto a tilemap or sliced into tiles. The frame size has to be declared.
+       */
+      const wang = /-wang-(\d+)\.png$/.exec(asset.path);
+      const entry = wang
+        ? {
+            type: 'spritesheet',
+            key,
+            url: rel,
+            frameConfig: { frameWidth: Number(wang[1]), frameHeight: Number(wang[1]) },
+          }
+        : { type: 'image', key, url: rel };
+
+      if (!bucketed.has(section)) bucketed.set(section, []);
+      bucketed.get(section).push(entry);
+      count += 1;
+    }
+
+    for (const [section, files] of [...bucketed].sort()) pack[section] = { files };
+
+    out.push({
+      path: join(kitPath, 'kit-pack.json'),
+      label: `kits/${kitId}/kit-pack.json`,
+      serialised: JSON.stringify(pack, null, 2) + '\n',
+      count,
+      missing,
+    });
+  }
+  return out;
+}
+
 const pack = buildPack();
 const serialised = JSON.stringify(pack, null, 2) + '\n';
-const areaPacks = buildAreaPacks();
+const areaPacks = [...buildAreaPacks(), ...buildKitPacks()];
 
 if (process.argv.includes('--check')) {
   const stale = [];

@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "app": "Phaser Editor 2D - Asset Pack Editor",
+    "contentType": "phasereditor2d.pack.core.AssetContentType",
+    "url": "https://phasereditor2d.com",
+    "version": 2,
+    "kit": "halo-stone-castle",
+    "editorOnly": true
+  },
+  "halo-stone-castle--human-review": {
+    "files": [
+      {
+        "type": "image",
+        "key": "halo-stone-castle-tower-gatewatch-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-gatewatch-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-tower-aegis-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-aegis-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-tower-starward-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-starward-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-tower-beacon-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-beacon-healthy.png"
+      },
+      {
+        "type": "spritesheet",
+        "key": "halo-stone-castle-ground-tileset-grass-dirt-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-grass-dirt-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "halo-stone-castle-ground-tileset-dirt-paving-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-dirt-paving-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-ground-overlay-grass-clover",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-grass-clover.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-ground-overlay-pebbles-scuffs",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-pebbles-scuffs.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-ground-overlay-cart-ruts",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-wall-straight-side-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-side-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-wall-corner-inner-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-inner-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-wall-endcap-buttressed-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-endcap-buttressed-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-wall-connector-tower-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-connector-tower-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-gate-arch-open-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-arch-open-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-gate-threshold-steps",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-threshold-steps.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-nature-tree-broadleaf-large",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-large.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-nature-tree-broadleaf-small",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-nature-shrub-young-tree-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-nature-rocks-scrub-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
+      }
+    ]
+  },
+  "halo-stone-castle--keep": {
+    "files": [
+      {
+        "type": "image",
+        "key": "halo-stone-castle-wall-straight-front-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-front-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-wall-corner-outer-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-outer-healthy.png"
+      }
+    ]
+  },
+  "halo-stone-castle--needs-cleanup": {
+    "files": [
+      {
+        "type": "image",
+        "key": "halo-stone-castle-ground-overlay-weeds-dense",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-weeds-dense-needs-cut.png"
+      }
+    ]
+  },
+  "halo-stone-castle--needs-separation": {
+    "files": [
+      {
+        "type": "image",
+        "key": "halo-stone-castle-gate-door-double-closed-raw",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-door-double-closed-needs-separation.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-gate-portcullis-raised-raw",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-portcullis-raised-needs-separation.png"
+      }
+    ]
+  },
+  "halo-stone-castle--review-board": {
+    "files": [
+      {
+        "type": "image",
+        "key": "halo-stone-castle-review-ground-neutral",
+        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-neutral.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-review-ground-day",
+        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-day.png"
+      },
+      {
+        "type": "image",
+        "key": "halo-stone-castle-review-ground-night",
+        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-night.png"
+      }
+    ]
+  }
+}

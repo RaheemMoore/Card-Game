@@ -1,197 +1,195 @@
 {
   "meta": {
     "app": "Phaser Editor 2D - Asset Pack Editor",
-    "contentType": "Phaser v3 Asset Pack",
-    "apiVersion": 2,
-    "generated": "scripts/phaser-editor/build-asset-pack.mjs — do not hand-edit"
+    "contentType": "phasereditor2d.pack.core.AssetContentType",
+    "url": "https://phasereditor2d.com",
+    "version": 2
   },
   "castle-plate": {
-    "path": "assets/castle/",
     "files": [
       {
         "type": "image",
         "key": "courtyard",
-        "url": "courtyard.png"
+        "url": "assets/castle/courtyard.png"
       },
       {
         "type": "image",
         "key": "courtyard-water",
-        "url": "layers/water.png"
+        "url": "assets/castle/layers/water.png"
       }
     ]
   },
   "castle-occluders": {
-    "path": "assets/castle/occluders/",
     "files": [
       {
         "type": "image",
         "key": "occluder-lamp-upper-left",
-        "url": "lamp-upper-left.png"
+        "url": "assets/castle/occluders/lamp-upper-left.png"
       },
       {
         "type": "image",
         "key": "occluder-lamp-mid-left",
-        "url": "lamp-mid-left.png"
+        "url": "assets/castle/occluders/lamp-mid-left.png"
       },
       {
         "type": "image",
         "key": "occluder-lamp-lower-left",
-        "url": "lamp-lower-left.png"
+        "url": "assets/castle/occluders/lamp-lower-left.png"
       },
       {
         "type": "image",
         "key": "occluder-lamp-lower-right",
-        "url": "lamp-lower-right.png"
+        "url": "assets/castle/occluders/lamp-lower-right.png"
       },
       {
         "type": "image",
         "key": "occluder-brazier",
-        "url": "brazier.png"
+        "url": "assets/castle/occluders/brazier.png"
       },
       {
         "type": "image",
         "key": "occluder-produce-table",
-        "url": "produce-table.png"
+        "url": "assets/castle/occluders/produce-table.png"
       },
       {
         "type": "image",
         "key": "occluder-water-barrel",
-        "url": "water-barrel.png"
+        "url": "assets/castle/occluders/water-barrel.png"
       },
       {
         "type": "image",
         "key": "occluder-bush-south",
-        "url": "bush-south.png"
+        "url": "assets/castle/occluders/bush-south.png"
       },
       {
         "type": "image",
         "key": "occluder-crates-south",
-        "url": "crates-south.png"
+        "url": "assets/castle/occluders/crates-south.png"
       },
       {
         "type": "image",
         "key": "occluder-bush-south-east",
-        "url": "bush-south-east.png"
+        "url": "assets/castle/occluders/bush-south-east.png"
       },
       {
         "type": "image",
         "key": "occluder-awning-tent",
-        "url": "awning-tent.png"
+        "url": "assets/castle/occluders/awning-tent.png"
       },
       {
         "type": "image",
         "key": "occluder-booth",
-        "url": "booth.png"
+        "url": "assets/castle/occluders/booth.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band0",
-        "url": "fountain-band0.png"
+        "url": "assets/castle/occluders/fountain-band0.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band1",
-        "url": "fountain-band1.png"
+        "url": "assets/castle/occluders/fountain-band1.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band2",
-        "url": "fountain-band2.png"
+        "url": "assets/castle/occluders/fountain-band2.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band3",
-        "url": "fountain-band3.png"
+        "url": "assets/castle/occluders/fountain-band3.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band4",
-        "url": "fountain-band4.png"
+        "url": "assets/castle/occluders/fountain-band4.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band5",
-        "url": "fountain-band5.png"
+        "url": "assets/castle/occluders/fountain-band5.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band6",
-        "url": "fountain-band6.png"
+        "url": "assets/castle/occluders/fountain-band6.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band7",
-        "url": "fountain-band7.png"
+        "url": "assets/castle/occluders/fountain-band7.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band8",
-        "url": "fountain-band8.png"
+        "url": "assets/castle/occluders/fountain-band8.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band9",
-        "url": "fountain-band9.png"
+        "url": "assets/castle/occluders/fountain-band9.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band10",
-        "url": "fountain-band10.png"
+        "url": "assets/castle/occluders/fountain-band10.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band11",
-        "url": "fountain-band11.png"
+        "url": "assets/castle/occluders/fountain-band11.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band12",
-        "url": "fountain-band12.png"
+        "url": "assets/castle/occluders/fountain-band12.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band13",
-        "url": "fountain-band13.png"
+        "url": "assets/castle/occluders/fountain-band13.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band14",
-        "url": "fountain-band14.png"
+        "url": "assets/castle/occluders/fountain-band14.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band15",
-        "url": "fountain-band15.png"
+        "url": "assets/castle/occluders/fountain-band15.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band16",
-        "url": "fountain-band16.png"
+        "url": "assets/castle/occluders/fountain-band16.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band17",
-        "url": "fountain-band17.png"
+        "url": "assets/castle/occluders/fountain-band17.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band18",
-        "url": "fountain-band18.png"
+        "url": "assets/castle/occluders/fountain-band18.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band19",
-        "url": "fountain-band19.png"
+        "url": "assets/castle/occluders/fountain-band19.png"
       },
       {
         "type": "image",
         "key": "occluder-fountain-band20",
-        "url": "fountain-band20.png"
+        "url": "assets/castle/occluders/fountain-band20.png"
       },
       {
         "type": "image",
         "key": "occluder-cart",
-        "url": "cart.png"
+        "url": "assets/castle/occluders/cart.png"
       }
     ]
   },

@@ -1,9 +1,9 @@
 {
   "meta": {
     "app": "Phaser Editor 2D - Asset Pack Editor",
-    "contentType": "Phaser v3 Asset Pack",
-    "apiVersion": 2,
-    "generated": "scripts/phaser-editor/build-asset-pack.mjs — do not hand-edit",
+    "contentType": "phasereditor2d.pack.core.AssetContentType",
+    "url": "https://phasereditor2d.com",
+    "version": 2,
     "area": "forest",
     "label": "The forest outside the castle"
   }
