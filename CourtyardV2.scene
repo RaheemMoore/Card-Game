@@ -11,8 +11,8 @@
             "type": "Rectangle",
             "id": "8be7e5f1-f71a-44a7-9598-b960617c33ed",
             "label": "VIEWPORT_zoom2_960x540",
-            "x": 2703,
-            "y": 1,
+            "x": 844,
+            "y": 2091,
             "originX": 0,
             "originY": 0,
             "strokeColor": "#ffcc00",
@@ -59,6 +59,30 @@
                     "scaleY": 0.75,
                     "originY": 0,
                     "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "18b22e54-5dd2-48f4-b7e6-f95ea8594202",
+                    "label": "SHADOW_forge",
+                    "texture": {
+                        "key": "shadow-contact"
+                    },
+                    "x": 1711,
+                    "y": 475,
+                    "scaleX": 2.05,
+                    "alpha": 0.85
+                },
+                {
+                    "type": "Image",
+                    "id": "44e7fcb4-e20d-4f5a-b475-50029f3c387d",
+                    "label": "SHADOW_archivist",
+                    "texture": {
+                        "key": "shadow-contact"
+                    },
+                    "x": 915,
+                    "y": 484,
+                    "scaleX": 2.05,
+                    "alpha": 0.85
                 }
             ]
         },
@@ -225,6 +249,178 @@
                     "type": "Image",
                     "id": "005038fe-45a6-43cd-a991-2cf053d685b1",
                     "label": "halo_stone_castle_terrain_wall_endcap_3",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 272,
+                    "y": 1656,
+                    "scaleX": -1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "5ee6f813-9f73-488e-bdd5-fd599ad112c8",
+            "label": "L2_TERRAIN_1",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "d7e57fc1-55d4-45c7-9145-afa45be2b8ca",
+                    "label": "halo_stone_castle_terrain_wall_endcap_5",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1790,
+                    "y": 1558,
+                    "scaleX": -1
+                },
+                {
+                    "type": "Image",
+                    "id": "d24d39f6-b7d1-4442-8393-c6a59ba8d232",
+                    "label": "wallBandC_5",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1117,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "aad18941-445f-48a3-95d8-5358986ace76",
+                    "label": "halo_stone_castle_terrain_wall_boulders_1",
+                    "texture": {
+                        "key": "terrain-wall-boulders"
+                    },
+                    "x": 2012,
+                    "y": 1696
+                },
+                {
+                    "type": "Image",
+                    "id": "6c23e91c-3d3c-4121-a37d-865f8f7dd788",
+                    "label": "halo_stone_castle_terrain_wall_endcap_6",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 2286,
+                    "y": 1376,
+                    "scaleX": -1
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "defa8f82-0ca9-4b39-ac95-65339548d023",
+                    "label": "wallBandC_6",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 2353,
+                    "y": 1262,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 206,
+                    "height": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "ae017cd2-461f-401c-a34f-5bcab2d821e7",
+                    "label": "wallBandC_7",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1885,
+                    "y": 1430,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 674,
+                    "height": 256
+                },
+                {
+                    "type": "Image",
+                    "id": "23db5842-f4d1-4152-8803-1b8b82ec79c2",
+                    "label": "wallStair_1",
+                    "texture": {
+                        "key": "terrain-wall-stair"
+                    },
+                    "x": 1173,
+                    "y": 1533,
+                    "scaleX": 1.6607407900003772,
+                    "scaleY": 0.8860267326421837,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "65c61fb3-0218-426a-86c3-62ff270fa832",
+                    "label": "wallPillarLeft_1",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1169,
+                    "y": 1519,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "874dcd5b-55c2-40ae-b740-fcd8cbe531e2",
+                    "label": "wallPillarRight_1",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1450,
+                    "y": 1521,
+                    "originX": 0,
+                    "originY": 0,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "5d1b545f-0507-4203-8b64-f4dedf2f6121",
+                    "label": "wallBandC_8",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "y": 1406,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "da56f558-a409-48b6-947e-7b5f35a57720",
+                    "label": "halo_stone_castle_terrain_wall_endcap_7",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 817,
+                    "y": 1531
+                },
+                {
+                    "type": "Image",
+                    "id": "8a03e972-810e-4bbf-b423-2f8d0d74e5e9",
+                    "label": "wallBandC_9",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 350,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "03f52ffc-e8a6-4597-adf3-5d16e28421e6",
+                    "label": "halo_stone_castle_terrain_wall_endcap_8",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1971,
+                    "y": 1657
+                },
+                {
+                    "type": "Image",
+                    "id": "190f73a0-800a-4f32-958a-a87f1010afa0",
+                    "label": "halo_stone_castle_terrain_wall_endcap_9",
                     "texture": {
                         "key": "terrain-wall-endcap"
                     },
@@ -461,21 +657,6 @@
                 },
                 {
                     "type": "Image",
-                    "id": "edd68cc6-ee07-4edc-af4c-c0914a614f45",
-                    "label": "castleTowerWest",
-                    "texture": {
-                        "key": "tower-watch-v2"
-                    },
-                    "x": 384,
-                    "y": 517,
-                    "scaleX": 1.4,
-                    "scaleY": 1.4,
-                    "originX": 0,
-                    "originY": 0,
-                    "visible": false
-                },
-                {
-                    "type": "Image",
                     "id": "009f82a5-9c00-455a-b050-d82a671bafe6",
                     "label": "castleGate",
                     "texture": {
@@ -552,75 +733,6 @@
                     "originX": 0,
                     "originY": 0,
                     "visible": false
-                },
-                {
-                    "type": "Image",
-                    "id": "1d4e494c-1e40-46dd-ae62-e0f798c7c5f7",
-                    "label": "RETIRED_wall_side_east_uncut",
-                    "texture": {
-                        "key": "wall-side"
-                    },
-                    "x": 2110,
-                    "y": 583,
-                    "scaleX": 1.142292861719713,
-                    "scaleY": 1.3873158625341773,
-                    "visible": false
-                },
-                {
-                    "type": "Image",
-                    "id": "4e49df17-d88c-40e2-b45d-3b68df2b443a",
-                    "label": "castleTowerWest_2",
-                    "texture": {
-                        "key": "tower-watch-v2"
-                    },
-                    "x": 321,
-                    "y": 681,
-                    "scaleX": 1.4,
-                    "scaleY": 1.4,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "19d29e1b-e9d0-411e-8771-6af428ce426a",
-                    "label": "castleTowerWest_1",
-                    "texture": {
-                        "key": "tower-watch-v2"
-                    },
-                    "x": 1913,
-                    "y": 679,
-                    "scaleX": 1.4,
-                    "scaleY": 1.4,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "a30373a3-007c-49ac-832c-d402d902fab9",
-                    "label": "SHELF_wall_north",
-                    "texture": {
-                        "key": "wall-north"
-                    },
-                    "x": 574,
-                    "y": -6,
-                    "scaleX": 1.002714667991714,
-                    "scaleY": 1.1,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "44638145-12ad-42fa-b878-85b57f331122",
-                    "label": "SHELF_wall_north_1",
-                    "texture": {
-                        "key": "wall-north"
-                    },
-                    "x": 1312,
-                    "y": -6,
-                    "scaleX": 1.002714667991714,
-                    "scaleY": 1.1,
-                    "originX": 0,
-                    "originY": 0
                 },
                 {
                     "type": "Image",
@@ -748,6 +860,19 @@
                     "tilePositionY": 384
                 },
                 {
+                    "type": "Image",
+                    "id": "1d4e494c-1e40-46dd-ae62-e0f798c7c5f7",
+                    "label": "RETIRED_wall_side_east_uncut",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 583,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "visible": false
+                },
+                {
                     "type": "TileSprite",
                     "id": "527dd5b8-f542-4dbf-8c01-20d57b4e39f7",
                     "label": "castleWall_west_seg5",
@@ -764,6 +889,20 @@
                     "tilePositionY": 512
                 },
                 {
+                    "type": "Image",
+                    "id": "44638145-12ad-42fa-b878-85b57f331122",
+                    "label": "SHELF_wall_north_1",
+                    "texture": {
+                        "key": "wall-north"
+                    },
+                    "x": 1312,
+                    "y": -6,
+                    "scaleX": 1.002714667991714,
+                    "scaleY": 1.1,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
                     "type": "TileSprite",
                     "id": "27df7080-5c8a-4d97-bc27-2fc27d7ed341",
                     "label": "castleWall_west_seg6",
@@ -778,21 +917,6 @@
                     "width": 192,
                     "height": 128,
                     "tilePositionY": 640
-                },
-                {
-                    "type": "TileSprite",
-                    "id": "1dc98761-f411-4259-bce1-17dede9bc0df",
-                    "label": "castleWall_east_seg1",
-                    "texture": {
-                        "key": "wall-side"
-                    },
-                    "x": 2110,
-                    "y": 50.27000045776367,
-                    "scaleX": 1.142292861719713,
-                    "scaleY": 1.3873158625341773,
-                    "originY": 0,
-                    "width": 192,
-                    "height": 128
                 },
                 {
                     "type": "TileSprite",
@@ -873,6 +997,75 @@
                     "width": 192,
                     "height": 128,
                     "tilePositionY": 640
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "1dc98761-f411-4259-bce1-17dede9bc0df",
+                    "label": "castleWall_east_seg1",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 50.27000045776367,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128
+                },
+                {
+                    "type": "Image",
+                    "id": "d9c7b098-e254-475c-b95d-59d6b0038afc",
+                    "label": "castleTowerBackRight",
+                    "texture": {
+                        "key": "tower-watch-v2"
+                    },
+                    "x": 3402,
+                    "y": 685,
+                    "scaleX": -1.1,
+                    "scaleY": 1.1
+                },
+                {
+                    "type": "Image",
+                    "id": "19d29e1b-e9d0-411e-8771-6af428ce426a",
+                    "label": "castleTowerWest_1",
+                    "texture": {
+                        "key": "tower-watch-v2"
+                    },
+                    "x": 1913,
+                    "y": 679,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "4e49df17-d88c-40e2-b45d-3b68df2b443a",
+                    "label": "castleTowerWest_2",
+                    "texture": {
+                        "key": "tower-watch-v2"
+                    },
+                    "x": 321,
+                    "y": 681,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a30373a3-007c-49ac-832c-d402d902fab9",
+                    "label": "SHELF_wall_north",
+                    "texture": {
+                        "key": "wall-north"
+                    },
+                    "x": 574,
+                    "y": -6,
+                    "scaleX": 1.002714667991714,
+                    "scaleY": 1.1,
+                    "originX": 0,
+                    "originY": 0
                 }
             ]
         },
@@ -1249,6 +1442,96 @@
                     "originY": 1
                 }
             ]
+        },
+        {
+            "type": "Layer",
+            "id": "5bd7ef74-7b46-415e-a249-e5ad893b254a",
+            "label": "L4_QUADRANT_NE",
+            "list": [
+                {
+                    "type": "Sprite",
+                    "id": "5fb600b8-c7ea-4583-bd6b-b74fb6e81941",
+                    "label": "NE_apprentice_cardwright",
+                    "texture": {
+                        "key": "anim-apprentice-cardwright-study-east",
+                        "frame": 0
+                    },
+                    "x": 1563,
+                    "y": 761,
+                    "scaleX": 0.667,
+                    "scaleY": 0.667,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "c1bd40b8-47ca-4579-a5f3-758f54112a0d",
+                    "label": "ARCHIVIST_A_as_generated",
+                    "texture": {
+                        "key": "archivist-v1"
+                    },
+                    "x": 3144,
+                    "y": -26,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "4c9c949f-d5c3-4a63-860a-731ee69e3822",
+                    "label": "ARCHIVIST_B_stone20",
+                    "texture": {
+                        "key": "archivist-v1-stone20"
+                    },
+                    "x": 915,
+                    "y": 484,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "42145479-22f3-43da-b340-5ed576b70da9",
+            "label": "L5_QUADRANT_NW",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "5bfa6bcf-1d78-474e-b3da-62bc5df94763",
+                    "label": "FORGE_A_castle_lavender",
+                    "texture": {
+                        "key": "forge-v1"
+                    },
+                    "x": 1722,
+                    "y": 462,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "054c02b5-879a-4d7d-9e10-e29ab94f6c87",
+                    "label": "FORGE_B_warm_rock",
+                    "texture": {
+                        "key": "forge-v1-warm"
+                    },
+                    "x": 3151,
+                    "y": 339,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "d167cbd5-d317-4e10-a314-bf8dc852c1b5",
+            "label": "L6_QUADRANT_SW"
+        },
+        {
+            "type": "Layer",
+            "id": "deff59c9-e255-4a72-bf64-96af7cf8ab74",
+            "label": "L7_QUADRANT_SE"
         },
         {
             "type": "Layer",
@@ -1755,6 +2038,109 @@
             ]
         },
         {
+            "type": "Image",
+            "id": "07a3b6ad-c0d5-47a0-b3fb-ffa75ae2eca1",
+            "label": "PREVIEW_tower_cap_v2",
+            "texture": {
+                "key": "tower-cap-v2"
+            },
+            "x": 3409,
+            "y": 1475
+        },
+        {
+            "type": "Image",
+            "id": "f4e2c6b5-2d47-4bb6-886b-7b71afb51cf0",
+            "label": "PREVIEW_tower_base_v2",
+            "texture": {
+                "key": "tower-base-v2"
+            },
+            "x": 3427,
+            "y": 1735
+        },
+        {
+            "type": "Image",
+            "id": "38699050-cf62-406f-b204-f9ee250bd406",
+            "label": "PREVIEW_tower_full_forReference",
+            "texture": {
+                "key": "tower-watch-v2"
+            },
+            "x": 3425,
+            "y": 1095
+        },
+        {
+            "type": "Layer",
+            "id": "bfacd410-58b5-4822-8b8f-03433e4f7aa7",
+            "label": "L20_GROUND_L0",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "49d4e9bc-04e8-4b23-a72f-1b47bf57e785",
+                    "label": "PLATE_L0_lowGround",
+                    "y": 1624,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#66ff88",
+                    "fillAlpha": 0.25,
+                    "strokeColor": "#66ff88",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 296
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "1541b86f-e8d4-489f-909e-48f3055788f1",
+            "label": "L21_GROUND_L1",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "d0ae49ac-84ac-43c8-ae3b-62f2aa094f53",
+                    "label": "PLATE_L1_castlePlateau",
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false,
+                    "isFilled": true,
+                    "fillColor": "#ffdd44",
+                    "fillAlpha": 0.25,
+                    "strokeColor": "#ffdd44",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 1528
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "d2576454-a597-4084-8831-0895bd54219f",
+            "label": "L23_RAMPS",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "d3ca90a3-d58f-4435-b5a2-80f38bf3cca2",
+                    "label": "RAMP_greatStair",
+                    "x": 1261,
+                    "y": 1470,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#cc66ff",
+                    "fillAlpha": 0.3,
+                    "strokeColor": "#cc66ff",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 185,
+                    "height": 230
+                }
+            ]
+        },
+        {
             "type": "Layer",
             "id": "7bd79f3b-aab8-499f-a51c-fc56339c0177",
             "label": "L11_MARKERS",
@@ -1818,27 +2204,6 @@
         },
         {
             "type": "Layer",
-            "id": "5bd7ef74-7b46-415e-a249-e5ad893b254a",
-            "label": "L4_QUADRANT_NE",
-            "list": [
-                {
-                    "type": "Sprite",
-                    "id": "5fb600b8-c7ea-4583-bd6b-b74fb6e81941",
-                    "label": "NE_apprentice_cardwright",
-                    "texture": {
-                        "key": "anim-apprentice-cardwright-study-east",
-                        "frame": 0
-                    },
-                    "x": 1700,
-                    "y": 448,
-                    "scaleX": 0.667,
-                    "scaleY": 0.667,
-                    "originY": 1
-                }
-            ]
-        },
-        {
-            "type": "Layer",
             "id": "dc25d4dd-380d-4671-9898-d2f73c3c8abb",
             "label": "L15_WILDLIFE",
             "scope": "CLASS",
@@ -1851,6 +2216,7 @@
                     "y": 210,
                     "originX": 0,
                     "originY": 0,
+                    "visible": false,
                     "isFilled": true,
                     "fillColor": "#33ff88",
                     "fillAlpha": 0.12,
@@ -1869,6 +2235,7 @@
                     "y": 480,
                     "originX": 0,
                     "originY": 0,
+                    "visible": false,
                     "isFilled": true,
                     "fillColor": "#33ff88",
                     "fillAlpha": 0.12,
@@ -1887,6 +2254,7 @@
                     "y": 1235,
                     "originX": 0,
                     "originY": 0,
+                    "visible": false,
                     "isFilled": true,
                     "fillColor": "#33ff88",
                     "fillAlpha": 0.12,
@@ -1905,8 +2273,8 @@
                         "key": "wildlife-fox-trot",
                         "frame": 0
                     },
-                    "x": 900,
-                    "y": 350,
+                    "x": 1035,
+                    "y": 675,
                     "scaleX": 0.45,
                     "scaleY": 0.45,
                     "originY": 1
@@ -1919,8 +2287,8 @@
                         "key": "wildlife-rabbit-hop",
                         "frame": 0
                     },
-                    "x": 1560,
-                    "y": 400,
+                    "x": 1377,
+                    "y": 736,
                     "scaleX": 0.23,
                     "scaleY": 0.23,
                     "originY": 1
@@ -1971,224 +2339,10 @@
         },
         {
             "type": "Layer",
-            "id": "42145479-22f3-43da-b340-5ed576b70da9",
-            "label": "L5_QUADRANT_NW",
-            "list": [
-                {
-                    "type": "Image",
-                    "id": "5bfa6bcf-1d78-474e-b3da-62bc5df94763",
-                    "label": "FORGE_A_castle_lavender",
-                    "texture": {
-                        "key": "forge-v1"
-                    },
-                    "x": 3138,
-                    "y": -38,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                },
-                {
-                    "type": "Image",
-                    "id": "054c02b5-879a-4d7d-9e10-e29ab94f6c87",
-                    "label": "FORGE_B_warm_rock",
-                    "texture": {
-                        "key": "forge-v1-warm"
-                    },
-                    "x": 1704,
-                    "y": 439,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                }
-            ]
-        },
-        {
-            "type": "Layer",
-            "id": "d167cbd5-d317-4e10-a314-bf8dc852c1b5",
-            "label": "L6_QUADRANT_SW"
-        },
-        {
-            "type": "Layer",
-            "id": "deff59c9-e255-4a72-bf64-96af7cf8ab74",
-            "label": "L7_QUADRANT_SE"
-        },
-        {
-            "type": "Layer",
-            "id": "5ee6f813-9f73-488e-bdd5-fd599ad112c8",
-            "label": "L2_TERRAIN_1",
-            "list": [
-                {
-                    "type": "Image",
-                    "id": "d7e57fc1-55d4-45c7-9145-afa45be2b8ca",
-                    "label": "halo_stone_castle_terrain_wall_endcap_5",
-                    "texture": {
-                        "key": "terrain-wall-endcap"
-                    },
-                    "x": 1790,
-                    "y": 1558,
-                    "scaleX": -1
-                },
-                {
-                    "type": "Image",
-                    "id": "d24d39f6-b7d1-4442-8393-c6a59ba8d232",
-                    "label": "wallBandC_5",
-                    "texture": {
-                        "key": "terrain-wall-face-rock"
-                    },
-                    "x": 1117,
-                    "y": 1528,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "aad18941-445f-48a3-95d8-5358986ace76",
-                    "label": "halo_stone_castle_terrain_wall_boulders_1",
-                    "texture": {
-                        "key": "terrain-wall-boulders"
-                    },
-                    "x": 2012,
-                    "y": 1696
-                },
-                {
-                    "type": "Image",
-                    "id": "6c23e91c-3d3c-4121-a37d-865f8f7dd788",
-                    "label": "halo_stone_castle_terrain_wall_endcap_6",
-                    "texture": {
-                        "key": "terrain-wall-endcap"
-                    },
-                    "x": 2286,
-                    "y": 1376,
-                    "scaleX": -1
-                },
-                {
-                    "type": "TileSprite",
-                    "id": "defa8f82-0ca9-4b39-ac95-65339548d023",
-                    "label": "wallBandC_6",
-                    "texture": {
-                        "key": "terrain-wall-face-rock"
-                    },
-                    "x": 2353,
-                    "y": 1262,
-                    "originX": 0,
-                    "originY": 0,
-                    "width": 206,
-                    "height": 256
-                },
-                {
-                    "type": "TileSprite",
-                    "id": "ae017cd2-461f-401c-a34f-5bcab2d821e7",
-                    "label": "wallBandC_7",
-                    "texture": {
-                        "key": "terrain-wall-face-rock"
-                    },
-                    "x": 1885,
-                    "y": 1430,
-                    "originX": 0,
-                    "originY": 0,
-                    "width": 674,
-                    "height": 256
-                },
-                {
-                    "type": "Image",
-                    "id": "23db5842-f4d1-4152-8803-1b8b82ec79c2",
-                    "label": "wallStair_1",
-                    "texture": {
-                        "key": "terrain-wall-stair"
-                    },
-                    "x": 1173,
-                    "y": 1533,
-                    "scaleX": 1.6607407900003772,
-                    "scaleY": 0.8860267326421837,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "65c61fb3-0218-426a-86c3-62ff270fa832",
-                    "label": "wallPillarLeft_1",
-                    "texture": {
-                        "key": "terrain-wall-pillar"
-                    },
-                    "x": 1169,
-                    "y": 1519,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "874dcd5b-55c2-40ae-b740-fcd8cbe531e2",
-                    "label": "wallPillarRight_1",
-                    "texture": {
-                        "key": "terrain-wall-pillar"
-                    },
-                    "x": 1450,
-                    "y": 1521,
-                    "originX": 0,
-                    "originY": 0,
-                    "flipX": true
-                },
-                {
-                    "type": "Image",
-                    "id": "5d1b545f-0507-4203-8b64-f4dedf2f6121",
-                    "label": "wallBandC_8",
-                    "texture": {
-                        "key": "terrain-wall-face-rock"
-                    },
-                    "y": 1406,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "da56f558-a409-48b6-947e-7b5f35a57720",
-                    "label": "halo_stone_castle_terrain_wall_endcap_7",
-                    "texture": {
-                        "key": "terrain-wall-endcap"
-                    },
-                    "x": 817,
-                    "y": 1531
-                },
-                {
-                    "type": "Image",
-                    "id": "8a03e972-810e-4bbf-b423-2f8d0d74e5e9",
-                    "label": "wallBandC_9",
-                    "texture": {
-                        "key": "terrain-wall-face-rock"
-                    },
-                    "x": 350,
-                    "y": 1528,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "03f52ffc-e8a6-4597-adf3-5d16e28421e6",
-                    "label": "halo_stone_castle_terrain_wall_endcap_8",
-                    "texture": {
-                        "key": "terrain-wall-endcap"
-                    },
-                    "x": 1971,
-                    "y": 1657
-                },
-                {
-                    "type": "Image",
-                    "id": "190f73a0-800a-4f32-958a-a87f1010afa0",
-                    "label": "halo_stone_castle_terrain_wall_endcap_9",
-                    "texture": {
-                        "key": "terrain-wall-endcap"
-                    },
-                    "x": 272,
-                    "y": 1656,
-                    "scaleX": -1
-                }
-            ]
-        },
-        {
-            "type": "Layer",
             "id": "b64793da-4499-4b79-9eb1-7ca6e4d19874",
             "label": "L14_COLLIDERS",
             "scope": "CLASS",
+            "visible": false,
             "list": [
                 {
                     "type": "Rectangle",
@@ -2849,78 +3003,6 @@
                     "height": 24
                 }
             ]
-        },
-        {
-            "type": "Layer",
-            "id": "bfacd410-58b5-4822-8b8f-03433e4f7aa7",
-            "label": "L20_GROUND_L0",
-            "scope": "CLASS",
-            "list": [
-                {
-                    "type": "Rectangle",
-                    "id": "49d4e9bc-04e8-4b23-a72f-1b47bf57e785",
-                    "label": "PLATE_L0_lowGround",
-                    "y": 1624,
-                    "originX": 0,
-                    "originY": 0,
-                    "isFilled": true,
-                    "fillColor": "#66ff88",
-                    "fillAlpha": 0.25,
-                    "strokeColor": "#66ff88",
-                    "lineWidth": 3,
-                    "isStroked": true,
-                    "width": 2560,
-                    "height": 296
-                }
-            ]
-        },
-        {
-            "type": "Layer",
-            "id": "1541b86f-e8d4-489f-909e-48f3055788f1",
-            "label": "L21_GROUND_L1",
-            "scope": "CLASS",
-            "list": [
-                {
-                    "type": "Rectangle",
-                    "id": "d0ae49ac-84ac-43c8-ae3b-62f2aa094f53",
-                    "label": "PLATE_L1_castlePlateau",
-                    "originX": 0,
-                    "originY": 0,
-                    "isFilled": true,
-                    "fillColor": "#ffdd44",
-                    "fillAlpha": 0.25,
-                    "strokeColor": "#ffdd44",
-                    "lineWidth": 3,
-                    "isStroked": true,
-                    "width": 2560,
-                    "height": 1528
-                }
-            ]
-        },
-        {
-            "type": "Layer",
-            "id": "d2576454-a597-4084-8831-0895bd54219f",
-            "label": "L23_RAMPS",
-            "scope": "CLASS",
-            "list": [
-                {
-                    "type": "Rectangle",
-                    "id": "d3ca90a3-d58f-4435-b5a2-80f38bf3cca2",
-                    "label": "RAMP_greatStair",
-                    "x": 1261,
-                    "y": 1470,
-                    "originX": 0,
-                    "originY": 0,
-                    "isFilled": true,
-                    "fillColor": "#cc66ff",
-                    "fillAlpha": 0.3,
-                    "strokeColor": "#cc66ff",
-                    "lineWidth": 3,
-                    "isStroked": true,
-                    "width": 185,
-                    "height": 230
-                }
-            ]
         }
     ],
     "plainObjects": [
@@ -2964,14 +3046,22 @@
                     "tileHeight": 32,
                     "tileMargin": 0,
                     "tileSpacing": 0
+                },
+                {
+                    "name": "ground-tileset-tan-kerb-32",
+                    "imageKey": "ground-tileset-tan-kerb-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
                 }
             ],
             "paintLayerId": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
-            "paintTileset": "dirt-paving",
+            "paintTileset": "ground-tileset-forestfloor-dirt-32",
             "layers": [
                 {
                     "name": "ground",
-                    "data": "[64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,61,61,61,61,61,61,61,61,61,61,61,61,13,13,13,13,13,13,13,13,13,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,1,1,1,1,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,4,4,3,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,16,16,12,4,3,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,6,16,16,11,5,9,1,1,1,1,1,5,14,16,16,16,16,15,9,1,1,1,5,9,1,1,5,9,1,1,1,1,1,1,1,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,5,13,13,9,1,1,1,1,1,1,1,2,8,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,16,16,16,11,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,13,13,13,9,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,61,61,61,62,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,54,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,57,49,49,49,54,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,60,51,49,49,49,53,62,64,64,64,64,64,64,16,16,11,1,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,1,1,1,1,1,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,54,64,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,13,9,1,1,1,1,5,14,16,16,12,4,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,13,9,5,9,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,53,62,16,16,16,16,16,16,16,12,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,8,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,12,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,64,64,64,64,63,62,63,61,62,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,64,64,64,63,57,53,57,49,54,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,2,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,4,3,1,1,1,2,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,31,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,30,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,5,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,19,17,17,17,17,17,17,17,17,17,17,17,17,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,18,24,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,9,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,20,19,18,20,20,20,19,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,24,16,16,16,28,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]",
+                    "data": "[64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,45,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,34,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,37,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,43,33,38,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,33,33,33,33,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,61,61,61,62,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,54,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,57,49,49,49,54,64,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,60,51,49,49,49,53,62,64,64,64,64,64,64,16,16,11,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,54,64,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,13,9,1,1,1,1,5,14,16,16,12,4,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,13,9,5,9,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,53,62,16,16,16,16,16,16,16,12,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,8,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,12,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,64,64,64,64,63,62,63,61,62,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,64,64,64,63,57,53,57,49,54,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,2,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,4,3,1,1,1,2,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,31,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,30,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,5,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,19,17,17,17,17,17,17,17,17,17,17,17,17,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,18,24,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,9,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,20,19,18,20,20,20,19,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,24,16,16,16,28,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]",
                     "width": 80,
                     "height": 60,
                     "tileWidth": 32,
