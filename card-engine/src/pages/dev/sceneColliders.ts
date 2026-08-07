@@ -34,6 +34,11 @@
 
 import type Phaser from 'phaser';
 import type { Polygon } from '../castle/v2-preview/walkBlocking';
+import {
+  makeElevationMap,
+  type ElevationMap,
+  type LevelPlate,
+} from '../castle/v2-preview/elevation';
 
 /** The Editor label `L14_COLLIDERS` compiles to this class field. */
 export const COLLIDER_LAYER_VAR = 'l14_COLLIDERS';
@@ -165,3 +170,65 @@ function near(a: number, b: number, tolerance = 24): boolean {
     Math.abs(ch(a, 0) - ch(b, 0)) <= tolerance
   );
 }
+
+/* ------------------------------------------------------------------ elevation */
+
+/**
+ * Editor layers that define walkable floor, one per elevation level.
+ *
+ * Index IS the level: `L20_GROUND_L0` is level 0, `L21_GROUND_L1` is level 1.
+ * Each needs CLASS scope in the Editor so its variable survives compilation —
+ * the Editor never exposes an object's label at runtime, so the LAYER is the only
+ * place a level number can be written down where the game can read it.
+ */
+const LEVEL_LAYER_VARS = ['l20_GROUND_L0', 'l21_GROUND_L1', 'l22_GROUND_L2'] as const;
+
+/** Walkable connections between levels — the stairs. */
+const RAMP_LAYER_VAR = 'l23_RAMPS';
+
+/**
+ * Read the elevation map out of a running scene.
+ *
+ * A scene with none of these layers yields an empty map, and every consumer
+ * treats that as "the flat game" — which is what keeps `/dev/courtyard-v2-preview`
+ * and every lab behaving exactly as they did before elevation existed.
+ *
+ * Shape here is deliberately NOT colour-coded. Colour carries meaning in
+ * `L14_COLLIDERS` because a wall and a trigger sit side by side in one layer; a
+ * level is an ORDERED quantity, and encoding an ordinal as a hue is how you end
+ * up with a terrace that is silently one step too high.
+ */
+export function readSceneElevation(scene: Phaser.Scene): ElevationMap {
+  const fields = scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>;
+  const plates: LevelPlate[] = [];
+
+  LEVEL_LAYER_VARS.forEach((varName, level) => {
+    const layer = fields[varName];
+    if (!layer || typeof layer.getAll !== 'function') return;
+    for (const child of layer.list) {
+      if (!isRectangle(child)) continue;
+      plates.push({ level, polygon: cornersOf(child) });
+    }
+  });
+
+  const rampLayer = fields[RAMP_LAYER_VAR];
+  const ramps: Polygon[] =
+    rampLayer && typeof rampLayer.getAll === 'function'
+      ? rampLayer.list.filter(isRectangle).map(cornersOf)
+      : [];
+
+  return makeElevationMap(plates, ramps);
+}
+
+/** Every shape the elevation layers own, so the preview can show or hide them. */
+export function elevationShapes(scene: Phaser.Scene): Phaser.GameObjects.Rectangle[] {
+  const fields = scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>;
+  const out: Phaser.GameObjects.Rectangle[] = [];
+  for (const varName of [...LEVEL_LAYER_VARS, RAMP_LAYER_VAR]) {
+    const layer = fields[varName];
+    if (layer && typeof layer.getAll === 'function') out.push(...layer.list.filter(isRectangle));
+  }
+  return out;
+}
+
+export const ELEVATION_LAYER_VARS = [...LEVEL_LAYER_VARS, RAMP_LAYER_VAR] as const;

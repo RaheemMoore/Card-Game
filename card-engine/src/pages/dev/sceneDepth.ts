@@ -33,29 +33,63 @@
  *   L11_MARKERS  scale references and MISSING-wall notes. Authoring aids.
  *   L14_COLLIDERS the collision layer, which has its own visibility rules.
  *
- * KNOWN LIMIT — north/south walls
+ * ONE SPRITE GETS ONE DEPTH
  *
- * One sprite gets one depth. That is exact for a horizontal wall, whose base is a
- * single line. A wall running north-south has a base that spans hundreds of
- * pixels of Y, and the hero can stand level with its middle, where there is no
- * right answer. Those walls have to be cut into stacked segments in the Editor,
- * each with its own base. Until then the side walls will be wrong in the middle.
+ * Exact for a horizontal wall, whose base is a single line. Meaningless for a
+ * wall running north-south, whose base spans hundreds of pixels of Y — an actor
+ * can stand level with its middle, where there is no right answer. The castle's
+ * two side walls were cut into six stacked TileSprite segments each on
+ * 2026-08-07 for exactly this reason. Any new north-south wall needs the same.
+ *
+ * ELEVATION
+ *
+ * Depth also carries a level, `level * LEVEL_STRIDE + contactY`. Without it, a
+ * hero on top of a cliff and a hero at its foot have nearly the same Y and no
+ * amount of Y-sorting can tell them apart. See `elevation.ts`.
  */
 
 import type Phaser from 'phaser';
+import { EMPTY_ELEVATION, levelAt, type ElevationMap } from '../castle/v2-preview/elevation';
 
 /** Editor layers, by the class field their CLASS scope emits, that never y-sort. */
-const EXCLUDED_LAYER_VARS = ['l1_GROUND', 'l11_MARKERS', 'l14_COLLIDERS'] as const;
+const EXCLUDED_LAYER_VARS = [
+  'l1_GROUND',
+  'l11_MARKERS',
+  'l14_COLLIDERS',
+  // Elevation plates are authoring shapes, not scenery. Sorted into the band they
+  // would draw over the world they describe.
+  'l20_GROUND_L0',
+  'l21_GROUND_L1',
+  'l22_GROUND_L2',
+  'l23_RAMPS',
+] as const;
+
+/**
+ * Depth added per elevation level.
+ *
+ * Bigger than any possible ground-contact Y, so a hero standing on a terrace
+ * always sorts above everything on the level below regardless of where he is in
+ * Y. That is the half of the cliff problem plain `bounds.bottom` could never
+ * express: at the base of a cliff you are behind it, on top of it you are in
+ * front, and those are the same Y.
+ */
+export const LEVEL_STRIDE = 100_000;
 
 export const DEPTH = {
   /** Floor. Always beneath the band. */
   ground: 0,
   /** The y-sorted band itself. Children carry ground-contact Y as their depth. */
   band: 10,
-  /** Authoring aids, above the art so they can be seen when shown at all. */
-  markers: 90000,
-  /** Collision shapes, above everything, when `?colliders=show` asks for them. */
-  colliders: 99000,
+  /**
+   * Authoring aids and collision shapes, above EVERY level.
+   *
+   * These must stay above `LEVEL_STRIDE * maxLevel`. They were 90000/99000 while
+   * the world was flat; leaving them there once the stride existed would have hidden
+   * the collider overlay under any terrain on level 1 or above, and the symptom —
+   * "the collider reader broke" — looks nothing like the cause.
+   */
+  markers: 900_000,
+  colliders: 990_000,
 } as const;
 
 export interface DepthBand {
@@ -83,13 +117,42 @@ export function groundContactY(obj: Phaser.GameObjects.GameObject): number {
 }
 
 /**
+ * Depth for a static object, including its elevation.
+ *
+ * The cliff-face rule: a face image belongs to the LOWER level and sorts on its
+ * bottom edge, because it is a wall seen from the terrace below — everything on
+ * that terrace must draw over it. `levelAt(bounds.bottom)` gives that for free.
+ * The -1 bias resolves the equal-Y tie for an actor standing at the foot of it.
+ */
+export function depthOf(
+  obj: Phaser.GameObjects.GameObject,
+  map: ElevationMap = EMPTY_ELEVATION,
+): number {
+  const contact = groundContactY(obj);
+  const bounds = (obj as Phaser.GameObjects.Image).getBounds?.();
+  const centreX = bounds ? bounds.centerX : 0;
+  const level = levelAt(centreX, contact, map) ?? 0;
+
+  const key = (obj as Phaser.GameObjects.Image).texture?.key ?? '';
+  const isTerrainFace = key.startsWith('terrain-wall-');
+
+  return level * LEVEL_STRIDE + contact + (isTerrainFace ? -1 : 0);
+}
+
+/**
  * Collapse the Editor's layers into one sorted band.
  *
  * Safe to call once, after the compiled `editorCreate()` has run and before the
  * hero is spawned. Returns the band so the hero can be added to it — he has to
  * sort against the walls, which means being their sibling.
+ *
+ * `map` is optional and defaults to flat, so a scene with no elevation layers
+ * sorts exactly as it did before levels existed.
  */
-export function buildDepthBand(scene: Phaser.Scene): DepthBand {
+export function buildDepthBand(
+  scene: Phaser.Scene,
+  map: ElevationMap = EMPTY_ELEVATION,
+): DepthBand {
   const fields = scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>;
   // Phaser types `Layer` as a display-list member without extending GameObject, so
   // the set is widened to `unknown` rather than fought with per-line casts.
@@ -103,6 +166,9 @@ export function buildDepthBand(scene: Phaser.Scene): DepthBand {
   fields.l1_GROUND?.setDepth(DEPTH.ground);
   fields.l11_MARKERS?.setDepth(DEPTH.markers);
   fields.l14_COLLIDERS?.setDepth(DEPTH.colliders);
+  for (const name of ['l20_GROUND_L0', 'l21_GROUND_L1', 'l22_GROUND_L2', 'l23_RAMPS']) {
+    fields[name]?.setDepth(DEPTH.markers);
+  }
 
   const band = scene.add.layer().setDepth(DEPTH.band);
 
@@ -120,7 +186,7 @@ export function buildDepthBand(scene: Phaser.Scene): DepthBand {
     for (const child of movable) {
       if (excluded.has(child)) continue;
       band.add(child);
-      (child as Phaser.GameObjects.Image).setDepth?.(groundContactY(child));
+      (child as Phaser.GameObjects.Image).setDepth?.(depthOf(child, map));
       sorted += 1;
     }
   }

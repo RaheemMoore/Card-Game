@@ -345,11 +345,12 @@ class CourtyardV2 extends Phaser.Scene {
 		pASS_wallSouthC.visible = false;
 		l3_CASTLE.add(pASS_wallSouthC);
 
-		// SHELF_wall_side_1
-		const sHELF_wall_side_1 = this.add.image(523, 582, "wall-side");
-		sHELF_wall_side_1.scaleX = 1.142292861719713;
-		sHELF_wall_side_1.scaleY = 1.3873158625341773;
-		l3_CASTLE.add(sHELF_wall_side_1);
+		// RETIRED_wall_side_west_uncut
+		const rETIRED_wall_side_west_uncut = this.add.image(523, 582, "wall-side");
+		rETIRED_wall_side_west_uncut.scaleX = 1.142292861719713;
+		rETIRED_wall_side_west_uncut.scaleY = 1.3873158625341773;
+		rETIRED_wall_side_west_uncut.visible = false;
+		l3_CASTLE.add(rETIRED_wall_side_west_uncut);
 
 		// PASS_wallSouthD
 		const pASS_wallSouthD = this.add.image(1696, 928, "wall-straight-v2");
@@ -357,11 +358,12 @@ class CourtyardV2 extends Phaser.Scene {
 		pASS_wallSouthD.visible = false;
 		l3_CASTLE.add(pASS_wallSouthD);
 
-		// SHELF_wall_side_3
-		const sHELF_wall_side_3 = this.add.image(2110, 583, "wall-side");
-		sHELF_wall_side_3.scaleX = 1.142292861719713;
-		sHELF_wall_side_3.scaleY = 1.3873158625341773;
-		l3_CASTLE.add(sHELF_wall_side_3);
+		// RETIRED_wall_side_east_uncut
+		const rETIRED_wall_side_east_uncut = this.add.image(2110, 583, "wall-side");
+		rETIRED_wall_side_east_uncut.scaleX = 1.142292861719713;
+		rETIRED_wall_side_east_uncut.scaleY = 1.3873158625341773;
+		rETIRED_wall_side_east_uncut.visible = false;
+		l3_CASTLE.add(rETIRED_wall_side_east_uncut);
 
 		// castleTowerWest_2
 		const castleTowerWest_2 = this.add.image(321, 681, "tower-watch-v2");
@@ -417,6 +419,100 @@ class CourtyardV2 extends Phaser.Scene {
 		const sHELF_corner_outer_v2 = this.add.image(2982, 1629, "wall-corner-outer-v2");
 		sHELF_corner_outer_v2.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_corner_outer_v2);
+
+		// castleWall_west_seg1
+		const castleWall_west_seg1 = this.add.tileSprite(523, 49.27000045776367, 192, 128, "wall-side");
+		castleWall_west_seg1.scaleX = 1.142292861719713;
+		castleWall_west_seg1.scaleY = 1.3873158625341773;
+		castleWall_west_seg1.setOrigin(0.5, 0);
+		l3_CASTLE.add(castleWall_west_seg1);
+
+		// castleWall_west_seg2
+		const castleWall_west_seg2 = this.add.tileSprite(523, 226.85000610351562, 192, 128, "wall-side");
+		castleWall_west_seg2.scaleX = 1.142292861719713;
+		castleWall_west_seg2.scaleY = 1.3873158625341773;
+		castleWall_west_seg2.setOrigin(0.5, 0);
+		castleWall_west_seg2.tilePositionY = 128;
+		l3_CASTLE.add(castleWall_west_seg2);
+
+		// castleWall_west_seg3
+		const castleWall_west_seg3 = this.add.tileSprite(523, 404.4200134277344, 192, 128, "wall-side");
+		castleWall_west_seg3.scaleX = 1.142292861719713;
+		castleWall_west_seg3.scaleY = 1.3873158625341773;
+		castleWall_west_seg3.setOrigin(0.5, 0);
+		castleWall_west_seg3.tilePositionY = 256;
+		l3_CASTLE.add(castleWall_west_seg3);
+
+		// castleWall_west_seg4
+		const castleWall_west_seg4 = this.add.tileSprite(523, 582, 192, 128, "wall-side");
+		castleWall_west_seg4.scaleX = 1.142292861719713;
+		castleWall_west_seg4.scaleY = 1.3873158625341773;
+		castleWall_west_seg4.setOrigin(0.5, 0);
+		castleWall_west_seg4.tilePositionY = 384;
+		l3_CASTLE.add(castleWall_west_seg4);
+
+		// castleWall_west_seg5
+		const castleWall_west_seg5 = this.add.tileSprite(523, 759.5800170898438, 192, 128, "wall-side");
+		castleWall_west_seg5.scaleX = 1.142292861719713;
+		castleWall_west_seg5.scaleY = 1.3873158625341773;
+		castleWall_west_seg5.setOrigin(0.5, 0);
+		castleWall_west_seg5.tilePositionY = 512;
+		l3_CASTLE.add(castleWall_west_seg5);
+
+		// castleWall_west_seg6
+		const castleWall_west_seg6 = this.add.tileSprite(523, 937.1500244140625, 192, 128, "wall-side");
+		castleWall_west_seg6.scaleX = 1.142292861719713;
+		castleWall_west_seg6.scaleY = 1.3873158625341773;
+		castleWall_west_seg6.setOrigin(0.5, 0);
+		castleWall_west_seg6.tilePositionY = 640;
+		l3_CASTLE.add(castleWall_west_seg6);
+
+		// castleWall_east_seg1
+		const castleWall_east_seg1 = this.add.tileSprite(2110, 50.27000045776367, 192, 128, "wall-side");
+		castleWall_east_seg1.scaleX = 1.142292861719713;
+		castleWall_east_seg1.scaleY = 1.3873158625341773;
+		castleWall_east_seg1.setOrigin(0.5, 0);
+		l3_CASTLE.add(castleWall_east_seg1);
+
+		// castleWall_east_seg2
+		const castleWall_east_seg2 = this.add.tileSprite(2110, 227.85000610351562, 192, 128, "wall-side");
+		castleWall_east_seg2.scaleX = 1.142292861719713;
+		castleWall_east_seg2.scaleY = 1.3873158625341773;
+		castleWall_east_seg2.setOrigin(0.5, 0);
+		castleWall_east_seg2.tilePositionY = 128;
+		l3_CASTLE.add(castleWall_east_seg2);
+
+		// castleWall_east_seg3
+		const castleWall_east_seg3 = this.add.tileSprite(2110, 405.4200134277344, 192, 128, "wall-side");
+		castleWall_east_seg3.scaleX = 1.142292861719713;
+		castleWall_east_seg3.scaleY = 1.3873158625341773;
+		castleWall_east_seg3.setOrigin(0.5, 0);
+		castleWall_east_seg3.tilePositionY = 256;
+		l3_CASTLE.add(castleWall_east_seg3);
+
+		// castleWall_east_seg4
+		const castleWall_east_seg4 = this.add.tileSprite(2110, 583, 192, 128, "wall-side");
+		castleWall_east_seg4.scaleX = 1.142292861719713;
+		castleWall_east_seg4.scaleY = 1.3873158625341773;
+		castleWall_east_seg4.setOrigin(0.5, 0);
+		castleWall_east_seg4.tilePositionY = 384;
+		l3_CASTLE.add(castleWall_east_seg4);
+
+		// castleWall_east_seg5
+		const castleWall_east_seg5 = this.add.tileSprite(2110, 760.5800170898438, 192, 128, "wall-side");
+		castleWall_east_seg5.scaleX = 1.142292861719713;
+		castleWall_east_seg5.scaleY = 1.3873158625341773;
+		castleWall_east_seg5.setOrigin(0.5, 0);
+		castleWall_east_seg5.tilePositionY = 512;
+		l3_CASTLE.add(castleWall_east_seg5);
+
+		// castleWall_east_seg6
+		const castleWall_east_seg6 = this.add.tileSprite(2110, 938.1500244140625, 192, 128, "wall-side");
+		castleWall_east_seg6.scaleX = 1.142292861719713;
+		castleWall_east_seg6.scaleY = 1.3873158625341773;
+		castleWall_east_seg6.setOrigin(0.5, 0);
+		castleWall_east_seg6.tilePositionY = 640;
+		l3_CASTLE.add(castleWall_east_seg6);
 
 		// L12_FOREST_CANOPY
 		const l12_FOREST_CANOPY = this.add.layer();
@@ -869,8 +965,96 @@ class CourtyardV2 extends Phaser.Scene {
 		nE_apprentice_cardwright.setOrigin(0.5, 1);
 		l4_QUADRANT_NE.add(nE_apprentice_cardwright);
 
+		// L15_WILDLIFE
+		const l15_WILDLIFE = this.add.layer();
+
+		// ROAM_canopyEdge
+		const rOAM_canopyEdge = this.add.rectangle(620, 210, 1380, 260);
+		rOAM_canopyEdge.setOrigin(0, 0);
+		rOAM_canopyEdge.isFilled = true;
+		rOAM_canopyEdge.fillColor = 3407752;
+		rOAM_canopyEdge.fillAlpha = 0.12;
+		rOAM_canopyEdge.isStroked = true;
+		rOAM_canopyEdge.strokeColor = 3407752;
+		rOAM_canopyEdge.strokeAlpha = 0.7;
+		rOAM_canopyEdge.lineWidth = 3;
+		l15_WILDLIFE.add(rOAM_canopyEdge);
+
+		// ROAM_courtyardGreen
+		const rOAM_courtyardGreen = this.add.rectangle(620, 480, 1380, 450);
+		rOAM_courtyardGreen.setOrigin(0, 0);
+		rOAM_courtyardGreen.isFilled = true;
+		rOAM_courtyardGreen.fillColor = 3407752;
+		rOAM_courtyardGreen.fillAlpha = 0.12;
+		rOAM_courtyardGreen.isStroked = true;
+		rOAM_courtyardGreen.strokeColor = 3407752;
+		rOAM_courtyardGreen.strokeAlpha = 0.7;
+		rOAM_courtyardGreen.lineWidth = 3;
+		l15_WILDLIFE.add(rOAM_courtyardGreen);
+
+		// ROAM_castleFront
+		const rOAM_castleFront = this.add.rectangle(420, 1235, 1760, 155);
+		rOAM_castleFront.setOrigin(0, 0);
+		rOAM_castleFront.isFilled = true;
+		rOAM_castleFront.fillColor = 3407752;
+		rOAM_castleFront.fillAlpha = 0.12;
+		rOAM_castleFront.isStroked = true;
+		rOAM_castleFront.strokeColor = 3407752;
+		rOAM_castleFront.strokeAlpha = 0.7;
+		rOAM_castleFront.lineWidth = 3;
+		l15_WILDLIFE.add(rOAM_castleFront);
+
+		// wildlifeFoxA
+		const wildlifeFoxA = this.add.sprite(900, 350, "wildlife-fox-trot", 0);
+		wildlifeFoxA.scaleX = 0.45;
+		wildlifeFoxA.scaleY = 0.45;
+		wildlifeFoxA.setOrigin(0.5, 1);
+		l15_WILDLIFE.add(wildlifeFoxA);
+
+		// wildlifeRabbitA
+		const wildlifeRabbitA = this.add.sprite(1560, 400, "wildlife-rabbit-hop", 0);
+		wildlifeRabbitA.scaleX = 0.23;
+		wildlifeRabbitA.scaleY = 0.23;
+		wildlifeRabbitA.setOrigin(0.5, 1);
+		l15_WILDLIFE.add(wildlifeRabbitA);
+
+		// wildlifeRabbitB
+		const wildlifeRabbitB = this.add.sprite(1020, 700, "wildlife-rabbit-hop", 0);
+		wildlifeRabbitB.scaleX = 0.23;
+		wildlifeRabbitB.scaleY = 0.23;
+		wildlifeRabbitB.setOrigin(0.5, 1);
+		l15_WILDLIFE.add(wildlifeRabbitB);
+
+		// wildlifeFoxB
+		const wildlifeFoxB = this.add.sprite(1780, 640, "wildlife-fox-trot", 0);
+		wildlifeFoxB.scaleX = 0.45;
+		wildlifeFoxB.scaleY = 0.45;
+		wildlifeFoxB.setOrigin(0.5, 1);
+		l15_WILDLIFE.add(wildlifeFoxB);
+
+		// wildlifeTortoiseC
+		const wildlifeTortoiseC = this.add.sprite(1150, 1320, "wildlife-tortoise-toddle", 0);
+		wildlifeTortoiseC.scaleX = 0.32;
+		wildlifeTortoiseC.scaleY = 0.32;
+		wildlifeTortoiseC.setOrigin(0.5, 1);
+		l15_WILDLIFE.add(wildlifeTortoiseC);
+
 		// L5_QUADRANT_NW
-		this.add.layer();
+		const l5_QUADRANT_NW = this.add.layer();
+
+		// FORGE_A_castle_lavender
+		const fORGE_A_castle_lavender = this.add.image(3138, -38, "forge-v1");
+		fORGE_A_castle_lavender.scaleX = 2;
+		fORGE_A_castle_lavender.scaleY = 2;
+		fORGE_A_castle_lavender.setOrigin(0.5, 1);
+		l5_QUADRANT_NW.add(fORGE_A_castle_lavender);
+
+		// FORGE_B_warm_rock
+		const fORGE_B_warm_rock = this.add.image(1704, 439, "forge-v1-warm");
+		fORGE_B_warm_rock.scaleX = 2;
+		fORGE_B_warm_rock.scaleY = 2;
+		fORGE_B_warm_rock.setOrigin(0.5, 1);
+		l5_QUADRANT_NW.add(fORGE_B_warm_rock);
 
 		// L6_QUADRANT_SW
 		this.add.layer();
@@ -999,8 +1183,10 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_mapEdge_east);
 
 		// BLOCK_cliff_centreEast
-		const bLOCK_cliff_centreEast = this.add.rectangle(1446, 1528, 439, 96);
-		bLOCK_cliff_centreEast.setOrigin(0, 0);
+		const bLOCK_cliff_centreEast = this.add.rectangle(2062.6238589286804, 1654.964038848877, 439, 96);
+		bLOCK_cliff_centreEast.scaleX = 1.3494578878555674;
+		bLOCK_cliff_centreEast.scaleY = 2.645084036296617;
+		bLOCK_cliff_centreEast.setOrigin(1, 0.5);
 		bLOCK_cliff_centreEast.isFilled = true;
 		bLOCK_cliff_centreEast.fillColor = 16724821;
 		bLOCK_cliff_centreEast.fillAlpha = 0.35;
@@ -1395,9 +1581,55 @@ class CourtyardV2 extends Phaser.Scene {
 		bLOCK_cliffStep_westLowerEnd_3.lineWidth = 2;
 		l14_COLLIDERS.add(bLOCK_cliffStep_westLowerEnd_3);
 
+		// L20_GROUND_L0
+		const l20_GROUND_L0 = this.add.layer();
+
+		// PLATE_L0_lowGround
+		const pLATE_L0_lowGround = this.add.rectangle(0, 1624, 2560, 296);
+		pLATE_L0_lowGround.setOrigin(0, 0);
+		pLATE_L0_lowGround.isFilled = true;
+		pLATE_L0_lowGround.fillColor = 6750088;
+		pLATE_L0_lowGround.fillAlpha = 0.25;
+		pLATE_L0_lowGround.isStroked = true;
+		pLATE_L0_lowGround.strokeColor = 6750088;
+		pLATE_L0_lowGround.lineWidth = 3;
+		l20_GROUND_L0.add(pLATE_L0_lowGround);
+
+		// L21_GROUND_L1
+		const l21_GROUND_L1 = this.add.layer();
+
+		// PLATE_L1_castlePlateau
+		const pLATE_L1_castlePlateau = this.add.rectangle(0, 0, 2560, 1528);
+		pLATE_L1_castlePlateau.setOrigin(0, 0);
+		pLATE_L1_castlePlateau.isFilled = true;
+		pLATE_L1_castlePlateau.fillColor = 16768324;
+		pLATE_L1_castlePlateau.fillAlpha = 0.25;
+		pLATE_L1_castlePlateau.isStroked = true;
+		pLATE_L1_castlePlateau.strokeColor = 16768324;
+		pLATE_L1_castlePlateau.lineWidth = 3;
+		l21_GROUND_L1.add(pLATE_L1_castlePlateau);
+
+		// L23_RAMPS
+		const l23_RAMPS = this.add.layer();
+
+		// RAMP_greatStair
+		const rAMP_greatStair = this.add.rectangle(1261, 1470, 185, 230);
+		rAMP_greatStair.setOrigin(0, 0);
+		rAMP_greatStair.isFilled = true;
+		rAMP_greatStair.fillColor = 13395711;
+		rAMP_greatStair.fillAlpha = 0.3;
+		rAMP_greatStair.isStroked = true;
+		rAMP_greatStair.strokeColor = 13395711;
+		rAMP_greatStair.lineWidth = 3;
+		l23_RAMPS.add(rAMP_greatStair);
+
 		this.l1_GROUND = l1_GROUND;
 		this.l11_MARKERS = l11_MARKERS;
+		this.l15_WILDLIFE = l15_WILDLIFE;
 		this.l14_COLLIDERS = l14_COLLIDERS;
+		this.l20_GROUND_L0 = l20_GROUND_L0;
+		this.l21_GROUND_L1 = l21_GROUND_L1;
+		this.l23_RAMPS = l23_RAMPS;
 		this.courtyardGround = courtyardGround;
 
 		this.events.emit("scene-awake");
@@ -1408,7 +1640,15 @@ class CourtyardV2 extends Phaser.Scene {
 	/** @type {Phaser.GameObjects.Layer} */
 	l11_MARKERS;
 	/** @type {Phaser.GameObjects.Layer} */
+	l15_WILDLIFE;
+	/** @type {Phaser.GameObjects.Layer} */
 	l14_COLLIDERS;
+	/** @type {Phaser.GameObjects.Layer} */
+	l20_GROUND_L0;
+	/** @type {Phaser.GameObjects.Layer} */
+	l21_GROUND_L1;
+	/** @type {Phaser.GameObjects.Layer} */
+	l23_RAMPS;
 	/** @type {Phaser.Tilemaps.Tilemap} */
 	courtyardGround;
 

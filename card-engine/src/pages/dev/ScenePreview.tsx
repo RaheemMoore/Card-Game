@@ -11,8 +11,22 @@ import {
 } from '../../data/castle/heroSprite';
 import { SCENE_BEHAVIORS, type SceneBehavior } from './sceneBehaviors';
 import { readSceneColliders, type SceneColliders } from './sceneColliders';
-import { buildDepthBand } from './sceneDepth';
-import { feetBlocked, resolveWalk } from '../castle/v2-preview/walkBlocking';
+import { readSceneWildlife, type SceneWildlife } from './sceneWildlife';
+import { readSceneElevation, elevationShapes } from './sceneColliders';
+import { GROUND_SHADOW as HERO_SHADOW, makeGroundShadowTexture } from '../castle/groundShadow';
+import { buildDepthBand, LEVEL_STRIDE } from './sceneDepth';
+import { feetBlocked } from '../castle/v2-preview/walkBlocking';
+import {
+  EMPTY_ELEVATION,
+  JUMP_MS,
+  JUMP_RISE,
+  jumpArc,
+  levelAt,
+  resolveJump,
+  resolveWalkOnLevel,
+  unlandablePlates,
+  type ElevationMap,
+} from '../castle/v2-preview/elevation';
 import { HERO_FEET } from '../../data/castle/heroSprite';
 
 /**
@@ -39,7 +53,11 @@ import { HERO_FEET } from '../../data/castle/heroSprite';
  * back here by `sceneColliders.ts`. A scene without that layer still runs; you
  * simply walk through everything, which is how this route worked until 2026-08-07.
  *
- * Add `?colliders=show` to the URL to see the shapes over the art while walking.
+ * Elevation is authored the same way, one Editor layer per level, and read by
+ * `readSceneElevation`. Cliffs block by themselves once plates exist; SPACE jumps
+ * one level up. See `elevation.ts` for why height is the point rather than jumping.
+ *
+ * URL flags: `?colliders=show`, `?wildlife=show`, `?markers=show`, `?levels=show`.
  */
 
 const DEFAULT_SCENE = 'CourtyardV2';
@@ -147,20 +165,24 @@ const YSORT_SCENES = new Set(['CourtyardV2']);
  * Texture keys a scene needs that never appear in its compiled source.
  *
  * `entriesUsedBy` finds keys by looking for them quoted in the code, which works
- * only for textures sitting on a placed object. WildlifeLab places three of its
- * six animal sheets; the other three are reached solely through animations
- * created at run time, so nothing would name them and they would silently fail
- * to load — no error, just an animal missing two thirds of its behaviour.
+ * only for textures sitting on a placed object. Both wildlife scenes place an
+ * animal on its MOVE sheet; sniff, sit-and-listen and nibble are reached solely
+ * through animations created at run time, so nothing would name them and they
+ * would silently fail to load — no error, just an animal missing two thirds of
+ * its behaviour.
  */
+const WILDLIFE_SHEETS = [
+  'wildlife-fox-trot',
+  'wildlife-fox-sniff',
+  'wildlife-fox-sit-alert',
+  'wildlife-rabbit-hop',
+  'wildlife-rabbit-nibble-groom',
+  'wildlife-tortoise-toddle',
+] as const;
+
 const ALWAYS_LOADED: Record<string, readonly string[]> = {
-  WildlifeLab: [
-    'wildlife-fox-trot',
-    'wildlife-fox-sniff',
-    'wildlife-fox-sit-alert',
-    'wildlife-rabbit-hop',
-    'wildlife-rabbit-nibble-groom',
-    'wildlife-tortoise-toddle',
-  ],
+  WildlifeLab: WILDLIFE_SHEETS,
+  CourtyardV2: WILDLIFE_SHEETS,
 };
 
 type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
@@ -180,8 +202,27 @@ function makeScene(
     private behavior?: SceneBehavior;
     private facing: HeroFacing = 'down';
     private colliders: SceneColliders = { blockers: [], zones: [], shapes: [], missing: true };
+    private wildlife: SceneWildlife = {
+      animals: [],
+      areas: [],
+      shapes: [],
+      improvised: [],
+      missing: true,
+    };
     private depthBand?: Phaser.GameObjects.Layer;
     private sortedCount = 0;
+    private elevation: ElevationMap = EMPTY_ELEVATION;
+    /**
+     * Truth for collision, level and depth. The SPRITE's y is this minus the
+     * jump arc, which is display only — conflating the two is how a jump becomes
+     * a hero who can walk through walls at the top of his hop.
+     */
+    private feetY = 0;
+    private level = 0;
+    private air = 0;
+    private jumpKey?: Phaser.Input.Keyboard.Key;
+    private jump?: { fromX: number; fromY: number; toX: number; toY: number; toLevel: number; t: number; ok: boolean };
+    private shadow?: Phaser.GameObjects.Image;
     /** Which zones the feet were inside last frame, so enter/leave fire once. */
     private insideZones = new Set<number>();
 
@@ -262,10 +303,35 @@ function makeScene(
       // shapes are authoring aids: they are drawn in the Editor to be looked at,
       // and they must never be visible over the finished art unless asked for.
       this.colliders = readSceneColliders(this);
-      const showColliders =
-        new URLSearchParams(window.location.search).get('colliders') === 'show';
+      const params = new URLSearchParams(window.location.search);
+      const showColliders = params.get('colliders') === 'show';
       for (const shape of this.colliders.shapes) {
         shape.setVisible(showColliders);
+      }
+
+      // Same deal for the roaming areas, and for the same ordering reason: the
+      // depth band below empties every layer it sweeps, so both must be read now.
+      this.wildlife = readSceneWildlife(this);
+      const showRoamAreas = params.get('wildlife') === 'show';
+      for (const shape of this.wildlife.shapes) {
+        shape.setVisible(showRoamAreas);
+      }
+
+      // Elevation MUST be read before the depth band: the band asks every object
+      // what level it stands on, and a band built first puts the whole world on
+      // level 0 — a failure whose symptom (bad sorting) looks nothing like its cause.
+      this.elevation = readSceneElevation(this);
+      const showLevels = params.get('levels') === 'show';
+      for (const shape of elevationShapes(this)) {
+        shape.setVisible(showLevels);
+      }
+
+      // Silent unreachability is what this system fails at. A terrace too small to
+      // stand on can be seen and never visited, with no error anywhere.
+      for (const bad of unlandablePlates(this.elevation, HERO_FEET.width, HERO_FEET.height)) {
+        console.warn(
+          `[elevation] level ${bad.level} plate is ${Math.round(bad.width)}x${Math.round(bad.height)} — too small to land on (feet are ${HERO_FEET.width}x${HERO_FEET.height}).`,
+        );
       }
 
       // World size comes from the tilemap when there is one, and from whatever was
@@ -279,7 +345,7 @@ function makeScene(
       // Collapse the Editor's layers into one y-sorted band, so a wall and the
       // hero can sort against each other at all. See sceneDepth.ts.
       if (YSORT_SCENES.has(sceneName)) {
-        const band = buildDepthBand(this);
+        const band = buildDepthBand(this, this.elevation);
         this.depthBand = band.layer;
         this.sortedCount = band.sorted;
 
@@ -314,7 +380,11 @@ function makeScene(
 
       // Runtime behavior for scenes that have some. The Editor's compiled file
       // cannot import it (see sceneBehaviors/types.ts), so it is attached here.
-      this.behavior = SCENE_BEHAVIORS[sceneName]?.(this);
+      this.behavior = SCENE_BEHAVIORS[sceneName]?.(this, {
+        blockers: this.colliders.blockers,
+        wildlife: this.wildlife,
+        showWildlife: showRoamAreas,
+      });
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.behavior?.destroy();
         this.behavior = undefined;
@@ -330,7 +400,7 @@ function makeScene(
         message: this.failedKeys.length
           ? `${this.failedKeys.length} texture(s) failed: ${this.failedKeys.slice(0, 6).join(', ')}`
           : this.sortedCount
-            ? `${this.sortedCount} objects y-sorted · ${this.colliders.blockers.length} blockers`
+            ? `${this.sortedCount} y-sorted · ${this.colliders.blockers.length} blockers · ${this.elevation.plates.length} level plates`
             : undefined,
       });
     }
@@ -360,6 +430,19 @@ function makeScene(
       const y = Number(url.get('y') ?? bounds.centerY);
 
       const scale = HERO_WORLD_HEIGHT / HERO_SHEET.frameHeight;
+
+      this.feetY = y;
+      this.level = levelAt(x, y - HERO_FEET.height / 2, this.elevation) ?? 0;
+
+      // The shadow is not decoration. A sprite that lifts with nothing left behind
+      // on the floor reads as sliding, not jumping — the shadow is the only thing
+      // that tells you the ground did not move. So it ships before the jump does,
+      // and it improves plain walking on its own.
+      this.shadow = this.add
+        .image(x, y, makeGroundShadowTexture(this))
+        .setOrigin(0.5, 0.5)
+        .setAlpha(HERO_SHADOW.alpha);
+
       this.player = this.add
         .sprite(x, y, HERO_SHEET.key, idleFrame('down'))
         .setOrigin(0.5, 1)
@@ -375,8 +458,9 @@ function makeScene(
       // the band would never compare no matter what depths they carried.
       if (this.depthBand) {
         this.depthBand.add(this.player);
-        this.player.setDepth(this.player.y);
+        this.depthBand.add(this.shadow);
       }
+      this.applyHeroTransform();
 
       for (const f of HERO_FACINGS) {
         if (this.anims.exists(walkKey(f))) continue;
@@ -391,6 +475,31 @@ function makeScene(
       const keyboard = this.input.keyboard!;
       this.cursors = keyboard.createCursorKeys();
       this.wasd = keyboard.addKeys('W,A,S,D') as typeof this.wasd;
+      this.jumpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    }
+
+    /**
+     * Push `feetY`, `level` and `air` onto the sprite and its shadow.
+     *
+     * One place, called from every path, so the sprite can never disagree with the
+     * state the collision maths is using.
+     */
+    private applyHeroTransform() {
+      if (!this.player) return;
+      this.player.y = this.feetY - this.air;
+      this.player.setDepth(
+        this.depthBand ? this.level * LEVEL_STRIDE + this.feetY : 100000,
+      );
+
+      if (!this.shadow) return;
+      // Pinned to the FLOOR, never to the sprite. It shrinks and fades with height
+      // the way a real contact shadow does, which is what sells the arc.
+      const lift = this.air / Math.max(JUMP_RISE, 1);
+      this.shadow.x = this.player.x;
+      this.shadow.y = this.feetY;
+      this.shadow.setDepth(this.player.depth - 1);
+      this.shadow.setScale(HERO_SHADOW.widthRatio * (1 - 0.2 * lift));
+      this.shadow.setAlpha(HERO_SHADOW.alpha * (1 - 0.36 * lift));
     }
 
     update(time: number, delta: number) {
@@ -408,6 +517,7 @@ function makeScene(
 
     private movePlayer(delta: number) {
       if (!this.player) return;
+      if (this.jump) return this.advanceJump(delta);
 
       const left = this.cursors!.left.isDown || this.wasd!.A.isDown;
       const right = this.cursors!.right.isDown || this.wasd!.D.isDown;
@@ -420,6 +530,10 @@ function makeScene(
         const inv = Math.SQRT1_2;
         dx *= inv;
         dy *= inv;
+      }
+
+      if (this.jumpKey && Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
+        return this.startJump(dx, dy);
       }
 
       if (dx === 0 && dy === 0) {
@@ -439,24 +553,100 @@ function makeScene(
       // Collision is tested against the FEET, not the sprite. A top-down hero is
       // a picture standing on a small patch of floor; boxing the picture would
       // stop him a whole body-height short of every wall.
+      //
+      // Height rides along: a cliff blocks because the floor stops being that high
+      // there, not because anyone drew a collider along its lip. That is why the
+      // terrace edge and the collider can never disagree about where the edge is.
       const feet = this.feetRect();
-      const move = resolveWalk(feet, dx * step, dy * step, this.colliders.blockers);
+      const move = resolveWalkOnLevel(
+        feet,
+        dx * step,
+        dy * step,
+        this.colliders.blockers,
+        this.elevation,
+        this.level,
+      );
 
       this.player.x = Phaser.Math.Clamp(move.x + HERO_FEET.width / 2, b.x, b.right);
-      this.player.y = Phaser.Math.Clamp(move.y + HERO_FEET.height, b.y, b.bottom);
-      // Feet Y IS the depth. This one line is the whole "am I in front of the
-      // wall or behind it" question, and it answers it for every object in the
-      // band at once, including ones placed long after this code was written.
-      this.player.setDepth(this.depthBand ? this.player.y : 100000);
+      this.feetY = Phaser.Math.Clamp(move.y + HERO_FEET.height, b.y, b.bottom);
+      this.level = move.level;
+      this.applyHeroTransform();
 
       this.checkZones();
+    }
+
+    /**
+     * Take off, if there is anywhere to land.
+     *
+     * Direction is the held input, or the facing when standing still — so Space at
+     * a cliff you are already looking at does the obvious thing.
+     */
+    private startJump(dx: number, dy: number) {
+      const facingVec: Record<HeroFacing, [number, number]> = {
+        up: [0, -1],
+        down: [0, 1],
+        left: [-1, 0],
+        right: [1, 0],
+      };
+      const [fx, fy] = dx === 0 && dy === 0 ? facingVec[this.facing] : [dx, dy];
+
+      const result = resolveJump(
+        this.feetRect(),
+        fx,
+        fy,
+        this.colliders.blockers,
+        this.elevation,
+        this.level,
+      );
+
+      this.player!.anims.stop();
+      this.player!.setFrame(walkFrames(this.facing)[2]);
+
+      // A failed jump still PLAYS: he commits, does not make it, and comes back.
+      // Silently refusing to move would read as a dead key rather than a hard ledge.
+      this.jump = {
+        fromX: this.player!.x,
+        fromY: this.feetY,
+        toX: result.outcome === 'landed' ? result.x + HERO_FEET.width / 2 : this.player!.x,
+        toY: result.outcome === 'landed' ? result.y + HERO_FEET.height : this.feetY,
+        toLevel: result.level,
+        t: 0,
+        ok: result.outcome === 'landed',
+      };
+    }
+
+    /**
+     * Airborne. Collision was already decided at takeoff, which is what makes the
+     * whole jump a pure function of one moment and keeps it unit-testable.
+     */
+    private advanceJump(delta: number) {
+      const j = this.jump!;
+      // A failed jump is the same arc at a fraction of the reach and a bit quicker:
+      // he lunges, does not reach, drops back. One path for all three failure modes.
+      j.t = Math.min(1, j.t + delta / (j.ok ? JUMP_MS : JUMP_MS * 0.6));
+
+      if (j.ok) {
+        this.player!.x = j.fromX + (j.toX - j.fromX) * j.t;
+        this.feetY = j.fromY + (j.toY - j.fromY) * j.t;
+        this.air = jumpArc(j.t);
+      } else {
+        this.air = jumpArc(j.t) * 0.45;
+      }
+
+      if (j.t >= 1) {
+        if (j.ok) this.level = j.toLevel;
+        this.air = 0;
+        this.jump = undefined;
+        this.checkZones();
+      }
+      this.applyHeroTransform();
     }
 
     /** The hero's floor patch, centred on his x and ending at his feet. */
     private feetRect() {
       return {
         x: this.player!.x - HERO_FEET.width / 2,
-        y: this.player!.y - HERO_FEET.height,
+        y: this.feetY - HERO_FEET.height,
         width: HERO_FEET.width,
         height: HERO_FEET.height,
       };
@@ -556,7 +746,7 @@ export function ScenePreview() {
         <div className="font-bold text-amber-300">{sceneName}</div>
         <div>
           {sceneName === 'CourtyardV2'
-            ? 'WASD / arrows to walk · add ?colliders=show to see the collision layer'
+            ? 'WASD / arrows to walk · SPACE to jump up a ledge · ?levels=show · ?colliders=show · ?wildlife=show'
             : sceneName === 'WildlifeLab'
               ? 'WASD / arrows to walk · get close and watch them react'
               : 'Scene behavior is running'}

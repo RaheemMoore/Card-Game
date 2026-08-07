@@ -530,14 +530,15 @@
                 {
                     "type": "Image",
                     "id": "96b17eb8-04d4-4848-b80a-07a8330575d1",
-                    "label": "SHELF_wall_side_1",
+                    "label": "RETIRED_wall_side_west_uncut",
                     "texture": {
                         "key": "wall-side"
                     },
                     "x": 523,
                     "y": 582,
                     "scaleX": 1.142292861719713,
-                    "scaleY": 1.3873158625341773
+                    "scaleY": 1.3873158625341773,
+                    "visible": false
                 },
                 {
                     "type": "Image",
@@ -555,14 +556,15 @@
                 {
                     "type": "Image",
                     "id": "1d4e494c-1e40-46dd-ae62-e0f798c7c5f7",
-                    "label": "SHELF_wall_side_3",
+                    "label": "RETIRED_wall_side_east_uncut",
                     "texture": {
                         "key": "wall-side"
                     },
                     "x": 2110,
                     "y": 583,
                     "scaleX": 1.142292861719713,
-                    "scaleY": 1.3873158625341773
+                    "scaleY": 1.3873158625341773,
+                    "visible": false
                 },
                 {
                     "type": "Image",
@@ -681,6 +683,196 @@
                     "y": 1629,
                     "originX": 0,
                     "originY": 0
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "aed7cdd1-3f8f-4c38-8440-cead694cf03f",
+                    "label": "castleWall_west_seg1",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 49.27000045776367,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "3d341ea1-598a-4701-8c95-40afce9a8d45",
+                    "label": "castleWall_west_seg2",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 226.85000610351562,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 128
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "ddee574e-273b-4a63-838f-80cb2f92c837",
+                    "label": "castleWall_west_seg3",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 404.4200134277344,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "26074c28-9faf-424e-a5db-e57630ee9b6d",
+                    "label": "castleWall_west_seg4",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 582,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 384
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "527dd5b8-f542-4dbf-8c01-20d57b4e39f7",
+                    "label": "castleWall_west_seg5",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 759.5800170898438,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 512
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "27df7080-5c8a-4d97-bc27-2fc27d7ed341",
+                    "label": "castleWall_west_seg6",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 937.1500244140625,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 640
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "1dc98761-f411-4259-bce1-17dede9bc0df",
+                    "label": "castleWall_east_seg1",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 50.27000045776367,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "331bbe01-5484-42e9-81aa-70cd8910ecf1",
+                    "label": "castleWall_east_seg2",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 227.85000610351562,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 128
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "ddc423ea-6067-4ce3-8b66-03cd1d249036",
+                    "label": "castleWall_east_seg3",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 405.4200134277344,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "f6384c6a-d823-45e3-811f-ffcd0f9a225d",
+                    "label": "castleWall_east_seg4",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 583,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 384
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "71603c68-ccf2-4b43-b860-6b746d539e4a",
+                    "label": "castleWall_east_seg5",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 760.5800170898438,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 512
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "3d3de562-9b00-4a80-af7d-6e782680c458",
+                    "label": "castleWall_east_seg6",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 938.1500244140625,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773,
+                    "originY": 0,
+                    "width": 192,
+                    "height": 128,
+                    "tilePositionY": 640
                 }
             ]
         },
@@ -1647,8 +1839,168 @@
         },
         {
             "type": "Layer",
+            "id": "dc25d4dd-380d-4671-9898-d2f73c3c8abb",
+            "label": "L15_WILDLIFE",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "8ca0fcbc-0c16-4f35-a768-d90486f46f02",
+                    "label": "ROAM_canopyEdge",
+                    "x": 620,
+                    "y": 210,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#33ff88",
+                    "fillAlpha": 0.12,
+                    "strokeColor": "#33ff88",
+                    "strokeAlpha": 0.7,
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 1380,
+                    "height": 260
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "1a0fd66a-84db-43d2-a870-18ad8024ffbd",
+                    "label": "ROAM_courtyardGreen",
+                    "x": 620,
+                    "y": 480,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#33ff88",
+                    "fillAlpha": 0.12,
+                    "strokeColor": "#33ff88",
+                    "strokeAlpha": 0.7,
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 1380,
+                    "height": 450
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "b52a0f74-6f6c-41a7-b19f-aaf9e6930d01",
+                    "label": "ROAM_castleFront",
+                    "x": 420,
+                    "y": 1235,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#33ff88",
+                    "fillAlpha": 0.12,
+                    "strokeColor": "#33ff88",
+                    "strokeAlpha": 0.7,
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 1760,
+                    "height": 155
+                },
+                {
+                    "type": "Sprite",
+                    "id": "88dc4e73-06bb-405d-ba00-1a53f2232a2f",
+                    "label": "wildlifeFoxA",
+                    "texture": {
+                        "key": "wildlife-fox-trot",
+                        "frame": 0
+                    },
+                    "x": 900,
+                    "y": 350,
+                    "scaleX": 0.45,
+                    "scaleY": 0.45,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "fe8ed07d-3344-4190-bb31-a422e8cec0dc",
+                    "label": "wildlifeRabbitA",
+                    "texture": {
+                        "key": "wildlife-rabbit-hop",
+                        "frame": 0
+                    },
+                    "x": 1560,
+                    "y": 400,
+                    "scaleX": 0.23,
+                    "scaleY": 0.23,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "9823508d-4ccb-4f09-a158-083b33fecbcb",
+                    "label": "wildlifeRabbitB",
+                    "texture": {
+                        "key": "wildlife-rabbit-hop",
+                        "frame": 0
+                    },
+                    "x": 1020,
+                    "y": 700,
+                    "scaleX": 0.23,
+                    "scaleY": 0.23,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "4f0a0d5a-8d57-412a-a64b-6e74cff4048c",
+                    "label": "wildlifeFoxB",
+                    "texture": {
+                        "key": "wildlife-fox-trot",
+                        "frame": 0
+                    },
+                    "x": 1780,
+                    "y": 640,
+                    "scaleX": 0.45,
+                    "scaleY": 0.45,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "7839bc98-8a3f-4a5b-9c15-e2f71d2f9acb",
+                    "label": "wildlifeTortoiseC",
+                    "texture": {
+                        "key": "wildlife-tortoise-toddle",
+                        "frame": 0
+                    },
+                    "x": 1150,
+                    "y": 1320,
+                    "scaleX": 0.32,
+                    "scaleY": 0.32,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
             "id": "42145479-22f3-43da-b340-5ed576b70da9",
-            "label": "L5_QUADRANT_NW"
+            "label": "L5_QUADRANT_NW",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "5bfa6bcf-1d78-474e-b3da-62bc5df94763",
+                    "label": "FORGE_A_castle_lavender",
+                    "texture": {
+                        "key": "forge-v1"
+                    },
+                    "x": 3138,
+                    "y": -38,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "054c02b5-879a-4d7d-9e10-e29ab94f6c87",
+                    "label": "FORGE_B_warm_rock",
+                    "texture": {
+                        "key": "forge-v1-warm"
+                    },
+                    "x": 1704,
+                    "y": 439,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                }
+            ]
         },
         {
             "type": "Layer",
@@ -1906,10 +2258,11 @@
                     "type": "Rectangle",
                     "id": "07fd026c-3047-4519-905a-2f8dc4853179",
                     "label": "BLOCK_cliff_centreEast",
-                    "x": 1446,
-                    "y": 1528,
-                    "originX": 0,
-                    "originY": 0,
+                    "x": 2062.6238589286804,
+                    "y": 1654.964038848877,
+                    "scaleX": 1.3494578878555674,
+                    "scaleY": 2.645084036296617,
+                    "originX": 1,
                     "isFilled": true,
                     "fillColor": "#ff3355",
                     "fillAlpha": 0.35,
@@ -2494,6 +2847,78 @@
                     "isStroked": true,
                     "width": 60,
                     "height": 24
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "bfacd410-58b5-4822-8b8f-03433e4f7aa7",
+            "label": "L20_GROUND_L0",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "49d4e9bc-04e8-4b23-a72f-1b47bf57e785",
+                    "label": "PLATE_L0_lowGround",
+                    "y": 1624,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#66ff88",
+                    "fillAlpha": 0.25,
+                    "strokeColor": "#66ff88",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 296
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "1541b86f-e8d4-489f-909e-48f3055788f1",
+            "label": "L21_GROUND_L1",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "d0ae49ac-84ac-43c8-ae3b-62f2aa094f53",
+                    "label": "PLATE_L1_castlePlateau",
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ffdd44",
+                    "fillAlpha": 0.25,
+                    "strokeColor": "#ffdd44",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 1528
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "d2576454-a597-4084-8831-0895bd54219f",
+            "label": "L23_RAMPS",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "d3ca90a3-d58f-4435-b5a2-80f38bf3cca2",
+                    "label": "RAMP_greatStair",
+                    "x": 1261,
+                    "y": 1470,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#cc66ff",
+                    "fillAlpha": 0.3,
+                    "strokeColor": "#cc66ff",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 185,
+                    "height": 230
                 }
             ]
         }

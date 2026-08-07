@@ -1729,6 +1729,232 @@ export const LESSONS: Lesson[] = [
     ],
   },
 
+
+  /* ------------------------------------------------------------------ 7 */
+  {
+    id: 'elevation',
+    number: 7,
+    title: 'Elevation',
+    status: 'live',
+    outcome: 'Author high ground and low ground, and know why the climb is the point.',
+    minutes: 25,
+    sections: [
+      {
+        id: 'idea',
+        title: 'The one idea',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Height is how the courtyard says who is safe.',
+            text:
+              'The castle is on high ground. The monsters are on the low ground. Getting home means climbing. Elevation is not a movement toy in this game \u2014 it is the reason the castle feels like somewhere you want to reach.',
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'What the game was missing, exactly.',
+            text:
+              'Until 2026-08-07 the world was one flat floor plus impassable walls, which made a cliff and a castle wall literally the same object. A collider is a 2D floor shape and carries no height, so there was nothing to ask "could I clear that?" about. A jump button in that world would have been a button that did nothing.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'The missing piece was **levels**, not jumping.',
+              'Jumping is what levels make possible \u2014 it is the second thing, not the first.',
+              'Pok\u00e9mon, for the record, has ledges you hop DOWN and can never climb. What you asked for is Zelda.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'authoring',
+        title: 'How you author it — one layer per height',
+        blocks: [
+          {
+            kind: 'table',
+            head: ['Editor layer', 'What goes in it'],
+            rows: [
+              ['`L20_GROUND_L0`', 'Floor at the bottom. Monster country.'],
+              ['`L21_GROUND_L1`', 'Floor one step up. The castle plateau.'],
+              ['`L22_GROUND_L2`', 'A third height, when you want one.'],
+              ['`L23_RAMPS`', 'Walkable connections between heights \u2014 the stairs.'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Plates OVERLAP, and the highest one wins.',
+            text:
+              'Draw one big rectangle over the whole walkable world at level 0, then lay terraces on top of it. You never cut holes and you never tile precisely. Where two plates cover the same spot, the higher one is the floor.',
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Why layers and not colours this time',
+            text:
+              'Colour carries meaning in `L14_COLLIDERS` because a wall and a trigger sit side by side in one layer. A level is an ORDERED quantity, and encoding an ordinal as a hue is how you end up with a terrace that is silently one step too high. The layer name says the number out loud.',
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'A cliff needs NO collider.',
+            text:
+              'The plates block by themselves \u2014 a cliff is just where the floor stops being that high. Never draw a red BLOCK along a terrace lip. If you do, the two can disagree about where the edge is, and one of them will be wrong.',
+          },
+        ],
+      },
+      {
+        id: 'rules',
+        title: 'The three movement rules',
+        blocks: [
+          {
+            kind: 'table',
+            head: ['You try to move...', 'What happens', 'Why'],
+            rows: [
+              ['Within your level', 'Free', 'Flat ground'],
+              ['Onto a LOWER level', 'Free \u2014 you drop', 'Falling is never the hard part'],
+              ['Onto a HIGHER level', '**Blocked**, unless on a ramp', 'This is the cliff'],
+              ['Onto no plate at all', 'Allowed, level unchanged', 'See the warning below'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Void fails OPEN, on purpose \u2014 and that hides your mistakes.',
+            text:
+              'Somewhere no plate covers lets you walk straight through. Failing closed would turn every unplated seam into an invisible wall in open grass, which is far harder to diagnose than a missing ledge. The cost is that a gap in your plates is silent. `?levels=show` is how you find them.',
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The stair is one line of code.',
+            text:
+              'While your feet are inside a ramp rectangle, climbing is permitted. No slope maths, no interpolation, no height blending. That is the entire implementation of walkable stairs.',
+          },
+        ],
+      },
+      {
+        id: 'jump',
+        title: 'The jump',
+        blocks: [
+          {
+            kind: 'bullets',
+            items: [
+              '**SPACE**, in the direction you are holding \u2014 or the way you are facing if standing still.',
+              'Reach is **109px**; the cliff band is ~96px, so a terrace clears with 13px to spare.',
+              'No mid-air steering. Velocity is fixed at takeoff, which is what makes a failed jump the ledge\u2019s answer rather than a twitch of your thumb.',
+              'You can never gain more than **one level per jump**. That cap is the whole difficulty of the climb.',
+              'You may LAND lower than you started \u2014 leaping off a terrace just works.',
+            ],
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Checked in mid-air',
+              points: ['Red BLOCK shapes \u2014 you cannot jump through a tree'],
+            },
+            right: {
+              title: 'NOT checked in mid-air',
+              points: [
+                'Elevation \u2014 that is the entire point',
+                'Void \u2014 you are allowed to be over nothing while airborne',
+                'Both are decided once, at the landing',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'A failed jump still plays.',
+            text:
+              'He lunges, does not reach, and drops back to where he started. All three failure modes \u2014 wall, void, too high \u2014 use that one animation. Silently refusing to move would read as a dead key rather than as a hard ledge.',
+          },
+        ],
+      },
+      {
+        id: 'shadow',
+        title: 'Why the shadow is not optional',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The shadow is the only thing that says the ground did not move.',
+            text:
+              'A sprite that lifts with nothing left behind on the floor reads as sliding, not jumping. The contact patch stays pinned at the feet Y while the body arcs above it, shrinking and fading with height. It is what sells the jump \u2014 far more than the pose does.',
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'The hero has no jump animation yet.',
+            text:
+              'Walk and idle only. He freezes on a mid-stride frame and rides an arc. That is deliberate: the shape of a jump should be proven in play before generations are spent on a pose whose timing might have to change.',
+          },
+        ],
+      },
+      {
+        id: 'depth',
+        title: 'Depth had to learn about height too',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Depth is now `level x 100000 + ground contact Y`.',
+            text:
+              'Standing on top of a cliff and standing at its foot are almost the same Y. No amount of Y-sorting can tell those apart \u2014 that is what the level stride is for. See lesson 6 for the half of the rule that came first.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'A cliff face belongs to the **lower** level and sorts on its bottom edge.',
+              'So everything on the terrace below draws over it \u2014 correct, because it is a wall seen from down there.',
+              'A hero on top is one level up, so he sorts above it regardless of Y.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'try',
+        title: 'Try it',
+        blocks: [
+          {
+            kind: 'try',
+            title: 'See the two worlds',
+            steps: [
+              'Open `/dev/scene?start=CourtyardV2&levels=show`.',
+              'Green is the low ground. Yellow is the castle plateau. Purple is the stair.',
+              'Walk south off the cliff \u2014 you drop.',
+              'Walk back north at the cliff \u2014 nothing. Take the stair \u2014 you climb.',
+              'Go back to the cliff and press SPACE.',
+            ],
+            proves:
+              'That the cliff blocks with no collider drawn on it, and that the stair and the jump are two different answers to the same wall.',
+          },
+          {
+            kind: 'try',
+            title: 'Make a plate gap on purpose',
+            steps: [
+              'Shrink the level-0 plate so it no longer touches the cliff base.',
+              'Save, refresh, and walk into the gap.',
+              'Note that nothing stops you and nothing complains.',
+              'Now turn on `?levels=show` and look at the same spot.',
+            ],
+            proves:
+              'Why fail-open is a trade rather than a free choice \u2014 and why the overlay is the only tool that finds the mistakes it hides.',
+          },
+        ],
+      },
+    ],
+    checkpoint: [
+      'You can say why levels had to come before jumping.',
+      'You can name the layer a piece of floor goes in.',
+      'You know plates overlap and the highest wins.',
+      'You can explain why a cliff needs no BLOCK rectangle.',
+      'You have dropped off a ledge, climbed the stair, and jumped a cliff.',
+      'You can say what fails open, and what that costs.',
+    ],
+  },
+
 ];
 
 /**
@@ -1914,11 +2140,118 @@ export const CHATGPT_LESSONS: Lesson[] = [
   {
     id: 'chatgpt-creating-life-animation-review',
     number: 2,
-    title: 'Creating Life: Review the Animations',
+    title: 'Creating Life: Animations, Brain and Behaviour',
     status: 'live',
-    outcome: 'Read, compare and approve wildlife motion before its behavior logic enters the castle.',
-    minutes: 15,
+    outcome:
+      'Explain how a living animal is built, and add or adjust one yourself without writing code.',
+    minutes: 25,
     sections: [
+      {
+        id: 'the-shape',
+        title: 'The shape of a living thing',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'One class per animal, with its jobs kept in separate boxes.',
+            text:
+              'This is the diagram Raheem drew before any of it existed: a **Mob class** with **Movement**, **Attacking**, **AI**, **Animation** and **Events** hanging off it. The wildlife system is that diagram, built. Each box is a real file, and each one can be replaced without touching the others.',
+          },
+          {
+            kind: 'table',
+            head: ['Box in the diagram', 'What it is here', 'The one question it answers'],
+            rows: [
+              ['**Mob class**', '`WildlifeAgent.ts`', 'Ties one sprite to everything below'],
+              ['**AI**', '`WildlifeBrain.ts`', '“What should I do next?”'],
+              ['**Movement**', '`movement.ts` + the scene’s walk resolver', '“How do I get there, and may I?”'],
+              ['**Animation**', '`ANIMATION_SETS` in `wildlifeShared.ts`', '“What does that decision look like?”'],
+              ['**Events**', 'Not built yet — the seed is the brain’s `reason` field', '“What just happened, so others can react?”'],
+              ['**Attacking**', 'Not built yet — wildlife does not fight', 'A boss mob would fill this slot'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Two empty boxes is a good sign, not a gap.',
+            text:
+              'Attacking and Events have nowhere to live in a forest, so they were not written. The diagram still shows where they go, which is why adding a boss later is a new file rather than a rewrite.',
+          },
+          {
+            kind: 'terms',
+            items: [
+              {
+                term: 'WildlifeManager',
+                plain: 'The park ranger. Owns every animal, updates them each frame, tells them all to stand still when the player has reduced motion switched on.',
+                where: 'One per scene, above the mobs',
+              },
+              {
+                term: 'WildlifeAgent',
+                plain: 'One animal. The Mob class from the diagram.',
+                where: 'One per fox, rabbit or tortoise on screen',
+              },
+              {
+                term: 'WildlifeBrain',
+                plain: 'The AI box. Knows nothing about pictures — it only ever answers with one of five words.',
+                where: 'One per agent, private to it',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'three-mobs-one-class',
+        title: 'Mob 1, Mob 2, Mob 3',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The three animals are the same class with different numbers.',
+            text:
+              'The second half of the diagram shows **Mob 1**, **Mob 2** and **Mob 3** under the Mob class. The obvious way to build that is three classes. We did not — there is one class, and a sheet of numbers per species in `profiles.ts`.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Three classes (not what we did)',
+              points: [
+                'Fox, Rabbit and Tortoise each get their own file',
+                'A bug in “flee” must be fixed three times',
+                'A fourth animal means writing a fourth brain',
+                'The three slowly stop behaving like each other',
+              ],
+            },
+            right: {
+              title: 'One class, three profiles (what we did)',
+              points: [
+                'One brain, one agent, three rows of numbers',
+                'A bug in “flee” is fixed once, everywhere',
+                'A chicken is a new row, not a new system',
+                'They cannot drift apart, because there is only one of them',
+              ],
+            },
+          },
+          {
+            kind: 'table',
+            head: ['', 'Fox', 'Rabbit', 'Tortoise'],
+            rows: [
+              ['Walking speed', '48', '58', '20'],
+              ['Running speed', '104', '126', '— never runs'],
+              ['Notices you at', '150px', '175px', '105px'],
+              ['Reacts hard at', '82px', '108px', '58px'],
+              ['When you get close', 'Runs', 'Runs sooner, further', 'Stops and watches'],
+              ['Favourite thing', 'Roaming', 'Roaming', 'Resting'],
+              ['Its own action', 'Sniff the ground', 'Nibble and groom', 'Tuck in and hold still'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'That whole table is one file you can edit.',
+            text:
+              'Everything that makes the rabbit timid and the tortoise calm is in `profiles.ts`. Nothing about personality is hidden in the brain.',
+          },
+        ],
+      },
       {
         id: 'animation-vs-behavior',
         title: 'Animation is the vocabulary',
@@ -2005,12 +2338,295 @@ export const CHATGPT_LESSONS: Lesson[] = [
           },
         ],
       },
+      {
+        id: 'the-brain',
+        title: 'Inside the AI box',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The brain only ever says one of five words.',
+            text:
+              '`idle` · `roam` · `signature` · `observe` · `flee`. It knows nothing about sprites, sheets or frames. That is exactly why all three animals can share it — and why new artwork never means new decisions.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              '**Layer 1 — reflex.** Are you close? Fox and rabbit run, tortoise watches. This interrupts whatever was happening.',
+              '**Layer 2 — ordinary life.** Only runs when you are not a factor and the current activity has finished its time.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Randomness is the tie-breaker, not the system.',
+            text:
+              'Each choice is scored: **weight × need × memory × a little wobble**. The wobble is only 0.9–1.1, so it separates two close options and nothing more. Changing needs do the real choosing.',
+          },
+          {
+            kind: 'table',
+            head: ['Drive', 'Goes up when', 'Goes down when', 'What it pushes toward'],
+            rows: [
+              ['Energy', 'Resting', 'Running hardest, roaming a little', 'Resting when tired'],
+              ['Curiosity', 'Resting', 'Roaming or watching', 'Wandering when bored'],
+              ['Its own urge', 'Always, slowly', 'Reset to zero the moment it acts', 'Sniff · nibble · tuck, on a rising itch'],
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'It cannot repeat the activity it just finished.',
+              'The last two are scored down to about a third.',
+              'Each activity waits a cooldown before it can come round again — the fox’s sniff waits 4.5 seconds.',
+              'So a fox trots until curiosity drains, rests until energy returns, and sniffs on a rising itch. Never the same order twice.',
+            ],
+          },
+          {
+            kind: 'try',
+            title: 'Watch the brain think',
+            steps: [
+              'Open the Wildlife Lab below.',
+              'Read the panel top-left: each animal’s current activity and its three drive bars.',
+              'Watch the fox’s energy bar fall while it roams and climb while it rests.',
+              'Walk at the rabbit and watch its activity change to `flee (you)`.',
+              'Back off and wait for it to settle into ordinary life again.',
+            ],
+            proves:
+              'The behaviour is driven by changing needs rather than a fixed loop — you can watch the numbers that caused each choice.',
+          },
+          {
+            kind: 'lab',
+            route: '/dev/scene?start=WildlifeLab',
+            title: 'Wildlife Lab — the behaviour bench',
+            blurb:
+              'One flat floor, no walls, three animals and a live readout. Behaviour with nothing to hide behind. **WASD** to walk.',
+            learn: [
+              'The readout shows activity plus the three drives, per animal.',
+              '`(you)` after an activity means the reflex layer interrupted.',
+              'The fox stops about 82px away and turns to watch; the rabbit goes further.',
+              'The tortoise does not run. It never will — that is its profile, not a bug.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'where-they-live',
+        title: 'Where an animal lives',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The green box is territory. The texture is personality.',
+            text:
+              'A fox dropped in the tortoise’s box is still a fox — same speed, same 82px flight, same trot-and-sniff. It just does all of that over there. **Where** and **who** never mix.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Comes from the sprite’s texture',
+              points: [
+                'Speed, walking and running',
+                'How near you get before it reacts',
+                'Whether it runs or watches',
+                'Which clips play',
+              ],
+            },
+            right: {
+              title: 'Comes from the green box',
+              points: ['Where it wanders.', 'That is the whole list.'],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'There are two ways to say where. You are not choosing one for the whole scene.',
+            text:
+              'Every animal picks its own, by one rule and nothing else: **am I standing inside a green box right now?** In a scene, some animals can be on one method and some on the other, at the same time.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Drop-anywhere — the default',
+              points: [
+                'Drag an animal in. Do not draw anything.',
+                'It gets a home range centred on where you dropped it',
+                'Sized from its own speed: rabbit 464×319, fox 384×264, tortoise 160×110',
+                'Shown in AMBER when `?wildlife=show` is on',
+                'Best for: trying an idea, one animal that lives in one spot',
+              ],
+            },
+            right: {
+              title: 'Boundary — when you want to be specific',
+              points: [
+                'Draw a green **#33ff88** rectangle in `L15_WILDLIFE`',
+                'Drop the animal inside it',
+                'It roams exactly that shape, however big or odd',
+                'Shown in GREEN when `?wildlife=show` is on',
+                'Best for: several animals sharing a territory, or a hard edge you care about',
+              ],
+            },
+          },
+          {
+            kind: 'table',
+            head: ['You want…', 'Do this', 'It switches when'],
+            rows: [
+              ['Drop-anywhere → boundary', 'Draw a green box around the animal', 'You save and refresh'],
+              ['Boundary → drop-anywhere', 'Drag the animal out of every green box', 'You save and refresh'],
+              ['A bigger drop-anywhere patch', 'You cannot resize it — draw a green box instead', '—'],
+              ['Two animals in one territory', 'Draw one green box, drop both inside', 'You save and refresh'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Green means you drew it. Amber means the system made one up.',
+            text:
+              'Open Courtyard V2 with **`?wildlife=show`** and you see both at once. The green rectangles are yours, from the Editor. The amber ones do not exist in any file — they are drawn at run time around animals that are in no box, so that nothing about this system is invisible.',
+          },
+          {
+            kind: 'try',
+            title: 'Switch one animal between the two methods',
+            steps: [
+              'Open `/dev/scene?start=CourtyardV2&wildlife=show` and note the three green boxes. Every animal is currently on the boundary method.',
+              'In Phaser Editor, drag one animal well outside every green box.',
+              'Save with Ctrl+S, then refresh the browser.',
+              'An AMBER rectangle now appears around it. That animal switched to drop-anywhere.',
+              'Drag it back inside a green box, save, refresh — the amber box is gone.',
+            ],
+            proves:
+              'The two methods are per animal and automatic. You never set a mode; you move the animal, and the rule decides.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Boxes may overlap walls freely. Collision decides every step anyway, so draw them generously.',
+              'A drop-anywhere range can also overlap walls — the animal simply stops at the face.',
+              'The range is made once, when the scene starts. Moving an animal at run time does not move its range.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Two things an animal does need.',
+            text:
+              'It must sit in the **`L15_WILDLIFE`** layer, and it must use its **movement sheet** as its texture — `wildlife-fox-trot`, `wildlife-rabbit-hop` or `wildlife-tortoise-toddle`. That texture is how the code knows which animal it is. A fox placed on the sniff sheet is not recognised.',
+          },
+          {
+            kind: 'lab',
+            route: '/dev/scene?start=CourtyardV2&wildlife=show',
+            title: 'Courtyard V2 — the real world',
+            blurb:
+              'The same brain, given the castle’s traced walls instead of a flat floor. **`?wildlife=show`** draws the green boxes; add **`&colliders=show`** for the red walls.',
+            learn: [
+              'GREEN rectangle = a territory you drew. AMBER = a range made up around a dropped animal.',
+              'Animals never enter a red shape — they stop at the face and slide along it.',
+              'They sort behind trees and in front of them, using the same ground-contact rule as the hero.',
+              'Swapping the flat floor for real walls was one function, not a second physics system.',
+              'All five animals here are currently inside green boxes, so all five are on the boundary method.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'adjusting',
+        title: 'Adjusting the life',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Everything you are likely to change is in the Editor.',
+            text:
+              'Placement, size, territory and how many animals there are are all scene values. Save in Phaser Editor, refresh the browser, done.',
+          },
+          {
+            kind: 'table',
+            head: ['To change…', 'Do this', 'Where'],
+            rows: [
+              ['Where an animal starts', 'Drag the sprite', 'Phaser Editor'],
+              ['How big it is', 'Set its scale', 'Phaser Editor'],
+              ['Where it wanders', 'Move or resize its green box', 'Phaser Editor'],
+              ['How many there are', 'Copy-paste a sprite', 'Phaser Editor'],
+              ['A new territory', 'Draw another green **#33ff88** rectangle', 'Phaser Editor'],
+              ['Where it may walk', 'Edit the red shapes in `L14_COLLIDERS`', 'Phaser Editor'],
+              ['How timid or fast it is', 'Edit its row of numbers', '`profiles.ts`'],
+              ['Which clip an activity plays', 'Edit `ANIMATION_SETS`', '`wildlifeShared.ts`'],
+              ['How it decides at all', 'The scoring rules', '`WildlifeBrain.ts` — rarely'],
+            ],
+          },
+          {
+            kind: 'steps',
+            items: [
+              { who: 'raheem', do: 'Copy an existing animal sprite in the Outline and paste it.', see: 'A second fox appears, still inside `L15_WILDLIFE`.' },
+              { who: 'raheem', do: 'Drag it somewhere far from every green box.', see: 'Nothing yet — the scene has not been saved.' },
+              { who: 'raheem', do: 'Press Ctrl+S.', see: 'Phaser Editor rewrites `CourtyardV2.js`.' },
+              { who: 'raheem', do: 'Refresh the browser tab.', see: 'The new fox is alive, roaming a patch centred on where you dropped it.' },
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'If an animal will not move, check these three first.',
+            text:
+              'It is outside `L15_WILDLIFE`; or it is on the wrong texture; or it was dropped **inside a red collision shape**, where no step is legal. The last one prints its name and position to the browser console.',
+          },
+          {
+            kind: 'try',
+            title: 'Give the tortoise a bigger world',
+            steps: [
+              'Open Courtyard V2 in Phaser Editor.',
+              'Select `ROAM_castleFront` in the `L15_WILDLIFE` layer.',
+              'Widen it with the Resize Tool (`Z`).',
+              'Save, then refresh `/dev/scene?start=CourtyardV2&wildlife=show`.',
+              'Watch the tortoise wander further than it did before.',
+            ],
+            proves:
+              'Territory is authored, not coded. The box you can see on screen is the box the animal actually obeys.',
+          },
+        ],
+      },
+      {
+        id: 'adding-an-animal',
+        title: 'What a brand-new animal costs',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A chicken is four small edits and no new system.',
+            text:
+              'Because “where” and “who” never mixed, and because there is one class rather than three, adding a species does not touch the brain, the manager, the movement code or the boxes.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Generate its sheets — a movement clip and one action of its own.',
+              'Add a row to `profiles.ts`: speeds, reaction distances, what it does when you approach.',
+              'Add its texture to `SPECIES_BY_TEXTURE` so the code can recognise it.',
+              'Add its clips to `ANIMATION_SETS`.',
+              'Then drop it in the scene like any other animal.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'This is what the diagram was for.',
+            text:
+              'Splitting a mob into Movement, AI, Animation and Events before writing any of it is why the fifth animal costs the same as the fourth.',
+          },
+        ],
+      },
     ],
     checkpoint: [
       'You reviewed at least one clip in all four directions.',
       'You paused and stepped through individual frames.',
       'You can explain the difference between an animation clip and a behavior choice.',
       'No animal pixels cross the purple frame-cell border.',
+      'You can name what lives in each box of the Mob diagram, and which two are still empty.',
+      'You can state the one rule that decides drop-anywhere versus boundary, per animal.',
+      'You switched one animal between the two methods and saw the amber box appear and vanish.',
+      'You can say why the three animals are one class and not three.',
+      'You watched a drive bar rise and fall in the Wildlife Lab readout.',
+      'You added or moved an animal, saved, refreshed, and saw it living where you put it.',
+      'You can list the three reasons an animal might refuse to move.',
     ],
   },
 ];
