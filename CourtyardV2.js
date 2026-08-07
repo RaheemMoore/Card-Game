@@ -418,12 +418,6 @@ class CourtyardV2 extends Phaser.Scene {
 		sHELF_corner_outer_v2.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_corner_outer_v2);
 
-		// SHELF_wall_side
-		const sHELF_wall_side = this.add.image(-1409.91199864403, 1029.5812512002374, "wall-side");
-		sHELF_wall_side.scaleX = 1.142292861719713;
-		sHELF_wall_side.scaleY = 1.3873158625341773;
-		l3_CASTLE.add(sHELF_wall_side);
-
 		// L12_FOREST_CANOPY
 		const l12_FOREST_CANOPY = this.add.layer();
 
@@ -852,22 +846,11 @@ class CourtyardV2 extends Phaser.Scene {
 		l11_MARKERS.add(scaleHeroNative71px);
 
 		// scaleHeroBesideTree
-		const scaleHeroBesideTree = this.add.sprite(780, 1311, "hero-chibi", 0);
+		const scaleHeroBesideTree = this.add.sprite(852, 1387, "hero-chibi", 0);
 		scaleHeroBesideTree.scaleX = 1.408;
 		scaleHeroBesideTree.scaleY = 1.408;
 		scaleHeroBesideTree.setOrigin(0.5, 1);
 		l11_MARKERS.add(scaleHeroBesideTree);
-
-		// MISSING_northWall_run
-		const mISSING_northWall_run = this.add.rectangle(448, 96, 1760, 112);
-		mISSING_northWall_run.setOrigin(0, 0);
-		mISSING_northWall_run.isFilled = true;
-		mISSING_northWall_run.fillColor = 16720486;
-		mISSING_northWall_run.fillAlpha = 0.35;
-		mISSING_northWall_run.isStroked = true;
-		mISSING_northWall_run.strokeColor = 16720486;
-		mISSING_northWall_run.lineWidth = 4;
-		l11_MARKERS.add(mISSING_northWall_run);
 
 		// scaleHeroFootOfStair
 		const scaleHeroFootOfStair = this.add.sprite(1397, 1808, "hero-chibi", 0);
@@ -875,28 +858,6 @@ class CourtyardV2 extends Phaser.Scene {
 		scaleHeroFootOfStair.scaleY = 1.408;
 		scaleHeroFootOfStair.setOrigin(0.5, 1);
 		l11_MARKERS.add(scaleHeroFootOfStair);
-
-		// MISSING_eastWall_run
-		const mISSING_eastWall_run = this.add.rectangle(2096, 208, 112, 1010);
-		mISSING_eastWall_run.setOrigin(0, 0);
-		mISSING_eastWall_run.isFilled = true;
-		mISSING_eastWall_run.fillColor = 16720486;
-		mISSING_eastWall_run.fillAlpha = 0.35;
-		mISSING_eastWall_run.isStroked = true;
-		mISSING_eastWall_run.strokeColor = 16720486;
-		mISSING_eastWall_run.lineWidth = 4;
-		l11_MARKERS.add(mISSING_eastWall_run);
-
-		// MISSING_westWall_run
-		const mISSING_westWall_run = this.add.rectangle(448, 208, 112, 1010);
-		mISSING_westWall_run.setOrigin(0, 0);
-		mISSING_westWall_run.isFilled = true;
-		mISSING_westWall_run.fillColor = 16720486;
-		mISSING_westWall_run.fillAlpha = 0.35;
-		mISSING_westWall_run.isStroked = true;
-		mISSING_westWall_run.strokeColor = 16720486;
-		mISSING_westWall_run.lineWidth = 4;
-		l11_MARKERS.add(mISSING_westWall_run);
 
 		// L4_QUADRANT_NE
 		const l4_QUADRANT_NE = this.add.layer();
@@ -1060,8 +1021,9 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(zONE_castleGate_passage);
 
 		// BLOCK_castleWall_north
-		const bLOCK_castleWall_north = this.add.rectangle(435, -32, 1805, 250);
-		bLOCK_castleWall_north.setOrigin(0, 0);
+		const bLOCK_castleWall_north = this.add.rectangle(1337.5, 204.25506460666656, 1805, 250);
+		bLOCK_castleWall_north.scaleY = 0.4747928169350183;
+		bLOCK_castleWall_north.setOrigin(0.5, 1);
 		bLOCK_castleWall_north.isFilled = true;
 		bLOCK_castleWall_north.fillColor = 16724821;
 		bLOCK_castleWall_north.fillAlpha = 0.35;
@@ -1071,8 +1033,10 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_castleWall_north);
 
 		// BLOCK_castleWall_west
-		const bLOCK_castleWall_west = this.add.rectangle(435, 218, 192, 992);
-		bLOCK_castleWall_west.setOrigin(0, 0);
+		const bLOCK_castleWall_west = this.add.rectangle(526.6244426965714, 1211.9981632232666, 164, 992);
+		bLOCK_castleWall_west.scaleX = 0.9449087992688273;
+		bLOCK_castleWall_west.scaleY = 1.0133677105699197;
+		bLOCK_castleWall_west.setOrigin(0.5, 1);
 		bLOCK_castleWall_west.isFilled = true;
 		bLOCK_castleWall_west.fillColor = 16724821;
 		bLOCK_castleWall_west.fillAlpha = 0.35;
@@ -1082,8 +1046,10 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_castleWall_west);
 
 		// BLOCK_castleWall_east
-		const bLOCK_castleWall_east = this.add.rectangle(2022, 218, 218, 992);
-		bLOCK_castleWall_east.setOrigin(0, 0);
+		const bLOCK_castleWall_east = this.add.rectangle(2111.56492716074, 1210, 218, 992);
+		bLOCK_castleWall_east.scaleX = 0.7114993917998818;
+		bLOCK_castleWall_east.scaleY = 1.0452135375349794;
+		bLOCK_castleWall_east.setOrigin(0.5, 1);
 		bLOCK_castleWall_east.isFilled = true;
 		bLOCK_castleWall_east.fillColor = 16724821;
 		bLOCK_castleWall_east.fillAlpha = 0.35;
@@ -1093,8 +1059,8 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_castleWall_east);
 
 		// BLOCK_castleWall_southWest
-		const bLOCK_castleWall_southWest = this.add.rectangle(390, 883, 884, 333);
-		bLOCK_castleWall_southWest.setOrigin(0, 0);
+		const bLOCK_castleWall_southWest = this.add.rectangle(1273, 1102, 861, 228);
+		bLOCK_castleWall_southWest.setOrigin(1, 0.5);
 		bLOCK_castleWall_southWest.isFilled = true;
 		bLOCK_castleWall_southWest.fillColor = 16724821;
 		bLOCK_castleWall_southWest.fillAlpha = 0.35;
@@ -1104,8 +1070,8 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_castleWall_southWest);
 
 		// BLOCK_castleWall_southEast
-		const bLOCK_castleWall_southEast = this.add.rectangle(1376, 883, 874, 333);
-		bLOCK_castleWall_southEast.setOrigin(0, 0);
+		const bLOCK_castleWall_southEast = this.add.rectangle(1376, 1101, 859, 230);
+		bLOCK_castleWall_southEast.setOrigin(0, 0.5);
 		bLOCK_castleWall_southEast.isFilled = true;
 		bLOCK_castleWall_southEast.fillColor = 16724821;
 		bLOCK_castleWall_southEast.fillAlpha = 0.35;
@@ -1115,7 +1081,9 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_castleWall_southEast);
 
 		// BLOCK_cliff_westUpper
-		const bLOCK_cliff_westUpper = this.add.rectangle(0, 1406, 768, 96);
+		const bLOCK_cliff_westUpper = this.add.rectangle(0, 1408, 768, 96);
+		bLOCK_cliff_westUpper.scaleX = 0.9950821188192042;
+		bLOCK_cliff_westUpper.scaleY = 1.2248911638029218;
 		bLOCK_cliff_westUpper.setOrigin(0, 0);
 		bLOCK_cliff_westUpper.isFilled = true;
 		bLOCK_cliff_westUpper.fillColor = 16724821;
@@ -1127,6 +1095,8 @@ class CourtyardV2 extends Phaser.Scene {
 
 		// BLOCK_cliff_westLower
 		const bLOCK_cliff_westLower = this.add.rectangle(350, 1528, 768, 96);
+		bLOCK_cliff_westLower.scaleX = 1.1044414340012412;
+		bLOCK_cliff_westLower.scaleY = 2.629383718866098;
 		bLOCK_cliff_westLower.setOrigin(0, 0);
 		bLOCK_cliff_westLower.isFilled = true;
 		bLOCK_cliff_westLower.fillColor = 16724821;
@@ -1170,7 +1140,9 @@ class CourtyardV2 extends Phaser.Scene {
 		l14_COLLIDERS.add(bLOCK_cliff_eastHigh);
 
 		// BLOCK_prop_entryFootRockL
-		const bLOCK_prop_entryFootRockL = this.add.rectangle(134, 1753, 78, 24);
+		const bLOCK_prop_entryFootRockL = this.add.rectangle(177, 1750, 78, 24);
+		bLOCK_prop_entryFootRockL.scaleX = 1.1142786607357662;
+		bLOCK_prop_entryFootRockL.scaleY = 1.380963530980824;
 		bLOCK_prop_entryFootRockL.setOrigin(0, 0);
 		bLOCK_prop_entryFootRockL.isFilled = true;
 		bLOCK_prop_entryFootRockL.fillColor = 16724821;
@@ -1224,16 +1196,18 @@ class CourtyardV2 extends Phaser.Scene {
 		bLOCK_prop_entryGateTreeR.lineWidth = 2;
 		l14_COLLIDERS.add(bLOCK_prop_entryGateTreeR);
 
-		// BLOCK_prop_entryShrubL
-		const bLOCK_prop_entryShrubL = this.add.rectangle(611, 1462, 60, 24);
-		bLOCK_prop_entryShrubL.setOrigin(0, 0);
-		bLOCK_prop_entryShrubL.isFilled = true;
-		bLOCK_prop_entryShrubL.fillColor = 16724821;
-		bLOCK_prop_entryShrubL.fillAlpha = 0.35;
-		bLOCK_prop_entryShrubL.isStroked = true;
-		bLOCK_prop_entryShrubL.strokeColor = 16724821;
-		bLOCK_prop_entryShrubL.lineWidth = 2;
-		l14_COLLIDERS.add(bLOCK_prop_entryShrubL);
+		// BLOCK_cliffStep_westUpperEnd_1
+		const bLOCK_cliffStep_westUpperEnd_1 = this.add.rectangle(724, 1456, 60, 24);
+		bLOCK_cliffStep_westUpperEnd_1.scaleX = 1.0463571678484276;
+		bLOCK_cliffStep_westUpperEnd_1.scaleY = 1.985361026563687;
+		bLOCK_cliffStep_westUpperEnd_1.setOrigin(0, 0);
+		bLOCK_cliffStep_westUpperEnd_1.isFilled = true;
+		bLOCK_cliffStep_westUpperEnd_1.fillColor = 16724821;
+		bLOCK_cliffStep_westUpperEnd_1.fillAlpha = 0.35;
+		bLOCK_cliffStep_westUpperEnd_1.isStroked = true;
+		bLOCK_cliffStep_westUpperEnd_1.strokeColor = 16724821;
+		bLOCK_cliffStep_westUpperEnd_1.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliffStep_westUpperEnd_1);
 
 		// BLOCK_prop_footShrubB
 		const bLOCK_prop_footShrubB = this.add.rectangle(1773, 1517, 72, 24);
@@ -1355,6 +1329,71 @@ class CourtyardV2 extends Phaser.Scene {
 		bLOCK_forestEdge_eastTopB.strokeColor = 16724821;
 		bLOCK_forestEdge_eastTopB.lineWidth = 2;
 		l14_COLLIDERS.add(bLOCK_forestEdge_eastTopB);
+
+		// BLOCK_cliffStep_westUpperEnd_2
+		const bLOCK_cliffStep_westUpperEnd_2 = this.add.rectangle(752, 1498, 60, 24);
+		bLOCK_cliffStep_westUpperEnd_2.scaleX = 1.0463571678484276;
+		bLOCK_cliffStep_westUpperEnd_2.scaleY = 1.985361026563687;
+		bLOCK_cliffStep_westUpperEnd_2.setOrigin(0, 0);
+		bLOCK_cliffStep_westUpperEnd_2.isFilled = true;
+		bLOCK_cliffStep_westUpperEnd_2.fillColor = 16724821;
+		bLOCK_cliffStep_westUpperEnd_2.fillAlpha = 0.35;
+		bLOCK_cliffStep_westUpperEnd_2.isStroked = true;
+		bLOCK_cliffStep_westUpperEnd_2.strokeColor = 16724821;
+		bLOCK_cliffStep_westUpperEnd_2.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliffStep_westUpperEnd_2);
+
+		// BLOCK_cliffStep_westLowerEnd_2
+		const bLOCK_cliffStep_westLowerEnd_2 = this.add.rectangle(273, 1623, 60, 24);
+		bLOCK_cliffStep_westLowerEnd_2.scaleX = 1.0463571678484276;
+		bLOCK_cliffStep_westLowerEnd_2.scaleY = 1.985361026563687;
+		bLOCK_cliffStep_westLowerEnd_2.setOrigin(0, 0);
+		bLOCK_cliffStep_westLowerEnd_2.isFilled = true;
+		bLOCK_cliffStep_westLowerEnd_2.fillColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_2.fillAlpha = 0.35;
+		bLOCK_cliffStep_westLowerEnd_2.isStroked = true;
+		bLOCK_cliffStep_westLowerEnd_2.strokeColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_2.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliffStep_westLowerEnd_2);
+
+		// BLOCK_cliffStep_westLowerEnd_1
+		const bLOCK_cliffStep_westLowerEnd_1 = this.add.rectangle(304, 1577, 60, 24);
+		bLOCK_cliffStep_westLowerEnd_1.scaleX = 1.0713468377176072;
+		bLOCK_cliffStep_westLowerEnd_1.scaleY = 8.266310345413565;
+		bLOCK_cliffStep_westLowerEnd_1.setOrigin(0, 0);
+		bLOCK_cliffStep_westLowerEnd_1.isFilled = true;
+		bLOCK_cliffStep_westLowerEnd_1.fillColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_1.fillAlpha = 0.35;
+		bLOCK_cliffStep_westLowerEnd_1.isStroked = true;
+		bLOCK_cliffStep_westLowerEnd_1.strokeColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_1.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliffStep_westLowerEnd_1);
+
+		// BLOCK_cliffStep_westLowerEnd_4
+		const bLOCK_cliffStep_westLowerEnd_4 = this.add.rectangle(210, 1701, 60, 24);
+		bLOCK_cliffStep_westLowerEnd_4.scaleX = 1.0463571678484276;
+		bLOCK_cliffStep_westLowerEnd_4.scaleY = 1.985361026563687;
+		bLOCK_cliffStep_westLowerEnd_4.setOrigin(0, 0);
+		bLOCK_cliffStep_westLowerEnd_4.isFilled = true;
+		bLOCK_cliffStep_westLowerEnd_4.fillColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_4.fillAlpha = 0.35;
+		bLOCK_cliffStep_westLowerEnd_4.isStroked = true;
+		bLOCK_cliffStep_westLowerEnd_4.strokeColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_4.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliffStep_westLowerEnd_4);
+
+		// BLOCK_cliffStep_westLowerEnd_3
+		const bLOCK_cliffStep_westLowerEnd_3 = this.add.rectangle(241, 1663, 60, 24);
+		bLOCK_cliffStep_westLowerEnd_3.scaleX = 1.2356146582345844;
+		bLOCK_cliffStep_westLowerEnd_3.scaleY = 4.924183397769843;
+		bLOCK_cliffStep_westLowerEnd_3.setOrigin(0, 0);
+		bLOCK_cliffStep_westLowerEnd_3.isFilled = true;
+		bLOCK_cliffStep_westLowerEnd_3.fillColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_3.fillAlpha = 0.35;
+		bLOCK_cliffStep_westLowerEnd_3.isStroked = true;
+		bLOCK_cliffStep_westLowerEnd_3.strokeColor = 16724821;
+		bLOCK_cliffStep_westLowerEnd_3.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliffStep_westLowerEnd_3);
 
 		this.l14_COLLIDERS = l14_COLLIDERS;
 		this.courtyardGround = courtyardGround;

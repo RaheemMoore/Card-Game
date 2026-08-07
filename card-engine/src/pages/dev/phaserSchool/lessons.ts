@@ -1292,9 +1292,9 @@ export const LESSONS: Lesson[] = [
           {
             kind: 'callout',
             tone: 'key',
-            title: 'Rotate the rectangle. Do not build a staircase of little boxes.',
+            title: 'When the art leans, rotate the rectangle — do not build a staircase of little boxes.',
             text:
-              'Our castle walls lean with the perspective. Rotation is fully supported, so trace the lean with one long rotated rectangle and it will be exact.',
+              'Our castle walls lean with the perspective. Rotation is fully supported, so trace the lean with one long rotated rectangle and it will be exact. (This applies to a wall that LEANS. Art that genuinely steps is a different case — see the next section.)',
           },
           {
             kind: 'compare',
@@ -1323,6 +1323,102 @@ export const LESSONS: Lesson[] = [
             title: 'Why this is possible at all',
             text:
               'Standard Phaser physics bodies cannot rotate — a leaning wall would seal off ~80px of open paving at each end. The courtyard has one walker, no projectiles and no bouncing, so it does not run physics at all. It asks one question per step: may the feet go here? That question does not care about angles.',
+          },
+        ],
+      },
+      {
+        id: 'steps-or-lean',
+        title: 'Steps or a lean? Read the material first',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Match the collider to HOW THE ART WAS MADE, not to how the edge looks from far away.',
+            text:
+              'Two things in this courtyard both read as "a diagonal edge" and they want opposite treatments. Getting this backwards is the difference between an edge that feels solid and one that snags.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Painted art that LEANS → one rotated rectangle',
+              points: [
+                'Castle walls, the rock-face bands, anything drawn as a single image',
+                'The edge is a smooth continuous line',
+                'A staircase would jog sideways against 34px feet and catch on every step',
+                'One rotated shape is exact and less work to draw',
+              ],
+            },
+            right: {
+              title: 'Tilemap art that STEPS → a staircase of boxes',
+              points: [
+                'Ground edges built from 32px Wang tiles — they are literally stepped',
+                'A rotated shape would cut corners off the steps and hang over others',
+                'The staircase IS the shape; it is not an approximation of one',
+                'Snap the boxes to the 32px grid the tiles already live on',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'How to tell them apart in one move',
+            text:
+              'Zoom in. If the edge is made of 32×32 squares, it is a tilemap and it steps. If it is a smooth line at any angle, it is a painted image and it leans. Your eye at normal zoom cannot tell — both look like a diagonal.',
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'A staircase must OVERLAP, or you build a row of small holes.',
+            text:
+              'Each box has to reach past its neighbours in both directions. A box that stops exactly where the next one starts leaves a notch, and a notch narrower than the feet still lets a corner sample slip through on some approach angles. Overlap by a tile; it costs nothing.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'The **west cliff end** is tilemap, so it is a staircase — `BLOCK_cliffStep_westLowerEnd_1..4`.',
+              'The **rock-face bands** are painted images, so they are long single rectangles — `BLOCK_cliff_*`.',
+              'Both are correct. They are different materials, not different opinions.',
+            ],
+          },
+          {
+            kind: 'try',
+            title: 'Feel the notch',
+            steps: [
+              'Walk down the west cliff edge diagonally, hugging the steps.',
+              'Now stretch each step box 16px taller so they overlap, save, and walk it again.',
+              'Then try the opposite: shrink them until small gaps open, and walk it a third time.',
+            ],
+            proves:
+              'That overlap, not box count, is what makes a stepped edge feel solid. The same four boxes can read as a cliff or as a broken fence depending only on whether they touch.',
+          },
+        ],
+      },
+      {
+        id: 'walkable-tops',
+        title: 'Leaving the top of a wall walkable',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A wall is not one solid slab — it is a face you cannot cross and a top you might stand on.',
+            text:
+              'Blocking the whole painted wall is the safe default. Pulling the collider DOWN to the base of the battlements turns the walkway into a place, which is most of what makes a castle feel like a castle rather than a fence.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Block from the **bottom of the battlements** down, not from the top of the art down.',
+              'Leave the walkway strip open and check you can still get on and off it.',
+              'Make sure the strip is not a trap — it must connect back to somewhere.',
+              'Keep the two side walls blocking, so the walkway has ends.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Walking BEHIND something is a depth problem, not a collision one.',
+            text:
+              'Colliders decide where the feet may go. They have no say in what draws on top of what. The hero currently renders above every Editor layer, so he will pass behind a wall geometrically and still be painted over it. Depth sorting is its own job and its own lesson.',
           },
         ],
       },
