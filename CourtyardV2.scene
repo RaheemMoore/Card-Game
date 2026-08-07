@@ -25,6 +25,7 @@
             "type": "Layer",
             "id": "4e02b645-a5cf-45f4-a12a-ec957ab3753c",
             "label": "L1_GROUND",
+            "scope": "CLASS",
             "list": [
                 {
                     "type": "EditableTilemapLayer",
@@ -1565,6 +1566,7 @@
             "type": "Layer",
             "id": "7bd79f3b-aab8-499f-a51c-fc56339c0177",
             "label": "L11_MARKERS",
+            "scope": "CLASS",
             "list": [
                 {
                     "type": "Sprite",

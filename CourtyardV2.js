@@ -1395,12 +1395,18 @@ class CourtyardV2 extends Phaser.Scene {
 		bLOCK_cliffStep_westLowerEnd_3.lineWidth = 2;
 		l14_COLLIDERS.add(bLOCK_cliffStep_westLowerEnd_3);
 
+		this.l1_GROUND = l1_GROUND;
+		this.l11_MARKERS = l11_MARKERS;
 		this.l14_COLLIDERS = l14_COLLIDERS;
 		this.courtyardGround = courtyardGround;
 
 		this.events.emit("scene-awake");
 	}
 
+	/** @type {Phaser.GameObjects.Layer} */
+	l1_GROUND;
+	/** @type {Phaser.GameObjects.Layer} */
+	l11_MARKERS;
 	/** @type {Phaser.GameObjects.Layer} */
 	l14_COLLIDERS;
 	/** @type {Phaser.Tilemaps.Tilemap} */

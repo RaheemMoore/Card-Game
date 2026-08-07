@@ -11,6 +11,7 @@ import {
 } from '../../data/castle/heroSprite';
 import { SCENE_BEHAVIORS, type SceneBehavior } from './sceneBehaviors';
 import { readSceneColliders, type SceneColliders } from './sceneColliders';
+import { buildDepthBand } from './sceneDepth';
 import { feetBlocked, resolveWalk } from '../castle/v2-preview/walkBlocking';
 import { HERO_FEET } from '../../data/castle/heroSprite';
 
@@ -134,6 +135,15 @@ const WALK_SPEED = 190;
 const EXPLORABLE_SCENES = new Set(['CourtyardV2', 'WildlifeLab']);
 
 /**
+ * Scenes whose objects are collapsed into one y-sorted band (see sceneDepth.ts).
+ *
+ * Opt-in rather than universal: y-sorting reparents every object, which is right
+ * for a world you walk around in and wrong for a lab whose whole job is to show
+ * clips in a fixed arrangement.
+ */
+const YSORT_SCENES = new Set(['CourtyardV2']);
+
+/**
  * Texture keys a scene needs that never appear in its compiled source.
  *
  * `entriesUsedBy` finds keys by looking for them quoted in the code, which works
@@ -170,6 +180,8 @@ function makeScene(
     private behavior?: SceneBehavior;
     private facing: HeroFacing = 'down';
     private colliders: SceneColliders = { blockers: [], zones: [], shapes: [], missing: true };
+    private depthBand?: Phaser.GameObjects.Layer;
+    private sortedCount = 0;
     /** Which zones the feet were inside last frame, so enter/leave fire once. */
     private insideZones = new Set<number>();
 
@@ -254,16 +266,30 @@ function makeScene(
         new URLSearchParams(window.location.search).get('colliders') === 'show';
       for (const shape of this.colliders.shapes) {
         shape.setVisible(showColliders);
-        // Over the art but under the hero, so a shape never hides the thing it
-        // is being checked against.
-        if (showColliders) shape.setDepth(99000);
       }
 
       // World size comes from the tilemap when there is one, and from whatever was
       // placed when there is not — a lab scene with no map still needs bounds.
+      // MUST run before the depth band: it walks the scene's children, and the
+      // band reparents most of them into a Layer, which has no bounds of its own.
       const bounds = map
         ? new Phaser.Geom.Rectangle(0, 0, map.widthInPixels, map.heightInPixels)
         : this.computeContentBounds();
+
+      // Collapse the Editor's layers into one y-sorted band, so a wall and the
+      // hero can sort against each other at all. See sceneDepth.ts.
+      if (YSORT_SCENES.has(sceneName)) {
+        const band = buildDepthBand(this);
+        this.depthBand = band.layer;
+        this.sortedCount = band.sorted;
+
+        // Scale references and MISSING-wall notes are notes to Raheem, not scenery.
+        const markers = (this as unknown as Record<string, Phaser.GameObjects.Layer | undefined>)
+          .l11_MARKERS;
+        markers?.setVisible(
+          new URLSearchParams(window.location.search).get('markers') === 'show',
+        );
+      }
 
       const cam = this.cameras.main;
       cam.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -303,7 +329,9 @@ function makeScene(
         phase: 'ready',
         message: this.failedKeys.length
           ? `${this.failedKeys.length} texture(s) failed: ${this.failedKeys.slice(0, 6).join(', ')}`
-          : undefined,
+          : this.sortedCount
+            ? `${this.sortedCount} objects y-sorted · ${this.colliders.blockers.length} blockers`
+            : undefined,
       });
     }
 
@@ -336,9 +364,19 @@ function makeScene(
         .sprite(x, y, HERO_SHEET.key, idleFrame('down'))
         .setOrigin(0.5, 1)
         .setScale(scale)
-        // Above every Editor layer. The Editor's draw order is list order, and
-        // nothing it emits reaches five figures.
+        // Fallback for a scene with no depth band: above every Editor layer,
+        // because the Editor's draw order is list order and nothing it emits
+        // reaches five figures. In a y-sorted scene this is immediately replaced
+        // by the hero's own feet Y — see movePlayer.
         .setDepth(100000);
+
+      // The hero has to be a SIBLING of the walls to sort against them. Phaser
+      // sorts by depth within a parent, so a hero in the scene root and a wall in
+      // the band would never compare no matter what depths they carried.
+      if (this.depthBand) {
+        this.depthBand.add(this.player);
+        this.player.setDepth(this.player.y);
+      }
 
       for (const f of HERO_FACINGS) {
         if (this.anims.exists(walkKey(f))) continue;
@@ -406,7 +444,10 @@ function makeScene(
 
       this.player.x = Phaser.Math.Clamp(move.x + HERO_FEET.width / 2, b.x, b.right);
       this.player.y = Phaser.Math.Clamp(move.y + HERO_FEET.height, b.y, b.bottom);
-      this.player.setDepth(100000);
+      // Feet Y IS the depth. This one line is the whole "am I in front of the
+      // wall or behind it" question, and it answers it for every object in the
+      // band at once, including ones placed long after this code was written.
+      this.player.setDepth(this.depthBand ? this.player.y : 100000);
 
       this.checkZones();
     }

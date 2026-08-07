@@ -1578,6 +1578,157 @@ export const LESSONS: Lesson[] = [
     ],
   },
 
+  /* ------------------------------------------------------------------ 6 */
+  {
+    id: 'depth',
+    number: 6,
+    title: 'Depth — who draws in front',
+    status: 'live',
+    outcome: 'Know why you stand behind the castle wall inside and in front of it outside.',
+    minutes: 15,
+    sections: [
+      {
+        id: 'idea',
+        title: 'The one idea',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'An object\'s depth is the Y where it touches the ground.',
+            text:
+              'Not its layer. Not its position in a list. The single line where it meets the floor. Sort everything by that number and a top-down world composes itself.',
+          },
+          {
+            kind: 'table',
+            head: ['Where you stand', 'Your feet Y', 'South wall base', 'What you see'],
+            rows: [
+              ['In the courtyard', '900', '1216', '900 < 1216 → you are **behind** the wall'],
+              ['Outside the gate', '1300', '1216', '1300 > 1216 → you are **in front** of it'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Nothing was written about the castle to make that work.',
+            text:
+              'One rule, applied to everything, every frame. It also puts you behind a tower, in front of a shrub, and behind a tree you walk above — including objects placed months from now that no code has ever heard of.',
+          },
+        ],
+      },
+      {
+        id: 'not-layers',
+        title: 'Why your layers could never have done this',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Phaser sorts by depth WITHIN a parent. Editor layers are parents.',
+            text:
+              'A wall in `L3_CASTLE` and a hero in the scene root can never sort against each other, whatever depths they carry. That is why walking around the castle looked like standing on top of it.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'At runtime every object that stands on the floor is moved into ONE band and sorted there.',
+              'Your Editor layers keep doing what they are good at — grouping work for a human.',
+              'They stop deciding draw order, which they were never able to do correctly.',
+              'Three layers stay out: `L1_GROUND`, `L11_MARKERS`, `L14_COLLIDERS`.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Why the ground layer is excluded',
+            text:
+              'Paving and its pebble decals are floor. Sorted into the band, a decal would draw over your head every time you stood north of it.',
+          },
+        ],
+      },
+      {
+        id: 'scenes',
+        title: 'When to use a separate scene instead',
+        blocks: [
+          {
+            kind: 'compare',
+            left: {
+              title: 'One scene + y-sort',
+              points: [
+                'The courtyard and the field outside it',
+                'One continuous space you can see across',
+                'Crossing your own front wall should not cut',
+              ],
+            },
+            right: {
+              title: 'A separate scene',
+              points: [
+                'Through a door into a room, a tower, the mine',
+                'The view changes completely',
+                'You cannot see the courtyard any more',
+                'This is what the blue `ZONE_` shapes are for',
+              ],
+            },
+          },
+        ],
+      },
+      {
+        id: 'limit',
+        title: 'The known limit — north/south walls',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'One sprite gets one depth.',
+            text:
+              'That is exact for a horizontal wall, whose base is a single line. A wall running north-south has a base spanning hundreds of pixels of Y, and you can stand level with its middle, where there is no right answer.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'The fix is Editor work: cut each side wall into stacked segments.',
+              'Each segment then has its own base line, and each sorts correctly.',
+              'Until then, the west and east walls will be wrong in the middle.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'try',
+        title: 'Try it',
+        blocks: [
+          {
+            kind: 'try',
+            title: 'Cross the line',
+            steps: [
+              'Stand in the courtyard against the south wall. You are behind it.',
+              'Walk out through the gate and turn around.',
+              'Step north and south across the wall base and watch the flip.',
+            ],
+            proves:
+              'That the flip happens at the wall\'s ground line and nowhere else — the same place your feet would actually pass it.',
+          },
+          {
+            kind: 'try',
+            title: 'Find the side-wall fault on purpose',
+            steps: [
+              'Walk to the middle of the west wall and stand level with it.',
+              'Note that it is drawn either wholly in front of you or wholly behind.',
+              'Now do the same at the south wall, where it is correct.',
+            ],
+            proves:
+              'Why long north-south sprites have to be cut into segments. It is not a bug in the sorting; it is a question the sorting cannot be asked.',
+          },
+        ],
+      },
+    ],
+    checkpoint: [
+      'You can state the depth rule in one sentence.',
+      'You can say why layers alone could not do it.',
+      'You can name one case that SHOULD be a separate scene.',
+      'You have crossed the south wall line and seen the flip.',
+      'You can explain why the side walls are still wrong.',
+    ],
+  },
+
 ];
 
 /**
