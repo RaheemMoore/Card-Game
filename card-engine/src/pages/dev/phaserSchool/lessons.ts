@@ -853,6 +853,13 @@ export const LESSONS: Lesson[] = [
           {
             kind: 'callout',
             tone: 'warn',
+            title: 'Check the transparent area, not just the art.',
+            text:
+              'The side walls shipped with the editor’s own transparency CHECKERBOARD baked into the PNG — 10,028 grey pixels — and the watch tower with 1,183 black speckles floating beside it. Both invisible on a dark review background, both obvious in the map. The test is connectivity, not colour: junk does not touch the sprite, and comes in two or three flat shades. Real detached art (waterfall spray, loose scree) has 30+ shades — which is how `lib/despeckle.py` tells them apart instead of eating them.',
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
             title: 'NEAREST, not LINEAR.',
             text:
               'Phaser defaults to LINEAR, which blends neighbouring pixels and turns pixel art to mush the moment you zoom in. Set NEAREST on every kit texture — not just the hero, which is the trap the old courtyard fell into.',
@@ -997,6 +1004,40 @@ export const LESSONS: Lesson[] = [
             title: 'A forest floor and a courtyard lawn are two different places.',
             text:
               'The temptation is to find one green that works everywhere. Do not — the open courtyard should stay bright, and the forest should be somewhere else. Two tilesets, painted where each belongs, costs nothing extra.',
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'DECIDED 2026-08-07 — the forest floor is “mossdark”.',
+            text:
+              'Cooler, much darker, and far less saturated than the lawn. 1,163 tiles painted around the north, east and west of the castle; the courtyard keeps the bright green. The rule it came from: a floor must be QUIETER and DARKER than whatever stands on it.',
+          },
+          {
+            kind: 'table',
+            head: ['', 'hue', 'sat', 'val', 'verdict'],
+            rows: [
+              ['Canopy', '114°', '0.34', '0.45', 'the thing that must stand out'],
+              ['Lawn (before)', '127°', '**0.49**', '**0.45**', '**as bright, and louder**'],
+              ['Every other green we had', '108-129°', '0.31-0.50', '0.40-0.53', 'all fail the same way'],
+              ['**Forest floor (now)**', '**114°**', '**0.27**', '**0.28**', '**quieter + darker**'],
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'The defect was never "not green enough". The floor was **exactly as bright as the canopy**, so the trees had nothing to stand against.',
+              'Eight grass variants existed and **all eight failed** — every one sat between 0.31 and 0.50 saturation against a 0.34 canopy. More greens would not have helped.',
+              'The fix was a **recolour, not a generation** — free, exact, reversible, identical across all 16 tiles. `lib/tint_ground.py`.',
+              '**Only the grass side was retinted.** The dirt keeps its hue and just drops into shade, so the transition tiles stay continuous with the dirt outside the forest.',
+              'Measure the thing that has to stand out FIRST, then pick the floor against it. Judging two greens side by side tells you nothing about whether a tree reads.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'What a recolour cannot do.',
+            text:
+              'This floor is still grass texture — blades and clover speckles, darkened. It is not leaf litter, roots or twigs. Colour is a post-process; STRUCTURE has to be generated. A true forest-floor Wang set is ~20 generations, and mossdark is the colour brief for it.',
           },
         ],
       },
@@ -1182,11 +1223,11 @@ export const LESSONS: Lesson[] = [
               {
                 who: 'raheem',
                 do: 'Expand it.',
-                see: 'Six shapes: four `BLOCK_mapEdge_*`, one `BLOCK_example_*`, one `ZONE_example_*`.',
+                see: '33 shapes, named by what they block: `BLOCK_mapEdge_*`, `BLOCK_castleWall_*`, `BLOCK_cliff_*`, `BLOCK_forestEdge_*`, `BLOCK_prop_*`, and one blue `ZONE_castleGate_passage`.',
               },
               {
                 who: 'raheem',
-                do: 'Click `BLOCK_example_southWallBand` and look at the right panel (Inspector).',
+                do: 'Click `BLOCK_castleWall_southWest` and look at the right panel (Inspector).',
                 see: 'x, y, width, height, and a red fill. That is the entire definition of a wall.',
               },
             ],
@@ -1197,6 +1238,13 @@ export const LESSONS: Lesson[] = [
             title: 'The four map-edge shapes are already correct — leave them alone.',
             text:
               'They sit just outside the 2560 × 1920 map and stop you walking off the world. They are the one part of collision that is pure arithmetic, so I did them.',
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Everything else is a FIRST PASS. Expect to move it.',
+            text:
+              'The castle, cliff, forest and prop shapes were measured off a scene screenshot, not traced by hand. They are close enough to walk around and judge, which is the point — it is far easier to drag a wall that is 30px out than to place one from nothing.',
           },
         ],
       },

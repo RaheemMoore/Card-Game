@@ -384,13 +384,6 @@ class CourtyardV2 extends Phaser.Scene {
 		sHELF_wall_north.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_wall_north);
 
-		// SHELF_gate_drawbridge
-		const sHELF_gate_drawbridge = this.add.image(3355, 2072, "gate-drawbridge");
-		sHELF_gate_drawbridge.scaleX = 1.2179184862700398;
-		sHELF_gate_drawbridge.scaleY = 1.1317833460082098;
-		sHELF_gate_drawbridge.setOrigin(1, 1);
-		l3_CASTLE.add(sHELF_gate_drawbridge);
-
 		// SHELF_wall_north_1
 		const sHELF_wall_north_1 = this.add.image(1312, -6, "wall-north");
 		sHELF_wall_north_1.scaleX = 1.002714667991714;
@@ -404,26 +397,32 @@ class CourtyardV2 extends Phaser.Scene {
 		l3_CASTLE.add(sHELF_gate_drawbridge_V5);
 
 		// SHELF_wall_corner_turn
-		const sHELF_wall_corner_turn = this.add.image(2591, 1992, "wall-corner-turn");
+		const sHELF_wall_corner_turn = this.add.image(2919, 925, "wall-corner-turn");
 		sHELF_wall_corner_turn.scaleX = 1.6174553850910134;
 		sHELF_wall_corner_turn.scaleY = 1.5093493504936581;
 		sHELF_wall_corner_turn.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_wall_corner_turn);
 
 		// SHELF_wall_straight_v2
-		const sHELF_wall_straight_v2 = this.add.image(1270, 2217, "wall-straight-v2");
+		const sHELF_wall_straight_v2 = this.add.image(2856, 601, "wall-straight-v2");
 		sHELF_wall_straight_v2.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_wall_straight_v2);
 
 		// SHELF_gate_house_v2
-		const sHELF_gate_house_v2 = this.add.image(-1960, 1525, "gate-house-v2");
+		const sHELF_gate_house_v2 = this.add.image(2927, 1266, "gate-house-v2");
 		sHELF_gate_house_v2.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_gate_house_v2);
 
 		// SHELF_corner_outer_v2
-		const sHELF_corner_outer_v2 = this.add.image(2403, 2300, "wall-corner-outer-v2");
+		const sHELF_corner_outer_v2 = this.add.image(2982, 1629, "wall-corner-outer-v2");
 		sHELF_corner_outer_v2.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_corner_outer_v2);
+
+		// SHELF_wall_side
+		const sHELF_wall_side = this.add.image(-1409.91199864403, 1029.5812512002374, "wall-side");
+		sHELF_wall_side.scaleX = 1.142292861719713;
+		sHELF_wall_side.scaleY = 1.3873158625341773;
+		l3_CASTLE.add(sHELF_wall_side);
 
 		// L12_FOREST_CANOPY
 		const l12_FOREST_CANOPY = this.add.layer();
@@ -1038,27 +1037,324 @@ class CourtyardV2 extends Phaser.Scene {
 		bLOCK_mapEdge_east.lineWidth = 2;
 		l14_COLLIDERS.add(bLOCK_mapEdge_east);
 
-		// BLOCK_example_southWallBand
-		const bLOCK_example_southWallBand = this.add.rectangle(1117, 1660, 768, 124);
-		bLOCK_example_southWallBand.setOrigin(0, 0);
-		bLOCK_example_southWallBand.isFilled = true;
-		bLOCK_example_southWallBand.fillColor = 16724821;
-		bLOCK_example_southWallBand.fillAlpha = 0.35;
-		bLOCK_example_southWallBand.isStroked = true;
-		bLOCK_example_southWallBand.strokeColor = 16724821;
-		bLOCK_example_southWallBand.lineWidth = 2;
-		l14_COLLIDERS.add(bLOCK_example_southWallBand);
+		// BLOCK_cliff_centreEast
+		const bLOCK_cliff_centreEast = this.add.rectangle(1446, 1528, 439, 96);
+		bLOCK_cliff_centreEast.setOrigin(0, 0);
+		bLOCK_cliff_centreEast.isFilled = true;
+		bLOCK_cliff_centreEast.fillColor = 16724821;
+		bLOCK_cliff_centreEast.fillAlpha = 0.35;
+		bLOCK_cliff_centreEast.isStroked = true;
+		bLOCK_cliff_centreEast.strokeColor = 16724821;
+		bLOCK_cliff_centreEast.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliff_centreEast);
 
-		// ZONE_example_stairTop
-		const zONE_example_stairTop = this.add.rectangle(1258, 1177, 96, 64);
-		zONE_example_stairTop.setOrigin(0, 0);
-		zONE_example_stairTop.isFilled = true;
-		zONE_example_stairTop.fillColor = 3394815;
-		zONE_example_stairTop.fillAlpha = 0.35;
-		zONE_example_stairTop.isStroked = true;
-		zONE_example_stairTop.strokeColor = 3394815;
-		zONE_example_stairTop.lineWidth = 2;
-		l14_COLLIDERS.add(zONE_example_stairTop);
+		// ZONE_castleGate_passage
+		const zONE_castleGate_passage = this.add.rectangle(1274, 1100, 102, 116);
+		zONE_castleGate_passage.setOrigin(0, 0);
+		zONE_castleGate_passage.isFilled = true;
+		zONE_castleGate_passage.fillColor = 3394815;
+		zONE_castleGate_passage.fillAlpha = 0.35;
+		zONE_castleGate_passage.isStroked = true;
+		zONE_castleGate_passage.strokeColor = 3394815;
+		zONE_castleGate_passage.lineWidth = 2;
+		l14_COLLIDERS.add(zONE_castleGate_passage);
+
+		// BLOCK_castleWall_north
+		const bLOCK_castleWall_north = this.add.rectangle(435, -32, 1805, 250);
+		bLOCK_castleWall_north.setOrigin(0, 0);
+		bLOCK_castleWall_north.isFilled = true;
+		bLOCK_castleWall_north.fillColor = 16724821;
+		bLOCK_castleWall_north.fillAlpha = 0.35;
+		bLOCK_castleWall_north.isStroked = true;
+		bLOCK_castleWall_north.strokeColor = 16724821;
+		bLOCK_castleWall_north.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_castleWall_north);
+
+		// BLOCK_castleWall_west
+		const bLOCK_castleWall_west = this.add.rectangle(435, 218, 192, 992);
+		bLOCK_castleWall_west.setOrigin(0, 0);
+		bLOCK_castleWall_west.isFilled = true;
+		bLOCK_castleWall_west.fillColor = 16724821;
+		bLOCK_castleWall_west.fillAlpha = 0.35;
+		bLOCK_castleWall_west.isStroked = true;
+		bLOCK_castleWall_west.strokeColor = 16724821;
+		bLOCK_castleWall_west.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_castleWall_west);
+
+		// BLOCK_castleWall_east
+		const bLOCK_castleWall_east = this.add.rectangle(2022, 218, 218, 992);
+		bLOCK_castleWall_east.setOrigin(0, 0);
+		bLOCK_castleWall_east.isFilled = true;
+		bLOCK_castleWall_east.fillColor = 16724821;
+		bLOCK_castleWall_east.fillAlpha = 0.35;
+		bLOCK_castleWall_east.isStroked = true;
+		bLOCK_castleWall_east.strokeColor = 16724821;
+		bLOCK_castleWall_east.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_castleWall_east);
+
+		// BLOCK_castleWall_southWest
+		const bLOCK_castleWall_southWest = this.add.rectangle(390, 883, 884, 333);
+		bLOCK_castleWall_southWest.setOrigin(0, 0);
+		bLOCK_castleWall_southWest.isFilled = true;
+		bLOCK_castleWall_southWest.fillColor = 16724821;
+		bLOCK_castleWall_southWest.fillAlpha = 0.35;
+		bLOCK_castleWall_southWest.isStroked = true;
+		bLOCK_castleWall_southWest.strokeColor = 16724821;
+		bLOCK_castleWall_southWest.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_castleWall_southWest);
+
+		// BLOCK_castleWall_southEast
+		const bLOCK_castleWall_southEast = this.add.rectangle(1376, 883, 874, 333);
+		bLOCK_castleWall_southEast.setOrigin(0, 0);
+		bLOCK_castleWall_southEast.isFilled = true;
+		bLOCK_castleWall_southEast.fillColor = 16724821;
+		bLOCK_castleWall_southEast.fillAlpha = 0.35;
+		bLOCK_castleWall_southEast.isStroked = true;
+		bLOCK_castleWall_southEast.strokeColor = 16724821;
+		bLOCK_castleWall_southEast.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_castleWall_southEast);
+
+		// BLOCK_cliff_westUpper
+		const bLOCK_cliff_westUpper = this.add.rectangle(0, 1406, 768, 96);
+		bLOCK_cliff_westUpper.setOrigin(0, 0);
+		bLOCK_cliff_westUpper.isFilled = true;
+		bLOCK_cliff_westUpper.fillColor = 16724821;
+		bLOCK_cliff_westUpper.fillAlpha = 0.35;
+		bLOCK_cliff_westUpper.isStroked = true;
+		bLOCK_cliff_westUpper.strokeColor = 16724821;
+		bLOCK_cliff_westUpper.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliff_westUpper);
+
+		// BLOCK_cliff_westLower
+		const bLOCK_cliff_westLower = this.add.rectangle(350, 1528, 768, 96);
+		bLOCK_cliff_westLower.setOrigin(0, 0);
+		bLOCK_cliff_westLower.isFilled = true;
+		bLOCK_cliff_westLower.fillColor = 16724821;
+		bLOCK_cliff_westLower.fillAlpha = 0.35;
+		bLOCK_cliff_westLower.isStroked = true;
+		bLOCK_cliff_westLower.strokeColor = 16724821;
+		bLOCK_cliff_westLower.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliff_westLower);
+
+		// BLOCK_cliff_centreWest
+		const bLOCK_cliff_centreWest = this.add.rectangle(1118, 1528, 143, 96);
+		bLOCK_cliff_centreWest.setOrigin(0, 0);
+		bLOCK_cliff_centreWest.isFilled = true;
+		bLOCK_cliff_centreWest.fillColor = 16724821;
+		bLOCK_cliff_centreWest.fillAlpha = 0.35;
+		bLOCK_cliff_centreWest.isStroked = true;
+		bLOCK_cliff_centreWest.strokeColor = 16724821;
+		bLOCK_cliff_centreWest.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliff_centreWest);
+
+		// BLOCK_cliff_eastUpper
+		const bLOCK_cliff_eastUpper = this.add.rectangle(1885, 1430, 675, 96);
+		bLOCK_cliff_eastUpper.setOrigin(0, 0);
+		bLOCK_cliff_eastUpper.isFilled = true;
+		bLOCK_cliff_eastUpper.fillColor = 16724821;
+		bLOCK_cliff_eastUpper.fillAlpha = 0.35;
+		bLOCK_cliff_eastUpper.isStroked = true;
+		bLOCK_cliff_eastUpper.strokeColor = 16724821;
+		bLOCK_cliff_eastUpper.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliff_eastUpper);
+
+		// BLOCK_cliff_eastHigh
+		const bLOCK_cliff_eastHigh = this.add.rectangle(2353, 1262, 207, 96);
+		bLOCK_cliff_eastHigh.setOrigin(0, 0);
+		bLOCK_cliff_eastHigh.isFilled = true;
+		bLOCK_cliff_eastHigh.fillColor = 16724821;
+		bLOCK_cliff_eastHigh.fillAlpha = 0.35;
+		bLOCK_cliff_eastHigh.isStroked = true;
+		bLOCK_cliff_eastHigh.strokeColor = 16724821;
+		bLOCK_cliff_eastHigh.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_cliff_eastHigh);
+
+		// BLOCK_prop_entryFootRockL
+		const bLOCK_prop_entryFootRockL = this.add.rectangle(134, 1753, 78, 24);
+		bLOCK_prop_entryFootRockL.setOrigin(0, 0);
+		bLOCK_prop_entryFootRockL.isFilled = true;
+		bLOCK_prop_entryFootRockL.fillColor = 16724821;
+		bLOCK_prop_entryFootRockL.fillAlpha = 0.35;
+		bLOCK_prop_entryFootRockL.isStroked = true;
+		bLOCK_prop_entryFootRockL.strokeColor = 16724821;
+		bLOCK_prop_entryFootRockL.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_entryFootRockL);
+
+		// BLOCK_prop_entryFootShrubL
+		const bLOCK_prop_entryFootShrubL = this.add.rectangle(209, 1839, 56, 24);
+		bLOCK_prop_entryFootShrubL.setOrigin(0, 0);
+		bLOCK_prop_entryFootShrubL.isFilled = true;
+		bLOCK_prop_entryFootShrubL.fillColor = 16724821;
+		bLOCK_prop_entryFootShrubL.fillAlpha = 0.35;
+		bLOCK_prop_entryFootShrubL.isStroked = true;
+		bLOCK_prop_entryFootShrubL.strokeColor = 16724821;
+		bLOCK_prop_entryFootShrubL.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_entryFootShrubL);
+
+		// BLOCK_prop_entryFootRockR
+		const bLOCK_prop_entryFootRockR = this.add.rectangle(345, 1869, 74, 24);
+		bLOCK_prop_entryFootRockR.setOrigin(0, 0);
+		bLOCK_prop_entryFootRockR.isFilled = true;
+		bLOCK_prop_entryFootRockR.fillColor = 16724821;
+		bLOCK_prop_entryFootRockR.fillAlpha = 0.35;
+		bLOCK_prop_entryFootRockR.isStroked = true;
+		bLOCK_prop_entryFootRockR.strokeColor = 16724821;
+		bLOCK_prop_entryFootRockR.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_entryFootRockR);
+
+		// BLOCK_prop_entryFootShrubR
+		const bLOCK_prop_entryFootShrubR = this.add.rectangle(359, 1787, 64, 24);
+		bLOCK_prop_entryFootShrubR.setOrigin(0, 0);
+		bLOCK_prop_entryFootShrubR.isFilled = true;
+		bLOCK_prop_entryFootShrubR.fillColor = 16724821;
+		bLOCK_prop_entryFootShrubR.fillAlpha = 0.35;
+		bLOCK_prop_entryFootShrubR.isStroked = true;
+		bLOCK_prop_entryFootShrubR.strokeColor = 16724821;
+		bLOCK_prop_entryFootShrubR.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_entryFootShrubR);
+
+		// BLOCK_prop_entryGateTreeR
+		const bLOCK_prop_entryGateTreeR = this.add.rectangle(72, 1815, 24, 20);
+		bLOCK_prop_entryGateTreeR.setOrigin(0, 0);
+		bLOCK_prop_entryGateTreeR.isFilled = true;
+		bLOCK_prop_entryGateTreeR.fillColor = 16724821;
+		bLOCK_prop_entryGateTreeR.fillAlpha = 0.35;
+		bLOCK_prop_entryGateTreeR.isStroked = true;
+		bLOCK_prop_entryGateTreeR.strokeColor = 16724821;
+		bLOCK_prop_entryGateTreeR.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_entryGateTreeR);
+
+		// BLOCK_prop_entryShrubL
+		const bLOCK_prop_entryShrubL = this.add.rectangle(611, 1462, 60, 24);
+		bLOCK_prop_entryShrubL.setOrigin(0, 0);
+		bLOCK_prop_entryShrubL.isFilled = true;
+		bLOCK_prop_entryShrubL.fillColor = 16724821;
+		bLOCK_prop_entryShrubL.fillAlpha = 0.35;
+		bLOCK_prop_entryShrubL.isStroked = true;
+		bLOCK_prop_entryShrubL.strokeColor = 16724821;
+		bLOCK_prop_entryShrubL.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_entryShrubL);
+
+		// BLOCK_prop_footShrubB
+		const bLOCK_prop_footShrubB = this.add.rectangle(1773, 1517, 72, 24);
+		bLOCK_prop_footShrubB.setOrigin(0, 0);
+		bLOCK_prop_footShrubB.isFilled = true;
+		bLOCK_prop_footShrubB.fillColor = 16724821;
+		bLOCK_prop_footShrubB.fillAlpha = 0.35;
+		bLOCK_prop_footShrubB.isStroked = true;
+		bLOCK_prop_footShrubB.strokeColor = 16724821;
+		bLOCK_prop_footShrubB.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_prop_footShrubB);
+
+		// BLOCK_forestEdge_west
+		const bLOCK_forestEdge_west = this.add.rectangle(0, -32, 400, 760);
+		bLOCK_forestEdge_west.setOrigin(0, 0);
+		bLOCK_forestEdge_west.isFilled = true;
+		bLOCK_forestEdge_west.fillColor = 16724821;
+		bLOCK_forestEdge_west.fillAlpha = 0.35;
+		bLOCK_forestEdge_west.isStroked = true;
+		bLOCK_forestEdge_west.strokeColor = 16724821;
+		bLOCK_forestEdge_west.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_west);
+
+		// BLOCK_forestEdge_westLow
+		const bLOCK_forestEdge_westLow = this.add.rectangle(0, 728, 330, 90);
+		bLOCK_forestEdge_westLow.setOrigin(0, 0);
+		bLOCK_forestEdge_westLow.isFilled = true;
+		bLOCK_forestEdge_westLow.fillColor = 16724821;
+		bLOCK_forestEdge_westLow.fillAlpha = 0.35;
+		bLOCK_forestEdge_westLow.isStroked = true;
+		bLOCK_forestEdge_westLow.strokeColor = 16724821;
+		bLOCK_forestEdge_westLow.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_westLow);
+
+		// BLOCK_forestStump_westA
+		const bLOCK_forestStump_westA = this.add.rectangle(20, 800, 120, 70);
+		bLOCK_forestStump_westA.setOrigin(0, 0);
+		bLOCK_forestStump_westA.isFilled = true;
+		bLOCK_forestStump_westA.fillColor = 16724821;
+		bLOCK_forestStump_westA.fillAlpha = 0.35;
+		bLOCK_forestStump_westA.isStroked = true;
+		bLOCK_forestStump_westA.strokeColor = 16724821;
+		bLOCK_forestStump_westA.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestStump_westA);
+
+		// BLOCK_forestStump_westB
+		const bLOCK_forestStump_westB = this.add.rectangle(190, 760, 130, 70);
+		bLOCK_forestStump_westB.setOrigin(0, 0);
+		bLOCK_forestStump_westB.isFilled = true;
+		bLOCK_forestStump_westB.fillColor = 16724821;
+		bLOCK_forestStump_westB.fillAlpha = 0.35;
+		bLOCK_forestStump_westB.isStroked = true;
+		bLOCK_forestStump_westB.strokeColor = 16724821;
+		bLOCK_forestStump_westB.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestStump_westB);
+
+		// BLOCK_forestEdge_westTop
+		const bLOCK_forestEdge_westTop = this.add.rectangle(400, -32, 70, 280);
+		bLOCK_forestEdge_westTop.setOrigin(0, 0);
+		bLOCK_forestEdge_westTop.isFilled = true;
+		bLOCK_forestEdge_westTop.fillColor = 16724821;
+		bLOCK_forestEdge_westTop.fillAlpha = 0.35;
+		bLOCK_forestEdge_westTop.isStroked = true;
+		bLOCK_forestEdge_westTop.strokeColor = 16724821;
+		bLOCK_forestEdge_westTop.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_westTop);
+
+		// BLOCK_forestEdge_east
+		const bLOCK_forestEdge_east = this.add.rectangle(2266, -32, 294, 810);
+		bLOCK_forestEdge_east.setOrigin(0, 0);
+		bLOCK_forestEdge_east.isFilled = true;
+		bLOCK_forestEdge_east.fillColor = 16724821;
+		bLOCK_forestEdge_east.fillAlpha = 0.35;
+		bLOCK_forestEdge_east.isStroked = true;
+		bLOCK_forestEdge_east.strokeColor = 16724821;
+		bLOCK_forestEdge_east.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_east);
+
+		// BLOCK_forestEdge_eastLow
+		const bLOCK_forestEdge_eastLow = this.add.rectangle(2350, 778, 210, 130);
+		bLOCK_forestEdge_eastLow.setOrigin(0, 0);
+		bLOCK_forestEdge_eastLow.isFilled = true;
+		bLOCK_forestEdge_eastLow.fillColor = 16724821;
+		bLOCK_forestEdge_eastLow.fillAlpha = 0.35;
+		bLOCK_forestEdge_eastLow.isStroked = true;
+		bLOCK_forestEdge_eastLow.strokeColor = 16724821;
+		bLOCK_forestEdge_eastLow.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_eastLow);
+
+		// BLOCK_forestEdge_eastFoot
+		const bLOCK_forestEdge_eastFoot = this.add.rectangle(2432, 908, 128, 150);
+		bLOCK_forestEdge_eastFoot.setOrigin(0, 0);
+		bLOCK_forestEdge_eastFoot.isFilled = true;
+		bLOCK_forestEdge_eastFoot.fillColor = 16724821;
+		bLOCK_forestEdge_eastFoot.fillAlpha = 0.35;
+		bLOCK_forestEdge_eastFoot.isStroked = true;
+		bLOCK_forestEdge_eastFoot.strokeColor = 16724821;
+		bLOCK_forestEdge_eastFoot.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_eastFoot);
+
+		// BLOCK_forestEdge_eastTopA
+		const bLOCK_forestEdge_eastTopA = this.add.rectangle(2200, -32, 70, 330);
+		bLOCK_forestEdge_eastTopA.setOrigin(0, 0);
+		bLOCK_forestEdge_eastTopA.isFilled = true;
+		bLOCK_forestEdge_eastTopA.fillColor = 16724821;
+		bLOCK_forestEdge_eastTopA.fillAlpha = 0.35;
+		bLOCK_forestEdge_eastTopA.isStroked = true;
+		bLOCK_forestEdge_eastTopA.strokeColor = 16724821;
+		bLOCK_forestEdge_eastTopA.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_eastTopA);
+
+		// BLOCK_forestEdge_eastTopB
+		const bLOCK_forestEdge_eastTopB = this.add.rectangle(2220, 298, 50, 400);
+		bLOCK_forestEdge_eastTopB.setOrigin(0, 0);
+		bLOCK_forestEdge_eastTopB.isFilled = true;
+		bLOCK_forestEdge_eastTopB.fillColor = 16724821;
+		bLOCK_forestEdge_eastTopB.fillAlpha = 0.35;
+		bLOCK_forestEdge_eastTopB.isStroked = true;
+		bLOCK_forestEdge_eastTopB.strokeColor = 16724821;
+		bLOCK_forestEdge_eastTopB.lineWidth = 2;
+		l14_COLLIDERS.add(bLOCK_forestEdge_eastTopB);
 
 		this.l14_COLLIDERS = l14_COLLIDERS;
 		this.courtyardGround = courtyardGround;
