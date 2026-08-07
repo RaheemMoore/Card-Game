@@ -133,9 +133,11 @@ PixelLab. One JSON config per subject in `configs/`.
 | `boss-still-season.json` | The Still Season (seated boss) | v3 |
 | `boss-debt-bearer.json` | The Debt-Bearer | v3 |
 | `hero-cardwright.json` / `hero-chibi.json` | Combat heroes | v3 |
+| `hero-card-slam.json` | Approved Card-wright card-invocation slam | existing-character v3 animation, south/front |
 | `keeper-archivist.json` / `keeper-dwarf.json` | Castle NPCs | v3 |
 | `prop-horse.json` | Grazing horse (scenery prop) | v3, `templateId: horse` |
 | `scene-courtyard-pixel.json` | Courtyard scene pass | — |
+| `scene-castle-kit-magical-trees.json` | Four Halo Stone magical-forest hero trees | one-direction objects, 4 pieces / 25 generations |
 
 **Library** (`sprite-lab/lib/`):
 
@@ -171,6 +173,7 @@ These are how a human decides. **Every one of them is offered, not requested.**
 | **Courtyard sample** | `/dev/courtyard-sample` | Castle scene composition |
 | **Courtyard V2 forge preview** | `/dev/courtyard-v2-preview` | DEV-only walk-through of the pending V2 forge quadrant: Figma-derived colliders/occlusion, chibi movement, heel dust, forge atmosphere, named aisle checks, and reduced-motion behavior. It does not replace `/castle` and is excluded from production builds. |
 | **Phaser School** | `/dev/phaser-school` | How do I do this myself next time? The world-authoring syllabus — one lesson per build (Ground, Castle, Forest), each with a table of contents, a single "key idea", the real kit art shown inline, a who-does-what step list (Claude drives MCP, Raheem drives the mouse), `Try it` experiments that prove a claim rather than asserting it, and persisted checkpoints. Built 2026-08-06 because Phaser Editor knowledge was living in chat transcripts. **Lessons are data** in `src/pages/dev/phaserSchool/lessons.ts` — adding one never touches the renderer, which is what lets it grow. Images point at real files in `public/assets/`, so a lesson cannot drift from the art it describes without visibly breaking. |
+| **Scene Preview (Editor runtime)** | `/dev/scene?start=<SceneName>` | The game half of Phaser Editor — runs whichever saved Editor scene it is asked for, with the hero, camera and input owned by our code and every placement owned by the Editor. Save in the Editor, refresh the browser: that is the whole loop. Collision is authored the same way, as red/blue rectangles in an `L14_COLLIDERS` layer, read back by `src/pages/dev/sceneColliders.ts` and resolved through the polygon walker in `walkBlocking.ts` (so a rotated wall blocks along its lean). Append `&colliders=show` to see the collision layer over the art while walking. Taught by Phaser School lesson 5. |
 | **Validator regression** | `scripts/sprite-lab/test-validator.sh` | Does the quality gate still catch the known-bad fixtures? |
 
 **Known-good / known-bad fixtures** live at `sprite-lab/fixtures/` — the drifting

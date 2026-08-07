@@ -8,10 +8,1998 @@
     },
     "displayList": [
         {
-            "type": "EditableTilemapLayer",
-            "id": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
-            "label": "ground",
-            "tilemapId": "79a8a5b4-2f74-4cd6-a031-e2045a43b238"
+            "type": "Rectangle",
+            "id": "8be7e5f1-f71a-44a7-9598-b960617c33ed",
+            "label": "VIEWPORT_zoom2_960x540",
+            "x": 2703,
+            "y": 1,
+            "originX": 0,
+            "originY": 0,
+            "strokeColor": "#ffcc00",
+            "lineWidth": 6,
+            "isStroked": true,
+            "width": 960,
+            "height": 540
+        },
+        {
+            "type": "Layer",
+            "id": "4e02b645-a5cf-45f4-a12a-ec957ab3753c",
+            "label": "L1_GROUND",
+            "list": [
+                {
+                    "type": "EditableTilemapLayer",
+                    "id": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
+                    "label": "ground",
+                    "tilemapId": "79a8a5b4-2f74-4cd6-a031-e2045a43b238"
+                },
+                {
+                    "type": "Image",
+                    "id": "c97a0e3e-0c08-4644-a9f6-f17ddf419a46",
+                    "label": "APRON_pebblesA",
+                    "texture": {
+                        "key": "ground-overlay-pebbles-scuffs"
+                    },
+                    "x": 1200,
+                    "y": 1256,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "2ae662f4-99b0-452f-9ff6-c10986a03e0b",
+                    "label": "APRON_pebblesB",
+                    "texture": {
+                        "key": "ground-overlay-pebbles-scuffs"
+                    },
+                    "x": 1455,
+                    "y": 1262,
+                    "scaleX": 0.75,
+                    "scaleY": 0.75,
+                    "originY": 0,
+                    "flipX": true
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "2ca347c1-1a46-4d33-a8a7-94f881195921",
+            "label": "L2_TERRAIN",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "4d104a38-8d2c-46ee-99b0-fc573890a3bb",
+                    "label": "halo_stone_castle_terrain_wall_endcap_1",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1790,
+                    "y": 1558,
+                    "scaleX": -1
+                },
+                {
+                    "type": "Image",
+                    "id": "602251e5-11cc-4346-a913-28972eea48a0",
+                    "label": "wallBandC_2",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1117,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "795adbfe-b9aa-4aa0-a09d-b0df6f6396c6",
+                    "label": "halo_stone_castle_terrain_wall_boulders",
+                    "texture": {
+                        "key": "terrain-wall-boulders"
+                    },
+                    "x": 2012,
+                    "y": 1696
+                },
+                {
+                    "type": "Image",
+                    "id": "4b0db8f7-cb2b-4cd2-8919-6d3c40c25439",
+                    "label": "halo_stone_castle_terrain_wall_endcap_2",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 2286,
+                    "y": 1376,
+                    "scaleX": -1
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "acc38346-06c2-4a8d-b82a-a043a98f4ec6",
+                    "label": "wallBandC_4",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 2353,
+                    "y": 1262,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 206,
+                    "height": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "184d1df8-1b4f-444e-bd5f-ae93a3ab6601",
+                    "label": "wallBandC",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1885,
+                    "y": 1430,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 674,
+                    "height": 256
+                },
+                {
+                    "type": "Image",
+                    "id": "a63c6adf-ecd7-4ee5-ba3f-8b3f1a880230",
+                    "label": "wallStair",
+                    "texture": {
+                        "key": "terrain-wall-stair"
+                    },
+                    "x": 1173,
+                    "y": 1533,
+                    "scaleX": 1.6607407900003772,
+                    "scaleY": 0.8860267326421837,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "c9901464-3c34-4509-865f-bb5a1fc7017c",
+                    "label": "wallPillarLeft",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1169,
+                    "y": 1519,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "edcdb41e-e22d-4267-ae60-c7c9c716615b",
+                    "label": "wallPillarRight",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1450,
+                    "y": 1521,
+                    "originX": 0,
+                    "originY": 0,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "4a47b735-022a-4463-812d-1f3c69d095b3",
+                    "label": "wallBandC_1",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "y": 1406,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "f0ad9f58-f05d-41c4-9e7a-bdf7f6c461e2",
+                    "label": "halo_stone_castle_terrain_wall_endcap_4",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 817,
+                    "y": 1531
+                },
+                {
+                    "type": "Image",
+                    "id": "8512f65b-12c3-4357-b178-242e88e83fad",
+                    "label": "wallBandC_3",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 350,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "2a21d595-b509-4c84-b01d-ba63fc4cb319",
+                    "label": "halo_stone_castle_terrain_wall_endcap",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1971,
+                    "y": 1657
+                },
+                {
+                    "type": "Image",
+                    "id": "005038fe-45a6-43cd-a991-2cf053d685b1",
+                    "label": "halo_stone_castle_terrain_wall_endcap_3",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 272,
+                    "y": 1656,
+                    "scaleX": -1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "a3f44f7f-5c8c-4a97-bb55-9c2980850230",
+            "label": "L13_Forest_Under_Brush"
+        },
+        {
+            "type": "Layer",
+            "id": "b65e4d4f-cabb-4077-9aac-2b5ec001ad4e",
+            "label": "L12.5 Back Canopy",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "1157946b-c6b3-4082-87a5-8443d0a62152",
+                    "label": "nature_tree_broadleaf_large_21",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 426,
+                    "y": -119,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "07083be2-8c81-4101-bd7d-53e0df3efcd7",
+                    "label": "nature_tree_broadleaf_large_26",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1592,
+                    "y": -121,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "88f019b0-861c-44ed-ba4e-7feca6dacaaf",
+                    "label": "nature_tree_broadleaf_large_27",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1734,
+                    "y": -97,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "255a6bed-b0f7-4738-b3de-56fc70c057fd",
+                    "label": "nature_tree_broadleaf_large_28",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1891,
+                    "y": -64,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "06b27b0c-686d-4491-9f02-48b12fc5cab9",
+                    "label": "nature_tree_broadleaf_large_22",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 558,
+                    "y": -68,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "2f678aaa-5412-4847-8895-485d018c3ce0",
+                    "label": "nature_tree_broadleaf_large_23",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 767,
+                    "y": -137,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "0d9e86bf-d878-4deb-9b2a-0a9bb644a2ce",
+                    "label": "nature_tree_broadleaf_large_24",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 909,
+                    "y": -73,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "005dcdd8-635e-4d2c-9859-11cca8dd27bb",
+                    "label": "nature_tree_broadleaf_large_29",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1181,
+                    "y": -117,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "b031a21c-1694-4643-9ad8-9e86c8e7a0a5",
+                    "label": "nature_tree_broadleaf_large_30",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1333,
+                    "y": -63,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "06a12a05-c137-4479-9816-08adc28a83fa",
+                    "label": "nature_tree_broadleaf_large_33",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2189,
+                    "y": -97,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "8098f148-1122-4770-a8b6-c9ba90bfece9",
+                    "label": "nature_tree_broadleaf_large_31",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1480,
+                    "y": -60,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "fe363269-4103-476c-91c0-24fa073cdd53",
+                    "label": "nature_tree_broadleaf_large_25",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1066,
+                    "y": -80,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "4d8c2e75-f594-4901-b596-ed2804c28c90",
+                    "label": "nature_tree_broadleaf_large_20",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 725,
+                    "y": -62,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "04126b46-f35b-404a-9c71-d4fdf6a4a852",
+                    "label": "nature_tree_broadleaf_large_32",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2046,
+                    "y": -99,
+                    "scaleX": 3,
+                    "scaleY": 3
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "933cb24f-5dcc-4691-a09e-825c77dd0c7f",
+            "label": "L3_CASTLE",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "40abe410-bb9d-4ff9-8673-d7db826c0fb4",
+                    "label": "PASS_wallSouthB",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 1799,
+                    "y": 928,
+                    "scaleX": -1,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "36c73ea2-9a99-4734-b73c-803b78bf5009",
+                    "label": "castleWallWest_1",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 855,
+                    "y": 926,
+                    "scaleX": 1.021294935483723,
+                    "scaleY": 1.0046457310585395,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a1c60ba1-440b-4ed3-839f-b8d36f80fe10",
+                    "label": "castleWallWest",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 823,
+                    "y": 926,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "edd68cc6-ee07-4edc-af4c-c0914a614f45",
+                    "label": "castleTowerWest",
+                    "texture": {
+                        "key": "tower-watch-v2"
+                    },
+                    "x": 384,
+                    "y": 517,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "009f82a5-9c00-455a-b050-d82a671bafe6",
+                    "label": "castleGate",
+                    "texture": {
+                        "key": "gate-house-v2"
+                    },
+                    "x": 1128,
+                    "y": 680,
+                    "scaleX": 1.2965567858078328,
+                    "scaleY": 1.177636121263248,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "924b7b69-6348-473b-9ed2-cf100e23869b",
+                    "label": "PASS_wallSouthB_1",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 1678,
+                    "y": 927,
+                    "scaleX": -1,
+                    "originX": 1,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "fdfd3259-0428-4703-82db-372771ab2948",
+                    "label": "PASS_wallSouthA",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 603,
+                    "y": 926,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "9117cf1a-5bb9-4dc0-995e-9b504ed34b89",
+                    "label": "PASS_wallSouthC",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 1312,
+                    "y": 928,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "96b17eb8-04d4-4848-b80a-07a8330575d1",
+                    "label": "SHELF_wall_side_1",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 523,
+                    "y": 582,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773
+                },
+                {
+                    "type": "Image",
+                    "id": "165ceaef-4a7d-4cdf-a09e-af50aab47378",
+                    "label": "PASS_wallSouthD",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 1696,
+                    "y": 928,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "1d4e494c-1e40-46dd-ae62-e0f798c7c5f7",
+                    "label": "SHELF_wall_side_3",
+                    "texture": {
+                        "key": "wall-side"
+                    },
+                    "x": 2110,
+                    "y": 583,
+                    "scaleX": 1.142292861719713,
+                    "scaleY": 1.3873158625341773
+                },
+                {
+                    "type": "Image",
+                    "id": "4e49df17-d88c-40e2-b45d-3b68df2b443a",
+                    "label": "castleTowerWest_2",
+                    "texture": {
+                        "key": "tower-watch-v2"
+                    },
+                    "x": 321,
+                    "y": 681,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "19d29e1b-e9d0-411e-8771-6af428ce426a",
+                    "label": "castleTowerWest_1",
+                    "texture": {
+                        "key": "tower-watch-v2"
+                    },
+                    "x": 1913,
+                    "y": 679,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a30373a3-007c-49ac-832c-d402d902fab9",
+                    "label": "SHELF_wall_north",
+                    "texture": {
+                        "key": "wall-north"
+                    },
+                    "x": 574,
+                    "y": -6,
+                    "scaleX": 1.002714667991714,
+                    "scaleY": 1.1,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "860c6f6c-9010-4044-b071-4dc24d349015",
+                    "label": "SHELF_gate_drawbridge",
+                    "texture": {
+                        "key": "gate-drawbridge"
+                    },
+                    "x": 3355,
+                    "y": 2072,
+                    "scaleX": 1.2179184862700398,
+                    "scaleY": 1.1317833460082098,
+                    "originX": 1,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "44638145-12ad-42fa-b878-85b57f331122",
+                    "label": "SHELF_wall_north_1",
+                    "texture": {
+                        "key": "wall-north"
+                    },
+                    "x": 1312,
+                    "y": -6,
+                    "scaleX": 1.002714667991714,
+                    "scaleY": 1.1,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "44585d85-4fea-4bf0-b3f9-0e15f30621c9",
+                    "label": "SHELF_gate_drawbridge_V5",
+                    "texture": {
+                        "key": "gate-drawbridge-v5"
+                    },
+                    "x": 1128,
+                    "y": 864,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "ae480cdf-5872-471b-8512-ee85044031b3",
+                    "label": "SHELF_wall_corner_turn",
+                    "texture": {
+                        "key": "wall-corner-turn"
+                    },
+                    "x": 2591,
+                    "y": 1992,
+                    "scaleX": 1.6174553850910134,
+                    "scaleY": 1.5093493504936581,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "291f9056-a40d-40b3-a464-044d29069a88",
+                    "label": "SHELF_wall_straight_v2",
+                    "texture": {
+                        "key": "wall-straight-v2"
+                    },
+                    "x": 1270,
+                    "y": 2217,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "3ec6f980-79cd-4bec-befc-0d97fcd08287",
+                    "label": "SHELF_gate_house_v2",
+                    "texture": {
+                        "key": "gate-house-v2"
+                    },
+                    "x": -1960,
+                    "y": 1525,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "70d9e50f-922b-4fc8-8a67-691302306127",
+                    "label": "SHELF_corner_outer_v2",
+                    "texture": {
+                        "key": "wall-corner-outer-v2"
+                    },
+                    "x": 2403,
+                    "y": 2300,
+                    "originX": 0,
+                    "originY": 0
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "65795cfa-e278-4a56-be62-0f60321ae078",
+            "label": "L12_FOREST_CANOPY",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "e9e15d26-0217-46dc-a59a-5d826c47e66b",
+                    "label": "nature_tree_broadleaf_large",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 57,
+                    "y": -117,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "041168ea-ff48-40d8-8941-50770df45d8f",
+                    "label": "nature_shrub_young_tree_cluster",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": -269,
+                    "y": 153
+                },
+                {
+                    "type": "Image",
+                    "id": "808445f0-9424-4be0-b89e-bcf741d94947",
+                    "label": "nature_tree_broadleaf_small",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": -292,
+                    "y": -3
+                },
+                {
+                    "type": "Image",
+                    "id": "c34d0131-8129-4140-a14b-33e1a1bcb0e9",
+                    "label": "nature_rocks_scrub_cluster",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": -245,
+                    "y": 279
+                },
+                {
+                    "type": "Image",
+                    "id": "bb22fb61-df7f-44d9-aa8e-510033b571f7",
+                    "label": "nature_tree_broadleaf_large_9",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 285,
+                    "y": -123,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "c6983b73-4a06-4f2b-82f6-db230c373775",
+                    "label": "nature_tree_broadleaf_large_3",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 59,
+                    "y": 43,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "5634ce92-4a76-47a9-b8c3-a3882eab0251",
+                    "label": "nature_tree_broadleaf_large_2",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 216,
+                    "y": 77,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "941efc5a-0184-4d04-8771-c236aafbfe9d",
+                    "label": "nature_tree_broadleaf_large_7",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 230,
+                    "y": 210,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "31be8530-7ff3-4e75-8603-f5c1ae85a14e",
+                    "label": "nature_tree_broadleaf_large_8",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 82,
+                    "y": 242,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "9c483fa3-df7e-42ad-a641-aad65c4f622d",
+                    "label": "nature_tree_broadleaf_large_5",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 243,
+                    "y": 406,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "10938888-9c0b-40bc-8264-a3871cf91596",
+                    "label": "nature_tree_broadleaf_large_6",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 86,
+                    "y": 458,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "f83f3b4e-7138-454d-a086-97812a89fbcd",
+                    "label": "nature_tree_broadleaf_large_4",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 256,
+                    "y": 640,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "15ea4104-543b-40e7-87f8-c22d6be068d1",
+                    "label": "nature_tree_broadleaf_large_1",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 87,
+                    "y": 707,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "8e63fca1-2793-43d3-9e2a-b634f5c04c7b",
+                    "label": "nature_tree_broadleaf_large_10",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2337,
+                    "y": -60,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "55483852-de90-405a-b4b9-ce230926a5f8",
+                    "label": "nature_tree_broadleaf_large_11",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2565,
+                    "y": -66,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "a9b3241e-988d-4e7a-a628-998be0921486",
+                    "label": "nature_tree_broadleaf_large_12",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2339,
+                    "y": 100,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "b46cebe3-7f78-47d5-b006-d1684346593a",
+                    "label": "nature_tree_broadleaf_large_13",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2496,
+                    "y": 134,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "7e0fae79-bdd2-4f34-a0c6-415308395a69",
+                    "label": "nature_tree_broadleaf_large_14",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2510,
+                    "y": 267,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "087362ee-6896-400c-8857-5ee6a2dc3405",
+                    "label": "nature_tree_broadleaf_large_15",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2362,
+                    "y": 299,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "9e0573d7-9f7f-47fe-92e9-0a5282d8304d",
+                    "label": "nature_tree_broadleaf_large_16",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2523,
+                    "y": 463,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "d11b3598-b74a-4ce7-8e41-c78fd66fceb3",
+                    "label": "nature_tree_broadleaf_large_17",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2366,
+                    "y": 515,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "7c13d133-4cba-4d38-a745-c3949bcaa0bc",
+                    "label": "nature_tree_broadleaf_large_18",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2536,
+                    "y": 697,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "c75891a4-1796-40f0-8942-1ecfa3e5c19a",
+                    "label": "nature_tree_broadleaf_large_19",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2367,
+                    "y": 764,
+                    "scaleX": 3,
+                    "scaleY": 3
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "4144ad9c-6555-4475-baba-e1defbe13fd5",
+            "label": "L8_NATURE",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "7664fbd7-b8c3-45db-9df7-a4121fc744e7",
+                    "label": "footShrubB",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 1809,
+                    "y": 1541,
+                    "originY": 1,
+                    "editorRender": false
+                },
+                {
+                    "type": "Image",
+                    "id": "859d7958-46be-4064-97ca-68942a39f7bf",
+                    "label": "entryShrubL",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 641,
+                    "y": 1486,
+                    "scaleX": 0.85,
+                    "scaleY": 0.85,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "371f7269-6821-480c-8ffe-6eacf305ee46",
+                    "label": "entryFootRockL",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 173,
+                    "y": 1777,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "65ad3a4a-d8c4-4127-b0e5-7063844b7e93",
+                    "label": "entryFootShrubL",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 237,
+                    "y": 1863,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8,
+                    "originY": 1,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "6931f30a-e2df-4e34-bdbd-0c99982127ac",
+                    "label": "entryFootRockR",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 382,
+                    "y": 1893,
+                    "scaleX": 0.85,
+                    "scaleY": 0.85,
+                    "originY": 1,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "6e3e3f6f-ba84-450c-899c-b4dd77acc121",
+                    "label": "entryFootShrubR",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 391,
+                    "y": 1811,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "3c589416-307d-4ad1-b8d4-28df02a50136",
+                    "label": "entryGateTreeR",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 84,
+                    "y": 1835,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "5e1a36d2-d3f6-4708-ab1f-5ee0701b39aa",
+            "label": "L9_SHELF_offmap",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "93645ad6-1536-458d-846e-2458ee4c97f3",
+                    "label": "FORGE_booth",
+                    "texture": {
+                        "key": "occluder-booth"
+                    },
+                    "x": 4400,
+                    "y": 200,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "ee1b009c-7792-4a6c-9974-e239e9d7251a",
+                    "label": "FORGE_awning",
+                    "texture": {
+                        "key": "occluder-awning-tent"
+                    },
+                    "x": 4400,
+                    "y": 400,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "b8486886-6f08-4246-9da9-8b162d1c9fd5",
+                    "label": "FORGE_brazier",
+                    "texture": {
+                        "key": "occluder-brazier"
+                    },
+                    "x": 4400,
+                    "y": 600,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "62a01e87-8d12-4fe3-b8e3-9d5a09560ced",
+                    "label": "FORGE_produceTable",
+                    "texture": {
+                        "key": "occluder-produce-table"
+                    },
+                    "x": 4400,
+                    "y": 800,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "d72395be-24a9-46a8-8399-7d0b8de1cf99",
+                    "label": "FORGE_crates",
+                    "texture": {
+                        "key": "occluder-crates-south"
+                    },
+                    "x": 4400,
+                    "y": 1000,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "099ca387-78d0-4dda-a01d-53c828d70a23",
+                    "label": "FORGE_barrel",
+                    "texture": {
+                        "key": "occluder-water-barrel"
+                    },
+                    "x": 4400,
+                    "y": 1200,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Sprite",
+                    "id": "6e90ffa7-e54a-495d-b2c0-56b6e90056cd",
+                    "label": "FORGE_keeperDwarf",
+                    "texture": {
+                        "key": "keeper-dwarf",
+                        "frame": 0
+                    },
+                    "x": 4400,
+                    "y": 1400,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Sprite",
+                    "id": "6252e9be-fb38-4116-be58-bf0c62137aba",
+                    "label": "FORGE_heroForScale",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 4400,
+                    "y": 1600,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1,
+                    "visible": false
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "c8a92e05-9683-4544-b0d1-c1e895eb1c7f",
+            "label": "L10_VOID_library",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "64d17da5-3e15-44ac-87f0-b7abbc2af8e2",
+                    "label": "VOID_griffin_curled",
+                    "texture": {
+                        "key": "griffin-cub-unknown"
+                    },
+                    "x": -1033,
+                    "y": -298,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "0c4e7066-15ff-40c4-b522-35d6de420bff",
+                    "label": "VOID_apprentice",
+                    "texture": {
+                        "key": "apprentice-unknown"
+                    },
+                    "x": -886,
+                    "y": -298,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "483b43d2-c7b1-47e4-b1e5-89a5e3a0fafd",
+                    "label": "VOID_apprentice_f1",
+                    "texture": {
+                        "key": "apprentice-frame-1"
+                    },
+                    "x": -753,
+                    "y": -308,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "8bfee41b-d573-4b39-a1e3-9f4d775b6d1c",
+                    "label": "VOID_apprentice_f2",
+                    "texture": {
+                        "key": "apprentice-frame-2"
+                    },
+                    "x": -616,
+                    "y": -311,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "5a183e89-63ee-47f5-b850-9f5fd3d51fa3",
+                    "label": "VOID_dragonkin",
+                    "texture": {
+                        "key": "forge-dragon-kin-unknown"
+                    },
+                    "x": -458,
+                    "y": -311,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "66c4a207-b328-47e4-b0d2-3cdcba338e89",
+                    "label": "VOID_dragonkin_f0",
+                    "texture": {
+                        "key": "forge-dragon-kin-frame-0"
+                    },
+                    "x": -300,
+                    "y": -306,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "d6bde579-e1dd-4b90-bd4f-bea1ac5b0f97",
+                    "label": "VOID_lectern_south",
+                    "texture": {
+                        "key": "lectern-south"
+                    },
+                    "x": -871,
+                    "y": 446,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "e447abcc-5d67-4bf0-aeeb-8ed4a776fe78",
+                    "label": "VOID_lectern_north",
+                    "texture": {
+                        "key": "lectern-north"
+                    },
+                    "x": -671,
+                    "y": 446,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "52a324b1-f934-4add-bd73-bff37fab031d",
+                    "label": "VOID_rug_0",
+                    "texture": {
+                        "key": "rugs-frame-0"
+                    },
+                    "x": -871,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "54e39545-cc09-4137-ba47-fc9d01f4e1cb",
+                    "label": "VOID_rug_1",
+                    "texture": {
+                        "key": "rugs-frame-1"
+                    },
+                    "x": -671,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "7fe9d507-cc50-42ba-ac9c-444906e15048",
+                    "label": "VOID_rug_2",
+                    "texture": {
+                        "key": "rugs-frame-2"
+                    },
+                    "x": -471,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "b83886e0-b3d6-43dc-b73c-10fe42fc315d",
+                    "label": "VOID_rug_3",
+                    "texture": {
+                        "key": "rugs-frame-3"
+                    },
+                    "x": -271,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a0c30f5a-7f6e-411d-80d3-7a63e7d61932",
+                    "label": "VOID_tree_0",
+                    "texture": {
+                        "key": "tree-blue-pine"
+                    },
+                    "x": -451,
+                    "y": 29,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "87d01936-6128-431c-92c8-28598ab16200",
+                    "label": "VOID_tree_2",
+                    "texture": {
+                        "key": "tree-green-bare"
+                    },
+                    "x": -569,
+                    "y": 165,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "d638c0c4-6c86-4163-9494-f5a14358569f",
+                    "label": "VOID_tree_3",
+                    "texture": {
+                        "key": "tree-pale-bare"
+                    },
+                    "x": -457,
+                    "y": 161,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "c3c08f65-58f7-40cc-a2e9-278153cedee4",
+                    "label": "VOID_forgingstand_south",
+                    "texture": {
+                        "key": "forging-stand-south"
+                    },
+                    "x": -871,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "9970986b-2858-4aed-9e56-b4f149866ed1",
+                    "label": "VOID_weaponrack_south",
+                    "texture": {
+                        "key": "weapon-rack-south"
+                    },
+                    "x": -671,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a9ba3050-7b50-4404-8eaa-8ba97a93be25",
+                    "label": "VOID_sortingtable_south",
+                    "texture": {
+                        "key": "sorting-table-south"
+                    },
+                    "x": -471,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "d94a5e4d-e1aa-472e-ab2f-9fb28d71a4af",
+                    "label": "VOID_handcart_south",
+                    "texture": {
+                        "key": "hand-cart-south"
+                    },
+                    "x": -271,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "00239c38-75ca-4012-b19b-8700534c9f1e",
+                    "label": "VOID_reliquary",
+                    "texture": {
+                        "key": "reliquary-frame-0"
+                    },
+                    "x": -871,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "9de8da1a-d2ed-4990-962e-990eac572882",
+                    "label": "VOID_crystal_eruption",
+                    "texture": {
+                        "key": "crystal-eruption-frame-0"
+                    },
+                    "x": -671,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "0771223e-c556-4ed2-bf55-8a5ab2723e38",
+                    "label": "VOID_crystal_mine",
+                    "texture": {
+                        "key": "crystal-mine-frame-0"
+                    },
+                    "x": -471,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "f767c8fa-ba18-42eb-9d24-98df496d6764",
+                    "label": "VOID_marketstall",
+                    "texture": {
+                        "key": "market-stall-unknown"
+                    },
+                    "x": -271,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "7a39950f-fe8e-4490-9ea2-66f3d051fa0c",
+                    "label": "VOID_barrel",
+                    "texture": {
+                        "key": "barrel-unknown"
+                    },
+                    "x": -871,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "227b4cf1-5310-4c77-ac30-f05c42787c2d",
+                    "label": "VOID_crate",
+                    "texture": {
+                        "key": "crate-unknown"
+                    },
+                    "x": -671,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "963709ca-15bd-4d15-9546-09584c1dd418",
+                    "label": "VOID_towerwayup",
+                    "texture": {
+                        "key": "tower-way-up-frame-0"
+                    },
+                    "x": -471,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "37591f31-b42b-4739-aa35-78d8e25e7c3f",
+                    "label": "VOID_courtyardprops",
+                    "texture": {
+                        "key": "courtyard-props-frame-0"
+                    },
+                    "x": -271,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "0f69cbc5-8945-4768-8251-f8379f38c602",
+                    "label": "tree_teal_willow",
+                    "texture": {
+                        "key": "tree-teal-willow"
+                    },
+                    "x": -481,
+                    "y": 118
+                },
+                {
+                    "type": "Image",
+                    "id": "2ef04491-5864-4e75-b526-fcdac4e26672",
+                    "label": "tree_yellow_leafy",
+                    "texture": {
+                        "key": "tree-yellow-leafy"
+                    },
+                    "x": -764,
+                    "y": 257
+                },
+                {
+                    "type": "Image",
+                    "id": "8126e395-6a59-457e-b7a1-3b71359e43fe",
+                    "label": "tree_yellow_round",
+                    "texture": {
+                        "key": "tree-yellow-round"
+                    },
+                    "x": -612,
+                    "y": 258
+                },
+                {
+                    "type": "Image",
+                    "id": "4b0bee32-2765-4cb6-87c1-b88580bc0407",
+                    "label": "tree_yellow_willow",
+                    "texture": {
+                        "key": "tree-yellow-willow"
+                    },
+                    "x": -762,
+                    "y": 120
+                },
+                {
+                    "type": "Image",
+                    "id": "676f883c-c18e-4d23-ba42-0a1f1e466220",
+                    "label": "tree_orange_autumn",
+                    "texture": {
+                        "key": "tree-orange-autumn"
+                    },
+                    "x": -246,
+                    "y": 465,
+                    "scaleX": 2.2219192985387357,
+                    "scaleY": 2.059138334505369
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "7bd79f3b-aab8-499f-a51c-fc56339c0177",
+            "label": "L11_MARKERS",
+            "list": [
+                {
+                    "type": "Sprite",
+                    "id": "f677862b-438a-4f17-9186-86edd2208d8f",
+                    "label": "scaleHeroTopOfStair",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 1306,
+                    "y": 1209,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "ef55ac33-06f4-45cf-9c5e-d45988e2dd02",
+                    "label": "scaleHeroNative71px",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 900,
+                    "y": 1800,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "ae9eee03-144e-4bfd-aa7c-fe1df152bb1f",
+                    "label": "scaleHeroBesideTree",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 780,
+                    "y": 1311,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "c088a436-825e-42ec-bf4b-3db3d52b9486",
+                    "label": "MISSING_northWall_run",
+                    "x": 448,
+                    "y": 96,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff2266",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff2266",
+                    "lineWidth": 4,
+                    "isStroked": true,
+                    "width": 1760,
+                    "height": 112
+                },
+                {
+                    "type": "Sprite",
+                    "id": "7169d937-e5dd-4fa2-870b-9e3c9d6ae8f7",
+                    "label": "scaleHeroFootOfStair",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 1397,
+                    "y": 1808,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "231572a1-72e3-4174-b051-b64c45489198",
+                    "label": "MISSING_eastWall_run",
+                    "x": 2096,
+                    "y": 208,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff2266",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff2266",
+                    "lineWidth": 4,
+                    "isStroked": true,
+                    "width": 112,
+                    "height": 1010
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "30f2a831-cd9b-4e46-9190-fb709159c209",
+                    "label": "MISSING_westWall_run",
+                    "x": 448,
+                    "y": 208,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff2266",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff2266",
+                    "lineWidth": 4,
+                    "isStroked": true,
+                    "width": 112,
+                    "height": 1010
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "5bd7ef74-7b46-415e-a249-e5ad893b254a",
+            "label": "L4_QUADRANT_NE",
+            "list": [
+                {
+                    "type": "Sprite",
+                    "id": "5fb600b8-c7ea-4583-bd6b-b74fb6e81941",
+                    "label": "NE_apprentice_cardwright",
+                    "texture": {
+                        "key": "anim-apprentice-cardwright-study-east",
+                        "frame": 0
+                    },
+                    "x": 1700,
+                    "y": 448,
+                    "scaleX": 0.667,
+                    "scaleY": 0.667,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "42145479-22f3-43da-b340-5ed576b70da9",
+            "label": "L5_QUADRANT_NW"
+        },
+        {
+            "type": "Layer",
+            "id": "d167cbd5-d317-4e10-a314-bf8dc852c1b5",
+            "label": "L6_QUADRANT_SW"
+        },
+        {
+            "type": "Layer",
+            "id": "deff59c9-e255-4a72-bf64-96af7cf8ab74",
+            "label": "L7_QUADRANT_SE"
+        },
+        {
+            "type": "Layer",
+            "id": "5ee6f813-9f73-488e-bdd5-fd599ad112c8",
+            "label": "L2_TERRAIN_1",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "d7e57fc1-55d4-45c7-9145-afa45be2b8ca",
+                    "label": "halo_stone_castle_terrain_wall_endcap_5",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1790,
+                    "y": 1558,
+                    "scaleX": -1
+                },
+                {
+                    "type": "Image",
+                    "id": "d24d39f6-b7d1-4442-8393-c6a59ba8d232",
+                    "label": "wallBandC_5",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1117,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "aad18941-445f-48a3-95d8-5358986ace76",
+                    "label": "halo_stone_castle_terrain_wall_boulders_1",
+                    "texture": {
+                        "key": "terrain-wall-boulders"
+                    },
+                    "x": 2012,
+                    "y": 1696
+                },
+                {
+                    "type": "Image",
+                    "id": "6c23e91c-3d3c-4121-a37d-865f8f7dd788",
+                    "label": "halo_stone_castle_terrain_wall_endcap_6",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 2286,
+                    "y": 1376,
+                    "scaleX": -1
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "defa8f82-0ca9-4b39-ac95-65339548d023",
+                    "label": "wallBandC_6",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 2353,
+                    "y": 1262,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 206,
+                    "height": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "ae017cd2-461f-401c-a34f-5bcab2d821e7",
+                    "label": "wallBandC_7",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1885,
+                    "y": 1430,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 674,
+                    "height": 256
+                },
+                {
+                    "type": "Image",
+                    "id": "23db5842-f4d1-4152-8803-1b8b82ec79c2",
+                    "label": "wallStair_1",
+                    "texture": {
+                        "key": "terrain-wall-stair"
+                    },
+                    "x": 1173,
+                    "y": 1533,
+                    "scaleX": 1.6607407900003772,
+                    "scaleY": 0.8860267326421837,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "65c61fb3-0218-426a-86c3-62ff270fa832",
+                    "label": "wallPillarLeft_1",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1169,
+                    "y": 1519,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "874dcd5b-55c2-40ae-b740-fcd8cbe531e2",
+                    "label": "wallPillarRight_1",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1450,
+                    "y": 1521,
+                    "originX": 0,
+                    "originY": 0,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "5d1b545f-0507-4203-8b64-f4dedf2f6121",
+                    "label": "wallBandC_8",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "y": 1406,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "da56f558-a409-48b6-947e-7b5f35a57720",
+                    "label": "halo_stone_castle_terrain_wall_endcap_7",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 817,
+                    "y": 1531
+                },
+                {
+                    "type": "Image",
+                    "id": "8a03e972-810e-4bbf-b423-2f8d0d74e5e9",
+                    "label": "wallBandC_9",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 350,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "03f52ffc-e8a6-4597-adf3-5d16e28421e6",
+                    "label": "halo_stone_castle_terrain_wall_endcap_8",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1971,
+                    "y": 1657
+                },
+                {
+                    "type": "Image",
+                    "id": "190f73a0-800a-4f32-958a-a87f1010afa0",
+                    "label": "halo_stone_castle_terrain_wall_endcap_9",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 272,
+                    "y": 1656,
+                    "scaleX": -1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "b64793da-4499-4b79-9eb1-7ca6e4d19874",
+            "label": "L14_COLLIDERS",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "138fc1d2-6ef6-4998-b805-57f602d94fed",
+                    "label": "BLOCK_mapEdge_north",
+                    "y": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 32
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "cf01dbfc-2470-414b-bb21-ef3c7d3111e4",
+                    "label": "BLOCK_mapEdge_south",
+                    "y": 1920,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 32
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "def34652-c49c-4545-a78e-4d7b9e8c643d",
+                    "label": "BLOCK_mapEdge_west",
+                    "x": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 32,
+                    "height": 1920
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "da222476-82ac-426c-a361-311a128752ce",
+                    "label": "BLOCK_mapEdge_east",
+                    "x": 2560,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 32,
+                    "height": 1920
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "07fd026c-3047-4519-905a-2f8dc4853179",
+                    "label": "BLOCK_example_southWallBand",
+                    "x": 1117,
+                    "y": 1660,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 768,
+                    "height": 124
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "2a7a910b-2adf-4e24-97f4-76c5aeebefaf",
+                    "label": "ZONE_example_stairTop",
+                    "x": 1258,
+                    "y": 1177,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#33ccff",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#33ccff",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 96,
+                    "height": 64
+                }
+            ]
         }
     ],
     "plainObjects": [
@@ -26,7 +2014,7 @@
             "tilesets": [
                 {
                     "name": "grass-dirt",
-                    "imageKey": "halo-stone-castle-ground-tileset-grass-dirt-32",
+                    "imageKey": "ground-tileset-grass-dirt-32",
                     "tileWidth": 32,
                     "tileHeight": 32,
                     "tileMargin": 0,
@@ -34,7 +2022,23 @@
                 },
                 {
                     "name": "dirt-paving",
-                    "imageKey": "halo-stone-castle-ground-tileset-dirt-paving-32",
+                    "imageKey": "ground-tileset-dirt-paving-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                },
+                {
+                    "name": "castle-floor",
+                    "imageKey": "ground-tileset-dirt-floor-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                },
+                {
+                    "name": "ground-tileset-forestfloor-dirt-32",
+                    "imageKey": "ground-tileset-forestfloor-dirt-32",
                     "tileWidth": 32,
                     "tileHeight": 32,
                     "tileMargin": 0,
@@ -42,10 +2046,11 @@
                 }
             ],
             "paintLayerId": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
+            "paintTileset": "dirt-paving",
             "layers": [
                 {
                     "name": "ground",
-                    "data": "[16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]",
+                    "data": "[64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,61,61,61,61,61,61,61,61,61,61,61,61,13,13,13,13,13,13,13,13,13,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,61,62,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,1,1,1,1,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,54,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,4,4,3,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,16,16,12,4,3,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,6,16,16,11,5,9,1,1,1,1,1,5,14,16,16,16,16,15,9,1,1,1,5,9,1,1,5,9,1,1,1,1,1,1,1,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,5,13,13,9,1,1,1,1,1,1,1,2,8,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,16,16,16,11,1,1,47,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,46,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,13,13,13,9,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,61,61,61,62,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,54,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,57,49,49,49,54,64,64,64,64,64,64,64,16,16,11,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,1,1,1,1,43,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,38,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,60,51,49,49,49,53,62,64,64,64,64,64,64,16,16,11,1,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,1,1,1,1,1,1,44,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,36,40,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,54,64,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,13,9,1,1,1,1,5,14,16,16,12,4,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,13,9,5,9,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,53,62,16,16,16,16,16,16,16,12,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,8,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,12,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,64,64,64,64,63,62,63,61,62,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,64,64,64,63,57,53,57,49,54,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,2,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,4,3,1,1,1,2,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,31,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,30,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,5,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,19,17,17,17,17,17,17,17,17,17,17,17,17,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,18,24,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,9,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,20,19,18,20,20,20,19,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,24,16,16,16,28,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]",
                     "width": 80,
                     "height": 60,
                     "tileWidth": 32,

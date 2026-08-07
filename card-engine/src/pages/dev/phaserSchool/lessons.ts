@@ -11,7 +11,7 @@
  *     lesson cannot drift from the art it describes without visibly breaking.
  *  3. **Every claim gets a `try` block** — something to do that proves it.
  *
- * Panels are always named by screen position ("bottom-left panel (Blocks)"),
+ * Panels are always named by screen position ("bottom-middle panel (Blocks)"),
  * because that is findable without already knowing the layout.
  */
 
@@ -61,7 +61,19 @@ export type Block =
    * position, each tile labelled with its index and its four corner types.
    * Reads the actual PNG, so it cannot drift from the art.
    */
-  | { kind: 'wangLab'; src: string; a: string; b: string };
+  | { kind: 'wangLab'; src: string; a: string; b: string }
+  /**
+   * A link out to a real, tweakable tool on its own /dev route.
+   *
+   * Raheem, 2026-08-07: "It'd be nice if all the other sections could have little
+   * labs. Remember, we learn about doing." Reading that a light spot drifts is
+   * nothing; dragging the slider until it looks like leaves moving is the lesson.
+   *
+   * These are separate ROUTES, not embedded canvases, because a lesson page that
+   * boots three Phaser games scrolls like treacle and one crash takes the page
+   * with it.
+   */
+  | { kind: 'lab'; route: string; title: string; blurb: string; learn: string[] };
 
 export interface Section {
   id: string;
@@ -74,6 +86,8 @@ export interface Lesson {
   number: number;
   title: string;
   status: LessonStatus;
+  /** Verified teaching material. Do not revise unless the user explicitly reopens it. */
+  locked?: boolean;
   /** One line: what you can do afterwards. */
   outcome: string;
   minutes: number;
@@ -152,12 +166,19 @@ export const LESSONS: Lesson[] = [
             kind: 'table',
             head: ['Where on screen', 'Official name', 'What it is for'],
             rows: [
-              ['Left', 'Files / Project', 'The folder tree. Double-click a `.scene` to open it.'],
+              ['**Top-left**', 'Outline', 'Every object in the scene as a list. How you select things you cannot click.'],
+              ['**Bottom-left**', 'Files', 'The folder tree. Double-click a `.scene` to open it.'],
               ['Middle (big)', 'Scene Editor', 'The canvas. Drag, place, paint.'],
-              ['Right — top', 'Outline', 'Every object as a list. How you select things you cannot click.'],
-              ['Right — bottom', 'Inspector', 'Properties of whatever is selected: x, y, scale, depth, origin.'],
-              ['Bottom-left', 'Blocks', 'The palette. Every asset this scene is allowed to use.'],
+              ['Bottom-middle', 'Blocks', 'The palette. Every asset this scene is allowed to use.'],
+              ['**Right (full height)**', 'Inspector', 'Properties of whatever is selected: x, y, scale, depth, origin.'],
             ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Panel positions are Raheem\'s actual layout, verified 2026-08-06.',
+            text:
+              'Phaser Editor panels are draggable, so no layout is universal — but these are the positions in the editor we are really working in. Outline is TOP-LEFT, not top-right. Corrected after I described it wrong three times running.',
           },
           {
             kind: 'callout',
@@ -183,17 +204,17 @@ export const LESSONS: Lesson[] = [
               {
                 term: 'Scene',
                 plain: 'One area of the game. A list of placed objects.',
-                where: 'Left panel — anything ending in .scene',
+                where: 'Bottom-left panel (Files) — anything ending in .scene',
               },
               {
                 term: 'Depth',
                 plain: 'Draw order. Higher number draws on top.',
-                where: 'Right-bottom panel (Inspector)',
+                where: 'Right panel (Inspector)',
               },
               {
                 term: 'Origin',
                 plain: 'The sprite\'s anchor point. Gets its own section below.',
-                where: 'Right-bottom panel (Inspector) → Transform',
+                where: 'Right panel (Inspector) → Transform',
               },
             ],
           },
@@ -265,7 +286,7 @@ export const LESSONS: Lesson[] = [
             steps: [
               'Ask me to place a single tree in the scene. **One object is enough** — an empty scene has nothing to show you, which is exactly what you hit.',
               'Ask me to print the `.scene` file. Find the `"x"` and `"y"` numbers.',
-              'Drag the tree in the Scene Editor and save (Cmd+S).',
+              'Drag the tree in the Scene Editor and save (**Ctrl+S** on Windows, Cmd+S on Mac).',
               'Ask me to print it again — the same two numbers, changed.',
             ],
             proves:
@@ -418,6 +439,83 @@ export const LESSONS: Lesson[] = [
         ],
       },
       {
+        id: 'boring',
+        title: 'But one tile repeated is boring — isn\'t it?',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Yes. And that is correct. The ground layer is SUPPOSED to be boring.',
+            text:
+              'Raheem asked this on 2026-08-06 and it is the right question. If the whole sheet gives you plaid and one tile gives you a flat brown stripe, where does the interest come from? Answer: not from the tile grid. Interest is added in three later passes, and every one of them sits ON TOP of a boring, uniform base.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Look at the grass you already have: **one tile, ID 16, repeated 3,780 times.** It reads fine, because nothing draws the eye to the repeat.',
+              'A flat interior is the *canvas*. If the ground itself is busy, everything you place on it fights for attention.',
+              'The plaid was ugly not because it was varied, but because it was **regularly** varied. A visible 4×4 rhythm is worse than no variation at all.',
+            ],
+          },
+          {
+            kind: 'table',
+            head: ['Where interest actually comes from', 'What it is', 'Cost'],
+            rows: [
+              ['**1. The edge shape**', 'A path that bends, narrows and widens. The Wang edges make the boundary irregular — this does most of the work.', 'Free, just painting'],
+              ['**2. Overlays**', 'Loose sprites scattered on top — pebbles, cart ruts, clover. No grid, so no rhythm.', 'Free, we already have 4'],
+              ['**3. Props & shadows**', 'Barrels, carts, trees, and the shadows they cast across the path.', 'Free, kit already has them'],
+              ['4. Variant tiles', 'A second "solid dirt" tile with a different scuff, dropped in at random. We do NOT have these.', '~2 generations if we ever want them'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The order matters, and it is the opposite of instinct.',
+            text:
+              'Flat base → irregular edges → overlays → props. Trying to make the base interesting first is the classic beginner move, and it makes every later pass harder because the ground is already noisy.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'What NOT to do',
+              points: [
+                'Drag the whole tileset as a brush → plaid',
+                'Hand-vary interior tiles to "mix it up" → visible noise',
+                'Judge the ground before overlays exist',
+                'Generate more tiles to fix a composition problem',
+              ],
+            },
+            right: {
+              title: 'What to do',
+              points: [
+                'One solid tile for the whole interior',
+                'Wang tiles ONLY where dirt meets grass',
+                'Make the path bend and change width',
+                'Then scatter overlays, then place props',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The honest test',
+            text:
+              'A tilemap always looks like a tilemap right up until the moment something irregular sits on it. Judge the ground after the overlay pass, never before. If it still reads as a grid then, that is when variant tiles are worth paying for.',
+          },
+          {
+            kind: 'try',
+            title: 'See that flatness is not the problem',
+            steps: [
+              'Look at the grass in the editor. One tile, thousands of times.',
+              'Now ask: does the *grass* look repetitive, or does it just look like grass?',
+              'Compare against the plaid path. Same map, same tile size.',
+            ],
+            proves:
+              'That the eye notices RHYTHM, not repetition. Uniform reads as texture; patterned reads as a mistake. This is why the fix is fewer tiles, not more.',
+          },
+        ],
+      },
+      {
         id: 'overlays',
         title: 'Overlays — the anti-repetition trick',
         blocks: [
@@ -440,6 +538,149 @@ export const LESSONS: Lesson[] = [
         ],
       },
       {
+        id: 'driving',
+        title: 'Driving the editor',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A tilemap is not edited by clicking it. You enter a mode.',
+            text:
+              'This is the thing that makes the editor feel broken on day one. Selecting the map in the canvas does nothing useful — you select it in the top-left panel (Outline), which switches the whole editor into tile-painting mode. Until you do, there is no palette and no brush.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Select **`courtyardGround`** under `Tile Map` in the top-left panel (Outline).',
+              'The right panel (Inspector) changes — you get **TILE SETS**, **LAYERS** and **Tilemap Palette** sections.',
+              'The layer you are painting on shows an **orange border and a grid overlay** in the canvas. No orange border = you are not painting anything.',
+              'There is also an **Edit Map** button, and the **`P`** key, for entering the mode directly.',
+            ],
+          },
+          {
+            kind: 'table',
+            head: ['To do this', 'Do this', 'Notes'],
+            rows: [
+              ['Zoom in / out', 'Mouse wheel over the canvas', 'Works in the scene and in the tileset palette'],
+              ['Pan the view', '**Alt** + drag, or middle-mouse drag', 'Also works inside the palette'],
+              ['Pan (tool mode)', '**Space**, then drag', 'Same as the ✋ hand icon, top toolbar far right'],
+              ['Enter tile-edit mode', 'Select the tilemap in Outline, or press **`P`**', 'The mode, not a tool'],
+              ['Save', '**Ctrl + S**', 'The `•` on the tab means unsaved'],
+              ['Preview the scene', '**Ctrl + 0**', 'Runs it for real'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'There is no "zoom to fit" key.',
+            text:
+              'I told Raheem to press F on 2026-08-06. That is not a Phaser Editor binding and it did nothing. Recorded here so the lesson carries the correction rather than repeating it. Use the mouse wheel.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              '**Pick a brush:** in the Inspector\'s **Tilemap Palette**, choose the tileset and the target layer, then **drag across the tileset** from top-left to bottom-right. Dragging is how you get a multi-tile brush; a single click is a 1×1 brush.',
+              '**Tiles are always drawn on a specific layer.** Wrong layer selected is the second-most-common "nothing is happening".',
+            ],
+          },
+          {
+            kind: 'table',
+            head: ['Tool', 'What it does', 'Trick'],
+            rows: [
+              ['**Stamp**', 'Click to place the brush; drag to paint a stroke', 'Your default. Use it for paths.'],
+              ['**Bucket Fill**', 'Floods connected cells sharing one tile ID', 'How the grass got there'],
+              ['**Rectangle Fill**', 'Fills a dragged rectangle', 'Best for plazas and paving slabs'],
+              ['**Eraser**', 'Drag to delete cells', '**Shift + click** erases all connected matching tiles'],
+              ['**Rectangular Selection**', 'Select an area', '**Ctrl + C** copies it as a Stamp brush — clone a bend you liked'],
+              ['**Tileset Info**', 'Shows each tile\'s index', 'Use it to confirm the Wang numbering above'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The single best tip on this page',
+            text:
+              'Rectangular Selection + Ctrl+C turns any patch you have already painted into a brush. Paint one good grass-to-dirt transition by hand, copy it, and stamp it everywhere else. You never paint the same corner twice.',
+          },
+          {
+            kind: 'try',
+            title: 'Get the palette to appear',
+            steps: [
+              'Top-left panel (Outline) → `Tile Map` → click **`courtyardGround`**.',
+              'Look at the right panel (Inspector). **TILE SETS**, **LAYERS**, **Tilemap Palette** should now be there.',
+              'Look at the canvas — the `ground` layer should have an orange border.',
+              'In **Tilemap Palette**, pick tileset `grass-dirt` and layer `ground`.',
+              'Click a tile in the palette, choose **Stamp**, and click once on the map.',
+            ],
+            proves:
+              'That the editor is modal. Nothing about tile painting is reachable until the map is selected in the Outline — which is why the canvas felt dead.',
+          },
+        ],
+      },
+      {
+        id: 'plaid',
+        title: 'The plaid path — a real mistake, diagnosed',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A repeating checkerboard means your brush was the whole tileset.',
+            text:
+              'Raheem painted the first path on 2026-08-06 and it came out as a woven plaid. Nothing was broken. The brush was a 4×4 selection — all sixteen Wang tiles — so every stamp laid down the entire sheet as a pattern, over and over.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Remember: you pick a brush by **dragging across the tileset**. Drag the whole sheet and your brush *is* the whole sheet.',
+              'The interior of a path is **one tile repeated** — the solid one. Wang tiles are for the *edges only*.',
+              'Rule of thumb: **click** a single tile for fills, **drag** only when you deliberately want a multi-tile stamp.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Tile IDs in the scene are NOT sheet indexes.',
+            text:
+              'This trips everyone once. Each tileset is offset by where it starts in the map. In CourtyardV2, grass-dirt occupies IDs 1–16 and dirt-paving occupies IDs 17–32. So sheet index 15 of grass-dirt (all grass) is stored as ID 16 — which is why the flood fill was "16".',
+          },
+          {
+            kind: 'table',
+            head: ['You want', 'Tileset', 'Sheet index', 'ID in the scene file'],
+            rows: [
+              ['Solid grass', 'grass-dirt', '15', '**16**'],
+              ['Solid dirt', 'grass-dirt', '0', '**1**'],
+              ['Solid dirt (paving sheet)', 'dirt-paving', '0', '**17**'],
+              ['Solid paving', 'dirt-paving', '15', '**32**'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Formula',
+            text:
+              'ID = sheet index + firstgid. grass-dirt firstgid = 1, dirt-paving firstgid = 17. The Tileset Info tool shows you this in the editor without any arithmetic.',
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'How to know Ctrl+S worked.',
+            text:
+              'Look at the scene TAB at the top of the canvas. `CourtyardV2.scene •` — that bullet means unsaved changes. Save and the bullet disappears. That dot is the only save indicator; there is no toast, no flash, no status bar message.',
+          },
+          {
+            kind: 'try',
+            title: 'Make the dot appear and vanish',
+            steps: [
+              'Paint a single tile anywhere. Look at the tab — the `•` appears.',
+              'Press **Ctrl + S**. The `•` disappears.',
+              'Ask me to read the file from disk. The tile is there.',
+            ],
+            proves:
+              'That saving is real and observable, and that "did it save?" is answerable in half a second by looking at one character on the tab.',
+          },
+        ],
+      },
+      {
         id: 'doing',
         title: 'The build — who does what',
         blocks: [
@@ -454,13 +695,13 @@ export const LESSONS: Lesson[] = [
               {
                 who: 'claude',
                 do: 'Attach the halo-stone-castle kit pack to the scene.',
-                see: 'The bottom-left panel (Blocks) fills with towers, walls, trees, tilesets.',
+                see: 'The bottom-middle panel (Blocks) fills with towers, walls, trees, tilesets.',
               },
               { who: 'both', do: 'Agree the map size in tiles — before painting anything.' },
               {
                 who: 'claude',
                 do: 'Add an editable tilemap at 32×32, attach both tilesets, add a base layer.',
-                see: 'A Tilemap object appears in the right-top panel (Outline).',
+                see: 'A Tilemap object appears in the top-left panel (Outline).',
               },
               { who: 'claude', do: 'Flood-fill the base layer with plain grass.' },
               {
@@ -519,84 +760,170 @@ export const LESSONS: Lesson[] = [
   },
 
   /* ------------------------------------------------------------------ 2 */
+
+  /* ------------------------------------------------------------------ 2 */
   {
     id: 'castle',
     number: 2,
     title: 'The Castle',
-    status: 'draft',
-    outcome: 'Assemble walls, corners, towers and a gate the player can walk behind.',
-    minutes: 60,
+    status: 'live',
+    outcome: 'Place walls, towers and a gate that line up and belong to each other.',
+    minutes: 25,
     sections: [
       {
-        id: 'idea',
-        title: 'The one idea',
+        id: 'datum',
+        title: 'The datum — the one table that stops everything drifting',
         blocks: [
           {
             kind: 'callout',
             tone: 'key',
-            title: 'Anything that stands up is a sprite, not a tile.',
+            title: 'Every castle piece stands on ONE line: y = 1216.',
             text:
-              'A wall is not something you walk on — it is something you walk behind. That one requirement is why the castle is placed piece by piece with per-object depth.',
+              'Pick the ground line once, size every piece as a whole number of tiles, and things snap together without nudging. Improvise it and you spend the session dragging pieces a few pixels at a time.',
+          },
+          {
+            kind: 'table',
+            head: ['Piece', 'Size', 'In tiles', 'Top row'],
+            rows: [
+              ['Wall', '384 x 288', '12 x 9', '29'],
+              ['Gate', '288 x 320', '9 x 10', '28'],
+              ['**Tower**', '288 x **384**', '9 x **12**', '**27**'],
+              ['Corner', '192 x 288', '6 x 9', '29'],
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Three different top rows — 29, 28, 27 — give the **stepped silhouette**. Wall lowest, gate above it, tower above that.',
+              'Every dimension divides by 32. A piece 287px tall will **never** line up again.',
+              '**Camera is 2x**, so one screen is 960 x 540 = 30 x 17 tiles. Size everything against that.',
+            ],
           },
         ],
       },
       {
-        id: 'kit',
-        title: 'The pieces we have',
+        id: 'scale',
+        title: 'Scale — the mistake that hid for weeks',
         blocks: [
           {
-            kind: 'gallery',
-            caption: 'Walls — 7 interlocking pieces.',
-            items: [
-              { src: `${KIT}/structures/walls/castle-wall-straight-front-healthy.png`, label: 'straight front' },
-              { src: `${KIT}/structures/walls/castle-wall-straight-side-healthy.png`, label: 'straight side' },
-              { src: `${KIT}/structures/walls/castle-wall-corner-outer-healthy.png`, label: 'corner outer' },
-              { src: `${KIT}/structures/walls/castle-wall-corner-inner-healthy.png`, label: 'corner inner' },
-              { src: `${KIT}/structures/walls/castle-wall-endcap-buttressed-healthy.png`, label: 'endcap' },
-              { src: `${KIT}/structures/walls/castle-wall-connector-tower-healthy.png`, label: 'connector tower' },
+            kind: 'callout',
+            tone: 'warn',
+            title: 'The first castle was shorter than the staircase.',
+            text:
+              'Walls were 0.93x the hero and towers 1.29x — a defensive wall the height of the man standing at it. Nobody spotted it until the hero was placed beside one, which is why a hero now goes into every art review.',
+          },
+          {
+            kind: 'table',
+            head: ['', 'Old kit', 'Now'],
+            rows: [
+              ['Wall vs hero', '0.93x', '**2.88x**'],
+              ['Tower vs hero', '1.29x', '**3.84x**'],
+              ['Cliff vs hero', '1.28x', '**2.56x**'],
             ],
           },
           {
-            kind: 'gallery',
-            caption: 'Towers — 4 distinct silhouettes.',
-            items: [
-              { src: `${KIT}/structures/towers/castle-tower-gatewatch-healthy.png`, label: 'gatewatch' },
-              { src: `${KIT}/structures/towers/castle-tower-aegis-healthy.png`, label: 'aegis' },
-              { src: `${KIT}/structures/towers/castle-tower-beacon-healthy.png`, label: 'beacon' },
-              { src: `${KIT}/structures/towers/castle-tower-starward-healthy.png`, label: 'starward' },
-            ],
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Put the hero in every review sheet.',
+            text:
+              'Scale is invisible in isolation and obvious next to a character. It costs one line of code and it is the cheapest bug-catcher in the project.',
+          },
+        ],
+      },
+      {
+        id: 'projection',
+        title: 'Projection — pick one and never mix',
+        blocks: [
+          {
+            kind: 'image',
+            src: '/assets/review/castle-kit/filter-proof.png',
+            caption:
+              'Same PNGs at 3x. Left NEAREST, right LINEAR. Blurry pixel art is almost always a render setting, not the art.',
+            maxWidth: 860,
           },
           {
-            kind: 'gallery',
-            caption: 'The gate.',
+            kind: 'bullets',
             items: [
-              { src: `${KIT}/structures/gate/castle-gate-arch-open-healthy.png`, label: 'arch (open)' },
-              { src: `${KIT}/structures/gate/castle-gate-threshold-steps.png`, label: 'threshold steps' },
+              '**Lean** is the measurement: how far a silhouette drifts from top to bottom. **0 = true elevation.**',
+              'The old wall kit measured **-96.5px lean** on straight walls and **0** on towers — two incompatible projections in one kit.',
+              '**Root cause:** the diagonal pieces came from a different endpoint. **One endpoint per structural family.**',
+              'South walls face you, so they are **flat elevation**. East, west and north runs are seen from above, so they are **top-down**. Different art — not the same art rotated.',
             ],
           },
           {
             kind: 'callout',
             tone: 'warn',
-            title: 'Known in advance',
+            title: 'NEAREST, not LINEAR.',
             text:
-              'Kit pieces are 85–130 px each — built for a small world. Scale must be settled before placement, or every piece moves twice. The door and portcullis PNGs are still marked "needs-separation" and are not final art.',
+              'Phaser defaults to LINEAR, which blends neighbouring pixels and turns pixel art to mush the moment you zoom in. Set NEAREST on every kit texture — not just the hero, which is the trap the old courtyard fell into.',
           },
         ],
       },
       {
-        id: 'draft',
-        title: 'Status',
+        id: 'palette',
+        title: 'Colour — when to match, and when to leave alone',
         blocks: [
           {
             kind: 'callout',
-            tone: 'tip',
+            tone: 'key',
+            title: 'Match like material to like material. Never across families.',
             text:
-              'Drafted, not taught. This lesson gets written from what we actually hit in Lesson 1 — writing it now would mean guessing.',
+              'Two cliff faces of the same rock: match them. A carved pillar onto natural cliff: never — it vanishes into the rock. Art that is already right: leave it alone.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'What went wrong',
+              points: [
+                'Matched a pillar to the cliff — it disappeared',
+                'Matched good art to a small reference — washed out, the gold died',
+                'Matched by nearest colour — kept the wrong hue entirely',
+                'Compared averages while the hues were 120 degrees apart',
+              ],
+            },
+            right: {
+              title: 'What works',
+              points: [
+                'Map by **luminance rank** — darkest onto darkest',
+                'Split by material first: stone, foliage, gold, timber',
+                'Protect what must not change (54,989 timber pixels)',
+                '**Always show the palette bar**, never just a number',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Generate as a set.',
+            text:
+              'Raheem worked this out: pieces generated in ONE batch with identical style wording agree with each other. A piece generated alone later does not — and no amount of colour correction fully fixes it.',
+          },
+        ],
+      },
+      {
+        id: 'try',
+        title: 'Try it',
+        blocks: [
+          {
+            kind: 'try',
+            title: 'Prove the datum',
+            steps: [
+              'Drop a wall at any x that divides by 32, base on y = 1216.',
+              'Drop a tower beside it, base on the same line.',
+              'They butt exactly, and the tower stands three tiles proud. No nudging.',
+            ],
+            proves:
+              'That alignment is arithmetic, not eyeballing. Once the datum exists, placement stops being fiddly.',
           },
         ],
       },
     ],
-    checkpoint: ['Written after Lesson 1 lands.'],
+    checkpoint: [
+      'You can name the ground line and why it matters.',
+      'You can say why towers are 384 and walls 288.',
+      'You know lean 0 means true elevation.',
+      'You know when NOT to colour-match.',
+    ],
   },
 
   /* ------------------------------------------------------------------ 3 */
@@ -604,9 +931,9 @@ export const LESSONS: Lesson[] = [
     id: 'forest',
     number: 3,
     title: 'The Forest',
-    status: 'draft',
-    outcome: 'Place trees so the player walks convincingly behind and in front of them.',
-    minutes: 30,
+    status: 'live',
+    outcome: 'Make ground and trees belong to each other instead of competing.',
+    minutes: 20,
     sections: [
       {
         id: 'idea',
@@ -615,37 +942,780 @@ export const LESSONS: Lesson[] = [
           {
             kind: 'callout',
             tone: 'key',
-            title: 'Repetition is only visible when spacing is regular.',
+            title: 'In a forest the ground is the floor of a room, not the subject.',
             text:
-              'A convincing forest is four pieces used at varied scale, flip and depth. The lesson is about breaking regularity, not about having more art.',
+              'Bright saturated grass makes a Pokemon lawn. A deep forest has a DARK, COOL floor so the canopy is the brightest thing in frame — that is what makes it somewhere an ogre could step out of.',
           },
           {
             kind: 'gallery',
-            caption: 'All four nature pieces. This is the entire forest kit.',
+            caption: 'Eight trees. Family A is warm, family B is cool — they are for different moods.',
             items: [
-              { src: `${KIT}/nature/trees/castle-tree-broadleaf-large.png`, label: 'broadleaf large' },
-              { src: `${KIT}/nature/trees/castle-tree-broadleaf-small.png`, label: 'broadleaf small' },
-              { src: `${KIT}/nature/shrubs/castle-shrub-young-tree-cluster.png`, label: 'young-tree cluster' },
-              { src: `${KIT}/nature/rocks/castle-rock-low-scrub-cluster.png`, label: 'rock + scrub' },
+              { src: `${KIT}/recovered/castle-trees-a-0.png`, label: 'Honeycloud Poplar' },
+              { src: `${KIT}/recovered/castle-trees-a-1.png`, label: 'Apricot Fanmaple' },
+              { src: `${KIT}/recovered/castle-trees-a-2.png`, label: 'Mellowbell Willow' },
+              { src: `${KIT}/recovered/castle-trees-a-3.png`, label: 'Sunsketch Acacia' },
+              { src: `${KIT}/recovered/castle-trees-b-0.png`, label: 'blue pine' },
+              { src: `${KIT}/recovered/castle-trees-b-1.png`, label: 'teal willow' },
+              { src: `${KIT}/recovered/castle-trees-b-2.png`, label: 'green bare' },
+              { src: `${KIT}/recovered/castle-trees-b-3.png`, label: 'pale bare' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'colour',
+        title: 'Why the ground fights the trees',
+        blocks: [
+          {
+            kind: 'table',
+            head: ['', 'Hue', 'Reads as'],
+            rows: [
+              ['Grass now', '~100 deg, sat 0.55', 'loud pure green'],
+              ['Family A canopies', '35-65 deg', 'yellow, apricot, honey'],
+              ['Family B canopies', '177-223 deg', 'teal, blue'],
+              ['**Target ground**', '**~140 deg, darker**', '**cool shade**'],
             ],
           },
           {
             kind: 'bullets',
             items: [
-              '**Flip X** mirrors a sprite. Free, instant, doubles apparent variety.',
-              '**Scale** between 0.8 and 1.3 breaks the "same tree" read.',
-              '**Origin 0.5 / 1** anchors at the trunk base so depth sorting works.',
+              'Nothing in the picture is **darker** than anything else, so the ground competes instead of receding.',
+              'Push the ground **cooler and darker**: warm canopies glow, cool ones sink into shade.',
+              '**Colour is a post-process.** Never re-roll art for hue — a ramp recolour is exact, free and reversible.',
+            ],
+          },
+          {
+            kind: 'image',
+            src: `${KIT}/review/ground/ground-tone-compare.png`,
+            caption:
+              'The two greens we own, then four proposed forest floors — under the trees ACTUALLY planted in the map, with a hero for scale. Green/red under each name is the test that matters: is this floor quieter and darker than the canopy standing on it? Built free by scripts/sprite-lab/lib/ground_tone_sheet.py.',
+            maxWidth: 980,
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'A forest floor and a courtyard lawn are two different places.',
+            text:
+              'The temptation is to find one green that works everywhere. Do not — the open courtyard should stay bright, and the forest should be somewhere else. Two tilesets, painted where each belongs, costs nothing extra.',
+          },
+        ],
+      },
+      {
+        id: 'life',
+        title: 'Four free things that make it alive',
+        blocks: [
+          {
+            kind: 'bullets',
+            items: [
+              '**Dappled light** — big soft patches of brighter ground where sun breaks the canopy. The strongest forest cue there is.',
+              '**Leaf litter** under each tree, tinted to that tree own canopy colour. Ties trunk to ground and kills the sticker look.',
+              '**Contact shadows** — generated from each sprite own alpha. Squash, blur, darken. Zero art cost.',
+              '**Undergrowth** — ferns, moss, a fallen log. A bare floor says nothing lives here.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Watch for baked captions.',
+            text:
+              'PixelLab writes the item name INTO the frame when you generate a set. Four of the eight trees arrived with text under the roots — invisible in a thumbnail, and it renders in-game. Always check the bottom rows.',
+          },
+          {
+            kind: 'lab',
+            route: '/dev/light-lab',
+            title: 'Light Lab',
+            blurb:
+              'Same grass and the same trees, with sliders. Drop the ambient strength and watch the floor recede behind the canopy — that is the whole fix, and it costs no generations.',
+            learn: [
+              'What a darker, cooler floor does to the trees',
+              'How much dapple a forest actually needs',
+            ],
+          },
+        ],
+      },
+    ],
+    checkpoint: [
+      'You can say why a forest floor should be darker than the canopy.',
+      'You can name two free ways to add life to flat ground.',
+      'You know colour is fixed after generation, never by re-rolling.',
+    ],
+  },
+
+  /* ------------------------------------------------------------------ 4 */
+  {
+    id: 'light',
+    number: 4,
+    title: 'Light',
+    status: 'live',
+    outcome: 'Understand how 2D light is faked, and tune a forest canopy yourself.',
+    minutes: 20,
+    sections: [
+      {
+        id: 'idea',
+        title: 'The one idea',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: '2D lighting is three tricks, and none of them are real light.',
+            text:
+              'A dark rectangle over the world is the time of day. Holes erased in that darkness are light. Moving the holes slowly is life. That is the whole mechanism — everything else is tuning.',
+          },
+          {
+            kind: 'table',
+            head: ['Trick', 'What it does', 'Cost'],
+            rows: [
+              ['**Ambient layer**', 'Full-screen colour on MULTIPLY = the hour of the day', 'free'],
+              ['**Erased holes**', 'Soft blobs cut out of the darkness = sun through leaves', 'free'],
+              ['**Slow drift**', 'Tween those holes = leaves moving', 'free'],
+              ['Additive glows', 'ADD blend sprites = torches, crystals, fireflies', 'free'],
+              ['Light2D + normal maps', 'Real per-pixel lighting', 'heavy, often worse for pixel art'],
+            ],
+          },
+        ],
+      },
+      {
+        id: 'shadows',
+        title: 'Shadows are authored, never computed',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A 2D engine will not work out where a shadow falls. You draw it.',
+            text:
+              'But not by hand: take the sprite own alpha, squash it to about 30%, blur it, darken it. It matches the silhouette exactly because it IS the silhouette. Every tree and prop in one batch, no generations.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Place the shadow **at the feet**, under the sprite, origin 0.5 / 1.',
+              'Stretch it away from the sun — the direction tells the player where the light is.',
+              'Soft and weak beats hard and black. **Contact shadows sell weight**, not drama.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'lab',
+        title: 'The lab',
+        blocks: [
+          {
+            kind: 'lab',
+            route: '/dev/light-lab',
+            title: 'Light Lab',
+            blurb:
+              'Your real grass, your real trees, and a slider for every value. Tune until it looks right, then those exact numbers get baked into the scene.',
+            learn: [
+              'How ambient colour changes the hour',
+              'How many light spots read as canopy, and how big they need to be',
+              'How slow the drift has to be before it feels like leaves',
+              'Why the editor can never show you this — lighting is runtime, not placement',
             ],
           },
           {
             kind: 'callout',
             tone: 'tip',
+            title: 'Fixed mood beats a live clock.',
             text:
-              'There is no separate forest kit — these shipped inside the castle kit. The packaging was misleading, not incomplete.',
+              'A courtyard that is always warm afternoon and a forest that is always green twilight is cheaper and usually better than a running day/night cycle — a live cycle means every asset has to read at every hour. Walk first.',
           },
         ],
       },
     ],
-    checkpoint: ['Written after Lesson 2 lands.'],
+    checkpoint: [
+      'You can name the three tricks that make 2D light.',
+      'You know shadows are authored, and can be generated from alpha.',
+      'You have opened the Light Lab and moved a slider.',
+    ],
+  },
+
+  /* ------------------------------------------------------------------ 5 */
+  {
+    id: 'collision',
+    number: 5,
+    title: 'The Collision Layer',
+    status: 'live',
+    outcome: 'Draw the walls the hero cannot walk through, yourself, in the Editor.',
+    minutes: 25,
+    sections: [
+      {
+        id: 'idea',
+        title: 'The one idea',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Collision is a SECOND map, drawn on top of the first one.',
+            text:
+              'The art says what the courtyard looks like. The collision layer says where the floor is. They are separate on purpose — a wall you can see and a wall you can walk into are two different pieces of information, and the game only reads the second one.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'You draw plain rectangles in a layer called **L14_COLLIDERS**.',
+              'Nothing about them is code. They are shapes, the same as everything else you place.',
+              'The game hides them and turns them into walls when it runs.',
+              'They are invisible in play — add `?colliders=show` to the URL to see them again.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Why not just block the pictures?',
+            text:
+              'Because in a top-down game you walk on the floor, not on the picture. A tower is 300px tall in the art and stands on maybe 90px of ground. Blocking its picture would stop you a whole tower short of it.',
+          },
+        ],
+      },
+      {
+        id: 'where',
+        title: 'Where the layer is',
+        blocks: [
+          {
+            kind: 'steps',
+            items: [
+              {
+                who: 'raheem',
+                do: 'Open **CourtyardV2** and look at the top-left panel (Outline).',
+                see: 'A layer named `L14_COLLIDERS`, at the bottom of the list.',
+              },
+              {
+                who: 'raheem',
+                do: 'Expand it.',
+                see: 'Six shapes: four `BLOCK_mapEdge_*`, one `BLOCK_example_*`, one `ZONE_example_*`.',
+              },
+              {
+                who: 'raheem',
+                do: 'Click `BLOCK_example_southWallBand` and look at the right panel (Inspector).',
+                see: 'x, y, width, height, and a red fill. That is the entire definition of a wall.',
+              },
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The four map-edge shapes are already correct — leave them alone.',
+            text:
+              'They sit just outside the 2560 × 1920 map and stop you walking off the world. They are the one part of collision that is pure arithmetic, so I did them.',
+          },
+        ],
+      },
+      {
+        id: 'colour',
+        title: 'Colour is the meaning',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A collider says what it is with its FILL COLOUR, not its name.',
+            text:
+              'The Editor turns a label into a variable name and nothing else — the game never sees the words you type. So the meaning had to be carried by something the game can read, and colour is the one that is also legible at a glance on the canvas.',
+          },
+          {
+            kind: 'table',
+            head: ['Fill colour', 'Prefix to use in the label', 'What it does'],
+            rows: [
+              ['`#ff3355` red', '`BLOCK_`', 'Solid. The hero cannot enter it.'],
+              ['`#33ccff` blue', '`ZONE_`', 'Passable. Fires an event on enter and on leave.'],
+              ['anything else', '(your choice)', 'Ignored. Useful for a shape you are still positioning.'],
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Set **fillAlpha to about 0.35** so you can see the art underneath while you trace.',
+              'The label still matters — for you, and for me, and for git diffs. Name it what it blocks.',
+              'A colour nudged slightly off still counts. There is a tolerance, so fiddling with the picker cannot silently break a wall.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The fastest way to make a new collider',
+            text:
+              'Select an existing one, Ctrl+C, Ctrl+V, then drag and resize. It arrives with the right colour and alpha already set, so you never touch the colour picker.',
+          },
+        ],
+      },
+      {
+        id: 'angled',
+        title: 'Angled walls — the thing most engines get wrong',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Rotate the rectangle. Do not build a staircase of little boxes.',
+            text:
+              'Our castle walls lean with the perspective. Rotation is fully supported, so trace the lean with one long rotated rectangle and it will be exact.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Staircase of upright boxes (what we did before)',
+              points: [
+                'Six rectangles per wall',
+                'Each jogs ~24px sideways against 34px-wide feet',
+                'Walking the wall diagonally snags on every step',
+                'Reads as a bug, not as a stone wall',
+              ],
+            },
+            right: {
+              title: 'One rotated rectangle',
+              points: [
+                'One shape, matching the lean exactly',
+                'No steps to catch on',
+                'The hero slides along the face smoothly',
+                'You trace the way the perspective actually runs',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Why this is possible at all',
+            text:
+              'Standard Phaser physics bodies cannot rotate — a leaning wall would seal off ~80px of open paving at each end. The courtyard has one walker, no projectiles and no bouncing, so it does not run physics at all. It asks one question per step: may the feet go here? That question does not care about angles.',
+          },
+        ],
+      },
+      {
+        id: 'how',
+        title: 'How to draw one, step by step',
+        blocks: [
+          {
+            kind: 'steps',
+            items: [
+              { who: 'raheem', do: 'Select the `L14_COLLIDERS` layer in the Outline first, so the new shape lands inside it.' },
+              { who: 'raheem', do: 'Copy an existing `BLOCK_` rectangle and paste it.' },
+              {
+                who: 'raheem',
+                do: 'Drag and resize it over the FOOT of the object — the band that actually touches the ground.',
+                see: 'A translucent red patch sitting on the floor, not covering the artwork.',
+              },
+              { who: 'raheem', do: 'If the object leans, set `angle` in the Inspector to match it.' },
+              { who: 'raheem', do: 'Rename the label to `BLOCK_<what it is>`, e.g. `BLOCK_northTower_base`.' },
+              { who: 'raheem', do: 'Ctrl+S.', see: 'The dot on the tab disappears.' },
+              {
+                who: 'raheem',
+                do: 'Refresh `/dev/scene?start=CourtyardV2&colliders=show` and walk into it.',
+                see: 'The hero stops at the red edge.',
+              },
+              { who: 'claude', do: 'Screenshot the walk, check nothing got sealed off, and commit.' },
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'The save-and-refresh loop is the whole loop.',
+            text:
+              'The browser reads the file the Editor writes on save. If a new wall does nothing, you almost certainly did not press Ctrl+S.',
+          },
+        ],
+      },
+      {
+        id: 'goal',
+        title: 'What we are actually aiming for',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The goal is not "block everything". It is "the courtyard reads as a place".',
+            text:
+              'Walking should tell you where you are without a map. Walls hold you in, buildings push you around, and the open middle stays open. Over-blocking makes a corridor; under-blocking makes a photograph you happen to be standing on.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              '**Block:** walls, tower bases, building footprints, the outer boundary.',
+              '**Block tight:** a brazier stands on a slim tripod — block the tripod, not the flame.',
+              '**Leave open:** the paved centre, every path, the space in front of a door.',
+              '**Do not block:** anything you should be able to walk BEHIND. That is a depth problem, not a collision one.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The clearance number to keep in your head',
+            text:
+              'The hero\'s feet are 34px wide. A gap needs to be comfortably more than that or it reads as a wall with a bug in it. Aim for 80px+ for anywhere you expect people to walk regularly.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Too much collision',
+              points: [
+                'Every sprite boxed',
+                'The courtyard becomes a maze of invisible furniture',
+                'Diagonal walking snags constantly',
+              ],
+            },
+            right: {
+              title: 'Enough collision',
+              points: [
+                'The boundary is solid',
+                'Big architecture pushes you around it',
+                'Small props are either tight or ignored',
+                'You can cross the courtyard in a straight line',
+              ],
+            },
+          },
+        ],
+      },
+      {
+        id: 'zones',
+        title: 'Blue zones — doors, and everything else later',
+        blocks: [
+          {
+            kind: 'bullets',
+            items: [
+              'A blue `ZONE_` rectangle does not block. You walk straight through it.',
+              'It fires `zone-enter` when your feet go in and `zone-leave` when they come out — once each, not every frame.',
+              'Today nothing listens. That is fine: the shape is the durable part, the behaviour is a day of code later.',
+              'This is how doors into the tower, the mine and the board game will be marked.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Place zones now, even with nothing wired to them.',
+            text:
+              'Deciding where a door is, is a design decision and yours. Making it open something is plumbing and mine. They do not have to happen in the same week.',
+          },
+        ],
+      },
+      {
+        id: 'try',
+        title: 'Try it',
+        blocks: [
+          {
+            kind: 'try',
+            title: 'See the second map',
+            steps: [
+              'Open `/dev/scene?start=CourtyardV2&colliders=show`.',
+              'Walk the whole boundary. Note where you are stopped and where you fall off the edge of the art.',
+              'Now drop `&colliders=show` and walk the same route.',
+            ],
+            proves:
+              'How little collision is actually in the scene right now, and that the shapes are an authoring aid rather than part of the game world.',
+          },
+          {
+            kind: 'try',
+            title: 'Feel the difference between a rotated wall and a staircase',
+            steps: [
+              'Draw one long rectangle across a leaning wall and set its `angle` to match.',
+              'Save, refresh, and walk into it diagonally. Note the slide.',
+              'Now delete it and cover the same wall with four upright boxes instead.',
+              'Walk it diagonally again.',
+            ],
+            proves:
+              'Why the whole system is built on rotated shapes. The staircase catches; the single angled shape does not — and it was less work to draw.',
+          },
+          {
+            kind: 'try',
+            title: 'Break it on purpose',
+            steps: [
+              'Draw a `BLOCK_` rectangle around the whole picture of a tower, not just its base.',
+              'Save, refresh, and try to walk past it on the far side.',
+              'Shrink it down to the ground band and walk the same line.',
+            ],
+            proves:
+              'That a collider is the floor an object stands on. The oversized version blocks paving that is visibly empty, which is the single most common collision fault in a top-down game.',
+          },
+        ],
+      },
+    ],
+    checkpoint: [
+      'You can find `L14_COLLIDERS` in the Outline without help.',
+      'You can say what red and blue mean without looking it up.',
+      'You have drawn at least one `BLOCK_` rectangle and been stopped by it in play.',
+      'You have rotated one collider to match a leaning wall.',
+      'You can name one thing that should NOT be blocked, and why.',
+      'The scene is saved and committed.',
+    ],
+  },
+
+];
+
+/**
+ * Lessons authored during the ChatGPT teaching sessions. They use the same
+ * renderer as the original Claude syllabus, but remain a separate track so
+ * neither teacher has to rewrite or renumber the other's material.
+ */
+export const CHATGPT_LESSONS: Lesson[] = [
+  {
+    id: 'chatgpt-cropping',
+    number: 1,
+    title: 'Cropping Assets',
+    status: 'live',
+    locked: true,
+    outcome: 'Trim a wall with Phaser Editor tools—no hand-written object code.',
+    minutes: 10,
+    sections: [
+      {
+        id: 'idea',
+        title: 'The one idea',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'A TileSprite has a resizable window over its texture.',
+            text:
+              'Convert the wall from an Image to a TileSprite, then resize its box with the `Z` tool. The box gets shorter while the stones keep their original proportions. Phaser Editor writes the resulting scene code for you.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'Scale Tool — S',
+              points: [
+                'Keeps the entire wall visible',
+                'Stretches or squeezes its pixels',
+                'Wrong tool when you want to remove part of the picture',
+              ],
+            },
+            right: {
+              title: 'TileSprite Resize Tool — Z',
+              points: [
+                'Makes the visible window shorter or narrower',
+                'Keeps the visible stones at their original proportions',
+                'The editor generates everything—no object code from you',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Why not the Phaser `setCrop()` method?',
+            text:
+              'That method is real, but it is a code-side Phaser feature rather than a documented Image control in the Scene Editor. For your visual workflow, TileSprite + Resize is the practical editor tool for a rectangular wall cut.',
+          },
+        ],
+      },
+      {
+        id: 'convert',
+        title: 'Convert the wall to a TileSprite',
+        blocks: [
+          {
+            kind: 'steps',
+            items: [
+              {
+                who: 'raheem',
+                do: 'Select the wall in the canvas or in the top-left panel (Outline).',
+                see: 'The right panel (Inspector) shows that object’s properties.',
+              },
+              {
+                who: 'raheem',
+                do: 'In the Inspector’s Variable section, click the object’s **Type**. You can also right-click the wall and use **Type → Replace Type**.',
+                see: 'The Replace Type dialog opens.',
+              },
+              {
+                who: 'raheem',
+                do: 'Choose **TileSprite** and press **Replace**.',
+                see: 'The wall keeps its texture and placement, and the Inspector gains Size and Tile Sprite properties.',
+              },
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Do not change Scale X or Scale Y for this job.',
+            text:
+              'Leave texture scale and object scale at `1` while learning this. You are changing the TileSprite’s Size, not scaling the wall art.',
+          },
+        ],
+      },
+      {
+        id: 'resize',
+        title: 'Trim it with the Resize Tool',
+        blocks: [
+          {
+            kind: 'steps',
+            items: [
+              {
+                who: 'raheem',
+                do: 'Keep the new TileSprite selected and press **`Z`**. The same command is available from the scene context menu under **Tools → Resize Tool**.',
+                see: 'Resize handles appear around the wall.',
+              },
+              {
+                who: 'raheem',
+                do: 'Drag a side handle inward until only the amount of wall you want remains.',
+                see: 'The wall’s box becomes shorter, but the individual stones do not get squeezed.',
+              },
+              {
+                who: 'raheem',
+                do: 'For an exact cut, type the desired **Width** and **Height** in the Inspector’s Size section.',
+                see: 'The handles and visible window update to those exact dimensions.',
+              },
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'Use **tilePositionX** to slide the wall texture left or right behind the window.',
+              'Use **tilePositionY** to slide it up or down.',
+              'Adjust those values in the Inspector while watching the canvas—choose the part by eye.',
+              'If the resized TileSprite becomes larger than the source texture, the texture starts repeating. Keep it smaller when your goal is a single cut piece.',
+              'After trimming, use the normal Translate tool (`T`) to place the piece where it belongs.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'Think “window,” not “scissors.”',
+            text:
+              'Width and Height change the window. tilePositionX and tilePositionY slide the artwork behind it. Together, those four visual controls let you choose the wall piece without editing the PNG.',
+          },
+        ],
+      },
+      {
+        id: 'collision',
+        title: 'Match the collision visually',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Only do this part if the wall already has an Arcade Physics body.',
+            text:
+              'Select the wall and press `B` to open the Arcade Physics Body tool. Drag the body’s size and offset handles until the body covers only the solid part of the shortened wall.',
+          },
+          {
+            kind: 'bullets',
+            items: [
+              'No physics body on the wall? Skip this entire section.',
+              '`B` edits body size and offset; it does not change the artwork.',
+              'Use **Ctrl+0** to preview and walk into both ends of the wall before calling it finished.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'try',
+        title: 'Try it',
+        blocks: [
+          {
+            kind: 'try',
+            title: 'Make one short wall entirely in the editor',
+            steps: [
+              'Place a wall from the bottom-middle panel (Blocks).',
+              'Replace its type with **TileSprite**.',
+              'Press **`Z`** and drag one side inward until roughly half the wall remains.',
+              'Change **tilePositionX** in the Inspector until the half you like is inside the window.',
+              'Check that Scale X, Scale Y, tileScaleX and tileScaleY are still `1`.',
+              'If it has a physics body, press **`B`** and fit the body to the visible solid area.',
+              'Save with **Ctrl+S**, then preview with **Ctrl+0**.',
+            ],
+            proves:
+              'You can create a shorter wall segment by converting, resizing and repositioning a texture—all through Phaser Editor, with no object code written by you.',
+          },
+        ],
+      },
+    ],
+    checkpoint: [
+      'You converted an Image wall to a TileSprite using Replace Type.',
+      'You shortened it with the Resize Tool (`Z`), not the Scale Tool.',
+      'You used tilePositionX or tilePositionY to choose the visible part by eye.',
+      'The wall’s stones kept their original proportions.',
+    ],
+  },
+  {
+    id: 'chatgpt-creating-life-animation-review',
+    number: 2,
+    title: 'Creating Life: Review the Animations',
+    status: 'live',
+    outcome: 'Read, compare and approve wildlife motion before its behavior logic enters the castle.',
+    minutes: 15,
+    sections: [
+      {
+        id: 'animation-vs-behavior',
+        title: 'Animation is the vocabulary',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'The animation does not decide what the animal wants.',
+            text:
+              'A **clip** is one visible action, such as trot or sniff. Later, the wildlife brain chooses when to use that action. Keeping those jobs separate lets us improve the artwork without rewriting the animal’s decisions.',
+          },
+          {
+            kind: 'table',
+            head: ['Animal', 'Movement', 'Daily-life action', 'First personality'],
+            rows: [
+              ['Fox', 'Trot', 'Sniff · sit & listen', 'Curious and observant'],
+              ['Rabbit', 'Hop', 'Nibble & groom', 'Timid and busy'],
+              ['Glowcap tortoise', 'Slow walk', 'Keep simple for now', 'Peaceful and faintly magical'],
+            ],
+          },
+        ],
+      },
+      {
+        id: 'review-lab',
+        title: 'Open the animation review lab',
+        blocks: [
+          {
+            kind: 'lab',
+            route: '/dev/wildlife-animation-lab',
+            title: 'Wildlife Animation Review Lab',
+            blurb:
+              'Choose an animal, action and direction. Play it, pause it, step through every frame, or let **Review all animations** carry you through the complete set.',
+            learn: [
+              'The purple box is one real Phaser frame cell.',
+              'Frame buttons let you stop on the exact drawing that needs attention.',
+              'Speed changes the preview only; it does not alter the source art.',
+              'The fox, rabbit and simple glowcap tortoise all use their actual game sheets.',
+            ],
+          },
+          {
+            kind: 'try',
+            title: 'Give each clip a visual approval pass',
+            steps: [
+              'Play the clip once at its designed speed.',
+              'Pause and use the frame buttons to look for detached pixels or a moving ground line.',
+              'Check all four directions.',
+              'Ask whether the action is understandable without reading its label.',
+              'Use **Review all animations** for one uninterrupted final pass.',
+            ],
+            proves:
+              'The art is technically safe and readable before behavior code begins combining the clips into believable daily life.',
+          },
+        ],
+      },
+      {
+        id: 'safe-cells',
+        title: 'Why the extra nose appeared',
+        blocks: [
+          {
+            kind: 'compare',
+            left: {
+              title: 'Too-tight frame cell',
+              points: [
+                'The fox was centered on its feet',
+                'Its long nose crossed into the next cell',
+                'Phaser displayed those neighbouring pixels during the walk',
+              ],
+            },
+            right: {
+              title: 'Safe quadruped cell',
+              points: [
+                'The whole body is centered inside the cell',
+                'Transparent padding protects every edge',
+                'An automatic check rejects sheets with edge pixels',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'This is a sheet-packing issue, not a bad animation.',
+            text:
+              'The fox drawings were intact. Repacking them into safer cells fixes the stray nose without generating or repainting any frames.',
+          },
+        ],
+      },
+    ],
+    checkpoint: [
+      'You reviewed at least one clip in all four directions.',
+      'You paused and stepped through individual frames.',
+      'You can explain the difference between an animation clip and a behavior choice.',
+      'No animal pixels cross the purple frame-cell border.',
+    ],
   },
 ];
