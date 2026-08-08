@@ -504,7 +504,7 @@
       }
     ]
   },
-  "halo-stone-castle--ground-overlays--unreviewed": {
+  "halo-stone-castle--ground-overlays": {
     "files": [
       {
         "type": "image",
@@ -518,13 +518,31 @@
       },
       {
         "type": "image",
+        "key": "ground-overlay-cart-ruts",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
+      }
+    ]
+  },
+  "halo-stone-castle--ground-overlays--unreviewed": {
+    "files": [
+      {
+        "type": "image",
         "key": "ground-overlay-weeds-dense",
         "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-weeds-dense-needs-cut.png"
+      }
+    ]
+  },
+  "halo-stone-castle--nature": {
+    "files": [
+      {
+        "type": "image",
+        "key": "nature-shrub-young-tree-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
       },
       {
         "type": "image",
-        "key": "ground-overlay-cart-ruts",
-        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
+        "key": "nature-rocks-scrub-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
       }
     ]
   },
@@ -539,16 +557,6 @@
         "type": "image",
         "key": "nature-tree-broadleaf-small",
         "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small.png"
-      },
-      {
-        "type": "image",
-        "key": "nature-shrub-young-tree-cluster",
-        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
-      },
-      {
-        "type": "image",
-        "key": "nature-rocks-scrub-cluster",
-        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
       },
       {
         "type": "image",

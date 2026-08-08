@@ -1,0 +1,37 @@
+{
+  "subject": "castle-ground-scatter",
+  "label": "Courtyard ground — small scatter tier (BATCH B of 2)",
+
+  "notes": [
+    "WHY: measured in ground_review.py on 2026-08-08. The kit's two cleared nature pieces are 123x75 and 103x90 against a 100px hero — they are mid-scenery, and you cannot lay twenty of them across a courtyard without turning it into a wood. The four ground overlays run 2.9-18% coverage of dust-like marks and are invisible at game scale. Nothing at all exists in the 20-50px band, which is the tier the reference uses every few tiles to break repetition. That band is what this batch is for.",
+
+    "THIS BATCH GETS RESAMPLED, BATCH A DOES NOT. /create-1-direction-object refuses `size` whenever `style_images` is supplied, so these will land around 100-128px — two to four times too big for their job. lib/resample.py brings them down afterwards; it is the same path that took the hero from 78x152 to his shipped 36x71, so it is proven on art that ships. Target is roughly 40-56px on the long edge, set per item after measuring, not guessed here.",
+
+    "ANCHOR IS THE ROCK + LOW-SCRUB CLUSTER because it is the one shipped asset that carries BOTH stone and vegetation in the kit's register at the correct low top-down angle — which is exactly the mix this batch spans. Anchoring the green items to the shrub cluster instead would have meant a third call for no measured benefit. See castle-ruins-props.json for the full argument on why the anchor is a shipped kit asset rather than the hero crop.",
+
+    "ZERO DIRECTIONAL REQUIREMENT throughout. A stone, a grass tuft, a weed clump and a fallen branch have no front. One generation each, reusable at any facing anywhere in the world, and mirrorable for free to double the apparent variety.",
+
+    "No seed on this route. Four items, one call, same cost as one. M5.7 not engaged — no figures.",
+
+    "PROBE. Unproven: whether items this small survive the anchored route's fixed output size with enough internal detail to still read after a 2-3x downsample. Risk is mush. Mitigation is that all four are chosen to be silhouette-legible rather than detail-legible — a tuft, a lump, a clump and a stick. ONE CALL, then resample and judge in ground_review.py. If they mush, the fallback is to hand-cut small scatter out of the two cleared clusters, which is free."
+  ],
+
+  "styleReference": "style-ref-rock-cluster.png",
+
+  "objects": [
+    {
+      "id": "scatter",
+      "note": "The 20-50px tier. Every item is judged after resampling, on the real grass, in ground_review.py.",
+      "params": {
+        "description": "four very small ground scatter details for a castle courtyard lawn, low three-quarter top-down pixel-art game view, neutral even daylight, dark internal outlines, simple readable silhouettes with little internal detail, each isolated on transparency with no ground base and no square tile border: 1). two or three small stones 2). a tuft of grass 3). a clump of weeds and tiny wildflowers 4). a fallen branch; no buildings, no walls, no whole trees, no figures, no text",
+        "view": "top-down",
+        "item_descriptions": [
+          "two or three small rounded grey field stones resting together, one larger and two smaller, weathered with a little moss, simple bold silhouette, isolated on transparency, no ground beneath them",
+          "a single tuft of coarse meadow grass, blades splaying outward from a tight base, mid green with a few paler tips, simple bold silhouette, isolated on transparency, no ground beneath it",
+          "a small clump of leafy weeds with three or four tiny muted wildflowers, low and spreading, mid green with soft cream and pale yellow blooms, simple bold silhouette, isolated on transparency, no ground beneath it",
+          "a single fallen bare branch lying flat with two or three short side twigs, dry grey-brown bark, simple bold silhouette, isolated on transparency, no ground beneath it"
+        ]
+      }
+    }
+  ]
+}

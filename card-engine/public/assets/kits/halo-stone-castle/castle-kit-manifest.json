@@ -136,7 +136,7 @@
     {
       "assetId": "castle.ground.overlay.grass-clover",
       "label": "Grass and Clover Scatter",
-      "status": "HUMAN REVIEW",
+      "status": "KEEP",
       "path": "ground/overlays/castle-ground-overlay-grass-clover.png",
       "sourceSubject": "scene-castle-ground-details",
       "rawSource": "object-ground-details-frame_0.png",
@@ -145,7 +145,7 @@
     {
       "assetId": "castle.ground.overlay.pebbles-scuffs",
       "label": "Pebbles and Dirt Scuffs",
-      "status": "HUMAN REVIEW",
+      "status": "KEEP",
       "path": "ground/overlays/castle-ground-overlay-pebbles-scuffs.png",
       "sourceSubject": "scene-castle-ground-details",
       "rawSource": "object-ground-details-frame_1.png",
@@ -163,7 +163,7 @@
     {
       "assetId": "castle.ground.overlay.cart-ruts",
       "label": "Cart Ruts and Foot Wear",
-      "status": "HUMAN REVIEW",
+      "status": "KEEP",
       "path": "ground/overlays/castle-ground-overlay-cart-ruts.png",
       "sourceSubject": "scene-castle-ground-details",
       "rawSource": "object-ground-details-frame_3.png",
@@ -262,7 +262,7 @@
     {
       "assetId": "castle.nature.shrub.young-tree.cluster",
       "label": "Shrub and Young-Tree Cluster",
-      "status": "HUMAN REVIEW",
+      "status": "KEEP",
       "path": "nature/shrubs/castle-shrub-young-tree-cluster.png",
       "sourceSubject": "scene-castle-kit-perimeter",
       "rawSource": "object-perimeter-nature-frame_2.png",
@@ -271,7 +271,7 @@
     {
       "assetId": "castle.nature.rocks.scrub.cluster",
       "label": "Rock and Low-Scrub Cluster",
-      "status": "HUMAN REVIEW",
+      "status": "KEEP",
       "path": "nature/rocks/castle-rock-low-scrub-cluster.png",
       "sourceSubject": "scene-castle-kit-perimeter",
       "rawSource": "object-perimeter-nature-frame_3.png",
