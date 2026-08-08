@@ -119,6 +119,40 @@ function editorScenes(): Plugin {
         res.end(fs.readFileSync(file));
       });
     },
+
+    /**
+     * The same files, emitted into the build.
+     *
+     * Without this the courtyard is a dev-only toy. `configureServer` runs on the
+     * dev server and nowhere else, so a deployed `/editor-scenes/CourtyardV2.js`
+     * fell through vercel.json's SPA rewrite, came back as index.html with a 200,
+     * and the scene reported "could not run" — Raheem, 2026-08-07: "all of this
+     * work isn't in production for me to log in and actually see."
+     *
+     * Emitting from the SAME plugin that serves them is the point. Copying the
+     * files into public/ would make a second source of truth that goes stale the
+     * moment the Editor saves; this reads the one the Editor writes.
+     */
+    generateBundle() {
+      const editorRoot = path.resolve(__dirname, '..');
+      const scenes = fs.readdirSync(editorRoot).filter((f) => f.endsWith('.scene'));
+
+      for (const sceneFile of scenes) {
+        const base = sceneFile.replace(/\.scene$/, '');
+        // A scene with no compiled .js has never been saved and cannot run. Ship
+        // the pair or neither — half a scene is a runtime error with no cause.
+        const compiled = path.join(editorRoot, `${base}.js`);
+        if (!fs.existsSync(compiled)) continue;
+
+        for (const name of [`${base}.scene`, `${base}.js`]) {
+          this.emitFile({
+            type: 'asset',
+            fileName: `editor-scenes/${name}`,
+            source: fs.readFileSync(path.join(editorRoot, name)),
+          });
+        }
+      }
+    },
   };
 }
 

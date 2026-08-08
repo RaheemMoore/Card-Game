@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type Phaser from 'phaser';
-import { COLLIDER_COLORS, readSceneColliders } from './sceneColliders';
+import { COLLIDER_COLORS, DOOR_COLORS, readSceneColliders, readSceneDoors } from './sceneColliders';
 import { feetBlocked, resolveWalk } from '../castle/v2-preview/walkBlocking';
 
 /**
@@ -106,5 +106,46 @@ describe('walking against an editor-drawn wall', () => {
   it('lets an unobstructed step through untouched', () => {
     const move = resolveWalk({ x: 20, y: 100, width: 34, height: 20 }, 10, 10, blockers);
     expect(move).toEqual({ x: 30, y: 110, blocked: false, slid: false });
+  });
+});
+
+describe('readSceneDoors', () => {
+  const doorScene = (list: unknown[]) =>
+    ({ l24_DOORS: { list, getAll: () => list } }) as unknown as Phaser.Scene;
+
+  it('reads a destination off the fill colour', () => {
+    const { doors } = readSceneDoors(
+      doorScene([
+        rect({ fillColor: DOOR_COLORS.forge }),
+        rect({ fillColor: DOOR_COLORS.collection }),
+      ]),
+    );
+    expect(doors.map((d) => d.destination)).toEqual(['forge', 'collection']);
+  });
+
+  it('ignores an uncoloured shape rather than opening whatever is first', () => {
+    const { doors } = readSceneDoors(doorScene([rect({ fillColor: 0x123456 })]));
+    expect(doors).toHaveLength(0);
+  });
+
+  it('returns nothing for a scene with no doors layer', () => {
+    expect(readSceneDoors({} as Phaser.Scene).doors).toHaveLength(0);
+  });
+
+  it('keeps every destination colour distinguishable under the ±24 tolerance', () => {
+    // A door that could be read as two destinations is a door that opens the
+    // wrong building, and nothing in the Editor would show you why.
+    const entries = Object.entries(DOOR_COLORS);
+    for (const [nameA, a] of entries) {
+      const matches = entries.filter(([, b]) => {
+        const ch = (v: number, s: number) => (v >> s) & 0xff;
+        return (
+          Math.abs(ch(a, 16) - ch(b, 16)) <= 24 &&
+          Math.abs(ch(a, 8) - ch(b, 8)) <= 24 &&
+          Math.abs(ch(a, 0) - ch(b, 0)) <= 24
+        );
+      });
+      expect(matches.map(([n]) => n)).toEqual([nameA]);
+    }
   });
 });

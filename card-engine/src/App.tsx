@@ -17,6 +17,7 @@ import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
 import { MiniGamesHub } from './pages/minigames/MiniGamesHub';
 import { Castle } from './pages/castle';
+import { CastleV2 } from './pages/castle/v2/CastleV2';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
 import { CodexElements } from './pages/CodexElements';
@@ -398,7 +399,13 @@ export default function App() {
             <Route path="/battle" element={<Battle />} />
             <Route path="/minigames" element={<MiniGamesHub />} />
             <Route path="/minigames/forge-strike" element={<ForgeStrike />} />
-            <Route path="/castle" element={<Castle />} />
+            {/* The courtyard Raheem built in the Phaser Editor. It replaced the
+                painted-plate castle on 2026-08-08; the old one stays reachable at
+                /castle/classic until the new one has been walked in production,
+                because deleting the only way to the forge on a hunch is not a
+                migration. Phaser is lazy-loaded into its own chunk either way. */}
+            <Route path="/castle" element={<CastleV2 />} />
+            <Route path="/castle/classic" element={<Castle />} />
             {CourtyardSample && (
               <Route
                 path="/dev/courtyard-sample"

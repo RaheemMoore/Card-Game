@@ -232,3 +232,74 @@ export function elevationShapes(scene: Phaser.Scene): Phaser.GameObjects.Rectang
 }
 
 export const ELEVATION_LAYER_VARS = [...LEVEL_LAYER_VARS, RAMP_LAYER_VAR] as const;
+
+/* ---------------------------------------------------------------------- doors */
+
+/**
+ * Doors — the rectangles you stand in to open a building.
+ *
+ * Their own layer, `L24_DOORS`, and the destination is carried by FILL COLOUR.
+ *
+ * Colour here, layers for elevation, and the difference is not taste. A level is
+ * an ORDERED quantity, and an ordinal encoded as a hue is how a terrace ends up
+ * silently one step too high. A destination is a small UNORDERED set — exactly
+ * what colour is good at — and keeping every door in one layer means there is one
+ * place to look when a door stops working.
+ */
+export const DOOR_COLORS = {
+  forge: 0xff9933,
+  collection: 0x9966ff,
+  codex: 0x66ff99,
+  battle: 0xff66cc,
+  minigames: 0xffee66,
+} as const;
+
+export type DoorDestination = keyof typeof DOOR_COLORS;
+
+export const DOOR_LAYER_VAR = 'l24_DOORS';
+
+export interface SceneDoor {
+  destination: DoorDestination;
+  polygon: Polygon;
+}
+
+/** Human label for the prompt. The Editor label never reaches runtime. */
+export const DOOR_LABELS: Record<DoorDestination, string> = {
+  forge: 'The Forge',
+  collection: 'The Archive',
+  codex: 'The Codex',
+  battle: 'The Arena',
+  minigames: 'The Games',
+};
+
+export function readSceneDoors(scene: Phaser.Scene): {
+  doors: SceneDoor[];
+  shapes: Phaser.GameObjects.Rectangle[];
+} {
+  const layer = (scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>)[
+    DOOR_LAYER_VAR
+  ];
+  if (!layer || typeof layer.getAll !== 'function') return { doors: [], shapes: [] };
+
+  const doors: SceneDoor[] = [];
+  const shapes: Phaser.GameObjects.Rectangle[] = [];
+
+  for (const child of layer.list) {
+    if (!isRectangle(child)) continue;
+    const destination = destinationOf(child.fillColor);
+    // An uncoloured shape is one you are still positioning. It opens nothing,
+    // rather than opening whatever happens to be first in the list.
+    if (!destination) continue;
+    doors.push({ destination, polygon: cornersOf(child) });
+    shapes.push(child);
+  }
+
+  return { doors, shapes };
+}
+
+function destinationOf(fill: number): DoorDestination | undefined {
+  for (const [dest, ref] of Object.entries(DOOR_COLORS) as [DoorDestination, number][]) {
+    if (near(fill, ref)) return dest;
+  }
+  return undefined;
+}
