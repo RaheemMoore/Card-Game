@@ -1,0 +1,36 @@
+{
+  "_why": "Control arm for building-forge.json. Same brief, Lucid Origin, NO style reference \u2014 because Lucid Origin rejects the style-reference controlnet (harness.mjs:201) but holds a flatter game read than Phoenix. Whichever arm matches the castle better wins and becomes the recipe.",
+  "_model_choice": "Lucid Origin. No reference possible, so the castle palette is pinned in prose in styleHeader instead. This is the courtyard-v2.json precedent.",
+  "_alchemy": "false on purpose. lib/pixelize.py records the finding: Alchemy ON returns a 3D render, OFF returns a smooth painted render. Neither is pixel art \u00e2\u20ac\u201d that is what pixelize.py is for \u00e2\u20ac\u201d but OFF is far closer to a flat game asset.",
+  "_native_scale": "The castle kit's own pieces are 288x384 (tower) and 384x288 (wall). Generate large here, then downsample to that register via lib/pixelize.py. Do not chase a final-resolution asset out of Leonardo.",
+  "model": "lucid-origin",
+  "alchemy": false,
+  "width": 1024,
+  "height": 1024,
+  "styleRef": false,
+  "negative": "perspective, vanishing point, isometric, three-quarter view, aerial view, ground, grass, dirt, paving, terrain, sky, clouds, horizon, landscape, scenery, trees, cast shadow, drop shadow, photorealistic, photograph, 3d render, cgi, realistic, painterly, soft focus, blurry, gradient background, textured background, characters, people, humans, figures, nude, bare chest, text, letters, signature, watermark, logo, ui, hud, frame, border",
+  "styleHeader": "2D game art asset: a single free-standing fantasy building shown as a clean front elevation with only a slight downward tilt so a little of the rooftop is visible, in the style of a classic 16-bit top-down RPG. Flat cel-shaded rendering with clean dark outlines, a strictly limited palette, and chunky bold readable shapes. Stone is lavender-grey blockwork with darker violet mortar lines and occasional cream accent blocks; all trim, arch stones, banding and roof caps are warm amber gold. The building stands completely alone, centred, on a plain flat solid white background with absolutely no ground, no grass, no paving, no sky, no horizon, no scenery, no cast shadow and no other objects.",
+  "familyLabels": {
+    "forge": "The Forge \u2014 exterior, castle register (Lucid Origin, prose only)"
+  },
+  "states": [
+    {
+      "id": "forge-squat",
+      "label": "A \u00e2\u20ac\u201d squat smithy, single great chimney",
+      "family": "forge",
+      "line": "A blacksmith's forge building: a squat, sturdy stone smithy roughly as wide as it is tall, with a broad shingled roof and one massive stone chimney stack rising from the left side, warm smoke curling from its top. Set into the centre of the front wall is a DEEP RECESSED ARCHWAY with amber gold voussoir stones around it, and from inside that archway a strong orange furnace glow spills outward. A heavy iron-banded anvil stands on a stone block to the right of the doorway, with a rack of hammers and tongs mounted on the wall beside it. Small arrow-slit windows glow warm from within."
+    },
+    {
+      "id": "forge-tall",
+      "label": "B \u00e2\u20ac\u201d tall forge tower with attached workshop",
+      "family": "forge",
+      "line": "A blacksmith's forge building: a tall narrow stone forge tower with amber gold crenellations at its top and a tapering chimney flue venting warm smoke, with a lower single-storey workshop wing attached to its right side under a shingled roof. The workshop wing has a DEEP RECESSED ARCHWAY doorway ringed with amber gold voussoir stones, glowing strongly orange from the furnace within. Barrels and a stone water-quench trough sit against the wall. Narrow arrow-slit windows up the tower glow warm."
+    },
+    {
+      "id": "forge-hall",
+      "label": "C \u00e2\u20ac\u201d wide open-fronted forge hall",
+      "family": "forge",
+      "line": "A blacksmith's forge building: a wide, low, open-fronted stone forge hall, considerably wider than it is tall, with a long shingled roof carried on stout stone piers and two chimney stacks venting warm smoke at either end. The centre of the front is a DEEP RECESSED ARCHED opening ringed with amber gold voussoir stones, through which a great orange furnace fire glows. An anvil on a stone block and a rack of finished blades stand under the overhang. Amber gold banding runs along the roofline."
+    }
+  ]
+}

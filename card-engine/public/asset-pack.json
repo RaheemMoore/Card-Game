@@ -241,5 +241,234 @@
         }
       }
     ]
+  },
+  "castle-animated": {
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "anim-apprentice-apprentice-research-idle",
+        "url": "assets/castle/animated/apprentice-apprentice-research-idle.png",
+        "frameConfig": {
+          "frameWidth": 160,
+          "frameHeight": 160
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-apprentice-cardwright-study-east",
+        "url": "assets/castle/animated/apprentice-cardwright-study-east.png",
+        "frameConfig": {
+          "frameWidth": 180,
+          "frameHeight": 180
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-apprentice-redhair-alt-breathing-idle-south",
+        "url": "assets/castle/animated/apprentice-redhair-alt-breathing-idle-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-ablaze-south",
+        "url": "assets/castle/animated/boss-armoured-monster-ablaze-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-attack-south",
+        "url": "assets/castle/animated/boss-armoured-monster-attack-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-defeat-south",
+        "url": "assets/castle/animated/boss-armoured-monster-defeat-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-hit-south",
+        "url": "assets/castle/animated/boss-armoured-monster-hit-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-idle-south",
+        "url": "assets/castle/animated/boss-armoured-monster-idle-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-rage-south",
+        "url": "assets/castle/animated/boss-armoured-monster-rage-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-smash-south",
+        "url": "assets/castle/animated/boss-armoured-monster-smash-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-ultimate-south",
+        "url": "assets/castle/animated/boss-armoured-monster-ultimate-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-armoured-monster-windup-south",
+        "url": "assets/castle/animated/boss-armoured-monster-windup-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-tree-spirit-attack-south",
+        "url": "assets/castle/animated/boss-tree-spirit-attack-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-tree-spirit-defeat-south",
+        "url": "assets/castle/animated/boss-tree-spirit-defeat-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-tree-spirit-hit-south",
+        "url": "assets/castle/animated/boss-tree-spirit-hit-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-tree-spirit-idle-south",
+        "url": "assets/castle/animated/boss-tree-spirit-idle-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-boss-tree-spirit-windup-south",
+        "url": "assets/castle/animated/boss-tree-spirit-windup-south.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-forge-dragon-kin-forge-dragon-kin-idle-breathe",
+        "url": "assets/castle/animated/forge-dragon-kin-forge-dragon-kin-idle-breathe.png",
+        "frameConfig": {
+          "frameWidth": 160,
+          "frameHeight": 160
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-forge-dragon-kin-forge-dragon-kin-uncoil",
+        "url": "assets/castle/animated/forge-dragon-kin-forge-dragon-kin-uncoil.png",
+        "frameConfig": {
+          "frameWidth": 160,
+          "frameHeight": 160
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-griffin-cub-sleep",
+        "url": "assets/castle/animated/griffin-cub-sleep.png",
+        "frameConfig": {
+          "frameWidth": 146,
+          "frameHeight": 146
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-griffin-cub-wake-stretch",
+        "url": "assets/castle/animated/griffin-cub-wake-stretch.png",
+        "frameConfig": {
+          "frameWidth": 146,
+          "frameHeight": 146
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-keeper-dwarf-breathing-idle-south",
+        "url": "assets/castle/animated/keeper-dwarf-breathing-idle-south.png",
+        "frameConfig": {
+          "frameWidth": 244,
+          "frameHeight": 244
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-lectern-flutter",
+        "url": "assets/castle/animated/lectern-flutter.png",
+        "frameConfig": {
+          "frameWidth": 124,
+          "frameHeight": 124
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-prop-horse-eating-east",
+        "url": "assets/castle/animated/prop-horse-eating-east.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "anim-prop-horse-rest-idle-east",
+        "url": "assets/castle/animated/prop-horse-rest-idle-east.png",
+        "frameConfig": {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      }
+    ]
   }
 }

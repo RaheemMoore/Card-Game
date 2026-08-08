@@ -3,11 +3,11 @@
   "version": 1,
   "sourceFamily": "scene-castle-kit-family-review",
   "rawOutputsPreserved": true,
-  "assetCount": 29,
+  "assetCount": 232,
   "assets": [
     {
       "assetId": "castle.wall.straight.front.healthy",
-      "label": "Straight Curtain Wall \u2014 Front Run",
+      "label": "Straight Curtain Wall — Front Run",
       "status": "KEEP",
       "path": "structures/walls/castle-wall-straight-front-healthy.png",
       "sourceSubject": "scene-castle-kit-poc",
@@ -79,7 +79,7 @@
     },
     {
       "assetId": "castle.ground.tileset.grass-dirt.32",
-      "label": "Grass \u2194 Packed Dirt Tileset \u2014 32 px",
+      "label": "Grass ↔ Packed Dirt Tileset — 32 px",
       "status": "HUMAN REVIEW",
       "path": "ground/tilesets/castle-ground-grass-dirt-wang-32.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -87,8 +87,19 @@
       "usedTrimmedExport": false
     },
     {
+      "assetId": "castle.ground.tileset.forestfloor-dirt.32",
+      "label": "Deep Forest Floor ↔ Shaded Dirt Tileset — 32 px",
+      "status": "KEEP",
+      "path": "ground/tilesets/castle-ground-forestfloor-dirt-wang-32.png",
+      "sourceSubject": "scene-castle-ground-gate",
+      "rawSource": "tiles-grass-dirt.png",
+      "usedTrimmedExport": false,
+      "derivedFrom": "castle.ground.tileset.grass-dirt.32",
+      "note": "Recolour, not a generation. lib/tint_ground.py --hue 96 --sat 0.55 --val 0.62 --other-sat 0.85 --other-val 0.72 --outline-val 0.80. The canopy measures sat 0.34 / val 0.45; the lawn measured 0.49 / 0.45, i.e. as bright as the trees and louder, so they had nothing to stand against. This floor lands at 0.27 / 0.28. Dirt keeps its hue so the transition tiles stay continuous with the dirt outside the forest."
+    },
+    {
       "assetId": "castle.review.ground.neutral",
-      "label": "Ground Assembly \u2014 Neutral Source",
+      "label": "Ground Assembly — Neutral Source",
       "status": "REVIEW BOARD",
       "path": "review/ground/castle-ground-layout-neutral.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -97,7 +108,7 @@
     },
     {
       "assetId": "castle.review.ground.day",
-      "label": "Ground Assembly \u2014 Day Lighting",
+      "label": "Ground Assembly — Day Lighting",
       "status": "REVIEW BOARD",
       "path": "review/ground/castle-ground-layout-day.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -106,7 +117,7 @@
     },
     {
       "assetId": "castle.review.ground.night",
-      "label": "Ground Assembly \u2014 Night Lighting",
+      "label": "Ground Assembly — Night Lighting",
       "status": "REVIEW BOARD",
       "path": "review/ground/castle-ground-layout-night.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -115,7 +126,7 @@
     },
     {
       "assetId": "castle.ground.tileset.dirt-paving.32",
-      "label": "Packed Dirt \u2194 Scholar Paving Tileset \u2014 32 px",
+      "label": "Packed Dirt ↔ Scholar Paving Tileset — 32 px",
       "status": "HUMAN REVIEW",
       "path": "ground/tilesets/castle-ground-dirt-paving-wang-32.png",
       "sourceSubject": "scene-castle-ground-paving",
@@ -160,7 +171,7 @@
     },
     {
       "assetId": "castle.wall.straight.side.healthy",
-      "label": "Straight Curtain Wall \u2014 Side Run",
+      "label": "Straight Curtain Wall — Side Run",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-straight-side-healthy.png",
       "sourceSubject": "scene-castle-kit-topology",
@@ -265,6 +276,1837 @@
       "sourceSubject": "scene-castle-kit-perimeter",
       "rawSource": "object-perimeter-nature-frame_3.png",
       "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.ground.tileset.grass-paving.32",
+      "label": "Grass ↔ Pale Stone Paving Tileset — 32 px",
+      "status": "HUMAN REVIEW",
+      "path": "ground/tilesets/castle-ground-grass-paving-wang-32.png",
+      "sourceSubject": "castle-cliff-kit",
+      "rawSource": "tiles-cliff-rim.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff-face.rock",
+      "label": "Cliff Face — Natural Rock (mirror-tiled)",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-face-rock.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-face-rock.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff-face.mossy",
+      "label": "Cliff Face — Mossy Stone (mirror-tiled)",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-face-mossy.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-face-mossy.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff-face.waterfall",
+      "label": "Cliff Face — Waterfall (mirror-tiled)",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-face-waterfall.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-face-waterfall.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff-face.arcane",
+      "label": "Cliff Face — Arcane Fissure (mirror-tiled)",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-face-arcane.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-face-arcane.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff-face.tall",
+      "label": "Cliff Face — Tall / Mountain (mirror-tiled)",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-face-tall.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-face-tall.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff.scree",
+      "label": "Cliff Scree — rubble at the foot",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-scree.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-scree.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff.stair",
+      "label": "Cliff Stair — carved stone ascent",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-stair.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-stair.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.cliff.ramp-dirt",
+      "label": "Cliff Ramp — worn dirt track",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-cliff-ramp-dirt.png",
+      "sourceSubject": "castle-cliff-faces",
+      "rawSource": "castle-cliff-ramp-dirt.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.wall.face-rock",
+      "label": "Cliff Wall Face — Rock, 1:1 tall (mirror-tiled)",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-wall-face-rock.png",
+      "sourceSubject": "castle-cliff-wall",
+      "rawSource": "castle-wall-face-rock.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.wall.face-mossy",
+      "label": "Cliff Wall Face — Mossy, hue-matched to rock",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-wall-face-mossy.png",
+      "sourceSubject": "castle-cliff-wall",
+      "rawSource": "castle-wall-face-mossy.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.wall.endcap",
+      "label": "Cliff Wall End Cap — derived from the rock face",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-wall-endcap.png",
+      "sourceSubject": "castle-cliff-wall",
+      "rawSource": "castle-wall-endcap.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.wall.stair",
+      "label": "Cliff Wall Stair — full height",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-wall-stair.png",
+      "sourceSubject": "castle-cliff-wall",
+      "rawSource": "castle-wall-stair.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.wall.pillar",
+      "label": "Cliff Wall Pillar — stands on the stair join",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-wall-pillar.png",
+      "sourceSubject": "castle-cliff-wall",
+      "rawSource": "castle-wall-pillar.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.terrain.wall.boulders",
+      "label": "Cliff Wall Boulders — derived from the rock face base",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-wall-boulders.png",
+      "sourceSubject": "castle-cliff-wall",
+      "rawSource": "castle-wall-boulders.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.wall.straight.v2",
+      "label": "Curtain Wall — flat elevation, 288px (v2)",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-straight-v2.png",
+      "sourceSubject": "castle-walls-v3",
+      "rawSource": "castle-wall-straight-v2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.wall.corner-outer.v2",
+      "label": "Wall Corner Outer — 288px (v2)",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-corner-outer-v2.png",
+      "sourceSubject": "castle-walls-v3",
+      "rawSource": "castle-wall-corner-outer-v2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.wall.corner-inner.v2",
+      "label": "Wall Corner Inner — 288px (v2)",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-corner-inner-v2.png",
+      "sourceSubject": "castle-walls-v3",
+      "rawSource": "castle-wall-corner-inner-v2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tower.watch.v2",
+      "label": "Watch Tower — flat elevation, 384px (v2)",
+      "status": "HUMAN REVIEW",
+      "path": "structures/towers/castle-tower-watch-v2.png",
+      "sourceSubject": "castle-walls-v3",
+      "rawSource": "castle-tower-watch-v2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tower.cap.v2",
+      "label": "Watch Tower — Upper Keep Only",
+      "status": "KEEP",
+      "path": "structures/towers/castle-tower-cap-v2.png",
+      "sourceSubject": "castle-walls-v2",
+      "rawSource": "castle-tower-watch-v2.png",
+      "usedTrimmedExport": true,
+      "derivedFrom": "castle.tower.watch.v2",
+      "note": "Crop, not a generation. Raheem 2026-08-07: the whole tower \"looks ridiculous\" at the left and right corners, but the round top alone, or the base alone as a walk-in entrance, would work. Top 210px of castle-tower-watch-v2, padded to 224 (9x7 tiles) with the art anchored to the TOP, because a cap sits ON something. Cut at y=210, where the silhouette jumps from 108px wide to 183 — the exact seam where the keep flares into its base, measured not guessed."
+    },
+    {
+      "assetId": "castle.tower.base.v2",
+      "label": "Watch Tower — Base With Entrance",
+      "status": "KEEP",
+      "path": "structures/towers/castle-tower-base-v2.png",
+      "sourceSubject": "castle-walls-v2",
+      "rawSource": "castle-tower-watch-v2.png",
+      "usedTrimmedExport": true,
+      "derivedFrom": "castle.tower.watch.v2",
+      "note": "Crop, not a generation. Raheem 2026-08-07: the whole tower \"looks ridiculous\" at the left and right corners, but the round top alone, or the base alone as a walk-in entrance, would work. Bottom 174px of castle-tower-watch-v2, padded to 192 (9x6 tiles) with the art anchored to the BOTTOM so it stands on the ground line. Carries the arched doorway; the opening is hero-height, so a character can be walked into it."
+    },
+    {
+      "assetId": "castle.gate.house.v2",
+      "label": "Gatehouse — flat elevation, 320px (v2)",
+      "status": "HUMAN REVIEW",
+      "path": "structures/gate/castle-gate-house-v2.png",
+      "sourceSubject": "castle-walls-v3",
+      "rawSource": "castle-gate-house-v2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.gate.drawbridge",
+      "label": "Gatehouse with lowered drawbridge — 384x384",
+      "status": "HUMAN REVIEW",
+      "path": "structures/gate/castle-gate-drawbridge.png",
+      "sourceSubject": "castle-walls-v4",
+      "rawSource": "castle-gate-drawbridge.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.wall.side",
+      "label": "Curtain Wall — SIDE run, top-down, tiles vertically",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-side.png",
+      "sourceSubject": "castle-walls-v4",
+      "rawSource": "castle-wall-side.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.wall.north",
+      "label": "Curtain Wall — NORTH run, top-down, tiles horizontally",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-north.png",
+      "sourceSubject": "castle-walls-v4",
+      "rawSource": "castle-wall-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.wall.corner-turn",
+      "label": "Wall Corner — top-down bastion joining side to front",
+      "status": "HUMAN REVIEW",
+      "path": "structures/walls/castle-wall-corner-turn.png",
+      "sourceSubject": "castle-walls-v4",
+      "rawSource": "castle-wall-corner-turn.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.gate.drawbridge.solid",
+      "label": "Gatehouse with drawbridge — SOLID (no see-through holes)",
+      "status": "HUMAN REVIEW",
+      "path": "structures/gate/castle-gate-drawbridge-solid.png",
+      "sourceSubject": "castle-walls-v4",
+      "rawSource": "castle-gate-drawbridge-solid.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.gate.drawbridge.v5",
+      "label": "Gatehouse with drawbridge v5 — v3 wall style clauses, sky cut",
+      "status": "HUMAN REVIEW",
+      "path": "structures/gate/castle-gate-drawbridge-v5.png",
+      "sourceSubject": "castle-gate-v5",
+      "rawSource": "castle-gate-drawbridge-v5.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.ground.tileset.dirt-floor.32",
+      "label": "Dirt ↔ Honey Flagstone Castle Floor Tileset — 32 px",
+      "status": "HUMAN REVIEW",
+      "path": "ground/tilesets/castle-ground-dirt-floor-wang-32.png",
+      "sourceSubject": "castle-floor-tileset",
+      "rawSource": "tiles-castle-floor.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.apprentice-frame-1",
+      "label": "castle apprentice frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-apprentice-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-apprentice-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.apprentice-frame-2",
+      "label": "castle apprentice frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-apprentice-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-apprentice-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.apprentice-frame-3",
+      "label": "castle apprentice frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-apprentice-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-apprentice-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.apprentice-unknown",
+      "label": "castle apprentice unknown",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-apprentice-unknown.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-apprentice-unknown.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.barrel-unknown",
+      "label": "castle barrel unknown",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-barrel-unknown.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-barrel-unknown.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.courtyard-props-frame-0",
+      "label": "castle courtyard props frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-courtyard-props-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-courtyard-props-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.courtyard-props-frame-1",
+      "label": "castle courtyard props frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-courtyard-props-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-courtyard-props-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.courtyard-props-frame-2",
+      "label": "castle courtyard props frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-courtyard-props-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-courtyard-props-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.courtyard-props-frame-3",
+      "label": "castle courtyard props frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-courtyard-props-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-courtyard-props-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crate-unknown",
+      "label": "castle crate unknown",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crate-unknown.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crate-unknown.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-eruption-frame-0",
+      "label": "castle crystal eruption frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-eruption-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-eruption-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-eruption-frame-1",
+      "label": "castle crystal eruption frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-eruption-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-eruption-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-eruption-frame-2",
+      "label": "castle crystal eruption frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-eruption-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-eruption-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-eruption-frame-3",
+      "label": "castle crystal eruption frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-eruption-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-eruption-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-mine-frame-0",
+      "label": "castle crystal mine frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-mine-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-mine-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-mine-frame-1",
+      "label": "castle crystal mine frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-mine-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-mine-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-mine-frame-2",
+      "label": "castle crystal mine frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-mine-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-mine-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.crystal-mine-frame-3",
+      "label": "castle crystal mine frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-crystal-mine-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-crystal-mine-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forge-dragon-kin-frame-0",
+      "label": "castle forge dragon kin frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forge-dragon-kin-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forge-dragon-kin-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forge-dragon-kin-frame-2",
+      "label": "castle forge dragon kin frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forge-dragon-kin-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forge-dragon-kin-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forge-dragon-kin-frame-3",
+      "label": "castle forge dragon kin frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forge-dragon-kin-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forge-dragon-kin-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forge-dragon-kin-unknown",
+      "label": "castle forge dragon kin unknown",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forge-dragon-kin-unknown.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forge-dragon-kin-unknown.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-east",
+      "label": "castle forging stand east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-north-east",
+      "label": "castle forging stand north east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-north-west",
+      "label": "castle forging stand north west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-north",
+      "label": "castle forging stand north",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-south-east",
+      "label": "castle forging stand south east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-south-west",
+      "label": "castle forging stand south west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-south",
+      "label": "castle forging stand south",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.forging-stand-west",
+      "label": "castle forging stand west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-forging-stand-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-forging-stand-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.griffin-cub-unknown",
+      "label": "castle griffin cub unknown",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-griffin-cub-unknown.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-griffin-cub-unknown.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-east",
+      "label": "castle hand cart east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-north-east",
+      "label": "castle hand cart north east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-north-west",
+      "label": "castle hand cart north west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-north",
+      "label": "castle hand cart north",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-south-east",
+      "label": "castle hand cart south east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-south-west",
+      "label": "castle hand cart south west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-south",
+      "label": "castle hand cart south",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.hand-cart-west",
+      "label": "castle hand cart west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-hand-cart-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-hand-cart-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-east",
+      "label": "castle lectern east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-north-east",
+      "label": "castle lectern north east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-north-west",
+      "label": "castle lectern north west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-north",
+      "label": "castle lectern north",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-south-east",
+      "label": "castle lectern south east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-south-west",
+      "label": "castle lectern south west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-south",
+      "label": "castle lectern south",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.lectern-west",
+      "label": "castle lectern west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-lectern-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-lectern-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.market-stall-unknown",
+      "label": "castle market stall unknown",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-market-stall-unknown.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-market-stall-unknown.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.reliquary-frame-0",
+      "label": "castle reliquary frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-reliquary-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-reliquary-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.reliquary-frame-1",
+      "label": "castle reliquary frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-reliquary-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-reliquary-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.reliquary-frame-2",
+      "label": "castle reliquary frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-reliquary-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-reliquary-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.reliquary-frame-3",
+      "label": "castle reliquary frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-reliquary-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-reliquary-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.rugs-frame-0",
+      "label": "castle rugs frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-rugs-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-rugs-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.rugs-frame-1",
+      "label": "castle rugs frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-rugs-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-rugs-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.rugs-frame-2",
+      "label": "castle rugs frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-rugs-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-rugs-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.rugs-frame-3",
+      "label": "castle rugs frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-rugs-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-rugs-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-east",
+      "label": "castle sorting table east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-north-east",
+      "label": "castle sorting table north east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-north-west",
+      "label": "castle sorting table north west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-north",
+      "label": "castle sorting table north",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-south-east",
+      "label": "castle sorting table south east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-south-west",
+      "label": "castle sorting table south west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-south",
+      "label": "castle sorting table south",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.sorting-table-west",
+      "label": "castle sorting table west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-sorting-table-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-sorting-table-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-way-up-frame-0",
+      "label": "castle tower way up frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-way-up-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-way-up-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-way-up-frame-1",
+      "label": "castle tower way up frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-way-up-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-way-up-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-way-up-frame-2",
+      "label": "castle tower way up frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-way-up-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-way-up-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-way-up-frame-3",
+      "label": "castle tower way up frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-way-up-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-way-up-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-yard-fixtures-frame-0",
+      "label": "castle tower yard fixtures frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-yard-fixtures-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-yard-fixtures-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-yard-fixtures-frame-1",
+      "label": "castle tower yard fixtures frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-yard-fixtures-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-yard-fixtures-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-yard-fixtures-frame-2",
+      "label": "castle tower yard fixtures frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-yard-fixtures-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-yard-fixtures-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.tower-yard-fixtures-frame-3",
+      "label": "castle tower yard fixtures frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-tower-yard-fixtures-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-tower-yard-fixtures-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.wall-crack-frame-0",
+      "label": "castle wall crack frame 0",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-wall-crack-frame-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-wall-crack-frame-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.wall-crack-frame-1",
+      "label": "castle wall crack frame 1",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-wall-crack-frame-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-wall-crack-frame-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.wall-crack-frame-2",
+      "label": "castle wall crack frame 2",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-wall-crack-frame-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-wall-crack-frame-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.wall-crack-frame-3",
+      "label": "castle wall crack frame 3",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-wall-crack-frame-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-wall-crack-frame-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-east",
+      "label": "castle weapon rack east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-north-east",
+      "label": "castle weapon rack north east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-north-west",
+      "label": "castle weapon rack north west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-north",
+      "label": "castle weapon rack north",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-south-east",
+      "label": "castle weapon rack south east",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-south-west",
+      "label": "castle weapon rack south west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-south",
+      "label": "castle weapon rack south",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.recovered.weapon-rack-west",
+      "label": "castle weapon rack west",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-weapon-rack-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-weapon-rack-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-yellow-leafy",
+      "label": "tree yellow leafy",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-a-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-a-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-orange-autumn",
+      "label": "tree orange autumn",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-a-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-a-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-yellow-willow",
+      "label": "tree yellow willow",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-a-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-a-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-yellow-round",
+      "label": "tree yellow round",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-a-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-a-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-blue-pine",
+      "label": "tree blue pine",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-b-0.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-b-0.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-teal-willow",
+      "label": "tree teal willow",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-b-1.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-b-1.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-green-bare",
+      "label": "tree green bare",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-b-2.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-b-2.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.tree-pale-bare",
+      "label": "tree pale bare",
+      "status": "HUMAN REVIEW",
+      "path": "recovered/castle-trees-b-3.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "castle-trees-b-3.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-cardwright-rot-east",
+      "label": "apprentice cardwright rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-cardwright-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-cardwright-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-cardwright-rot-north",
+      "label": "apprentice cardwright rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-cardwright-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-cardwright-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-cardwright-rot-south",
+      "label": "apprentice cardwright rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-cardwright-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-cardwright-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-cardwright-rot-west",
+      "label": "apprentice cardwright rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-cardwright-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-cardwright-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-east",
+      "label": "apprentice redhair alt rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-north-east",
+      "label": "apprentice redhair alt rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-north-west",
+      "label": "apprentice redhair alt rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-north",
+      "label": "apprentice redhair alt rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-south-east",
+      "label": "apprentice redhair alt rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-south-west",
+      "label": "apprentice redhair alt rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-south",
+      "label": "apprentice redhair alt rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.apprentice-redhair-alt-rot-west",
+      "label": "apprentice redhair alt rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/apprentice-redhair-alt-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "apprentice-redhair-alt-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-east",
+      "label": "boss armoured monster rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-north-east",
+      "label": "boss armoured monster rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-north-west",
+      "label": "boss armoured monster rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-north",
+      "label": "boss armoured monster rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-south-east",
+      "label": "boss armoured monster rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-south-west",
+      "label": "boss armoured monster rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-south",
+      "label": "boss armoured monster rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-armoured-monster-rot-west",
+      "label": "boss armoured monster rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-armoured-monster-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-armoured-monster-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-east",
+      "label": "boss tree spirit rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-north-east",
+      "label": "boss tree spirit rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-north-west",
+      "label": "boss tree spirit rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-north",
+      "label": "boss tree spirit rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-south-east",
+      "label": "boss tree spirit rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-south-west",
+      "label": "boss tree spirit rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-south",
+      "label": "boss tree spirit rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.boss-tree-spirit-rot-west",
+      "label": "boss tree spirit rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/boss-tree-spirit-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "boss-tree-spirit-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-archivist-rot-east",
+      "label": "keeper archivist rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-archivist-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-archivist-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-archivist-rot-north",
+      "label": "keeper archivist rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-archivist-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-archivist-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-archivist-rot-south",
+      "label": "keeper archivist rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-archivist-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-archivist-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-archivist-rot-west",
+      "label": "keeper archivist rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-archivist-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-archivist-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-east",
+      "label": "keeper dwarf rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-north-east",
+      "label": "keeper dwarf rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-north-west",
+      "label": "keeper dwarf rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-north",
+      "label": "keeper dwarf rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-south-east",
+      "label": "keeper dwarf rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-south-west",
+      "label": "keeper dwarf rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-south",
+      "label": "keeper dwarf rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-rot-west",
+      "label": "keeper dwarf rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-alt-rot-east",
+      "label": "keeper dwarf smith alt rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-alt-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-alt-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-alt-rot-north",
+      "label": "keeper dwarf smith alt rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-alt-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-alt-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-alt-rot-south",
+      "label": "keeper dwarf smith alt rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-alt-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-alt-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-alt-rot-west",
+      "label": "keeper dwarf smith alt rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-alt-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-alt-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-rot-east",
+      "label": "keeper dwarf smith rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-rot-north",
+      "label": "keeper dwarf smith rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-rot-south",
+      "label": "keeper dwarf smith rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-dwarf-smith-rot-west",
+      "label": "keeper dwarf smith rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-dwarf-smith-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-dwarf-smith-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-east",
+      "label": "keeper young woman rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-north-east",
+      "label": "keeper young woman rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-north-west",
+      "label": "keeper young woman rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-north",
+      "label": "keeper young woman rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-south-east",
+      "label": "keeper young woman rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-south-west",
+      "label": "keeper young woman rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-south",
+      "label": "keeper young woman rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.keeper-young-woman-rot-west",
+      "label": "keeper young woman rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/keeper-young-woman-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "keeper-young-woman-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-east",
+      "label": "prop dog rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-north-east",
+      "label": "prop dog rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-north-west",
+      "label": "prop dog rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-north",
+      "label": "prop dog rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-south-east",
+      "label": "prop dog rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-south-west",
+      "label": "prop dog rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-south",
+      "label": "prop dog rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-dog-rot-west",
+      "label": "prop dog rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-dog-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-dog-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-east",
+      "label": "prop horse rot east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-north-east",
+      "label": "prop horse rot north east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-north-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-north-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-north-west",
+      "label": "prop horse rot north west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-north-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-north-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-north",
+      "label": "prop horse rot north",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-north.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-north.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-south-east",
+      "label": "prop horse rot south east",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-south-east.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-south-east.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-south-west",
+      "label": "prop horse rot south west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-south-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-south-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-south",
+      "label": "prop horse rot south",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-south.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-south.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.characters.prop-horse-rot-west",
+      "label": "prop horse rot west",
+      "status": "HUMAN REVIEW",
+      "path": "characters/prop-horse-rot-west.png",
+      "sourceSubject": "pixellab-recovery",
+      "rawSource": "prop-horse-rot-west.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle.forge.v1",
+      "label": "The Forge — exterior (Leonardo/Gemini concept, castle-matched)",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-forge-v1.png",
+      "sourceSubject": "leonardo gemini-2.5-flash-image gen 1f192915-fc78-6320-98b3-a468ddc3aacd",
+      "rawSource": "scripts/bg-harness/refs/forge-approved/leonardo-original.jpg",
+      "usedTrimmedExport": true,
+      "notes": "Raheem-generated. BOX-downsampled x1/3 to native 314x216 (no quantize — quantizing cost 12.6% saturation), stone value-matched 20% toward the castle ramp (hue/sat untouched), ground skirt cut at the foundation line so courtyard paving meets it."
+    },
+    {
+      "assetId": "castle.forge.v1.warm",
+      "label": "The Forge — exterior, warm/rock-matched variant",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-forge-v1-warm.png",
+      "sourceSubject": "variant of castle.forge.v1",
+      "rawSource": "scripts/bg-harness/refs/forge-approved/forge-FINAL.png",
+      "usedTrimmedExport": true,
+      "notes": "Stone hue shifted toward terrain castle-wall-face-rock; value preserved. Comparison variant only."
+    },
+    {
+      "assetId": "castle.archivist.v1",
+      "label": "The Archivist — exterior (as generated)",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-archivist-v1.png",
+      "sourceSubject": "leonardo gemini-2.5-flash-image",
+      "rawSource": "scripts/bg-harness/refs/archivist/leonardo-original.jpg",
+      "usedTrimmedExport": true,
+      "notes": "Leonardo gemini-2.5-flash-image gen 1f192970-2dcd-6560-bdcf-585380423ad5. BOX-downsampled x1/3 to native, no quantize, white keyed, ground skirt cut at foundation row 269. Colour untouched."
+    },
+    {
+      "assetId": "castle.archivist.v1.stone20",
+      "label": "The Archivist — exterior, 20% stone-matched",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-archivist-v1-stone20.png",
+      "sourceSubject": "leonardo gemini-2.5-flash-image",
+      "rawSource": "scripts/bg-harness/refs/archivist/leonardo-original.jpg",
+      "usedTrimmedExport": true,
+      "notes": "As above plus stone value-matched 20% toward the castle ramp (hue/sat untouched). Stone is 42.9% of this building vs 15.6% on the forge, so the same 20% reads further."
+    },
+    {
+      "assetId": "castle.shadow.contact",
+      "label": "Contact shadow — soft ground occlusion blob",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-shadow-contact.png",
+      "sourceSubject": "procedural",
+      "rawSource": "generated in-repo",
+      "usedTrimmedExport": true,
+      "notes": "AMBIENT OCCLUSION, NOT A CAST SHADOW. Non-directional on purpose: it is the darkening where an object occludes ambient light at its base, so it is correct at every time of day and does NOT need redoing when a sun direction is chosen. Raheem, 2026-08-07, worried a shadow would have to change once time-of-day is picked — this one will not. Cast shadows are a separate, later, directional asset. Reusable under any building or prop; scale to the object's width."
+    },
+    {
+      "assetId": "castle.ground.tileset.tan.kerb.32",
+      "label": "Tan kerb (plain, darker) — wang 32",
+      "status": "KEEP",
+      "path": "ground/tilesets/castle-ground-tan-kerb-wang-32.png",
+      "sourceSubject": "recolour of castle-ground-dirt-floor-wang-32",
+      "rawSource": "ground/tilesets/castle-ground-dirt-floor-wang-32.png",
+      "usedTrimmedExport": true,
+      "notes": "Raheem, 2026-08-07: the tan+white brick should be the ROAD; the kerb should be 'a solid or darker tan block, not white and tan spotted'. So this is the same brick with the cream speckle removed (543 px above luma 195 mapped to base tan rgb(197,150,106)) and darkened to 0.70 — mortar only to 0.90, else the kerb becomes a black grid. Road/kerb luma gap 153 -> 104 = 49. Zero generations. A grey-stone recolour was tried first and rejected: 'I actually like the colour of the tan bricks.'"
+    },
+    {
+      "assetId": "castle.forge.v2",
+      "label": "The Forge — exterior, PixelLab redraw (v2)",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-forge-v2.png",
+      "sourceSubject": "pixellab image-to-pixelart from gemini gen 1f192915",
+      "rawSource": "scripts/sprite-lab/out/forge-i2p/forge-pixellab.png",
+      "usedTrimmedExport": true,
+      "notes": "THE QUALITY FIX. v1 was Gemini art box-downsampled: measured 0.6% flatness and 26,393 colours — a photo shrunk down, not pixel art, which is why it read soft beside the kit. v2 feeds the ORIGINAL 942px Gemini crop to PixelLab POST /image-to-pixelart (first ever use of that endpoint in this project; 1 generation) which REDRAWS it. Then: white keyed by border flood, ground cut at row 187 (ground share jumped 16%->60%), fabric quantized to 40 colours, and the portal given its OWN 24-colour ramp so the rainbow is not starved by the stone. Result 64 colours, 42.9% flatness, saturation 58.4. Castle wall reference is 48 colours / 59.4%."
+    },
+    {
+      "assetId": "castle.forge.v2.portal.glow",
+      "label": "The Forge — portal glow, separate layer",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-forge-v2-portal-glow.png",
+      "sourceSubject": "pixellab image-to-pixelart from gemini gen 1f192915",
+      "rawSource": "scripts/sprite-lab/out/forge-i2p/forge-pixellab.png",
+      "usedTrimmedExport": true,
+      "notes": "The doorway vortex on its own layer so it can be lit independently during the walk-into-the-forge transition, and so it does not compete with the stone for palette slots. Ellipse centre (143,160) r 27x24 in the 320x200 redraw."
+    },
+    {
+      "assetId": "castle.archivist.v2",
+      "label": "The Archivist — exterior, PixelLab redraw (v2)",
+      "status": "KEEP",
+      "path": "structures/buildings/castle-archivist-v2.png",
+      "sourceSubject": "pixellab image-to-pixelart from gemini gen 1f192970",
+      "rawSource": "scripts/sprite-lab/out/archivist-i2p/archivist-pixellab.png",
+      "usedTrimmedExport": true,
+      "notes": "Same pipeline as castle.forge.v2. Original 941px Gemini crop -> POST /image-to-pixelart (1 gen, $0.0100) -> white keyed by border flood -> ground cut at row 264 (ground share 42%->64%) -> quantized to 48 colours -> dehalo. NO protected glow region here, unlike the forge: 46.5% of this building is above saturation 60 because the blue stone and teal dome ARE the building, so a saturation split would have bucketed half the facade as glow. Straight quantize 48 measured better anyway: flatness 37.4%->64.7%, 48 colours, only -7% saturation. Castle wall reference is 48 colours / 59.4% flatness."
     }
   ]
 }

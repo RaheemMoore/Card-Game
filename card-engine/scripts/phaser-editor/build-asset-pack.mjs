@@ -138,6 +138,42 @@ function buildPack() {
     process.exit(1);
   }
 
+
+  /**
+   * ANIMATED SPRITESHEETS recovered from PixelLab, 2026-08-07.
+   *
+   * Each sheet has a JSON twin written beside it carrying frameWidth/frameHeight/
+   * columns. These MUST be registered as `spritesheet`, not `image` — an animation
+   * sheet registered flat still previews correctly in the Blocks panel, which is
+   * exactly the trap: it looks right and cannot be sliced into frames. Same class of
+   * bug as the `-wang-` tilesets below.
+   *
+   * Frame size is read from the twin AND checked against the real PNG, because a
+   * grid that does not divide the image shears every frame after the first with no
+   * error anywhere.
+   */
+  const animatedDir = join(CASTLE, 'animated');
+  const animated = { files: [] };
+  if (existsSync(animatedDir)) {
+    for (const f of readdirSync(animatedDir).sort()) {
+      if (!f.endsWith('.json')) continue;
+      const meta = readJson(join(animatedDir, f));
+      const png = join(animatedDir, meta.image ?? f.replace(/\.json$/, '.png'));
+      if (!existsSync(png) || !meta.frameWidth || !meta.frameHeight) continue;
+      const size = pngSize(png);
+      if (size.width % meta.frameWidth !== 0 || size.height % meta.frameHeight !== 0) {
+        console.warn(`! ${f}: frame grid does not tile the image — skipped`);
+        continue;
+      }
+      animated.files.push({
+        type: 'spritesheet',
+        key: `anim-${f.replace(/\.json$/, '')}`,
+        url: `assets/castle/animated/${meta.image ?? f.replace(/\.json$/, '.png')}`,
+        frameConfig: { frameWidth: meta.frameWidth, frameHeight: meta.frameHeight },
+      });
+    }
+  }
+
   return {
     /**
      * Phaser skips this block (no `files` array). Phaser Editor reads it to
@@ -147,6 +183,7 @@ function buildPack() {
     'castle-plate': plate,
     'castle-occluders': occluderSection,
     'castle-characters': characters,
+    'castle-animated': animated,
   };
 }
 
@@ -266,8 +303,60 @@ function buildKitPacks() {
         continue;
       }
       // `castle.wall.straight.front.healthy` -> `halo-stone-castle-wall-straight-front-healthy`
-      const key = `${kitId}-${asset.assetId.replace(/^castle\./, '').replace(/\./g, '-')}`;
-      const section = `${kitId}--${asset.status.toLowerCase().replace(/\s+/g, '-')}`;
+      /**
+       * KEYS ARE WHAT THE BLOCKS PANEL SHOWS, and it truncates to about eight
+       * characters. Every key used to begin `halo-stone-castle-`, so all 218 read
+       * "halo-s..." — identical labels under near-identical thumbnails, which is
+       * worse than no labels at all. Raheem, 2026-08-07: "This game isn't Halo
+       * Stone. Halo Stone on every image is absolutely useless, and it's just
+       * wasting my space to actually understand what's happening."
+       *
+       * So the kit prefix is dropped and the DISTINCTIVE word comes first:
+       * `wall-straight-v2`, `tree-orange`, `apprentice-cardwright-rot-south`.
+       * The kit is already implied by which pack file you are looking in.
+       *
+       * Renaming keys rewrites every texture reference in every scene, so this is
+       * a migration, not a cosmetic change — scripts/phaser-editor/rename-keys.mjs
+       * remaps the scenes in lockstep and must be run whenever this changes.
+       */
+      const key = asset.assetId
+        .replace(/^castle\./, '')
+        .replace(/^(recovered|characters)\./, '')
+        .replace(/\./g, '-');
+
+      /**
+       * SECTIONS ARE WHAT THE BLOCKS PANEL SHOWS AS COLLAPSIBLE GROUPS.
+       *
+       * They used to be the asset's review STATUS, which put 140 assets into two
+       * buckets — Raheem, 2026-08-07: "it's just a giant list of images. It's not
+       * divided by castle parts or forest parts or stationary items. That's quite
+       * confusing to look through."
+       *
+       * Category is far more useful when you are hunting for a piece to place, and
+       * it costs nothing: the manifest path already encodes it. Status still
+       * matters for review, so it rides along as a suffix on anything not yet
+       * cleared — you can still see at a glance what is unreviewed, but you find
+       * a wall by looking under "walls".
+       */
+      const CATEGORY = [
+        [/^structures\/buildings\//, 'buildings'],
+        [/^structures\/walls\//, 'walls'],
+        [/^structures\/towers\//, 'towers'],
+        [/^structures\/gate\//, 'gates'],
+        [/^ground\/tilesets\//, 'tilesets'],
+        [/^ground\/overlays\//, 'ground-overlays'],
+        [/^terrain\//, 'terrain'],
+        [/^characters\//, 'characters'],
+        [/^nature\//, 'nature'],
+        [/^recovered\/castle-(griffin|apprentice|forge-dragon|keeper)/, 'characters'],
+        [/^recovered\/castle-(trees|blight)/, 'nature'],
+        [/^recovered\/castle-(rugs|lectern|sorting|weapon|forging|hand-cart|crate|barrel|market|reliquary|crystal|courtyard-props|tower-yard|tower-way|wall-crack)/, 'props'],
+        [/^recovered\//, 'recovered-misc'],
+        [/^review\//, 'review-sheets'],
+      ];
+      const cat = (CATEGORY.find(([re]) => re.test(asset.path)) ?? [null, 'other'])[1];
+      const cleared = /^(keep)$/i.test(asset.status);
+      const section = `${kitId}--${cat}${cleared ? '' : '--unreviewed'}`;
 
       /**
        * A `-wang-<N>` suffix means the PNG is an N-pixel TILE GRID, not one object.

@@ -7,31 +7,1090 @@
     "kit": "halo-stone-castle",
     "editorOnly": true
   },
-  "halo-stone-castle--human-review": {
+  "halo-stone-castle--buildings": {
     "files": [
       {
         "type": "image",
-        "key": "halo-stone-castle-tower-gatewatch-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-gatewatch-healthy.png"
+        "key": "forge-v1",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-forge-v1.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-tower-aegis-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-aegis-healthy.png"
+        "key": "forge-v1-warm",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-forge-v1-warm.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-tower-starward-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-starward-healthy.png"
+        "key": "archivist-v1",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-archivist-v1.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-tower-beacon-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-beacon-healthy.png"
+        "key": "archivist-v1-stone20",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-archivist-v1-stone20.png"
+      },
+      {
+        "type": "image",
+        "key": "shadow-contact",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-shadow-contact.png"
+      },
+      {
+        "type": "image",
+        "key": "forge-v2",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-forge-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "forge-v2-portal-glow",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-forge-v2-portal-glow.png"
+      },
+      {
+        "type": "image",
+        "key": "archivist-v2",
+        "url": "assets/kits/halo-stone-castle/structures/buildings/castle-archivist-v2.png"
+      }
+    ]
+  },
+  "halo-stone-castle--characters--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "apprentice-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-apprentice-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-apprentice-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-apprentice-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-unknown",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-apprentice-unknown.png"
+      },
+      {
+        "type": "image",
+        "key": "forge-dragon-kin-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forge-dragon-kin-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "forge-dragon-kin-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forge-dragon-kin-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "forge-dragon-kin-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forge-dragon-kin-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "forge-dragon-kin-unknown",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forge-dragon-kin-unknown.png"
+      },
+      {
+        "type": "image",
+        "key": "griffin-cub-unknown",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-griffin-cub-unknown.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-cardwright-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-cardwright-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-cardwright-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-cardwright-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-cardwright-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-cardwright-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-cardwright-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-cardwright-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "apprentice-redhair-alt-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/apprentice-redhair-alt-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-armoured-monster-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/boss-armoured-monster-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "boss-tree-spirit-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/boss-tree-spirit-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-archivist-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-archivist-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-archivist-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-archivist-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-archivist-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-archivist-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-archivist-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-archivist-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-alt-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-alt-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-alt-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-alt-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-alt-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-alt-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-alt-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-alt-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-dwarf-smith-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-dwarf-smith-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "keeper-young-woman-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/keeper-young-woman-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-dog-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/prop-dog-rot-west.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-east",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-east.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-north-east",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-north-west",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-north",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-north.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-south-east",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-south-west",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-south",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-south.png"
+      },
+      {
+        "type": "image",
+        "key": "prop-horse-rot-west",
+        "url": "assets/kits/halo-stone-castle/characters/prop-horse-rot-west.png"
+      }
+    ]
+  },
+  "halo-stone-castle--gates--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "gate-arch-open-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-arch-open-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-door-double-closed-raw",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-door-double-closed-needs-separation.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-portcullis-raised-raw",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-portcullis-raised-needs-separation.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-threshold-steps",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-threshold-steps.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-house-v2",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-house-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-drawbridge",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-drawbridge.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-drawbridge-solid",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-drawbridge-solid.png"
+      },
+      {
+        "type": "image",
+        "key": "gate-drawbridge-v5",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-drawbridge-v5.png"
+      }
+    ]
+  },
+  "halo-stone-castle--ground-overlays--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "ground-overlay-grass-clover",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-grass-clover.png"
+      },
+      {
+        "type": "image",
+        "key": "ground-overlay-pebbles-scuffs",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-pebbles-scuffs.png"
+      },
+      {
+        "type": "image",
+        "key": "ground-overlay-weeds-dense",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-weeds-dense-needs-cut.png"
+      },
+      {
+        "type": "image",
+        "key": "ground-overlay-cart-ruts",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
+      }
+    ]
+  },
+  "halo-stone-castle--nature--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "nature-tree-broadleaf-large",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-large.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-tree-broadleaf-small",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-shrub-young-tree-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-rocks-scrub-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-yellow-leafy",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-a-0.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-orange-autumn",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-a-1.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-yellow-willow",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-a-2.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-yellow-round",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-a-3.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-blue-pine",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-b-0.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-teal-willow",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-b-1.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-green-bare",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-b-2.png"
+      },
+      {
+        "type": "image",
+        "key": "tree-pale-bare",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-trees-b-3.png"
+      }
+    ]
+  },
+  "halo-stone-castle--props--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "barrel-unknown",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-barrel-unknown.png"
+      },
+      {
+        "type": "image",
+        "key": "courtyard-props-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-courtyard-props-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "courtyard-props-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-courtyard-props-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "courtyard-props-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-courtyard-props-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "courtyard-props-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-courtyard-props-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "crate-unknown",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crate-unknown.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-eruption-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-eruption-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-eruption-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-eruption-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-eruption-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-eruption-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-eruption-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-eruption-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-mine-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-mine-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-mine-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-mine-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-mine-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-mine-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "crystal-mine-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-crystal-mine-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-east.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-north-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-north-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-north",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-north.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-south-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-south-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-south",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-south.png"
+      },
+      {
+        "type": "image",
+        "key": "forging-stand-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-forging-stand-west.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-east.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-north-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-north-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-north",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-north.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-south-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-south-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-south",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-south.png"
+      },
+      {
+        "type": "image",
+        "key": "hand-cart-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-hand-cart-west.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-east.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-north-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-north-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-north",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-north.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-south-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-south-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-south",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-south.png"
+      },
+      {
+        "type": "image",
+        "key": "lectern-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-lectern-west.png"
+      },
+      {
+        "type": "image",
+        "key": "market-stall-unknown",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-market-stall-unknown.png"
+      },
+      {
+        "type": "image",
+        "key": "reliquary-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-reliquary-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "reliquary-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-reliquary-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "reliquary-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-reliquary-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "reliquary-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-reliquary-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "rugs-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-rugs-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "rugs-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-rugs-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "rugs-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-rugs-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "rugs-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-rugs-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-east.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-north-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-north-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-north",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-north.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-south-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-south-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-south",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-south.png"
+      },
+      {
+        "type": "image",
+        "key": "sorting-table-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-sorting-table-west.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-way-up-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-way-up-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-way-up-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-way-up-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-way-up-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-way-up-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-way-up-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-way-up-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-yard-fixtures-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-yard-fixtures-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-yard-fixtures-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-yard-fixtures-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-yard-fixtures-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-yard-fixtures-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-yard-fixtures-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-tower-yard-fixtures-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-crack-frame-0",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-wall-crack-frame-0.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-crack-frame-1",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-wall-crack-frame-1.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-crack-frame-2",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-wall-crack-frame-2.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-crack-frame-3",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-wall-crack-frame-3.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-east.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-north-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-north-east.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-north-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-north-west.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-north",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-north.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-south-east",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-south-east.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-south-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-south-west.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-south",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-south.png"
+      },
+      {
+        "type": "image",
+        "key": "weapon-rack-west",
+        "url": "assets/kits/halo-stone-castle/recovered/castle-weapon-rack-west.png"
+      }
+    ]
+  },
+  "halo-stone-castle--review-sheets--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "review-ground-neutral",
+        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-neutral.png"
+      },
+      {
+        "type": "image",
+        "key": "review-ground-day",
+        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-day.png"
+      },
+      {
+        "type": "image",
+        "key": "review-ground-night",
+        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-night.png"
+      }
+    ]
+  },
+  "halo-stone-castle--terrain--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "terrain-cliff-face-rock",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-face-rock.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-face-mossy",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-face-mossy.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-face-waterfall",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-face-waterfall.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-face-arcane",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-face-arcane.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-face-tall",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-face-tall.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-scree",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-scree.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-stair",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-stair.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-ramp-dirt",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-cliff-ramp-dirt.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-wall-face-rock",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-wall-face-rock.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-wall-face-mossy",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-wall-face-mossy.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-wall-endcap",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-wall-endcap.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-wall-stair",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-wall-stair.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-wall-pillar",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-wall-pillar.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-wall-boulders",
+        "url": "assets/kits/halo-stone-castle/terrain/castle-wall-boulders.png"
+      }
+    ]
+  },
+  "halo-stone-castle--tilesets": {
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "ground-tileset-forestfloor-dirt-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-forestfloor-dirt-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
       },
       {
         "type": "spritesheet",
-        "key": "halo-stone-castle-ground-tileset-grass-dirt-32",
+        "key": "ground-tileset-tan-kerb-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-tan-kerb-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
+      }
+    ]
+  },
+  "halo-stone-castle--tilesets--unreviewed": {
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "ground-tileset-grass-dirt-32",
         "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-grass-dirt-wang-32.png",
         "frameConfig": {
           "frameWidth": 32,
@@ -40,7 +1099,7 @@
       },
       {
         "type": "spritesheet",
-        "key": "halo-stone-castle-ground-tileset-dirt-paving-32",
+        "key": "ground-tileset-dirt-paving-32",
         "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-dirt-paving-wang-32.png",
         "frameConfig": {
           "frameWidth": 32,
@@ -48,125 +1107,133 @@
         }
       },
       {
-        "type": "image",
-        "key": "halo-stone-castle-ground-overlay-grass-clover",
-        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-grass-clover.png"
+        "type": "spritesheet",
+        "key": "ground-tileset-grass-paving-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-grass-paving-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
       },
       {
-        "type": "image",
-        "key": "halo-stone-castle-ground-overlay-pebbles-scuffs",
-        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-pebbles-scuffs.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-ground-overlay-cart-ruts",
-        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-wall-straight-side-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-side-healthy.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-wall-corner-inner-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-inner-healthy.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-wall-endcap-buttressed-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-endcap-buttressed-healthy.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-wall-connector-tower-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-connector-tower-healthy.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-gate-arch-open-healthy",
-        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-arch-open-healthy.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-gate-threshold-steps",
-        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-threshold-steps.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-nature-tree-broadleaf-large",
-        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-large.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-nature-tree-broadleaf-small",
-        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-nature-shrub-young-tree-cluster",
-        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
-      },
-      {
-        "type": "image",
-        "key": "halo-stone-castle-nature-rocks-scrub-cluster",
-        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
+        "type": "spritesheet",
+        "key": "ground-tileset-dirt-floor-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-ground-dirt-floor-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
       }
     ]
   },
-  "halo-stone-castle--keep": {
+  "halo-stone-castle--towers": {
     "files": [
       {
         "type": "image",
-        "key": "halo-stone-castle-wall-straight-front-healthy",
+        "key": "tower-cap-v2",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-cap-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-base-v2",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-base-v2.png"
+      }
+    ]
+  },
+  "halo-stone-castle--towers--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "tower-gatewatch-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-gatewatch-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-aegis-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-aegis-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-starward-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-starward-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-beacon-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-beacon-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-watch-v2",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-watch-v2.png"
+      }
+    ]
+  },
+  "halo-stone-castle--walls": {
+    "files": [
+      {
+        "type": "image",
+        "key": "wall-straight-front-healthy",
         "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-front-healthy.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-wall-corner-outer-healthy",
+        "key": "wall-corner-outer-healthy",
         "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-outer-healthy.png"
       }
     ]
   },
-  "halo-stone-castle--needs-cleanup": {
+  "halo-stone-castle--walls--unreviewed": {
     "files": [
       {
         "type": "image",
-        "key": "halo-stone-castle-ground-overlay-weeds-dense",
-        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-weeds-dense-needs-cut.png"
-      }
-    ]
-  },
-  "halo-stone-castle--needs-separation": {
-    "files": [
-      {
-        "type": "image",
-        "key": "halo-stone-castle-gate-door-double-closed-raw",
-        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-door-double-closed-needs-separation.png"
+        "key": "wall-straight-side-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-side-healthy.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-gate-portcullis-raised-raw",
-        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-portcullis-raised-needs-separation.png"
-      }
-    ]
-  },
-  "halo-stone-castle--review-board": {
-    "files": [
-      {
-        "type": "image",
-        "key": "halo-stone-castle-review-ground-neutral",
-        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-neutral.png"
+        "key": "wall-corner-inner-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-inner-healthy.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-review-ground-day",
-        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-day.png"
+        "key": "wall-endcap-buttressed-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-endcap-buttressed-healthy.png"
       },
       {
         "type": "image",
-        "key": "halo-stone-castle-review-ground-night",
-        "url": "assets/kits/halo-stone-castle/review/ground/castle-ground-layout-night.png"
+        "key": "wall-connector-tower-healthy",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-connector-tower-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-straight-v2",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-corner-outer-v2",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-outer-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-corner-inner-v2",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-inner-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-side",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-side.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-north",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-north.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-corner-turn",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-turn.png"
       }
     ]
   }
