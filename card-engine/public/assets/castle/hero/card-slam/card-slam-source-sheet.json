@@ -1,0 +1,43 @@
+{
+  "image": "card-slam-source-sheet.png",
+  "frameWidth": 180,
+  "frameHeight": 180,
+  "frameCount": 17,
+  "columns": 17,
+  "rows": 1,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.95,
+    "note": "Preserve the original PixelLab canvas coordinates; the crouch and downward travel are intentional and must not be body-height-normalized."
+  },
+  "animation": {
+    "key": "hero-card-slam",
+    "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "durationsMs": [280, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 700],
+    "repeat": 0
+  },
+  "approval": {
+    "status": "APPROVED",
+    "approvedBy": "Raheem",
+    "approvedOn": "2026-08-07",
+    "note": "Raheem: 'I absolutely love this.' Phaser owns the draw flash, ground-slap impact, rune, dust, and camera response."
+  },
+  "provenance": {
+    "provider": "PixelLab",
+    "operation": "existing-character v3 custom animation",
+    "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+    "backgroundJobId": "5c903a08-174a-4886-8650-b9d1645d764d",
+    "config": "card-engine/scripts/sprite-lab/configs/hero-card-slam.json",
+    "direction": "south",
+    "requestedFrames": 16,
+    "returnedFrames": 17,
+    "actualGenerations": 8,
+    "retryCount": 0,
+    "seedRecordedInIdentityConfig": 902551
+  },
+  "runtimeNotes": [
+    "The generated card is a blocking prop. Phaser may layer the player's actual selected card above it.",
+    "Use per-frame durations rather than a uniform frame rate so the starting presentation and final palm-down pose hold long enough to read.",
+    "Do not loop during gameplay; trigger once and resolve from the final held pose."
+  ]
+}

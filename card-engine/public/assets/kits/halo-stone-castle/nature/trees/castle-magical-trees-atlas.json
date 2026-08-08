@@ -1,0 +1,54 @@
+{
+  "frames": {
+    "moonspoke-fir": {
+      "frame": { "x": 4, "y": 4, "w": 93, "h": 148 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 93, "h": 148 },
+      "sourceSize": { "w": 93, "h": 148 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    },
+    "lanternwillow": {
+      "frame": { "x": 101, "y": 4, "w": 111, "h": 137 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 111, "h": 137 },
+      "sourceSize": { "w": 111, "h": 137 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    },
+    "copper-fanwood": {
+      "frame": { "x": 216, "y": 4, "w": 100, "h": 145 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 100, "h": 145 },
+      "sourceSize": { "w": 100, "h": 145 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    },
+    "starglass-alder": {
+      "frame": { "x": 320, "y": 4, "w": 110, "h": 140 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 110, "h": 140 },
+      "sourceSize": { "w": 110, "h": 140 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    }
+  },
+  "meta": {
+    "app": "Card Engine sprite-lab",
+    "version": "1.0",
+    "image": "castle-magical-trees-atlas.png",
+    "format": "RGBA8888",
+    "size": { "w": 512, "h": 256 },
+    "scale": "1",
+    "phaserLoader": "this.load.atlas('halo-stone-magical-trees', 'assets/kits/halo-stone-castle/nature/trees/castle-magical-trees-atlas.png', 'assets/kits/halo-stone-castle/nature/trees/castle-magical-trees-atlas.json')",
+    "approvalStatus": "HUMAN REVIEW",
+    "provider": "PixelLab",
+    "operation": "create-1-direction-object",
+    "sourceSubject": "scene-castle-kit-magical-trees",
+    "jobId": "7d979ca5-3b82-4e8e-95cb-a2ca98c78496",
+    "objectId": "42557d8f-fe68-46b6-8ed6-f87de30db1c9",
+    "actualGenerations": 25,
+    "retryCount": 0,
+    "generatedOn": "2026-08-07"
+  }
+}

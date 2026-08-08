@@ -1,0 +1,8 @@
+{
+  "image": "apprentice-cardwright-study-east.png",
+  "frameWidth": 180,
+  "frameHeight": 180,
+  "columns": 7,
+  "frames": 7,
+  "direction": "east"
+}

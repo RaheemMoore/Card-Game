@@ -1,0 +1,68 @@
+{
+  "image": "fox-sit-alert-4dir.png",
+  "frameWidth": 177,
+  "frameHeight": 112,
+  "columns": 9,
+  "rows": [
+    {
+      "direction": "down",
+      "idle": 0,
+      "walk": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "direction": "up",
+      "idle": 9,
+      "walk": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "direction": "left",
+      "idle": 18,
+      "walk": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ]
+    },
+    {
+      "direction": "right",
+      "idle": 27,
+      "walk": [
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ]
+    }
+  ],
+  "baselineY": 109,
+  "targetBodyHeight": 106,
+  "anchor": "bbox",
+  "note": "Frame index = row * columns + column. Every frame is normalized to one body height and aligned on a shared feet baseline; idle comes from the same animation as the walk so the two cannot disagree on scale. east=screen right, west=screen left."
+}

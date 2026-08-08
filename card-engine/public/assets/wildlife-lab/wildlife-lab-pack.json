@@ -1,0 +1,68 @@
+{
+  "section1": {
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "wildlife-fox-trot",
+        "url": "assets/wildlife-lab/fox-trot-4dir.png",
+        "frameConfig": {
+          "frameWidth": 171,
+          "frameHeight": 109
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-fox-sniff",
+        "url": "assets/wildlife-lab/fox-sniff-4dir.png",
+        "frameConfig": {
+          "frameWidth": 195,
+          "frameHeight": 108
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-fox-sit-alert",
+        "url": "assets/wildlife-lab/fox-sit-alert-4dir.png",
+        "frameConfig": {
+          "frameWidth": 177,
+          "frameHeight": 112
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-rabbit-hop",
+        "url": "assets/wildlife-lab/rabbit-hop-4dir.png",
+        "frameConfig": {
+          "frameWidth": 148,
+          "frameHeight": 121
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-rabbit-nibble-groom",
+        "url": "assets/wildlife-lab/rabbit-nibble-groom-4dir.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 125
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-tortoise-toddle",
+        "url": "assets/wildlife-lab/tortoise-toddle-4dir.png",
+        "frameConfig": {
+          "frameWidth": 154,
+          "frameHeight": 106
+        }
+      }
+    ]
+  },
+  "meta": {
+    "app": "Phaser Editor 2D - Asset Pack Editor",
+    "contentType": "phasereditor2d.pack.core.AssetContentType",
+    "url": "https://phasereditor2d.com",
+    "version": 2,
+    "showAllFilesInBlocks": false,
+    "visible": true
+  }
+}

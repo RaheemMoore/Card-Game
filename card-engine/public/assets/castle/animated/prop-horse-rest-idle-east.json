@@ -1,0 +1,8 @@
+{
+  "image": "prop-horse-rest-idle-east.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 9,
+  "frames": 9,
+  "direction": "east"
+}

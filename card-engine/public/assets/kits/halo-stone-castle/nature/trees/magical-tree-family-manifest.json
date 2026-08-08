@@ -1,0 +1,63 @@
+{
+  "familyId": "halo-stone.magical-trees.v1",
+  "label": "Halo Stone Twilight Magical Forest Trees",
+  "status": "APPROVED FOR TWILIGHT COLLECTION",
+  "collectionRole": "Nighttime and twilight forest family; not the current warm daytime courtyard family.",
+  "atlas": {
+    "image": "castle-magical-trees-atlas.png",
+    "data": "castle-magical-trees-atlas.json",
+    "key": "halo-stone-magical-trees"
+  },
+  "assets": [
+    {
+      "assetId": "castle.nature.tree.moonspoke-fir",
+      "label": "Moonspoke Fir",
+      "path": "castle-tree-moonspoke-fir.png",
+      "atlasFrame": "moonspoke-fir",
+      "silhouette": "spire",
+      "origin": { "x": 0.5, "y": 1.0 }
+    },
+    {
+      "assetId": "castle.nature.tree.lanternwillow",
+      "label": "Lanternwillow",
+      "path": "castle-tree-lanternwillow.png",
+      "atlasFrame": "lanternwillow",
+      "silhouette": "cascade",
+      "origin": { "x": 0.5, "y": 1.0 }
+    },
+    {
+      "assetId": "castle.nature.tree.copper-fanwood",
+      "label": "Copper Fanwood",
+      "path": "castle-tree-copper-fanwood.png",
+      "atlasFrame": "copper-fanwood",
+      "silhouette": "fan",
+      "origin": { "x": 0.5, "y": 1.0 }
+    },
+    {
+      "assetId": "castle.nature.tree.starglass-alder",
+      "label": "Starglass Alder",
+      "path": "castle-tree-starglass-alder.png",
+      "atlasFrame": "starglass-alder",
+      "silhouette": "fork",
+      "origin": { "x": 0.5, "y": 1.0 }
+    }
+  ],
+  "provenance": {
+    "provider": "PixelLab",
+    "operation": "create-1-direction-object",
+    "config": "card-engine/scripts/sprite-lab/configs/scene-castle-kit-magical-trees.json",
+    "rawOutput": "card-engine/scripts/sprite-lab/out/scene-castle-kit-magical-trees",
+    "jobId": "7d979ca5-3b82-4e8e-95cb-a2ca98c78496",
+    "objectId": "42557d8f-fe68-46b6-8ed6-f87de30db1c9",
+    "actualGenerations": 25,
+    "retryCount": 0,
+    "generatedOn": "2026-08-07",
+    "approvalQuote": "Go crazy, yes. I approve."
+  },
+  "runtimeNotes": [
+    "Use the root-bottom origin for placement and depth sorting.",
+    "Phaser owns contact shadows, canopy sway, wind timing, motes, and day/night lighting.",
+    "These hero trees supplement the ordinary broadleaf fillers; do not tile them at equal frequency.",
+    "Color-only adjustments use deterministic recoloring and do not trigger regeneration."
+  ]
+}

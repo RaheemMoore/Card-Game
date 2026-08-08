@@ -1,0 +1,53 @@
+{
+  "frames": {
+    "honeycloud-poplar": {
+      "frame": { "x": 4, "y": 4, "w": 71, "h": 130 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 71, "h": 130 },
+      "sourceSize": { "w": 71, "h": 130 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    },
+    "apricot-fanmaple": {
+      "frame": { "x": 79, "y": 4, "w": 113, "h": 117 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 113, "h": 117 },
+      "sourceSize": { "w": 113, "h": 117 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    },
+    "mellowbell-willow": {
+      "frame": { "x": 196, "y": 4, "w": 111, "h": 118 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 111, "h": 118 },
+      "sourceSize": { "w": 111, "h": 118 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    },
+    "sunwheel-acacia": {
+      "frame": { "x": 311, "y": 4, "w": 124, "h": 111 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 124, "h": 111 },
+      "sourceSize": { "w": 124, "h": 111 },
+      "pivot": { "x": 0.5, "y": 1.0 }
+    }
+  },
+  "meta": {
+    "app": "Card Engine sprite-lab",
+    "version": "1.0",
+    "image": "castle-sunset-trees-atlas.png",
+    "format": "RGBA8888",
+    "size": { "w": 512, "h": 256 },
+    "scale": "1",
+    "phaserLoader": "this.load.atlas('halo-stone-sunset-trees', 'assets/kits/halo-stone-castle/nature/trees/castle-sunset-trees-atlas.png', 'assets/kits/halo-stone-castle/nature/trees/castle-sunset-trees-atlas.json')",
+    "approvalStatus": "HUMAN REVIEW",
+    "provider": "PixelLab",
+    "operation": "create-1-direction-object",
+    "sourceSubject": "scene-castle-kit-sunset-trees",
+    "objectId": "39284d95-c746-4f01-bdf8-e58b67ddaad7",
+    "generationCeiling": 25,
+    "retryCount": 0,
+    "generatedOn": "2026-08-07"
+  }
+}

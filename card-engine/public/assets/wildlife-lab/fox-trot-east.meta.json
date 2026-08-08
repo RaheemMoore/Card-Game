@@ -1,0 +1,10 @@
+{
+  "image": "fox-trot-east.png",
+  "frameWidth": 163,
+  "frameHeight": 107,
+  "frameCount": 7,
+  "baselineY": 104,
+  "targetBodyHeight": 101,
+  "anchor": "bbox",
+  "note": "Single-row loop. Frames share one crop box and one feet baseline, so the character never jitters or slides within his cell."
+}

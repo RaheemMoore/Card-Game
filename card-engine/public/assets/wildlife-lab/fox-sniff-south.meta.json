@@ -1,0 +1,10 @@
+{
+  "image": "fox-sniff-south.png",
+  "frameWidth": 57,
+  "frameHeight": 125,
+  "frameCount": 7,
+  "baselineY": 122,
+  "targetBodyHeight": 119,
+  "anchor": "bbox",
+  "note": "Single-row loop. Frames share one crop box and one feet baseline, so the character never jitters or slides within his cell."
+}

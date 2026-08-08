@@ -1,0 +1,8 @@
+{
+  "image": "keeper-dwarf-breathing-idle-south.png",
+  "frameWidth": 244,
+  "frameHeight": 244,
+  "columns": 4,
+  "frames": 4,
+  "direction": "south"
+}

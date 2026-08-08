@@ -1,0 +1,63 @@
+{
+  "familyId": "halo-stone.sunset-trees.v1",
+  "label": "Halo Stone Warm Sunset Courtyard Trees",
+  "status": "HUMAN REVIEW",
+  "atlas": {
+    "image": "castle-sunset-trees-atlas.png",
+    "data": "castle-sunset-trees-atlas.json",
+    "key": "halo-stone-sunset-trees"
+  },
+  "assets": [
+    {
+      "assetId": "castle.nature.tree.honeycloud-poplar",
+      "label": "Honeycloud Poplar",
+      "path": "castle-tree-honeycloud-poplar.png",
+      "atlasFrame": "honeycloud-poplar",
+      "silhouette": "offset puffs",
+      "origin": { "x": 0.5, "y": 1.0 }
+    },
+    {
+      "assetId": "castle.nature.tree.apricot-fanmaple",
+      "label": "Apricot Fanmaple",
+      "path": "castle-tree-apricot-fanmaple.png",
+      "atlasFrame": "apricot-fanmaple",
+      "silhouette": "angled fans",
+      "origin": { "x": 0.5, "y": 1.0 }
+    },
+    {
+      "assetId": "castle.nature.tree.mellowbell-willow",
+      "label": "Mellowbell Willow",
+      "path": "castle-tree-mellowbell-willow.png",
+      "atlasFrame": "mellowbell-willow",
+      "silhouette": "hanging curtains",
+      "origin": { "x": 0.5, "y": 1.0 }
+    },
+    {
+      "assetId": "castle.nature.tree.sunwheel-acacia",
+      "label": "Sunwheel Acacia",
+      "path": "castle-tree-sunwheel-acacia.png",
+      "atlasFrame": "sunwheel-acacia",
+      "silhouette": "radial wedges",
+      "origin": { "x": 0.5, "y": 1.0 }
+    }
+  ],
+  "provenance": {
+    "provider": "PixelLab",
+    "operation": "create-1-direction-object",
+    "config": "card-engine/scripts/sprite-lab/configs/scene-castle-kit-sunset-trees.json",
+    "rawOutput": "card-engine/scripts/sprite-lab/out/scene-castle-kit-sunset-trees",
+    "objectId": "39284d95-c746-4f01-bdf8-e58b67ddaad7",
+    "generationCeiling": 25,
+    "actualGenerations": null,
+    "actualGenerationsNote": "The approved object was submitted once and recovered by object ID after the local runner timed out before persisting its background-job usage record.",
+    "retryCount": 0,
+    "generatedOn": "2026-08-07",
+    "approvalQuote": "I approve."
+  },
+  "runtimeNotes": [
+    "Use the root-bottom origin for placement and depth sorting.",
+    "Phaser owns contact shadows, canopy sway, wind timing, motes, and day/night lighting.",
+    "The warm colors are foliage and bark materials; do not add baked sunset illumination to the source sprites.",
+    "Provider-added labels were removed with deterministic bottom shaves before alpha trimming; no generated tree pixels were repainted."
+  ]
+}

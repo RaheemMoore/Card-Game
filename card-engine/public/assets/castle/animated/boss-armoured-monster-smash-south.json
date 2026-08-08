@@ -1,0 +1,8 @@
+{
+  "image": "boss-armoured-monster-smash-south.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 7,
+  "frames": 7,
+  "direction": "south"
+}

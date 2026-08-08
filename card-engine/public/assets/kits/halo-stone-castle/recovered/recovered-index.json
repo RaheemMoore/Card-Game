@@ -1,0 +1,2332 @@
+[
+  {
+    "file": "castle-trees-frame-0",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "39284d95-c746-4f01-bdf8-e58b67ddaad7",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-1",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "39284d95-c746-4f01-bdf8-e58b67ddaad7",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-2",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "39284d95-c746-4f01-bdf8-e58b67ddaad7",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-3",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "39284d95-c746-4f01-bdf8-e58b67ddaad7",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-0",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "42557d8f-fe68-46b6-8ed6-f87de30db1c9",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-1",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "42557d8f-fe68-46b6-8ed6-f87de30db1c9",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-2",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "42557d8f-fe68-46b6-8ed6-f87de30db1c9",
+    "animation": false
+  },
+  {
+    "file": "castle-trees-frame-3",
+    "group": "trees",
+    "size": [
+      168,
+      168
+    ],
+    "objectId": "42557d8f-fe68-46b6-8ed6-f87de30db1c9",
+    "animation": false
+  },
+  {
+    "file": "castle-barrel-unknown",
+    "group": "barrel",
+    "size": [
+      192,
+      192
+    ],
+    "objectId": "90c2e756-cb68-47ee-ab65-a2dbb028aab7",
+    "animation": false
+  },
+  {
+    "file": "castle-crate-unknown",
+    "group": "crate",
+    "size": [
+      192,
+      192
+    ],
+    "objectId": "49919f83-509b-4e8a-8a84-2cd6d793d49e",
+    "animation": false
+  },
+  {
+    "file": "castle-crate-unknown",
+    "group": "crate",
+    "size": [
+      192,
+      192
+    ],
+    "objectId": "9ed59153-ecc9-4419-ba6a-86d83bc156b5",
+    "animation": false
+  },
+  {
+    "file": "castle-crate-unknown",
+    "group": "crate",
+    "size": [
+      192,
+      192
+    ],
+    "objectId": "f5006a96-7731-4e82-ac99-926506655a4d",
+    "animation": false
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-00",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-01",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-02",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-03",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-04",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-05",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-06",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-07",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-idle-breathe-unknown-08",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-00",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-01",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-02",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-03",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-04",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-05",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-06",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-07",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-08",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-09",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-10",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-11",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-anim-forge-dragon-kin-uncoil-unknown-12",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": true
+  },
+  {
+    "file": "castle-forge-dragon-kin-unknown",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "426bd0f0-766d-4a1f-927b-c0aa018193fd",
+    "animation": false
+  },
+  {
+    "file": "castle-forge-dragon-kin-frame-0",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "9f9ea57e-db46-4e74-abcd-29fd5f105ec8",
+    "animation": false
+  },
+  {
+    "file": "castle-forge-dragon-kin-frame-2",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "9f9ea57e-db46-4e74-abcd-29fd5f105ec8",
+    "animation": false
+  },
+  {
+    "file": "castle-forge-dragon-kin-frame-3",
+    "group": "forge-dragon-kin",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "9f9ea57e-db46-4e74-abcd-29fd5f105ec8",
+    "animation": false
+  },
+  {
+    "file": "castle-market-stall-unknown",
+    "group": "market-stall",
+    "size": [
+      192,
+      192
+    ],
+    "objectId": "311ba29e-8d16-4adb-aaf5-4ab8bc81cb85",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-crack-frame-0",
+    "group": "wall-crack",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "96b4c5e1-dccd-45eb-a948-cbc7ebadcc5e",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-crack-frame-1",
+    "group": "wall-crack",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "96b4c5e1-dccd-45eb-a948-cbc7ebadcc5e",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-crack-frame-2",
+    "group": "wall-crack",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "96b4c5e1-dccd-45eb-a948-cbc7ebadcc5e",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-crack-frame-3",
+    "group": "wall-crack",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "96b4c5e1-dccd-45eb-a948-cbc7ebadcc5e",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-way-up-frame-0",
+    "group": "tower-way-up",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "8272d739-cc60-43b6-8428-97b8c7cca734",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-way-up-frame-1",
+    "group": "tower-way-up",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "8272d739-cc60-43b6-8428-97b8c7cca734",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-way-up-frame-2",
+    "group": "tower-way-up",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "8272d739-cc60-43b6-8428-97b8c7cca734",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-way-up-frame-3",
+    "group": "tower-way-up",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "8272d739-cc60-43b6-8428-97b8c7cca734",
+    "animation": false
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-00",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-01",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-02",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-03",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-04",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-05",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-06",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-07",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-08",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-09",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-10",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-11",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-anim-apprentice-research-idle-unknown-12",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": true
+  },
+  {
+    "file": "castle-apprentice-unknown",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "6b75d7ce-0d95-4111-99b7-936120d31d0b",
+    "animation": false
+  },
+  {
+    "file": "castle-apprentice-frame-1",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "f42de09b-536e-4360-b947-dad6192f3745",
+    "animation": false
+  },
+  {
+    "file": "castle-apprentice-frame-2",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "f42de09b-536e-4360-b947-dad6192f3745",
+    "animation": false
+  },
+  {
+    "file": "castle-apprentice-frame-3",
+    "group": "apprentice",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "f42de09b-536e-4360-b947-dad6192f3745",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-0",
+    "group": "misc",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "b2ec75f2-9e80-4aea-9f19-6c027593bdf1",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-1",
+    "group": "misc",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "b2ec75f2-9e80-4aea-9f19-6c027593bdf1",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-2",
+    "group": "misc",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "b2ec75f2-9e80-4aea-9f19-6c027593bdf1",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-3",
+    "group": "misc",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "b2ec75f2-9e80-4aea-9f19-6c027593bdf1",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-eruption-frame-0",
+    "group": "crystal-eruption",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "62a744cc-df5c-4635-9364-edfc7669aa08",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-eruption-frame-1",
+    "group": "crystal-eruption",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "62a744cc-df5c-4635-9364-edfc7669aa08",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-eruption-frame-2",
+    "group": "crystal-eruption",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "62a744cc-df5c-4635-9364-edfc7669aa08",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-eruption-frame-3",
+    "group": "crystal-eruption",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "62a744cc-df5c-4635-9364-edfc7669aa08",
+    "animation": false
+  },
+  {
+    "file": "castle-courtyard-props-frame-0",
+    "group": "courtyard-props",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "fd5e2409-9c56-46d8-9662-a6427456f2ff",
+    "animation": false
+  },
+  {
+    "file": "castle-courtyard-props-frame-1",
+    "group": "courtyard-props",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "fd5e2409-9c56-46d8-9662-a6427456f2ff",
+    "animation": false
+  },
+  {
+    "file": "castle-courtyard-props-frame-2",
+    "group": "courtyard-props",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "fd5e2409-9c56-46d8-9662-a6427456f2ff",
+    "animation": false
+  },
+  {
+    "file": "castle-courtyard-props-frame-3",
+    "group": "courtyard-props",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "fd5e2409-9c56-46d8-9662-a6427456f2ff",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-fixtures-frame-0",
+    "group": "tower-yard-fixtures",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "c075b74a-7237-4194-8271-74aef2921bc7",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-fixtures-frame-1",
+    "group": "tower-yard-fixtures",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "c075b74a-7237-4194-8271-74aef2921bc7",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-fixtures-frame-2",
+    "group": "tower-yard-fixtures",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "c075b74a-7237-4194-8271-74aef2921bc7",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-fixtures-frame-3",
+    "group": "tower-yard-fixtures",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "c075b74a-7237-4194-8271-74aef2921bc7",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-wall-frame-0",
+    "group": "tower-yard-wall",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "de93d54d-c74d-4f59-829c-20d753557979",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-wall-frame-1",
+    "group": "tower-yard-wall",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "de93d54d-c74d-4f59-829c-20d753557979",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-wall-frame-2",
+    "group": "tower-yard-wall",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "de93d54d-c74d-4f59-829c-20d753557979",
+    "animation": false
+  },
+  {
+    "file": "castle-tower-yard-wall-frame-3",
+    "group": "tower-yard-wall",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "de93d54d-c74d-4f59-829c-20d753557979",
+    "animation": false
+  },
+  {
+    "file": "castle-cliff-dressing-frame-0",
+    "group": "cliff-dressing",
+    "size": [
+      136,
+      136
+    ],
+    "objectId": "a746f143-08a2-4fca-82f8-8a5f395890f0",
+    "animation": false
+  },
+  {
+    "file": "castle-cliff-dressing-frame-1",
+    "group": "cliff-dressing",
+    "size": [
+      136,
+      136
+    ],
+    "objectId": "a746f143-08a2-4fca-82f8-8a5f395890f0",
+    "animation": false
+  },
+  {
+    "file": "castle-cliff-dressing-frame-2",
+    "group": "cliff-dressing",
+    "size": [
+      136,
+      136
+    ],
+    "objectId": "a746f143-08a2-4fca-82f8-8a5f395890f0",
+    "animation": false
+  },
+  {
+    "file": "castle-cliff-dressing-frame-3",
+    "group": "cliff-dressing",
+    "size": [
+      136,
+      136
+    ],
+    "objectId": "a746f143-08a2-4fca-82f8-8a5f395890f0",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-0",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "45acf28a-a8a8-4577-ab62-15bcf421912c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-1",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "45acf28a-a8a8-4577-ab62-15bcf421912c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-2",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "45acf28a-a8a8-4577-ab62-15bcf421912c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-3",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "45acf28a-a8a8-4577-ab62-15bcf421912c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-0",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "70774c84-a99c-404a-9ab0-bfe74da6868c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-1",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "70774c84-a99c-404a-9ab0-bfe74da6868c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-2",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "70774c84-a99c-404a-9ab0-bfe74da6868c",
+    "animation": false
+  },
+  {
+    "file": "castle-ui-frame-3",
+    "group": "ui",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "70774c84-a99c-404a-9ab0-bfe74da6868c",
+    "animation": false
+  },
+  {
+    "file": "castle-towers-frame-0",
+    "group": "towers",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "32fa784c-2ab0-474e-bb02-4e157f040fa2",
+    "animation": false
+  },
+  {
+    "file": "castle-towers-frame-1",
+    "group": "towers",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "32fa784c-2ab0-474e-bb02-4e157f040fa2",
+    "animation": false
+  },
+  {
+    "file": "castle-towers-frame-2",
+    "group": "towers",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "32fa784c-2ab0-474e-bb02-4e157f040fa2",
+    "animation": false
+  },
+  {
+    "file": "castle-towers-frame-3",
+    "group": "towers",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "32fa784c-2ab0-474e-bb02-4e157f040fa2",
+    "animation": false
+  },
+  {
+    "file": "castle-rugs-frame-0",
+    "group": "rugs",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "234da540-78f2-4df2-a855-6c706ace0f2b",
+    "animation": false
+  },
+  {
+    "file": "castle-rugs-frame-1",
+    "group": "rugs",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "234da540-78f2-4df2-a855-6c706ace0f2b",
+    "animation": false
+  },
+  {
+    "file": "castle-rugs-frame-2",
+    "group": "rugs",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "234da540-78f2-4df2-a855-6c706ace0f2b",
+    "animation": false
+  },
+  {
+    "file": "castle-rugs-frame-3",
+    "group": "rugs",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "234da540-78f2-4df2-a855-6c706ace0f2b",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-topology-frame-0",
+    "group": "wall-topology",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "dbc73992-10aa-41c6-90fb-095ddbbf2137",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-topology-frame-1",
+    "group": "wall-topology",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "dbc73992-10aa-41c6-90fb-095ddbbf2137",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-topology-frame-2",
+    "group": "wall-topology",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "dbc73992-10aa-41c6-90fb-095ddbbf2137",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-topology-frame-3",
+    "group": "wall-topology",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "dbc73992-10aa-41c6-90fb-095ddbbf2137",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-modules-frame-0",
+    "group": "wall-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "cd09ec92-ae09-4c1c-99c1-565777e392b9",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-modules-frame-1",
+    "group": "wall-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "cd09ec92-ae09-4c1c-99c1-565777e392b9",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-modules-frame-2",
+    "group": "wall-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "cd09ec92-ae09-4c1c-99c1-565777e392b9",
+    "animation": false
+  },
+  {
+    "file": "castle-wall-modules-frame-3",
+    "group": "wall-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "cd09ec92-ae09-4c1c-99c1-565777e392b9",
+    "animation": false
+  },
+  {
+    "file": "castle-halo-modules-frame-0",
+    "group": "halo-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "4084cc8e-f0db-417f-983a-c3399ff59af1",
+    "animation": false
+  },
+  {
+    "file": "castle-halo-modules-frame-1",
+    "group": "halo-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "4084cc8e-f0db-417f-983a-c3399ff59af1",
+    "animation": false
+  },
+  {
+    "file": "castle-halo-modules-frame-2",
+    "group": "halo-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "4084cc8e-f0db-417f-983a-c3399ff59af1",
+    "animation": false
+  },
+  {
+    "file": "castle-halo-modules-frame-3",
+    "group": "halo-modules",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "4084cc8e-f0db-417f-983a-c3399ff59af1",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-0",
+    "group": "misc",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "5179c069-159e-4077-b4bd-4560250c06cf",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-1",
+    "group": "misc",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "5179c069-159e-4077-b4bd-4560250c06cf",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-2",
+    "group": "misc",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "5179c069-159e-4077-b4bd-4560250c06cf",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-3",
+    "group": "misc",
+    "size": [
+      160,
+      160
+    ],
+    "objectId": "5179c069-159e-4077-b4bd-4560250c06cf",
+    "animation": false
+  },
+  {
+    "file": "castle-terrain-details-frame-0",
+    "group": "terrain-details",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "17be725d-e1c9-461c-9d2f-8625fa710ff5",
+    "animation": false
+  },
+  {
+    "file": "castle-terrain-details-frame-1",
+    "group": "terrain-details",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "17be725d-e1c9-461c-9d2f-8625fa710ff5",
+    "animation": false
+  },
+  {
+    "file": "castle-terrain-details-frame-2",
+    "group": "terrain-details",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "17be725d-e1c9-461c-9d2f-8625fa710ff5",
+    "animation": false
+  },
+  {
+    "file": "castle-terrain-details-frame-3",
+    "group": "terrain-details",
+    "size": [
+      128,
+      128
+    ],
+    "objectId": "17be725d-e1c9-461c-9d2f-8625fa710ff5",
+    "animation": false
+  },
+  {
+    "file": "castle-blight-flowers-frame-0",
+    "group": "blight-flowers",
+    "size": [
+      156,
+      156
+    ],
+    "objectId": "b7324957-c155-422e-bc9f-b9c9d35cd23e",
+    "animation": false
+  },
+  {
+    "file": "castle-blight-flowers-frame-1",
+    "group": "blight-flowers",
+    "size": [
+      156,
+      156
+    ],
+    "objectId": "b7324957-c155-422e-bc9f-b9c9d35cd23e",
+    "animation": false
+  },
+  {
+    "file": "castle-blight-flowers-frame-2",
+    "group": "blight-flowers",
+    "size": [
+      156,
+      156
+    ],
+    "objectId": "b7324957-c155-422e-bc9f-b9c9d35cd23e",
+    "animation": false
+  },
+  {
+    "file": "castle-blight-flowers-frame-3",
+    "group": "blight-flowers",
+    "size": [
+      156,
+      156
+    ],
+    "objectId": "b7324957-c155-422e-bc9f-b9c9d35cd23e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-east",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-north-east",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-north-west",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-north",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-south-east",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-south-west",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-south",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-west",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "559ee9e1-ef46-42fc-9a36-282fa8c95f47",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-00",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-01",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-02",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-03",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-04",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-05",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-06",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-07",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-anim-flutter-south-08",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": true
+  },
+  {
+    "file": "castle-lectern-east",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-north-east",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-north-west",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-north",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-south-east",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-south-west",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-south",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-lectern-west",
+    "group": "lectern",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "c89da42e-832f-420d-ae54-4eac718f338e",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-east",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-north-east",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-north-west",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-north",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-south-east",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-south-west",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-south",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-sorting-table-west",
+    "group": "sorting-table",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "6a8f42ae-5986-4c0b-b075-84494aa3204b",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-0",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "d0c68122-e759-40c6-96b5-f78f6acccf14",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-1",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "d0c68122-e759-40c6-96b5-f78f6acccf14",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-2",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "d0c68122-e759-40c6-96b5-f78f6acccf14",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-3",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "d0c68122-e759-40c6-96b5-f78f6acccf14",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-mine-frame-0",
+    "group": "crystal-mine",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "f2627997-ec66-4dcb-bc5d-5044080ac19c",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-mine-frame-1",
+    "group": "crystal-mine",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "f2627997-ec66-4dcb-bc5d-5044080ac19c",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-mine-frame-2",
+    "group": "crystal-mine",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "f2627997-ec66-4dcb-bc5d-5044080ac19c",
+    "animation": false
+  },
+  {
+    "file": "castle-crystal-mine-frame-3",
+    "group": "crystal-mine",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "f2627997-ec66-4dcb-bc5d-5044080ac19c",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-0",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "faac24f5-a411-48d9-8135-9db58584ef41",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-1",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "faac24f5-a411-48d9-8135-9db58584ef41",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-2",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "faac24f5-a411-48d9-8135-9db58584ef41",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-3",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "faac24f5-a411-48d9-8135-9db58584ef41",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-0",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "e99c2f6d-7288-40fe-b9b0-82e9c7e4f327",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-1",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "e99c2f6d-7288-40fe-b9b0-82e9c7e4f327",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-2",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "e99c2f6d-7288-40fe-b9b0-82e9c7e4f327",
+    "animation": false
+  },
+  {
+    "file": "castle-reliquary-frame-3",
+    "group": "reliquary",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "e99c2f6d-7288-40fe-b9b0-82e9c7e4f327",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-east",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-north-east",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-north-west",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-north",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-south-east",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-south-west",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-south",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-hand-cart-west",
+    "group": "hand-cart",
+    "size": [
+      97,
+      97
+    ],
+    "objectId": "5555f406-3ddd-4dce-bab1-74ab501371da",
+    "animation": false
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-00",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-01",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-02",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-03",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-04",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-05",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-sleep-unknown-06",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-00",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-01",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-02",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-03",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-04",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-05",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-06",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-07",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-08",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-09",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-10",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-11",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-anim-wake-stretch-unknown-12",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": true
+  },
+  {
+    "file": "castle-griffin-cub-unknown",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "a5614b63-fa6b-4633-b56e-361537b11c87",
+    "animation": false
+  },
+  {
+    "file": "castle-griffin-cub-unknown",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "02c629f9-9116-4f5e-9034-c7a46e441e16",
+    "animation": false
+  },
+  {
+    "file": "castle-griffin-cub-unknown",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "67769d74-ecfd-4ea7-8408-562fc5de2562",
+    "animation": false
+  },
+  {
+    "file": "castle-griffin-cub-unknown",
+    "group": "griffin-cub",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "507a23ed-e5f5-45be-b88c-25dc28c11f6e",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-0",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "0f1cfccd-2a25-4038-a81f-c9848bc145f6",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-1",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "0f1cfccd-2a25-4038-a81f-c9848bc145f6",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-2",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "0f1cfccd-2a25-4038-a81f-c9848bc145f6",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-3",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "0f1cfccd-2a25-4038-a81f-c9848bc145f6",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-0",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "816b96eb-2f1f-4862-a240-582776789d6b",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-1",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "816b96eb-2f1f-4862-a240-582776789d6b",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-2",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "816b96eb-2f1f-4862-a240-582776789d6b",
+    "animation": false
+  },
+  {
+    "file": "castle-misc-frame-3",
+    "group": "misc",
+    "size": [
+      146,
+      146
+    ],
+    "objectId": "816b96eb-2f1f-4862-a240-582776789d6b",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-east",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-north-east",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-north-west",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-north",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-south-east",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-south-west",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-south",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-forging-stand-west",
+    "group": "forging-stand",
+    "size": [
+      124,
+      124
+    ],
+    "objectId": "febdfbd3-b24a-4865-ab68-54bea2f43784",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-east",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-north-east",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-north-west",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-north",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-south-east",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-south-west",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-south",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  },
+  {
+    "file": "castle-weapon-rack-west",
+    "group": "weapon-rack",
+    "size": [
+      113,
+      113
+    ],
+    "objectId": "4cadad75-8989-4ff4-aa8f-48008d20d536",
+    "animation": false
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "image": "fox-sit-alert-east.png",
+  "frameWidth": 170,
+  "frameHeight": 108,
+  "frameCount": 9,
+  "baselineY": 105,
+  "targetBodyHeight": 102,
+  "anchor": "bbox",
+  "note": "Single-row loop. Frames share one crop box and one feet baseline, so the character never jitters or slides within his cell."
+}

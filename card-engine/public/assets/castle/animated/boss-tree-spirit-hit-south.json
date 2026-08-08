@@ -1,0 +1,8 @@
+{
+  "image": "boss-tree-spirit-hit-south.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 5,
+  "frames": 5,
+  "direction": "south"
+}

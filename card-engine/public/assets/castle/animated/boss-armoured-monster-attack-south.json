@@ -1,0 +1,8 @@
+{
+  "image": "boss-armoured-monster-attack-south.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 9,
+  "frames": 9,
+  "direction": "south"
+}
