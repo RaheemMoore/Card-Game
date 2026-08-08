@@ -132,9 +132,76 @@ export function entriesUsedBy(source: string, entries: PackEntry[], always: stri
   return used.length > 0 ? used : entries;
 }
 
-/** Matches the Editor's own zoom so pieces read at the size they were placed at. */
-const ZOOM = 2;
+/**
+ * How much world the camera shows.
+ *
+ * Was 2 — the Editor's own zoom, chosen so pieces read at the size they were
+ * placed at. That is the right number for *authoring* and the wrong one for
+ * *playing*: at zoom 2 a 1080p window sees 960x540 world px (30x17 tiles) and
+ * the 100px hero eats 18.5% of the screen height. Measured against the top-down
+ * reference Raheem is aiming at (2026-08-08), the hero there occupies ~12% and
+ * the view runs ~40 tiles wide. 1.5 lands at 13.9% and 40x22 tiles.
+ *
+ * Non-integer zoom on pixel art normally costs you uneven pixel widths. It costs
+ * nothing here, because this scene's structures are already placed at 1.4, 1.18,
+ * 1.14 and 2 — the grid-exact read was gone before the camera touched it.
+ *
+ * `?zoom=` overrides it at run time so framing can be A/B'd without a rebuild.
+ */
+const DEFAULT_ZOOM = 1.5;
+
+function resolveZoom(): number {
+  const raw = new URLSearchParams(window.location.search).get('zoom');
+  const parsed = raw === null ? NaN : Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ZOOM;
+}
+
 const WALK_SPEED = 190;
+
+/**
+ * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
+ *
+ * CourtyardV2 shipped with no observation handle at all — the `Phaser.Game` is a
+ * closure local in `CastleV2.tsx`, so nothing outside that effect can see the
+ * camera. That made "is the zoom right?" a question answerable only by eyeballing
+ * a screenshot, which is exactly the failure mode the runtime bridge spec exists
+ * to prevent. The legacy plate courtyard has a full bridge (`courtyard/studioBridge.ts`);
+ * this is the small equivalent for the scene that replaced it.
+ *
+ * Deliberately just the framing numbers, not a scenario runner: the question this
+ * answers is how much world is on screen and how big the hero reads against it,
+ * which is the thing that gets tuned and the thing a screenshot lies about.
+ */
+function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
+  if (!import.meta.env.DEV) return;
+  const cam = scene.cameras.main;
+  const dev = ((window as unknown as Record<string, unknown>).__cardEngineDev ??= {}) as Record<
+    string,
+    unknown
+  >;
+  dev.castleFraming = () => {
+    const hero = (scene as unknown as { player?: Phaser.GameObjects.Sprite }).player;
+    const tile = 32;
+    return {
+      scene: sceneName,
+      zoom: cam.zoom,
+      viewportDevice: { width: cam.width, height: cam.height },
+      visibleWorld: { width: cam.width / cam.zoom, height: cam.height / cam.zoom },
+      visibleTiles: {
+        x: +(cam.width / cam.zoom / tile).toFixed(2),
+        y: +(cam.height / cam.zoom / tile).toFixed(2),
+      },
+      hero: hero
+        ? {
+            worldHeight: +hero.displayHeight.toFixed(1),
+            screenHeight: +(hero.displayHeight * cam.zoom).toFixed(1),
+            pctOfScreenHeight: +((hero.displayHeight * cam.zoom) / cam.height * 100).toFixed(1),
+            tilesTall: +(hero.displayHeight / tile).toFixed(2),
+          }
+        : null,
+    };
+  };
+}
 
 /**
  * Scenes that get the walkable hero.
@@ -380,7 +447,7 @@ export function makeScene(
 
       const cam = this.cameras.main;
       cam.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
-      cam.setZoom(ZOOM);
+      cam.setZoom(resolveZoom());
 
       // Explorable scenes get the temporary player. This once excluded every lab
       // on the grounds that a hero hides the subject — true of a lab that only
@@ -398,6 +465,8 @@ export function makeScene(
         // hero around it would keep the other animals off screen.
         cam.centerOn(bounds.centerX, bounds.centerY);
       }
+
+      publishFramingBridge(this, sceneName);
 
       // Runtime behavior for scenes that have some. The Editor's compiled file
       // cannot import it (see sceneBehaviors/types.ts), so it is attached here.
