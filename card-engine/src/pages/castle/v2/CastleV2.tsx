@@ -14,6 +14,8 @@ import { DOOR_LABELS, type DoorDestination } from '../../dev/sceneColliders';
 import { PauseMenu } from '../PauseMenu';
 import { CollectionStall } from '../stalls/CollectionStall';
 import { fetchMyRole, type SessionRole } from '../../../services/persistence/supabaseClient';
+import { ForgeIndicator } from '../../../components/forge/ForgeIndicator';
+import { CardJobIndicator } from '../../../components/forge/CardJobIndicator';
 
 /**
  * `/castle` — the courtyard you actually live in.
@@ -199,6 +201,13 @@ export function CastleV2() {
         onOpenDirectory={() => setPaused(false)}
         isPrivileged={isPrivileged}
       />
+
+      {/* PlayerShell used to supply these, and the castle no longer renders
+          through it. Without them a card forging in the background finishes
+          invisibly for anyone standing in the courtyard — which is most of the
+          time now that the courtyard is where you land. */}
+      <ForgeIndicator />
+      <CardJobIndicator />
     </div>
   );
 }

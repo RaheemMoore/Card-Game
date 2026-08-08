@@ -363,6 +363,19 @@ export default function App() {
             />
           )}
 
+          {/* The castle. Mounts OUTSIDE PlayerShell, deliberately — no NavBar,
+              no fantasy background, no content offset. Raheem, 2026-08-08: "I
+              don't like that to be the actual landing page without the nav
+              menus. I would like for you to have to hit exit or pause to see
+              the menu."
+
+              A persistent web nav sitting on top of a full-screen world reads as
+              a website with a game embedded in it. Escape opens the Game Menu,
+              which is where the nav lives now — and which is the only way out,
+              so it is not optional. The old courtyard stays inside PlayerShell
+              at /castle/classic; it was built expecting that chrome. */}
+          <Route path="/castle" element={<CastleV2 />} />
+
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
               no content offset. AdminShell owns the guard + its own chrome. */}
@@ -399,12 +412,6 @@ export default function App() {
             <Route path="/battle" element={<Battle />} />
             <Route path="/minigames" element={<MiniGamesHub />} />
             <Route path="/minigames/forge-strike" element={<ForgeStrike />} />
-            {/* The courtyard Raheem built in the Phaser Editor. It replaced the
-                painted-plate castle on 2026-08-08; the old one stays reachable at
-                /castle/classic until the new one has been walked in production,
-                because deleting the only way to the forge on a hunch is not a
-                migration. Phaser is lazy-loaded into its own chunk either way. */}
-            <Route path="/castle" element={<CastleV2 />} />
             <Route path="/castle/classic" element={<Castle />} />
             {CourtyardSample && (
               <Route

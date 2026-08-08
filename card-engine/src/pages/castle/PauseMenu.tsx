@@ -7,7 +7,14 @@ import { PixelButton } from '../../components/ui/PixelButton';
 import { Slot } from '../../components/ui/Slot';
 
 /**
- * The castle's pause menu — where the nav lives once the courtyard is home.
+ * The GAME MENU — Escape, inside the castle.
+ *
+ * Raheem named the two halves on 2026-08-08: this pixel-cased menu is the **Game
+ * Menu**, and the original browser UI is the **Web Menu**. They are not rivals.
+ * The Web Menu is where you grab cards, tear them up and work a collection at
+ * desk speed; the Game Menu is what you reach for without leaving the world.
+ * Every destination listed under "Web menu" below LEAVES the courtyard, which is
+ * why it is labelled rather than presented as more of the game.
  *
  * WHY A PAUSE MENU RATHER THAN A VISIBLE NAV BAR. Raheem: "We can make the nav
  * menu accessible using the pause button. Just like most games." The courtyard
@@ -71,7 +78,7 @@ export function PauseMenu({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label="Paused"
+        aria-label="Game Menu"
         className="w-full max-w-xs outline-none"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
@@ -86,11 +93,26 @@ export function PauseMenu({
           className="font-fantasy text-center"
           style={{ fontSize: 18, color: '#f3d99b', letterSpacing: '0.06em', margin: '0 0 12px' }}
         >
-          Paused
+          Game Menu
         </h2>
 
         {/* Each destination gets its icon in a gem slot — the same tile the
-            Codex and the crest rack use, so a door reads the same everywhere. */}
+            Codex and the crest rack use, so a door reads the same everywhere.
+
+            Labelled, because these all leave the world. A player who does not
+            know that a tap here ends the walk finds out by being ejected. */}
+        <p
+          className="font-fantasy"
+          style={{
+            fontSize: 11,
+            color: '#c9a227',
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            margin: '0 0 8px',
+          }}
+        >
+          Web menu
+        </p>
         <div className="flex flex-col gap-2 mb-3">
           {items.map(({ to, label, icon }) => (
             <button
