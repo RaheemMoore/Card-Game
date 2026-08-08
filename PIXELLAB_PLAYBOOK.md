@@ -291,7 +291,7 @@ brighten as the hero approaches. That is not redundancy — it is the two halves
 | Object, one face | `POST /create-1-direction-object` | 4 objects per call at a ≤170px style ref |
 | Object, eight faces | `POST /create-8-direction-object` | `reference_image` re-shoots an existing object from all angles |
 | **Map object** | `POST /map-objects` | Purpose-built for game-map props with transparent background. **We have never used it** and it may beat the generic object route for scenery |
-| **Convert existing art to pixel art** | `POST /image-to-pixelart` | **Potentially huge.** Input up to 1280², output up to 320². Our Leonardo plates, card art and element crystals could be brought into the pixel register instead of redrawn |
+| **Convert existing art to pixel art** | `POST /image-to-pixelart` | **USED 2026-08-07 — it works, and it is now the standing pipeline for Leonardo buildings.** Input ≤1280², output ≤320². Body: `image:{base64}`, `image_size:{w,h}`, `output_size:{w,h}` — all three required, `image` must be an object not a string. ~$0.01 / 1 generation. Took the forge from 0.6% flatness / 26,393 colours to 42.9% / 64, and the archivist to 64.7% / 48 against the kit's 59.4% / 48. Returns a WHITE background and invents a ground skirt, so keying and a foundation cut are still needed. See CLAUDE.md §"Leonardo art NEVER goes straight into the game" |
 | **UI panels** | `POST /create-ui-asset`, `POST /generate-ui-v2` | Shape-controlled pixel UI panels. Directly relevant to the UI-kit work |
 | Tilesets | `POST /create-tileset`, `/create-tiles-pro` | Seamless lower/upper terrain sets |
 | Pixel fonts | `POST /generate-font-pro` | Unexplored |
@@ -1274,3 +1274,55 @@ a black hole and the bar trough nearly vanishes; the button is the strongest pie
 **Next attempt should raise value and saturation to meet the plate**, and make the bar
 chunkier. Do not re-roll blind: `/create-1-direction-object` **rejects `seed`**, so nothing
 here is reproducible — keep anything good.
+
+## Card-wright signature card slam — first proof (8 generations)
+
+`configs/hero-card-slam.json` adopts the exact approved Card-wright character
+`148f4899-79e4-42b0-a09b-056e8f7e895a`; it does not recreate him. One south-facing `v3`
+custom animation was generated with a unique display name, a 16-frame request, and the clean
+south rotation pinned as `custom_start_frame`. PixelLab returned 17 frames (the pinned start
+plus 16 generated frames) for **8 generations**. No retry was run.
+
+The action successfully draws one rigid card, presents it near head height, widens the stance,
+drops into a grounded crouch, places the card flat, and finishes with one palm held over it.
+Identity, costume, transparency, and canvas clearance hold across the sequence. Frame 0 is
+byte-identical to the already approved south walk start, all 17 frames are 180×180, and no
+opaque pixel touches a canvas edge.
+
+**Creative watch item:** the presentation pose reads as a strong head-height display, not a
+fully overhead hero hold. This is a human acceptance question, not grounds for an automatic
+reroll. The review harness is
+`scripts/sprite-lab/out/hero-card-slam/card-slam-review.html`; verdict remains **HUMAN REVIEW**.
+
+| Batch | Clip | Cost | Verdict |
+|---|---|---|---|
+| Card-wright card slam v1 | south/front, 17 returned frames | 8 | HUMAN REVIEW — strong slam; overhead height needs Raheem's ruling |
+
+## Magical forest hero trees — silhouette beat recolour (25 generations)
+
+`configs/scene-castle-kit-magical-trees.json`. One `/create-1-direction-object` call returned
+four static 168×168 source objects for the Halo Stone perimeter: Moonspoke Fir,
+Lanternwillow, Copper Fanwood, and Starglass Alder. Raheem explicitly approved the bounded
+batch and then raised the creative ceiling: *“Go crazy.”* Cost was the declared maximum of
+**25 generations**; no retry was run.
+
+The batch answered its question cleanly. PixelLab can extend an ordinary round broadleaf kit
+through **structure**, not merely hue: the four results read as spire, cascade, fan, and open
+fork silhouettes even without colour. Setting `styleAnchor: false` was correct; actively
+anchoring to the retained spherical broadleaf would have risked copying the exact shape the
+batch existed to escape. Family cohesion still held through the common 168px canvas,
+top-down object route, outline weight, detail density, and shared prompt header.
+
+All four raw images carried 10–14px of transparent padding beneath their roots. The object
+validator caught that every one would float if baseline-anchored. `lib/crop.py --trim` fixed
+the issue deterministically; the trimmed outputs pass the object validator against the
+69px-tall runtime hero. No generation defect required repair.
+
+Shipping forms live as individual editable PNGs plus one Phaser JSON atlas at
+`public/assets/kits/halo-stone-castle/nature/trees/castle-magical-trees-atlas.*`.
+The cumulative courtyard review sheet registers all four as pending human review. Phaser,
+not PixelLab, owns sway, wind, motes, contact shadows, depth behavior, and day/night light.
+
+| Batch | Pieces | Cost | Verdict |
+|---|---|---|---|
+| Halo Stone magical trees v1 | fir, willow, fanwood, alder | 25 | HUMAN REVIEW — all mechanically pass; four silhouettes succeeded |

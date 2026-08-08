@@ -224,6 +224,52 @@ Card frames stay as they are. **PNG is what gives us liberties, not what limits 
 generations and zero Figma. Rainbow and crystal are *not* recolours (gradient and specular
 structure); those need generation or hand work.
 
+### Leonardo art NEVER goes straight into the game — it goes through PixelLab first (Raheem, 2026-08-07)
+
+**Standing rule.** Leonardo (and Gemini-via-Leonardo) is where a building or object is *designed*.
+It is **not** where the shipped asset comes from. Matting a Leonardo image and dropping it into the
+editor produces something visibly worse than the rest of the game, and the reason is measurable, not
+aesthetic:
+
+| Asset | Flatness | Colours |
+|---|---|---|
+| Forge, Gemini matted + downsampled | **0.6%** | 26,393 |
+| Forge, after PixelLab redraw + quantize | **42.9%** | 64 |
+| Archivist, after PixelLab redraw + quantize | **64.7%** | 48 |
+| `castle-wall-straight-v2` (native kit art) | 59.4% | 48 |
+
+*Flatness* = share of neighbouring pixels that are **exactly** equal. Real pixel art is flat; a
+downsampled painting is not. At 0.6% almost every pixel differed from its neighbour — it was a
+photograph shrunk down, wearing pixel art's clothes. No amount of colour-matching fixes that,
+because the defect is structural.
+
+**The pipeline, in order:**
+
+1. **Design in Leonardo** — Raheem generates. `gemini-2.5-flash-image` is web-UI only and returns
+   "Unsupported model" on the REST API, so this step cannot be scripted; pull the master back with
+   the generations API (the CDN file *is* the master — it is a JPEG, there is no cleaner PNG).
+2. **Crop to the building, above the foundation.** Feed the ORIGINAL ~940px art, not a downsample —
+   the redraw uses everything it is given.
+3. **`POST /image-to-pixelart`** (`image:{base64}`, `image_size`, `output_size`; input ≤1280²,
+   output ≤320²). PixelLab **redraws** it as pixel art. ~$0.01, 1 generation. First used 2026-08-07.
+4. **Key the white surround** by flooding from the border only — never a global threshold, or
+   enclosed light pixels (mortar highlights, fire) get punched out.
+5. **Cut the ground skirt** at the foundation row, found by where the dirt/grass share of the row
+   jumps (forge 16%→60% at row 187; archivist 42%→64% at row 264). The redraw invents ground even
+   when the input had none.
+6. **Quantize to ~48 colours** — this is what lands on the kit's flatness. Check saturation cost.
+7. **`lib/dehalo.py --min-value 185`** for the matting rim.
+8. Register in `castle-kit-manifest.json` → `npm run assets:pack` → place.
+
+**Protect a glow region only when the art is mostly desaturated.** The forge's rainbow portal got its
+own 24-colour ramp because a flat quantize starved it to mud. The archivist got no protected region —
+46.5% of it sits above saturation 60 because the blue stone and teal dome *are* the building, so a
+saturation split would have bucketed half the facade as "glow." A straight quantize measured better
+there anyway (−7% saturation). Decide from the measurement, not the assumption.
+
+**What you give up:** the redraw simplifies fine props it judges unimportant (the forge's potion
+shelf lost detail). That is the price of a real game asset, and it is worth it.
+
 ## Subsystem Reference
 
 > **[PRODUCTION.md](PRODUCTION.md) §3 owns current status. When it disagrees with the status words below, PRODUCTION.md wins** — it is updated every session and this section is not. What follows is kept for the durable architecture it records (table names, RPC names, project ids, which decision retired what), not for its phase labels. Open work lives in [PRODUCTION.md §4](PRODUCTION.md), not here.
