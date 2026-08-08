@@ -108,3 +108,16 @@ Card Images/ARENA/
 .vercel
 .wiki-vercel-release/
 .env*
+
+# Working scratch inside the art harnesses. Underscore-prefixed files are
+# throwaway comparison sheets and tileset-ID overlays made to answer one
+# question in one session; the finished asset always lands in public/assets.
+card-engine/scripts/**/refs/**/_*.png
+card-engine/scripts/**/review/**/_*.png
+*.npy
+__pycache__/
+*.pyc
+
+# Editor scene backups. The scene itself is source; a timestamped .bak is not.
+*.bak-*
+.forest_rows.json
