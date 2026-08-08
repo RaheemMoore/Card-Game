@@ -44,6 +44,15 @@
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/studio-hook.mjs\" pre-tool"
           }
         ]
+      },
+      {
+        "matcher": "mcp__phaser-editor__scene-.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/scene-guard.mjs\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

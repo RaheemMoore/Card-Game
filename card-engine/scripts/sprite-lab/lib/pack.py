@@ -26,11 +26,12 @@ THREE RULES, each learned from a defect that reached the game:
    walking left and his ground line moved 12% of his height. With `pro`-mode
    generation the corrections are near 1.0 and this is just insurance.
 
-Usage: pack.py <frames_dir> <out_png> <out_json> [--source rotations-idle]
+Usage: pack.py <frames_dir> <out_png> <out_json> [--prefer animation-name] [--anchor feet|bbox]
 """
 import json
 import os
 import sys
+import argparse
 from PIL import Image
 import numpy as np
 
@@ -104,8 +105,8 @@ def build_plan(d, prefer=None):
     return plan
 
 
-def main(frames_dir, out_png, out_json):
-    plan = build_plan(frames_dir)
+def main(frames_dir, out_png, out_json, prefer=None, anchor="feet"):
+    plan = build_plan(frames_dir, [prefer] if prefer else None)
 
     # Uniform column count: trim every row to the shortest so the grid is
     # rectangular (Phaser needs a fixed frame size and stride).
@@ -134,19 +135,28 @@ def main(frames_dir, out_png, out_json):
         for im, m in row:
             s = target / m["height"]
             w, h = max(1, round(im.width * s)), max(1, round(im.height * s))
-            out_row.append((im.resize((w, h), Image.NEAREST), m["foot_x"] * s))
+            resized = im.resize((w, h), Image.NEAREST)
+            anchor_x = m["foot_x"] * s if anchor == "feet" else resized.width / 2
+            out_row.append((resized, anchor_x))
         scaled.append((name, out_row))
 
-    fw = max(im.width for _, row in scaled for im, _ in row) + MARGIN * 2
+    # Measure the furthest left/right pixels AFTER applying the chosen anchor.
+    # A simple max(image.width) is unsafe for quadrupeds: centring a long body
+    # on its feet can push its nose or tail into the neighbouring Phaser cell.
+    left_extent = min(-anchor_x for _, row in scaled for im, anchor_x in row)
+    right_extent = max(im.width - anchor_x for _, row in scaled for im, anchor_x in row)
+    content_width = int(np.ceil(right_extent - left_extent))
+    fw = content_width + MARGIN * 2
     fh = max(im.height for _, row in scaled for im, _ in row) + MARGIN * 2
     baseline_y = fh - MARGIN  # every character's feet land here
 
     sheet = Image.new("RGBA", (fw * cols, fh * len(scaled)), (0, 0, 0, 0))
     rows_meta = []
     for r, (name, row) in enumerate(scaled):
-        for c, (im, foot_x) in enumerate(row):
-            # Feet on the shared ground line; centred on the feet, not the bbox.
-            x = r * 0 + c * fw + round(fw / 2 - foot_x)
+        for c, (im, anchor_x) in enumerate(row):
+            # Every frame uses the same measured anchor space, so even a long
+            # nose or tail stays inside its own cell with transparent padding.
+            x = c * fw + MARGIN + round(-left_extent - anchor_x)
             y = r * fh + (baseline_y - im.height)
             sheet.paste(im, (x, y))
         rows_meta.append({
@@ -154,6 +164,15 @@ def main(frames_dir, out_png, out_json):
             "idle": r * cols,
             "walk": [r * cols + c for c in range(1, cols)],
         })
+
+    # Fail before saving if any opaque pixel touches a cell edge. Phaser may
+    # sample that edge while scaling, and the neighbouring frame will bleed in.
+    alpha = np.array(sheet)[..., 3]
+    for r in range(len(scaled)):
+        for c in range(cols):
+            cell = alpha[r * fh:(r + 1) * fh, c * fw:(c + 1) * fw]
+            if np.any(cell[:, 0]) or np.any(cell[:, -1]) or np.any(cell[0, :]) or np.any(cell[-1, :]):
+                raise SystemExit(f"opaque pixel touches cell edge at row {r}, column {c}")
 
     sheet.save(out_png)
     meta = {
@@ -164,6 +183,7 @@ def main(frames_dir, out_png, out_json):
         "rows": rows_meta,
         "baselineY": baseline_y,
         "targetBodyHeight": round(target),
+        "anchor": anchor,
         "note": (
             "Frame index = row * columns + column. Every frame is normalized to one body "
             "height and aligned on a shared feet baseline; idle comes from the same animation "
@@ -177,4 +197,11 @@ def main(frames_dir, out_png, out_json):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3])
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("frames_dir")
+    parser.add_argument("out_png")
+    parser.add_argument("out_json")
+    parser.add_argument("--prefer", help="exact animation name to pack")
+    parser.add_argument("--anchor", choices=("feet", "bbox"), default="feet")
+    args = parser.parse_args()
+    main(args.frames_dir, args.out_png, args.out_json, args.prefer, args.anchor)

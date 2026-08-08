@@ -1,0 +1,68 @@
+{
+  "subject": "wildlife-animations",
+  "label": "Wildlife Lab — four-direction behavior animation pass",
+  "notes": [
+    "RAHEEM APPROVED a 200-generation hard ceiling on 2026-08-07. The three reviewed 8-direction bases used 120 generations, leaving 80 for motion.",
+    "COST CORRECTION FROM THE LIVE 2026-08-07 RUN: a six-frame v3 loop cost 12 generations across four directions and an eight-frame loop cost 16. The first three fox groups used 40, bringing the base-plus-animation spend to 160. The remaining paid pass is deliberately limited to rabbit hop (12), rabbit nibble/groom at six frames (12), and tortoise toddle (12), for a planned final total of 196.",
+    "No clip is decorative duplication: movement clips are speed-scaled for ordinary roaming versus fleeing; signature clips show species-specific business; alert/rest clips cover idle and observation without snapping the animal to a different facing.",
+    "Diagonal travel uses the nearest cardinal animation while the reviewed diagonal base rotations remain available for still poses and later expansion. This keeps the first playable set coherent and inside the approved ceiling.",
+    "Rabbit alert uses its directional still with a small Phaser breathing/attention motion. Tortoise watch and tuck/glow use its directional still with restrained Phaser scale, tint, and glow motion. These are real visible animations but do not need new anatomy frames.",
+    "Do not rerun a completed entry. The harness manifest is the spend ledger and resumes around completed work."
+  ],
+  "objectAnimations": [
+    {
+      "id": "fox-trot",
+      "objectId": "1b9fe8ca-f58e-4612-9bd2-a61ab19f0983",
+      "displayName": "trot",
+      "description": "seamless natural red fox trot cycle, light sure-footed steps with alternating legs, level forward travel posture, ears attentive and bushy tail balancing softly, body identity and proportions stay unchanged, no camera movement, no background",
+      "directions": ["south", "west", "east", "north"],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "fox-sniff",
+      "objectId": "1b9fe8ca-f58e-4612-9bd2-a61ab19f0983",
+      "displayName": "sniff",
+      "description": "seamless curious fox sniffing cycle in place, lowers narrow muzzle toward the ground, takes two small searching sniffs and turns ears independently, then returns to the exact starting stance, paws remain planted, identity and facing stay unchanged, no background",
+      "directions": ["south", "west", "east", "north"],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "fox-sit-alert",
+      "objectId": "1b9fe8ca-f58e-4612-9bd2-a61ab19f0983",
+      "displayName": "sit-alert",
+      "description": "seamless peaceful alert fox cycle in place, settles briefly onto its haunches, chest upright, ears swivel and head makes one small attentive glance, then rises back to the exact starting stance, calm not aggressive, identity and facing stay unchanged, no background",
+      "directions": ["south", "west", "east", "north"],
+      "frameCount": 8,
+      "mode": "v3"
+    },
+    {
+      "id": "rabbit-hop",
+      "objectId": "168c1786-41be-42b2-b3f6-152301ce6590",
+      "displayName": "hop",
+      "description": "seamless natural cottontail rabbit hopping cycle, crouches, pushes with powerful hind legs, makes one small forward bound and lands softly, ears and short white tail follow the motion, body identity and proportions stay unchanged, no camera movement, no background",
+      "directions": ["south", "west", "east", "north"],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "rabbit-nibble-groom",
+      "objectId": "168c1786-41be-42b2-b3f6-152301ce6590",
+      "displayName": "nibble-groom",
+      "description": "seamless relaxed rabbit activity in place, lowers nose and makes small nibbling mouth motions, pauses to lift both front paws and groom its cheeks once, then returns to the exact starting crouch, ears remain expressive, identity and facing stay unchanged, no food prop, no background",
+      "directions": ["south", "west", "east", "north"],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "tortoise-toddle",
+      "objectId": "5b0e1f5b-4260-4b52-99d6-9f4a622111b6",
+      "displayName": "toddle",
+      "description": "seamless slow woodland tortoise walking cycle, sturdy short legs alternate in a patient grounded toddle, head reaches slightly forward, mossy green shell stays stable and turquoise mushroom caps bob subtly, identity and shell pattern stay unchanged, no camera movement, no background",
+      "directions": ["south", "west", "east", "north"],
+      "frameCount": 6,
+      "mode": "v3"
+    }
+  ]
+}

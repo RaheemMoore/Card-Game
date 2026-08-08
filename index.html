@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Phaser Editor → Card Engine</title>
+    <style>
+      body {
+        margin: 0;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        background: #0b0f0a;
+        color: #e6d8b0;
+        font: 15px/1.6 system-ui, sans-serif;
+      }
+      main { width: min(560px, 90vw); }
+      h1 { font-size: 18px; margin: 0 0 4px; color: #fbbf24; }
+      p { margin: 4px 0; }
+      .muted { opacity: 0.55; font-size: 13px; }
+      ul { list-style: none; padding: 0; margin: 18px 0 0; }
+      li { margin: 0 0 8px; }
+      a.scene {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        color: #e6d8b0;
+        text-decoration: none;
+      }
+      a.scene:hover { background: rgba(251, 191, 36, 0.12); border-color: #fbbf24; }
+      a.scene .when { opacity: 0.5; font-size: 13px; }
+      a.scene.newest { border-color: #fbbf24; }
+      a.scene.stale { opacity: 0.45; }
+      code { color: #9ca3af; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <!--
+      This file exists so Phaser Editor's Play button works.
+
+      Phaser Editor serves the PROJECT ROOT (this folder — it is where
+      phasereditor2d.config.json lives) and opens "/". Before this file existed that
+      showed a directory listing, because the actual game is a Vite/React app one
+      level down in card-engine/, on its own port, with its own web root.
+
+      Rather than build a second Phaser bootstrap up here — which would need its own
+      copy of Phaser and would 404 on every asset, since every pack URL is relative
+      to card-engine/public — this hands off to the app that already runs.
+
+      TWO COMMANDS, TWO BEHAVIOURS:
+      - "Preview Scene" (Ctrl+0) appends ?start=<SceneName>. That is honoured exactly.
+      - "Play" sends nothing at all about which scene is open, so it CANNOT be told.
+        Instead the most recently SAVED scene is opened, which is almost always the
+        one just being worked on, and every scene is listed to switch in one click.
+    -->
+    <main>
+      <h1 id="title">Opening…</h1>
+      <p class="muted" id="sub"></p>
+      <ul id="list"></ul>
+      <p class="muted" id="help"></p>
+    </main>
+
+    <script>
+      // The Editor's docs show the Preview URL as ".../start=Name" — i.e. the
+      // parameter can arrive on the PATH rather than after a "?". Read both, or
+      // Ctrl+0 on WildlifeLab would silently open CourtyardV2 instead.
+      var pathMatch = location.pathname.match(/start=([A-Za-z_][A-Za-z0-9_]*)/);
+      var params = new URLSearchParams(location.search);
+      if (pathMatch && !params.get('start')) params.set('start', pathMatch[1]);
+
+      var port = params.get('port') || '5173';
+      params.delete('port');
+      var app = 'http://localhost:' + port;
+
+      function runUrl(name) {
+        var p = new URLSearchParams(params);
+        p.set('start', name);
+        return app + '/dev/scene?' + p.toString();
+      }
+
+      function ago(ms) {
+        if (!ms) return 'never saved';
+        var m = Math.round((Date.now() - ms) / 60000);
+        if (m < 1) return 'just saved';
+        if (m < 60) return m + ' min ago';
+        var h = Math.round(m / 60);
+        return h < 24 ? h + ' hr ago' : Math.round(h / 24) + ' days ago';
+      }
+
+      // Preview Scene told us exactly what to open — no need to ask or guess.
+      if (params.get('start')) {
+        document.getElementById('title').textContent = 'Opening ' + params.get('start') + '…';
+        location.replace(runUrl(params.get('start')));
+      } else {
+        document.getElementById('sub').textContent = 'Finding your scenes…';
+        fetch(app + '/editor-scenes/index.json')
+          .then(function (r) { return r.json(); })
+          .then(function (scenes) {
+            var runnable = scenes.filter(function (s) { return s.compiled; });
+            if (!runnable.length) throw new Error('no saved scenes');
+
+            var newest = runnable[0];
+            document.getElementById('title').textContent = 'Opening ' + newest.name + '…';
+            document.getElementById('sub').textContent =
+              'Most recently saved. Pick another to switch.';
+
+            var ul = document.getElementById('list');
+            scenes.forEach(function (s, i) {
+              var li = document.createElement('li');
+              var a = document.createElement('a');
+              a.className = 'scene' + (i === 0 && s.compiled ? ' newest' : '') + (s.compiled ? '' : ' stale');
+              a.href = s.compiled ? runUrl(s.name) : '#';
+              a.innerHTML =
+                '<span>' + s.name + '</span><span class="when">' + ago(s.savedAt) + '</span>';
+              li.appendChild(a);
+              ul.appendChild(li);
+            });
+
+            document.getElementById('help').innerHTML =
+              'Tip: <b>Ctrl+0</b> in the Editor opens whichever scene you are editing, directly.' +
+              '<br>A scene only appears here once it has been <b>saved</b>.';
+
+            // Long enough to notice the list and click something else.
+            setTimeout(function () { location.replace(runUrl(newest.name)); }, 1200);
+          })
+          .catch(function () {
+            document.getElementById('title').textContent = 'Cannot reach the game';
+            document.getElementById('sub').innerHTML =
+              'The Vite dev server has to be running:<br><code>cd card-engine &amp;&amp; npm run dev</code>';
+            document.getElementById('help').innerHTML =
+              'Expected it at <code>' + app + '</code>. On another port? Add <code>?port=1234</code>.';
+          });
+      }
+    </script>
+  </body>
+</html>

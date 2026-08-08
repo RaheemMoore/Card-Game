@@ -1,0 +1,52 @@
+{
+  "subject": "hero-card-slam",
+  "label": "The Card-wright (chibi) — card invocation slam proof",
+  "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+
+  "identity": {
+    "description": "Athletic middle-aged Black man, a card-wright artisan, drawn as a big-headed chibi game character. Close-cropped black hair greying at the temples, short trimmed beard, warm dark brown skin, friendly readable face. Wears a slate-grey canvas work apron with brass tool loops over a deep teal rolled-sleeve tunic, dark work trousers, and a hard brass-cornered card case on his hip.",
+    "avoid": "no sword, no weapons, no shield, no brown leather adventurer gear, no armour, no wizard robe, no cape, no chosen-one insignia, no background, no floor, no magic effects, no extra cards, no camera movement"
+  },
+
+  "bibleNotes": [
+    "Derived from the exact approved Card-wright character record; identity and costume must not change.",
+    "Human's identity is Choice, and the card-wright path remains readable through the apron, tool loops, and card case.",
+    "The card is a temporary rigid prop for the body performance. Phaser will render the player's actual selected card and invocation effects separately."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 128, "height": 128 }
+  },
+
+  "palette": {
+    "reference": null,
+    "note": "No scene palette reference. Player readability and identity continuity take priority."
+  },
+
+  "seed": 902551,
+  "directions": ["south"],
+
+  "animations": [
+    {
+      "id": "card-ritual-slam-south-v1",
+      "name": "card-ritual-slam-south-v1",
+      "mode": "v3",
+      "action": "Begin standing upright in the exact front-facing start pose. Reach to the card case at his hip and draw one small rigid rectangular trading card. Raise that single card high overhead in one hand in a triumphant heroic display, with his face still visible. Then make one continuous decisive downward motion: step forward, drop into a deep grounded crouch, and slam the card flat onto the ground directly in front of his feet. Finish and hold in a strong low crouch with one open palm pressed firmly on top of the flat card, shoulders leaning over it, the other arm braced for balance. The same person, face, beard, teal tunic, slate apron, brass loops, trousers, boots, body size, and camera angle remain consistent in every frame. The card stays one rigid rectangle and never becomes a weapon. Full body always visible. No magic, no glow, no dust, no background, no camera movement, no extra cards.",
+      "frameCount": 16,
+      "directions": ["south"],
+      "startFromRotation": "south"
+    }
+  ],
+
+  "animationNotes": [
+    "Single-direction proof only. South/front preserves the face and the overhead hero silhouette.",
+    "One continuous v3 clip avoids a chained generated start frame and limits identity drift.",
+    "The unique display name prevents collision with any prior animation stored on the character.",
+    "No automatic paid retry. Validate and present this result before another generation."
+  ]
+}

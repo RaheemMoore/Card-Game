@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-04 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-07 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -58,7 +58,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-04 -->
+<!-- updated: 2026-08-07 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -129,9 +129,10 @@ being raised in a chat and lost.*
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
-| Q8 | Now that the Studio Wiki replaced the old Production Guide link, does the guide itself retire? | The generated page at `docs/production/production.html` still exists and the `production-log` skill still ends by republishing it. The Wiki reads the same source and redeploys automatically. Keeping both means two versions of the truth and a manual step that will be skipped. |
 | Q10 | If forging stops making a live API call, do Forge Crystals still make sense as purchase-only? | They are purchase-only *because* each generation costs real money (economy plan §13). A pool weakens that rationale. Pricing changes need your explicit approval, so this needs your ruling before anything moves. |
 | Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
+| Q12 | Do you want walkable forest floor? You asked for animals "running around in the underbrush." The forest is currently traced solid edge to edge, so there is no forest to walk in — the animals are under the canopy at the courtyard's northern edge instead. Carving walkable pockets into the forest edge is collider work, and the animals need no code change to follow. | It is the difference between animals *at* the forest and animals *in* it. |
+| Q13 | Is the Halo Stone wall-kit blocker still real? §4 says nothing should be built from the kit until its projection is ruled on. But the courtyard now has placed wall pieces and the `MISSING_*Wall_run` markers are gone, so it looks decided in practice. I have not rewritten that note, because it was your call and I do not know which way you went. | A blocking note nobody believes is how this file starts lying. |
 | Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
 ---
@@ -340,7 +341,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-04 -->
+<!-- updated: 2026-08-07 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -359,6 +360,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
+| IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
 | SHIPPED | The Collection, as an in-world case | `/collection` renders the pixel case and the pause menu already pointed there, so a player reaches it today. Painted cards inside pixel chrome; filters are a rack of the eleven archetype crests rather than a dropdown, rank is three chips, sort is one cycling button, and Inspect/Release carry the old page's detail and deletion. Scroll edges fade and show a chevron only where content continues. Verified at 1280x620 and 375x812. Preview with a full case at `/dev/collection-stall`. **Not yet opened from a courtyard stall — that waits on the four-quadrant design.** |
@@ -390,20 +392,19 @@ machine and will be silently absent from every other device you open. If it is w
 
 ---
 
-<!-- updated: 2026-08-04 -->
+<!-- updated: 2026-08-07 -->
 ## 4. Open threads
 
-**69 things started and not finished.** This is the list that didn't exist before. It will
+**80 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
-### Studio Wiki release — 3 items
+### Studio Wiki release — 2 items
 
 | What | Where |
 |---|---|
 | Raheem and Tori each complete one signed-in production walkthrough: shared Keep / X-out / undo, private portrait hydration, shared Ideas visibility, and owner-only Ideas editing | `https://card-engine-studio-wiki.vercel.app/characters/cards` and `/work/raheem` |
 | Build the forward-looking "where this project is going" surface — the Wiki records the present and the past well, but has no roadmap view. Raheem is writing this himself | Wiki navigation, alongside `/production` |
-| Decide whether the old Production Guide page retires now that the Wiki replaced its link (Q8) | `docs/production/production.html` + `.claude/skills/production-log/SKILL.md` step 7 |
 
 ### Castle wiring — 4 items
 
@@ -420,7 +421,7 @@ The hub exists; nothing behind it does.
 phone-portrait support is deferred pending its own crop of the art
 (`courtyard/layout.ts`); two keeper/stall entries have empty placeholder copy.
 
-### Courtyard V2 replacement — 7 items
+### Courtyard V2 replacement — 9 items
 
 The forge quadrant is a verified development checkpoint, not permission to replace production.
 
@@ -451,6 +452,18 @@ costs nothing to change.
 | Remove the counter's baked shadow and reduce the bench shadow without damaging the rug | Courtyard V2 source art |
 | Replace preview-only walk bounds with the complete imported map collision set | `v2-preview/CourtyardV2PreviewScene.ts` |
 | Integrate V2 into the production castle only after full-map runtime and human visual approval | `src/pages/castle/` |
+
+### Wildlife — 5 items
+
+The animals work. These are the edges left open, none of them blocking.
+
+| What | Where |
+|---|---|
+| The tortoise's "tuck in and softly glow" is a held still pose — it has one generated sheet, so the *glow* half of its personality is not expressed. Costs no generation: Phaser can pulse a soft light under the shell when the signature fires. Offered and parked, awaiting Raheem | `sceneBehaviors/wildlifeShared.ts` — `ANIMATION_SETS['glowcap-tortoise']` |
+| Animals have no ground shadow. The hero got one; nothing gives the animals the same contact with the floor, so they can read as floating | `castle/groundShadow.ts` (the hero's, for reference) |
+| The forest is traced as solid all the way through, so there is no walkable forest floor. Raheem asked for animals "in the underbrush"; they are currently under the canopy at the courtyard's northern edge instead — the nearest reachable ground. Needs a ruling (Q12) | `L14_COLLIDERS` — `BLOCK_forestEdge_*` |
+| A blocked animal stands still for the rest of that wander before choosing somewhere new, rather than re-picking immediately. Self-correcting, mildly odd for a second or two. Deliberately left for Raheem to judge on screen first | `castle/wildlife/WildlifeAgent.ts:146` |
+| An animal at *exactly* zero distance from the player has no direction to flee in and holds still. Only reachable at literally 0px, so it never happens in play — recorded so it is a known edge rather than a surprise | `castle/wildlife/movement.ts:25` — `pointAwayFrom` |
 
 ### Combat gaps — 15 items
 
@@ -502,7 +515,7 @@ costs nothing to change.
 | `balance-playtest` skill is a scaffold that can't run | `.claude/skills/balance-playtest/` |
 | Dice roll animation is CSS 3D cubes — works, never polished | `components/DiceRoll.tsx` |
 
-### Pixel UI kit — 4 items
+### Pixel UI kit — 6 items
 
 *Opened 2026-08-04. The kit and the first surface are built; the remaining stalls
 are not. Six primitives now exist in `src/components/ui/`: Panel, PixelButton,
@@ -540,7 +553,7 @@ Found while writing §6. Every one of these is a tool that exists and doesn't fu
 | No ability, lore or balance readout — three engines with no window | see §6 |
 | Prompt Lab has no screenshot in the guide (admin-gated, uncapturable) | §6 Card image workshop |
 
-### Doc drift — 5 items
+### Doc drift — 6 items
 
 | What | Where |
 |---|---|
@@ -549,6 +562,7 @@ Found while writing §6. Every one of these is a tool that exists and doesn't fu
 | Dangling `dressing.throne` reference to a dropped asset | `ARENA_HANDOFF_still-season.md` |
 | Proposals page still carries the retired A/B/C/D layer tags in its DB column and payload | `data/archetypeLayers.ts` — UI cleaned 2026-07-31, migration pending |
 | Admin plan claims Phases 0–7 complete but lists unshipped items | admin plan §§496, 572, 759 |
+| The Production Guide generator is now unused — the guide retired 2026-08-07 and nothing republishes it. Decide whether to delete the build script and its last output, or keep them as a local offline read | `card-engine/scripts/production-page/build.mjs` + `docs/production/production.html` |
 
 ### Stranded branches — 3 items {#stranded-branches}
 
@@ -856,10 +870,117 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-04 -->
+<!-- updated: 2026-08-07 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-07 — The Production Guide page retires; the Studio Wiki is the only door
+
+Raheem answered Q8: stop republishing the standalone guide. The Studio Wiki already replaced
+its link in the admin sidebar, reads the same `PRODUCTION.md`, and redeploys on its own.
+
+The deciding detail was small and practical. Two published artifacts carry the name "Card
+Engine — Production Guide" and neither Raheem nor I could say which one he had bookmarked, so
+any republish had a real chance of updating the copy nobody reads. A record with two versions
+and a coin flip between them is worse than one door.
+
+The `production-log` skill no longer ends by republishing. Nothing was deleted — the generator
+and the last generated file remain, now unused, tracked in §4 so they close deliberately rather
+than rotting quietly.
+
+*What it closed:* Q8, and the last route by which this file could disagree with itself.
+
+### 2026-08-07 — One animal brain, three sheets of numbers — not three animals
+
+The obvious way to build a fox, a rabbit and a tortoise is three of everything. We built one
+of everything instead. There is a single decision-maker shared by all three, and the entire
+difference between a timid rabbit and a calm tortoise is a row of numbers: how fast it walks,
+how near you get before it notices, whether it runs or watches, how much it likes resting.
+
+Raheem had drawn the structure before any of it existed — a "Mob class" with Movement,
+Attacking, AI, Animation and Events hanging off it, and Mob 1 / Mob 2 / Mob 3 underneath. The
+build follows that drawing, with one deliberate departure: Mob 1, 2 and 3 are not three
+classes. Attacking and Events were left as empty slots, because nothing in a forest fights.
+
+The animals decide what to do from changing needs — energy that drains as they move and
+recovers as they rest, curiosity that pushes them to wander, and an urge for their own
+signature action that builds until they do it. Randomness only separates two close options;
+it is not the behaviour.
+
+*Why it matters:* a chicken now costs a sheet of numbers and its artwork. Not a new system,
+and not a fourth copy of a bug. The same brain is what a boss or a wandering NPC would use.
+
+### 2026-08-07 — Where an animal lives and who it is are kept strictly separate
+
+An animal's personality comes from its artwork; where it wanders comes from a green rectangle
+Raheem draws in the editor. A fox dropped in the tortoise's territory is still a fox — same
+speed, same flight distance, same behaviour — it simply does all of that over there.
+
+Raheem asked directly whether the two were tangled, and they are not. He also asked for the
+quickest possible way in: *"I just wanna drop a couple animals down and have them vibe in that
+area."* So an animal that is in no rectangle is no longer ignored — it is given a home range
+around wherever it was dropped, sized from its own walking speed. Drawing a rectangle became
+the thing you do when you want to be specific, rather than a registration step owed to the
+system before anything will move.
+
+Because a made-up range has nothing on screen to point at, it is drawn in amber when the
+authoring overlay is on. Green means Raheem drew it; amber means the system invented one.
+
+*Why it matters:* adding life to a scene is now dragging a sprite in. The precise version is
+still there when a place needs a real boundary, but it is no longer the price of entry.
+
+### 2026-08-07 — An actor owns where it touches the ground; the scene owns what height means
+
+Raheem asked which layer the animals should be on so they would draw correctly in front of and
+behind buildings. The answer turned out to be that the layer does not decide that at all —
+every editor layer is emptied into one sorted band before the first frame, and what draws in
+front is simply whatever touches the ground further down the screen.
+
+The question caught a real defect. Elevation had been added to the courtyard while the animals
+were being built: the castle stands on a plateau, and depth had quietly become "which terrace
+am I on" plus "where do my feet land". The animals only knew the second half, so every one of
+them would have drawn behind the castle they were standing in. They now use the same
+level-aware walk the hero does — which also means a fox cannot wander up a cliff face, and can
+climb the cliff steps, because those are ramps.
+
+The split was kept deliberately: the shared animal code knows only where its feet are, and the
+courtyard adds what that means in a world with height. Same reasoning as collision — the animal
+never learned about walls either; the scene hands it the rule.
+
+*Why it matters:* it is why a wandering animal, the hero, and any future monster all sort
+correctly against a wall nobody has drawn yet, without one line written about that wall.
+
+### 2026-08-07 — The Card-wright's card slam is approved, and Phaser supplies the impact
+
+Raheem approved the Card-wright's new signature action: he draws one card, presents it,
+drops into a grounded crouch, slaps it flat, and holds his palm over it. The exact approved
+chibi character was reused rather than redrawn. The 17 returned frames are preserved as a
+source sheet and an 84×84-cell runtime sheet with Phaser timing and full PixelLab provenance.
+
+The division of labor is settled: PixelLab owns the body performance; Phaser owns the draw
+flash, the physical slap response, the ground ring, dust, runes, camera motion, and the
+player's actual selected card. That keeps one performance reusable across every card and lets
+motion reduction change the effects without regenerating the actor.
+
+*Why it matters:* this is the first authored version of the game's central physical ritual —
+cards are artifacts characters handle, not buttons in a web interface.
+
+### 2026-08-07 — Magical forest trees expand by silhouette, not by recoloring round crowns
+
+Raheem approved one four-tree PixelLab batch and explicitly raised the creative ceiling:
+*“Go crazy.”* The resulting Moonspoke Fir, Lanternwillow, Copper Fanwood, and Starglass Alder
+add spire, cascade, fan, and open-fork profiles beside the ordinary yellow-green broadleaf
+fillers. One call cost the declared maximum of 25 generations and used no retry.
+
+The trees remain static source sprites. Phaser owns wind, sway, motes, contact shadows,
+depth behavior, and day/night lighting. They are packaged individually and as one Phaser JSON
+atlas; all four pass the object validator after a free transparent-margin trim and now wait
+for Raheem's visual verdict in the cumulative courtyard review.
+
+*Why it matters:* the forest can feel magical without turning every tree into glowing VFX or
+making the perimeter from repeated spheres. Ordinary fillers create mass; a few hero trees
+create identity.
 
 ### 2026-08-05 — Phaser Editor replaces Figma as the world-authoring surface
 
@@ -1809,7 +1930,7 @@ in common, and both tools get used across both subjects.
 
 ---
 
-<!-- updated: 2026-08-04 -->
+<!-- updated: 2026-08-07 -->
 ## 9. Ideas raised, not committed
 
 *Said out loud, captured so they aren't lost, explicitly **not** promises.*
@@ -1825,6 +1946,11 @@ in common, and both tools get used across both subjects.
   the right UI tool, the art is generated and approved, and this is now a live workstream in
   §3 with its own thread list in §4. Left here struck through so the trail from idea to
   commitment is visible.
+- **A glow for the glowcap tortoise** — its signature action is "tuck in and softly glow," but
+  it only has one drawing, so today it just stops and holds still. Phaser can do the glow for
+  nothing: a soft pulse of light under the shell while it happens. Offered, not committed.
+- **More animals** — the system was built so a chicken or a deer is a sheet of numbers plus its
+  artwork, not new machinery. Nobody has asked for one yet.
 - **Promote evaluated cards into the permanent roster** — the Evaluation Room is read-only
   for now. Design the explicit acceptance record, provenance gates, and promotion action only
   after the team has used the dossiers enough to understand the real review process.

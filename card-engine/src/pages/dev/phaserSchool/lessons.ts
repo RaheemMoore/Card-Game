@@ -2528,6 +2528,90 @@ export const CHATGPT_LESSONS: Lesson[] = [
         ],
       },
       {
+        id: 'which-layer',
+        title: 'Which layer should the animals be on?',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'For drawing in front and behind, the layer does not matter at all.',
+            text:
+              'Before the first frame, every Editor layer is emptied and its contents poured into one runtime band. Check it yourself: at run time `L15_WILDLIFE` contains **zero** objects. Layers are how *you* organise work. They stopped deciding draw order, which they were never able to do correctly anyway.',
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'There is one rule, and it replaces every special case.',
+            text:
+              '**An object draws in front of another when the point where it touches the ground is further down the screen.** Nothing was written about the castle to make an animal go behind its wall — and the same rule handles a tower, a shrub, and a tree nobody has drawn yet.',
+          },
+          {
+            kind: 'table',
+            head: ['The tortoise stands at y=1321…', 'Its ground-contact Y', 'So it draws'],
+            rows: [
+              ['Castle south wall', '1216', 'IN FRONT of it'],
+              ['Watchtower', '1217', 'IN FRONT of it'],
+              ['Drawbridge gate', '1248', 'IN FRONT of it'],
+              ['Shrub cluster further south', '1486', 'BEHIND it'],
+              ['Wall endcap further south', '1503', 'BEHIND it'],
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Height is a second term, and it is why the layer question has a real answer.',
+            text:
+              'The courtyard has terraces. At the foot of a cliff you are behind it; standing on top you are in front — and those are **the same Y**. So depth is really `level × 100,000 + ground-contact Y`. All five animals sit on the castle plateau, which is level 1, so their depths read 100,342 rather than 342.',
+          },
+          {
+            kind: 'compare',
+            left: {
+              title: 'What the LAYER decides',
+              points: [
+                'Whether the animal is alive at all — it must be in `L15_WILDLIFE`',
+                'How you find and group things in the Outline',
+                'Nothing about draw order',
+              ],
+            },
+            right: {
+              title: 'What the POSITION decides',
+              points: [
+                'Everything about draw order',
+                'Where its feet touch the ground → its Y',
+                'Which terrace it stands on → its level',
+                'Both are read every frame as it walks',
+              ],
+            },
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'Three layers are excluded from sorting. Never put an animal in them.',
+            text:
+              '`L1_GROUND`, `L11_MARKERS` and `L14_COLLIDERS` sit outside the band on purpose — floor is always underneath, and authoring aids are always on top. An animal dropped into one of those would not sort against anything, so it would be permanently in front of or behind the world.',
+          },
+          {
+            kind: 'try',
+            title: 'Walk an animal past a wall and watch it flip',
+            steps: [
+              'Open `/dev/scene?start=CourtyardV2`.',
+              'Find the tortoise in front of the castle’s south wall — it draws over the wall.',
+              'Walk yourself north through the gate so you cross the wall line, and watch your own hero flip behind it.',
+              'That is the same rule, applied to you and to the animal, with nothing written about either.',
+            ],
+            proves:
+              'Draw order comes from where a thing touches the ground and which terrace it is on — not from any layer you chose in the Editor.',
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'A known limit worth knowing.',
+            text:
+              'One sprite gets one depth. That is exact for a wall running east–west, whose base is a single line. A wall running **north–south** has a base spanning hundreds of pixels of Y, and an animal can stand level with its middle where there is no right answer. Those walls have to be cut into stacked segments in the Editor. Until then, the side walls are wrong in the middle — for animals and for you alike.',
+          },
+        ],
+      },
+      {
         id: 'adjusting',
         title: 'Adjusting the life',
         blocks: [
@@ -2548,6 +2632,7 @@ export const CHATGPT_LESSONS: Lesson[] = [
               ['How many there are', 'Copy-paste a sprite', 'Phaser Editor'],
               ['A new territory', 'Draw another green **#33ff88** rectangle', 'Phaser Editor'],
               ['Where it may walk', 'Edit the red shapes in `L14_COLLIDERS`', 'Phaser Editor'],
+              ['What it draws in front of', 'Nothing — move it. Depth follows its feet', '—'],
               ['How timid or fast it is', 'Edit its row of numbers', '`profiles.ts`'],
               ['Which clip an activity plays', 'Edit `ANIMATION_SETS`', '`wildlifeShared.ts`'],
               ['How it decides at all', 'The scoring rules', '`WildlifeBrain.ts` — rarely'],
@@ -2622,6 +2707,8 @@ export const CHATGPT_LESSONS: Lesson[] = [
       'No animal pixels cross the purple frame-cell border.',
       'You can name what lives in each box of the Mob diagram, and which two are still empty.',
       'You can state the one rule that decides drop-anywhere versus boundary, per animal.',
+      'You can say why the Editor layer does NOT decide what draws in front, and what does.',
+      'You can name the three layers an animal must never be put in.',
       'You switched one animal between the two methods and saw the amber box appear and vanish.',
       'You can say why the three animals are one class and not three.',
       'You watched a drive bar rise and fall in the Wildlife Lab readout.',

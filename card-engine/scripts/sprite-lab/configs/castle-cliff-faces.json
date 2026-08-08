@@ -1,0 +1,149 @@
+{
+  "subject": "castle-cliff-faces",
+  "label": "Cliff and chasm library — the vertical surfaces CourtyardV2 needs, built as a reusable set",
+
+  "notes": [
+    "THIS IS A LIBRARY, NOT A PATCH. Raheem, 2026-08-06: 'we need to create a folder of beautiful assets so we can build this world.' So this is ten pieces at double the resolution I first proposed, covering height variety, negative elevation, and the fantasy dressing — not the minimum that unblocks one map.",
+    "WHY THE IMAGE ROUTE, AND IT IS NOT ABOUT COST. /create-image-pixen is the endpoint that returns FLAT TILEABLE BANDS. The object route was tried first and returned isometric cubes — beautiful, unusable on flat ground. The tiles route with tile_feature 'building' returned 56 unusable 52x87 fragments, because a cliff face is a VERTICAL surface and the tiles endpoint is top-down. This route also accepts a seed, so anything good is reproducible and anything wrong is a targeted re-roll rather than a blind re-buy.",
+    "RESOLUTION: 256px wide, double the first proposal. Per playbook 'author at display resolution' — upscaling pixel art is fine, downscaling destroys it. At 32px tiles a 256-wide band spans 8 tiles, so the repeat is far less visible than a 128 band, and it can be resampled DOWN cleanly if we ever want it smaller.",
+    "THESE MUST TILE LEFT-TO-RIGHT. They repeat along the south edge of every raised mass. Seamlessness is stated in every description; a mismatched edge is a seeded re-roll, not a redesign.",
+    "SOUTH-FACING ONLY. Verified against Raheem's layout sketch: you only ever see the side of a hill on its south-facing edge. North edges butt into higher ground and are never drawn.",
+    "HEIGHT VARIETY IS FREE AT RUNTIME. Short band = one terrace. Tall band = a mountain. Stacking costs nothing, which is why the tall variant carries extra strata — so a stack does not read as a repeat.",
+    "NEGATIVE ELEVATION IS THE INVERSE GRADIENT. A cliff is lit at the top and shadowed under its lip. A chasm is lit at the top and goes to ABSOLUTE BLACK at the bottom with no visible floor — unreadable depth is the point, because it is what makes a player want to go and look.",
+    "COLOUR IS A POST-PROCESS. Greens get matched to the deepvivid ground ramp with lib/recolor.py --ramp after these land. Never re-roll for hue.",
+    "MODESTY RULE NOT APPLICABLE — no figures in this batch."
+  ],
+
+  "images": [
+    {
+      "id": "cliff-face-short",
+      "seed": 880501,
+      "note": "The workhorse. One terrace step — the castle hill and every outcrop.",
+      "params": {
+        "description": "a seamlessly horizontally tileable cliff face seen from the SIDE, a band of stacked grey and honey sandstone rock strata with deep shadowed horizontal cracks, a lip of deep saturated green grass overhanging the very top edge, clumps of moss and small ferns growing from the ledges, darker toward the bottom, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-face-tall",
+      "seed": 880502,
+      "note": "The distant mountain, bottom-left in the sketch. Extra strata so a stacked band does not read as a repeat.",
+      "params": {
+        "description": "a seamlessly horizontally tileable tall cliff face seen from the SIDE, a high wall of stacked grey and honey sandstone strata with many deep horizontal cracks and ledges, a lip of deep saturated green grass overhanging the very top edge, moss, small ferns and a few hardy shrubs rooted in the ledges, growing darker and cooler toward the bottom, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 256 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-face-overgrown",
+      "seed": 880503,
+      "note": "Variety pass. A wall used three times in one map needs a second face or the eye finds the repeat.",
+      "params": {
+        "description": "a seamlessly horizontally tileable cliff face seen from the SIDE, weathered grey and honey sandstone strata almost buried under thick trailing ivy and hanging vines, curtains of green leaves spilling down the rock, moss cushions and small ferns crowding every ledge, a lip of deep saturated green grass at the top, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-face-arcane",
+      "seed": 880504,
+      "note": "The fantasy beat. Something magical in the rock, per the brief — a reason to walk the long way round.",
+      "params": {
+        "description": "a seamlessly horizontally tileable cliff face seen from the SIDE, grey and honey sandstone strata split by veins of glowing turquoise and violet crystal running through the rock, the light spilling softly onto the stone around each vein, a lip of deep saturated green grass at the top, moss on the ledges, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-waterfall",
+      "seed": 880505,
+      "note": "A cliff with a reason to look at it. Also gives us water in the world for the first time.",
+      "params": {
+        "description": "a seamlessly horizontally tileable cliff face seen from the SIDE with a waterfall pouring down its centre, clear turquoise water falling in bright ribbons over stacked grey and honey sandstone strata, white foam and mist where it lands, wet darkened rock and vivid green moss on either side, a lip of deep saturated green grass at the top, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "chasm-wall",
+      "seed": 880506,
+      "note": "Negative elevation. Raheem's crack in the ground that falls into blackness.",
+      "params": {
+        "description": "a seamlessly horizontally tileable chasm wall seen from the SIDE, the inner rock face of a deep crack in the ground, jagged broken grey stone at the top catching daylight with a torn lip of deep green grass and dangling roots, the rock falling away into total impenetrable blackness at the bottom with no visible floor, cold blue-grey shadow, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "chasm-wall-arcane",
+      "seed": 880507,
+      "note": "The chasm that is clearly hiding something. Same blackness, but lit from inside.",
+      "params": {
+        "description": "a seamlessly horizontally tileable chasm wall seen from the SIDE, the inner rock face of a deep crack in the ground, jagged broken grey stone at the top with a torn lip of deep green grass, falling into darkness below, a faint eerie violet glow rising from somewhere far down out of sight and catching the undersides of the ledges, cold shadow, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-scree",
+      "seed": 880508,
+      "note": "Rubble at the foot of a cliff. Without it a face meets flat grass on a hard line and the height stops being believable.",
+      "params": {
+        "description": "a seamlessly horizontally tileable strip of rocky scree and fallen rubble at the foot of a cliff, loose grey and honey sandstone boulders and chips scattered on deep saturated green grass, tufts of grass pushing between the stones, seen from a low top-down angle, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 64 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "low top-down",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-stair",
+      "seed": 880509,
+      "note": "The way up. This is the collider gap in the rim — the only crossing between levels.",
+      "params": {
+        "description": "a flight of worn honey sandstone steps carved into a grey rock cliff face, seen from the SIDE, climbing from the bottom of the frame to the top, low mossy stone kerbs on both sides, cracked and weathered treads with grass growing in the joints, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 128, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "cliff-ramp-dirt",
+      "seed": 880510,
+      "note": "The unpaved alternative — a worn dirt track up a bank, for the wild edges of the map where carved stone would be wrong.",
+      "params": {
+        "description": "a worn dirt track climbing a steep grassy bank, seen from the SIDE, packed brown earth rutted by cart wheels winding from the bottom of the frame to the top, deep saturated green grass and small stones along both edges, exposed roots and a few loose rocks in the slope, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 128, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

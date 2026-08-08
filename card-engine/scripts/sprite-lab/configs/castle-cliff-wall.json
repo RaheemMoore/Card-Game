@@ -1,0 +1,96 @@
+{
+  "subject": "castle-cliff-wall",
+  "label": "Full-width cliff wall at 1:1 — tall faces, end cap, stair and pillars for the castle approach",
+
+  "notes": [
+    "SIZES COME FROM RAHEEM'S OWN EDIT, NOT A GUESS. He stretched the existing 512x128 band to scaleX 1.53 / scaleY 2.07 in the editor, i.e. a displayed 784 x 265px. That is 8.3 tiles tall and 2.65x the 100px hero — he cannot see over it, which is the point: 'you absolutely have to go up these stairs'.",
+    "WHY REGENERATE INSTEAD OF LEAVING IT STRETCHED. At 2.07x the cliff's pixels are twice the size of the 32px ground tiles' pixels. That is not blur, it is MIXED PIXEL DENSITY — two pixel grids on one screen, and it reads as art from two different games. Generating at the display size puts everything back at 1:1.",
+    "384x256 SINGLE -> 768x256 MIRROR-TILED. Four bands span the full 2560px map with the stair opening cut into it. Mirror-tiling drives the horizontal seam to 0.0 (measured; the previous batch ran 14-65 against baselines of 2-26).",
+    "NO SEPARATE SCREE STRIP THIS TIME. The old scree was drawn against a 128px cliff, so against a 265px cliff it read as gravel at the foot of a mountain — wrong scale, and it cut off abruptly because it had no taper. Raheem: 'the shape of the rock doesn't match the rest of the cliff.' So the break-up is now asked for INSIDE the cliff art — loose boulders tumbling out of the face — and the separate boulder cluster is generated at the new scale as a placement extra, not as a required baseline.",
+    "PILLARS ARE RAHEEM'S IDEA AND THEY ARE THE RIGHT ONE. A butt join between stair and cliff always reads as two artworks touching. A pillar standing ON the join is occlusion rather than an edge, and it gives the stair a designed entrance. Specced slightly TALLER than the cliff (288 vs 256) so it reads as planted at the top of the steps rather than buried.",
+    "END CAPS ARE MIRROR-SYMMETRIC — one generation covers both ends. Directional pieces (stairs) must never be mirrored; that turned the last stair into a symmetric arch.",
+    "PALETTE. Grey-and-honey sandstone to match the castle kit, deep saturated green grass on top to match the deepvivid ground ramp. Any mismatch is corrected with lib/recolor.py --ramp afterwards, never by re-rolling for hue.",
+    "ALL SEEDED. Anything good is reproducible; anything wrong is a targeted single re-roll rather than re-buying the batch."
+  ],
+
+  "images": [
+    {
+      "id": "wall-face-rock",
+      "seed": 880701,
+      "note": "The workhorse. Four of these mirror-tiled span the map.",
+      "params": {
+        "description": "a seamlessly horizontally tileable tall cliff face seen from the SIDE, a high wall of natural weathered grey and honey sandstone rock, irregular boulders and rough stacked ledges of varying size, deep shadowed clefts between them, a thick lip of deep saturated green grass overhanging the very top edge, moss cushions and small ferns rooted along the ledges, the base breaking up into loose fallen boulders and rubble spilling forward rather than ending on a straight line, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 256 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-face-mossy",
+      "seed": 880702,
+      "note": "Second texture so a four-band run does not read as one repeat.",
+      "params": {
+        "description": "a seamlessly horizontally tileable tall cliff face seen from the SIDE, a high wall of natural weathered grey rock heavily overgrown with trailing ivy and hanging vines, curtains of green leaves spilling down between the boulders, thick moss cushions and clustered ferns on every ledge, a thick lip of deep saturated green grass overhanging the top edge, the base breaking up into mossy fallen boulders spilling forward rather than ending on a straight line, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 256 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-endcap",
+      "seed": 880703,
+      "note": "Closes a run. Mirror for the opposite end.",
+      "params": {
+        "description": "the END of a tall stone cliff seen from the SIDE, natural weathered grey and honey sandstone rock at full height on the left, stepping and tapering down to open ground on the right, the rock breaking into loose boulders and grassy rubble as it falls away, a lip of deep saturated green grass along the top following the taper down, moss and small ferns on the ledges, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 256 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-stair",
+      "seed": 880704,
+      "note": "Must reach the full new cliff height or it stops halfway up.",
+      "params": {
+        "description": "a long flight of worn honey sandstone steps climbing a tall stone cliff, seen from the SIDE, climbing from the very bottom of the frame to the very top, low mossy stone kerbs running up both sides, cracked and weathered treads with grass and small weeds growing in the joints, rough grey rock walls close on either side, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-stair-pillar",
+      "seed": 880705,
+      "note": "Stands ON the stair/cliff join. Taller than the cliff so it reads as planted, not buried.",
+      "params": {
+        "description": "a tall slender carved stone gate pillar seen from the SIDE, honey sandstone blocks with a moulded cap and a stepped base, weathered and chipped, a little moss and ivy at the foot, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 64, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-boulders",
+      "seed": 880706,
+      "note": "Loose rock for the foot, at the NEW scale. Placement extra, not a required baseline strip.",
+      "params": {
+        "description": "a scattered cluster of large fallen boulders and broken rock at the foot of a cliff, weathered grey and honey sandstone, varied sizes with the biggest at the centre, tufts of deep green grass and small ferns pushing up between the stones, seen from a low top-down angle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 128 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "low top-down",
+        "no_background": true
+      }
+    }
+  ]
+}

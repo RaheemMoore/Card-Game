@@ -1,0 +1,46 @@
+{
+  "subject": "scene-castle-kit-magical-trees",
+  "label": "Halo Stone castle kit — magical forest hero trees",
+
+  "notes": [
+    "APPROVED by Raheem 2026-08-07: four-tree magical silhouette batch, one paid call, 25-generation ceiling, zero automatic retries. Creative direction: 'beautiful and new' followed by 'Go crazy.'",
+    "These are reusable, repositionable HERO TREES that complement the ordinary broadleaf fillers. Their differences must survive grayscale: spire, cascade, fan, and fork silhouettes — never four recoloured spheres.",
+    "Static source art only. Phaser owns canopy sway, gust response, motes, contact shadows, depth behavior, and day/night lighting.",
+    "NOT REPRODUCIBLE: /create-1-direction-object rejects seed. Preserve the raw job and every returned image.",
+    "styleAnchor is deliberately false. Actively anchoring to the retained round broadleaf risks importing its spherical crown. The file is staged only because the scene harness requires a styleReference path."
+  ],
+
+  "styleReference": "style-ref-existing-broadleaf.png",
+
+  "objects": [
+    {
+      "id": "magical-tree-family-v1",
+      "styleAnchor": false,
+      "note": "One object call returning four isolated trees. Cheapest complete test of whether PixelLab can expand the kit through silhouette rather than recolour.",
+      "params": {
+        "description": "a cohesive family of four isolated magical forest tree sprites for a bright colourful 2D pixel-art fantasy RPG castle perimeter, low three-quarter top-down game-map projection, crisp single dark outline, deliberate chunky pixel clusters, medium-high detail, expressive visible trunks and roots, saturated but natural fantasy colour, each tree fully visible and separated on transparent background: 1). a tall moonspoke fir 2). a cascading lanternwillow 3). an asymmetrical copper fanwood 4). a forked starglass alder",
+        "view": "top-down",
+        "size": 168,
+        "item_descriptions": [
+          "Moonspoke Fir: one tall narrow asymmetrical magical conifer in low three-quarter top-down game-map projection, a strong slightly curved trunk and exposed root flare, staggered swept needle tiers with large open gaps and several branch tips curling into elegant natural spirals, deep midnight-teal and blue-green needles with sparse silver-blue tips, dramatic spire silhouette, beautiful whimsical ancient forest character, fully visible isolated sprite",
+          "Lanternwillow: one high crooked magical willow in low three-quarter top-down game-map projection, a visible twisting honey-brown trunk that bends before splitting, its crown divided into five distinct cascading leaf-streams with open air between them instead of one umbrella mass, dark jade and muted turquoise leaves, several oversized pale-gold bell-shaped seedpods growing naturally from the hanging boughs, graceful enchanted silhouette, fully visible isolated sprite",
+          "Copper Fanwood: one boldly leaning magical deciduous tree in low three-quarter top-down game-map projection, pale warm bark and exposed roots, exactly three uneven fan-shaped bough masses arranged at different heights with strong negative space between them, feather-like leaf clusters in moss green, luminous copper-orange, coral and restrained russet, wind-sculpted theatrical silhouette rather than a round autumn crown, fully visible isolated sprite",
+          "Starglass Alder: one forked magical alder in low three-quarter top-down game-map projection, honey-grey trunk splitting into an antler-like open branch structure with abundant visible negative space, sparse triangular sprays of cool green and muted lavender leaves, several large opaque opalescent buds nested naturally at branch forks like milky glass fruit, strange elegant fairy-forest silhouette, alive and flourishing rather than dead, fully visible isolated sprite"
+        ]
+      }
+    }
+  ],
+
+  "avoid": "no round ball canopy, no identical silhouette, no ordinary generic oak, no Christmas tree symmetry, no snow, no literal lanterns, no wires, no fire, no burning leaves, no dead tree, no animal antlers, no crystal sculpture, no bright emissive glow, no magical beam, no sky, no horizon, no background scene, no forest scene, no grass patch, no ground tile, no dirt mound, no cast shadow, no dramatic sunlight, no wind motion, no animation, no cropped leaves, no people, no animals, no buildings, no text, no photorealism, no 3d render, no isometric grid",
+
+  "review": {
+    "acceptance": [
+      "All four silhouettes remain unmistakably different in grayscale: spire, cascade, fan, fork.",
+      "Every tree is fully contained, transparent, and has a readable trunk-base anchor with no baked ground patch or cast shadow.",
+      "Projection sits beside the existing Halo Stone broadleaf trees without becoming side-view or strict isometric art.",
+      "Magic reads through structure and restrained physical details, not through VFX that should belong to Phaser.",
+      "Each tree remains legible near 128–168px source scale and can be layered behind or in front of the player by its root Y."
+    ],
+    "sheetContext": "Review at native scale beside both retained broadleaf trees and over representative bright grass/dirt from the Halo Stone castle kit."
+  }
+}

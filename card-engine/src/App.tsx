@@ -99,6 +99,15 @@ const M55Harness = DEV_ROUTES
 const PhaserSchool = DEV_ROUTES
   ? lazy(() => import('./pages/dev/PhaserSchool').then((m) => ({ default: m.PhaserSchool })))
   : null;
+const WildlifeAnimationLab = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/WildlifeAnimationLab').then((m) => ({ default: m.WildlifeAnimationLab })))
+  : null;
+const LightLab = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/LightLab').then((m) => ({ default: m.LightLab })))
+  : null;
+const ScenePreview = DEV_ROUTES
+  ? lazy(() => import('./pages/dev/ScenePreview').then((m) => ({ default: m.ScenePreview })))
+  : null;
 
 /**
  * The V2 courtyard preview stays on `DEV` rather than the flag above: it pulls in
@@ -142,6 +151,45 @@ export default function App() {
               element={
                 <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
                   <PhaserSchool />
+                </Suspense>
+              }
+            />
+          )}
+
+          {WildlifeAnimationLab && (
+            <Route
+              path="/dev/wildlife-animation-lab"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading animation lab…</p>}>
+                  <WildlifeAnimationLab />
+                </Suspense>
+              }
+            />
+          )}
+
+          {/* Scene Preview — what Phaser Editor's Play button hands off to.
+              Generic on purpose: `?start=<SceneName>` is what the Editor's
+              Preview Scene command appends, so one route serves every scene. */}
+          {ScenePreview && (
+            <Route
+              path="/dev/scene"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <ScenePreview />
+                </Suspense>
+              }
+            />
+          )}
+
+          {/* Light Lab — the runtime half of Phaser School lesson 4. Sits beside
+              the school for the same reason: it is a studio surface, reads no
+              player data, and lazy-loads Phaser into its own chunk. */}
+          {LightLab && (
+            <Route
+              path="/dev/light-lab"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <LightLab />
                 </Suspense>
               }
             />

@@ -1,0 +1,185 @@
+{
+    "id": "b0031a88-d6b9-4d5a-853c-0059c7e07897",
+    "sceneType": "SCENE",
+    "settings": {
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "WildlifeLab"
+    },
+    "displayList": [
+        {
+            "type": "Rectangle",
+            "id": "072c752e-908d-4ae4-a0d7-894f19a5dba0",
+            "label": "labBackground",
+            "x": 400,
+            "y": 300,
+            "isFilled": true,
+            "fillColor": "#162238",
+            "width": 800,
+            "height": 600
+        },
+        {
+            "type": "TileSprite",
+            "id": "1a0ca98c-e3b8-473b-8c91-8469e168caea",
+            "label": "dirtTestGround",
+            "texture": {
+                "key": "ground-tileset-dirt-floor-32",
+                "frame": 15
+            },
+            "x": 400,
+            "y": 330,
+            "alpha": 0.92,
+            "width": 690,
+            "height": 330
+        },
+        {
+            "type": "Text",
+            "id": "53eade9b-33f6-410c-a792-7163d4453971",
+            "label": "labTitle",
+            "x": 48,
+            "y": 38,
+            "text": "WILDLIFE LAB",
+            "fontFamily": "Arial",
+            "fontSize": "34px",
+            "fontStyle": "bold",
+            "color": "#f6e6b5"
+        },
+        {
+            "type": "Text",
+            "id": "6600b503-fecb-4bf0-890d-00002c01cb43",
+            "label": "labSubtitle",
+            "x": 50,
+            "y": 88,
+            "text": "A separate test scene — Courtyard V2 stays untouched",
+            "fontFamily": "Arial",
+            "fontSize": "17px",
+            "fontStyle": " ",
+            "color": "#aebdd3"
+        },
+        {
+            "type": "Rectangle",
+            "id": "dca88962-3bdd-41c0-82e9-a0901debe013",
+            "label": "roamingAreaGuide",
+            "scope": "CLASS",
+            "x": 400,
+            "y": 330,
+            "isFilled": true,
+            "fillColor": "#203c42",
+            "fillAlpha": 0.1,
+            "strokeColor": "#73c6a4",
+            "strokeAlpha": 0.65,
+            "lineWidth": 3,
+            "isStroked": true,
+            "width": 690,
+            "height": 330
+        },
+        {
+            "type": "Text",
+            "id": "b9a0d8b6-c2f9-42b2-9dbe-118209f3a0ec",
+            "label": "foxLabel",
+            "x": 230,
+            "y": 370,
+            "originX": 0.5,
+            "text": "FOX LIVE\nroam • sniff • sit",
+            "align": "center",
+            "fontFamily": "Arial",
+            "fontSize": "12px",
+            "fontStyle": "bold",
+            "color": "#ffe0bd"
+        },
+        {
+            "type": "Text",
+            "id": "5981cf76-e94f-494b-88e4-17910d6165b9",
+            "label": "rabbitLabel",
+            "x": 400,
+            "y": 370,
+            "originX": 0.5,
+            "text": "RABBIT LIVE\nhop • nibble",
+            "align": "center",
+            "fontFamily": "Arial",
+            "fontSize": "12px",
+            "fontStyle": "bold",
+            "color": "#f0e6d8"
+        },
+        {
+            "type": "Text",
+            "id": "3cf0ca8e-8525-4994-91fd-ebabe9312919",
+            "label": "tortoiseLabel",
+            "x": 570,
+            "y": 370,
+            "originX": 0.5,
+            "text": "TORTOISE LIVE\nslow walk",
+            "align": "center",
+            "fontFamily": "Arial",
+            "fontSize": "12px",
+            "fontStyle": "bold",
+            "color": "#b8f4cb"
+        },
+        {
+            "type": "Text",
+            "id": "883a6caf-081b-42f8-8c11-7ee7e5387057",
+            "label": "labInstructions",
+            "x": 400,
+            "y": 505,
+            "originX": 0.5,
+            "text": "All three animals use real generated animation sheets. Review behavior here before Courtyard V2.",
+            "align": "center",
+            "fontFamily": "Arial",
+            "fontSize": "15px",
+            "fontStyle": " ",
+            "color": "#f6e6b5"
+        },
+        {
+            "type": "Sprite",
+            "id": "f8899fa1-5aa9-42ad-9463-367fd69ce81e",
+            "label": "foxSprite",
+            "scope": "CLASS",
+            "texture": {
+                "key": "wildlife-fox-trot",
+                "frame": 0
+            },
+            "x": 230,
+            "y": 315,
+            "scaleX": 0.7,
+            "scaleY": 0.7,
+            "originY": 1
+        },
+        {
+            "type": "Sprite",
+            "id": "aa751b4a-8721-4dea-9c67-869f6f8accd2",
+            "label": "rabbitSprite",
+            "scope": "CLASS",
+            "texture": {
+                "key": "wildlife-rabbit-hop",
+                "frame": 0
+            },
+            "x": 400,
+            "y": 315,
+            "scaleX": 0.4,
+            "scaleY": 0.4,
+            "originY": 1
+        },
+        {
+            "type": "Sprite",
+            "id": "66ede8f6-49c8-4e46-a765-7ecaf1618799",
+            "label": "tortoiseSprite",
+            "scope": "CLASS",
+            "texture": {
+                "key": "wildlife-tortoise-toddle",
+                "frame": 0
+            },
+            "x": 570,
+            "y": 315,
+            "scaleX": 0.66,
+            "scaleY": 0.66,
+            "originY": 1
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
+}

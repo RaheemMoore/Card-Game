@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LESSONS, type Block, type Lesson, type Actor } from './phaserSchool/lessons';
+import {
+  CHATGPT_LESSONS,
+  LESSONS,
+  type Block,
+  type Lesson,
+  type Actor,
+} from './phaserSchool/lessons';
 
 /**
  * `/dev/phaser-school` — the teaching harness for Phaser Editor world authoring.
@@ -19,6 +25,13 @@ import { LESSONS, type Block, type Lesson, type Actor } from './phaserSchool/les
  */
 
 const KEY = 'phaser-school-progress-v1';
+
+type LessonTrack = 'claude' | 'chatgpt';
+
+const TRACKS: Record<LessonTrack, { label: string; short: string; lessons: Lesson[] }> = {
+  claude: { label: 'Claude Lessons', short: 'Claude', lessons: LESSONS },
+  chatgpt: { label: 'ChatGPT Lessons', short: 'ChatGPT', lessons: CHATGPT_LESSONS },
+};
 
 /* Minimal inline formatting: **bold** and `code`. Deliberately not a markdown
    parser — lesson copy is ours, and a parser is a dependency plus a footgun. */
@@ -415,6 +428,41 @@ function BlockView({ block }: { block: Block }) {
         </div>
       );
 
+    case 'lab':
+      return (
+        <a
+          href={block.route}
+          style={{
+            display: 'block',
+            textDecoration: 'none',
+            border: '1px solid #7c5cff',
+            background: 'linear-gradient(180deg, rgba(124,92,255,0.14), rgba(124,92,255,0.05))',
+            borderRadius: 12,
+            padding: '18px 20px',
+          }}
+        >
+          <div style={{ fontSize: 12, letterSpacing: 1.4, color: '#b9a6ff', fontWeight: 700 }}>
+            OPEN THE LAB
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#efeaff', margin: '6px 0 4px' }}>
+            {block.title}
+          </div>
+          <div style={{ color: '#c9c2e6', marginBottom: 10 }}>
+            <Rich text={block.blurb} />
+          </div>
+          <ul style={{ margin: 0, paddingLeft: 20, color: '#a99fd0' }}>
+            {block.learn.map((l) => (
+              <li key={l} style={{ marginBottom: 3 }}>
+                <Rich text={l} />
+              </li>
+            ))}
+          </ul>
+          <div style={{ marginTop: 12, color: '#b9a6ff', fontFamily: 'monospace', fontSize: 13 }}>
+            {block.route}
+          </div>
+        </a>
+      );
+
     case 'originLab':
       return <OriginLab src={block.src} />;
 
@@ -452,6 +500,7 @@ function BlockView({ block }: { block: Block }) {
 }
 
 export function PhaserSchool() {
+  const [activeTrack, setActiveTrack] = useState<LessonTrack>('claude');
   const [activeId, setActiveId] = useState(LESSONS[0].id);
   const [done, setDone] = useState<Record<string, boolean>>(() => {
     try {
@@ -465,13 +514,25 @@ export function PhaserSchool() {
     localStorage.setItem(KEY, JSON.stringify(done));
   }, [done]);
 
+  const track = TRACKS[activeTrack];
+  const trackLessons = track.lessons;
+
   const lesson: Lesson = useMemo(
-    () => LESSONS.find((l) => l.id === activeId) ?? LESSONS[0],
-    [activeId],
+    () => trackLessons.find((l) => l.id === activeId) ?? trackLessons[0],
+    [activeId, trackLessons],
   );
 
-  const total = LESSONS.reduce((n, l) => n + l.checkpoint.length, 0);
-  const complete = Object.values(done).filter(Boolean).length;
+  const total = trackLessons.reduce((n, l) => n + l.checkpoint.length, 0);
+  const complete = trackLessons.reduce(
+    (n, l) => n + l.checkpoint.filter((c) => done[`${l.id}::${c}`]).length,
+    0,
+  );
+
+  const selectTrack = (next: LessonTrack) => {
+    setActiveTrack(next);
+    setActiveId(TRACKS[next].lessons[0].id);
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <div style={S.shell}>
@@ -481,12 +542,26 @@ export function PhaserSchool() {
           <div style={S.brandMark}>PS</div>
           <div>
             <strong style={{ display: 'block', fontSize: 14 }}>Phaser School</strong>
-            <span style={{ fontSize: 11, color: '#aaa9bd' }}>World authoring, lesson by lesson</span>
+            <span style={{ fontSize: 11, color: '#aaa9bd' }}>Two teachers, one shared school</span>
           </div>
         </div>
 
-        <p style={S.navHead}>Syllabus</p>
-        {LESSONS.map((l) => {
+        <div style={S.trackSwitch} aria-label="Lesson teacher">
+          {(Object.keys(TRACKS) as LessonTrack[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={activeTrack === key}
+              onClick={() => selectTrack(key)}
+              style={{ ...S.trackButton, ...(activeTrack === key ? S.trackButtonActive : null) }}
+            >
+              {TRACKS[key].short}
+            </button>
+          ))}
+        </div>
+
+        <p style={S.navHead}>{track.label}</p>
+        {trackLessons.map((l) => {
           const active = l.id === activeId;
           const lDone = l.checkpoint.filter((c) => done[`${l.id}::${c}`]).length;
           return (
@@ -523,8 +598,9 @@ export function PhaserSchool() {
       <main style={S.main}>
         <header style={S.header}>
           <span style={S.eyebrow}>
-            Lesson {lesson.number}
+            {track.short} · Lesson {lesson.number}
             {lesson.status === 'draft' && <span style={S.draftTag}>draft</span>}
+            {lesson.locked && <span style={S.savedTag}>saved lesson</span>}
           </span>
           <h1 style={S.h1}>{lesson.title}</h1>
           <p style={S.outcome}>
@@ -644,6 +720,32 @@ const S: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     flexShrink: 0,
   },
+  trackSwitch: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 4,
+    padding: 4,
+    marginBottom: 22,
+    border: '1px solid #3f3e54',
+    borderRadius: 10,
+    background: '#232232',
+  },
+  trackButton: {
+    border: 'none',
+    borderRadius: 7,
+    padding: '8px 6px',
+    background: 'transparent',
+    color: '#8f8da3',
+    fontFamily: 'inherit',
+    fontSize: 11.5,
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  trackButtonActive: {
+    background: 'rgba(124,112,255,.20)',
+    color: '#fff',
+    boxShadow: '0 4px 14px rgba(17,16,30,.22)',
+  },
   navHead: {
     fontSize: 10,
     fontWeight: 700,
@@ -710,6 +812,13 @@ const S: Record<string, React.CSSProperties> = {
   draftTag: {
     background: 'rgba(245,181,68,.16)',
     color: '#f5b544',
+    borderRadius: 5,
+    padding: '2px 7px',
+    letterSpacing: 0,
+  },
+  savedTag: {
+    background: 'rgba(47,229,167,.14)',
+    color: '#2fe5a7',
     borderRadius: 5,
     padding: '2px 7px',
     letterSpacing: 0,

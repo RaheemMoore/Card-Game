@@ -1,0 +1,34 @@
+{
+  "subject": "castle-floor-tileset",
+  "label": "Castle interior floor — dirt ↔ honey flagstone Wang set for the four quadrants",
+
+  "notes": [
+    "WHY: the dirt-paving set already in the map reads as slightly-textured dirt, not a built floor. Raheem, looking at the Forge pad at 3x: 'I don't know if that's the right paving. I'm thinking about brick castle floor looking paving, not smooth concrete — like the brick floor that was in the castle before we decided to do this big change.'",
+    "THE REFERENCE IS MEASURED, NOT REMEMBERED. Sampled from the original painted courtyard plate (public/assets/castle/courtyard.png): its floor is warm honey sandstone at rgb(218,189,131) / (228,199,139) / (235,206,148), R-B +82 to +89. The castle walls we generated carry honey-gold trim at R-B +69 to +88 — the SAME family. So a honey flagstone floor ties wall and floor together, which the current sandy paving does not.",
+    "BRICK-LAID, NOT BIG SMOOTH SLABS. Raheem asked for a brick castle floor. So the description says rectangular slabs laid in regular courses with staggered joints, not the large irregular flagstones the old plate used.",
+    "DIRT SIDE MUST MATCH THE GROUND ALREADY PAINTED. The map's dirt is rgb(170,118,70) from the grass-dirt set. If the returned dirt is off, it gets corrected with lib/recolor.py --ramp against that exact colour — same fix already applied to the dirt-paving set, which took its dirt from a 32-channel mismatch to 0.",
+    "ENDPOINT: /create-tiles-pro with tile_feature 'tileset'. This is the route that produced BOTH working ground sets first time (grass-dirt and dirt-paving, 16 tiles each, correct binary corner order, verified by sampling corner pixels). It is the right instrument for ground and the wrong one for anything vertical — the castle wall defect came from using its 'building' feature for an elevation.",
+    "TILES CANNOT BE STYLE-ANCHORED. style_images on this route redefines tile shape and dimensions, so register is steered by description + tile_view + outline_mode instead. Verified against the API: /create-image-pixen refuses style_images, color_image and init_image outright ('Extra inputs are not permitted'); only the object route accepts them, and it caps at 256px.",
+    "COST: a tileset call has run 20 generations each of the two previous times. Budget 20.",
+    "AFTER IT LANDS: register via castle-kit-manifest.json -> npm run assets:pack, add as a third tileset on the courtyardGround tilemap (firstgid 33), then repaint the four quadrant pads with it. The pads are already laid out at x21-37/46-62, y8-14/20-26."
+  ],
+
+  "styleReference": "style-ref-stone.png",
+
+  "tiles": [
+    {
+      "id": "castle-floor",
+      "seed": 881201,
+      "styleAnchor": false,
+      "note": "A = packed dirt matching the courtyard ground. B = the castle's honey flagstone floor.",
+      "params": {
+        "description": "1). packed warm brown dirt ground, fine gravel and scuffs 2). warm honey sandstone castle floor of rectangular cut slabs laid in regular courses with staggered joints like brickwork, pale mortar lines between them, worn smooth in the middle of each slab, occasional hairline cracks, a few paler cream slabs scattered through",
+        "tile_type": "square_topdown",
+        "tile_size": 32,
+        "tile_view": "low top-down",
+        "tile_feature": "tileset",
+        "outline_mode": "outline"
+      }
+    }
+  ]
+}

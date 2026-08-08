@@ -1,0 +1,97 @@
+{
+  "subject": "castle-walls-v3",
+  "label": "Castle curtain wall, towers and gate — the EXISTING kit's look, at the new size",
+
+  "notes": [
+    "V2 WAS REJECTED FOR ART DIRECTION, NOT FOR TECHNIQUE. The projection fix worked (lean went from -96.5px to 0.0px) and the sizes were right. But I specced 'cool blue-grey stone, no honey tone' — taken from the cliff-separation logic — and threw away the art style Raheem had already approved. He was blunt and correct: 'Why are you trying to make a Malfoy grey castle? The other one has gold trim, grey bricks, white bricks. It looks good with the theme we're building. What you built is depressing.'",
+    "THE RULE THIS ESTABLISHES: when approved art already exists, MEASURE IT AND MATCH IT. Do not derive a look from first principles alongside art the client has already signed off. The only thing wrong with the old kit was its SIZE.",
+    "MEASURED PALETTE of the approved pieces (gatewatch tower, corner-outer, gate arch) — sampled, not remembered: honey-gold sandstone rgb(214,184,145) / (220,196,147) / (224,188,137) at R-B +69 to +88; cream highlight rgb(204,188,162) at R-B +42; cool VIOLET-grey brick rgb(119,109,117) / (113,105,107) / (89,78,87) at R-B ~0 to +6. Note the greys are slightly violet, not blue. Honey trim is 25-35% of the visible surface — it is a major element, not an accent.",
+    "SEPARATION FROM THE CLIFF NOW COMES FROM SILHOUETTE, NOT HUE. The v2 plan used cool grey to stop a 288px wall merging with a 256px cliff into one 544px slab. That still matters, but it is bought with the DEAD-STRAIGHT CRENELLATED TOP against the cliff's irregular organic lip, plus the wall's flat even lighting against the cliff's darkening base. Both are stated positively in every prompt below. Warm honey trim actually helps here — the cliff is honey-and-grey natural rock, the wall is honey-and-grey CUT masonry, and the eye reads 'quarried from this hill', which is better world-building than a colour clash.",
+    "PALETTE IS FORCED AFTERWARDS, NOT HOPED FOR. Every piece gets lib/ramp_transfer.py against castle-tower-gatewatch-healthy.png. That is the CORRECT use of the tool — carved castle stone onto carved castle stone, same material family. It is the opposite of the logged pillar error, where carved stone was matched onto NATURAL cliff rock and vanished into it. Never run it across material families.",
+    "SIZES CARRY OVER FROM V2 UNCHANGED — they were right. Hero 100px, ground tiles 32px, cliff face 256px, cliff stair 288px. Wall 288px (2.88x hero, 32px above the cliff, shares a datum with the stair). Tower 384px (3.84x, a clear 96px / 33% above the wall). Gate 320px.",
+    "TWO V2 PIECES FAILED ON CONTENT AND ARE RE-SPECCED: the buttress came back as a slender ornamental spire instead of a wall support, and both corners came back as standalone square turrets rather than a wall turning a corner. Wording below names the wall running INTO the corner explicitly.",
+    "ONE ENDPOINT PER STRUCTURAL FAMILY. All /create-image-pixen, view 'side'. /create-tiles-pro with tile_feature 'building' is what produced the raking projection in the first place and is not used here.",
+    "SEAM-AUTHORED, NOT MIRRORED. Coursed masonry is directional; mirroring is what turned the stair into a symmetric arch. Even coursing, no off-centre features, asymmetric detail lives in the discrete buttress module."
+  ],
+
+  "images": [
+    {
+      "id": "wall-straight",
+      "seed": 880901,
+      "note": "The curtain wall. Even coursing so it repeats without a visible rhythm.",
+      "params": {
+        "description": "a seamlessly horizontally tileable fantasy castle curtain wall seen straight on in flat elevation, pale violet-grey stone brickwork laid in even regular courses, bright warm honey-gold sandstone trim forming a string course band across the wall and capping every merlon, cream-white highlight stones scattered through the brickwork, a dead straight crenellated parapet with square merlons along the very top, narrow vertical arrow slits evenly spaced, flat even daylight with no gradient from top to bottom, warm storybook fantasy castle, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-corner-outer",
+      "seed": 880902,
+      "note": "A WALL TURNING A CORNER — v2 returned a standalone turret because the wall was never mentioned.",
+      "params": {
+        "description": "a fantasy castle curtain wall turning an outer corner, the wall running away to the left and to the right from a squared corner buttress, seen almost straight on with only a very shallow turn, pale violet-grey stone brickwork in even regular courses, bright warm honey-gold sandstone quoin stones up the corner edge and capping the merlons, cream-white highlight stones, a crenellated parapet with square merlons running continuously around the corner, flat even daylight with no gradient, warm storybook fantasy castle, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-corner-inner",
+      "seed": 880903,
+      "note": "Same, turning the other way. Generated rather than mirrored because coursing is directional.",
+      "params": {
+        "description": "a fantasy castle curtain wall meeting at an inner corner, two wall runs coming together into a recessed angle, seen almost straight on with only a very shallow turn, pale violet-grey stone brickwork in even regular courses, bright warm honey-gold sandstone trim and merlon caps, cream-white highlight stones, a crenellated parapet with square merlons running into the corner, flat even daylight with no gradient, warm storybook fantasy castle, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "tower",
+      "seed": 880904,
+      "note": "The tallest thing in the kit. Matches the gatewatch tower's look at 2.8x its old height.",
+      "params": {
+        "description": "a tall fantasy castle watchtower seen straight on in flat elevation, pale violet-grey stone brickwork in even regular courses, bright warm honey-gold sandstone quoins up both edges, a honey-gold corbelled string course under the battlements and honey-gold caps on every merlon, cream-white highlight stones, a crenellated battlement crown at the top, tall narrow arrow slits up the face, a small honey-gold arched doorway at the base, a pennant flying from the crown, flat even daylight with no gradient, warm storybook fantasy castle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "gate",
+      "seed": 880905,
+      "note": "Taller than the wall so the opening reads as a deliberate breach in the wall line.",
+      "params": {
+        "description": "a fantasy castle gatehouse seen straight on in flat elevation, a tall arched gateway opening through pale violet-grey stone brickwork in even regular courses, a heavy bright honey-gold sandstone arch ring around the opening and honey-gold quoins up both edges, cream-white highlight stones, a crenellated parapet with honey-gold capped merlons above, a raised dark iron portcullis visible inside the arch, flat even daylight with no gradient, warm storybook fantasy castle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 320 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-buttress",
+      "seed": 880906,
+      "note": "A WALL SUPPORT — v2 returned an ornamental spire. Wording now names the batter and the wall it leans on.",
+      "params": {
+        "description": "a heavy stone buttress leaning against a castle wall, seen straight on in flat elevation, a broad squat sloping pier of pale violet-grey stone brickwork widest at the ground and battered inward as it rises, a bright warm honey-gold sandstone weathered offset partway up and a honey-gold squared cap at the top, cream-white highlight stones, a little moss and grass only at the very foot where it meets the ground, flat even daylight with no gradient, warm storybook fantasy castle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 128, "height": 320 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

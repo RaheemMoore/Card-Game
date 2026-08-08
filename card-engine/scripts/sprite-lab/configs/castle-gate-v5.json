@@ -1,0 +1,45 @@
+{
+  "subject": "castle-gate-v5",
+  "label": "Drawbridge gatehouse — regenerated with the v3 wall's EXACT style clauses",
+
+  "notes": [
+    "RAHEEM FOUND THE ROOT CAUSE, NOT ME: 'the rest of the castle was generated together, it actually matches. It would generate as a set.' The v3 wall, tower, gate and corners were generated in one batch with identical style wording, so they agree. The v4 drawbridge was generated alone with REWORDED prompts, so it does not. Every colour repair I attempted afterwards (rank map, per-family grade) was treating a symptom.",
+    "THE THREE MEASURED DIFFERENCES between the v3 wall prompt and the v4 drawbridge prompt:",
+    "  1. THE BIG ONE — v3 says 'flat even daylight with no gradient from top to bottom'. v4 OMITTED THAT CLAUSE ENTIRELY, so the model shaded it however it liked. That is why the light reads wrong.",
+    "  2. v4 said 'twin ROUND flanking turrets'. Round surfaces get curved gradient shading, which no flat-lit wall next to them will ever match. Square towers this time.",
+    "  3. v3 puts the style clause immediately after the structural noun; v4 buried it behind three structural clauses (drawbridge, chains, turrets). Earlier tokens carry more weight, so the style got diluted.",
+    "METHOD: the style clauses below are COPIED VERBATIM from configs/castle-walls-v3.json wall-straight, in the same order, with only the structural nouns changed. Same phrasing, same sequence, same trailing render clauses.",
+    "A CONTROL IS INCLUDED. wall-control re-runs the v3 wall prompt verbatim at a fresh seed. If the control comes back matching the wall already in the castle, the generation context is stable and the gate should match too. If the control does NOT match, then batch identity matters more than wording and no prompt fix will work — that is worth knowing for 1 generation.",
+    "NO POST-PROCESSING. Raheem, after three failed colour repairs: colour fixes made it worse every time. This ships as generated, background cut EDGE-CONNECTED ONLY (never global colour match — that is what punched 10,549 holes through the last one).",
+    "SIZES hold to the datum: gate 384x384 (12x12 tiles), wall control 384x288 (12x9). Ground line y=1216, camera 2x."
+  ],
+
+  "images": [
+    {
+      "id": "gate-drawbridge-v5",
+      "seed": 881101,
+      "note": "v3 wall style clauses verbatim, square turrets, flat-lighting clause restored.",
+      "params": {
+        "description": "a fantasy castle gatehouse seen straight on in flat elevation, pale violet-grey stone brickwork laid in even regular courses, bright warm honey-gold sandstone trim forming a string course band across the gatehouse and capping every merlon, cream-white highlight stones scattered through the brickwork, a dead straight crenellated parapet with square merlons along the very top, narrow vertical arrow slits evenly spaced, a wide arched gateway through the centre with a heavy honey-gold sandstone arch ring, a square flanking tower either side of the arch, a heavy timber drawbridge lowered flat toward the viewer forming a broad plank roadway, thick iron chains from the drawbridge corners up to the gatehouse, flat even daylight with no gradient from top to bottom, warm storybook fantasy castle, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-control",
+      "seed": 881102,
+      "note": "CONTROL — the v3 wall prompt verbatim at a new seed. Proves whether wording alone reproduces the castle's look.",
+      "params": {
+        "description": "a seamlessly horizontally tileable fantasy castle curtain wall seen straight on in flat elevation, pale violet-grey stone brickwork laid in even regular courses, bright warm honey-gold sandstone trim forming a string course band across the wall and capping every merlon, cream-white highlight stones scattered through the brickwork, a dead straight crenellated parapet with square merlons along the very top, narrow vertical arrow slits evenly spaced, flat even daylight with no gradient from top to bottom, warm storybook fantasy castle, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "subject": "castle-walls-v2",
+  "label": "Castle curtain wall, towers and gate — flat elevation at 1:1, sized against the cliff",
+
+  "notes": [
+    "THIS FIXES A BLOCKING DEFECT. The shipped kit contains TWO INCOMPATIBLE PROJECTIONS: towers, corners and the gate arch are drawn flat (0px lean), while castle-wall-straight-front (-96px lean over 115 rows), castle-wall-straight-side (-75px) and castle-wall-connector-tower (-42px) are drawn as ~40-degree diagonals. Proof: scripts/sprite-lab/review/castle-kit/wall-projection-defect.png",
+    "ROOT CAUSE, per environment-art-director 2026-08-06: the diagonal pieces came from /create-tiles-pro with tile_feature 'building', which produces a RAKING WALL-STRIP projection. That is incompatible with /create-image-pixen view:'side' elevation renders. Mixing two endpoints inside one structural family is what caused the defect. COMMIT TO ONE ENDPOINT PER FAMILY — this config is entirely /create-image-pixen, the same route that produced the cliff bands.",
+    "SCALE IS DERIVED, NOT GUESSED. Hero 100px on 32px ground tiles. Cliff face 256px (2.56x hero) — Raheem sized that himself in the editor. Wall is 288px so it is 32px TALLER than the cliff it stands on and shares a datum with the 288px cliff stair. Tower is 384px — 96px / 33% above the wall, because a castle whose towers match its walls has no silhouette. The old kit had walls at 0.93-1.15x hero and towers at 1.29-1.39x: shorter than the staircase, which is why the castle never read as a castle.",
+    "WALL MUST NOT MERGE WITH THE CLIFF. A 288px wall directly above a 256px cliff is 544px of continuous stone. Three separations, all stated positively in the prompts rather than as negations: (1) VALUE — the cliff darkens toward its base; the wall is flat-lit with no gradient. (2) HUE — cliff is warm grey-and-honey sandstone with moss; wall is cool quarried blue-grey with mortar joints and explicitly no moss and no honey tone. (3) SILHOUETTE — cliff has an irregular organic top lip; the wall has a dead-straight coursed top with crenellations. The silhouette break at the join is what actually sells 'built structure on natural rock'.",
+    "DO NOT RUN ramp_transfer.py ON THESE. Logged error, 2026-08-06: a carved stone pillar was palette-matched onto the natural cliff ramp and vanished into it. Raheem: 'How would the pillar stand out from the cliff face? That makes absolutely no art directive.' Carved-versus-natural IS the visual argument for why a castle sits on a cliff instead of merging with it. ramp_transfer is reserved for DRESSING ONLY — moss at a wall base, ivy, grass on crenellations — region-constrained. Never the base stone.",
+    "TILING IS SEAM-AUTHORED, NOT MIRRORED. Mirroring is right for organic cliff faces and symmetric endcaps. It is wrong for a coursed wall: mirroring a directional piece is what turned the stair into a symmetric arch. So the straight wall is authored with an EVEN, DIRECTION-AGNOSTIC block pattern and no off-centre features, and any asymmetric detail (buttress, banner bracket) is a DISCRETE MODULE dropped into the repeat — the same logic that made the stair pillar solve the stair/cliff butt-join.",
+    "CORNERS ARE THE ONE EXCEPTION TO PURE ELEVATION. A corner must show two faces, so it gets a shallow oblique — pinned at ~18 degrees, not the ~40 that caused the defect. Raheem approved the shallow angle as a default.",
+    "GATE ARCH IS NOT REGENERATED. castle-gate-arch-open-healthy already follows the correct flat elevation convention. Per the director, reuse it rather than re-buying it."
+  ],
+
+  "images": [
+    {
+      "id": "wall-straight",
+      "seed": 880801,
+      "note": "The curtain wall. Even coursing, no off-centre features, so it repeats without a visible rhythm.",
+      "params": {
+        "description": "a seamlessly horizontally tileable castle curtain wall seen straight on in flat elevation, quarried cool blue-grey stone blocks laid in even regular courses with pale mortar joints, a dead straight crenellated parapet with square merlons along the very top, narrow vertical arrow slits evenly spaced, flat even daylight with no gradient from top to bottom, clean rectilinear silhouette, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-corner-outer",
+      "seed": 880802,
+      "note": "Shallow ~18 degree oblique — enough to show two faces, nowhere near the 40 degrees that caused the defect.",
+      "params": {
+        "description": "the outer corner of a castle curtain wall, seen almost straight on with only a very shallow turn so both faces are just visible, quarried cool blue-grey stone blocks in even regular courses with pale mortar joints, a crenellated parapet with square merlons continuing around the corner, a squared corner buttress running full height, flat even daylight with no gradient, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-corner-inner",
+      "seed": 880803,
+      "note": "Same module turned the other way — generated, not mirrored, because coursing is directional.",
+      "params": {
+        "description": "the inner corner of a castle curtain wall, seen almost straight on with only a very shallow turn so both faces are just visible, quarried cool blue-grey stone blocks in even regular courses with pale mortar joints, a crenellated parapet with square merlons running into the corner, flat even daylight with no gradient, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 288 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "tower",
+      "seed": 880804,
+      "note": "384px — a clear 96px above the wall. The tallest thing in the kit, by design.",
+      "params": {
+        "description": "a tall square castle watchtower seen straight on in flat elevation, quarried cool blue-grey stone blocks in even regular courses with pale mortar joints, a crenellated battlement crown with square merlons at the top, a corbelled string course below the battlements, tall narrow arrow slits up the face, a small arched doorway at the base, flat even daylight with no gradient, clean rectilinear silhouette, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "gate",
+      "seed": 880805,
+      "note": "32px taller than the wall so the opening reads as a deliberate breach in the wall line.",
+      "params": {
+        "description": "a castle gatehouse seen straight on in flat elevation, a tall arched gateway opening through quarried cool blue-grey stone blocks in even regular courses with pale mortar joints, a heavy stone arch ring around the opening, a crenellated parapet with square merlons above, a raised iron portcullis visible inside the arch, flat even daylight with no gradient, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 320 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-buttress",
+      "seed": 880806,
+      "note": "The discrete asymmetric module. Dropped into the repeat every few bands so a long curtain run stops reading as one texture, WITHOUT baking a rhythm into the tileable band.",
+      "params": {
+        "description": "a single stone buttress standing against a castle wall, seen straight on in flat elevation, quarried cool blue-grey stone blocks in even regular courses with pale mortar joints, a sloped weathered offset partway up, a squared cap at the top, a little moss and grass only at the very foot where it meets the ground, flat even daylight with no gradient, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 96, "height": 320 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

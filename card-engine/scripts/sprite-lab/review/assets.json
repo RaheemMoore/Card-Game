@@ -626,6 +626,94 @@
       "faces": "1 \u2014 a rug has no front",
       "verdict": "pending",
       "note": "THE FIX. Generated 448px wide via /create-image-pixen instead of 88px via the object route \u2014 5.1x the linear resolution, and ONE generation instead of 25. It is now scaled DOWN into place instead of up 3.5x, which is what made the v1 blurry. Background flood-cut cleanly. This is the rug Raheem placed and disliked; compare it to rug-tower."
+    },
+    {
+      "id": "tree-moonspoke-fir",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-moonspoke-fir.png",
+      "wall": "floor",
+      "source": "scene-castle-kit-magical-trees.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 7,
+      "faces": "1 \u2014 reusable static scenery",
+      "verdict": "pending",
+      "note": "New magical-tree batch: spire silhouette. One four-object call cost 25 total; cost allocated 7/6/6/6 for the cumulative tally."
+    },
+    {
+      "id": "tree-lanternwillow",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-lanternwillow.png",
+      "wall": "floor",
+      "source": "scene-castle-kit-magical-trees.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 reusable static scenery",
+      "verdict": "pending",
+      "note": "New magical-tree batch: cascade silhouette with bell seedpods."
+    },
+    {
+      "id": "tree-copper-fanwood",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-copper-fanwood.png",
+      "wall": "floor",
+      "source": "scene-castle-kit-magical-trees.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 reusable static scenery",
+      "verdict": "pending",
+      "note": "New magical-tree batch: copper fan silhouette."
+    },
+    {
+      "id": "tree-starglass-alder",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-starglass-alder.png",
+      "wall": "floor",
+      "source": "scene-castle-kit-magical-trees.json",
+      "endpoint": "/create-1-direction-object",
+      "generations": 6,
+      "faces": "1 \u2014 reusable static scenery",
+      "verdict": "pending",
+      "note": "New magical-tree batch: open fork silhouette with opalescent buds."
+    },
+    {
+      "id": "tree-honeycloud-poplar",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-honeycloud-poplar.png",
+      "wall": "floor",
+      "source": "PixelLab",
+      "endpoint": "create-1-direction-object",
+      "generations": 7,
+      "faces": "1 static tree",
+      "verdict": "pending",
+      "note": "Warm courtyard family; offset puffy crowns. Pending visual verdict."
+    },
+    {
+      "id": "tree-apricot-fanmaple",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-apricot-fanmaple.png",
+      "wall": "floor",
+      "source": "PixelLab",
+      "endpoint": "create-1-direction-object",
+      "generations": 6,
+      "faces": "1 static tree",
+      "verdict": "pending",
+      "note": "Warm courtyard family; peach-orange fan tiers. Pending visual verdict."
+    },
+    {
+      "id": "tree-mellowbell-willow",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-mellowbell-willow.png",
+      "wall": "floor",
+      "source": "PixelLab",
+      "endpoint": "create-1-direction-object",
+      "generations": 6,
+      "faces": "1 static tree",
+      "verdict": "pending",
+      "note": "Warm courtyard family; hanging scalloped curtains. Pending visual verdict."
+    },
+    {
+      "id": "tree-sunwheel-acacia",
+      "file": "card-engine\\public\\assets\\kits\\halo-stone-castle\\nature\\trees\\castle-tree-sunwheel-acacia.png",
+      "wall": "floor",
+      "source": "PixelLab",
+      "endpoint": "create-1-direction-object",
+      "generations": 6,
+      "faces": "1 static tree",
+      "verdict": "pending",
+      "note": "Warm courtyard family; radial open canopy. Pending visual verdict."
     }
   ]
 }

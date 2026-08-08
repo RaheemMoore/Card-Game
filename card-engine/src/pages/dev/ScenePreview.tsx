@@ -382,6 +382,7 @@ function makeScene(
       // cannot import it (see sceneBehaviors/types.ts), so it is attached here.
       this.behavior = SCENE_BEHAVIORS[sceneName]?.(this, {
         blockers: this.colliders.blockers,
+        elevation: this.elevation,
         wildlife: this.wildlife,
         showWildlife: showRoamAreas,
       });

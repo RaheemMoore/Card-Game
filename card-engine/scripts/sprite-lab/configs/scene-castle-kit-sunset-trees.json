@@ -1,0 +1,46 @@
+{
+  "subject": "scene-castle-kit-sunset-trees",
+  "label": "Halo Stone castle kit - warm sunset courtyard trees",
+
+  "notes": [
+    "APPROVED by Raheem 2026-08-07: one four-tree warm courtyard batch, 25-generation ceiling, zero automatic retries.",
+    "The earlier cool magical-tree batch is retained as the twilight/night family. This batch targets the current courtyard: happy, warm, whimsical fantasy with orange, puffy, mellow foliage.",
+    "Warmth comes from leaf and bark materials, not baked sunset illumination. Phaser owns sway, motes, contact shadows, wind response, depth behavior, and day/night lighting.",
+    "NOT REPRODUCIBLE: /create-1-direction-object rejects seed. Preserve the raw job and every returned image.",
+    "styleAnchor is deliberately false to avoid importing the retained broadleaf's round crown or the twilight family's cool palette."
+  ],
+
+  "styleReference": "style-ref-existing-broadleaf.png",
+
+  "objects": [
+    {
+      "id": "sunset-tree-family-v1",
+      "styleAnchor": false,
+      "note": "One object call returning four isolated warm courtyard trees with constructionally different silhouettes.",
+      "params": {
+        "description": "a cohesive family of four isolated happy whimsical fantasy tree sprites for the warm Halo Stone castle courtyard, low three-quarter top-down 2D pixel-art game-map projection, transparent canvas surrounding every complete silhouette, chunky readable pixel clusters, crisp restrained dark outline, warm neutral illumination, clean visible trunks and root-contact anchors, warm sunset-inspired foliage materials without cast light: 1). Honeycloud Poplar 2). Apricot Fanmaple 3). Mellowbell Willow 4). Sunwheel Acacia",
+        "view": "top-down",
+        "size": 168,
+        "item_descriptions": [
+          "Honeycloud Poplar: one cheerful tall tree constructed from exactly three offset puffy crowns stacked at different heights, clearly separated crown seams and an irregular tapered outline rather than one ball, warm honey-brown trunk visible between the crowns with clean roots, butter-lime and mellow spring-green foliage, honey-gold highlights and restrained apricot undersides, softly curled leaf clusters around the seams, cozy fairytale silhouette, fully visible isolated sprite",
+          "Apricot Fanmaple: one playful leaning tree with a visible warm-brown trunk and clean roots, exactly two broad uneven fan-shaped foliage tiers with strong transparent gaps between the boughs, apricot-orange, peach-coral, tangerine and warm ochre leaves with a little fresh green retained near the trunk, several star-folded leaf sprays as a subtle physical magical cue, lively asymmetrical silhouette, fully visible isolated sprite",
+          "Mellowbell Willow: one gentle arched tree with a visible honey-brown trunk and clean roots, its crown divided into distinct hanging scalloped leaf curtains with open air between them rather than one umbrella mass, olive-green and warm chartreuse foliage with pale peach tips, sparse opaque golden bell-seed clusters growing naturally from the branches, soft welcoming storybook silhouette, fully visible isolated sprite",
+          "Sunwheel Acacia: one low wide happy fantasy tree with a visible honey-bark trunk and clean roots, open-centered canopy constructed from radiating wedge-shaped boughs with clear gaps between foliage wedges, pistachio and mellow spring-green leaves mixed with restrained mellow-orange clusters, gently spiral branch forks visible through the open center, warm friendly radial silhouette, fully visible isolated sprite"
+        ]
+      }
+    }
+  ],
+
+  "avoid": "no violet foliage, no purple magic, no blue moonlight, no gray-blue palette, no fire, no burning leaves, no ember glow, no orange illumination, no sunset cast shadow, no luminous fruit, no literal lanterns, no uniform spherical canopy, no four identical round crowns, no merged tree cluster, no forest scene, no grassy base, no dirt mound, no flowers carpeting ground, no cast shadow, no sky, no horizon, no windblown pose, no animation, no cropped leaves, no people, no animals, no buildings, no text, no photorealism, no 3d render, no strict isometric grid",
+
+  "review": {
+    "acceptance": [
+      "The family reads warm, happy, and whimsical beside the current sunset-toned Halo Stone courtyard rather than gray, blue, violet, or nocturnal.",
+      "All four silhouettes remain distinct in grayscale: offset puffs, angled fans, hanging curtains, and radial wedges.",
+      "Every tree is fully contained and transparent with a readable root-contact anchor and no baked ground patch, glow, or cast shadow.",
+      "Orange is a foliage material, not fire or permanent sunset illumination, preserving Phaser day/night control.",
+      "Each tree remains legible near 128-168px source scale and supports root-Y depth sorting."
+    ],
+    "sheetContext": "Review at native scale beside the retained broadleaf trees, the twilight tree family, and representative Halo Stone grass and dirt."
+  }
+}

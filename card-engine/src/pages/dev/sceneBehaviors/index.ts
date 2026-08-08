@@ -1,4 +1,5 @@
 import { attachWildlifeLab } from './wildlifeLab';
+import { attachCourtyardWildlife } from './courtyardV2';
 import type { SceneBehaviorFactory } from './types';
 
 /**
@@ -9,6 +10,7 @@ import type { SceneBehaviorFactory } from './types';
  */
 export const SCENE_BEHAVIORS: Record<string, SceneBehaviorFactory> = {
   WildlifeLab: attachWildlifeLab,
+  CourtyardV2: attachCourtyardWildlife,
 };
 
-export type { SceneBehavior, SceneBehaviorFactory } from './types';
+export type { SceneBehavior, SceneBehaviorContext, SceneBehaviorFactory } from './types';

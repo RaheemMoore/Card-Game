@@ -1,0 +1,68 @@
+{
+  "subject": "castle-cliff-kit",
+  "label": "Halo Stone cliff kit — plateau, cliff face, and fantasy cliff dressing for CourtyardV2",
+
+  "notes": [
+    "PURPOSE: give CourtyardV2 elevation. The castle sits on a plateau; the south path climbs a ramp to the gate. Elevation in a 2D tilemap is a DRAWING TRICK — the player never changes Z. Colliders run the whole rim except the ramp.",
+    "TILES CANNOT BE STYLE-ANCHORED. For /create-tiles-pro, style_images defines tile SHAPE AND DIMENSIONS and tile_type/tile_size/tile_view are ignored when supplied. So both tile entries set styleAnchor:false and steer register through description + tile_view + outline_mode. The style reference is still staged on disk because cmdScene requires it to exist.",
+    "OBJECTS CAN be style-anchored. Anchored to the gatewatch tower (101x136) so the cliff stone reads as the SAME stone as the castle. 101-136px is the <=170 bucket, so ONE call returns up to 4 objects. Always request a full bucket — a half-empty call costs the same.",
+    "ANGLE IS HELD BY THE STYLE REFERENCE, NOT THE VIEW PARAM. A tower batch already came back part-isometric for want of this. tile_view 'low top-down' matches the hero and the existing kit.",
+    "DO NOT SET `size` ALONGSIDE style_images — the API rejects that combination. Object endpoint also rejects `seed`, so nothing here is reproducible: keep anything good.",
+    "COLOUR IS A POST-PROCESS. Generate in a broadly correct palette, then match the greens EXACTLY to the chosen ground ramp with lib/recolor.py --ramp. Never re-roll for hue.",
+    "Cliff face is specified as 2 tiles (64px) tall. One 32px tile is too short to read as height — this was the single most important number in the brief."
+  ],
+
+  "styleReference": "style-ref-stone.png",
+
+  "tiles": [
+    {
+      "id": "cliff-face",
+      "seed": 880401,
+      "styleAnchor": false,
+      "note": "building layout gives a floor plus a wall with real height — the closest fit for a plateau top plus its cliff face.",
+      "params": {
+        "description": "fantasy cliff plateau: deep saturated green grass plateau top, dropping away to a tall mossy grey-and-honey stone cliff face with horizontal rock strata, damp moss in the cracks",
+        "tile_type": "square_topdown",
+        "tile_size": 32,
+        "tile_view": "low top-down",
+        "tile_feature": "building",
+        "building_wall_tiles": 2,
+        "building_wall_description": "tall cliff face of stacked grey and honey sandstone strata, deep shadowed cracks, clumps of moss and small ferns growing from the ledges",
+        "building_floor_description": "deep saturated green grass plateau top with a rim of pale weathered stone",
+        "building_layout": "materials",
+        "outline_mode": "outline"
+      }
+    },
+    {
+      "id": "cliff-rim",
+      "seed": 880402,
+      "styleAnchor": false,
+      "note": "16-tile Wang set so the plateau rim can take ANY shape, the same way the grass/dirt ground already does.",
+      "params": {
+        "description": "1). deep saturated green grass plateau top 2). weathered pale grey stone cliff rim with moss and small tufts of grass in the joints",
+        "tile_type": "square_topdown",
+        "tile_size": 32,
+        "tile_view": "low top-down",
+        "tile_feature": "tileset",
+        "outline_mode": "outline"
+      }
+    }
+  ],
+
+  "objects": [
+    {
+      "id": "cliff-dressing",
+      "note": "The creative pass Raheem asked for — vines, a magical tree, something fantasy. Four items because the 136px style reference caps this call at 4.",
+      "params": {
+        "description": "fantasy cliff-side scenery seen from a low top-down angle, matching a grey and honey sandstone castle: 1). a curtain of hanging vines 2). a magical tree growing out of the cliff 3). a glowing crystal outcrop 4). a carved stone stair ramp",
+        "view": "top-down",
+        "item_descriptions": [
+          "a thick curtain of trailing green vines and ivy hanging down a stone cliff face, small pale blue flowers scattered through the leaves, roots gripping the rock at the top",
+          "a gnarled magical tree growing sideways out of a stone cliff, twisted exposed roots gripping the rock, deep green canopy with a few softly glowing turquoise leaves, faint motes of light around the branches",
+          "a cluster of glowing turquoise and violet crystals erupting from grey cliff stone, light spilling onto the rock around them, smaller shards scattered at the base",
+          "a narrow stair ramp carved into a stone cliff face, worn honey sandstone steps climbing from the bottom to the top, low mossy stone kerbs on both sides"
+        ]
+      }
+    }
+  ]
+}

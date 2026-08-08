@@ -1,0 +1,54 @@
+{
+  "subject": "wildlife-animals",
+  "label": "Wildlife Lab — fox, rabbit, and glowcap tortoise",
+  "notes": [
+    "RAHEEM APPROVED a 200-generation hard ceiling on 2026-08-07 for three eight-direction animal bases and the animation needed to make every initial behavior visually honest.",
+    "ANIMALS ONLY. No trees, ponds, dens, plants, scenery, ground patches, cast shadows, or habitat props are part of this batch.",
+    "The animals are built in a separate WildlifeLab scene. CourtyardV2.scene is not modified or used as the generation surface.",
+    "The low top-down view matches the locked courtyard camera language: body and face cues remain readable while feet stay anchored to the ground.",
+    "LIVE API CORRECTION, 2026-08-07: /create-8-direction-object rejects both seed and style_images when creating directly from a description. The first request 422ed before generation and cost 0. These animals are therefore not seed-reproducible; preserve the raw provider job, object id, all eight rotations, exact prompt, actual usage, validation result, runtime review, and human approval state.",
+    "After the base pass, object ids are copied into the animation config. Movement and every initial signature activity are animated in down, left, right, and up facings so an activity never snaps the animal to an unrelated direction.",
+    "No blind rerolls. Retry only an objectively broken or zero-usage stalled job while the full batch remains under 200 generations."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "rotations": [
+    {
+      "id": "red-fox",
+      "styleAnchor": false,
+      "params": {
+        "description": "one small healthy adult red fox, natural rusty orange-red coat, white throat and belly, black lower legs, large pointed ears, narrow dark nose, long full bushy tail with a clearly white tip, alert but peaceful expression, realistic fox anatomy simplified into charming readable 2D pixel art, low three-quarter top-down game view with face still visible, complete isolated body and all four feet visible, centered on transparent canvas, restrained single dark pixel outline, compact color clusters, basic shading, no accessories, no scenery, no cast shadow",
+        "view": "low top-down",
+        "size": 168
+      }
+    },
+    {
+      "id": "forest-rabbit",
+      "styleAnchor": false,
+      "params": {
+        "description": "one small normal woodland cottontail rabbit, warm gray-brown and soft tan fur, pale cream belly, short round white tail, long upright ears with muted pink inner ears, dark gentle eyes, compact crouched rabbit body with powerful folded hind legs, realistic rabbit anatomy simplified into charming readable 2D pixel art, low three-quarter top-down game view with face still visible, complete isolated body and all four feet visible, centered on transparent canvas, restrained single dark pixel outline, compact color clusters, basic shading, no clothing, no magic, no scenery, no cast shadow",
+        "view": "low top-down",
+        "size": 168
+      }
+    },
+    {
+      "id": "glowcap-tortoise",
+      "styleAnchor": false,
+      "params": {
+        "description": "one small gentle magical woodland tortoise, ordinary believable tortoise body with sturdy short legs, warm olive skin, domed deep moss-green shell with amber scute lines, a thin natural moss layer on the upper shell and exactly three tiny pale turquoise bioluminescent mushroom caps growing from the rear shell, subtle contained glow only around the caps, friendly old eyes and extended head, slightly magical but still clearly a tortoise, charming readable 2D pixel art, low three-quarter top-down game view with face still visible, complete isolated body and all four feet visible, centered on transparent canvas, restrained single dark pixel outline, compact color clusters, basic shading, no scenery, no ground plants, no cast shadow",
+        "view": "low top-down",
+        "size": 168
+      }
+    }
+  ],
+  "avoid": "no people, no riders, no clothing, no collars, no harnesses, no armor, no weapons, no extra animals, no merged creatures, no humanoid posture, no environment, no grass patch, no dirt base, no tree, no pond, no den, no text, no watermark, no photorealism, no 3d render, no strict isometric grid, no cropped ears, no cropped tails, no clipped feet, no baked contact shadow, no glow around the normal fox or rabbit",
+  "review": {
+    "acceptance": [
+      "Every species remains the same individual across all eight rotations with stable palette, proportions, markings, and silhouette.",
+      "South is a genuine face-visible front view, north is a back view, and east/west are internally consistent opposites.",
+      "No opaque pixel touches a canvas edge; ears, tails, feet, shell, moss, and glowcaps are fully contained.",
+      "At intended courtyard scale, fox, rabbit, and tortoise remain immediately distinguishable without their labels.",
+      "The fox and rabbit read completely normal; only the tortoise carries restrained magical features.",
+      "No environmental art or baked shadow is attached to any animal."
+    ]
+  }
+}

@@ -125,19 +125,22 @@ commits to it, and then it becomes a §3 row or a §4 thread.
 
 ---
 
-## Step 7 — Stamp, regenerate, redeploy
+## Step 7 — Stamp it
 
-1. Update the `<!-- updated: YYYY-MM-DD -->` marker on every section you touched, and the
-   `**Last updated:**` line at the top.
-2. Regenerate:
-   ```bash
-   npm run production:page --prefix card-engine
-   ```
-3. Redeploy with the **Artifact** tool using the same file path,
-   `docs/production/production.html`, so the URL Raheem has bookmarked and shared with Tori
-   does not change. From a different conversation, pass the existing `url` explicitly — a
-   conversation that didn't publish it will otherwise mint a new one.
-4. Keep the favicon (🗝️) stable. A changed favicon reads as a different page.
+Update the `<!-- updated: YYYY-MM-DD -->` marker on every section you touched, and the
+`**Last updated:**` line at the top. That is all.
+
+**Do not regenerate or republish the standalone Production Guide.** Raheem retired it on
+2026-08-07: the Studio Wiki reads `PRODUCTION.md` directly and redeploys on its own, so
+`PRODUCTION.md` is the single source and the Wiki is the single door.
+
+The reason is worth keeping, because it is the failure this whole file exists to avoid: two
+published artifacts were both named "Card Engine — Production Guide" and nobody could say
+which one was the bookmarked copy. A republish had a real chance of updating the one nobody
+read, leaving the record quietly disagreeing with itself.
+
+`scripts/production-page/build.mjs` and the last `docs/production/production.html` still
+exist and are unused — tracked in §4 Doc drift until Raheem decides whether to delete them.
 
 ---
 

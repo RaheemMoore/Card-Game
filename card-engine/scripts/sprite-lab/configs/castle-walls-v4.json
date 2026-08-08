@@ -1,0 +1,69 @@
+{
+  "subject": "castle-walls-v4",
+  "label": "Side walls, north wall, front-to-side corner, and a proper drawbridge gatehouse",
+
+  "notes": [
+    "THE GAP THIS FILLS. v3 produced ONE wall orientation — a flat elevation seen face-on — which only works for the SOUTH wall. The east and west runs and the north run had no art at all, so the castle was a facade. Raheem, looking at the marked-up footprint: 'what walls are we gonna use for the vertical paths on the left and the right side? And what walls are we gonna use for the north wall?'",
+    "THE KEY INSIGHT, AND IT CHANGES THE VIEW PARAMETER. The south wall faces the camera, so it is drawn in ELEVATION (view: side). The east/west runs go away from the camera and the north run is on the far side — for those you are looking DOWN on the wall's parapet walkway, so they are drawn TOP-DOWN (view: low top-down). Same endpoint, different view. Getting this wrong is what would make the side walls read as a south wall lying on its back.",
+    "DATUM, agreed with Raheem and now fixed: tile 32px, ground line y=1216, camera zoom 2x (960x540 visible). Wall 384x288 (12x9 tiles), gate 288x320 (9x10), tower 288x384 (9x12), corner 192x288 (6x9). Every dimension below is a whole number of tiles so pieces snap without nudging.",
+    "SIDE WALL TILES VERTICALLY, NOT HORIZONTALLY. It runs north-south on screen, so its repeat axis is Y. 192x384 = 6x12 tiles. Seam is authored on the top and bottom edges rather than left and right.",
+    "THE GATE IS THE OTHER HALF OF THIS BATCH. The v3 gatehouse was structurally fine but read wrong. Raheem: 'That more looks like a prison door... I want something like a drawbridge, let the drawbridge down so the horses run in.' 23% of that sprite also turned out to be leftover background trapped inside the arch and behind the merlons — fixed separately by a colour knockout, not a re-roll. What is being re-generated here is the DESIGN: a lowered timber drawbridge on chains, twin flanking turrets, a real threshold you could ride a horse over.",
+    "PALETTE IS THE MEASURED ONE AND IT IS NOT POST-PROCESSED. Sampled from the approved kit: honey-gold sandstone rgb(214,184,145)-(224,188,137) at R-B +69 to +88, cream highlight rgb(204,188,162), violet-grey brick rgb(119,109,117)-(89,78,87). Raheem on v3: 'I like the palette. The colour is perfect. It matches the rest of the castle.' So it is stated in the prompt and then LEFT ALONE — no ramp_transfer. Logged twice now: forcing a palette onto art that is already right washes it out and killed the gold.",
+    "NO BAKED BACKGROUNDS. Every prompt says standing alone against transparency. Two v3 pieces came back with a drawn background — one an actual painted transparency checkerboard — and enclosed regions behind merlons and inside arches cannot be reached by an edge flood-fill. Cheaper to ask for it than to repair it."
+  ],
+
+  "images": [
+    {
+      "id": "gate-drawbridge",
+      "seed": 881001,
+      "note": "The one Raheem actually wants — horses through it, not a prison door.",
+      "params": {
+        "description": "a grand fantasy castle gatehouse seen straight on in flat elevation, a wide arched gateway with a heavy timber drawbridge lowered flat toward the viewer forming a broad plank roadway, thick iron chains running from the drawbridge corners up to the gatehouse, twin round flanking turrets either side of the arch, pale violet-grey stone brickwork in even regular courses, bright warm honey-gold sandstone arch ring, quoins and merlon caps, cream-white highlight stones, a crenellated parapet above, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-side",
+      "seed": 881002,
+      "note": "East and west runs. Seen from ABOVE — you walk on the parapet. Tiles VERTICALLY.",
+      "params": {
+        "description": "a seamlessly vertically tileable castle curtain wall seen from directly above, a straight run of wall going away from the viewer, the flat stone parapet walkway down the centre paved in pale violet-grey flagstones, a row of square crenellated merlons capped in bright warm honey-gold sandstone along both edges, honey-gold string course lines, cream-white highlight stones, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "low top-down",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-north",
+      "seed": 881003,
+      "note": "The far run. Seen from above and slightly behind — merlons read as their back faces.",
+      "params": {
+        "description": "a seamlessly horizontally tileable castle curtain wall seen from directly above, a straight run of wall crossing left to right, the flat stone parapet walkway along the centre paved in pale violet-grey flagstones, a row of square crenellated merlons capped in bright warm honey-gold sandstone along the far edge, honey-gold string course, cream-white highlight stones, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 192 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "low top-down",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-corner-turn",
+      "seed": 881004,
+      "note": "Joins a top-down side run to the elevation south wall. Mirror it for the opposite corner.",
+      "params": {
+        "description": "the corner of a castle curtain wall seen from directly above, one wall run going away from the viewer and another running off to the side, meeting in a square corner bastion, the flat stone parapet walkway turning the corner paved in pale violet-grey flagstones, square crenellated merlons capped in bright warm honey-gold sandstone following the outer edge around the turn, honey-gold string course, cream-white highlight stones, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 192, "height": 192 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "low top-down",
+        "no_background": true
+      }
+    }
+  ]
+}
