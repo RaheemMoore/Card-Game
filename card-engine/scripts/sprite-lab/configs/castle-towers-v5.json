@@ -1,0 +1,66 @@
+{
+  "subject": "castle-towers-v5",
+  "label": "Straight-on corner towers for the back-left and back-right of the courtyard",
+
+  "notes": [
+    "THE GAP THIS FILLS. Raheem, 2026-08-07: 'the back left and right towers, we literally don't have any because the examples we have are tilted forty five degrees to the left or right. We kinda just need straight up and down towers.' Verified: castle-tower-aegis/beacon/gatewatch/starward-healthy are ALL isometric AND in the old warm cream sandstone palette, and the wall-corner-inner-v2 / -outer-v2 / -turn pieces are isometric corner views. The ONLY straight-on tower in the kit is castle-tower-watch-v2, which is placed three times already. So the back corners have no usable art.",
+
+    "PIXELLAB, NOT LEONARDO, AND THE REASON IS FUNCTIONAL. Raheem: 'we can't use the Lucid engine over Pixel Lab because all the rest of the castle is generated in Pixel Lab, and we need it to crack with the rest of the castle. We need it to be an actor.' The castle is a damageable surface, not a backdrop. A Leonardo tower could match on palette and still be the one piece that cannot take a crack.",
+
+    "PALETTE IS STATED IN THE PROMPT AND THEN LEFT ALONE. Carried forward from castle-walls-v4: 'forcing a palette onto art that is already right washes it out and killed the gold. Logged twice now.' Confirmed a third time on 2026-08-07 during the forge work, where a ramp_transfer against a white-backed reference washed the plate pale and turned the furnace fire white. Do NOT ramp_transfer these.",
+
+    "THE PALETTE NAMES ARE CORRECTED FROM v4. v4's notes describe 'honey-gold sandstone rgb(214,184,145)' — that is the OLD kit. Measured 2026-08-07 from the assets actually in CourtyardV2: mid stone rgb(174,157,171) / rgb(166,149,157) pale violet-grey; shadow stone rgb(117,98,121) / rgb(105,85,108) deep violet; highlight rgb(221,209,203) / rgb(213,193,181) warm cream-white; trim rgb(230,160,38) which is a BRIGHT SATURATED AMBER, not a pale sandstone. Outline is pure rgb(0,0,0). Calling the trim 'honey sandstone' is what would drift these away from the castle.",
+
+    "DATUM UNCHANGED from castle-walls-v4: tile 32px, tower 288x384 (9x12 tiles). Whole tiles so pieces snap without nudging.",
+
+    "VIEW IS 'side', THE SAME AS THE SOUTH WALL AND THE GATE. These are corner towers read face-on from the courtyard, so they are ELEVATION. The wall runs going away from the camera are 'low top-down'; towers are not. Getting this wrong is what produced the isometric batch already sitting in structures/towers.",
+
+    "NO STYLE REFERENCE ON PURPOSE. /create-1-direction-object refuses `size` whenever `style_images` is supplied, which is what produced the 88px rug set that went blurry when scaled up. The `images` path used by castle-walls-v4 takes no reference and honours image_size, which is why the v2 walls are full size and on-palette. Angle and palette are held by the prompt instead.",
+
+    "NO BAKED BACKGROUNDS. Every prompt says standing alone against transparency. Two v3 pieces came back with a drawn background and enclosed regions behind merlons cannot be reached by an edge flood-fill.",
+
+    "M5.7 not engaged. No figures."
+  ],
+
+  "images": [
+    {
+      "id": "tower-corner-round",
+      "seed": 950101,
+      "note": "Back-left. Round drum tower — reads clearly different from the square watch tower already placed three times.",
+      "params": {
+        "description": "a round fantasy castle corner tower seen straight on in flat elevation, a tall cylindrical drum of pale violet-grey stone brickwork in even regular courses, a crenellated parapet at the top with square merlons capped in bright saturated amber gold, a band of bright amber gold string course running around the tower below the parapet, narrow vertical arrow-slit windows up the shaft, warm cream-white highlight stones scattered through the brickwork, deep violet-grey stone in the shadowed courses, a small arched doorway at the base, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "tower-corner-spire",
+      "seed": 950102,
+      "note": "Back-right. Square shaft with a tall pointed roof, so the back corners differ in silhouette from each other and from the front towers.",
+      "params": {
+        "description": "a tall square fantasy castle corner tower seen straight on in flat elevation, a slender shaft of pale violet-grey stone brickwork in even regular courses rising to a crenellated parapet with square merlons capped in bright saturated amber gold, above the parapet a tall steep pointed spire roof in deep violet-grey slate with bright amber gold ridge trim, a small pennant at the peak, bands of bright amber gold string course, narrow vertical arrow-slit windows, warm cream-white highlight stones scattered through the brickwork, deep violet-grey stone in the shadowed courses, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "tower-corner-beacon",
+      "seed": 950103,
+      "note": "Alternate. Open-topped beacon tower with a lit brazier — gives the back line a light source if Raheem wants one.",
+      "params": {
+        "description": "a squat broad fantasy castle corner tower seen straight on in flat elevation, a wide shaft of pale violet-grey stone brickwork in even regular courses, an open crenellated top with square merlons capped in bright saturated amber gold and a large iron brazier burning with warm orange flame set in the opening, a band of bright amber gold string course below the parapet, narrow vertical arrow-slit windows glowing faintly warm, warm cream-white highlight stones scattered through the brickwork, deep violet-grey stone in the shadowed courses, a small arched doorway at the base, warm storybook fantasy castle, standing alone against transparency with no background, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 288, "height": 384 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

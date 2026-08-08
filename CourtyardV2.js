@@ -141,7 +141,7 @@ class CourtyardV2 extends Phaser.Scene {
 		l1_GROUND.add(aPRON_pebblesB);
 
 		// SHADOW_forge
-		const sHADOW_forge = this.add.image(1711, 475, "shadow-contact");
+		const sHADOW_forge = this.add.image(1732, 451, "shadow-contact");
 		sHADOW_forge.scaleX = 2.05;
 		sHADOW_forge.alpha = 0.85;
 		l1_GROUND.add(sHADOW_forge);
@@ -450,8 +450,8 @@ class CourtyardV2 extends Phaser.Scene {
 		l3_CASTLE.add(pASS_wallSouthD);
 
 		// SHELF_gate_drawbridge_V5
-		const sHELF_gate_drawbridge_V5 = this.add.image(1128, 864, "gate-drawbridge-v5");
-		sHELF_gate_drawbridge_V5.setOrigin(0, 0);
+		const sHELF_gate_drawbridge_V5 = this.add.image(1506, 1052, "gate-drawbridge-v5");
+		sHELF_gate_drawbridge_V5.setOrigin(1, 0.5);
 		l3_CASTLE.add(sHELF_gate_drawbridge_V5);
 
 		// SHELF_wall_corner_turn
@@ -820,11 +820,18 @@ class CourtyardV2 extends Phaser.Scene {
 		aRCHIVIST_B_stone20.setOrigin(0.5, 1);
 		l4_QUADRANT_NE.add(aRCHIVIST_B_stone20);
 
+		// COMPARE_B_pixellab_redraw
+		const cOMPARE_B_pixellab_redraw = this.add.image(1727, 441, "forge-v2");
+		cOMPARE_B_pixellab_redraw.scaleX = 2;
+		cOMPARE_B_pixellab_redraw.scaleY = 2;
+		cOMPARE_B_pixellab_redraw.setOrigin(0.5, 1);
+		l4_QUADRANT_NE.add(cOMPARE_B_pixellab_redraw);
+
 		// L5_QUADRANT_NW
 		const l5_QUADRANT_NW = this.add.layer();
 
 		// FORGE_A_castle_lavender
-		const fORGE_A_castle_lavender = this.add.image(1722, 462, "forge-v1");
+		const fORGE_A_castle_lavender = this.add.image(2240, -462, "forge-v1");
 		fORGE_A_castle_lavender.scaleX = 2;
 		fORGE_A_castle_lavender.scaleY = 2;
 		fORGE_A_castle_lavender.setOrigin(0.5, 1);
@@ -909,6 +916,27 @@ class CourtyardV2 extends Phaser.Scene {
 		fORGE_heroForScale.setOrigin(0.5, 1);
 		fORGE_heroForScale.visible = false;
 		l9_SHELF_offmap.add(fORGE_heroForScale);
+
+		// COMPARE_A_leonardo_cutout
+		const cOMPARE_A_leonardo_cutout = this.add.image(2950, 900, "forge-v1");
+		cOMPARE_A_leonardo_cutout.scaleX = 2;
+		cOMPARE_A_leonardo_cutout.scaleY = 2;
+		cOMPARE_A_leonardo_cutout.setOrigin(0.5, 1);
+		l9_SHELF_offmap.add(cOMPARE_A_leonardo_cutout);
+
+		// COMPARE_C_archivist_leonardo
+		const cOMPARE_C_archivist_leonardo = this.add.image(4400, 900, "archivist-v1-stone20");
+		cOMPARE_C_archivist_leonardo.scaleX = 2;
+		cOMPARE_C_archivist_leonardo.scaleY = 2;
+		cOMPARE_C_archivist_leonardo.setOrigin(0.5, 1);
+		l9_SHELF_offmap.add(cOMPARE_C_archivist_leonardo);
+
+		// COMPARE_D_archivist_pixellab
+		const cOMPARE_D_archivist_pixellab = this.add.image(5150, 900, "archivist-v2");
+		cOMPARE_D_archivist_pixellab.scaleX = 2;
+		cOMPARE_D_archivist_pixellab.scaleY = 2;
+		cOMPARE_D_archivist_pixellab.setOrigin(0.5, 1);
+		l9_SHELF_offmap.add(cOMPARE_D_archivist_pixellab);
 
 		// L10_VOID_library
 		const l10_VOID_library = this.add.layer();
@@ -1126,7 +1154,7 @@ class CourtyardV2 extends Phaser.Scene {
 		const l11_MARKERS = this.add.layer();
 
 		// scaleHeroTopOfStair
-		const scaleHeroTopOfStair = this.add.sprite(1306, 1209, "hero-chibi", 0);
+		const scaleHeroTopOfStair = this.add.sprite(1062, 1366, "hero-chibi", 0);
 		scaleHeroTopOfStair.scaleX = 1.408;
 		scaleHeroTopOfStair.scaleY = 1.408;
 		scaleHeroTopOfStair.setOrigin(0.5, 1);
