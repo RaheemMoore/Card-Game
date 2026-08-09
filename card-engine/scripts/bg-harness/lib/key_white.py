@@ -23,7 +23,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14, bleed_pale=200):
+def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14, bleed_pale=200, bg_rgb=None):
     im = Image.open(path).convert("RGBA")
     if shave:
         im = im.crop((shave, shave, im.width - shave, im.height - shave))
@@ -41,8 +41,14 @@ def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14, bleed_pa
     # correctly finds nothing on the side wall.
     border = np.concatenate([a[0, :, :3], a[-1, :, :3], a[:, 0, :3], a[:, -1, :3]])
     vals, counts = np.unique(border, axis=0, return_counts=True)
-    bgc = vals[np.argmax(counts)]
-    if int(bgc.min()) < white:
+    bgc = vals[np.argmax(counts)] if bg_rgb is None else np.array(bg_rgb, dtype=vals.dtype)
+    # PixelLab does not always return a pale background. The battle tower came
+    # back on solid cyan (54,194,237), which the "must be pale" gate rejected, so
+    # nothing was keyed and the tower shipped fully opaque on a blue field.
+    # --bg names the colour explicitly for those cases; the pale test still
+    # guards the automatic path, where it stops the side wall's own dark outline
+    # being mistaken for background.
+    if bg_rgb is None and int(bgc.min()) < white:
         print(f"    border is {tuple(int(x) for x in bgc)} — not a pale background, keying nothing")
         near_white = np.zeros(a.shape[:2], np.uint8)
     else:
@@ -133,6 +139,7 @@ def main():
     ap.add_argument("--white", type=int, default=200,
                     help="a border colour must be at least this pale to count as background at all")
     ap.add_argument("--tolerance", type=int, default=14, help="how far from the background colour still keys")
+    ap.add_argument("--bg", help="explicit background colour R,G,B when it is not pale")
     ap.add_argument("--bleed-pale", type=int, default=200,
                     help="after keying, absorb pixels at least this pale that touch the keyed region; 0 disables")
     ap.add_argument("--fill-enclosed", type=int, default=300,
@@ -151,7 +158,8 @@ def main():
     for f in files:
         s = os.path.join(a.src, f)
         d = os.path.join(a.dst, f) if os.path.isdir(a.dst) else a.dst
-        size, cut = key(s, d, a.shave, a.white, a.fill_enclosed, a.tolerance, a.bleed_pale)
+        bg_rgb = tuple(int(v) for v in a.bg.split(',')) if a.bg else None
+        size, cut = key(s, d, a.shave, a.white, a.fill_enclosed, a.tolerance, a.bleed_pale, bg_rgb)
         print(f"  {f:20s} keyed {cut:7,d} px  ->  {size[0]}x{size[1]}")
 
 
