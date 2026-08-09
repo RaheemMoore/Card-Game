@@ -68,6 +68,17 @@ const SHEETS = [
   { key: 'keeper-dwarf', dir: 'keepers', manifest: 'dwarf-breathe.json' },
   { key: 'keeper-archivist', dir: 'keepers', manifest: 'archivist-breathe.json' },
   { key: 'prop-horse', dir: 'keepers', manifest: 'horse-eating.json' },
+
+  // TEMPORARY — hero size test, 2026-08-09. Raheem: "I think our characters may
+  // be a bit too big", against the reference tilemaps. These are the same sheet
+  // area-averaged down by lib/resample.py to smaller NATIVE frame heights, so
+  // what gets judged in CastleKitV3 is what would actually ship — pixel art must
+  // never be shrunk at render time, which is the whole reason that script exists.
+  // Delete these three lines and public/assets/castle/hero/sizetest/ once a size
+  // is chosen.
+  { key: 'hero-chibi-56', dir: 'hero/sizetest', manifest: 'chibi-56.json' },
+  { key: 'hero-chibi-48', dir: 'hero/sizetest', manifest: 'chibi-48.json' },
+  { key: 'hero-chibi-40', dir: 'hero/sizetest', manifest: 'chibi-40.json' },
 ];
 
 function buildPack() {

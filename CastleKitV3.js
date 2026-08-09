@@ -101,23 +101,47 @@ class CastleKitV3 extends Phaser.Scene {
 		castle.add(cornerRight);
 		cornerRight.setDepth(5);
 
-		// The hero, at the same 1.408 the courtyard uses. Everything about scale in
-		// this scene is judged against him.
-		const hero = this.add.sprite(700, 1010, "hero-chibi", 0);
-		hero.setScale(1.408);
-		hero.setDepth(6);
+		// HERO SIZE TEST — Raheem, 2026-08-09: "I think our characters may be a bit
+		// too big", against the reference tilemaps.
+		//
+		// All four are drawn at Phaser scale 1. That is the point: pixel art must
+		// never be shrunk at render time, so each of these is a genuinely smaller
+		// NATIVE sheet, area-averaged down by lib/resample.py. What is on screen is
+		// what would ship.
+		//
+		// Caveat worth knowing: the original 78x152 sheet is not in the repo, so
+		// these come from the already-reduced 71px one — a second reduction. If a
+		// smaller size wins, the clean way to ship it is regenerating from PixelLab
+		// at that size rather than stacking another resample.
+		const SIZES = [
+			{ key: "hero-chibi", h: 71, note: "current, x1.408 in play = 100px" },
+			{ key: "hero-chibi-56", h: 56, note: "79%" },
+			{ key: "hero-chibi-48", h: 48, note: "68%" },
+			{ key: "hero-chibi-40", h: 40, note: "56%" },
+		];
+		const FOOT = 1030;              // one ground line for all four
+		let hx = 520;
+		for (const sz of SIZES) {
+			const spr = this.add.sprite(hx, FOOT - sz.h / 2, sz.key, 0);
+			spr.setDepth(6);
+			const cap = this.add.text(hx - 40, FOOT + 12, "", {});
+			cap.text = sz.h + "px  " + sz.note;
+			cap.setStyle({ color: "#aebdd3", fontFamily: "Arial", fontSize: "13px" });
+			cap.setDepth(7);
+			hx += 150;
+		}
 
-		// A 100px rule beside him, plus one wall-band's height, so the ratio can be
-		// read off rather than guessed.
-		const rule = this.add.rectangle(640, 1010 - 50, 3, 100);
-		rule.isFilled = true;
-		rule.fillColor = 16565173;
-		rule.setDepth(6);
-
-		const bandRule = this.add.rectangle(600, (BASE - WALL_H / 2) * CASTLE, 3, WALL_H * CASTLE);
+		// The wall band, drawn beside them at the same castle scale, so the ratio
+		// can be read off rather than argued about.
+		const bandRule = this.add.rectangle(430, (BASE - WALL_H / 2) * CASTLE, 4, WALL_H * CASTLE);
 		bandRule.isFilled = true;
 		bandRule.fillColor = 9127167;
 		bandRule.setDepth(6);
+
+		const bandCap = this.add.text(360, (BASE * CASTLE) + 12, "", {});
+		bandCap.text = "wall band " + Math.round(WALL_H * CASTLE) + "px";
+		bandCap.setStyle({ color: "#7fb2ff", fontFamily: "Arial", fontSize: "13px" });
+		bandCap.setDepth(7);
 
 		const title = this.add.text(40, 34, "", {});
 		title.text = "CASTLE KIT V3";
