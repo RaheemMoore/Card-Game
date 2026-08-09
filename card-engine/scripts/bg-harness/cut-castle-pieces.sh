@@ -42,5 +42,28 @@ python lib/cut_piece.py $O/front-b-arcane.png $O/castle-gate --scale 1 --poly \
 python lib/cut_piece.py $O/kit-b-wall-straight.png $O/castle-wall --poly \
   331,450 706,450 706,706 331,706
 
+# SIDE (vertical) WALLS — derived, never generated.
+#
+# At this camera tilt a north-south wall shows almost NO face: the face is
+# nearly edge-on to the viewer. Only east-west walls show a face band. So
+# rotating the whole wall 90 degrees is wrong — it puts a face where physics
+# says there isn't one. What rotates correctly is the WALKWAY BAND alone.
+#
+# This is why the plan kept walkway and face as separate pieces. Band boundary
+# is row 165 of the 376x257 cut, found from the row-brightness profile: the
+# walkway reads ~160-175 and the face drops to ~76-100 below it.
+python - <<'PY'
+from PIL import Image
+cut = Image.open('out/castle-grand-topdown/castle-wall-cut.png').convert('RGBA')
+BAND = 165
+cut.crop((0, 0, cut.width, BAND)).save('out/castle-grand-topdown/castle-wall-walkway.png')
+cut.crop((0, BAND, cut.width, cut.height)).save('out/castle-grand-topdown/castle-wall-face.png')
+# rotate(-90) is clockwise, sending the near-crenellation edge to the LEFT,
+# which is the outer edge of a west wall. Mirror horizontally for the east wall.
+walk = Image.open('out/castle-grand-topdown/castle-wall-walkway.png')
+walk.rotate(-90, expand=True).save('out/castle-grand-topdown/castle-wall-side.png')
+print('walkway / face / side written')
+PY
+
 echo
 echo "Give Leonardo the *-reference.png files."
