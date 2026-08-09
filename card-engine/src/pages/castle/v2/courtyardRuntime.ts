@@ -210,7 +210,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
  * animals' flee and observe radii cannot be reviewed without something to walk
  * at them — so it needs the hero for the same reason the courtyard does.
  */
-export const EXPLORABLE_SCENES = new Set(['CourtyardV2', 'WildlifeLab']);
+export const EXPLORABLE_SCENES = new Set(['CourtyardV2', 'CourtyardV3', 'WildlifeLab']);
 
 /**
  * Scenes whose objects are collapsed into one y-sorted band (see sceneDepth.ts).
@@ -219,7 +219,7 @@ export const EXPLORABLE_SCENES = new Set(['CourtyardV2', 'WildlifeLab']);
  * for a world you walk around in and wrong for a lab whose whole job is to show
  * clips in a fixed arrangement.
  */
-const YSORT_SCENES = new Set(['CourtyardV2']);
+const YSORT_SCENES = new Set(['CourtyardV2', 'CourtyardV3']);
 
 /**
  * Texture keys a scene needs that never appear in its compiled source.
@@ -243,6 +243,7 @@ const WILDLIFE_SHEETS = [
 export const ALWAYS_LOADED: Record<string, readonly string[]> = {
   WildlifeLab: WILDLIFE_SHEETS,
   CourtyardV2: WILDLIFE_SHEETS,
+  CourtyardV3: WILDLIFE_SHEETS,
 };
 
 export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
@@ -455,11 +456,15 @@ export function makeScene(
       // player, so there it is the hero's absence that hides the subject.
       if (EXPLORABLE_SCENES.has(sceneName)) this.spawnPlayer(bounds);
 
-      if (sceneName === 'CourtyardV2') {
+      if (this.player) {
+        // Follow wherever there IS a hero, rather than naming one scene. This was
+        // `sceneName === 'CourtyardV2'`, which meant every new walkable scene
+        // silently got a static camera until someone remembered this line.
+        //
         // Snap first, then follow. A lerped follow starting from 0,0 spends its first
         // second looking at the corner of the map, which reads as "nothing loaded".
-        cam.centerOn(this.player!.x, this.player!.y);
-        cam.startFollow(this.player!, true, 0.12, 0.12);
+        cam.centerOn(this.player.x, this.player.y);
+        cam.startFollow(this.player, true, 0.12, 0.12);
       } else {
         // A lab is small enough to hold in one shot; a camera that chases the
         // hero around it would keep the other animals off screen.

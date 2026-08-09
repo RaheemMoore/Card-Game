@@ -1,0 +1,3830 @@
+{
+    "id": "4a6ae0c0-d616-4059-be7d-8ad2cb44f16e",
+    "sceneType": "SCENE",
+    "settings": {
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "CourtyardV3"
+    },
+    "displayList": [
+        {
+            "type": "Rectangle",
+            "id": "8be7e5f1-f71a-44a7-9598-b960617c33ed",
+            "label": "VIEWPORT_zoom2_960x540",
+            "x": 844,
+            "y": 2091,
+            "originX": 0,
+            "originY": 0,
+            "strokeColor": "#ffcc00",
+            "lineWidth": 6,
+            "isStroked": true,
+            "width": 960,
+            "height": 540
+        },
+        {
+            "type": "Layer",
+            "id": "4e02b645-a5cf-45f4-a12a-ec957ab3753c",
+            "label": "L1_GROUND",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "EditableTilemapLayer",
+                    "id": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
+                    "label": "ground",
+                    "tilemapId": "7bb446a5-ba9c-4fb2-a680-a1fa9a079df7"
+                },
+                {
+                    "type": "Image",
+                    "id": "c97a0e3e-0c08-4644-a9f6-f17ddf419a46",
+                    "label": "APRON_pebblesA",
+                    "texture": {
+                        "key": "ground-overlay-pebbles-scuffs"
+                    },
+                    "x": 1200,
+                    "y": 1256,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "2ae662f4-99b0-452f-9ff6-c10986a03e0b",
+                    "label": "APRON_pebblesB",
+                    "texture": {
+                        "key": "ground-overlay-pebbles-scuffs"
+                    },
+                    "x": 1455,
+                    "y": 1262,
+                    "scaleX": 0.75,
+                    "scaleY": 0.75,
+                    "originY": 0,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "18b22e54-5dd2-48f4-b7e6-f95ea8594202",
+                    "label": "SHADOW_forge",
+                    "texture": {
+                        "key": "shadow-contact"
+                    },
+                    "x": 1733,
+                    "y": 485,
+                    "scaleX": 2.05,
+                    "alpha": 0.85
+                },
+                {
+                    "type": "Image",
+                    "id": "44e7fcb4-e20d-4f5a-b475-50029f3c387d",
+                    "label": "SHADOW_archivist",
+                    "texture": {
+                        "key": "shadow-contact"
+                    },
+                    "x": 915,
+                    "y": 484,
+                    "scaleX": 2.05,
+                    "alpha": 0.85
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "2ca347c1-1a46-4d33-a8a7-94f881195921",
+            "label": "L2_TERRAIN",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "4d104a38-8d2c-46ee-99b0-fc573890a3bb",
+                    "label": "halo_stone_castle_terrain_wall_endcap_1",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1790,
+                    "y": 1558,
+                    "scaleX": -1
+                },
+                {
+                    "type": "Image",
+                    "id": "602251e5-11cc-4346-a913-28972eea48a0",
+                    "label": "wallBandC_2",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1117,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "795adbfe-b9aa-4aa0-a09d-b0df6f6396c6",
+                    "label": "halo_stone_castle_terrain_wall_boulders",
+                    "texture": {
+                        "key": "terrain-wall-boulders"
+                    },
+                    "x": 2012,
+                    "y": 1696
+                },
+                {
+                    "type": "Image",
+                    "id": "4b0db8f7-cb2b-4cd2-8919-6d3c40c25439",
+                    "label": "halo_stone_castle_terrain_wall_endcap_2",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 2286,
+                    "y": 1376,
+                    "scaleX": -1
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "acc38346-06c2-4a8d-b82a-a043a98f4ec6",
+                    "label": "wallBandC_4",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 2353,
+                    "y": 1262,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 206,
+                    "height": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "184d1df8-1b4f-444e-bd5f-ae93a3ab6601",
+                    "label": "wallBandC",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1885,
+                    "y": 1430,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 674,
+                    "height": 256
+                },
+                {
+                    "type": "Image",
+                    "id": "a63c6adf-ecd7-4ee5-ba3f-8b3f1a880230",
+                    "label": "wallStair",
+                    "texture": {
+                        "key": "terrain-wall-stair"
+                    },
+                    "x": 1173,
+                    "y": 1533,
+                    "scaleX": 1.6607407900003772,
+                    "scaleY": 0.8860267326421837,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "c9901464-3c34-4509-865f-bb5a1fc7017c",
+                    "label": "wallPillarLeft",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1169,
+                    "y": 1519,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "edcdb41e-e22d-4267-ae60-c7c9c716615b",
+                    "label": "wallPillarRight",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1450,
+                    "y": 1521,
+                    "originX": 0,
+                    "originY": 0,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "4a47b735-022a-4463-812d-1f3c69d095b3",
+                    "label": "wallBandC_1",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "y": 1406,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "f0ad9f58-f05d-41c4-9e7a-bdf7f6c461e2",
+                    "label": "halo_stone_castle_terrain_wall_endcap_4",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 817,
+                    "y": 1531
+                },
+                {
+                    "type": "Image",
+                    "id": "8512f65b-12c3-4357-b178-242e88e83fad",
+                    "label": "wallBandC_3",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 350,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "2a21d595-b509-4c84-b01d-ba63fc4cb319",
+                    "label": "halo_stone_castle_terrain_wall_endcap",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1971,
+                    "y": 1657
+                },
+                {
+                    "type": "Image",
+                    "id": "005038fe-45a6-43cd-a991-2cf053d685b1",
+                    "label": "halo_stone_castle_terrain_wall_endcap_3",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 272,
+                    "y": 1656,
+                    "scaleX": -1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "5ee6f813-9f73-488e-bdd5-fd599ad112c8",
+            "label": "L2_TERRAIN_1",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "d7e57fc1-55d4-45c7-9145-afa45be2b8ca",
+                    "label": "halo_stone_castle_terrain_wall_endcap_5",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1790,
+                    "y": 1558,
+                    "scaleX": -1
+                },
+                {
+                    "type": "Image",
+                    "id": "d24d39f6-b7d1-4442-8393-c6a59ba8d232",
+                    "label": "wallBandC_5",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1117,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "aad18941-445f-48a3-95d8-5358986ace76",
+                    "label": "halo_stone_castle_terrain_wall_boulders_1",
+                    "texture": {
+                        "key": "terrain-wall-boulders"
+                    },
+                    "x": 2012,
+                    "y": 1696
+                },
+                {
+                    "type": "Image",
+                    "id": "6c23e91c-3d3c-4121-a37d-865f8f7dd788",
+                    "label": "halo_stone_castle_terrain_wall_endcap_6",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 2286,
+                    "y": 1376,
+                    "scaleX": -1
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "defa8f82-0ca9-4b39-ac95-65339548d023",
+                    "label": "wallBandC_6",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 2353,
+                    "y": 1262,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 206,
+                    "height": 256
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "ae017cd2-461f-401c-a34f-5bcab2d821e7",
+                    "label": "wallBandC_7",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 1885,
+                    "y": 1430,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 674,
+                    "height": 256
+                },
+                {
+                    "type": "Image",
+                    "id": "23db5842-f4d1-4152-8803-1b8b82ec79c2",
+                    "label": "wallStair_1",
+                    "texture": {
+                        "key": "terrain-wall-stair"
+                    },
+                    "x": 1173,
+                    "y": 1533,
+                    "scaleX": 1.6607407900003772,
+                    "scaleY": 0.8860267326421837,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "65c61fb3-0218-426a-86c3-62ff270fa832",
+                    "label": "wallPillarLeft_1",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1169,
+                    "y": 1519,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "874dcd5b-55c2-40ae-b740-fcd8cbe531e2",
+                    "label": "wallPillarRight_1",
+                    "texture": {
+                        "key": "terrain-wall-pillar"
+                    },
+                    "x": 1450,
+                    "y": 1521,
+                    "originX": 0,
+                    "originY": 0,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "5d1b545f-0507-4203-8b64-f4dedf2f6121",
+                    "label": "wallBandC_8",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "y": 1406,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "da56f558-a409-48b6-947e-7b5f35a57720",
+                    "label": "halo_stone_castle_terrain_wall_endcap_7",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 817,
+                    "y": 1531
+                },
+                {
+                    "type": "Image",
+                    "id": "8a03e972-810e-4bbf-b423-2f8d0d74e5e9",
+                    "label": "wallBandC_9",
+                    "texture": {
+                        "key": "terrain-wall-face-rock"
+                    },
+                    "x": 350,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "03f52ffc-e8a6-4597-adf3-5d16e28421e6",
+                    "label": "halo_stone_castle_terrain_wall_endcap_8",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 1971,
+                    "y": 1657
+                },
+                {
+                    "type": "Image",
+                    "id": "190f73a0-800a-4f32-958a-a87f1010afa0",
+                    "label": "halo_stone_castle_terrain_wall_endcap_9",
+                    "texture": {
+                        "key": "terrain-wall-endcap"
+                    },
+                    "x": 272,
+                    "y": 1656,
+                    "scaleX": -1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "a3f44f7f-5c8c-4a97-bb55-9c2980850230",
+            "label": "L13_Forest_Under_Brush",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "ab8bc2bf56ef8414a8176a709884f914",
+                    "label": "seamline_under_0",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 448,
+                    "y": 239,
+                    "scaleX": 1.374,
+                    "scaleY": 1.374,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "e151524fac7b7a4b331117d1b3629f96",
+                    "label": "seamline_under_1",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 526,
+                    "y": 294,
+                    "scaleX": 0.871,
+                    "scaleY": 0.871,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "3686d155de5a7fcaf2f2003590910e4a",
+                    "label": "seamline_under_2",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 646,
+                    "y": 243,
+                    "scaleX": 1.433,
+                    "scaleY": 1.433,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "af0c58a78f15e128003d306aa87659e7",
+                    "label": "seamline_under_5",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 929,
+                    "y": 292,
+                    "scaleX": 1.287,
+                    "scaleY": 1.287,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "070cf9351d86df15b6fca5f3822e31c9",
+                    "label": "seamline_under_6",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 1010,
+                    "y": 259,
+                    "scaleX": 1.096,
+                    "scaleY": 1.096,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "81bbcbd5fcab2c1275b009d3884abab7",
+                    "label": "seamline_under_7",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 1101,
+                    "y": 263,
+                    "scaleX": 1.021,
+                    "scaleY": 1.021,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "5004ec02fbb9b6f20383f02bc370a521",
+                    "label": "seamline_under_8",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 1260,
+                    "y": 328,
+                    "scaleX": 0.828,
+                    "scaleY": 0.828,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "e76d6959521dc6e3a80bce23947ff3dd",
+                    "label": "seamline_under_9",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 1422,
+                    "y": 287,
+                    "scaleX": 1.13,
+                    "scaleY": 1.13,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "cb4d9fd31c1a553fbc470eb7f51aee57",
+                    "label": "seamline_under_12",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 1716,
+                    "y": 265,
+                    "scaleX": 1.103,
+                    "scaleY": 1.103,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "8a231dc9070651e9ea2f1d575b40f524",
+                    "label": "seamline_under_15",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 2024,
+                    "y": 340,
+                    "scaleX": 0.814,
+                    "scaleY": 0.814,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "b16e3d3c228b0ca480f618a9c83004df",
+                    "label": "seamline_under_18",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 352,
+                    "y": 299,
+                    "scaleX": 0.938,
+                    "scaleY": 0.938,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "c0c430afc337f7565586089765cbb5a4",
+                    "label": "seamline_under_21",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 2213,
+                    "y": 497,
+                    "scaleX": 0.977,
+                    "scaleY": 0.977,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "41e2adc6de8c06919c7f6e7c391d0a2f",
+                    "label": "seamline_under_24",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 397,
+                    "y": 650,
+                    "scaleX": 1.074,
+                    "scaleY": 1.074,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "fa7959af87779b6e801d48f52eb40f3e",
+                    "label": "seamline_under_25",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 414,
+                    "y": 745,
+                    "scaleX": 1.329,
+                    "scaleY": 1.329,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "fbaed5a753314a7d7a036eb3a9d972cf",
+                    "label": "seamline_under_26",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 2149,
+                    "y": 688,
+                    "scaleX": 1.249,
+                    "scaleY": 1.249,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "bae94042ed6c793bae2342ced0c97f2b",
+                    "label": "seamline_under_30",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 2190,
+                    "y": 850,
+                    "scaleX": 1.486,
+                    "scaleY": 1.486,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "70eb1a531763264d4f3c58e8730ee309",
+                    "label": "seamline_under_31",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 2171,
+                    "y": 940,
+                    "scaleX": 1.345,
+                    "scaleY": 1.345,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "da7807bf29df05927aab2cae9011208f",
+                    "label": "seamline_under_32",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 357,
+                    "y": 1115,
+                    "scaleX": 1.182,
+                    "scaleY": 1.182,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "797e3a8198454fd58d33ce27d8100a2c",
+                    "label": "seamline_under_34",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 76,
+                    "y": 1116,
+                    "scaleX": 1.222,
+                    "scaleY": 1.222,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "62219b90131181d744e53fab6199364b",
+                    "label": "seamline_under_35",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": -3,
+                    "y": 1101,
+                    "scaleX": 1.475,
+                    "scaleY": 1.475,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "ff2543f844790cf4a513f0f3ff635c2f",
+                    "label": "seamline_under_36",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 224,
+                    "y": 1170,
+                    "scaleX": 0.993,
+                    "scaleY": 0.993,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "0eb9545c3afd3f31340d1389c11bed4f",
+                    "label": "seamline_under_37",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 2219,
+                    "y": 1103,
+                    "scaleX": 1.029,
+                    "scaleY": 1.029,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "3acd5001751b021a38c6f02869292aaf",
+                    "label": "seamline_under_39",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 2199,
+                    "y": 1226,
+                    "scaleX": 1.18,
+                    "scaleY": 1.18,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "059d857e24d865100c0ef2771448bc83",
+                    "label": "seamline_under_40",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 2254,
+                    "y": 1199,
+                    "scaleX": 1.089,
+                    "scaleY": 1.089,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "aa293f36d4b3a7ad86fc38fa0c421464",
+                    "label": "seamline_under_41",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 2466,
+                    "y": 1179,
+                    "scaleX": 0.942,
+                    "scaleY": 0.942,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "b65e4d4f-cabb-4077-9aac-2b5ec001ad4e",
+            "label": "L12.5 Back Canopy",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "1157946b-c6b3-4082-87a5-8443d0a62152",
+                    "label": "nature_tree_broadleaf_large_21",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 426,
+                    "y": -119,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "07083be2-8c81-4101-bd7d-53e0df3efcd7",
+                    "label": "nature_tree_broadleaf_large_26",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1592,
+                    "y": -121,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "88f019b0-861c-44ed-ba4e-7feca6dacaaf",
+                    "label": "nature_tree_broadleaf_large_27",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1734,
+                    "y": -97,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "255a6bed-b0f7-4738-b3de-56fc70c057fd",
+                    "label": "nature_tree_broadleaf_large_28",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1891,
+                    "y": -64,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "06b27b0c-686d-4491-9f02-48b12fc5cab9",
+                    "label": "nature_tree_broadleaf_large_22",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 558,
+                    "y": -68,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "2f678aaa-5412-4847-8895-485d018c3ce0",
+                    "label": "nature_tree_broadleaf_large_23",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 767,
+                    "y": -137,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "0d9e86bf-d878-4deb-9b2a-0a9bb644a2ce",
+                    "label": "nature_tree_broadleaf_large_24",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 909,
+                    "y": -73,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "005dcdd8-635e-4d2c-9859-11cca8dd27bb",
+                    "label": "nature_tree_broadleaf_large_29",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1181,
+                    "y": -117,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "b031a21c-1694-4643-9ad8-9e86c8e7a0a5",
+                    "label": "nature_tree_broadleaf_large_30",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1333,
+                    "y": -63,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "06a12a05-c137-4479-9816-08adc28a83fa",
+                    "label": "nature_tree_broadleaf_large_33",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2189,
+                    "y": -97,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "8098f148-1122-4770-a8b6-c9ba90bfece9",
+                    "label": "nature_tree_broadleaf_large_31",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1480,
+                    "y": -60,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "fe363269-4103-476c-91c0-24fa073cdd53",
+                    "label": "nature_tree_broadleaf_large_25",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1066,
+                    "y": -80,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "4d8c2e75-f594-4901-b596-ed2804c28c90",
+                    "label": "nature_tree_broadleaf_large_20",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 725,
+                    "y": -62,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "04126b46-f35b-404a-9c71-d4fdf6a4a852",
+                    "label": "nature_tree_broadleaf_large_32",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2046,
+                    "y": -99,
+                    "scaleX": 3,
+                    "scaleY": 3
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "933cb24f-5dcc-4691-a09e-825c77dd0c7f",
+            "label": "L3_CASTLE",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "4d8b64b9-b7aa-4319-96bf-f43e8ad2fc97",
+                    "label": "battleTower",
+                    "texture": {
+                        "key": "tower-battle-v3"
+                    },
+                    "x": 1224,
+                    "y": -57,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "391b84c4-4fba-458b-94d1-b7617ecd60bb",
+                    "label": "wallNorthRun",
+                    "texture": {
+                        "key": "wall-straight-v3"
+                    },
+                    "x": 706,
+                    "y": -6,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 1221,
+                    "height": 202
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "e4fd3f7c-f34b-426d-8536-5a1e666eb4c9",
+                    "label": "wallSouthRunWest",
+                    "texture": {
+                        "key": "wall-straight-v3"
+                    },
+                    "x": 706,
+                    "y": 928,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 397,
+                    "height": 202,
+                    "scaleY": -1
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "1f684376-dd03-453b-9082-cad7abfdc34d",
+                    "label": "wallSouthRunEast",
+                    "texture": {
+                        "key": "wall-straight-v3"
+                    },
+                    "x": 1529,
+                    "y": 928,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 398,
+                    "height": 202,
+                    "scaleY": -1
+                },
+                {
+                    "type": "Image",
+                    "id": "be6aa94a-ac68-4d60-a1db-9fc0c6065541",
+                    "label": "wallWestSeg1",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 523,
+                    "y": 302,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "b766adaf-a702-4842-9dc2-1db55a765ae9",
+                    "label": "wallEastSeg1",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 2110,
+                    "y": 302,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "4c6b14e9-f14f-477d-a267-2b1111dac9f0",
+                    "label": "towerCornerNW",
+                    "texture": {
+                        "key": "tower-corner-v3"
+                    },
+                    "x": 523,
+                    "y": -6,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "bb533cd3-f439-44fa-bcf9-79f62c3687d8",
+                    "label": "towerCornerNE",
+                    "texture": {
+                        "key": "tower-corner-v3"
+                    },
+                    "x": 1927,
+                    "y": -6,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "86476930-3bf5-40d9-8ca0-42201cba02d7",
+                    "label": "towerCornerSW",
+                    "texture": {
+                        "key": "tower-corner-v3"
+                    },
+                    "x": 523,
+                    "y": 659,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "b6c390c8-6f25-47a7-8ad7-a305720195dd",
+                    "label": "towerCornerSE",
+                    "texture": {
+                        "key": "tower-corner-v3"
+                    },
+                    "x": 1927,
+                    "y": 659,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "2974ad1f-d233-4434-903f-bd900c8253fb",
+                    "label": "castleGate",
+                    "texture": {
+                        "key": "gate-house-v3"
+                    },
+                    "x": 1103,
+                    "y": 654,
+                    "originX": 0,
+                    "originY": 0,
+                    "scaleX": 1.45,
+                    "scaleY": 1.45
+                },
+                {
+                    "type": "Image",
+                    "id": "43dfc668-4234-4996-9604-1696bc5bf3d1",
+                    "label": "SHELF_wall_straight_v3",
+                    "texture": {
+                        "key": "wall-straight-v3"
+                    },
+                    "x": 2900,
+                    "y": 100,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "ea27e1c8-731e-4989-87d8-a40e907ac136",
+                    "label": "SHELF_wall_side_v3",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 2900,
+                    "y": 340,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "b6b910e3-df61-421b-afe3-871866c1bd0a",
+                    "label": "SHELF_tower_corner_v3",
+                    "texture": {
+                        "key": "tower-corner-v3"
+                    },
+                    "x": 3060,
+                    "y": 340,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "58dbd5aa-70a7-4fc1-8757-6011e181883d",
+                    "label": "SHELF_gate_house_v3",
+                    "texture": {
+                        "key": "gate-house-v3"
+                    },
+                    "x": 2900,
+                    "y": 700,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "3784b399-5b10-4ba5-b6a7-c7c176165231",
+                    "label": "SHELF_tower_battle_v3",
+                    "texture": {
+                        "key": "tower-battle-v3"
+                    },
+                    "x": 3260,
+                    "y": 100,
+                    "originX": 0,
+                    "originY": 0
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "65795cfa-e278-4a56-be62-0f60321ae078",
+            "label": "L12_FOREST_CANOPY",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "e9e15d26-0217-46dc-a59a-5d826c47e66b",
+                    "label": "nature_tree_broadleaf_large",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 57,
+                    "y": -117,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "041168ea-ff48-40d8-8941-50770df45d8f",
+                    "label": "nature_shrub_young_tree_cluster",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": -269,
+                    "y": 153
+                },
+                {
+                    "type": "Image",
+                    "id": "808445f0-9424-4be0-b89e-bcf741d94947",
+                    "label": "nature_tree_broadleaf_small",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": -292,
+                    "y": -3
+                },
+                {
+                    "type": "Image",
+                    "id": "c34d0131-8129-4140-a14b-33e1a1bcb0e9",
+                    "label": "nature_rocks_scrub_cluster",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": -245,
+                    "y": 279
+                },
+                {
+                    "type": "Image",
+                    "id": "bb22fb61-df7f-44d9-aa8e-510033b571f7",
+                    "label": "nature_tree_broadleaf_large_9",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 285,
+                    "y": -123,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "c6983b73-4a06-4f2b-82f6-db230c373775",
+                    "label": "nature_tree_broadleaf_large_3",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 59,
+                    "y": 43,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "5634ce92-4a76-47a9-b8c3-a3882eab0251",
+                    "label": "nature_tree_broadleaf_large_2",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 216,
+                    "y": 77,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "941efc5a-0184-4d04-8771-c236aafbfe9d",
+                    "label": "nature_tree_broadleaf_large_7",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 230,
+                    "y": 210,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "31be8530-7ff3-4e75-8603-f5c1ae85a14e",
+                    "label": "nature_tree_broadleaf_large_8",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 82,
+                    "y": 242,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "9c483fa3-df7e-42ad-a641-aad65c4f622d",
+                    "label": "nature_tree_broadleaf_large_5",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 243,
+                    "y": 406,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "10938888-9c0b-40bc-8264-a3871cf91596",
+                    "label": "nature_tree_broadleaf_large_6",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 86,
+                    "y": 458,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "f83f3b4e-7138-454d-a086-97812a89fbcd",
+                    "label": "nature_tree_broadleaf_large_4",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 256,
+                    "y": 640,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "15ea4104-543b-40e7-87f8-c22d6be068d1",
+                    "label": "nature_tree_broadleaf_large_1",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 87,
+                    "y": 707,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "8e63fca1-2793-43d3-9e2a-b634f5c04c7b",
+                    "label": "nature_tree_broadleaf_large_10",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2337,
+                    "y": -60,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "55483852-de90-405a-b4b9-ce230926a5f8",
+                    "label": "nature_tree_broadleaf_large_11",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2565,
+                    "y": -66,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "a9b3241e-988d-4e7a-a628-998be0921486",
+                    "label": "nature_tree_broadleaf_large_12",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2339,
+                    "y": 100,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "b46cebe3-7f78-47d5-b006-d1684346593a",
+                    "label": "nature_tree_broadleaf_large_13",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2496,
+                    "y": 134,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "7e0fae79-bdd2-4f34-a0c6-415308395a69",
+                    "label": "nature_tree_broadleaf_large_14",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2510,
+                    "y": 267,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "087362ee-6896-400c-8857-5ee6a2dc3405",
+                    "label": "nature_tree_broadleaf_large_15",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2362,
+                    "y": 299,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "9e0573d7-9f7f-47fe-92e9-0a5282d8304d",
+                    "label": "nature_tree_broadleaf_large_16",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2523,
+                    "y": 463,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "d11b3598-b74a-4ce7-8e41-c78fd66fceb3",
+                    "label": "nature_tree_broadleaf_large_17",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2366,
+                    "y": 515,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "7c13d133-4cba-4d38-a745-c3949bcaa0bc",
+                    "label": "nature_tree_broadleaf_large_18",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2536,
+                    "y": 697,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "c75891a4-1796-40f0-8942-1ecfa3e5c19a",
+                    "label": "nature_tree_broadleaf_large_19",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2367,
+                    "y": 764,
+                    "scaleX": 3,
+                    "scaleY": 3
+                },
+                {
+                    "type": "Image",
+                    "id": "78986e61a162ccc8c7d16e7c63abd3ce",
+                    "label": "seamline_canopy_0",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 457,
+                    "y": 224,
+                    "scaleX": 2.624,
+                    "scaleY": 2.624,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "b7655110c4530434ae447d0df20a3e7d",
+                    "label": "seamline_canopy_1",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 545,
+                    "y": 290,
+                    "scaleX": 2.736,
+                    "scaleY": 2.736,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "19dda88f34a8be9b4d2a626e992ecbca",
+                    "label": "seamline_canopy_2",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 643,
+                    "y": 226,
+                    "scaleX": 2.725,
+                    "scaleY": 2.725,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "4ec13a766b4138ecf4445d47b0138f05",
+                    "label": "seamline_canopy_3",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 765,
+                    "y": 267,
+                    "scaleX": 2.808,
+                    "scaleY": 2.808,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "eb29f6006ff7c029a8c38663be68efb2",
+                    "label": "seamline_canopy_4",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 856,
+                    "y": 243,
+                    "scaleX": 2.798,
+                    "scaleY": 2.798,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "14cd27ca43936eb05e87187bb12c2cc9",
+                    "label": "seamline_canopy_5",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 929,
+                    "y": 275,
+                    "scaleX": 2.703,
+                    "scaleY": 2.703,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "be5e9d7a42b99598d09efbfbf1b8fe52",
+                    "label": "seamline_canopy_6",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1033,
+                    "y": 252,
+                    "scaleX": 2.703,
+                    "scaleY": 2.703,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "2a0bf6b82f339a36a309c5027dddc213",
+                    "label": "seamline_canopy_7",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1135,
+                    "y": 257,
+                    "scaleX": 2.612,
+                    "scaleY": 2.612,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "9ea4f33ba239442066152db69ebea672",
+                    "label": "seamline_canopy_8",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1227,
+                    "y": 325,
+                    "scaleX": 3.179,
+                    "scaleY": 3.179,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "ceb160fcf9e05f53d2b8ad170d7f3043",
+                    "label": "seamline_canopy_9",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1417,
+                    "y": 279,
+                    "scaleX": 2.941,
+                    "scaleY": 2.941,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "4a21c9dcf9dd924f74fa0e3e1d7a06be",
+                    "label": "seamline_canopy_10",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 1540,
+                    "y": 210,
+                    "scaleX": 2.434,
+                    "scaleY": 2.434,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "8bfce1a1353e80851daaff6db0398583",
+                    "label": "seamline_canopy_11",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 1619,
+                    "y": 264,
+                    "scaleX": 2.776,
+                    "scaleY": 2.776,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "e57e108844f7c789f18d9d82853fbc26",
+                    "label": "seamline_canopy_12",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1696,
+                    "y": 258,
+                    "scaleX": 3.071,
+                    "scaleY": 3.071,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "2ff06472ce83d379e8486eb06da43c1f",
+                    "label": "seamline_canopy_13",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1826,
+                    "y": 278,
+                    "scaleX": 2.855,
+                    "scaleY": 2.855,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "6b5c0c6b8ff9eab607db602803caf197",
+                    "label": "seamline_canopy_14",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1922,
+                    "y": 318,
+                    "scaleX": 3.107,
+                    "scaleY": 3.107,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "574cedd7828e142b7a55df9f312299d6",
+                    "label": "seamline_canopy_15",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 1989,
+                    "y": 337,
+                    "scaleX": 3.199,
+                    "scaleY": 3.199,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "8c3c372e4dd8a03e8e3024f39cbc3667",
+                    "label": "seamline_canopy_16",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2112,
+                    "y": 257,
+                    "scaleX": 2.919,
+                    "scaleY": 2.919,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "89754ea26196515be5eef91a3be2b7c0",
+                    "label": "seamline_canopy_17",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2250,
+                    "y": 305,
+                    "scaleX": 3.026,
+                    "scaleY": 3.026,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "56ec1bab89caa50ba5b802a48ff617b2",
+                    "label": "seamline_canopy_18",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 369,
+                    "y": 296,
+                    "scaleX": 2.76,
+                    "scaleY": 2.76,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "1b694d5b6ed378b3dd96dcfaa1693254",
+                    "label": "seamline_canopy_19",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2269,
+                    "y": 404,
+                    "scaleX": 3.06,
+                    "scaleY": 3.06,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "d71c14708d04d400a3c570511b44c8b3",
+                    "label": "seamline_canopy_20",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 395,
+                    "y": 431,
+                    "scaleX": 3.186,
+                    "scaleY": 3.186,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "1cc45fafbe7c92d29c6948a26e5bed80",
+                    "label": "seamline_canopy_21",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2222,
+                    "y": 489,
+                    "scaleX": 2.827,
+                    "scaleY": 2.827,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "ef30d1b95c688ea06cd9a53739493037",
+                    "label": "seamline_canopy_22",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 431,
+                    "y": 472,
+                    "scaleX": 2.691,
+                    "scaleY": 2.691,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "cb6cd241b985417c5efb6a4036821e0c",
+                    "label": "seamline_canopy_23",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2214,
+                    "y": 607,
+                    "scaleX": 2.844,
+                    "scaleY": 2.844,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "f6cf7da9b945b6f709808a2a9cf146fe",
+                    "label": "seamline_canopy_24",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 398,
+                    "y": 639,
+                    "scaleX": 2.884,
+                    "scaleY": 2.884,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "9050d2403523ce2967ff47c6cde98033",
+                    "label": "seamline_canopy_25",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 414,
+                    "y": 731,
+                    "scaleX": 2.904,
+                    "scaleY": 2.904,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "c97b06eb6b70e8e6adac0d290e7bf84d",
+                    "label": "seamline_canopy_26",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 2165,
+                    "y": 671,
+                    "scaleX": 2.563,
+                    "scaleY": 2.563,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "dfdd9d09bf738222b463fd85c11b36b0",
+                    "label": "seamline_canopy_27",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2218,
+                    "y": 764,
+                    "scaleX": 2.749,
+                    "scaleY": 2.749,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "4a1c5adcd6ef41c78d174d4f212419b0",
+                    "label": "seamline_canopy_28",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 426,
+                    "y": 822,
+                    "scaleX": 3.131,
+                    "scaleY": 3.131,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "dc7e01311295765ba3818ee82428024b",
+                    "label": "seamline_canopy_29",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 458,
+                    "y": 908,
+                    "scaleX": 2.93,
+                    "scaleY": 2.93,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "738c82b134e4387f9ac882b22f9d46bd",
+                    "label": "seamline_canopy_30",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 2178,
+                    "y": 833,
+                    "scaleX": 2.802,
+                    "scaleY": 2.802,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "79d0d1d4445c64a847080d87b67cb09d",
+                    "label": "seamline_canopy_31",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2199,
+                    "y": 926,
+                    "scaleX": 2.662,
+                    "scaleY": 2.662,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "24b4551336be977ef48a404288f140ea",
+                    "label": "seamline_canopy_32",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 327,
+                    "y": 1105,
+                    "scaleX": 3.153,
+                    "scaleY": 3.153,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "e38d2f00424aedeaadb372cda0835b5d",
+                    "label": "seamline_canopy_33",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 441,
+                    "y": 1068,
+                    "scaleX": 3.086,
+                    "scaleY": 3.086,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "e07261c90cb072184acfc0b93177a80c",
+                    "label": "seamline_canopy_34",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 105,
+                    "y": 1105,
+                    "scaleX": 2.65,
+                    "scaleY": 2.65,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "9f53e1c0bbfadbe0207378c9115b3b02",
+                    "label": "seamline_canopy_35",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 9,
+                    "y": 1083,
+                    "scaleX": 2.595,
+                    "scaleY": 2.595,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "eef5381efc1a3361446a7e54920b8c5e",
+                    "label": "seamline_canopy_36",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 204,
+                    "y": 1166,
+                    "scaleX": 3.073,
+                    "scaleY": 3.073,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "d0a3b2d1dabf37db8d708f20e5bee83f",
+                    "label": "seamline_canopy_37",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2208,
+                    "y": 1094,
+                    "scaleX": 2.988,
+                    "scaleY": 2.988,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "d06a0937cb8b2af80bf747860d956a0f",
+                    "label": "seamline_canopy_38",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 2428,
+                    "y": 1165,
+                    "scaleX": 2.631,
+                    "scaleY": 2.631,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "c7e6ad8a3e9c764e32c2a85199882177",
+                    "label": "seamline_canopy_39",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2189,
+                    "y": 1216,
+                    "scaleX": 2.989,
+                    "scaleY": 2.989,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "8f6bb731e0d61e66b5c9e2f772e4bcd5",
+                    "label": "seamline_canopy_40",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2283,
+                    "y": 1192,
+                    "scaleX": 2.653,
+                    "scaleY": 2.653,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "452e50ad5c65c65bddaf79d7dcd07777",
+                    "label": "seamline_canopy_41",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-large"
+                    },
+                    "x": 2495,
+                    "y": 1176,
+                    "scaleX": 2.652,
+                    "scaleY": 2.652,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "4144ad9c-6555-4475-baba-e1defbe13fd5",
+            "label": "L8_NATURE",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "7664fbd7-b8c3-45db-9df7-a4121fc744e7",
+                    "label": "footShrubB",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 1809,
+                    "y": 1541,
+                    "originY": 1,
+                    "editorRender": false
+                },
+                {
+                    "type": "Image",
+                    "id": "859d7958-46be-4064-97ca-68942a39f7bf",
+                    "label": "entryShrubL",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 641,
+                    "y": 1486,
+                    "scaleX": 0.85,
+                    "scaleY": 0.85,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "371f7269-6821-480c-8ffe-6eacf305ee46",
+                    "label": "entryFootRockL",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 173,
+                    "y": 1777,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "65ad3a4a-d8c4-4127-b0e5-7063844b7e93",
+                    "label": "entryFootShrubL",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 237,
+                    "y": 1863,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8,
+                    "originY": 1,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "6931f30a-e2df-4e34-bdbd-0c99982127ac",
+                    "label": "entryFootRockR",
+                    "texture": {
+                        "key": "nature-rocks-scrub-cluster"
+                    },
+                    "x": 382,
+                    "y": 1893,
+                    "scaleX": 0.85,
+                    "scaleY": 0.85,
+                    "originY": 1,
+                    "flipX": true
+                },
+                {
+                    "type": "Image",
+                    "id": "6e3e3f6f-ba84-450c-899c-b4dd77acc121",
+                    "label": "entryFootShrubR",
+                    "texture": {
+                        "key": "nature-shrub-young-tree-cluster"
+                    },
+                    "x": 391,
+                    "y": 1811,
+                    "scaleX": 0.9,
+                    "scaleY": 0.9,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "3c589416-307d-4ad1-b8d4-28df02a50136",
+                    "label": "entryGateTreeR",
+                    "texture": {
+                        "key": "nature-tree-broadleaf-small"
+                    },
+                    "x": 84,
+                    "y": 1835,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "5bd7ef74-7b46-415e-a249-e5ad893b254a",
+            "label": "L4_QUADRANT_NE",
+            "list": [
+                {
+                    "type": "Sprite",
+                    "id": "5fb600b8-c7ea-4583-bd6b-b74fb6e81941",
+                    "label": "NE_apprentice_cardwright",
+                    "texture": {
+                        "key": "anim-apprentice-cardwright-study-east",
+                        "frame": 0
+                    },
+                    "x": 1563,
+                    "y": 761,
+                    "scaleX": 0.667,
+                    "scaleY": 0.667,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "c1bd40b8-47ca-4579-a5f3-758f54112a0d",
+                    "label": "ARCHIVIST_A_as_generated",
+                    "texture": {
+                        "key": "archivist-v1"
+                    },
+                    "x": 3144,
+                    "y": -26,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "4c9c949f-d5c3-4a63-860a-731ee69e3822",
+                    "label": "ARCHIVIST_B_stone20",
+                    "texture": {
+                        "key": "archivist-v1-stone20"
+                    },
+                    "x": 2420,
+                    "y": -301,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "c66a82d4-aa6d-4160-89ed-ab392bc56937",
+                    "label": "COMPARE_B_pixellab_redraw",
+                    "texture": {
+                        "key": "forge-v2"
+                    },
+                    "x": 1731,
+                    "y": 477,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "42145479-22f3-43da-b340-5ed576b70da9",
+            "label": "L5_QUADRANT_NW",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "5bfa6bcf-1d78-474e-b3da-62bc5df94763",
+                    "label": "FORGE_A_castle_lavender",
+                    "texture": {
+                        "key": "forge-v1"
+                    },
+                    "x": 4462,
+                    "y": 346,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "054c02b5-879a-4d7d-9e10-e29ab94f6c87",
+                    "label": "FORGE_B_warm_rock",
+                    "texture": {
+                        "key": "forge-v1-warm"
+                    },
+                    "x": 3151,
+                    "y": 339,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "d167cbd5-d317-4e10-a314-bf8dc852c1b5",
+            "label": "L6_QUADRANT_SW"
+        },
+        {
+            "type": "Layer",
+            "id": "deff59c9-e255-4a72-bf64-96af7cf8ab74",
+            "label": "L7_QUADRANT_SE"
+        },
+        {
+            "type": "Layer",
+            "id": "5e1a36d2-d3f6-4708-ab1f-5ee0701b39aa",
+            "label": "L9_SHELF_offmap",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "93645ad6-1536-458d-846e-2458ee4c97f3",
+                    "label": "FORGE_booth",
+                    "texture": {
+                        "key": "occluder-booth"
+                    },
+                    "x": 4400,
+                    "y": 200,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "ee1b009c-7792-4a6c-9974-e239e9d7251a",
+                    "label": "FORGE_awning",
+                    "texture": {
+                        "key": "occluder-awning-tent"
+                    },
+                    "x": 4400,
+                    "y": 400,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "b8486886-6f08-4246-9da9-8b162d1c9fd5",
+                    "label": "FORGE_brazier",
+                    "texture": {
+                        "key": "occluder-brazier"
+                    },
+                    "x": 4400,
+                    "y": 600,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "62a01e87-8d12-4fe3-b8e3-9d5a09560ced",
+                    "label": "FORGE_produceTable",
+                    "texture": {
+                        "key": "occluder-produce-table"
+                    },
+                    "x": 4400,
+                    "y": 800,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "d72395be-24a9-46a8-8399-7d0b8de1cf99",
+                    "label": "FORGE_crates",
+                    "texture": {
+                        "key": "occluder-crates-south"
+                    },
+                    "x": 4400,
+                    "y": 1000,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "099ca387-78d0-4dda-a01d-53c828d70a23",
+                    "label": "FORGE_barrel",
+                    "texture": {
+                        "key": "occluder-water-barrel"
+                    },
+                    "x": 4400,
+                    "y": 1200,
+                    "scaleX": 1.4,
+                    "scaleY": 1.4,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Sprite",
+                    "id": "6e90ffa7-e54a-495d-b2c0-56b6e90056cd",
+                    "label": "FORGE_keeperDwarf",
+                    "texture": {
+                        "key": "keeper-dwarf",
+                        "frame": 0
+                    },
+                    "x": 4400,
+                    "y": 1400,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Sprite",
+                    "id": "6252e9be-fb38-4116-be58-bf0c62137aba",
+                    "label": "FORGE_heroForScale",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 4400,
+                    "y": 1600,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1,
+                    "visible": false
+                },
+                {
+                    "type": "Image",
+                    "id": "f7d370fb-5f96-4a05-b783-c5b64f5c6590",
+                    "label": "COMPARE_A_leonardo_cutout",
+                    "texture": {
+                        "key": "forge-v1"
+                    },
+                    "x": 3812,
+                    "y": 326,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "6021b2a1-afcf-4d87-95a9-16d2d7a5fd72",
+                    "label": "COMPARE_C_archivist_leonardo",
+                    "texture": {
+                        "key": "archivist-v1-stone20"
+                    },
+                    "x": 3802,
+                    "y": -28,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                },
+                {
+                    "type": "Image",
+                    "id": "a982894f-cadd-4dcb-859e-2a6b79a34142",
+                    "label": "COMPARE_D_archivist_pixellab",
+                    "texture": {
+                        "key": "archivist-v2"
+                    },
+                    "x": 921,
+                    "y": 480,
+                    "scaleX": 2,
+                    "scaleY": 2,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "c8a92e05-9683-4544-b0d1-c1e895eb1c7f",
+            "label": "L10_VOID_library",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "64d17da5-3e15-44ac-87f0-b7abbc2af8e2",
+                    "label": "VOID_griffin_curled",
+                    "texture": {
+                        "key": "griffin-cub-unknown"
+                    },
+                    "x": -1033,
+                    "y": -298,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "0c4e7066-15ff-40c4-b522-35d6de420bff",
+                    "label": "VOID_apprentice",
+                    "texture": {
+                        "key": "apprentice-unknown"
+                    },
+                    "x": -886,
+                    "y": -298,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "483b43d2-c7b1-47e4-b1e5-89a5e3a0fafd",
+                    "label": "VOID_apprentice_f1",
+                    "texture": {
+                        "key": "apprentice-frame-1"
+                    },
+                    "x": -753,
+                    "y": -308,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "8bfee41b-d573-4b39-a1e3-9f4d775b6d1c",
+                    "label": "VOID_apprentice_f2",
+                    "texture": {
+                        "key": "apprentice-frame-2"
+                    },
+                    "x": -616,
+                    "y": -311,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "5a183e89-63ee-47f5-b850-9f5fd3d51fa3",
+                    "label": "VOID_dragonkin",
+                    "texture": {
+                        "key": "forge-dragon-kin-unknown"
+                    },
+                    "x": -458,
+                    "y": -311,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "66c4a207-b328-47e4-b0d2-3cdcba338e89",
+                    "label": "VOID_dragonkin_f0",
+                    "texture": {
+                        "key": "forge-dragon-kin-frame-0"
+                    },
+                    "x": -300,
+                    "y": -306,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "d6bde579-e1dd-4b90-bd4f-bea1ac5b0f97",
+                    "label": "VOID_lectern_south",
+                    "texture": {
+                        "key": "lectern-south"
+                    },
+                    "x": -871,
+                    "y": 446,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "e447abcc-5d67-4bf0-aeeb-8ed4a776fe78",
+                    "label": "VOID_lectern_north",
+                    "texture": {
+                        "key": "lectern-north"
+                    },
+                    "x": -671,
+                    "y": 446,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "52a324b1-f934-4add-bd73-bff37fab031d",
+                    "label": "VOID_rug_0",
+                    "texture": {
+                        "key": "rugs-frame-0"
+                    },
+                    "x": -871,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "54e39545-cc09-4137-ba47-fc9d01f4e1cb",
+                    "label": "VOID_rug_1",
+                    "texture": {
+                        "key": "rugs-frame-1"
+                    },
+                    "x": -671,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "7fe9d507-cc50-42ba-ac9c-444906e15048",
+                    "label": "VOID_rug_2",
+                    "texture": {
+                        "key": "rugs-frame-2"
+                    },
+                    "x": -471,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "b83886e0-b3d6-43dc-b73c-10fe42fc315d",
+                    "label": "VOID_rug_3",
+                    "texture": {
+                        "key": "rugs-frame-3"
+                    },
+                    "x": -271,
+                    "y": 666,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a0c30f5a-7f6e-411d-80d3-7a63e7d61932",
+                    "label": "VOID_tree_0",
+                    "texture": {
+                        "key": "tree-blue-pine"
+                    },
+                    "x": -451,
+                    "y": 29,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "87d01936-6128-431c-92c8-28598ab16200",
+                    "label": "VOID_tree_2",
+                    "texture": {
+                        "key": "tree-green-bare"
+                    },
+                    "x": -569,
+                    "y": 165,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "d638c0c4-6c86-4163-9494-f5a14358569f",
+                    "label": "VOID_tree_3",
+                    "texture": {
+                        "key": "tree-pale-bare"
+                    },
+                    "x": -457,
+                    "y": 161,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "c3c08f65-58f7-40cc-a2e9-278153cedee4",
+                    "label": "VOID_forgingstand_south",
+                    "texture": {
+                        "key": "forging-stand-south"
+                    },
+                    "x": -871,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "9970986b-2858-4aed-9e56-b4f149866ed1",
+                    "label": "VOID_weaponrack_south",
+                    "texture": {
+                        "key": "weapon-rack-south"
+                    },
+                    "x": -671,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "a9ba3050-7b50-4404-8eaa-8ba97a93be25",
+                    "label": "VOID_sortingtable_south",
+                    "texture": {
+                        "key": "sorting-table-south"
+                    },
+                    "x": -471,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "d94a5e4d-e1aa-472e-ab2f-9fb28d71a4af",
+                    "label": "VOID_handcart_south",
+                    "texture": {
+                        "key": "hand-cart-south"
+                    },
+                    "x": -271,
+                    "y": 1106,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "00239c38-75ca-4012-b19b-8700534c9f1e",
+                    "label": "VOID_reliquary",
+                    "texture": {
+                        "key": "reliquary-frame-0"
+                    },
+                    "x": -871,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "9de8da1a-d2ed-4990-962e-990eac572882",
+                    "label": "VOID_crystal_eruption",
+                    "texture": {
+                        "key": "crystal-eruption-frame-0"
+                    },
+                    "x": -671,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "0771223e-c556-4ed2-bf55-8a5ab2723e38",
+                    "label": "VOID_crystal_mine",
+                    "texture": {
+                        "key": "crystal-mine-frame-0"
+                    },
+                    "x": -471,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "f767c8fa-ba18-42eb-9d24-98df496d6764",
+                    "label": "VOID_marketstall",
+                    "texture": {
+                        "key": "market-stall-unknown"
+                    },
+                    "x": -271,
+                    "y": 1326,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "7a39950f-fe8e-4490-9ea2-66f3d051fa0c",
+                    "label": "VOID_barrel",
+                    "texture": {
+                        "key": "barrel-unknown"
+                    },
+                    "x": -871,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "227b4cf1-5310-4c77-ac30-f05c42787c2d",
+                    "label": "VOID_crate",
+                    "texture": {
+                        "key": "crate-unknown"
+                    },
+                    "x": -671,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "963709ca-15bd-4d15-9546-09584c1dd418",
+                    "label": "VOID_towerwayup",
+                    "texture": {
+                        "key": "tower-way-up-frame-0"
+                    },
+                    "x": -471,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "37591f31-b42b-4739-aa35-78d8e25e7c3f",
+                    "label": "VOID_courtyardprops",
+                    "texture": {
+                        "key": "courtyard-props-frame-0"
+                    },
+                    "x": -271,
+                    "y": 1546,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "0f69cbc5-8945-4768-8251-f8379f38c602",
+                    "label": "tree_teal_willow",
+                    "texture": {
+                        "key": "tree-teal-willow"
+                    },
+                    "x": -481,
+                    "y": 118
+                },
+                {
+                    "type": "Image",
+                    "id": "2ef04491-5864-4e75-b526-fcdac4e26672",
+                    "label": "tree_yellow_leafy",
+                    "texture": {
+                        "key": "tree-yellow-leafy"
+                    },
+                    "x": -764,
+                    "y": 257
+                },
+                {
+                    "type": "Image",
+                    "id": "8126e395-6a59-457e-b7a1-3b71359e43fe",
+                    "label": "tree_yellow_round",
+                    "texture": {
+                        "key": "tree-yellow-round"
+                    },
+                    "x": -612,
+                    "y": 258
+                },
+                {
+                    "type": "Image",
+                    "id": "4b0bee32-2765-4cb6-87c1-b88580bc0407",
+                    "label": "tree_yellow_willow",
+                    "texture": {
+                        "key": "tree-yellow-willow"
+                    },
+                    "x": -762,
+                    "y": 120
+                },
+                {
+                    "type": "Image",
+                    "id": "676f883c-c18e-4d23-ba42-0a1f1e466220",
+                    "label": "tree_orange_autumn",
+                    "texture": {
+                        "key": "tree-orange-autumn"
+                    },
+                    "x": -246,
+                    "y": 465,
+                    "scaleX": 2.2219192985387357,
+                    "scaleY": 2.059138334505369
+                }
+            ]
+        },
+        {
+            "type": "Image",
+            "id": "07a3b6ad-c0d5-47a0-b3fb-ffa75ae2eca1",
+            "label": "PREVIEW_tower_cap_v2",
+            "texture": {
+                "key": "tower-cap-v2"
+            },
+            "x": 3409,
+            "y": 1475
+        },
+        {
+            "type": "Image",
+            "id": "f4e2c6b5-2d47-4bb6-886b-7b71afb51cf0",
+            "label": "PREVIEW_tower_base_v2",
+            "texture": {
+                "key": "tower-base-v2"
+            },
+            "x": 3427,
+            "y": 1735
+        },
+        {
+            "type": "Image",
+            "id": "38699050-cf62-406f-b204-f9ee250bd406",
+            "label": "PREVIEW_tower_full_forReference",
+            "texture": {
+                "key": "tower-watch-v2"
+            },
+            "x": 3425,
+            "y": 1095
+        },
+        {
+            "type": "Layer",
+            "id": "bfacd410-58b5-4822-8b8f-03433e4f7aa7",
+            "label": "L20_GROUND_L0",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "49d4e9bc-04e8-4b23-a72f-1b47bf57e785",
+                    "label": "PLATE_L0_lowGround",
+                    "y": 1624,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#66ff88",
+                    "fillAlpha": 0.25,
+                    "strokeColor": "#66ff88",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 296
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "1541b86f-e8d4-489f-909e-48f3055788f1",
+            "label": "L21_GROUND_L1",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "d0ae49ac-84ac-43c8-ae3b-62f2aa094f53",
+                    "label": "PLATE_L1_castlePlateau",
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false,
+                    "isFilled": true,
+                    "fillColor": "#ffdd44",
+                    "fillAlpha": 0.25,
+                    "strokeColor": "#ffdd44",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 1528
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "d2576454-a597-4084-8831-0895bd54219f",
+            "label": "L23_RAMPS",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "d3ca90a3-d58f-4435-b5a2-80f38bf3cca2",
+                    "label": "RAMP_greatStair",
+                    "x": 1261,
+                    "y": 1470,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#cc66ff",
+                    "fillAlpha": 0.3,
+                    "strokeColor": "#cc66ff",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 185,
+                    "height": 230
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "7bd79f3b-aab8-499f-a51c-fc56339c0177",
+            "label": "L11_MARKERS",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Sprite",
+                    "id": "f677862b-438a-4f17-9186-86edd2208d8f",
+                    "label": "scaleHeroTopOfStair",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 1062,
+                    "y": 1366,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "ef55ac33-06f4-45cf-9c5e-d45988e2dd02",
+                    "label": "scaleHeroNative71px",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 900,
+                    "y": 1800,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "ae9eee03-144e-4bfd-aa7c-fe1df152bb1f",
+                    "label": "scaleHeroBesideTree",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 852,
+                    "y": 1387,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "7169d937-e5dd-4fa2-870b-9e3c9d6ae8f7",
+                    "label": "scaleHeroFootOfStair",
+                    "texture": {
+                        "key": "hero-chibi",
+                        "frame": 0
+                    },
+                    "x": 1397,
+                    "y": 1808,
+                    "scaleX": 1.408,
+                    "scaleY": 1.408,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "dc25d4dd-380d-4671-9898-d2f73c3c8abb",
+            "label": "L15_WILDLIFE",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "8ca0fcbc-0c16-4f35-a768-d90486f46f02",
+                    "label": "ROAM_canopyEdge",
+                    "x": 620,
+                    "y": 210,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false,
+                    "isFilled": true,
+                    "fillColor": "#33ff88",
+                    "fillAlpha": 0.12,
+                    "strokeColor": "#33ff88",
+                    "strokeAlpha": 0.7,
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 1380,
+                    "height": 260
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "1a0fd66a-84db-43d2-a870-18ad8024ffbd",
+                    "label": "ROAM_courtyardGreen",
+                    "x": 620,
+                    "y": 480,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false,
+                    "isFilled": true,
+                    "fillColor": "#33ff88",
+                    "fillAlpha": 0.12,
+                    "strokeColor": "#33ff88",
+                    "strokeAlpha": 0.7,
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 1380,
+                    "height": 450
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "b52a0f74-6f6c-41a7-b19f-aaf9e6930d01",
+                    "label": "ROAM_castleFront",
+                    "x": 420,
+                    "y": 1235,
+                    "originX": 0,
+                    "originY": 0,
+                    "visible": false,
+                    "isFilled": true,
+                    "fillColor": "#33ff88",
+                    "fillAlpha": 0.12,
+                    "strokeColor": "#33ff88",
+                    "strokeAlpha": 0.7,
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 1760,
+                    "height": 155
+                },
+                {
+                    "type": "Sprite",
+                    "id": "88dc4e73-06bb-405d-ba00-1a53f2232a2f",
+                    "label": "wildlifeFoxA",
+                    "texture": {
+                        "key": "wildlife-fox-trot",
+                        "frame": 0
+                    },
+                    "x": 1035,
+                    "y": 675,
+                    "scaleX": 0.45,
+                    "scaleY": 0.45,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "fe8ed07d-3344-4190-bb31-a422e8cec0dc",
+                    "label": "wildlifeRabbitA",
+                    "texture": {
+                        "key": "wildlife-rabbit-hop",
+                        "frame": 0
+                    },
+                    "x": 1377,
+                    "y": 736,
+                    "scaleX": 0.23,
+                    "scaleY": 0.23,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "9823508d-4ccb-4f09-a158-083b33fecbcb",
+                    "label": "wildlifeRabbitB",
+                    "texture": {
+                        "key": "wildlife-rabbit-hop",
+                        "frame": 0
+                    },
+                    "x": 1020,
+                    "y": 700,
+                    "scaleX": 0.23,
+                    "scaleY": 0.23,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "4f0a0d5a-8d57-412a-a64b-6e74cff4048c",
+                    "label": "wildlifeFoxB",
+                    "texture": {
+                        "key": "wildlife-fox-trot",
+                        "frame": 0
+                    },
+                    "x": 1780,
+                    "y": 640,
+                    "scaleX": 0.45,
+                    "scaleY": 0.45,
+                    "originY": 1
+                },
+                {
+                    "type": "Sprite",
+                    "id": "7839bc98-8a3f-4a5b-9c15-e2f71d2f9acb",
+                    "label": "wildlifeTortoiseC",
+                    "texture": {
+                        "key": "wildlife-tortoise-toddle",
+                        "frame": 0
+                    },
+                    "x": 1150,
+                    "y": 1320,
+                    "scaleX": 0.32,
+                    "scaleY": 0.32,
+                    "originY": 1
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "b64793da-4499-4b79-9eb1-7ca6e4d19874",
+            "label": "L14_COLLIDERS",
+            "scope": "CLASS",
+            "visible": false,
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "138fc1d2-6ef6-4998-b805-57f602d94fed",
+                    "label": "BLOCK_mapEdge_north",
+                    "y": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 32
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "cf01dbfc-2470-414b-bb21-ef3c7d3111e4",
+                    "label": "BLOCK_mapEdge_south",
+                    "y": 1920,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 2560,
+                    "height": 32
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "def34652-c49c-4545-a78e-4d7b9e8c643d",
+                    "label": "BLOCK_mapEdge_west",
+                    "x": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 32,
+                    "height": 1920
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "da222476-82ac-426c-a361-311a128752ce",
+                    "label": "BLOCK_mapEdge_east",
+                    "x": 2560,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 32,
+                    "height": 1920
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "07fd026c-3047-4519-905a-2f8dc4853179",
+                    "label": "BLOCK_cliff_centreEast",
+                    "x": 2062.6238589286804,
+                    "y": 1654.964038848877,
+                    "scaleX": 1.3494578878555674,
+                    "scaleY": 2.645084036296617,
+                    "originX": 1,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 439,
+                    "height": 96
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "2a7a910b-2adf-4e24-97f4-76c5aeebefaf",
+                    "label": "ZONE_castleGate_passage",
+                    "x": 1274,
+                    "y": 1100,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#33ccff",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#33ccff",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 102,
+                    "height": 116
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "20b3a5d6-8197-420e-a1d6-04d889c9bd6a",
+                    "label": "BLOCK_castleWall_north",
+                    "x": 1337.5,
+                    "y": 204.25506460666656,
+                    "scaleY": 0.4747928169350183,
+                    "originY": 1,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 1805,
+                    "height": 250
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "07f1c2cf-789c-406a-ba4a-776156a0b0c4",
+                    "label": "BLOCK_castleWall_west",
+                    "x": 526.6244426965714,
+                    "y": 1211.9981632232666,
+                    "scaleX": 0.9449087992688273,
+                    "scaleY": 1.0133677105699197,
+                    "originY": 1,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 164,
+                    "height": 992
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "fd3093a9-7b7b-4cf5-8233-34c274f63895",
+                    "label": "BLOCK_castleWall_east",
+                    "x": 2111.56492716074,
+                    "y": 1210,
+                    "scaleX": 0.7114993917998818,
+                    "scaleY": 1.0452135375349794,
+                    "originY": 1,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 218,
+                    "height": 992
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "d0523fe6-f363-45fc-b873-9a51028e57e4",
+                    "label": "BLOCK_castleWall_southWest",
+                    "x": 1273,
+                    "y": 1102,
+                    "originX": 1,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 861,
+                    "height": 228
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "2f1ff4a8-ed5b-4e3b-9db7-0f58b7657aaf",
+                    "label": "BLOCK_castleWall_southEast",
+                    "x": 1376,
+                    "y": 1101,
+                    "originX": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 859,
+                    "height": 230
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "77421f22-692f-47b3-a48d-df5dff21807e",
+                    "label": "BLOCK_cliff_westUpper",
+                    "y": 1408,
+                    "scaleX": 0.9950821188192042,
+                    "scaleY": 1.2248911638029218,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 768,
+                    "height": 96
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "39663fb8-0f6a-4b95-8acb-02d7fdbfc169",
+                    "label": "BLOCK_cliff_westLower",
+                    "x": 350,
+                    "y": 1528,
+                    "scaleX": 1.1044414340012412,
+                    "scaleY": 2.629383718866098,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 768,
+                    "height": 96
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "4258a250-6e06-43f7-88a7-e7a5747564e8",
+                    "label": "BLOCK_cliff_centreWest",
+                    "x": 1118,
+                    "y": 1528,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 143,
+                    "height": 96
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "1f72ea61-66b6-4fd2-9b9b-34b749f4deae",
+                    "label": "BLOCK_cliff_eastUpper",
+                    "x": 1885,
+                    "y": 1430,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 675,
+                    "height": 96
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "a9a0e17e-7587-4996-9987-09ca6cdda4e2",
+                    "label": "BLOCK_cliff_eastHigh",
+                    "x": 2353,
+                    "y": 1262,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 207,
+                    "height": 96
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "20c16074-744b-48ad-a54f-2cc5bcc6b533",
+                    "label": "BLOCK_prop_entryFootRockL",
+                    "x": 177,
+                    "y": 1750,
+                    "scaleX": 1.1142786607357662,
+                    "scaleY": 1.380963530980824,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 78,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "54aa0d8f-931f-4243-b8a7-ccee25caf8f1",
+                    "label": "BLOCK_prop_entryFootShrubL",
+                    "x": 209,
+                    "y": 1839,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 56,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "61ac137d-0eb9-4cf2-abde-ac7dcb5fa9bd",
+                    "label": "BLOCK_prop_entryFootRockR",
+                    "x": 345,
+                    "y": 1869,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 74,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "cde626ad-e975-4dfb-ad76-ab189ea7f1e2",
+                    "label": "BLOCK_prop_entryFootShrubR",
+                    "x": 359,
+                    "y": 1787,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 64,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "eb690db6-3917-4e16-b5e5-4871365fc8cb",
+                    "label": "BLOCK_prop_entryGateTreeR",
+                    "x": 72,
+                    "y": 1815,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 24,
+                    "height": 20
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "669a8dc5-52aa-4d14-9ddb-5fdd72b4fa99",
+                    "label": "BLOCK_cliffStep_westUpperEnd_1",
+                    "x": 724,
+                    "y": 1456,
+                    "scaleX": 1.0463571678484276,
+                    "scaleY": 1.985361026563687,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 60,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "fa63894c-ccd6-4ad1-9019-a26e50576e22",
+                    "label": "BLOCK_prop_footShrubB",
+                    "x": 1773,
+                    "y": 1517,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 72,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "50f9f10f-7cd7-4c9a-8d45-b4e131c151bb",
+                    "label": "BLOCK_forestEdge_west",
+                    "y": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 400,
+                    "height": 760
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "e67e2cd5-d304-46cc-b6b9-a03b430912c6",
+                    "label": "BLOCK_forestEdge_westLow",
+                    "y": 728,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 330,
+                    "height": 90
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "2c52b1c7-8dbb-4dbd-b239-d8f112ba024f",
+                    "label": "BLOCK_forestStump_westA",
+                    "x": 20,
+                    "y": 800,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 120,
+                    "height": 70
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "8965507b-e3c3-4b05-90ba-8a14817597da",
+                    "label": "BLOCK_forestStump_westB",
+                    "x": 190,
+                    "y": 760,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 130,
+                    "height": 70
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "29006718-5303-4f63-9033-0e021e6107e4",
+                    "label": "BLOCK_forestEdge_westTop",
+                    "x": 400,
+                    "y": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 70,
+                    "height": 280
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "4065157a-8187-406a-b279-0470b5f761c7",
+                    "label": "BLOCK_forestEdge_east",
+                    "x": 2266,
+                    "y": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 294,
+                    "height": 810
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "2d8c043b-c9e9-4de9-b469-17ebd0974ccb",
+                    "label": "BLOCK_forestEdge_eastLow",
+                    "x": 2350,
+                    "y": 778,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 210,
+                    "height": 130
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "ecdf47e4-a64f-47db-af0d-bca417c95dc2",
+                    "label": "BLOCK_forestEdge_eastFoot",
+                    "x": 2432,
+                    "y": 908,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 128,
+                    "height": 150
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "f891ffe1-f574-44c6-b53d-21274516e720",
+                    "label": "BLOCK_forestEdge_eastTopA",
+                    "x": 2200,
+                    "y": -32,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 70,
+                    "height": 330
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "7b7e1dca-445f-40d5-a01b-83f14d206738",
+                    "label": "BLOCK_forestEdge_eastTopB",
+                    "x": 2220,
+                    "y": 298,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 50,
+                    "height": 400
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "2e9505d5-a54f-456c-a460-cbfe1664cf76",
+                    "label": "BLOCK_cliffStep_westUpperEnd_2",
+                    "x": 752,
+                    "y": 1498,
+                    "scaleX": 1.0463571678484276,
+                    "scaleY": 1.985361026563687,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 60,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "58836b40-0573-4cce-bba5-517b14efa4d0",
+                    "label": "BLOCK_cliffStep_westLowerEnd_2",
+                    "x": 273,
+                    "y": 1623,
+                    "scaleX": 1.0463571678484276,
+                    "scaleY": 1.985361026563687,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 60,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "b990e900-8173-4b39-b051-23a2892665ec",
+                    "label": "BLOCK_cliffStep_westLowerEnd_1",
+                    "x": 304,
+                    "y": 1577,
+                    "scaleX": 1.0713468377176072,
+                    "scaleY": 8.266310345413565,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 60,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "ae82225e-bced-4646-a7b1-b94d329c0c90",
+                    "label": "BLOCK_cliffStep_westLowerEnd_4",
+                    "x": 210,
+                    "y": 1701,
+                    "scaleX": 1.0463571678484276,
+                    "scaleY": 1.985361026563687,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 60,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "943050c1-4c53-4890-b7f7-d7c536dfc052",
+                    "label": "BLOCK_cliffStep_westLowerEnd_3",
+                    "x": 241,
+                    "y": 1663,
+                    "scaleX": 1.2356146582345844,
+                    "scaleY": 4.924183397769843,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 60,
+                    "height": 24
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "ac046527-29d2-4cce-bdde-9abc3c31bb16",
+                    "label": "BLOCK_building_archive",
+                    "x": 665,
+                    "y": 414,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 500,
+                    "height": 70
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "3ef281ef-5280-48f3-a78d-f924ac6e205f",
+                    "label": "BLOCK_building_forge",
+                    "x": 1473,
+                    "y": 371,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff3355",
+                    "fillAlpha": 0.35,
+                    "strokeColor": "#ff3355",
+                    "lineWidth": 2,
+                    "isStroked": true,
+                    "width": 508,
+                    "height": 70
+                }
+            ]
+        },
+        {
+            "type": "Layer",
+            "id": "69e6bc16-c686-40a5-8259-dddf27550230",
+            "label": "L24_DOORS",
+            "scope": "CLASS",
+            "list": [
+                {
+                    "type": "Rectangle",
+                    "id": "7acbfacf-9ea4-457e-b7e8-f24ea09b9d86",
+                    "label": "DOOR_forge",
+                    "x": 1642,
+                    "y": 441,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#ff9933",
+                    "fillAlpha": 0.4,
+                    "strokeColor": "#ff9933",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 170,
+                    "height": 72
+                },
+                {
+                    "type": "Rectangle",
+                    "id": "7fc018f7-967c-4d13-acbc-0f7a1c54fdf0",
+                    "label": "DOOR_collection_archive",
+                    "x": 830,
+                    "y": 484,
+                    "originX": 0,
+                    "originY": 0,
+                    "isFilled": true,
+                    "fillColor": "#9966ff",
+                    "fillAlpha": 0.4,
+                    "strokeColor": "#9966ff",
+                    "lineWidth": 3,
+                    "isStroked": true,
+                    "width": 170,
+                    "height": 72
+                }
+            ]
+        }
+    ],
+    "plainObjects": [
+        {
+            "id": "7bb446a5-ba9c-4fb2-a680-a1fa9a079df7",
+            "type": "EditableTilemap",
+            "label": "courtyardGround",
+            "width": 80,
+            "height": 60,
+            "tileWidth": 32,
+            "tileHeight": 32,
+            "tilesets": [
+                {
+                    "name": "grass-dirt",
+                    "imageKey": "ground-tileset-grass-dirt-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                },
+                {
+                    "name": "dirt-paving",
+                    "imageKey": "ground-tileset-dirt-paving-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                },
+                {
+                    "name": "castle-floor",
+                    "imageKey": "ground-tileset-dirt-floor-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                },
+                {
+                    "name": "ground-tileset-forestfloor-dirt-32",
+                    "imageKey": "ground-tileset-forestfloor-dirt-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                },
+                {
+                    "name": "ground-tileset-tan-kerb-32",
+                    "imageKey": "ground-tileset-tan-kerb-32",
+                    "tileWidth": 32,
+                    "tileHeight": 32,
+                    "tileMargin": 0,
+                    "tileSpacing": 0
+                }
+            ],
+            "paintLayerId": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
+            "paintTileset": "ground-tileset-tan-kerb-32",
+            "layers": [
+                {
+                    "name": "ground",
+                    "data": "[64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,45,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,33,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,15,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,34,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,14,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,43,37,38,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,43,33,38,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,33,33,33,33,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,65,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,61,61,61,62,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,54,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,63,57,49,49,49,54,64,64,64,64,64,64,64,16,16,11,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,65,33,33,33,33,65,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,60,51,49,49,49,53,62,64,64,64,64,64,64,16,16,11,5,13,13,13,13,13,14,16,15,13,13,13,13,14,16,65,33,33,33,33,65,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,14,16,15,14,15,13,13,13,13,13,9,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,59,49,49,49,49,54,64,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,13,9,1,1,1,1,5,14,16,16,12,4,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5,13,9,5,9,1,1,1,1,1,1,6,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,3,49,49,49,49,49,14,16,16,16,16,16,16,16,12,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,8,64,64,64,64,64,64,64,64,64,64,64,64,64,16,16,16,12,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,64,64,64,64,63,61,61,61,62,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,1,1,1,1,1,1,1,1,1,2,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,8,16,64,64,64,64,49,49,49,49,2,64,64,64,64,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,2,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,4,3,1,1,1,2,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,31,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,30,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,14,15,13,13,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,5,9,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,18,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,27,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,22,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,19,17,17,17,17,17,17,17,17,17,17,17,17,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,9,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,19,17,17,17,17,17,17,17,17,17,17,18,24,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,9,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,20,20,19,18,20,20,20,19,18,20,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,4,4,4,4,4,4,4,4,4,8,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,28,24,16,16,16,28,24,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,15,13,13,13,13,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,12,3,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,5,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,11,1,1,1,1,1,1,1,6,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16]",
+                    "width": 80,
+                    "height": 60,
+                    "tileWidth": 32,
+                    "tileHeight": 32
+                }
+            ]
+        }
+    ],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
+}

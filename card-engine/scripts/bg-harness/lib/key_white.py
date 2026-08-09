@@ -23,7 +23,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14):
+def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14, bleed_pale=200):
     im = Image.open(path).convert("RGBA")
     if shave:
         im = im.crop((shave, shave, im.width - shave, im.height - shave))
@@ -84,6 +84,37 @@ def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14):
                 print(f"    enclosed opening: {int(blob.sum()):,}px at "
                       f"x{np.where(blob)[1].min()}-{np.where(blob)[1].max()}")
 
+    # PALE RESIDUE AT THE FOOT. The redraw does not return one flat background:
+    # it invents a soft shadow skirt around a subject's base, a single distinct
+    # flat colour sitting well outside the tolerance around the true background.
+    # On the battle tower that left 2,662px of (225,220,215) banked against the
+    # bottom corners — Raheem: "there's still some white at the bottom of the
+    # left right corners."
+    #
+    # Rule: a pale colour that TOUCHES the keyed region and forms a large blob is
+    # background the flood could not see. Enclosed pale detail never touches the
+    # outside, so it is untouched. Same size-versus-highlight reasoning as
+    # --fill-enclosed, applied from the other direction.
+    if bleed_pale:
+        rgbv = a[:, :, :3]
+        # Run to completion, not a fixed few passes. Each iteration grows the
+        # keyed region by one pixel, and the tower's shadow skirt is ~90px deep —
+        # a 6-pass cap absorbed 230px of a 2,662px residue and looked like the
+        # rule was wrong when it was only short of breath.
+        for _ in range(1000):
+            edge = np.zeros_like(bg)
+            edge[1:, :] |= bg[:-1, :]
+            edge[:-1, :] |= bg[1:, :]
+            edge[:, 1:] |= bg[:, :-1]
+            edge[:, :-1] |= bg[:, 1:]
+            cand = edge & ~bg & (rgbv.min(2) >= bleed_pale)
+            if not cand.any():
+                break
+            bg |= cand
+        removed = int(bg.sum()) - int((np.asarray(m) == 128).sum())
+        if removed:
+            print(f"    bled {removed:,}px of pale residue off the keyed edge")
+
     a[:, :, 3][bg] = 0
 
     out = Image.fromarray(a, "RGBA")
@@ -102,6 +133,8 @@ def main():
     ap.add_argument("--white", type=int, default=200,
                     help="a border colour must be at least this pale to count as background at all")
     ap.add_argument("--tolerance", type=int, default=14, help="how far from the background colour still keys")
+    ap.add_argument("--bleed-pale", type=int, default=200,
+                    help="after keying, absorb pixels at least this pale that touch the keyed region; 0 disables")
     ap.add_argument("--fill-enclosed", type=int, default=300,
                     help="enclosed white blobs at least this big are openings, not highlights; 0 disables")
     a = ap.parse_args()
@@ -118,7 +151,7 @@ def main():
     for f in files:
         s = os.path.join(a.src, f)
         d = os.path.join(a.dst, f) if os.path.isdir(a.dst) else a.dst
-        size, cut = key(s, d, a.shave, a.white, a.fill_enclosed, a.tolerance)
+        size, cut = key(s, d, a.shave, a.white, a.fill_enclosed, a.tolerance, a.bleed_pale)
         print(f"  {f:20s} keyed {cut:7,d} px  ->  {size[0]}x{size[1]}")
 
 
