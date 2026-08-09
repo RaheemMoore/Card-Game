@@ -40,10 +40,10 @@ CHECKLIST = [
         n="3", name="Tower", status="have", src="cropped out of N",
         uses="All four corners, plus anywhere along a wall you want punctuation. Doing double duty as "
              "the corner piece is why there is no corner on this list.",
-        need="Already in hand &mdash; cropped straight out of N, correct angle, and it comes with wall "
-             "stubs both sides so it butts onto a run cleanly. Only regenerate if you want a grander "
-             "tower than this one.",
-        img="_tower-cropped.png",
+        need="Cut out clean &mdash; no wall attached, so Leonardo will improve the tower and not "
+             "regenerate a wall around it. Use <code>castle-tower-reference.png</code>, the white-flattened "
+             "one: a transparent surround uploads as black and drags the palette dark.",
+        img="castle-tower-cut.png",
     ),
     dict(
         n="4", name="Battle Tower", status="later", src=None,
