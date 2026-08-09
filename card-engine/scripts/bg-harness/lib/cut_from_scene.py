@@ -28,7 +28,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-def cut(path, seed, floor, green=18, pad=24, scale=2, box=None):
+def cut(path, seed, floor, green=18, pad=24, scale=2, box=None, sever=None):
     im = Image.open(path).convert("RGB")
     a = np.asarray(im).astype(int)
 
@@ -50,6 +50,14 @@ def cut(path, seed, floor, green=18, pad=24, scale=2, box=None):
         clip[by0:by1, bx0:bx1] = subject[by0:by1, bx0:bx1]
         subject = clip
         print(f"  clipped to box x{bx0}-{bx1} y{by0}-{by1}")
+
+    # A box alone is often too blunt: on the tower the crown's top rim and the
+    # curtain wall overlap in Y, so any box low enough to sever the wall also
+    # slices the crown. --sever zeroes small rectangles instead, cutting the
+    # specific bridges while leaving the subject whole.
+    for sx0, sy0, sx1, sy1 in (sever or []):
+        subject[sy0:sy1, sx0:sx1] = 0
+        print(f"  severed x{sx0}-{sx1} y{sy0}-{sy1}")
 
     # Take only the island containing the seed. Trees, distant walls and the
     # pond are their own islands and disappear without being named.
@@ -89,10 +97,12 @@ def main():
     ap.add_argument("--scale", type=int, default=2)
     ap.add_argument("--box", nargs=4, type=int, metavar=("X0", "Y0", "X1", "Y1"),
                     help="clip the subject mask before filling, to sever anything it touches")
+    ap.add_argument("--sever", nargs=4, type=int, action="append", metavar=("X0", "Y0", "X1", "Y1"),
+                    help="zero a rectangle of the subject mask; repeatable, for cutting specific bridges")
     a = ap.parse_args()
 
     print(a.src)
-    piece, ref = cut(a.src, tuple(a.seed), a.floor, a.green, a.pad, a.scale, a.box)
+    piece, ref = cut(a.src, tuple(a.seed), a.floor, a.green, a.pad, a.scale, a.box, a.sever)
     piece.save(f"{a.out_prefix}-cut.png")
     ref.save(f"{a.out_prefix}-reference.png")
     print(f"  -> {a.out_prefix}-cut.png        {piece.width}x{piece.height}  transparent")

@@ -163,11 +163,9 @@ PICKED = [
      "The solid rune cores came off as their own connected components. The palest glyphs sit above the "
      "white cutoff so nothing could see them &mdash; those were cleared by region, left and right of the "
      "arch, which cannot touch architecture."),
-    ("T3-tower-cut.png", "T3", "Battle tower", "Cut out of its landscape.",
-     "229&times;530, keyed on grass rather than traced &mdash; trees, pond and distant walls are separate "
-     "islands and dropped on their own. The banner poles reach up and touch the curtain-wall arch, which "
-     "dragged the whole wall in until the island was clipped below them. Losing the banners is the right "
-     "call anyway: a flag should ripple, so it belongs in a Phaser layer, not baked into a static plate."),
+    ("T3-tower-cut.png", "T3", "Battle tower", "Cut out &mdash; but needs regenerating.",
+     "229&times;582, keyed on grass rather than traced. The cut is clean, and the plate underneath it is "
+     "not good enough: see the resolution note below."),
 ]
 
 
@@ -313,7 +311,29 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
   {{SECTIONS}}
 
   <div class="call gap">
-    <p class="lead">The one gap: there is no corner tower.</p>
+    <p class="lead">T3 has to be regenerated. It is a quarter the resolution of the other three.</p>
+    <div class="stats" style="max-width:640px">
+      <div><b>1024&times;686</b><span>H2 wall &middot; 674k px &middot; 48.8% flat</span></div>
+      <div><b>968&times;754</b><span>G5 gate &middot; 574k px &middot; 47.8% flat</span></div>
+      <div><b>405&times;1024</b><span>V3 side &middot; 410k px &middot; 64.2% flat</span></div>
+      <div><b>229&times;582</b><span>T3 tower &middot; 116k px &middot; <b style="color:var(--rust)">1.7% flat</b></span></div>
+    </div>
+    <p>One cause, two symptoms. The tower was generated as a small object standing in a landscape, so it
+      only ever got ~229px of width out of the 1024 frame while the walls and gate filled theirs. That is
+      a quarter of the linear resolution.</p>
+    <p><b>1.7% flatness is the number that settles it.</b> Real pixel art is flat &mdash; neighbouring
+      pixels are exactly equal. The shipped kit art measures 59%, and the Gemini forge that had to be
+      thrown away measured 0.6%. At 1.7% almost every pixel differs from its neighbour, because every
+      feature is a quarter of the size it should be and JPEG noise dominates at that scale. It is not
+      pixel art; it is a small picture of pixel art.</p>
+    <p><b>The fix is your own workflow.</b> Feed <code>T3-tower-reference.png</code> back into Leonardo and
+      ask for the tower alone, filling the frame, on white &mdash; same angle, same style, no landscape.
+      That gets ~1000px of tower instead of 229 and should land in the same 45&ndash;60% flatness band as
+      the walls. The other three plates only look right because they happened to fill their frames.</p>
+  </div>
+
+  <div class="call gap">
+    <p class="lead">And there is still no corner tower.</p>
     <p>All seven towers are tall multi-storey battle towers in a landscape. Those are the <b>landmark</b>
       piece &mdash; the thing that rises over the back wall and that the player climbs. The castle also
       needs a short <b>corner tower</b> that sits on the wall circuit and terminates a run, and nothing

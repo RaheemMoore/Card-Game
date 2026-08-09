@@ -59,15 +59,19 @@ Image.open(sys.argv[1]).save(sys.argv[2]); print('  ->', sys.argv[2])
 #
 # --box is doing real work. The banner poles reach up and MEET the curtain-wall
 # arch, so without it the whole wall arrives as part of the tower's island —
-# 235k pixels instead of 110k. The box top sits at row 112, below the banners,
-# because the left banner overlaps the wall in x and no box can separate them.
-# That is the right call regardless: a flag should ripple, so it belongs in a
-# Phaser layer over the sprite, not baked into a plate where it can never move.
+# 235k pixels instead of 116k.
+#
+# --sever is why the box top is at row 60 and not row 112. A box low enough to
+# cut the wall away also slices the crown: the wall runs to row ~110 and the
+# crown's top rim starts at row 75, so they overlap in Y. Cutting at 112 lopped
+# the top off the tower. The two sever rectangles remove the specific left and
+# right bridges instead, and the crown survives whole.
 #
 # --floor 642 severs the approach path, the only thing genuinely joined to the
 # tower.
 python lib/cut_from_scene.py "$O/T3-tower.png" "$O/T3-tower" \
-  --seed 512 350 --floor 642 --box 382 112 652 642 --scale 3 | tail -3
+  --seed 512 350 --floor 642 --box 382 60 652 642 \
+  --sever 382 60 420 118 --sever 616 60 652 118 --scale 3 | tail -3
 
 echo
 echo "Four picks in $O, all cut and repaired."
