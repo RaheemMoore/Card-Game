@@ -163,6 +163,11 @@ PICKED = [
      "The solid rune cores came off as their own connected components. The palest glyphs sit above the "
      "white cutoff so nothing could see them &mdash; those were cleared by region, left and right of the "
      "arch, which cannot touch architecture."),
+    ("corner-tower-cut.png", "&#9670;", "Corner tower", "Composited from T3, zero generations.",
+     "229&times;336. T3's crown grafted onto T3's own base &mdash; the blind storey and the arched door "
+     "&mdash; skipping the middle storeys. Both halves come from the same plate, so palette, angle and "
+     "lighting match by construction rather than by matching. The seam lands on a cornice line and widths "
+     "there are 200 and 205."),
     ("T3-tower-cut.png", "T3", "Battle tower", "Cut out, crown whole, flags removed.",
      "229&times;564, keyed on grass rather than traced. The banner poles are the crown's own corner "
      "finials carried upward, so they were severed above the rim rather than clipped &mdash; which is why "
@@ -339,15 +344,17 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
   </div>
 
   <div class="call gap">
-    <p class="lead">And there is still no corner tower.</p>
-    <p>All seven towers are tall multi-storey battle towers in a landscape. Those are the <b>landmark</b>
-      piece &mdash; the thing that rises over the back wall and that the player climbs. The castle also
-      needs a short <b>corner tower</b> that sits on the wall circuit and terminates a run, and nothing
-      here is that.</p>
-    <p>Two ways to close it, both cheap: cut the crown-plus-one-storey off whichever battle tower you pick
-      and use that as a corner tower, or feed the existing <code>castle-tower-reference.png</code> back
-      through the same improve-it pass you used on the walls. The second keeps the octagonal footprint
-      that already butts onto a wall run.</p>
+    <p class="lead">The plates were drawn at different internal scales. The tower needs &times;2.6.</p>
+    <p>Composited against the wall, the tower's arched door only lines up with the wall's doors at about
+      <b>&times;2.6</b>, and its corner finials come closest to the wall's merlons there too. At native
+      size the tower is roughly a third of the world the walls live in &mdash; which is invisible until
+      you put them side by side, and fatal once you do.</p>
+    <p>That multiplier belongs in the manifest at placement time. The asset itself stays native, so the
+      number stays changeable when you see it in the scene.</p>
+    <p class="note">This is the thing to watch on every future plate: Leonardo has no idea what scale
+      anything else was drawn at. Two plates that each look correct alone can be a third of each other's
+      size, and the only way to catch it is to composite them and look at a human-scale feature &mdash; a
+      door, a step, a merlon.</p>
   </div>
 
   <div class="call">

@@ -76,5 +76,38 @@ python lib/cut_from_scene.py "$O/T3-tower.png" "$O/T3-tower" \
   --seed 512 350 --floor 642 --box 382 78 652 642 \
   --sever 382 78 436 112 --sever 600 78 652 112 --scale 3 | tail -3
 
+# CORNER TOWER — composited from T3's own crown and base. Zero generations.
+#
+# A corner tower terminates a wall run; T3 is the tall landmark. Rather than
+# generate a second tower and risk a palette or angle mismatch, take T3's crown
+# (rows 0-172, ending just under its cornice) and graft it onto T3's base (rows
+# 400-end, the blind storey and the arched door). Both come from the same plate,
+# so palette, angle and lighting match by construction rather than by matching.
+# Widths at the seam are 200 and 205 — the join lands on a cornice line and
+# reads as one.
+#
+# SCALE: T3 and the walls were framed differently, so their internal scales do
+# NOT match. Composited side by side, the tower's arched door only matches the
+# wall's doors at about 2.6x, and its corner finials come closest to the wall's
+# merlons there too. That multiplier belongs in the manifest when these are
+# placed — the asset itself stays at native size.
+python - <<'PY'
+from PIL import Image
+src = Image.open('out/castle-picks/T3-tower-cut.png')
+TOP_END, BOT_START = 172, 400
+top = src.crop((0, 0, src.width, TOP_END))
+bot = src.crop((0, BOT_START, src.width, src.height))
+out = Image.new('RGBA', (src.width, top.height + bot.height), (0, 0, 0, 0))
+out.paste(top, (0, 0)); out.paste(bot, (0, top.height))
+out = out.crop(out.getbbox())
+out.save('out/castle-picks/corner-tower-cut.png')
+pad = 24
+ref = Image.new('RGB', (out.width + pad*2, out.height + pad*2), (255, 255, 255))
+ref.paste(out, (pad, pad), out)
+ref = ref.resize((ref.width*3, ref.height*3), Image.NEAREST)
+ref.save('out/castle-picks/corner-tower-reference.png')
+print(f'  -> out/castle-picks/corner-tower-cut.png  {out.width}x{out.height}')
+PY
+
 echo
-echo "Four picks in $O, all cut and repaired."
+echo "Five pieces in $O: wall, side wall, gate, battle tower, corner tower."
