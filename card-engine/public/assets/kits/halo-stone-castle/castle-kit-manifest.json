@@ -3,7 +3,7 @@
   "version": 1,
   "sourceFamily": "scene-castle-kit-family-review",
   "rawOutputsPreserved": true,
-  "assetCount": 232,
+  "assetCount": 237,
   "assets": [
     {
       "assetId": "castle.wall.straight.front.healthy",
@@ -2107,6 +2107,56 @@
       "rawSource": "scripts/sprite-lab/out/archivist-i2p/archivist-pixellab.png",
       "usedTrimmedExport": true,
       "notes": "Same pipeline as castle.forge.v2. Original 941px Gemini crop -> POST /image-to-pixelart (1 gen, $0.0100) -> white keyed by border flood -> ground cut at row 264 (ground share 42%->64%) -> quantized to 48 colours -> dehalo. NO protected glow region here, unlike the forge: 46.5% of this building is above saturation 60 because the blue stone and teal dome ARE the building, so a saturation split would have bucketed half the facade as glow. Straight quantize 48 measured better anyway: flatness 37.4%->64.7%, 48 colours, only -7% saturation. Castle wall reference is 48 colours / 59.4% flatness."
+    },
+    {
+      "assetId": "castle.wall.straight.v3",
+      "label": "Curtain wall, straight run — v3 (16-bit topdown kit)",
+      "status": "KEEP",
+      "path": "structures/walls/castle-wall-straight-v3.png",
+      "sourceSubject": "gemini H2 'closed shutters' plate",
+      "rawSource": "scripts/bg-harness/out/castle-kit-final/wall.png",
+      "usedTrimmedExport": true,
+      "notes": "318x212, 38 colours, 72.6% flatness (kit baseline 59.4%). Front and back runs; mirror vertically for the opposite side. Tiles horizontally. Keys to 0px on purpose — it runs to the frame edge and has no surround to remove. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+    },
+    {
+      "assetId": "castle.wall.side.v3",
+      "label": "Curtain wall, side run — v3 (16-bit topdown kit)",
+      "status": "KEEP",
+      "path": "structures/walls/castle-wall-side-v3.png",
+      "sourceSubject": "gemini V3 'seamless vertically tileable' plate",
+      "rawSource": "scripts/bg-harness/out/castle-kit-final/wall-side.png",
+      "usedTrimmedExport": true,
+      "notes": "125x318, 24 colours, 68.6% flatness. Left and right runs; mirror horizontally for the opposite side. Shows NO face band, which is correct: at this camera tilt a north-south wall is nearly edge-on, so only the walkway is visible. Its source plate had the crenel pattern destroyed across rows 400-650 (railing quality 0.5-1.9 against ~3.5 elsewhere); repaired by cloning rows 652-902, a whole pattern offset away. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+    },
+    {
+      "assetId": "castle.gate.house.v3",
+      "label": "Gatehouse — v3 (16-bit topdown kit)",
+      "status": "KEEP",
+      "path": "structures/gate/castle-gate-house-v3.png",
+      "sourceSubject": "gemini G5 'remove the centre crystal' plate",
+      "rawSource": "scripts/bg-harness/out/castle-kit-final/gate.png",
+      "usedTrimmedExport": true,
+      "notes": "294x221, 47 colours, 63.3% flatness. Sits in a gap in the front wall run. The arch opening is transparent by design — you see through it. Floating runes were removed from the source plate: the solid cores came off as their own connected components, the palest glyphs had to be cleared by region because they sit above the white cutoff and nothing could see them. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+    },
+    {
+      "assetId": "castle.tower.corner.v3",
+      "label": "Corner tower — v3 (16-bit topdown kit)",
+      "status": "KEEP",
+      "path": "structures/towers/castle-tower-corner-v3.png",
+      "sourceSubject": "composited from the battle tower plate, zero generations",
+      "rawSource": "scripts/bg-harness/out/castle-kit-final/corner-tower.png",
+      "usedTrimmedExport": true,
+      "notes": "183x269, 46 colours, 58.9% flatness. Terminates a wall run and turns a corner — put one on every corner and the kit needs no corner wall piece at all, which is how both reference tilemaps do it. Built by grafting the battle tower's crown (rows 0-172) onto its own base (rows 400-end), skipping the middle storeys: same plate, so palette, angle and lighting match by construction. Seam lands on a cornice; widths there are 200 and 205. SCALE IS NOT 1:1 WITH THE WALLS. This piece's plate was framed at a different internal scale in Leonardo; composited against the wall, its door only matches the wall's doors at about 2.6x. That multiplier is already baked into this asset (generated at scale 0.8125 vs the walls' 0.3125), so place it at the same Phaser scale as the walls. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+    },
+    {
+      "assetId": "castle.tower.battle.v3",
+      "label": "Battle Tower — v3 (16-bit topdown kit)",
+      "status": "KEEP",
+      "path": "structures/towers/castle-tower-battle-v3.png",
+      "sourceSubject": "gemini T3 'steampunk metal infrastructure' plate",
+      "rawSource": "scripts/bg-harness/out/castle-kit-final/battle-tower.png",
+      "usedTrimmedExport": true,
+      "notes": "184x457, 47 colours, 54.8% flatness. The landmark that rises over the back wall — game function, not decoration: CLAUDE.md makes the tower the game's gate. Cut out of a full landscape by keying grass and taking the seed's island; the banner poles reach up and touch the curtain-wall arch, so they were severed above the crown rim rather than clipped (a box low enough to cut the wall also slices the crown). Banners are deliberately absent — a flag should ripple, so it belongs in a Phaser layer, not baked into a static plate. Generated in TWO BANDS split at row 290, a cornice: /image-to-pixelart caps output at 320 in BOTH dimensions, so whole it would have come back 130x320. SCALE IS NOT 1:1 WITH THE WALLS. This piece's plate was framed at a different internal scale in Leonardo; composited against the wall, its door only matches the wall's doors at about 2.6x. That multiplier is already baked into this asset (generated at scale 0.8125 vs the walls' 0.3125), so place it at the same Phaser scale as the walls. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
     }
   ]
 }

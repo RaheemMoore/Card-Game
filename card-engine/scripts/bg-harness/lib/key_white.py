@@ -23,13 +23,32 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-def key(path, dst, shave=1, white=232):
+def key(path, dst, shave=1, white=200, fill_enclosed=300, tolerance=14):
     im = Image.open(path).convert("RGBA")
     if shave:
         im = im.crop((shave, shave, im.width - shave, im.height - shave))
     a = np.asarray(im).copy()
 
-    near_white = (a[:, :, :3].min(2) >= white).astype(np.uint8) * 255
+    # SELF-CALIBRATING, not a fixed threshold. PixelLab does not return the white
+    # it was given: the wall's background came back as warm cream (249,243,221),
+    # min channel 221, and a 232 cutoff sailed straight past it. Meanwhile the
+    # side wall has NO background — it runs to the frame edge and its border is
+    # tan trim — so a lower cutoff would have started eating trim.
+    #
+    # So: take the most common border colour after the rim is shaved, accept it
+    # as background only if it is genuinely pale, and flood on colours near IT.
+    # That handles the gate's white and the wall's cream with the same rule, and
+    # correctly finds nothing on the side wall.
+    border = np.concatenate([a[0, :, :3], a[-1, :, :3], a[:, 0, :3], a[:, -1, :3]])
+    vals, counts = np.unique(border, axis=0, return_counts=True)
+    bgc = vals[np.argmax(counts)]
+    if int(bgc.min()) < white:
+        print(f"    border is {tuple(int(x) for x in bgc)} — not a pale background, keying nothing")
+        near_white = np.zeros(a.shape[:2], np.uint8)
+    else:
+        dist = np.abs(a[:, :, :3].astype(int) - bgc.astype(int)).max(2)
+        near_white = (dist <= tolerance).astype(np.uint8) * 255
+        print(f"    background {tuple(int(x) for x in bgc)}  tolerance {tolerance}")
     m = Image.fromarray(near_white, "L").copy()   # .copy(): fromarray shares a
                                                   # read-only buffer and floodfill
                                                   # silently no-ops on it
@@ -40,6 +59,31 @@ def key(path, dst, shave=1, white=232):
         if m.getpixel(s) == 255:
             ImageDraw.floodfill(m, s, 128, thresh=0)
     bg = np.asarray(m) == 128
+
+    # Enclosed openings. A border flood deliberately cannot reach them, which is
+    # the whole reason to use one — it is what stops mortar highlights and lit
+    # windows being punched out. But a gate arch IS a hole, fully ringed by its
+    # own stonework, and it stayed opaque white: 2,426px of sky in the middle of
+    # the gatehouse. Size is what separates the two cases. A highlight is a few
+    # dozen pixels; an opening is hundreds. Anything enclosed and larger than
+    # --fill-enclosed is treated as a hole too.
+    if fill_enclosed:
+        left = (np.asarray(m) == 255)
+        lab = Image.fromarray((left * 255).astype(np.uint8), "L").copy()
+        seen = np.zeros_like(left)
+        ys, xs = np.where(left)
+        for y, x in zip(ys, xs):
+            if seen[y, x]:
+                continue
+            probe = Image.fromarray((left * 255).astype(np.uint8), "L").copy()
+            ImageDraw.floodfill(probe, (int(x), int(y)), 64, thresh=0)
+            blob = np.asarray(probe) == 64
+            seen |= blob
+            if blob.sum() >= fill_enclosed:
+                bg |= blob
+                print(f"    enclosed opening: {int(blob.sum()):,}px at "
+                      f"x{np.where(blob)[1].min()}-{np.where(blob)[1].max()}")
+
     a[:, :, 3][bg] = 0
 
     out = Image.fromarray(a, "RGBA")
@@ -55,7 +99,11 @@ def main():
     ap.add_argument("src")
     ap.add_argument("dst")
     ap.add_argument("--shave", type=int, default=1, help="pixels of PixelLab frame rim to remove first")
-    ap.add_argument("--white", type=int, default=232, help="min channel value counted as white")
+    ap.add_argument("--white", type=int, default=200,
+                    help="a border colour must be at least this pale to count as background at all")
+    ap.add_argument("--tolerance", type=int, default=14, help="how far from the background colour still keys")
+    ap.add_argument("--fill-enclosed", type=int, default=300,
+                    help="enclosed white blobs at least this big are openings, not highlights; 0 disables")
     a = ap.parse_args()
 
     if os.path.isdir(a.src):
@@ -70,7 +118,7 @@ def main():
     for f in files:
         s = os.path.join(a.src, f)
         d = os.path.join(a.dst, f) if os.path.isdir(a.dst) else a.dst
-        size, cut = key(s, d, a.shave, a.white)
+        size, cut = key(s, d, a.shave, a.white, a.fill_enclosed, a.tolerance)
         print(f"  {f:20s} keyed {cut:7,d} px  ->  {size[0]}x{size[1]}")
 
 

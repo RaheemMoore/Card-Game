@@ -460,6 +460,15 @@
       }
     ]
   },
+  "halo-stone-castle--gates": {
+    "files": [
+      {
+        "type": "image",
+        "key": "gate-house-v3",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-house-v3.png"
+      }
+    ]
+  },
   "halo-stone-castle--gates--unreviewed": {
     "files": [
       {
@@ -1145,6 +1154,16 @@
         "type": "image",
         "key": "tower-base-v2",
         "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-base-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-corner-v3",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-corner-v3.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-battle-v3",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-battle-v3.png"
       }
     ]
   },
@@ -1188,6 +1207,16 @@
         "type": "image",
         "key": "wall-corner-outer-healthy",
         "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-outer-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-straight-v3",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-v3.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-side-v3",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-side-v3.png"
       }
     ]
   },
