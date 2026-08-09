@@ -1,0 +1,72 @@
+{
+  "_why": "Redesign the castle. Raheem, 2026-08-09: 'my pixel characters are as big as the castle tops... it doesn't feel like it's worth protecting or that is safe or magical', and, pointing at two reference tilemaps, 'the angle of the castles that when it looks like to walk around them and in them is very much what I'm going for.' The diagnosis is PROJECTION, not size: the current kit is a ~25 degree near-elevation (90% face, no top plane), the references are ~65-70 degree high top-down (broad walkway top plane, short face band). Wall:hero is already 2.88x, the same as the references — making it taller would only have produced a taller facade. This config exists to produce the authoritative FRONT that everything else is cut from or style-referenced against.",
+
+  "_root_cause": "building-forge.json's styleHeader says 'a clean front elevation with only a slight downward tilt so a little of the rooftop is visible'. That one sentence produced the whole castle family at the wrong angle. Every angle sentence here is its inverse and is the load-bearing part of this file.",
+
+  "_model_choice": "lucid-origin. harness.mjs:31-36 records that it 'holds a flat top-down game map read far better than Phoenix, which pulls hard toward perspective matte painting'. This brief is a top-down read problem, which is exactly the case Lucid Origin exists for here. It rejects the style-reference controlnet, hence styleRef:false and a palette pinned in prose — the courtyard-v2.json precedent. Deliberately NO style reference to the existing castle: the existing castle is at the wrong angle, so referencing it would import the exact defect we are removing.",
+
+  "_alchemy": "false. pixelize.py's finding: Alchemy ON returns a 3D render, OFF returns a smooth painted render. Neither is pixel art — PixelLab image-to-pixelart is what makes it pixel art — but OFF is far closer to a flat game asset.",
+
+  "_native_scale": "Generate large, downsample later. PixelLab image-to-pixelart takes input <=1280 and outputs <=320, so this 1536x1152 master gets CROPPED into <=320 pieces, not shrunk whole. Do not chase a final-resolution asset out of Leonardo.",
+
+  "_scale_cues": "Human-scale references (doors, arrow slits, banners, stair treads, wall-walk width) are named with explicit proportions in every prompt. The redraw carries whatever scale cues the painting has; if the merlons are drawn person-sized the castle will read person-sized forever. This is the single most important thing in the prompts after the angle.",
+
+  "_workflow": "Raheem takes the winner, improves it in the Leonardo web UI (gemini-2.5-flash-image is web-UI only — 'Unsupported model' on REST), and hands the master back. Then: crop -> POST /image-to-pixelart -> border-flood white key -> ground-skirt cut -> SHARED-palette quantize across all pieces -> dehalo --min-value 185. Same as the forge and archivist, but scripted this time.",
+
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1536,
+  "height": 1152,
+
+  "negative": "front elevation, side elevation, straight-on view, eye-level view, horizon line, vanishing point, perspective, isometric, three-quarter view, worm's eye view, low angle, ground, grass, dirt, paving, terrain, sky, clouds, horizon, landscape, scenery, trees, moat, water, cast shadow, drop shadow, photorealistic, photograph, 3d render, cgi, realistic, painterly, soft focus, blurry, gradient background, textured background, nude, bare chest, bare torso, shirtless, cleavage, midriff, text, letters, signature, watermark, logo, ui, hud, frame, border, ruins, decay, rubble, crumbling, dark, gloomy, grim",
+
+  "_prompt_budget": "harness.mjs:95 caps styleHeader + line at 1500 chars COMBINED. Header is 636, leaving 864 per state. The first draft ran 2418 and was rejected, the second 1932 — compress the prose, never the angle sentences. Validate before spending: node -e with the length check, see the run log in LEONARDO_PLAYBOOK.md.",
+
+  "styleHeader": "2D game art for a 16-bit top-down RPG tilemap, like a Pokemon overworld map. SEEN FROM HIGH ABOVE AT A STEEP 70-DEGREE DOWNWARD ANGLE — a MAP view, not a portrait of a building. FLAT TOP SURFACES dominate: each wall shows its broad flat wall-walk as a wide paved path along its length, crenellations along that path's outer edge READ FROM ABOVE as a row of short blocks, never a tall silhouette. Only a SHORT band of outer face shows below the walk. Towers show rooftops as large flat discs. Flat cel shading, dark outlines, limited palette, chunky readable shapes. Pale lavender ashlar, violet mortar, cream accents, amber gold trim, verdigris copper roofs, stained glass. Even sun from above. Alone on plain solid white.",
+
+  "familyLabels": {
+    "front": "The front — gatehouse and flanking towers (the piece Raheem improves)",
+    "kit": "Kit source — wall run, corner, tower, cut into modules",
+    "mass": "The great keep — the thing you see over the walls"
+  },
+
+  "states": [
+    {
+      "id": "front-a-grand",
+      "label": "A — Grand gatehouse, twin drum towers",
+      "family": "front",
+      "line": "A great castle gatehouse. Two massive round drum towers flank a central gate block; their flat circular rooftops are large prominent discs ringed with amber gold crenellations seen from above, each flying a long banner. The gate block's own wide flat roof between them carries a machicolated gallery. In the SHORT band of face below, a pointed archway with amber gold voussoirs frames a raised iron portcullis and timber doors; the doorway is drawn deliberately SMALL, no more than one sixth the tower's height, so the castle reads as enormous. Curtain wall runs off to both frame edges, each showing its broad paved wall-walk with crenellations along the outer edge and narrow arrow slits in the short face below. Braziers burn along the walk."
+    },
+    {
+      "id": "front-b-arcane",
+      "label": "B — Arcane gatehouse, crystal spires and wards",
+      "family": "front",
+      "line": "A magical castle gatehouse. Two square towers flank a gate block; each tower's flat rooftop is a wide square platform inlaid with a glowing arcane sigil, from whose centre rises a faceted crystal spire in teal and violet. The gate block's broad flat roof between them carries a ring of rune stones floating above the parapet. In the SHORT band of face below, a pointed archway ringed with amber gold voussoirs is filled with a shimmering translucent teal ward instead of doors; the archway is drawn deliberately SMALL, no more than one sixth the tower's height, so the castle reads as enormous. Curtain walls run off to both sides showing their broad paved wall-walks with crenellations along the outer edge, glowing crystal lamp posts spaced along the walk."
+    },
+    {
+      "id": "front-c-cathedral",
+      "label": "C — Cathedral gate, verdigris roofs and stained glass",
+      "family": "front",
+      "line": "An ornate cathedral-like castle gatehouse. A central gate block is crowned by a broad verdigris copper roof seen mostly from above as a large green plane with amber gold ridge caps and a gilded finial, flanked by two octagonal towers whose conical copper roofs read as wide green discs from this angle. Stained glass lancet windows in blue, teal and amber glow in the short band of stonework below the roofs. A pointed archway with amber gold voussoirs and carved stone guardians either side frames the entrance; the archway is drawn deliberately SMALL, no more than one sixth the tower's height, so the castle reads as enormous. Curtain walls run off to both sides showing their broad paved wall-walks with crenellations along the outer edge, hung with long heraldic banners."
+    },
+    {
+      "id": "kit-a-wall-corner",
+      "label": "D — Wall run turning a corner into a tower (kit source)",
+      "family": "kit",
+      "line": "A castle curtain wall arranged as an L: one straight run entering from the left frame edge, turning ninety degrees at a corner tower, running down to the bottom edge. The dominant shape is the BROAD FLAT WALL-WALK, a paved path four people could walk abreast running the length of both runs, a low inner parapet on one side and crenellations along the outer edge read from above as an even row of short blocks. Below that edge a SHORT band of face shows, one third as deep as the walk is wide, with arrow slits and a string course. The corner tower's flat circular rooftop is a disc of paved stone ringed with amber gold crenellations, a stair head and open trapdoor on it. The wall repeats in IDENTICAL EVEN BAYS divided by buttress pilasters so it can be cut apart and tiled."
+    },
+    {
+      "id": "kit-b-wall-straight",
+      "label": "E — Long straight wall run, even bays (kit source)",
+      "family": "kit",
+      "line": "A long straight castle curtain wall running horizontally across the full frame width, its outer face toward the bottom of the image. The dominant shape is the BROAD FLAT WALL-WALK, a paved path four people could walk abreast running the full length, a low inner parapet along the top side and crenellations along the bottom outer edge read from above as an even row of short amber-gold-capped blocks. Below that edge a SHORT band of face shows, one third as deep as the walk is wide, with arrow slits, a string course and a battered foundation plinth. The wall divides into IDENTICAL REPEATING BAYS by slender buttress pilasters at even intervals so it can be cut apart and tiled seamlessly. A flight of stone steps rises to the walk; braziers stand along it."
+    },
+    {
+      "id": "mass-a-keep",
+      "label": "F — The great keep, seen over the walls",
+      "family": "mass",
+      "line": "A great castle keep, the enormous central mass of a fantasy castle, the thing you see rising over the curtain walls from the courtyard below. A broad square core of pale lavender ashlar with a huge flat paved rooftop terrace ringed in amber gold crenellations, from which rise four slender corner turrets with conical verdigris copper roofs and a fifth taller central spire crowned with a gilded finial and a glowing arcane orb. Long heraldic banners hang down the faces. Stained glass windows glow across the short bands of visible facade. Flying buttresses spring from the lower body. Tiny human-sized doorways and stair heads are drawn on the rooftop terrace to make the sheer size unmistakable: a doorway is no more than one twentieth the building's width."
+    }
+  ]
+}
