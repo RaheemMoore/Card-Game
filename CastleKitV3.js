@@ -43,7 +43,18 @@ class CastleKitV3 extends Phaser.Scene {
 		// bought), so scaling one piece would break the kit. The whole castle
 		// scales together and the hero does not: at 1.6 the wall band reads 325px
 		// against his 100, which is 3.25x and lands inside the reference band.
-		const CASTLE = 1.6;
+		// 1.0, and the reasoning matters because it settles the hero question too.
+		//
+		// At CASTLE 1.6 the castle was upscaled 1.6x and then, to fit any of it on
+		// screen, the camera had to pull back to about 0.6 — a net 0.96. All that
+		// buys is a downscale at the end, which is the one thing pixel art will not
+		// survive. So: everything at 1:1, camera at 1:1, and the ratio comes from
+		// the art's own sizes.
+		//
+		// Wall band 203px / hero at NATIVE 71px = 2.86x, which is the middle of the
+		// references' 2.5-3x. The hero was not too big; his x1.408 RENDER scale was.
+		// Dropping it costs nothing and needs no new sheet.
+		const CASTLE = 1.0;
 
 		const WALL_W = 318, WALL_H = 203;   // castle-wall-straight-v3
 		const SIDE_W = 125, SIDE_H = 318;   // castle-wall-side-v3
@@ -83,8 +94,33 @@ class CastleKitV3 extends Phaser.Scene {
 		const runLeftW = 636, runRightW = 318;
 		const runLeft = this.add.tileSprite(LEFT_X + CORNER_W / 2 + runLeftW / 2, TOP + WALL_H / 2,
 			runLeftW, WALL_H, "wall-straight-v3");
-		const gate = this.add.image(runLeft.x + runLeftW / 2 + GATE_W / 2, BASE - GATE_H / 2, "gate-house-v3");
-		const runRight = this.add.tileSprite(gate.x + GATE_W / 2 + runRightW / 2, TOP + WALL_H / 2,
+		// THE GATEHOUSE IS SCALED UP AND PUSHED FORWARD, and one change fixes two
+		// complaints at once.
+		//
+		// Raheem: "the walls look bigger than the main gate, and they're on the same
+		// y", and separately "the walls were blown up a bit more than the entrance...
+		// they should be equally as pixelated."
+		//
+		// Both are measurable. Apparent pixel-block size — the mean run of identical
+		// neighbouring pixels — is 7.65 on the wall but only 3.25 on the gate, so the
+		// wall's pixels really are 2.4x chunkier. That is NOT a reduction-ratio
+		// mismatch (wall 3.22x, gate 3.29x — near identical); it is content density.
+		// The wall plate is a plain expanse of stone, the gate plate is packed with
+		// pipes, roundels, runes and windows, so the same reduction leaves the gate
+		// carrying far more variation per pixel.
+		//
+		// Upscaling the gate fixes both: it becomes physically dominant AND its
+		// pixels get chunkier, moving toward the wall's. At 1.45 the gate's apparent
+		// pixel goes 3.25 -> 4.7.
+		//
+		// It is also pushed FORWARD of the wall line, which is what a real gatehouse
+		// does — it projects from the curtain wall rather than sitting flush in it.
+		const GATE_SCALE = 1.45;
+		const GATE_FORWARD = 46;
+		const gate = this.add.image(runLeft.x + runLeftW / 2 + (GATE_W * GATE_SCALE) / 2,
+			BASE + GATE_FORWARD - (GATE_H * GATE_SCALE) / 2, "gate-house-v3");
+		gate.setScale(GATE_SCALE);
+		const runRight = this.add.tileSprite(gate.x + (GATE_W * GATE_SCALE) / 2 + runRightW / 2, TOP + WALL_H / 2,
 			runRightW, WALL_H, "wall-straight-v3");
 		castle.add(runLeft);
 		runLeft.setDepth(3);
@@ -114,7 +150,7 @@ class CastleKitV3 extends Phaser.Scene {
 		// smaller size wins, the clean way to ship it is regenerating from PixelLab
 		// at that size rather than stacking another resample.
 		const SIZES = [
-			{ key: "hero-chibi", h: 71, note: "current, x1.408 in play = 100px" },
+			{ key: "hero-chibi", h: 71, note: "native, no render scale" },
 			{ key: "hero-chibi-56", h: 56, note: "79%" },
 			{ key: "hero-chibi-48", h: 48, note: "68%" },
 			{ key: "hero-chibi-40", h: 40, note: "56%" },
