@@ -1,0 +1,311 @@
+#!/usr/bin/env python3
+"""Review sheet for Raheem's Leonardo/Gemini castle extracts — the pick-and-choose gate.
+
+Raheem, 2026-08-09: "a folder of all my Leonardo extracts... put them in a
+harness and let us choose and pick which ones would actually work and which
+ones won't... make sure we have everything we need and make sure they're all an
+acceptable angle and state before using any Pixel generations."
+
+So this is a DECISION sheet, not a gallery. Every card carries the four numbers
+that decide whether a plate survives the PixelLab redraw, measured here rather
+than asserted:
+
+  flatness  share of neighbouring pixels that are exactly equal. CLAUDE.md's
+            structural test for "real pixel art" vs "a downsampled painting".
+            The old Leonardo-downsample path measured 0.6%; the shipped kit art
+            is 59.4%. These are JPEGs, so JPEG noise depresses the number a few
+            points — read it comparatively, not absolutely.
+  colours   high is fine going IN (PixelLab requantises), but it is the tell
+            for how much photographic gradient is present.
+  white bg  share of the frame border that is pure white. Anything under ~95%
+            means the subject runs off the edge (correct for a tiling wall) or
+            there is a painted background to cut (a problem for the towers).
+  seam      wrap discontinuity vs ordinary interior discontinuity. 1.0 means an
+            invisible join. Walls only.
+
+Source images are read from Raheem's Downloads folder and are NOT copied into
+the repo — they are 20 x ~250KB JPEGs and the repo is not their home. If the
+folder moves, pass the new path as argv[1].
+
+    python scripts/bg-harness/build-castle-picks.py ["C:/path/to/Castle"]
+"""
+import base64
+import io
+import os
+import sys
+
+import numpy as np
+from PIL import Image
+
+SRC = sys.argv[1] if len(sys.argv) > 1 else r"C:\Users\storm\Downloads\Castle"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "castle-grand-topdown")
+
+# (folder, letter-prefix, tiling axis or None, section title, section note)
+GROUPS = [
+    ("Horizontal Walls", "H", 0, "Horizontal walls",
+     "Front and back runs. The piece everything else has to match, because it is the one that repeats."),
+    ("Vertical Wall", "V", 1, "Vertical walls",
+     "Left and right runs. Correctly show no face band — at this camera tilt a north-south wall is almost "
+     "edge-on, so all you see is the walkway."),
+    ("Gate", "G", None, "Gates",
+     "The front entrance, used once. Four of the five are the same arch design; one is not."),
+    ("Towers", "T", None, "Towers",
+     "All seven are tall multi-storey BATTLE towers in a full landscape, not corner towers. See the gap "
+     "note at the bottom."),
+]
+
+# Keyed by label. verdict: pick | ok | risky | cut | gap
+NOTES = {
+    "H1": ("ok", "Barred windows.",
+           "Same base as H5 with grilles in the openings. Reads better than shutters on a defensive wall, "
+           "and the bars survive downsampling because they are high-contrast."),
+    "H2": ("risky", "Shuttered windows.",
+           "Wooden doors at ground level on a curtain wall is an odd read — a defensive wall does not have "
+           "doors along its outside face. Fine if these are meant to be inward-facing storerooms."),
+    "H3": ("risky", "Pipes and torches.",
+           "Handsome, but the pipe runs are irregular across the width, so this cannot tile — repeat it and "
+           "the pipework visibly restarts. Pipes want to be a separate overlay decal, not baked in."),
+    "H4": ("risky", "Pipes and teal runes.",
+           "Same tiling problem as H3, plus the rune glyphs differ per bay. Great source for decal art, "
+           "wrong shape for a repeating wall."),
+    "H5": ("pick", "The cleanest base.",
+           "Lowest colour count of any wall here and the highest flatness in its group — it is the least "
+           "photographic thing in the set, which is exactly what survives the redraw. Plain arched "
+           "openings, even bay spacing, nothing that fights tiling."),
+    "V1": ("ok", "Pipes, faint magic.",
+           "Least affected by the soft band, and the most detail. Same tiling caveat as the horizontal "
+           "pipe walls: the pipework does not repeat."),
+    "V2": ("ok", "Pipes and teal runes.",
+           "Middle option. Pipework again irregular down the strip."),
+    "V3": ("pick", "The cleanest base.",
+           "25k colours against V1's 88k, and the highest flatness in the whole set. Plain, tileable, "
+           "and it matches H5's restraint. Carries a soft low-detail band across the parapet edges around "
+           "40-60% height — measurable (0.88 detail ratio) and worth a touch-up, but minor."),
+    "G1": ("risky", "Most ornate — pipes, finials, crystal swirl.",
+           "Lowest flatness of the gates and the most colours. The crystal swirl is a visual effect, not "
+           "architecture — it belongs as a Phaser layer over the sprite so it can animate, not baked into "
+           "a static plate where it will never move."),
+    "G2": ("risky", "Pipes with floating runes.",
+           "Same note as G1. The runes floating above the towers will key out as loose fragments."),
+    "G3": ("ok", "The odd one out — no arch.",
+           "Cleanest gate by the numbers: highest flatness, fewest colours, pure white border. But it is "
+           "the only gate WITHOUT the raised arch, so picking it means the other four were a different "
+           "castle. Decide the silhouette first, then the finish."),
+    "G4": ("pick", "Cleanest of the arch family.",
+           "If the arch is the design — and four of five say it is — this is the one to take: better "
+           "flatness and far fewer colours than G1/G2, with the roundels and doors intact. Watch the pale "
+           "washed-out patch on the wall behind the arch; it is an artifact and will survive the redraw."),
+    "G5": ("ok", "Arch with apex gem and cyan runes.",
+           "Near-identical to G4 with a different crown. Same pale patch behind the arch. Pick on taste."),
+    "T1": ("ok", "Copper and steam, plain crown.",
+           "Clean silhouette and the calmest of the steampunk four."),
+    "T2": ("ok", "Gold and orange, dark gun-deck crown.",
+           "Strongest read of the steampunk set — the dark top gives the crown a clear edge against the "
+           "pale stone."),
+    "T3": ("ok", "Grey and copper, chimneys, figures.",
+           "Has tiny people at the treeline, which is a free scale reading. They are in the landscape, "
+           "not on the tower, so they cut away with the background."),
+    "T4": ("ok", "Blue and gold, most ornate.",
+           "Busiest of the set. Lovely, and the most detail to lose in a 320px redraw."),
+    "T5": ("ok", "Brown and teal, plainest.",
+           "The most restrained tower here. Least interesting, most likely to survive the redraw intact."),
+    "T6": ("pick", "Teal and orange runes.",
+           "Best balance in the group: clear storey banding, strong crown, glowing windows that will "
+           "still read at a fraction of this size. Highest flatness of the towers bar one."),
+    "T7": ("risky", "Purple, magical, flowers.",
+           "The prettiest and the worst by the numbers — 156k colours and the lowest flatness of all "
+           "twenty. Most photographic thing in the set, so it has the furthest to fall in the redraw."),
+}
+
+VERDICT = {
+    "pick": ("Recommended", "ok"),
+    "ok": ("Usable", "warn"),
+    "risky": ("Works, with a catch", "risk"),
+    "cut": ("Cut", "bad"),
+}
+
+
+def flatness(a):
+    h = (a[:, 1:] == a[:, :-1]).all(2).mean()
+    v = (a[1:, :] == a[:-1, :]).all(2).mean()
+    return (h + v) / 2 * 100
+
+
+def seam(a, axis):
+    if axis == 0:
+        s = np.abs(a[:, -1].astype(int) - a[:, 0].astype(int)).mean()
+        inner = np.abs(a[:, 1:].astype(int) - a[:, :-1].astype(int)).mean(axis=(0, 2))
+    else:
+        s = np.abs(a[-1].astype(int) - a[0].astype(int)).mean()
+        inner = np.abs(a[1:].astype(int) - a[:-1].astype(int)).mean(axis=(1, 2))
+    return s / max(np.median(inner), 0.5)
+
+
+def thumb_uri(path, box=760):
+    im = Image.open(path).convert("RGB")
+    im.thumbnail((box, box), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=80)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+def build():
+    sections = []
+    for folder, prefix, axis, title, note in GROUPS:
+        d = os.path.join(SRC, folder)
+        files = sorted(f for f in os.listdir(d) if f.lower().endswith(".jpg"))
+        cards = []
+        for i, fn in enumerate(files, 1):
+            label = f"{prefix}{i}"
+            path = os.path.join(d, fn)
+            a = np.asarray(Image.open(path).convert("RGB"))
+            cols = len(np.unique(a.reshape(-1, 3), axis=0))
+            border = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
+            bg = (border.min(1) >= 246).mean() * 100
+            verdict, head, body = NOTES.get(label, ("ok", "", "Not yet reviewed."))
+            vlabel, tone = VERDICT[verdict]
+            stats = [("flatness", f"{flatness(a):.0f}%"), ("colours", f"{cols//1000}k"),
+                     ("white border", f"{bg:.0f}%")]
+            if axis is not None:
+                stats.append(("seam", f"{seam(a, axis):.1f}"))
+            stat_html = "".join(f"<div><b>{v}</b><span>{k}</span></div>" for k, v in stats)
+            cards.append(f"""<article class="card {tone}" id="{label}">
+  <div class="shot"><span class="stamp {tone}">{label}</span><img src="{thumb_uri(path)}" alt="{label}"/></div>
+  <div class="body">
+    <div class="rowtop"><span class="tag {tone}">{vlabel}</span></div>
+    <h3>{head}</h3>
+    <p>{body}</p>
+    <div class="stats">{stat_html}</div>
+  </div>
+</article>""")
+        sections.append(f"""<section>
+  <h2>{title}</h2>
+  <p class="note">{note}</p>
+  <div class="grid">{''.join(cards)}</div>
+</section>""")
+    return TEMPLATE.replace("{{SECTIONS}}", "\n".join(sections))
+
+
+TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
+<style>
+  :root{
+    --bg:#17141c; --panel:#1d1924; --box:#231e2c; --edge:#372f44;
+    --ink:#ece7dd; --muted:#9c92aa; --gold:#d9b45b; --verdigris:#57b9aa; --rust:#c0705a; --amber:#d59a4e;
+    --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --body:ui-sans-serif,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+    --data:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f2eee9; --panel:#e9e3dc; --box:#fffdfa; --edge:#d3c9be;
+           --ink:#231e2c; --muted:#6b6274; --gold:#8a6a1c; --verdigris:#1f7a6d; --rust:#9c4630; --amber:#8d5a12; }
+  }
+  :root[data-theme="dark"]{ --bg:#17141c; --panel:#1d1924; --box:#231e2c; --edge:#372f44;
+    --ink:#ece7dd; --muted:#9c92aa; --gold:#d9b45b; --verdigris:#57b9aa; --rust:#c0705a; --amber:#d59a4e; }
+  :root[data-theme="light"]{ --bg:#f2eee9; --panel:#e9e3dc; --box:#fffdfa; --edge:#d3c9be;
+    --ink:#231e2c; --muted:#6b6274; --gold:#8a6a1c; --verdigris:#1f7a6d; --rust:#9c4630; --amber:#8d5a12; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;
+       line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:48px 22px 88px;display:flex;flex-direction:column;gap:46px}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,4.6vw,46px);margin:0;line-height:1.1}
+  h2{font-family:var(--display);font-weight:600;font-size:29px;margin:0;line-height:1.15}
+  h3{font-family:var(--display);font-weight:600;font-size:20px;margin:0;line-height:1.25}
+  p{margin:0}
+  .eyebrow{font-family:var(--data);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+  .sub{color:var(--muted);max-width:70ch}
+  section{display:flex;flex-direction:column;gap:16px}
+  .note{color:var(--muted);max-width:74ch}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px}
+  .card{background:var(--panel);border:1px solid var(--edge);border-radius:3px;overflow:hidden;
+        display:flex;flex-direction:column;border-top-width:3px}
+  .card.ok{border-top-color:var(--verdigris)} .card.warn{border-top-color:var(--muted)}
+  .card.risk{border-top-color:var(--amber)} .card.bad{border-top-color:var(--rust)}
+  .shot{background:#fff;position:relative;line-height:0}
+  .shot img{width:100%;height:auto;display:block}
+  .stamp{position:absolute;top:0;left:0;font-family:var(--display);font-size:23px;line-height:1;
+         padding:8px 13px;background:var(--bg);color:var(--ink);
+         border-right:1px solid var(--edge);border-bottom:1px solid var(--edge)}
+  .stamp.ok{color:var(--verdigris)} .stamp.risk{color:var(--amber)} .stamp.bad{color:var(--rust)}
+  .body{padding:16px 18px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .rowtop{display:flex;gap:10px;flex-wrap:wrap}
+  .tag{font-family:var(--data);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+       padding:3px 8px;border-radius:2px;border:1px solid currentColor}
+  .tag.ok{color:var(--verdigris)} .tag.warn{color:var(--muted)}
+  .tag.risk{color:var(--amber)} .tag.bad{color:var(--rust)}
+  .body p{font-size:14.5px;color:var(--muted)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(66px,1fr));gap:1px;margin-top:auto;
+         background:var(--edge);border:1px solid var(--edge);border-radius:2px;overflow:hidden}
+  .stats div{background:var(--box);padding:8px 9px;display:flex;flex-direction:column;gap:1px}
+  .stats b{font-family:var(--data);font-size:15px;font-variant-numeric:tabular-nums;line-height:1}
+  .stats span{font-size:10px;color:var(--muted);letter-spacing:.03em}
+
+  .call{background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--gold);
+        border-radius:3px;padding:22px 24px;display:flex;flex-direction:column;gap:12px}
+  .call.gap{border-left-color:var(--rust)}
+  .call .lead{font-family:var(--display);font-size:20px;line-height:1.45}
+  .call p{max-width:74ch}
+  code{font-family:var(--data);font-size:13px;color:var(--gold)}
+  ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  ul.plain li{padding-left:18px;position:relative;color:var(--muted);font-size:15px}
+  ul.plain li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;
+                      background:var(--gold);border-radius:1px}
+</style>
+
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Gemini 2.5 Flash Image via Leonardo &middot; 20 extracts &middot; 9 Aug 2026</div>
+    <h1>Pick and choose</h1>
+    <p class="sub">Every extract, grouped by piece, with the four numbers that decide whether it survives
+      the PixelLab redraw. Flatness is the structural test: real pixel art has flat neighbouring pixels, a
+      downsampled painting does not. These are JPEGs, so read flatness comparatively &mdash; the shipped
+      kit art sits at 59%.</p>
+  </div>
+
+  <div class="call">
+    <p class="lead">Angle first: all twenty hold it. Not one drifted to isometric or elevation.</p>
+    <p>That is the thing worth saying plainly, because it is what fifteen generations of mine failed to do
+      reliably. Feeding a correct plate back in as a reference and asking for changes holds the projection
+      far better than describing it ever did. The choices below are therefore about tiling, cleanliness and
+      consistency &mdash; not about whether the angle survived.</p>
+  </div>
+
+  {{SECTIONS}}
+
+  <div class="call gap">
+    <p class="lead">The one gap: there is no corner tower.</p>
+    <p>All seven towers are tall multi-storey battle towers in a landscape. Those are the <b>landmark</b>
+      piece &mdash; the thing that rises over the back wall and that the player climbs. The castle also
+      needs a short <b>corner tower</b> that sits on the wall circuit and terminates a run, and nothing
+      here is that.</p>
+    <p>Two ways to close it, both cheap: cut the crown-plus-one-storey off whichever battle tower you pick
+      and use that as a corner tower, or feed the existing <code>castle-tower-reference.png</code> back
+      through the same improve-it pass you used on the walls. The second keeps the octagonal footprint
+      that already butts onto a wall run.</p>
+  </div>
+
+  <div class="call">
+    <p class="lead">Before any PixelLab spend</p>
+    <ul class="plain">
+      <li>Pull the full-quality masters from the Leonardo generations API rather than these downloads
+        &mdash; your call, and correct. Worth knowing up front: for <code>gemini-2.5-flash-image</code>
+        the CDN file <em>is</em> the master and it is a JPEG, so there may be no cleaner original. I will
+        check per image and say plainly which ones gained anything.</li>
+      <li>Reconcile the walkway texture. The horizontal walls use brick coursing, the vertical walls use
+        cobble. They meet at every corner, so one has to give.</li>
+      <li>Decide the gate silhouette &mdash; arch or no arch. Four of five say arch; G3 is the only one
+        without, and it is also the cleanest by the numbers.</li>
+      <li>Anything glowing, swirling or floating comes off the plate and becomes a Phaser layer. Baked
+        into a sprite it can never move, and this is the one thing we get for free.</li>
+    </ul>
+  </div>
+</div>
+"""
+
+
+if __name__ == "__main__":
+    os.makedirs(OUT, exist_ok=True)
+    dest = os.path.join(OUT, "castle-picks.html")
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write(build())
+    print(f"wrote {dest}  ({os.path.getsize(dest)/1024:.0f} KB)")
