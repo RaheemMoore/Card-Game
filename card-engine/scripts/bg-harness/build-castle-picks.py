@@ -330,20 +330,22 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
       <tr><td>T3 tower</td><td class="count bad-word">23.5</td><td class="count bad-word">0.61</td><td class="count">0.54</td><td class="count">0.051</td></tr>
       <tr><td>corner tower</td><td class="count bad-word">24.7</td><td class="count bad-word">0.59</td><td class="count">0.53</td><td class="count">0.047</td></tr>
     </table></div>
-    <p><code>lib/harmonise_materials.py</code> classifies pixels by material, measures each plate's own
-      median, and moves only that material toward a shared target &mdash; metal by hue and saturation,
-      stone by value and warmth. Timber, stained glass and glow are left alone because they are meant to
-      vary. Result:</p>
-    <div class="stats" style="max-width:720px">
+    <p><b>Two separate passes, and the separation is the whole point.</b></p>
+    <p><b>Pass 1 &mdash; metal.</b> Converge hue, saturation and value. Metal is a single material, so
+      moving it wholesale is safe. This is what takes both towers off bronze and onto the walls' gold.</p>
+    <p><b>Pass 2 &mdash; stone, colour cast only, never value.</b> The first attempt did both materials at
+      once and scaled all stone by a single factor to hit a target lightness. That flattened the wall,
+      because its pale walkway and its dark outer face are <em>both</em> stone and were compressed
+      together &mdash; the bottom row below shows it. What actually differs between plates is the cast:
+      the gate's stone is violet, the walls' is warm. So only temperature moves, and every plate keeps its
+      own light-to-dark structure exactly as painted.</p>
+    <div class="stats" style="max-width:900px">
       <div><b>5.9 &rarr; 0.9</b><span>metal hue spread, degrees</span></div>
       <div><b>0.14 &rarr; 0.01</b><span>metal saturation spread</span></div>
-      <div><b>0.18 &rarr; 0.02</b><span>stone value spread</span></div>
+      <div><b>0.079 &rarr; 0.004</b><span>stone warmth spread &mdash; converged</span></div>
+      <div><b>0.18 &rarr; 0.18</b><span>stone value spread &mdash; deliberately unchanged</span></div>
     </div>
-    <img src="{{HARMONISE}}" alt="before and after harmonisation" style="width:100%;height:auto;border:1px solid var(--edge);border-radius:3px"/>
-    <p><b>Which target?</b> <b>A</b> uses the set median, which keeps the gate's depth and brings both
-      towers onto the walls' gold. <b>B</b> anchors on the wall, which brightens everything but washes the
-      gate out. I would take <b>A</b>. Either is one command to redo, so this is not a decision you are
-      stuck with.</p>
+    <img src="{{HARMONISE}}" alt="before, metal pass, metal plus stone cast, and the flattened first attempt" style="width:100%;height:auto;border:1px solid var(--edge);border-radius:3px"/>
     <p class="note">Why not a single global quantize across all five: median cut allocates colours by
       area, so the walls &mdash; mostly pale stone &mdash; would swallow the budget and the towers' copper
       would collapse to two or three muddy steps. It also cannot tell stone from timber from stained

@@ -109,5 +109,31 @@ ref.save('out/castle-picks/corner-tower-reference.png')
 print(f'  -> out/castle-picks/corner-tower-cut.png  {out.width}x{out.height}')
 PY
 
+# HARMONISE — TWO SEPARATE PASSES, and the order and separation both matter.
+# Raheem chose the set-median target over anchoring on the wall, 2026-08-09.
+#
+# Pass 1, metal: converge hue, saturation and value. Metal is one material, so
+# moving it wholesale is safe, and this is what takes the towers off bronze and
+# onto the walls' gold.
+#
+# Pass 2, stone: COLOUR CAST ONLY, never value. The first attempt did both
+# materials in one go and scaled all stone by a single factor to hit a target
+# lightness — which flattened the wall, because its pale walkway and its dark
+# outer face are BOTH stone and got compressed together. Raheem caught it: "the
+# darker brick on the outside should stay there, and the top should stay a
+# lighter grey brick, how it is in before." What actually differs between plates
+# is the cast (the gate's stone is violet, the walls' warm), so only temperature
+# moves and every plate keeps its own light-to-dark structure exactly as painted.
+#
+# Writes a separate folder rather than editing in place, so the un-harmonised
+# cuts stay available if the target is ever revisited.
+python lib/harmonise_materials.py apply \
+  "$O/H2-wall.png" "$O/V3-wall-side.png" "$O/G5-gate.png" \
+  "$O/T3-tower-cut.png" "$O/corner-tower-cut.png" \
+  --out out/harm-metal --pass metal | tail -6
+python lib/harmonise_materials.py apply out/harm-metal/*.png \
+  --out out/castle-final --pass stone | tail -6
+
 echo
-echo "Five pieces in $O: wall, side wall, gate, battle tower, corner tower."
+echo "Five pieces in $O; harmonised shipping set in out/castle-final."
+echo "That set is what goes to PixelLab."

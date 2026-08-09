@@ -133,14 +133,14 @@ def targets(rows, anchor=None):
     return {k: med(k) for k in KEYS}
 
 
-def apply_one(path, tgt, out_dir, strength=1.0):
+def apply_one(path, tgt, out_dir, strength=1.0, do_metal=True, do_stone=True):
     im, a, rgb, opaque = load(path)
     h, s, v, metal, stone = masks(rgb, opaque)
     m = measure(path)
     h2, s2, v2 = h.copy(), s.copy(), v.copy()
     rgb2 = rgb.copy()
 
-    if metal.sum() > 200:
+    if do_metal and metal.sum() > 200:
         h2[metal] += (tgt["metal_h"] - m["metal_h"]) * strength
         # saturation and value move multiplicatively so highlights and shadows
         # keep their relationship instead of being crushed toward the median
@@ -149,12 +149,21 @@ def apply_one(path, tgt, out_dir, strength=1.0):
         conv = hsv_to_rgb(h2, np.clip(s2, 0, 1), np.clip(v2, 0, 1))
         rgb2[metal] = conv[metal]
 
-    if stone.sum() > 200:
+    if do_stone and stone.sum() > 200:
+        # VALUE IS NEVER TOUCHED. The first version scaled all stone by one
+        # factor to match a target lightness, and it flattened the wall: the
+        # pale walkway on top and the dark outer face below are BOTH stone, and
+        # scaling them together compressed the very contrast that makes the wall
+        # read as a wall. Raheem caught it — "the darker brick on the outside
+        # should stay there, and the top should stay a lighter grey brick, how
+        # it is in before."
+        #
+        # What differs between plates is the stone's COLOUR CAST, not its
+        # lightness: the gate's stone is violet, the walls' is warm. So correct
+        # temperature only, as a shift split between the red and blue ends so
+        # brightness does not drift, and leave every plate's internal light-to-
+        # dark structure exactly as painted.
         vs = rgb2[..., :3].copy()
-        vscale = 1 + (tgt["stone_v"] / m["stone_v"] - 1) * strength
-        vs[stone] *= vscale
-        # warmth is corrected by splitting the delta between the red and blue
-        # ends, so overall brightness does not drift while temperature moves
         dw = (tgt["stone_w"] - m["stone_w"]) * strength
         vs[..., 0][stone] += dw / 2
         vs[..., 2][stone] -= dw / 2
@@ -186,15 +195,19 @@ def main():
     ap.add_argument("--out", default="out/harmonised")
     ap.add_argument("--strength", type=float, default=1.0)
     ap.add_argument("--anchor", help="converge on this plate's materials instead of the set median")
+    ap.add_argument("--pass", dest="which", choices=["metal", "stone", "both"], default="both",
+                    help="run one material pass at a time so each can be judged on its own")
     a = ap.parse_args()
 
     rows = [measure(f) for f in a.files]
     tgt = targets(rows, a.anchor)
     print_table(rows, tgt)
     if a.cmd == "apply":
-        print()
+        print(f"\npass: {a.which}")
         for f in a.files:
-            print("  ->", apply_one(f, tgt, a.out, a.strength))
+            print("  ->", apply_one(f, tgt, a.out, a.strength,
+                                    do_metal=a.which in ("metal", "both"),
+                                    do_stone=a.which in ("stone", "both")))
 
 
 if __name__ == "__main__":
