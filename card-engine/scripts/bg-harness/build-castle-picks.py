@@ -163,9 +163,10 @@ PICKED = [
      "The solid rune cores came off as their own connected components. The palest glyphs sit above the "
      "white cutoff so nothing could see them &mdash; those were cleared by region, left and right of the "
      "arch, which cannot touch architecture."),
-    ("T3-tower-cut.png", "T3", "Battle tower", "Cut out &mdash; but needs regenerating.",
-     "229&times;582, keyed on grass rather than traced. The cut is clean, and the plate underneath it is "
-     "not good enough: see the resolution note below."),
+    ("T3-tower-cut.png", "T3", "Battle tower", "Cut out, crown whole, flags removed.",
+     "229&times;564, keyed on grass rather than traced. The banner poles are the crown's own corner "
+     "finials carried upward, so they were severed above the rim rather than clipped &mdash; which is why "
+     "the crown survives complete this time. Goes through PixelLab in three bands, not one; see below."),
 ]
 
 
@@ -310,26 +311,31 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
 
   {{SECTIONS}}
 
-  <div class="call gap">
-    <p class="lead">T3 has to be regenerated. It is a quarter the resolution of the other three.</p>
-    <div class="stats" style="max-width:640px">
-      <div><b>1024&times;686</b><span>H2 wall &middot; 674k px &middot; 48.8% flat</span></div>
-      <div><b>968&times;754</b><span>G5 gate &middot; 574k px &middot; 47.8% flat</span></div>
-      <div><b>405&times;1024</b><span>V3 side &middot; 410k px &middot; 64.2% flat</span></div>
-      <div><b>229&times;582</b><span>T3 tower &middot; 116k px &middot; <b style="color:var(--rust)">1.7% flat</b></span></div>
+  <div class="call">
+    <p class="lead">How these get through PixelLab without coming back tiny or cropped</p>
+    <p><b>The constraint, read live from the API rather than from our notes:</b>
+      <code>/image-to-pixelart</code> caps output at <b>320 in width AND 320 in height, independently</b>
+      (input caps at 1280 each). That is the whole problem. The tower is 229&times;564 &mdash; a 1:2.5
+      strip &mdash; so a single call has to fit 564 into 320 and returns a <b>130&times;320</b> tower.
+      Tiny, exactly as feared.</p>
+    <p><b>So tall pieces get banded, not squeezed.</b> Three calls down the tower, split at the storey
+      cornices so the seams land on lines that are already there, each returning 320&times;~263, stacked
+      back to <b>320&times;788</b>. This is not a new idea in this kit &mdash;
+      <code>tower-cap-v2</code> (288&times;224) and <code>tower-base-v2</code> (288&times;192) already
+      stack exactly this way. Cost is 3 generations instead of 1, roughly three cents.</p>
+    <div class="stats" style="max-width:720px">
+      <div><b>100</b><span>hero, world px</span></div>
+      <div><b>256</b><span>wall band &mdash; 2.6&times; hero, matches the references</span></div>
+      <div><b>320&times;788</b><span>battle tower &mdash; 7.9&times; hero, a landmark</span></div>
+      <div><b>3</b><span>i2p calls for the tower, 1 each for the walls</span></div>
     </div>
-    <p>One cause, two symptoms. The tower was generated as a small object standing in a landscape, so it
-      only ever got ~229px of width out of the 1024 frame while the walls and gate filled theirs. That is
-      a quarter of the linear resolution.</p>
-    <p><b>1.7% flatness is the number that settles it.</b> Real pixel art is flat &mdash; neighbouring
-      pixels are exactly equal. The shipped kit art measures 59%, and the Gemini forge that had to be
-      thrown away measured 0.6%. At 1.7% almost every pixel differs from its neighbour, because every
-      feature is a quarter of the size it should be and JPEG noise dominates at that scale. It is not
-      pixel art; it is a small picture of pixel art.</p>
-    <p><b>The fix is your own workflow.</b> Feed <code>T3-tower-reference.png</code> back into Leonardo and
-      ask for the tower alone, filling the frame, on white &mdash; same angle, same style, no landscape.
-      That gets ~1000px of tower instead of 229 and should land in the same 45&ndash;60% flatness band as
-      the walls. The other three plates only look right because they happened to fill their frames.</p>
+    <p>The walls have the opposite problem and it is not a problem: they are wide and short, so one call
+      each fits comfortably and the reduction is a genuine downsample rather than a squeeze.</p>
+    <p class="note">On resolution: T3 measures 1.7% flatness against 48&ndash;64% for the other three,
+      because it was drawn small inside a landscape while they filled their frames. Your call to carry on
+      is reasonable &mdash; PixelLab redraws rather than downsamples, so the design survives even when the
+      source pixels are soft. Worth knowing it is a real difference and not a rendering artifact, and that
+      regenerating the tower alone on white would close it for one generation if the redraw disappoints.</p>
   </div>
 
   <div class="call gap">

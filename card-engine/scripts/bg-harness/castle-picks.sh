@@ -69,9 +69,12 @@ Image.open(sys.argv[1]).save(sys.argv[2]); print('  ->', sys.argv[2])
 #
 # --floor 642 severs the approach path, the only thing genuinely joined to the
 # tower.
+# The four banner poles are the crown's own corner finials carried upward, so
+# "remove the flags" is a sever above the rim (row 78) rather than a lower box —
+# a box that clears the poles also clears the crown, because they share columns.
 python lib/cut_from_scene.py "$O/T3-tower.png" "$O/T3-tower" \
-  --seed 512 350 --floor 642 --box 382 60 652 642 \
-  --sever 382 60 420 118 --sever 616 60 652 118 --scale 3 | tail -3
+  --seed 512 350 --floor 642 --box 382 78 652 642 \
+  --sever 382 78 436 112 --sever 600 78 652 112 --scale 3 | tail -3
 
 echo
 echo "Four picks in $O, all cut and repaired."
