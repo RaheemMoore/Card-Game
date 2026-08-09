@@ -25,10 +25,23 @@
 
   "styleHeader": "2D game art for a 16-bit top-down RPG tilemap, like a Pokemon overworld map. SEEN FROM HIGH ABOVE AT A STEEP 70-DEGREE DOWNWARD ANGLE — a MAP view, not a portrait of a building. FLAT TOP SURFACES dominate: each wall shows its broad flat wall-walk as a wide paved path along its length, crenellations along that path's outer edge READ FROM ABOVE as a row of short blocks, never a tall silhouette. Only a SHORT band of outer face shows below the walk. Towers show rooftops as large flat discs. Flat cel shading, dark outlines, limited palette, chunky readable shapes. Pale lavender ashlar, violet mortar, cream accents, amber gold trim, verdigris copper roofs, stained glass. Even sun from above. Alone on plain solid white.",
 
+  "_round_2": "Raheem, 2026-08-09, after reviewing A-F: keep B and E, re-roll the rest, and 'I more just need a great angle for each part of the castle that we need'. Round 2 (G-L) is therefore one state per REAL KIT PART rather than per design idea. Two prompt fixes carried in from round 1's failures: (1) the angle is restated INSIDE each subject sentence, because the style header alone held it for wall-shaped briefs and lost it for building-shaped ones (A went to 88 degrees, C fell back to 35, F came back isometric with 'isometric' in the negative); (2) every state now explicitly asks for a tiny human figure at the foot. E drew one unprompted and it is the only reason we could measure the 10.7x wall:figure ratio — making it deliberate turns a lucky accident into a readable scale datum on every piece.",
+
+  "_rules": "Standing rules from this config's run, Raheem 2026-08-09. (1) NEVER re-roll a bad image on the same prompt — find the words that caused the defect and change those. A re-roll is a wasted generation dressed up as an attempt. (2) Never fire more than TWO generations at a time, and stay on ONE piece until it is right. Round 1 fired six and round 2 fired five; both rounds spent most of their generations learning the same lesson twice. (3) Every generation goes into the harness immediately — `npm run castle:gen` chains the sheet build for exactly this reason, because five images (G-K) were generated and never shown. (4) The goal is ONE acceptable plate per module at the right angle, not a good-looking plate. Raheem improves it in Leonardo from there.",
+
+  "_the_finding": "After 15 generations the rule is narrow and settled: THIS MODEL DRAWS A TOP-DOWN WALL ONLY WHEN THE RUN IS HORIZONTAL AND SPANS THE FRAME. E is the proof. Every other orientation or composition drifted — vertical became diagonal isometric (P), ninety-degree corners became curves twice (G, M), and free-standing objects centred on white became isometric every single time (H, I, K, F). Angle adjectives do not help and 'tilted toward the viewer' actively makes it isometric. Do not spend further generations testing this; the answer is E's composition or nothing.",
+
+  "_round_3": "Round 2 (G-L) failed on angle 4 times out of 5 and taught the actual rule. The phrase 'TILTED TOWARD THE VIEWER AT SEVENTY DEGREES' made things WORSE — the model reads 'tilt the object' as 'draw it isometric', and H, I and K all came back isometric while J fell back to a 30-degree elevation. Adjectives do not hold the angle. COMPOSITION holds the angle: B and E, the only two that landed, are the only two whose subject SPANS THE FRAME as a continuous run going off the edges. Everything that drifted was a discrete object centred on white. Round 3 (M-O) therefore states no angle adjective at all and instead reuses E's exact proven opening — 'running horizontally across the full frame width, its outer face toward the bottom of the image' — with the tower and the gate EMBEDDED IN a spanning wall rather than standing alone. Three states, not six: this is a hypothesis test, and if it holds it becomes the rule for every remaining part.",
+
+  "_no_keep": "F 'the great keep' is CUT and not re-rolled. Raheem asked what it was even for and the honest answer is nothing: card-engine-courtyard-v2-quadrants.md has no keep in it. The courtyard's four quadrants are forge, tower, archive and training, and the tower quadrant's anchor is 'a raised iron portcullis with chain-and-winch set into the wall' — a threshold, not a free-standing building. The one legitimate large mass is the BATTLE TOWER itself (state L), justified because CLAUDE.md makes the tower the game's main feature and its gate: beating it unlocks the rest of the game. Seeing it rise over the north wall is the player seeing what they are about to climb. That is game function, not decoration.",
+
   "familyLabels": {
     "front": "The front — gatehouse and flanking towers (the piece Raheem improves)",
     "kit": "Kit source — wall run, corner, tower, cut into modules",
-    "mass": "The great keep — the thing you see over the walls"
+    "mass": "The great keep — CUT, see _no_keep",
+    "parts": "Round 2 — one state per real kit part",
+    "gates": "Round 2 — the two thresholds the courtyard actually needs",
+    "spanning": "Round 3 — same parts, composed as frame-spanning wall runs"
   },
 
   "states": [
@@ -66,7 +79,73 @@
       "id": "mass-a-keep",
       "label": "F — The great keep, seen over the walls",
       "family": "mass",
+      "_cut": "Kept in the file as the record of a rejected direction — see _no_keep. Already generated; the harness skips it.",
       "line": "A great castle keep, the enormous central mass of a fantasy castle, the thing you see rising over the curtain walls from the courtyard below. A broad square core of pale lavender ashlar with a huge flat paved rooftop terrace ringed in amber gold crenellations, from which rise four slender corner turrets with conical verdigris copper roofs and a fifth taller central spire crowned with a gilded finial and a glowing arcane orb. Long heraldic banners hang down the faces. Stained glass windows glow across the short bands of visible facade. Flying buttresses spring from the lower body. Tiny human-sized doorways and stair heads are drawn on the rooftop terrace to make the sheer size unmistakable: a doorway is no more than one twentieth the building's width."
+    },
+
+    {
+      "id": "part-g-corner",
+      "label": "G — Corner: wall turning ninety degrees",
+      "family": "parts",
+      "line": "A castle curtain wall turning a ninety degree corner, TILTED TOWARD THE VIEWER AT SEVENTY DEGREES so a clear band of outer wall FACE stands visible below the walkway — never a flat overhead plan. One run enters from the left frame edge, turns at the corner, and runs to the bottom edge. The broad paved wall-walk carries crenellations along its outer edge, read from above as short blocks. Below them the wall FACE shows as a distinct band one third the walk's width, with arrow slits, a projecting string course and a battered plinth catching shadow at its foot. Identical repeating bays divided by buttress pilasters. A single tiny human figure stands on the ground at the foot of the wall for scale."
+    },
+    {
+      "id": "part-h-tower",
+      "label": "H — Watch tower punctuating the wall",
+      "family": "parts",
+      "line": "A single octagonal castle watch tower standing where two curtain walls meet, TILTED TOWARD THE VIEWER AT SEVENTY DEGREES so a tall band of the tower's outer FACE stands visible below its roof — never a flat overhead plan. The tower's flat crenellated top platform reads as a broad ring seen from above, with a verdigris copper cap and a banner over it. Below it the octagonal shaft shows clearly as stonework a full two thirds the tower's height, faceted so three faces catch different light, with arrow slits and a lit window. Short stubs of curtain wall project left and right at the tower's base, each showing its walkway and short face so the tower can be butted onto a wall run. A single tiny human figure stands at the tower's foot for scale."
+    },
+    {
+      "id": "part-i-endcap",
+      "label": "I — Wall end cap and stair, where a run stops",
+      "family": "parts",
+      "line": "The END of a castle curtain wall run where it stops and is closed off, TILTED TOWARD THE VIEWER AT SEVENTY DEGREES so a clear band of outer wall FACE stands visible below the walkway — never a flat overhead plan. A short length of wall enters from the left frame edge and terminates in a squared buttressed end cap whose return face is fully visible, showing the wall's real thickness. The broad paved wall-walk runs to the end and stops at a low parapet. A flight of stone steps descends from the walk to the ground alongside the wall, its treads clearly separated. Arrow slits, a string course and a battered plinth run along the short face. A single tiny human figure stands at the foot of the steps for scale."
+    },
+    {
+      "id": "gate-j-open",
+      "label": "J — Main gate, drawbridge down, the way out",
+      "family": "gates",
+      "line": "A castle main gate standing open, TILTED TOWARD THE VIEWER AT SEVENTY DEGREES so the gate block's FACE and the archway in it stand clearly visible below the roofline — never a flat overhead plan. A squat gate block is set into a curtain wall, its flat roof carrying a machicolated gallery and crenellations read from above. In the face below, a deep pointed archway ringed in amber gold voussoirs stands open, its portcullis raised and its timber doors swung inward, a dark passage running through. A heavy timber drawbridge lies lowered from the threshold toward the viewer, its planks and iron chains clearly drawn. Curtain wall runs off both frame edges showing walkway and short face. A single tiny human figure stands on the drawbridge for scale."
+    },
+    {
+      "id": "gate-k-portcullis",
+      "label": "K — Tower threshold: portcullis and chain-winch",
+      "family": "gates",
+      "line": "A raised iron portcullis set into the inner face of a castle wall, TILTED TOWARD THE VIEWER AT SEVENTY DEGREES so the wall FACE and the opening in it stand clearly visible below the walkway — never a flat overhead plan. A deep stone archway is cut into the wall face, its heavy iron portcullis hauled up into the slot above it, spiked teeth hanging clear of the opening. Beside the arch a great timber chain-and-winch drum is mounted against the stone, its chain running up to the grate. Beyond the opening a stone stair climbs into darkness. An iron watch brazier burns to one side and the stone beside the arch is covered in hand-scratched tally marks. The wall's broad walkway and crenellations run above. A single tiny human figure stands before the arch for scale."
+    },
+    {
+      "id": "mass-l-battle-tower",
+      "label": "L — The Battle Tower, rising over the north wall",
+      "family": "gates",
+      "_held": "Deliberately NOT generated with G-K. Raheem, 2026-08-09: 'save that for after we generate the other thing so we can try to make sure it aligns with the design of the front tower.' Same reasoning as the kit itself — the tower should be style-referenced off the approved wall, not designed in parallel with it.",
+      "line": "An enormous fantasy battle tower rising far above a castle curtain wall, TILTED TOWARD THE VIEWER AT SEVENTY DEGREES so the tower's FACE fills most of its height and only its crown is seen from above — never a flat overhead plan and never isometric. A tall tapering octagonal shaft of pale lavender ashlar climbs in stacked storeys, each ringed by a narrow balcony and lit by tall stained glass windows in blue, teal and amber. The crown is a crenellated platform with a verdigris copper spire and a glowing arcane orb. Long banners hang the full height. At its foot a curtain wall crosses in front, showing its broad walkway and short face, so the tower reads as standing BEHIND the wall. A single tiny human figure stands at the wall's foot for scale."
+    },
+
+    {
+      "id": "part-m-corner",
+      "label": "M — Corner (frame-spanning retry of D and G)",
+      "family": "spanning",
+      "line": "A castle curtain wall turning a ninety degree corner: it enters from the LEFT FRAME EDGE running horizontally with its outer face toward the bottom of the image, turns at a corner tower, then runs down and out through the BOTTOM FRAME EDGE. The dominant shape is the BROAD FLAT WALL-WALK, a paved path four people could walk abreast running the length of both runs, a low inner parapet on one side and crenellations along the outer edge read from above as an even row of short amber-gold-capped blocks. Below that edge a SHORT band of face shows, one third as deep as the walk is wide, with arrow slits and a battered plinth. The corner tower's crenellated top reads as a flat disc from above. A single tiny human figure stands at the wall's foot for scale."
+    },
+    {
+      "id": "part-p-wall-side",
+      "label": "P — Side wall, E turned vertical",
+      "family": "spanning",
+      "_why": "Raheem, 2026-08-09: 'we got the front of the castle, get the straight walls on the side. Stop trying to be extra.' This is E's proven line with the run turned vertical and the face pointing left, and NOTHING else changed — no tower, no gate, no corner. The corner piece is CUT: asked for ninety degrees twice (G, M) and got a curve twice, and a curved wall has nowhere to go in a square castle. The state-level negative bans the curve explicitly.",
+      "negative": "curved wall, curve, arc, bend, bent, horseshoe, circular, round wall, corner, turn, L-shape, front elevation, side elevation, straight-on view, eye-level view, horizon line, vanishing point, perspective, isometric, three-quarter view, ground, grass, dirt, paving, terrain, sky, clouds, horizon, landscape, scenery, trees, moat, water, cast shadow, drop shadow, photorealistic, photograph, 3d render, cgi, realistic, painterly, blurry, gradient background, nude, bare chest, text, letters, signature, watermark, logo, ui, frame, border, ruins, decay, rubble, crumbling",
+      "line": "A long PERFECTLY STRAIGHT castle curtain wall running VERTICALLY down the full frame height from top edge to bottom edge, its outer face toward the LEFT of the image. The dominant shape is the BROAD FLAT WALL-WALK, a paved path four people could walk abreast running the full length, a low inner parapet along its right side and crenellations along its left outer edge read from above as an even row of short amber-gold-capped blocks. Left of that edge a SHORT band of face shows, one third as deep as the walk is wide, with arrow slits and a battered plinth. The wall divides into IDENTICAL REPEATING BAYS by buttress pilasters at even intervals so it can be cut apart and tiled seamlessly. A single tiny human figure stands at the wall's foot for scale."
+    },
+    {
+      "id": "part-n-tower",
+      "label": "N — Watch tower astride the wall (retry of H)",
+      "family": "spanning",
+      "line": "A long straight castle curtain wall running horizontally across the FULL FRAME WIDTH from edge to edge, its outer face toward the bottom of the image, with a single octagonal watch tower standing astride it at the centre. The wall's dominant shape is the BROAD FLAT WALL-WALK, a paved path four people could walk abreast, crenellations along its bottom outer edge read from above as an even row of short amber-gold-capped blocks, and below that edge a SHORT band of face carrying arrow slits and a battered plinth. The tower rises from the wall: its crenellated top reads as a flat ring seen from above under a verdigris copper cap, and below it a band of octagonal shaft shows, twice as deep as the wall's own face band, with a lit window. A single tiny human figure stands at the tower's foot."
+    },
+    {
+      "id": "part-o-gate",
+      "label": "O — Gate set into the wall (retry of J and K)",
+      "family": "spanning",
+      "line": "A long straight castle curtain wall running horizontally across the FULL FRAME WIDTH from edge to edge, its outer face toward the bottom of the image, with a gate opening set into it at the centre. The wall's dominant shape is the BROAD FLAT WALL-WALK, a paved path four people could walk abreast, crenellations along its bottom outer edge read from above as an even row of short amber-gold-capped blocks. Below that edge a SHORT band of face shows, one third as deep as the walk is wide, and set into that face a deep pointed archway ringed in amber gold voussoirs, its portcullis hauled up and its timber doors swung inward on a dark passage. A timber drawbridge lies lowered from the threshold toward the bottom of the image, planks and chains drawn. A single tiny human figure stands on the drawbridge."
     }
   ]
 }

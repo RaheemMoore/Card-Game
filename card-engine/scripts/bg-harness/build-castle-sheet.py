@@ -4,13 +4,23 @@
 Rule Zero: never show work in chat, show it in a harness. harness.mjs `sheet`
 shells out to `sips`, which is macOS-only, so on Windows every thumbnail falls
 back to a full-size PNG base64 and the sheet lands at ~15 MB. This builds the
-same thing with PIL and adds the one thing the generic sheet cannot show: the
-measured camera ANGLE per candidate, which is the entire finding of this run.
+same thing with PIL and adds the thing the generic sheet cannot show: the
+camera ANGLE each candidate landed at, which is the whole finding of this run.
+
+MANIFEST-DRIVEN ON PURPOSE. Every state in the manifest gets a card, whether or
+not anyone has written a verdict for it yet. An unreviewed generation shows up
+as "Not yet reviewed" rather than silently vanishing — the first version of this
+script hard-coded its card list and five generated images (G-K) never reached
+Raheem because of it. A sheet you have to remember to update is a sheet that
+goes stale. Letters come from the config's own state order and are how these get
+referred to in conversation, so they stay stable as states are added.
+
+Run it through `npm run castle:gen` / `npm run castle:sheet` so generating and
+publishing are the same action:
 
     python scripts/bg-harness/build-castle-sheet.py
 
-Writes out/castle-grand-topdown/review.html, self-contained (data-URI images),
-suitable for publishing straight to an Artifact.
+Writes out/castle-grand-topdown/review.html, self-contained (data-URI images).
 """
 import base64
 import json
@@ -18,29 +28,25 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "out", "castle-grand-topdown")
+CFG = os.path.join(HERE, "configs", "castle-grand-topdown.json")
+LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-# Angle is eyeballed against the wall-walk:face depth ratio, then sanity-checked
-# against the reference tilemaps. It is a judgement, not a measurement, and is
-# labelled as such on the sheet. The 65-75 target band comes from the two
-# reference tilemaps Raheem supplied 2026-08-09.
-# Letters are the config's own state order (A-F) and are how Raheem refers to
-# these in conversation, so they must stay stable even though the sheet is
-# sorted by verdict rather than by letter.
-CARDS = [
-    dict(
-        letter="E", id="kit-b-wall-straight", verdict="use", angle=70,
-        title="Long straight wall run",
+# Keyed by state id. Angle is judged from the wall-walk:face depth ratio against
+# the two reference tilemaps, and is labelled as a judgement on the sheet.
+# A state with no entry here renders as unreviewed rather than disappearing.
+NOTES = {
+    "kit-b-wall-straight": dict(
+        verdict="use", angle=70, round=1,
         head="This is the kit source.",
         body="Everything the brief asked for and one thing it didn't. Broad paved wall-walk running the "
              "full width; crenellations read from above as a row of short blocks; a short face band below "
              "carrying evenly spaced arrow slits and a battered plinth; identical repeating bays; a stair "
              "rising to the walk; octagonal corner towers with verdigris caps. It also drew a person at the "
-             "foot of the stair unprompted, which is where the scale number below comes from.",
+             "foot of the stair unprompted, which is where the scale number above comes from.",
         note="Cut into wall.walkway + wall.face here. Also the style reference for the 56-piece PixelLab kit.",
     ),
-    dict(
-        letter="B", id="front-b-arcane", verdict="use", angle=70,
-        title="Arcane gatehouse, sigils and ward",
+    "front-b-arcane": dict(
+        verdict="use", angle=70, round=1,
         head="This is the gate.",
         body="Square towers whose flat rooftops read as real top planes, sigils laid flat on them, curtain "
              "wall running off both frame edges with its walkway and crenellations visible, and a short face "
@@ -49,48 +55,142 @@ CARDS = [
              "everything under it lies flat.",
         note="Keep the composition, lose or flatten the crystal spire.",
     ),
-    dict(
-        letter="D", id="kit-a-wall-corner", verdict="partial", angle=86,
-        title="Wall turning a corner",
+    "kit-a-wall-corner": dict(
+        verdict="partial", angle=86, round=1,
         head="Right corner, wrong angle.",
         body="Went almost to a straight overhead plan. The corner turn and the walkway surface are exactly "
-             "the geometry we need and worth keeping as reference, but the face band has vanished entirely, "
-             "so a wall built from this would have no visible height at all. The tower reads as a flat disc.",
-        note="Reference only. Re-roll the corner from the approved wall once it exists.",
+             "the geometry we need, but the face band has vanished, so a wall built from this would have no "
+             "visible height at all.",
+        note="Superseded by M.",
     ),
-    dict(
-        letter="A", id="front-a-grand", verdict="reject", angle=88,
-        title="Grand gatehouse, drum towers",
+    "front-a-grand": dict(
+        verdict="reject", angle=88, round=1,
         head="Overshot to plan view.",
-        body="The drum tower roofs became pure circles and the gate block a flat rectangle. There is no face "
-             "band, so nothing reads as standing up off the ground. Useful only as evidence of how far the "
-             "model will travel when the subject is round.",
-        note=None,
+        body="The drum tower roofs became pure circles and the gate block a flat rectangle. No face band, so "
+             "nothing reads as standing up off the ground.",
     ),
-    dict(
-        letter="C", id="front-c-cathedral", verdict="reject", angle=35,
-        title="Cathedral gate, verdigris roofs",
+    "front-c-cathedral": dict(
+        verdict="reject", angle=35, round=1,
         head="Reverted to the defect we're removing.",
         body="A near-elevation, roughly the angle the current castle kit is drawn at. Handsome, and entirely "
-             "unusable: it is a facade you can only ever look at. Worth keeping visible because it is the "
-             "clearest possible before/after against the two above.",
-        note=None,
+             "unusable: a facade you can only ever look at. Kept visible because it is the clearest possible "
+             "before/after against B and E.",
     ),
-    dict(
-        letter="F", id="mass-a-keep", verdict="reject", angle=45,
-        title="The great keep",
-        head="Isometric, despite the negative.",
-        body="“isometric” sits in this config's negative prompt and the model drew isometric anyway. "
-             "It also came back nearly unshaded, closer to a line render than to game art.",
-        note=None,
+    "mass-a-keep": dict(
+        verdict="cut", angle=45, round=1,
+        head="Cut — the game has no keep.",
+        body="Isometric despite “isometric” sitting in the negative prompt, and nearly unshaded. But the real "
+             "problem is that you were right to ask what it was for: card-engine-courtyard-v2-quadrants.md "
+             "has no keep in it. The courtyard's quadrants are forge, tower, archive and training, and the "
+             "tower quadrant's anchor is a portcullis set into the wall — a threshold, not a building.",
+        note="Replaced by L, the Battle Tower, which has an actual game job.",
     ),
-]
+    "part-g-corner": dict(
+        verdict="partial", angle=84, round=2,
+        head="Curved instead of cornering.",
+        body="Asked for a ninety degree turn and got a smooth arc, which cannot tile. Still the best of round "
+             "two: the face band survives on the curve and both drum towers have real height. The figure at "
+             "the centre came from the new explicit scale instruction and works.",
+        note="Superseded by M.",
+    ),
+    "part-h-tower": dict(
+        verdict="reject", angle=45, round=2,
+        head="Isometric.",
+        body="A free-standing tower centred on white, drawn in true isometric with two visible faces and a "
+             "45-degree ground plane. Handsome object, wrong projection, and it cannot sit on a wall.",
+        note="Superseded by N.",
+    ),
+    "part-i-endcap": dict(
+        verdict="reject", angle=45, round=2,
+        head="Isometric, and it became a box.",
+        body="Read “end cap” as “closed cube” and drew a hollow crenellated box in isometric. None of the "
+             "wall-run geometry survived.",
+        note="End cap deferred — it is the least load-bearing part and can be cut from M's corner later.",
+    ),
+    "gate-j-open": dict(
+        verdict="reject", angle=32, round=2,
+        head="The best-looking wrong answer so far.",
+        body="A genuinely handsome gatehouse in the same family as B — verdigris spires, drawbridge, chains, "
+             "a figure in the archway. And it is a near-elevation, the exact defect this whole exercise "
+             "exists to remove. Worth keeping as a design reference for what the gate should contain.",
+        note="Superseded by O. Mine it for detail, not for angle.",
+    ),
+    "gate-k-portcullis": dict(
+        verdict="reject", angle=45, round=2,
+        head="Isometric, and it broke the white background.",
+        body="Isometric again, and it came back on a cream ground despite the plain-white instruction, which "
+             "means it would need keying before anything else. The winch drum and tally-marked stone are the "
+             "right props for the Tower Warden's threshold, so the content brief holds even though the "
+             "image doesn't.",
+    ),
+    "part-m-corner": dict(
+        verdict="cut", angle=80, round=3,
+        head="Curved again. The corner piece is cut.",
+        body="Asked for a ninety degree corner twice and got a curve twice — a horseshoe here, an arc in G. "
+             "A curved wall has nowhere to go in a square castle, and chasing it was the wrong call: G should "
+             "have been the end of it. Corner pieces come later from the approved straight wall, in the "
+             "PixelLab kit call that returns corners and junctions as part of the set.",
+        note="Cut. No further re-rolls.",
+    ),
+    "part-n-tower": dict(
+        verdict="held", angle=None, round=3,
+        head="Not generated.",
+        body="Deferred with the corner. The tower on the wall is a kit junction, not a hand-designed plate.",
+    ),
+    "part-o-gate": dict(
+        verdict="held", angle=None, round=3,
+        head="Not generated.",
+        body="B already is the gate, and it landed in band. There is nothing here that B does not cover.",
+    ),
+    "part-p-wall-side": dict(
+        verdict="reject", angle=45, round=3,
+        head="Straight at last, but diagonal.",
+        body="The state-level curve ban worked — this is the first genuinely straight run since E. But asking "
+             "for a VERTICAL run made the model draw a diagonal isometric one. The lesson is narrow and "
+             "final: this model draws a top-down wall when the run is HORIZONTAL and drifts on any other "
+             "orientation. E is the only orientation it will hold.",
+        note="Stop generating. Derive the side wall from E in your own Leonardo pass, or rotate it after "
+             "the PixelLab redraw.",
+    ),
+    "mass-l-battle-tower": dict(
+        verdict="held", angle=None, round=2,
+        head="Held back on purpose.",
+        body="Not generated yet, at your call: design it after the wall and gate lock so it can be "
+             "style-referenced off the approved art rather than invented alongside it. Same reasoning that "
+             "makes the 56-piece kit work.",
+        note="Generate once M/N/O settle.",
+    ),
+}
 
 VERDICT = {
     "use": ("Use", "ok"),
     "partial": ("Reference only", "warn"),
     "reject": ("Reject", "bad"),
+    "cut": ("Cut", "bad"),
+    "held": ("Held", "hold"),
+    None: ("Not yet reviewed", "hold"),
 }
+
+ROUND_NOTE = {
+    1: "Round 1 — one state per design idea",
+    2: "Round 2 — one state per real kit part, angle restated in the subject sentence",
+    3: "Round 3 — same parts recomposed as frame-spanning wall runs, no angle adjective at all",
+}
+
+
+def thumbs(ids):
+    """Regenerate thumbnails for every state, so this can never drift from the PNGs."""
+    from PIL import Image
+    for sid in ids:
+        src = os.path.join(OUT, f"{sid}.png")
+        if not os.path.exists(src):
+            continue
+        dst = os.path.join(OUT, f"_thumb-{sid}.jpg")
+        if os.path.exists(dst) and os.path.getmtime(dst) >= os.path.getmtime(src):
+            continue
+        im = Image.open(src).convert("RGB")
+        im.thumbnail((900, 900), Image.LANCZOS)
+        im.save(dst, "JPEG", quality=82)
 
 
 def data_uri(path):
@@ -101,53 +201,83 @@ def data_uri(path):
 def gauge(deg):
     """A 0-90 arc with the 65-75 target band marked and the candidate's angle drawn."""
     import math
+    if deg is None:
+        return '<svg class="gauge" viewBox="0 0 120 64" aria-hidden="true">' \
+               '<path d="M 20 56 A 40 40 0 0 1 100 56" fill="none" stroke="var(--edge)" ' \
+               'stroke-width="7" stroke-linecap="round"/></svg>'
+
     def pt(d, r):
         a = math.radians(180 - d)
         return 60 + r * math.cos(a), 56 + r * math.sin(a) * -1
-    x1, y1 = pt(65, 40); x2, y2 = pt(75, 40)
+
+    x1, y1 = pt(65, 40)
+    x2, y2 = pt(75, 40)
     hx, hy = pt(deg, 38)
     ok = 65 <= deg <= 75
+    col = "var(--verdigris)" if ok else "var(--rust)"
     return f"""<svg class="gauge" viewBox="0 0 120 64" aria-hidden="true">
   <path d="M 20 56 A 40 40 0 0 1 100 56" fill="none" stroke="var(--edge)" stroke-width="7" stroke-linecap="round"/>
   <path d="M {x1:.1f} {y1:.1f} A 40 40 0 0 1 {x2:.1f} {y2:.1f}" fill="none" stroke="var(--verdigris)" stroke-width="7" stroke-linecap="round"/>
-  <line x1="60" y1="56" x2="{hx:.1f}" y2="{hy:.1f}" stroke="{'var(--verdigris)' if ok else 'var(--gold)'}" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="60" cy="56" r="3.5" fill="{'var(--verdigris)' if ok else 'var(--gold)'}"/>
+  <line x1="60" y1="56" x2="{hx:.1f}" y2="{hy:.1f}" stroke="{col}" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="60" cy="56" r="3.5" fill="{col}"/>
 </svg>"""
 
 
+ORDER = {"use": 0, "partial": 1, "held": 2, None: 3, "reject": 4, "cut": 5}
+
+
 def build():
+    cfg = json.load(open(CFG, encoding="utf-8"))
     man = json.load(open(os.path.join(OUT, "manifest.json"), encoding="utf-8"))
+
+    rows = []
+    for i, st in enumerate(cfg["states"]):
+        sid = st["id"]
+        n = NOTES.get(sid, {})
+        rows.append(dict(
+            letter=LETTERS[i], id=sid,
+            title=st["label"].split("—", 1)[-1].strip(),
+            generated=sid in man["states"],
+            prompt=man["states"].get(sid, {}).get("prompt", cfg["styleHeader"] + " " + st.get("line", "")),
+            **n,
+        ))
+
+    thumbs([r["id"] for r in rows if r["generated"]])
+
     cards = []
-    for c in CARDS:
-        label, tone = VERDICT[c["verdict"]]
-        img = data_uri(os.path.join(OUT, f"_thumb-{c['id']}.jpg"))
-        prompt = man["states"].get(c["id"], {}).get("prompt", "")
-        note = f'<p class="note"><span>Next</span>{c["note"]}</p>' if c["note"] else ""
-        cards.append(f"""<article class="card {tone}" id="{c['letter']}">
-  <div class="shot"><span class="stamp {tone}">{c['letter']}</span><img src="{img}" alt="{c['title']}"/></div>
+    for r in sorted(rows, key=lambda r: (ORDER.get(r.get("verdict"), 3), r["letter"])):
+        label, tone = VERDICT[r.get("verdict")]
+        if r["generated"]:
+            shot = f'<img src="{data_uri(os.path.join(OUT, "_thumb-" + r["id"] + ".jpg"))}" alt="{r["title"]}"/>'
+        else:
+            shot = '<div class="pending">Not generated yet</div>'
+        note = f'<p class="note"><span>Next</span>{r["note"]}</p>' if r.get("note") else ""
+        head = r.get("head", "Not yet reviewed.")
+        body = r.get("body", "This generation has not been written up yet. The prompt that produced it is below.")
+        rnd = ROUND_NOTE.get(r.get("round"), "")
+        cards.append(f"""<article class="card {tone}" id="{r['letter']}">
+  <div class="shot"><span class="stamp {tone}">{r['letter']}</span>{shot}</div>
   <div class="read">
     <div class="rowtop">
       <span class="tag {tone}">{label}</span>
-      <code class="sid">{c['id']}</code>
+      <code class="sid">{r['id']}</code>
     </div>
-    <h3><span class="lt">{c['letter']}</span>{c['title']}</h3>
-    <p class="head">{c['head']}</p>
-    <p>{c['body']}</p>
+    <h3>{r['title']}</h3>
+    <p class="head">{head}</p>
+    <p>{body}</p>
     {note}
     <div class="angle">
-      {gauge(c['angle'])}
-      <div class="angletext"><b>~{c['angle']}&deg;</b><span>camera angle, judged<br/>target band 65&ndash;75&deg;</span></div>
+      {gauge(r.get('angle'))}
+      <div class="angletext"><b>{('~%d&deg;' % r['angle']) if r.get('angle') else '&mdash;'}</b><span>camera angle, judged<br/>target band 65&ndash;75&deg;</span></div>
     </div>
-    <details><summary>Prompt</summary><p class="prompt">{prompt}</p></details>
+    <details><summary>Prompt &middot; {rnd}</summary><p class="prompt">{r['prompt']}</p></details>
   </div>
 </article>""")
 
-    # Index in LETTER order, not verdict order — it exists so Raheem can jump to
-    # whichever one he wants to talk about.
     jump = "".join(
-        f'<a class="jump {VERDICT[c["verdict"]][1]}" href="#{c["letter"]}">'
-        f'<b>{c["letter"]}</b><span>{c["title"]}</span></a>'
-        for c in sorted(CARDS, key=lambda c: c["letter"])
+        f'<a class="jump {VERDICT[r.get("verdict")][1]}" href="#{r["letter"]}">'
+        f'<b>{r["letter"]}</b><span>{r["title"]}</span></a>'
+        for r in rows
     )
     return TEMPLATE.replace("{{CARDS}}", "\n".join(cards)).replace("{{JUMP}}", jump)
 
@@ -202,9 +332,10 @@ TEMPLATE = """<title>Castle &mdash; high top-down candidates</title>
   .jump:hover{background:var(--stone-800)}
   .jump:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   .jump.ok{border-left-color:var(--verdigris)} .jump.warn{border-left-color:var(--gold)}
-  .jump.bad{border-left-color:var(--rust)}
+  .jump.bad{border-left-color:var(--rust)} .jump.hold{border-left-color:var(--muted)}
   .jump b{font-family:var(--display);font-size:23px;line-height:1;width:16px;flex:none}
-  .jump.ok b{color:var(--verdigris)} .jump.warn b{color:var(--gold)} .jump.bad b{color:var(--rust)}
+  .jump.ok b{color:var(--verdigris)} .jump.warn b{color:var(--gold)}
+  .jump.bad b{color:var(--rust)} .jump.hold b{color:var(--muted)}
   .jump span{font-size:13px;color:var(--muted);line-height:1.3}
 
   .card{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0;
@@ -213,16 +344,19 @@ TEMPLATE = """<title>Castle &mdash; high top-down candidates</title>
   .card.ok{border-color:color-mix(in srgb,var(--verdigris) 45%,var(--edge))}
   .shot{background:#fff;display:flex;align-items:center;justify-content:center;min-width:0;position:relative}
   .shot img{display:block;width:100%;height:auto}
+  .pending{width:100%;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+           background:var(--stone-800);color:var(--muted);font-family:var(--data);font-size:13px}
   .stamp{position:absolute;top:0;left:0;font-family:var(--display);font-size:30px;line-height:1;
          padding:11px 17px;background:var(--stone-900);color:var(--ink);
-         border-right:1px solid var(--edge);border-bottom:1px solid var(--edge)}
-  .stamp.ok{color:var(--verdigris)} .stamp.warn{color:var(--gold)} .stamp.bad{color:var(--rust)}
-  .lt{font-size:.72em;color:var(--muted);margin-right:.5em;font-variant-numeric:tabular-nums}
+         border-right:1px solid var(--edge);border-bottom:1px solid var(--edge);z-index:1}
+  .stamp.ok{color:var(--verdigris)} .stamp.warn{color:var(--gold)}
+  .stamp.bad{color:var(--rust)} .stamp.hold{color:var(--muted)}
   .read{padding:26px 28px;display:flex;flex-direction:column;gap:13px;min-width:0}
   .rowtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .tag{font-family:var(--data);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
        padding:4px 10px;border-radius:2px;border:1px solid currentColor}
-  .tag.ok{color:var(--verdigris)} .tag.warn{color:var(--gold)} .tag.bad{color:var(--rust)}
+  .tag.ok{color:var(--verdigris)} .tag.warn{color:var(--gold)}
+  .tag.bad{color:var(--rust)} .tag.hold{color:var(--muted)}
   .sid{font-family:var(--data);font-size:12px;color:var(--muted)}
   h3{font-family:var(--display);font-size:25px;font-weight:600;margin:0;line-height:1.2}
   .read p{margin:0;font-size:15px}
@@ -252,24 +386,34 @@ TEMPLATE = """<title>Castle &mdash; high top-down candidates</title>
   <header>
     <div class="eyebrow">bg-harness &middot; castle-grand-topdown &middot; Lucid Origin &middot; 9 Aug 2026</div>
     <h1>The castle problem is projection, not size</h1>
-    <p class="sub">Six candidates for a re-angled castle. The winning two become the authoritative front
-      everything else is cut from or style-referenced against.</p>
+    <p class="sub">Every candidate generated for the re-angled castle, newest rounds included.
+      Sorted by verdict; the index below is in letter order.</p>
   </header>
 
   <section class="thesis">
     <p class="lead">The current wall is a facade drawn at about 25&deg; &mdash; roughly all face, no top.
       Your references are high top-down: a broad wall-walk you could stand on, with only a short band of
       face below it. That is why one can be walked around and the other can only be looked at.</p>
-    <p>Making the wall taller would only have produced a taller facade. The wall-to-hero ratio was never
-      the problem &mdash; it already matches the references almost exactly.</p>
     <div class="stats">
       <div class="stat now"><b>2.88&times;</b><span>Today &mdash; <code>castle-wall-straight-v2</code> at 288px against the 100px hero</span></div>
       <div class="stat tgt"><b>2.5&ndash;3&times;</b><span>Both reference tilemaps &mdash; wall band against a character</span></div>
-      <div class="stat cand"><b>10.7&times;</b><span>The winning candidate as drawn &mdash; 268px wall against the 25px figure Leonardo added</span></div>
+      <div class="stat cand"><b>10.7&times;</b><span>E as drawn &mdash; 268px wall against the 25px figure Leonardo added</span></div>
     </div>
-    <p>So the candidate is drawn at true castle proportion, and the references cheat it down to about a
-      third of that. We will need to pick a working scale by compositing the approved wall against the real
-      hero on the real ground &mdash; not by arithmetic. That is the next gate, after your pass in Leonardo.</p>
+    <p><b>The finding, after fifteen generations.</b> This model draws a top-down wall only when the run is
+      <b>horizontal and spans the frame</b>. That is the whole rule. Angle adjectives do nothing, and
+      &ldquo;tilted toward the viewer&rdquo; actively produces isometric. Vertical became diagonal isometric
+      (P). Ninety-degree corners became curves, twice (G, M). Free-standing objects centred on white came
+      back isometric every single time (F, H, I, K). <b>E is the only composition it will hold</b> &mdash;
+      so E and B are what you take forward, and nothing further gets generated here.</p>
+  </section>
+
+  <section class="thesis">
+    <p class="lead">Take B and E into Leonardo. Everything else comes out of them.</p>
+    <p>The corner, the side wall, the tower junction and the end caps are not plates to be designed &mdash;
+      they are what <code>/create-tiles-pro</code> with <code>tile_feature: 'building'</code> returns as a
+      56-piece set for 20 generations, style-referenced off the approved wall. That is the correct place to
+      get them, and it is why the wall has to be right first. The prompt that produced each plate is under
+      its card, ready to paste.</p>
   </section>
 
   <nav class="index" aria-label="Jump to a candidate">{{JUMP}}</nav>
@@ -277,16 +421,12 @@ TEMPLATE = """<title>Castle &mdash; high top-down candidates</title>
   {{CARDS}}
 
   <footer>
-    <p><b>The pattern in the failures:</b> the angle holds when the subject is a <em>wall</em> and drifts
-      when it is a free-standing <em>building</em>. Both wall prompts landed in band; two of the three
-      building prompts flew past it and the keep came back isometric with &ldquo;isometric&rdquo; sitting in
-      the negative prompt. Wall-shaped briefs are trustworthy here; building-shaped briefs need the angle
-      restated inside the subject sentence, not just the style header.</p>
-    <p><b>Your turn:</b> take <b>B</b> and <b>E</b> into the
-      Leonardo web UI, push the design, and hand the masters back. Then they go through
-      <code>image-to-pixelart</code>, a border-flood white key, a foundation cut, and a shared-palette
-      quantize across every piece at once &mdash; which is what makes the bricks match by construction
-      rather than by matching them afterward.</p>
+    <p><b>Parts still open:</b> corner, tower-on-wall, gate-in-wall (M, N, O &mdash; round 3), then the
+      Battle Tower (L) once those lock, style-referenced off the approved art rather than invented
+      alongside it. The wall end cap is deferred; it can be cut from the corner piece later.</p>
+    <p><b>Then the pipeline:</b> crop &rarr; <code>image-to-pixelart</code> &rarr; border-flood white key
+      &rarr; foundation cut &rarr; one shared-palette quantize across every piece at once, which is what
+      makes the bricks match by construction rather than by matching them afterward.</p>
     <p>Full-resolution masters: <code>card-engine/scripts/bg-harness/out/castle-grand-topdown/</code></p>
   </footer>
 </div>
