@@ -19,6 +19,57 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "out", "castle-grand-topdown")
 CFG = os.path.join(HERE, "configs", "castle-grand-topdown.json")
 
+# A square castle needs FOUR pieces, not eight. Corners are solved by putting a
+# tower on every corner, which is how real castles and both of Raheem's
+# reference tilemaps do it — so there is no corner wall piece on this list.
+# Rotations and mirrors are free, so one wall segment serves all four sides.
+CHECKLIST = [
+    dict(
+        n="1", name="Wall segment", status="have", src="E",
+        uses="All four sides. As drawn = back wall. Mirror vertically = front wall. "
+             "Rotate 90&deg; = left and right walls.",
+        need="Nothing. Improve it in Leonardo if you want richer stonework, but it is usable now.",
+    ),
+    dict(
+        n="2", name="Gatehouse", status="have", src="B",
+        uses="The front entrance, once. Sits in a gap in the front wall run.",
+        need="One pass to lose the floating crystal spire &mdash; it is the only vertical thing in a "
+             "flat-angle plate and it fights the projection.",
+    ),
+    dict(
+        n="3", name="Tower", status="have", src="cropped out of N",
+        uses="All four corners, plus anywhere along a wall you want punctuation. Doing double duty as "
+             "the corner piece is why there is no corner on this list.",
+        need="Already in hand &mdash; cropped straight out of N, correct angle, and it comes with wall "
+             "stubs both sides so it butts onto a run cleanly. Only regenerate if you want a grander "
+             "tower than this one.",
+        img="_tower-cropped.png",
+    ),
+    dict(
+        n="4", name="Battle Tower", status="later", src=None,
+        uses="The landmark rising over the back wall &mdash; the thing the player is about to climb. "
+             "Game function, not decoration: beating the tower unlocks the rest of the game.",
+        need="Hold until 1&ndash;3 lock, then design it against them so it matches rather than "
+             "competing.",
+    ),
+]
+
+# These are the things that break the PixelLab redraw downstream, not style
+# opinions. Each one is a defect this run actually produced.
+ACCEPTANCE = [
+    ("Plain WHITE background", "Not cream, not grey. One plate came back on cream and would need keying "
+                               "before anything else could happen."),
+    ("No ground, grass or paving", "The redraw invents a ground skirt on its own; a painted one on top "
+                                   "of that is two skirts to cut off."),
+    ("No cast shadow", "Contact shadow is added in-engine so it can sit on any terrain."),
+    ("Repeating bays on wall runs", "Identical bays divided by buttress pilasters are what let a run be "
+                                    "cut apart and tiled."),
+    ("Generate big &mdash; 1024&ndash;1536px", "We downsample into the kit. Never chase the final "
+                                               "pixel size out of Leonardo."),
+    ("Same session, same settings", "Palette continuity across plates is far easier to keep than to "
+                                    "fix afterwards."),
+]
+
 WORKED = [
     ("kit-b-wall-straight", "E", "Straight wall", "Front and back runs. Rotate it 90° for the side walls."),
     ("front-b-arcane", "B", "Gate", "The front. Lose the floating crystal — it's the one vertical thing."),
@@ -65,8 +116,29 @@ def thumb(sid):
         return "data:image/jpeg;base64," + base64.b64encode(f.read()).decode()
 
 
+def raw_uri(name):
+    with open(os.path.join(OUT, name), "rb") as f:
+        return "data:image/png;base64," + base64.b64encode(f.read()).decode()
+
+
 def build():
     man = json.load(open(os.path.join(OUT, "manifest.json"), encoding="utf-8"))
+
+    STATUS = {"have": ("Have it", "ok"), "later": ("Later", "hold")}
+    check = "".join(f"""<div class="row {STATUS[c['status']][1]}">
+  <div class="num">{c['n']}</div>
+  <div class="rowbody">
+    <div class="rowhead">
+      <h3>{c['name']}</h3>
+      <span class="tag {STATUS[c['status']][1]}">{STATUS[c['status']][0]}{(' &middot; ' + c['src']) if c['src'] else ''}</span>
+    </div>
+    <p class="uses">{c['uses']}</p>
+    <p class="need"><span>Bring back</span>{c['need']}</p>
+  </div>
+  {f'<div class="rowshot"><img src="{raw_uri(c["img"])}" alt="{c["name"]}"/></div>' if c.get('img') else ''}
+</div>""" for c in CHECKLIST)
+
+    accept = "".join(f'<li><code>{a}</code><span>{w}</span></li>' for a, w in ACCEPTANCE)
 
     cards = "".join(f"""<article class="card">
   <div class="shot"><span class="stamp">{letter}</span><img src="{thumb(sid)}" alt="{name}"/></div>
@@ -81,6 +153,8 @@ def build():
     never = "".join(f'<li><code>{p}</code><span>{w}</span></li>' for p, w in NEVER)
 
     return (TEMPLATE.replace("{{CARDS}}", cards)
+            .replace("{{CHECKLIST}}", check)
+            .replace("{{ACCEPT}}", accept)
             .replace("{{PHRASES}}", phrases)
             .replace("{{NEVER}}", never)
             .replace("{{NEGATIVE}}", NEGATIVE))
@@ -134,13 +208,48 @@ TEMPLATE = """<title>Castle &mdash; what worked</title>
   li span{color:var(--muted);font-size:13.5px;flex:0 1 auto}
   .never li code{color:var(--rust)}
   section{display:flex;flex-direction:column;gap:14px}
+
+  .row{display:flex;gap:18px;background:var(--panel);border:1px solid var(--edge);border-radius:3px;
+       border-left-width:3px;padding:19px 21px;align-items:flex-start}
+  .row.ok{border-left-color:var(--verdigris)} .row.hold{border-left-color:var(--muted)}
+  .num{font-family:var(--display);font-size:30px;line-height:1;color:var(--muted);width:24px;flex:none}
+  .rowbody{display:flex;flex-direction:column;gap:9px;min-width:0;flex:1}
+  .rowhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .tag{font-family:var(--data);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+       padding:3px 9px;border-radius:2px;border:1px solid currentColor;white-space:nowrap}
+  .tag.ok{color:var(--verdigris)} .tag.hold{color:var(--muted)}
+  .uses{font-size:15px;color:var(--muted)}
+  .need{font-size:14.5px;border-left:2px solid var(--gold);padding-left:13px}
+  .need span{font-family:var(--data);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+             color:var(--gold);display:block}
+  .rowshot{flex:none;width:120px;background:#fff;border:1px solid var(--edge);border-radius:2px;
+           padding:6px;line-height:0}
+  .rowshot img{width:100%;height:auto;display:block;image-rendering:pixelated}
+  @media (max-width:640px){ .rowshot{display:none} }
 </style>
 
 <div class="wrap">
   <div>
     <div class="eyebrow">Leonardo &middot; Lucid Origin &middot; no style reference</div>
-    <h1>What worked</h1>
+    <h1>Castle checklist</h1>
   </div>
+
+  <section>
+    <h3>Four pieces build the whole castle</h3>
+    <p class="use">Rotations and mirrors are free, and a tower on every corner means there is no corner
+      piece to make. Three of the four are already in hand.</p>
+    {{CHECKLIST}}
+  </section>
+
+  <section>
+    <h3>What every plate has to satisfy</h3>
+    <p class="use">These are what break the PixelLab redraw downstream, not style opinions.</p>
+    <ul>{{ACCEPT}}</ul>
+  </section>
+
+  <section>
+    <h3>The plates and their prompts</h3>
+  </section>
 
   {{CARDS}}
 
