@@ -38,7 +38,9 @@ import numpy as np
 from PIL import Image
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else r"C:\Users\storm\Downloads\Castle"
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "castle-grand-topdown")
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "out", "castle-grand-topdown")
+OUT_PICKS = os.path.join(HERE, "out", "castle-picks")
 
 # (folder, letter-prefix, tiling axis or None, section title, section note)
 GROUPS = [
@@ -149,8 +151,41 @@ def thumb_uri(path, box=760):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
+PICKED = [
+    ("H2-wall.png", "H2", "Horizontal wall", "Taken as-is.",
+     "Front and back runs. Rotate the walkway band 90&deg; for the sides."),
+    ("V3-wall-side.png", "V3", "Vertical wall", "Railing repaired.",
+     "Rows 400&ndash;650 had the crenel pattern destroyed &mdash; railing quality measured 0.5&ndash;1.9 "
+     "there against ~3.5 elsewhere, with 45- and 90-row holes where the rhythm is only 13&ndash;17. "
+     "Cloned from rows 652&ndash;902, the cleanest band, a whole pattern offset away. No gap now exceeds "
+     "the crenel spacing."),
+    ("G5-gate.png", "G5", "Gate", "Floating runes removed.",
+     "The solid rune cores came off as their own connected components. The palest glyphs sit above the "
+     "white cutoff so nothing could see them &mdash; those were cleared by region, left and right of the "
+     "arch, which cannot touch architecture."),
+    ("T3-tower.png", "T3", "Battle tower", "Taken as-is.",
+     "Still needs cutting out of its landscape before PixelLab. That is a <code>cut_piece.py</code> "
+     "polygon, not a generation."),
+]
+
+
 def build():
-    sections = []
+    picks = "".join(f"""<article class="card ok">
+  <div class="shot"><span class="stamp ok">{lab}</span><img src="{thumb_uri(os.path.join(OUT_PICKS, fn))}" alt="{name}"/></div>
+  <div class="body">
+    <div class="rowtop"><span class="tag ok">{name}</span></div>
+    <h3>{head}</h3>
+    <p>{body}</p>
+  </div>
+</article>""" for fn, lab, name, head, body in PICKED)
+
+    sections = [f"""<section>
+  <h2>Confirmed picks</h2>
+  <p class="note">The four you chose, with the two repairs applied. Both fixes are exact edits to approved
+    art &mdash; re-rolling either would have changed everything else on the plate and cost a generation to
+    do it worse. Reproduce with <code>bash scripts/bg-harness/castle-picks.sh</code>.</p>
+  <div class="grid">{picks}</div>
+</section>"""]
     for folder, prefix, axis, title, note in GROUPS:
         d = os.path.join(SRC, folder)
         files = sorted(f for f in os.listdir(d) if f.lower().endswith(".jpg"))
@@ -264,10 +299,13 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
 
   <div class="call">
     <p class="lead">Angle first: all twenty hold it. Not one drifted to isometric or elevation.</p>
-    <p>That is the thing worth saying plainly, because it is what fifteen generations of mine failed to do
-      reliably. Feeding a correct plate back in as a reference and asking for changes holds the projection
-      far better than describing it ever did. The choices below are therefore about tiling, cleanliness and
+    <p>Feeding a correct plate back in as a reference and asking for changes holds the projection far
+      better than describing it ever did. The choices below are therefore about tiling, cleanliness and
       consistency &mdash; not about whether the angle survived.</p>
+    <p><b>Masters checked.</b> All twenty downloads are byte-identical to what the Leonardo API serves. For
+      <code>gemini-2.5-flash-image</code> the CDN file <em>is</em> the original and it is a JPEG &mdash;
+      there is no higher-quality version to fetch. Verified, not assumed:
+      <code>node scripts/bg-harness/fetch-masters.mjs match</code>.</p>
   </div>
 
   {{SECTIONS}}
