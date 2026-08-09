@@ -952,7 +952,9 @@
                     "x": 1224,
                     "y": -57,
                     "originX": 0,
-                    "originY": 0
+                    "originY": 0,
+                    "scaleX": 1.43,
+                    "scaleY": 1.43
                 },
                 {
                     "type": "TileSprite",
@@ -977,11 +979,11 @@
                     },
                     "x": 706,
                     "y": 928,
+                    "scaleY": -1,
                     "originX": 0,
                     "originY": 0,
                     "width": 397,
-                    "height": 202,
-                    "scaleY": -1
+                    "height": 202
                 },
                 {
                     "type": "TileSprite",
@@ -992,11 +994,11 @@
                     },
                     "x": 1529,
                     "y": 928,
+                    "scaleY": -1,
                     "originX": 0,
                     "originY": 0,
                     "width": 398,
-                    "height": 202,
-                    "scaleY": -1
+                    "height": 202
                 },
                 {
                     "type": "Image",
@@ -1079,10 +1081,10 @@
                     },
                     "x": 1103,
                     "y": 654,
-                    "originX": 0,
-                    "originY": 0,
                     "scaleX": 1.45,
-                    "scaleY": 1.45
+                    "scaleY": 1.45,
+                    "originX": 0,
+                    "originY": 0
                 },
                 {
                     "type": "Image",

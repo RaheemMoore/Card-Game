@@ -568,6 +568,8 @@ class CourtyardV3 extends Phaser.Scene {
 
 		// battleTower
 		const battleTower = this.add.image(1224, -57, "tower-battle-v3");
+		battleTower.scaleX = 1.43;
+		battleTower.scaleY = 1.43;
 		battleTower.setOrigin(0, 0);
 		l3_CASTLE.add(battleTower);
 
@@ -649,6 +651,7 @@ class CourtyardV3 extends Phaser.Scene {
 		const sHELF_tower_battle_v3 = this.add.image(3260, 100, "tower-battle-v3");
 		sHELF_tower_battle_v3.setOrigin(0, 0);
 		l3_CASTLE.add(sHELF_tower_battle_v3);
+
 		// L12_FOREST_CANOPY
 		const l12_FOREST_CANOPY = this.add.layer();
 
