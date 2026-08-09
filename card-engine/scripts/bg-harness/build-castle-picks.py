@@ -224,7 +224,8 @@ def build():
   <p class="note">{note}</p>
   <div class="grid">{''.join(cards)}</div>
 </section>""")
-    return TEMPLATE.replace("{{SECTIONS}}", "\n".join(sections))
+    return (TEMPLATE.replace("{{SECTIONS}}", "\n".join(sections))
+            .replace("{{HARMONISE}}", thumb_uri(os.path.join(OUT_PICKS, "_harmonise-compare.png"), 1400)))
 
 
 TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
@@ -315,6 +316,40 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
   </div>
 
   {{SECTIONS}}
+
+  <section>
+    <h2>Consistency: one stone, one metal</h2>
+    <p class="note">Your read was right and it measures. Two groups: the walls and gate are
+      <b>gold</b> (metal hue ~29&deg;, saturation ~0.48), both towers are <b>bronze</b> (hue ~24&deg;,
+      saturation ~0.60). Separately the gate's stone is much darker and cooler than the walls'.</p>
+    <div class="scroll"><table>
+      <tr><th>piece</th><th>metal hue</th><th>metal sat</th><th>stone value</th><th>stone warmth</th></tr>
+      <tr><td>H2 wall</td><td class="count">29.4</td><td class="count">0.49</td><td class="count">0.69</td><td class="count">0.071</td></tr>
+      <tr><td>V3 side wall</td><td class="count">29.1</td><td class="count">0.48</td><td class="count">0.68</td><td class="count">0.075</td></tr>
+      <tr><td>G5 gate</td><td class="count">28.8</td><td class="count">0.47</td><td class="count">0.51</td><td class="count">&minus;0.004</td></tr>
+      <tr><td>T3 tower</td><td class="count bad-word">23.5</td><td class="count bad-word">0.61</td><td class="count">0.54</td><td class="count">0.051</td></tr>
+      <tr><td>corner tower</td><td class="count bad-word">24.7</td><td class="count bad-word">0.59</td><td class="count">0.53</td><td class="count">0.047</td></tr>
+    </table></div>
+    <p><code>lib/harmonise_materials.py</code> classifies pixels by material, measures each plate's own
+      median, and moves only that material toward a shared target &mdash; metal by hue and saturation,
+      stone by value and warmth. Timber, stained glass and glow are left alone because they are meant to
+      vary. Result:</p>
+    <div class="stats" style="max-width:720px">
+      <div><b>5.9 &rarr; 0.9</b><span>metal hue spread, degrees</span></div>
+      <div><b>0.14 &rarr; 0.01</b><span>metal saturation spread</span></div>
+      <div><b>0.18 &rarr; 0.02</b><span>stone value spread</span></div>
+    </div>
+    <img src="{{HARMONISE}}" alt="before and after harmonisation" style="width:100%;height:auto;border:1px solid var(--edge);border-radius:3px"/>
+    <p><b>Which target?</b> <b>A</b> uses the set median, which keeps the gate's depth and brings both
+      towers onto the walls' gold. <b>B</b> anchors on the wall, which brightens everything but washes the
+      gate out. I would take <b>A</b>. Either is one command to redo, so this is not a decision you are
+      stuck with.</p>
+    <p class="note">Why not a single global quantize across all five: median cut allocates colours by
+      area, so the walls &mdash; mostly pale stone &mdash; would swallow the budget and the towers' copper
+      would collapse to two or three muddy steps. It also cannot tell stone from timber from stained
+      glass. Material-aware beats palette-wide here. A shared-palette quantize still happens, but AFTER
+      the redraw, as the final lock.</p>
+  </section>
 
   <div class="call">
     <p class="lead">How these get through PixelLab without coming back tiny or cropped</p>
