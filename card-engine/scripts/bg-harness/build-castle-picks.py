@@ -163,9 +163,11 @@ PICKED = [
      "The solid rune cores came off as their own connected components. The palest glyphs sit above the "
      "white cutoff so nothing could see them &mdash; those were cleared by region, left and right of the "
      "arch, which cannot touch architecture."),
-    ("T3-tower.png", "T3", "Battle tower", "Taken as-is.",
-     "Still needs cutting out of its landscape before PixelLab. That is a <code>cut_piece.py</code> "
-     "polygon, not a generation."),
+    ("T3-tower-cut.png", "T3", "Battle tower", "Cut out of its landscape.",
+     "229&times;530, keyed on grass rather than traced &mdash; trees, pond and distant walls are separate "
+     "islands and dropped on their own. The banner poles reach up and touch the curtain-wall arch, which "
+     "dragged the whole wall in until the island was clipped below them. Losing the banners is the right "
+     "call anyway: a flag should ripple, so it belongs in a Phaser layer, not baked into a static plate."),
 ]
 
 

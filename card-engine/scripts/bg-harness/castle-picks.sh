@@ -50,5 +50,24 @@ from PIL import Image; import sys
 Image.open(sys.argv[1]).save(sys.argv[2]); print('  ->', sys.argv[2])
 " "$T" "$O/T3-tower.png"
 
+# T3 — cut the tower out of its landscape.
+#
+# Keyed on grass rather than traced: the silhouette is railings, pipe runs and
+# machicolation brackets, and a polygon would take an hour and still clip
+# something. Trees, the pond and the distant walls are separate islands and drop
+# away on their own once the fill takes only the seed's island.
+#
+# --box is doing real work. The banner poles reach up and MEET the curtain-wall
+# arch, so without it the whole wall arrives as part of the tower's island —
+# 235k pixels instead of 110k. The box top sits at row 112, below the banners,
+# because the left banner overlaps the wall in x and no box can separate them.
+# That is the right call regardless: a flag should ripple, so it belongs in a
+# Phaser layer over the sprite, not baked into a plate where it can never move.
+#
+# --floor 642 severs the approach path, the only thing genuinely joined to the
+# tower.
+python lib/cut_from_scene.py "$O/T3-tower.png" "$O/T3-tower" \
+  --seed 512 350 --floor 642 --box 382 112 652 642 --scale 3 | tail -3
+
 echo
-echo "Four picks in $O. T3 still needs cutting out of its landscape before PixelLab."
+echo "Four picks in $O, all cut and repaired."
