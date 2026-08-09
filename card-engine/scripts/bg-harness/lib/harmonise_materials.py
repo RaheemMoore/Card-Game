@@ -47,8 +47,8 @@ from PIL import Image
 # stone or metal is left untouched rather than guessed at.
 METAL_HUE = (15, 60)      # gold through copper
 METAL_SAT_MIN = 0.35
-STONE_SAT_MAX = 0.20
-STONE_VAL_MIN = 0.35
+STONE_SAT_CAP = 0.60      # wide enough to include post-redraw blue/teal stone
+STONE_VAL_MIN = 0.20
 
 
 def to_hsv(rgb):
@@ -91,7 +91,13 @@ def masks(rgb, opaque):
     paper = (v > 0.93) & (s < 0.08)
     live = opaque & (v > 0.12) & (v < 0.98) & ~paper
     metal = live & (s > METAL_SAT_MIN) & (h > METAL_HUE[0]) & (h < METAL_HUE[1])
-    stone = live & (s < STONE_SAT_MAX) & (v > STONE_VAL_MIN)
+    # Stone is "the body mass that is not metal", not "the desaturated pixels".
+    # Before the redraw the stone IS near-grey and a saturation test finds it.
+    # After it, PixelLab has reinterpreted the same stone as saturated blue or
+    # teal, and a sat<0.20 test returns literally nothing — two of the five
+    # pieces measured as having no stone at all. Defining stone by exclusion
+    # works on both sides of the redraw.
+    stone = live & ~metal & (s < STONE_SAT_CAP) & (v > STONE_VAL_MIN)
     return h, s, v, metal, stone
 
 
@@ -105,13 +111,16 @@ def measure(path):
         out["metal_v"] = float(np.median(v[metal]))
     if stone.sum() > 200:
         out["stone_v"] = float(np.median(v[stone]))
-        # warmth: red minus blue, the axis that separates the gate's violet
-        # stone from the walls' warm stone
-        out["stone_w"] = float(np.median(rgb[..., 0][stone] - rgb[..., 2][stone]))
+        # Hue and saturation, not just warmth. Warmth (R-B) is a fine proxy
+        # while stone is near-grey, but after the redraw the pieces differ by
+        # 60 degrees of hue — blue-violet against teal — and only a hue term
+        # can close that.
+        out["stone_h"] = float(np.median(h[stone]))
+        out["stone_s"] = float(np.median(s[stone]))
     return out
 
 
-KEYS = ("metal_h", "metal_s", "metal_v", "stone_v", "stone_w")
+KEYS = ("metal_h", "metal_s", "metal_v", "stone_v", "stone_h", "stone_s")
 
 
 def targets(rows, anchor=None):
@@ -154,20 +163,19 @@ def apply_one(path, tgt, out_dir, strength=1.0, do_metal=True, do_stone=True):
         # factor to match a target lightness, and it flattened the wall: the
         # pale walkway on top and the dark outer face below are BOTH stone, and
         # scaling them together compressed the very contrast that makes the wall
-        # read as a wall. Raheem caught it — "the darker brick on the outside
+        # read as a wall. Raheem caught it - "the darker brick on the outside
         # should stay there, and the top should stay a lighter grey brick, how
         # it is in before."
         #
-        # What differs between plates is the stone's COLOUR CAST, not its
-        # lightness: the gate's stone is violet, the walls' is warm. So correct
-        # temperature only, as a shift split between the red and blue ends so
-        # brightness does not drift, and leave every plate's internal light-to-
-        # dark structure exactly as painted.
-        vs = rgb2[..., :3].copy()
-        dw = (tgt["stone_w"] - m["stone_w"]) * strength
-        vs[..., 0][stone] += dw / 2
-        vs[..., 2][stone] -= dw / 2
-        rgb2 = vs
+        # What differs between plates is the stone's HUE and SATURATION, not its
+        # lightness. Before the redraw that shows up as a warm/violet cast; after
+        # it, as 60 degrees between blue-violet and teal. Both are corrected the
+        # same way, and every plate keeps its own light-to-dark structure.
+        hs = h.copy(); ss = s.copy()
+        hs[stone] += (tgt["stone_h"] - m["stone_h"]) * strength
+        ss[stone] *= 1 + (tgt["stone_s"] / max(m["stone_s"], 1e-3) - 1) * strength
+        conv = hsv_to_rgb(hs, np.clip(ss, 0, 1), v)
+        rgb2[stone] = conv[stone]
 
     a2 = a.copy()
     a2[:, :, :3] = np.clip(rgb2, 0, 1) * 255
@@ -178,14 +186,14 @@ def apply_one(path, tgt, out_dir, strength=1.0, do_metal=True, do_stone=True):
 
 
 def print_table(rows, tgt):
-    print(f"{'piece':26s} {'metal hue':>9} {'sat':>6} {'val':>6} {'stone val':>10} {'warmth':>7}")
+    print(f"{'piece':26s} {'metal hue':>9} {'sat':>6} {'stone hue':>10} {'sat':>6} {'val':>6}")
     for r in rows:
         print(f"{os.path.basename(r['file']):26s} "
               f"{r.get('metal_h', float('nan')):9.1f} {r.get('metal_s', float('nan')):6.2f} "
-              f"{r.get('metal_v', float('nan')):6.2f} {r.get('stone_v', float('nan')):10.2f} "
-              f"{r.get('stone_w', float('nan')):7.3f}")
+              f"{r.get('stone_h', float('nan')):10.1f} {r.get('stone_s', float('nan')):6.2f} "
+              f"{r.get('stone_v', float('nan')):6.2f}")
     print(f"{'TARGET':26s} {tgt['metal_h']:9.1f} {tgt['metal_s']:6.2f} "
-          f"{tgt['metal_v']:6.2f} {tgt['stone_v']:10.2f} {tgt['stone_w']:7.3f}")
+          f"{tgt['stone_h']:10.1f} {tgt['stone_s']:6.2f} {tgt['stone_v']:6.2f}")
 
 
 def main():

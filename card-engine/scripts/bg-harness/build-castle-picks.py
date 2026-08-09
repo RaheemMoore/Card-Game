@@ -225,7 +225,8 @@ def build():
   <div class="grid">{''.join(cards)}</div>
 </section>""")
     return (TEMPLATE.replace("{{SECTIONS}}", "\n".join(sections))
-            .replace("{{HARMONISE}}", thumb_uri(os.path.join(OUT_PICKS, "_harmonise-compare.png"), 1400)))
+            .replace("{{HARMONISE}}", thumb_uri(os.path.join(OUT_PICKS, "_harmonise-compare.png"), 1400))
+            .replace("{{KIT}}", thumb_uri(os.path.join(HERE, "out", "castle-kit-final", "_kit.png"), 1600)))
 
 
 TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
@@ -316,6 +317,34 @@ TEMPLATE = """<title>Castle extracts &mdash; pick and choose</title>
   </div>
 
   {{SECTIONS}}
+
+  <section>
+    <h2>The kit, through PixelLab</h2>
+    <p class="note">Six generations, about five cents. Every piece now draws from one shared 48-colour
+      palette &mdash; verified, not assumed: the union across all five is 47 colours and every piece is a
+      subset of it.</p>
+    <img src="{{KIT}}" alt="the finished castle kit" style="width:100%;height:auto;border:1px solid var(--edge);border-radius:3px;background:#fff"/>
+    <div class="scroll"><table>
+      <tr><th>piece</th><th>size</th><th>flat out of the API</th><th>flat after quantize</th><th>colours</th></tr>
+      <tr><td>wall</td><td class="count">318&times;212</td><td class="count">20.2%</td><td class="count">72.6%</td><td class="count">38</td></tr>
+      <tr><td>side wall</td><td class="count">125&times;318</td><td class="count">21.2%</td><td class="count">68.6%</td><td class="count">24</td></tr>
+      <tr><td>gate</td><td class="count">294&times;221</td><td class="count">27.2%</td><td class="count">63.3%</td><td class="count">47</td></tr>
+      <tr><td>corner tower</td><td class="count">183&times;269</td><td class="count">18.3%</td><td class="count">58.9%</td><td class="count">46</td></tr>
+      <tr><td>battle tower</td><td class="count">184&times;457</td><td class="count">9.5%</td><td class="count">54.8%</td><td class="count">47</td></tr>
+    </table></div>
+    <p><b>The redraw does not make it pixel art &mdash; the quantize does.</b> Straight out of
+      <code>/image-to-pixelart</code> these measured 9&ndash;27% flat with up to 42,000 colours: still
+      antialiased. CLAUDE.md says exactly this and it is worth restating, because the intuition runs the
+      other way. The shipped kit baseline is 59.4%; we land at 55&ndash;73%.</p>
+    <p><b>Three things went wrong and are now fixed in the scripts</b> rather than in someone's memory.
+      The towers came back standing in a field, because dropping alpha for the API does not remove what
+      was behind it and our cutouts keep the original grass under <code>alpha=0</code> &mdash; flatten
+      onto white first. PixelLab reinterpreted colour hard, taking stone from 232&deg; hue on the wall to
+      170&deg; on the battle tower, so the harmonise pass has to run <em>again</em> after the redraw, not
+      only before. And <code>cut_flat_background.py</code> keyed almost nothing because PixelLab draws a
+      dark rim into its own frame edge, so the border-colour vote returns near-black and the flood stops
+      on the rim.</p>
+  </section>
 
   <section>
     <h2>Consistency: one stone, one metal</h2>
