@@ -28,13 +28,17 @@ CHECKLIST = [
         n="1", name="Wall segment", status="have", src="E",
         uses="All four sides. As drawn = back wall. Mirror vertically = front wall. "
              "Rotate 90&deg; = left and right walls.",
-        need="Nothing. Improve it in Leonardo if you want richer stonework, but it is usable now.",
+        need="Cut out as three repeating bays, clear of the corner towers and the stair. Bay pitch is "
+             "125px so it tiles &mdash; keep that rhythm and it still will.",
+        img="castle-wall-cut.png",
     ),
     dict(
         n="2", name="Gatehouse", status="have", src="B",
         uses="The front entrance, once. Sits in a gap in the front wall run.",
-        need="One pass to lose the floating crystal spire &mdash; it is the only vertical thing in a "
-             "flat-angle plate and it fights the projection.",
+        need="Cut out with the curtain walls and approach road removed &mdash; both towers kept. The "
+             "floating crystal is still on it: it is the one vertical element in a flat plate, so either "
+             "flatten it or lean into it, your call.",
+        img="castle-gate-cut.png",
     ),
     dict(
         n="3", name="Tower", status="have", src="cropped out of N",
