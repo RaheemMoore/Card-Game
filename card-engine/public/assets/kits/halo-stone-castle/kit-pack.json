@@ -1394,6 +1394,15 @@
           "frameWidth": 32,
           "frameHeight": 32
         }
+      },
+      {
+        "type": "spritesheet",
+        "key": "ground-tileset-cliff-rock-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-cliff-rock-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
       }
     ]
   },

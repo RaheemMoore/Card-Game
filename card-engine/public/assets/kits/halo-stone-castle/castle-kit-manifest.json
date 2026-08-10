@@ -2079,6 +2079,16 @@
       "notes": "Raheem, 2026-08-07: the tan+white brick should be the ROAD; the kerb should be 'a solid or darker tan block, not white and tan spotted'. So this is the same brick with the cream speckle removed (543 px above luma 195 mapped to base tan rgb(197,150,106)) and darkened to 0.70 â€” mortar only to 0.90, else the kerb becomes a black grid. Road/kerb luma gap 153 -> 104 = 49. Zero generations. A grey-stone recolour was tried first and rejected: 'I actually like the colour of the tan bricks.'"
     },
     {
+      "assetId": "castle.ground.tileset.cliff.rock.32",
+      "label": "Cliff rock plateau — wang 32",
+      "status": "KEEP",
+      "path": "ground/tilesets/castle-cliff-rock-wang-32.png",
+      "sourceSubject": "pixellab POST /create-tileset, organic probe 2",
+      "rawSource": "scripts/bg-harness/out/cliff-tileset-2/",
+      "usedTrimmedExport": true,
+      "notes": "A TILESET, NOT A KIT — which is the whole reason it replaces cliff-kit-v1. That kit was 56 fixed pieces you place; this is 16 tiles the autotiler picks for you from the corners you paint, so any shape (bays, peninsulas, lone pillars, mazes) falls out of the same set. Packed 4x4 at index = TL*8 + TR*4 + BL*2 + BR*1, the order sprite-lab/lib/wang_autotile.py verifies on every run and the order the five existing ground sets already use — so it drops straight into the Editor's tileset picker beside them. Cells 6 and 9 (the two diagonals, plateaus touching at a single corner) are absent from the generated set because the art is genuinely ambiguous there; they are built quadrant-by-quadrant from tiles whose own corner matches, via lib/pack_wang.py. Quantized 140 -> 47 colours + transparent index: mean pixel shift 1.58 on a 0-441 scale (invisible) and flatness rose 65.6% -> 68.0%. Indexed mode P on its OWN palette (ground/tilesets/castle-cliff-rock.gpl), not the castle's — 188 + 140 overflows the 256 an indexed PNG can hold. Deliberately NOT placed in CourtyardV3; Raheem places it himself from the tileset switcher."
+    },
+    {
       "assetId": "castle.forge.v2",
       "label": "The Forge â€” exterior, PixelLab redraw (v2)",
       "status": "KEEP",

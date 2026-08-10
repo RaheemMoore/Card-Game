@@ -72,12 +72,12 @@ NATURAL_SETS = {'grass-dirt', 'ground-tileset-forestfloor-dirt-32'}
 
 # ---------------------------------------------------------------- tileset probe
 
-def corner_rgb(im, cell, cx, cy):
+def corner_rgb(im, cell, cx, cy, k=8, inset=2):
     cols = im.width // TILE
     ty, tx = divmod(cell, cols)
     ox, oy = tx * TILE, ty * TILE
-    xs = range(2, 10) if cx == 0 else range(TILE - 10, TILE - 2)
-    ys = range(2, 10) if cy == 0 else range(TILE - 10, TILE - 2)
+    xs = range(inset, inset + k) if cx == 0 else range(TILE - inset - k, TILE - inset)
+    ys = range(inset, inset + k) if cy == 0 else range(TILE - inset - k, TILE - inset)
     px = im.load()
     n = r = g = b = 0
     for y in ys:
@@ -88,18 +88,50 @@ def corner_rgb(im, cell, cx, cy):
 
 
 def verify_bit_order(im, name):
-    """Assert index = TL*8 + TR*4 + BL*2 + BR*1, set bit = cell 15's material."""
-    a, b = corner_rgb(im, 0, 0, 0), corner_rgb(im, 15, 0, 0)
-    def bit(c):
-        return 1 if sum((x - y) ** 2 for x, y in zip(c, b)) < sum((x - y) ** 2 for x, y in zip(c, a)) else 0
-    for cell in range(16):
-        v = (bit(corner_rgb(im, cell, 0, 0)) * 8 + bit(corner_rgb(im, cell, 1, 0)) * 4
-             + bit(corner_rgb(im, cell, 0, 1)) * 2 + bit(corner_rgb(im, cell, 1, 1)))
-        if v != cell:
-            raise SystemExit(
-                f'{name}: not a standard corner wang set — cell {cell} reads as {v}. '
-                f'Refusing to autotile; the emitted map would be wrong everywhere.')
-    return a, b
+    """Assert index = TL*8 + TR*4 + BL*2 + BR*1, set bit = cell 15's material.
+
+    THE SAMPLE WINDOW SHRINKS UNTIL THE SET VERIFIES, and that is a fix rather
+    than a loosening. 8x8 was calibrated on the five ground sets, where the two
+    terrains meet in a thin scalloped seam and each corner is filled by its own
+    material. castle-cliff-rock is not built that way: its plateau is a raised
+    body that overhangs, so on the six cells with a half-plateau the lower
+    corners are a sliver and an 8x8 block lands on rock. Those cells all read as
+    15 and a perfectly standard set was rejected.
+
+    Shrinking is safe because it is tried in order and the first pass wins: every
+    existing set still verifies at 8, so none of their reads change. Only a set
+    that FAILS at 8 ever sees a smaller window, and a set that fails at all three
+    is genuinely not a corner wang set. Reporting the window that worked keeps
+    this visible instead of silent — a 2px read is a real signal about the art.
+
+    THE INSET GOES TO ZERO AT THE SMALLEST WINDOW. The 2px inset exists to skip a
+    tile's outermost row, where neighbouring sets can bleed. At an 8px sample
+    that costs nothing. At a 2px sample it throws away the only pure-terrain
+    pixels the corner has and reads the overhang instead — which is exactly how
+    cliff-rock's cell 5 came back as 13 on the first attempt at this fix.
+    """
+    for k, inset in ((8, 2), (4, 2), (2, 0)):
+        a, b = corner_rgb(im, 0, 0, 0, k, inset), corner_rgb(im, 15, 0, 0, k, inset)
+
+        def bit(c, a=a, b=b):
+            return 1 if sum((x - y) ** 2 for x, y in zip(c, b)) < sum((x - y) ** 2 for x, y in zip(c, a)) else 0
+
+        bad = None
+        for cell in range(16):
+            v = (bit(corner_rgb(im, cell, 0, 0, k, inset)) * 8 + bit(corner_rgb(im, cell, 1, 0, k, inset)) * 4
+                 + bit(corner_rgb(im, cell, 0, 1, k, inset)) * 2 + bit(corner_rgb(im, cell, 1, 1, k, inset)))
+            if v != cell:
+                bad = (cell, v)
+                break
+        if bad is None:
+            if k != 8:
+                print(f'  {name}: verified at a {k}px corner sample (inset {inset}) — its terrains '
+                      f'overhang further than the ground sets do')
+            return a, b
+    cell, v = bad
+    raise SystemExit(
+        f'{name}: not a standard corner wang set — cell {cell} reads as {v} even at a 2px '
+        f'corner sample. Refusing to autotile; the emitted map would be wrong everywhere.')
 
 
 def material_id(rgb, table, tol=14):
