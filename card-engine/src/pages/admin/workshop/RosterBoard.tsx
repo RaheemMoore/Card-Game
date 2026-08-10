@@ -1,29 +1,26 @@
 import { useMemo, useState } from 'react';
 import { ARCHETYPE_NAMES, type ArchetypeName } from '../../../types/card';
-import {
-  ROSTER_SLOTS_PER_ARCHETYPE,
-  type CuratedCharacter,
-  type CuratedVariant,
-} from '../../../types/curatedCard';
+import { ROSTER_SLOTS_PER_ARCHETYPE, type CuratedCharacter } from '../../../types/curatedCard';
 import { elementsAvailableToArchetype } from '../../../data/elements';
 import { getCuratedRosterStore } from '../../../services/persistence/CuratedRosterStore';
-import { WkPanel, WkStatus, WkEmpty } from '../../../components/workshop/ui';
+import {
+  AdminCard, AdminSection, AdminButton, AdminAlert, AdminSkeleton, AdminEmptyState,
+} from '../../../components/admin/ui';
+import { StatusBadge } from '../../../components/admin/workshop';
 import { useCuratedRoster } from './useCuratedRoster';
 
 /**
  * Stage 0 — the roster board.
  *
- * The Workshop's home. Ten slots per archetype down, that archetype's elements
- * across, so the two things an operator needs to see at a glance are both on
- * one screen: where each character is in the pipeline, and which element
- * variants exist.
+ * Ten slots per archetype down, that archetype's elements across, so both
+ * things an operator needs are on one screen: where each character sits in the
+ * pipeline, and which element variants exist.
  *
- * It also makes the lopsidedness visible ON PURPOSE. Elements per archetype
- * range from 1 (Human) to 8 (Monk), so ten characters each produces 10
- * permanent Human cards and 80 Monk ones. That imbalance is a consequence of
- * data authored for player choice, not roster spread, and it should be a
- * decision rather than a surprise discovered in month four — so the tab shows
- * the projected card count and the header says the total out loud.
+ * It makes the roster's lopsidedness visible ON PURPOSE. Elements per archetype
+ * run from 1 (Human) to 8 (Monk), so ten characters each yields 10 permanent
+ * Human cards and 80 Monk ones. That imbalance falls out of data authored for
+ * player choice, not for roster spread, and it should be a decision rather than
+ * something discovered in month four.
  */
 
 export function RosterBoard({ onOpenCharacter }: { onOpenCharacter?: (id: string) => void }) {
@@ -33,182 +30,166 @@ export function RosterBoard({ onOpenCharacter }: { onOpenCharacter?: (id: string
 
   const elements = useMemo(() => elementsAvailableToArchetype(archetype), [archetype]);
   const characters = store.getCharactersForArchetype(archetype);
-
   const projectedTotal = useMemo(
-    () =>
-      ARCHETYPE_NAMES.reduce(
-        (sum, a) => sum + elementsAvailableToArchetype(a).length * ROSTER_SLOTS_PER_ARCHETYPE,
-        0,
-      ),
+    () => ARCHETYPE_NAMES.reduce(
+      (sum, a) => sum + elementsAvailableToArchetype(a).length * ROSTER_SLOTS_PER_ARCHETYPE, 0),
     [],
   );
 
-  const permanentCount = store.getPermanentVariants().length;
-
   if (error) {
     return (
-      <WkPanel title="The roster could not be read">
-        <p style={{ color: 'var(--wk-danger)', fontSize: 13, margin: '0 0 12px' }}>{error}</p>
-        <p style={{ color: 'var(--wk-muted)', fontSize: 13, margin: '0 0 14px' }}>
-          Nothing is shown below because nothing was successfully read. An empty roster and an
-          unreadable one look identical on screen and mean opposite things, so this page refuses to
-          render a board that would imply the roster is empty.
+      <AdminAlert tone="danger" title="The roster could not be read">
+        <p className="mb-2">{error}</p>
+        <p className="mb-3">
+          Nothing is shown below because nothing was read. An empty roster and an unreadable one look
+          identical on screen and mean opposite things, so this page will not draw a board it cannot
+          back with data.
         </p>
-        <button type="button" className="wk-tab" onClick={reload}>
-          Try again
-        </button>
-      </WkPanel>
+        <AdminButton size="sm" onClick={reload}>Try again</AdminButton>
+      </AdminAlert>
     );
   }
 
   return (
     <>
-      <div className="wk-archetype-tabs">
+      <div className="flex flex-wrap gap-1.5 mb-4">
         {ARCHETYPE_NAMES.map((a) => {
-          const slots = elementsAvailableToArchetype(a).length * ROSTER_SLOTS_PER_ARCHETYPE;
-          const elementCount = elementsAvailableToArchetype(a).length;
+          const count = elementsAvailableToArchetype(a).length;
+          const slots = count * ROSTER_SLOTS_PER_ARCHETYPE;
+          const selected = a === archetype;
           return (
             <button
               key={a}
               type="button"
-              className="wk-tab"
-              aria-pressed={a === archetype}
+              aria-pressed={selected}
               onClick={() => setArchetype(a)}
-              // The archetype NAME has to lead the accessible name. A bare
-              // `title` would replace it entirely, leaving a screen reader to
-              // announce "4 elements, up to 40 permanent cards" with no way to
-              // tell which archetype that is.
-              aria-label={`${a} — ${elementCount} element${elementCount === 1 ? '' : 's'}, up to ${slots} permanent cards`}
+              // The archetype NAME has to lead the accessible name. A bare title
+              // attribute would replace it, leaving a screen reader to announce
+              // "4 elements, up to 40 cards" with no idea which archetype.
+              aria-label={`${a} — ${count} element${count === 1 ? '' : 's'}, up to ${slots} permanent cards`}
+              style={{
+                background: selected ? 'var(--admin-active-wash)' : 'var(--admin-surface-strong)',
+                border: `1px solid ${selected ? 'var(--admin-accent)' : 'var(--admin-border)'}`,
+                borderRadius: 999,
+                color: selected ? 'var(--admin-text)' : 'var(--admin-text-muted)',
+              }}
+              className="px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
             >
               {a}
-              <span className="wk-tab-count">{slots}</span>
+              <span className="ml-1.5 text-[10px] tabular-nums opacity-75">{slots}</span>
             </button>
           );
         })}
       </div>
 
-      <WkPanel
+      <AdminSection
         title={`${archetype} — ${ROSTER_SLOTS_PER_ARCHETYPE} slots × ${elements.length} element${elements.length === 1 ? '' : 's'}`}
-        action={
-          <span style={{ fontSize: 11, color: 'var(--wk-muted)' }}>
-            {permanentCount} permanent of {projectedTotal} possible
-          </span>
-        }
+        subtitle={`${store.getPermanentVariants().length} permanent of ${projectedTotal} possible across every archetype`}
       >
-        {loading ? (
-          <p style={{ color: 'var(--wk-muted)', fontSize: 13, margin: 0 }}>Reading the roster…</p>
-        ) : (
-          <div className="wk-matrix-scroll">
-            <table className="wk-matrix">
-              <thead>
-                <tr>
-                  <th scope="col" className="wk-slot-index">
-                    #
-                  </th>
-                  <th scope="col">Character</th>
-                  <th scope="col">Status</th>
-                  {elements.map((e) => (
-                    <th key={e} scope="col">
-                      {e}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: ROSTER_SLOTS_PER_ARCHETYPE }, (_, i) => i + 1).map((slot) => {
-                  const character = characters.find((c) => c.slotIndex === slot);
-                  return (
-                    <SlotRow
-                      key={slot}
-                      slot={slot}
-                      character={character}
-                      elements={elements}
-                      variants={character ? store.getVariantsForCharacter(character.id) : []}
-                      onOpen={onOpenCharacter}
-                    />
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </WkPanel>
+        <AdminCard padded={false}>
+          {loading ? (
+            <div className="p-4"><AdminSkeleton lines={6} /></div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{ minWidth: 640 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
+                    <Th className="w-10">#</Th>
+                    <Th>Character</Th>
+                    <Th>Status</Th>
+                    {elements.map((e) => <Th key={e}>{e}</Th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: ROSTER_SLOTS_PER_ARCHETYPE }, (_, i) => i + 1).map((slot) => {
+                    const character = characters.find((c) => c.slotIndex === slot);
+                    return (
+                      <SlotRow
+                        key={slot}
+                        slot={slot}
+                        character={character}
+                        elements={elements}
+                        variantStatus={
+                          character
+                            ? new Map(store.getVariantsForCharacter(character.id).map((v) => [v.element as string, v.status]))
+                            : new Map()
+                        }
+                        onOpen={onOpenCharacter}
+                      />
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </AdminCard>
+      </AdminSection>
 
-      {!loading && characters.length === 0 ? (
-        <div style={{ marginTop: 18 }}>
-          <WkEmpty title={`No ${archetype} characters yet`}>
-            Start one at the bench, or bring three images you have already made.
-          </WkEmpty>
-        </div>
-      ) : null}
+      {!loading && characters.length === 0 && (
+        <AdminCard surface="subtle">
+          <AdminEmptyState
+            title={`No ${archetype} characters yet`}
+            description="Start one at the bench, or bring three images you have already made."
+          />
+        </AdminCard>
+      )}
     </>
   );
 }
 
+function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <th
+      scope="col"
+      className={`text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${className}`}
+      style={{ color: 'var(--admin-text-muted)', background: 'var(--admin-surface-subtle)' }}
+    >
+      {children}
+    </th>
+  );
+}
+
 function SlotRow({
-  slot,
-  character,
-  elements,
-  variants,
-  onOpen,
+  slot, character, elements, variantStatus, onOpen,
 }: {
   slot: number;
   character: CuratedCharacter | undefined;
   elements: readonly string[];
-  variants: CuratedVariant[];
+  variantStatus: Map<string, string>;
   onOpen?: (id: string) => void;
 }) {
-  const byElement = new Map(variants.map((v) => [v.element as string, v]));
-
   return (
-    <tr>
-      <td className="wk-slot-index">{slot}</td>
-      <td className={character ? 'wk-slot-name' : 'wk-slot-empty'}>
+    <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
+      <td className="px-3 py-2 tabular-nums" style={{ color: 'var(--admin-text-muted)' }}>{slot}</td>
+      <td className="px-3 py-2">
         {character ? (
-          onOpen ? (
-            <button
-              type="button"
-              onClick={() => onOpen(character.id)}
-              style={{
-                background: 'none',
-                border: 0,
-                padding: 0,
-                color: 'inherit',
-                font: 'inherit',
-                cursor: 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              {character.displayName || character.id}
-            </button>
-          ) : (
-            (character.displayName || character.id)
-          )
+          <button
+            type="button"
+            onClick={() => onOpen?.(character.id)}
+            className="font-medium text-left underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
+            style={{ color: 'var(--admin-text)' }}
+          >
+            {character.displayName || character.id}
+          </button>
         ) : (
-          'empty'
+          <span className="italic" style={{ color: 'var(--admin-text-muted)' }}>empty</span>
         )}
       </td>
-      <td>
-        <WkStatus value={character?.status ?? 'empty'} />
-      </td>
+      <td className="px-3 py-2"><StatusBadge status={character?.status ?? 'empty'} /></td>
       {elements.map((element) => {
-        const variant = byElement.get(element);
-        const state = variant?.status ?? 'none';
+        const status = variantStatus.get(element) ?? 'none';
+        const colour =
+          status === 'permanent' ? 'var(--admin-success)'
+          : status === 'none' ? 'rgba(255,255,255,0.16)'
+          : 'var(--admin-accent)';
         return (
-          <td key={element}>
+          <td key={element} className="px-3 py-2">
             <span
-              className={
-                state === 'permanent'
-                  ? 'wk-variant-dot wk-variant-dot-permanent'
-                  : state === 'none'
-                    ? 'wk-variant-dot'
-                    : 'wk-variant-dot wk-variant-dot-draft'
-              }
               aria-hidden="true"
+              className="inline-block rounded-full"
+              style={{ width: 9, height: 9, background: colour }}
             />
-            <span className="sr-only">
-              {element}: {state === 'none' ? 'not started' : state}
-            </span>
+            <span className="sr-only">{element}: {status === 'none' ? 'not started' : status}</span>
           </td>
         );
       })}

@@ -3,25 +3,25 @@ import { RANKS } from '../../../types/card';
 import type { CuratedCharacter } from '../../../types/curatedCard';
 import { getCuratedRosterStore } from '../../../services/persistence/CuratedRosterStore';
 import {
-  proposeIdentityFromArt,
-  applyAcceptedFields,
-  READABLE_FIELDS,
-  type ArtReading,
-  type ReadableField,
+  proposeIdentityFromArt, applyAcceptedFields, READABLE_FIELDS,
+  type ArtReading, type ReadableField,
 } from '../../../services/workshop/readArt';
 import { API_COST_CATALOG } from '../../../data/economy/apiCostCatalog';
-import { WkPanel, WkEmpty, WkTriptych, WkStatus } from '../../../components/workshop/ui';
+import {
+  AdminCard, AdminSection, AdminButton, AdminTextArea, AdminAlert, AdminEmptyState,
+} from '../../../components/admin/ui';
+import { Triptych, FieldDiffHeader, FieldDiffRow, StatusBadge } from '../../../components/admin/workshop';
 
 /**
  * Stage 3 — read the art.
  *
  * The three images are described into an identity sheet, field by field, and a
- * human accepts each one. Nothing is written to the character until they do.
+ * human accepts each one. Nothing is written until they do.
  *
- * The two columns matter: what the model SAID stays visible next to what was
- * ACCEPTED, so a value that was edited is obviously an edit and not a reading.
- * Once a proposal is folded silently into a sheet, nobody can tell afterwards
- * which parts were observed and which were typed.
+ * The two columns matter: what the model SAID stays next to what was ACCEPTED,
+ * so an edited value is visibly an edit and not a reading. Fold the proposal
+ * silently into the sheet and nobody can tell afterwards which parts were
+ * observed in the art.
  */
 
 const READ_COST = API_COST_CATALOG.forge_card?.estimatedDirectCostUsd ?? 0;
@@ -34,8 +34,8 @@ export function ReadTheArt({ character }: { character: CuratedCharacter }) {
   const [reading, setReading] = useState<ArtReading | null>(null);
   const [accepted, setAccepted] = useState<Partial<Record<ReadableField, string>>>({});
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const read = async () => {
     setBusy(true);
@@ -46,9 +46,6 @@ export function ReadTheArt({ character }: { character: CuratedCharacter }) {
         images: available.map((rank) => ({ rank, url: master[rank]!.portraitUrl })),
       });
       setReading(result);
-      // Pre-fill the accepted column with the seed's directive where we already
-      // know the answer — a bench character's sex/build/age were DECIDED by the
-      // engine, not guessed from a picture, and that is better evidence.
       setAccepted(seedAccepted(character));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -57,7 +54,7 @@ export function ReadTheArt({ character }: { character: CuratedCharacter }) {
     }
   };
 
-  const acceptAllAndSave = async () => {
+  const save = async () => {
     setSaving(true);
     setError(null);
     try {
@@ -75,120 +72,117 @@ export function ReadTheArt({ character }: { character: CuratedCharacter }) {
 
   if (available.length === 0) {
     return (
-      <WkPanel title="No art to read yet">
-        <WkEmpty title="The three rank images come first">
-          This stage describes what is in the pictures. Add them at intake.
-        </WkEmpty>
-      </WkPanel>
+      <AdminCard surface="subtle">
+        <AdminEmptyState
+          title="The three rank images come first"
+          description="This stage describes what is in the pictures. Add them at intake."
+        />
+      </AdminCard>
     );
   }
 
   const filled = Object.values(accepted).filter((v) => v && v.trim()).length;
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
-      <WkPanel
+    <div className="grid gap-4">
+      <AdminSection
         title={character.displayName || character.id}
-        action={<WkStatus value={character.status} />}
+        actions={<StatusBadge status={character.status} />}
       >
-        <WkTriptych panels={RANKS.map((rank) => ({ rank, portraitUrl: master[rank]?.portraitUrl }))} />
-        {available.length < RANKS.length ? (
-          <p className="wk-note" style={{ marginTop: 10 }}>
-            Reading {available.length} of 3 ranks. A partial set can be read, but continuity across
-            ranks cannot be checked from it — the whole point of reading all three at once.
-          </p>
-        ) : null}
-      </WkPanel>
+        <AdminCard>
+          <Triptych art={master} />
+          {available.length < RANKS.length && (
+            <p className="mt-3 text-xs m-0" style={{ color: 'var(--admin-text-muted)' }}>
+              Reading {available.length} of 3 ranks. A partial set can be read, but continuity across
+              ranks cannot be checked from it — which is the whole point of reading all three at once.
+            </p>
+          )}
+        </AdminCard>
+      </AdminSection>
 
-      <WkPanel
+      <AdminSection
         title="The identity sheet"
-        action={
-          character.identityAcceptedAt ? (
-            <span className="wk-note">
-              Accepted {new Date(character.identityAcceptedAt).toLocaleDateString()}
-            </span>
-          ) : null
-        }
+        actions={character.identityAcceptedAt ? (
+          <span className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
+            Accepted {new Date(character.identityAcceptedAt).toLocaleDateString()}
+          </span>
+        ) : null}
       >
         {!reading ? (
-          <div style={{ display: 'grid', gap: 10, maxWidth: 520 }}>
-            <p className="wk-note">
-              The images are the truth here and the sheet describes them — not the other way round.
-              Because all three ranks are read together, continuity is observed rather than enforced.
-            </p>
-            {error ? <p className="wk-error">{error}</p> : null}
-            <button type="button" className="wk-primary" disabled={busy} onClick={() => void read()}>
-              {busy ? 'Looking at the art…' : `Read the art · ~$${READ_COST.toFixed(2)}`}
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gap: 12 }}>
-            {reading.notes ? (
-              <p className="wk-note">
-                <strong>Noticed:</strong> {reading.notes}
+          <AdminCard>
+            <div className="grid gap-3 max-w-xl">
+              <p className="text-xs leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>
+                The images are the truth here and the sheet describes them — not the other way round.
+                Because all three ranks are read together, continuity is observed rather than enforced.
               </p>
-            ) : null}
-
-            <div className="wk-diff">
-              <div className="wk-diff-head">
-                <span>Field</span>
-                <span>What the art shows</span>
-                <span>Accepted</span>
+              {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+              <AdminButton variant="primary" disabled={busy} onClick={() => void read()}>
+                {busy ? 'Looking at the art…' : `Read the art · ~$${READ_COST.toFixed(2)}`}
+              </AdminButton>
+            </div>
+          </AdminCard>
+        ) : (
+          <AdminCard padded={false}>
+            {reading.notes && (
+              <div className="p-4" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+                <p className="text-xs m-0" style={{ color: 'var(--admin-text-muted)' }}>
+                  <strong style={{ color: 'var(--admin-text)' }}>Noticed:</strong> {reading.notes}
+                </p>
               </div>
-              {READABLE_FIELDS.map((field) => (
-                <FieldRow
-                  key={field}
-                  field={field}
-                  proposed={reading.fields[field]}
-                  confidence={reading.confidence[field]}
-                  value={accepted[field] ?? ''}
-                  onChange={(v) => setAccepted((a) => ({ ...a, [field]: v }))}
-                />
-              ))}
-            </div>
+            )}
 
-            {error ? <p className="wk-error">{error}</p> : null}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button
-                type="button"
-                className="wk-primary"
-                style={{ width: 'auto' }}
-                disabled={saving || filled === 0}
-                onClick={() => void acceptAllAndSave()}
-              >
-                {saving ? 'Saving…' : `Accept ${filled} field${filled === 1 ? '' : 's'}`}
-              </button>
-              <button
-                type="button"
-                className="wk-tab"
-                onClick={() =>
-                  setAccepted(
-                    Object.fromEntries(
-                      READABLE_FIELDS.filter((f) => reading.fields[f]).map((f) => [f, reading.fields[f]!]),
-                    ),
-                  )
-                }
-              >
-                Take everything proposed
-              </button>
-              <button type="button" className="wk-tab" onClick={() => setAccepted({})}>
-                Clear
-              </button>
+            <FieldDiffHeader />
+            {READABLE_FIELDS.map((field) => {
+              const proposed = reading.fields[field];
+              const value = accepted[field] ?? '';
+              return (
+                <FieldDiffRow
+                  key={field}
+                  label={field.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}
+                  proposed={proposed}
+                  confidence={reading.confidence[field]}
+                  onAccept={proposed && proposed !== value
+                    ? () => setAccepted((a) => ({ ...a, [field]: proposed }))
+                    : undefined}
+                >
+                  <AdminTextArea
+                    rows={2}
+                    value={value}
+                    placeholder="Nothing accepted"
+                    onChange={(e) => setAccepted((a) => ({ ...a, [field]: e.target.value }))}
+                  />
+                </FieldDiffRow>
+              );
+            })}
+
+            <div className="p-4 grid gap-3">
+              {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+              <div className="flex flex-wrap gap-2 items-center">
+                <AdminButton variant="primary" disabled={saving || filled === 0} onClick={() => void save()}>
+                  {saving ? 'Saving…' : `Accept ${filled} field${filled === 1 ? '' : 's'}`}
+                </AdminButton>
+                <AdminButton onClick={() => setAccepted(Object.fromEntries(
+                  READABLE_FIELDS.filter((f) => reading.fields[f]).map((f) => [f, reading.fields[f]!]),
+                ))}>
+                  Take everything proposed
+                </AdminButton>
+                <AdminButton variant="ghost" onClick={() => setAccepted({})}>Clear</AdminButton>
+              </div>
+              <p className="text-[11px] leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>
+                Only accepted fields are written. The sheet is what the lore director writes against,
+                so a wrong value here becomes a wrong story.
+              </p>
             </div>
-            <p className="wk-note">
-              Only accepted fields are written. The sheet is what the lore director will write
-              against, so a wrong value here becomes a wrong story.
-            </p>
-          </div>
+          </AdminCard>
         )}
-      </WkPanel>
+      </AdminSection>
     </div>
   );
 }
 
 /**
  * A bench character's presentation was DECIDED by the identity roller, not
- * inferred from a picture. Where that is known, it is better evidence than a
+ * inferred from a picture. Where that is known it is better evidence than a
  * reading, so it pre-fills the accepted column.
  */
 function seedAccepted(character: CuratedCharacter): Partial<Record<ReadableField, string>> {
@@ -200,51 +194,4 @@ function seedAccepted(character: CuratedCharacter): Partial<Record<ReadableField
   if (directive.build) out.bodyType = directive.build;
   if (directive.mark) out.disabilityOrCondition = directive.mark;
   return out;
-}
-
-function FieldRow({
-  field,
-  proposed,
-  confidence,
-  value,
-  onChange,
-}: {
-  field: ReadableField;
-  proposed: string | undefined;
-  confidence: 'high' | 'medium' | 'low' | undefined;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const label = field.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
-  return (
-    <div className="wk-diff-row">
-      <div className="wk-diff-field">
-        <span>{label}</span>
-        {confidence ? <em className={`wk-conf wk-conf-${confidence}`}>{confidence}</em> : null}
-      </div>
-      <div className="wk-diff-proposed">
-        {proposed ? (
-          <>
-            <p>{proposed}</p>
-            {proposed !== value ? (
-              <button type="button" className="wk-tab" onClick={() => onChange(proposed)}>
-                Accept
-              </button>
-            ) : null}
-          </>
-        ) : (
-          <p className="wk-note">Not described</p>
-        )}
-      </div>
-      <div>
-        <textarea
-          className="wk-select"
-          rows={2}
-          value={value}
-          placeholder="Nothing accepted"
-          onChange={(e) => onChange(e.target.value)}
-        />
-      </div>
-    </div>
-  );
 }

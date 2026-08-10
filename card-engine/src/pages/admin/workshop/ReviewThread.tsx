@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { CuratedCharacter, ReviewNote } from '../../../types/curatedCard';
 import { getCuratedRosterStore } from '../../../services/persistence/CuratedRosterStore';
 import { getCurrentUser } from '../../../services/persistence/supabaseClient';
-import { WkPanel } from '../../../components/workshop/ui';
+import {
+  AdminCard, AdminSection, AdminButton, AdminTextArea, AdminAlert,
+} from '../../../components/admin/ui';
 
 /**
  * The argument about whether a character is good enough, kept attached to the
@@ -10,21 +12,16 @@ import { WkPanel } from '../../../components/workshop/ui';
  *
  * Raheem: *"Make sure we figure out a good question in conversations before
  * something becomes permanent in the game."* The checklist is the gate; this is
- * where the judgment happens. It travels with the row, so it is visible both in
- * the Workshop and on Tori's desk — a send-back and the reply to it sit next to
+ * where the judgment happens. The thread travels with the row, so it is visible
+ * both here and on Tori's desk — a send-back and the reply to it sit next to
  * each other instead of in two systems and a chat log nobody can find later.
  *
- * Notes are append-only. Editing history would make the record worth less than
- * no record at all.
+ * Append-only. Editable history would be worth less than no history.
  */
 
 export function ReviewThread({
-  character,
-  origin,
-}: {
-  character: CuratedCharacter;
-  origin: 'workshop' | 'desk';
-}) {
+  character, origin,
+}: { character: CuratedCharacter; origin: 'workshop' | 'desk' }) {
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,10 +41,7 @@ export function ReviewThread({
         origin,
         body: text,
       };
-      await getCuratedRosterStore().saveCharacter({
-        ...character,
-        reviewThread: [...thread, note],
-      });
+      await getCuratedRosterStore().saveCharacter({ ...character, reviewThread: [...thread, note] });
       setBody('');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -57,56 +51,56 @@ export function ReviewThread({
   };
 
   return (
-    <WkPanel title={`Discussion (${thread.length})`}>
-      <div style={{ display: 'grid', gap: 12 }}>
-        {thread.length === 0 ? (
-          <p className="wk-note">
-            Nothing said yet. Anything written here stays attached to this character — in six
-            months it is still the reason it looks the way it does.
-          </p>
-        ) : (
-          <ol style={{ display: 'grid', gap: 10 }}>
-            {thread.map((note) => (
-              <li
-                key={note.id}
-                className={note.kind === 'send_back' ? 'wk-note-card is-sendback' : 'wk-note-card'}
-              >
-                <div className="wk-note-meta">
-                  <strong>{note.author}</strong>
-                  <span>
-                    {note.kind === 'send_back' ? 'sent back' : 'note'} · {note.origin} ·{' '}
-                    {new Date(note.authoredAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <p>{note.body}</p>
-              </li>
-            ))}
-          </ol>
-        )}
+    <AdminSection title={`Discussion (${thread.length})`}>
+      <AdminCard>
+        <div className="grid gap-3">
+          {thread.length === 0 ? (
+            <p className="text-xs leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>
+              Nothing said yet. Anything written here stays attached to this character — in six
+              months it is still the reason it looks the way it does.
+            </p>
+          ) : (
+            <ol className="grid gap-2">
+              {thread.map((note) => (
+                <li
+                  key={note.id}
+                  className="px-3 py-2"
+                  style={{
+                    background: 'var(--admin-surface-subtle)',
+                    border: '1px solid var(--admin-border)',
+                    borderLeft: `3px solid ${note.kind === 'send_back' ? 'var(--admin-warning)' : 'var(--admin-border)'}`,
+                    borderRadius: 'var(--admin-radius-control)',
+                  }}
+                >
+                  <div className="flex flex-wrap gap-2 items-baseline mb-1 text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
+                    <strong className="text-[11px]" style={{ color: 'var(--admin-text)' }}>{note.author}</strong>
+                    <span>
+                      {note.kind === 'send_back' ? 'sent back' : 'note'} · {note.origin} ·{' '}
+                      {new Date(note.authoredAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-relaxed m-0 whitespace-pre-wrap" style={{ color: 'var(--admin-text)' }}>
+                    {note.body}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          )}
 
-        <div style={{ display: 'grid', gap: 8 }}>
-          <textarea
-            className="wk-select"
+          <AdminTextArea
             rows={3}
             value={body}
             placeholder="What do you think?"
             disabled={busy}
             onChange={(e) => setBody(e.target.value)}
-            onKeyDown={(e) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') void post();
-            }}
+            onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') void post(); }}
           />
-          {error ? <p className="wk-error">{error}</p> : null}
-          <button
-            type="button"
-            className="wk-primary"
-            disabled={busy || !body.trim()}
-            onClick={() => void post()}
-          >
+          {error && <AdminAlert tone="danger">{error}</AdminAlert>}
+          <AdminButton variant="primary" disabled={busy || !body.trim()} onClick={() => void post()}>
             {busy ? 'Posting…' : 'Post — or ⌘/Ctrl+Enter'}
-          </button>
+          </AdminButton>
         </div>
-      </div>
-    </WkPanel>
+      </AdminCard>
+    </AdminSection>
   );
 }

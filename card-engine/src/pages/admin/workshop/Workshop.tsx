@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  WkPageHeader,
-  WkPanel,
-  WkStageNav,
-  WkEmpty,
-  type WkStageDef,
-} from '../../../components/workshop/ui';
-import type { BenchCandidate } from '../../../services/workshop/benchController';
+import { AdminPage, AdminCard, AdminEmptyState, AdminButton } from '../../../components/admin/ui';
+import { StageRail, StatusBadge, type StageDef } from '../../../components/admin/workshop';
 import { getCuratedRosterStore } from '../../../services/persistence/CuratedRosterStore';
+import type { BenchCandidate } from '../../../services/workshop/benchController';
 import { RosterBoard } from './RosterBoard';
 import { Bench } from './Bench';
 import { Intake } from './Intake';
@@ -24,30 +19,29 @@ import { useCuratedRoster } from './useCuratedRoster';
  * labeled as permanent cards will be included in the game… It's like a filter.
  * A card should have to reach a certain state before it gets through this."
  *
- * Everything in `public.cards` is TEMPORARY. This tool is the boundary, and the
+ * Everything in `public.cards` is TEMPORARY. This tool is the boundary; the
  * roster it produces (`curated_characters` / `curated_variants`) is the far
  * side of it.
  *
- * The pipeline spans two surfaces, which is why some stages here end in a
- * hand-off rather than a result:
+ * The pipeline crosses two surfaces, which is why a stage can end in a hand-off
+ * rather than a result:
  *
- *   WORKSHOP                    TORI'S DESK (studio wiki)      WORKSHOP
- *   bench → intake →            lore + claim grid              review space
- *   read the art → propose ──►  confirm  ─────────────────►    approve → permanent
- *                                        ◄── send back ────    (with a note)
+ *   WORKSHOP                    TORI'S DESK (studio wiki)     WORKSHOP
+ *   bench → intake →            lore + claim grid             review space
+ *   read the art → propose ──►  confirm ────────────────►     approve → permanent
+ *                                       ◄── send back ───     (with a note)
  *
  * Two things are deliberately NOT here:
- *
  *   - **Lore.** It belongs to the lore director, at her desk in the wiki.
  *   - **Stats.** A curated character is an identity, not a statline. Players
- *     roll their own inside the archetype's bias tiers when they pull the
- *     character, and level them through play (Raheem, 2026-08-10).
+ *     roll their own inside the archetype's bias tiers and level them through
+ *     play, so two people who pull the same character differ.
  *
  * Stage and character both live in the query string, so any point in the
- * pipeline is linkable and a reload lands exactly where you were.
+ * pipeline is linkable and a reload lands where you were.
  */
 
-const STAGES: readonly WkStageDef[] = [
+const STAGES: readonly StageDef[] = [
   { id: 'roster', label: 'Roster' },
   { id: 'bench', label: 'Bench' },
   { id: 'intake', label: 'Intake' },
@@ -64,13 +58,15 @@ export function Workshop() {
   const characterId = params.get('character');
 
   /**
-   * A bench candidate on its way to intake. Held in memory rather than the URL
-   * or storage: it is a selection, not work. If it is lost to a reload the
-   * candidate is still sitting in the bench's list, one click away — whereas
-   * stuffing a whole generation into the query string would make every link
-   * unreadable.
+   * A bench candidate on its way to intake. Held in memory rather than the URL:
+   * it is a selection, not work. If a reload drops it the candidate is still in
+   * the bench's list one click away, whereas putting a whole generation in the
+   * query string would make every link unreadable.
    */
   const [seed, setSeed] = useState<BenchCandidate | null>(null);
+
+  useCuratedRoster();
+  const character = characterId ? getCuratedRosterStore().getCharacter(characterId) : undefined;
 
   const patchParams = (next: Record<string, string | null>) => {
     const merged = new URLSearchParams(params);
@@ -80,33 +76,39 @@ export function Workshop() {
     }
     setParams(merged);
   };
-
   const selectStage = (id: string) => patchParams({ stage: id });
   const openCharacter = (id: string) => patchParams({ stage: 'intake', character: id });
 
+  // Stages that work on one character are locked until one is chosen. The rail
+  // says why rather than silently refusing.
+  const stages = STAGES.map((s) =>
+    ['art', 'propose', 'variants'].includes(s.id) && !character
+      ? { ...s, lockedReason: 'Pick a character' }
+      : s,
+  );
+
   const current = STAGES.find((s) => s.id === stage);
-
-  // Subscribes the whole page to the roster so a save in any stage re-renders
-  // the others (the thread rail in particular, which sits beside them).
-  useCuratedRoster();
-  const character = characterId ? getCuratedRosterStore().getCharacter(characterId) : undefined;
-
-  /**
-   * The discussion rail rides along from the art stage onward — the point of it
-   * is that the argument happens WHILE you are looking at the character, not in
-   * a separate place you have to remember to open.
-   */
   const showThread = character !== undefined && ['art', 'propose', 'variants'].includes(stage);
 
   return (
-    <div className="workshop-root" style={{ padding: '4px 0 60px' }}>
-      <WkPageHeader
-        eyebrow="THE PERMANENT BOUNDARY"
-        title="Workshop"
-        intro="Every card in the game today is temporary. A character becomes permanent by crossing this tool — generated or brought in, described from its own art, written by the lore director, then judged."
-      />
-
-      <WkStageNav stages={STAGES} current={stage} onSelect={selectStage} />
+    <AdminPage
+      title="Workshop"
+      description="Every card in the game today is temporary. A character becomes permanent by crossing this tool — generated or brought in, described from its own art, written by the lore director, then judged."
+      actions={
+        character ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm truncate max-w-[16rem]" style={{ color: 'var(--admin-text)' }}>
+              {character.displayName || character.id}
+            </span>
+            <StatusBadge status={character.status} />
+            <AdminButton size="sm" variant="ghost" onClick={() => patchParams({ character: null, stage: 'roster' })}>
+              Close
+            </AdminButton>
+          </div>
+        ) : null
+      }
+    >
+      <StageRail stages={stages} current={stage} onSelect={selectStage} />
 
       {stage === 'roster' ? (
         <RosterBoard onOpenCharacter={openCharacter} />
@@ -119,14 +121,9 @@ export function Workshop() {
         />
       ) : (
         <div
-          className={showThread ? 'wk-with-thread' : undefined}
-          style={
-            showThread
-              ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 320px)', gap: 16, alignItems: 'start' }
-              : undefined
-          }
+          className={showThread ? 'grid gap-4 items-start xl:grid-cols-[minmax(0,1fr)_minmax(0,320px)]' : ''}
         >
-          <div style={{ minWidth: 0 }}>
+          <div className="min-w-0">
             {stage === 'intake' ? (
               <Intake
                 characterId={characterId}
@@ -135,51 +132,42 @@ export function Workshop() {
                 onSeedConsumed={() => setSeed(null)}
               />
             ) : stage === 'art' ? (
-              character ? (
-                <ReadTheArt character={character} />
-              ) : (
-                <NoCharacter onGoToRoster={() => selectStage('roster')} />
-              )
+              character ? <ReadTheArt character={character} /> : <NoCharacter onBack={() => selectStage('roster')} />
             ) : stage === 'propose' ? (
-              character ? (
-                <Propose character={character} />
-              ) : (
-                <NoCharacter onGoToRoster={() => selectStage('roster')} />
-              )
+              character ? <Propose character={character} /> : <NoCharacter onBack={() => selectStage('roster')} />
             ) : (
-              <WkPanel title={current?.label ?? 'Stage'}>
-                <WkEmpty title={`${current?.label} is not built yet`}>
-                  This stage is planned but unimplemented. It is shown in the rail so the shape of
-                  the whole pipeline is visible while it is being built — not because it is ready.
-                </WkEmpty>
-              </WkPanel>
+              <AdminCard surface="subtle">
+                <AdminEmptyState
+                  title={`${current?.label} is not built yet`}
+                  description="Planned but unimplemented. It appears in the rail so the shape of the whole pipeline stays visible while it is being built — not because it is ready."
+                />
+              </AdminCard>
             )}
           </div>
           {showThread && character ? (
-            <div style={{ position: 'sticky', top: 12 }}>
+            <div className="xl:sticky xl:top-4">
               <ReviewThread character={character} origin="workshop" />
             </div>
           ) : null}
         </div>
       )}
-    </div>
+    </AdminPage>
   );
 }
 
 /**
- * Every stage past intake is about ONE character, so arriving without one is a
- * navigation accident rather than an error. Say which is missing and offer the
- * way back, instead of rendering an empty form that looks broken.
+ * Every stage past intake works on ONE character, so arriving without one is a
+ * navigation accident. Say what is missing and offer the way back rather than
+ * rendering an empty form that looks broken.
  */
-function NoCharacter({ onGoToRoster }: { onGoToRoster: () => void }) {
+function NoCharacter({ onBack }: { onBack: () => void }) {
   return (
-    <WkPanel title="No character selected">
-      <WkEmpty title="This stage works on one character at a time">
-        Pick a slot from the roster to carry on with it.
-      </WkEmpty>
-      <button type="button" className="wk-tab" style={{ marginTop: 12 }} onClick={onGoToRoster}>
-        Back to the roster
-      </button>
-    </WkPanel>
+    <AdminCard surface="subtle">
+      <AdminEmptyState
+        title="No character selected"
+        description="This stage works on one character at a time."
+        action={<AdminButton onClick={onBack}>Back to the roster</AdminButton>}
+      />
+    </AdminCard>
   );
 }

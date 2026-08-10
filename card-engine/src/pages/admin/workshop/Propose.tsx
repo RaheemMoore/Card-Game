@@ -3,7 +3,8 @@ import { RANKS } from '../../../types/card';
 import type { CuratedCharacter } from '../../../types/curatedCard';
 import { getCuratedRosterStore } from '../../../services/persistence/CuratedRosterStore';
 import { READABLE_FIELDS } from '../../../services/workshop/readArt';
-import { WkPanel, WkTriptych, WkStatus } from '../../../components/workshop/ui';
+import { AdminCard, AdminSection, AdminButton, AdminAlert } from '../../../components/admin/ui';
+import { Triptych, Checklist, StatusBadge } from '../../../components/admin/workshop';
 
 /**
  * Stage 4 — propose.
@@ -104,52 +105,44 @@ export function Propose({ character }: { character: CuratedCharacter }) {
   };
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
-      <WkPanel
+    <div className="grid gap-4">
+      <AdminSection
         title={character.displayName || character.id}
-        action={<WkStatus value={character.status} />}
+        actions={<StatusBadge status={character.status} />}
       >
-        <WkTriptych panels={RANKS.map((rank) => ({ rank, portraitUrl: master[rank]?.portraitUrl }))} />
-      </WkPanel>
+        <AdminCard><Triptych art={master} /></AdminCard>
+      </AdminSection>
 
-      <WkPanel title="Before it goes to the lore director">
-        <ul className="wk-checklist">
-          {checks.map((check) => (
-            <li key={check.id} className={check.ok ? 'is-ok' : 'is-blocked'}>
-              <span aria-hidden="true">{check.ok ? '✓' : '○'}</span>
-              <div>
-                <p>{check.label}</p>
-                {check.detail ? <p className="wk-note">{check.detail}</p> : null}
-              </div>
-            </li>
-          ))}
-        </ul>
+      <AdminSection title="Before it goes to the lore director">
+        <AdminCard>
+          <Checklist items={checks} />
 
-        {error ? <p className="wk-error" style={{ marginTop: 12 }}>{error}</p> : null}
+          {error && <div className="mt-3"><AdminAlert tone="danger">{error}</AdminAlert></div>}
 
-        {character.status === 'awaiting_lore' ? (
-          <p className="wk-note" style={{ marginTop: 12 }}>
-            Sent {character.proposedAt ? new Date(character.proposedAt).toLocaleString() : ''}. It is
-            waiting on Tori's desk — that is a status, not a delay you can clear from here.
-          </p>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="wk-primary"
-              style={{ marginTop: 14, width: 'auto' }}
-              disabled={busy || blocking.length > 0}
-              onClick={() => void propose()}
-            >
-              {busy ? 'Sending…' : 'Send to the lore director'}
-            </button>
-            <p className="wk-note" style={{ marginTop: 8 }}>
-              She writes the name, the lore for each rank, and claims which Story Pillar answers lead
-              players to this character. It comes back here for final review.
+          {character.status === 'awaiting_lore' ? (
+            <p className="mt-4 text-xs leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>
+              Sent {character.proposedAt ? new Date(character.proposedAt).toLocaleString() : ''}. It is
+              waiting on Tori's desk — that is a status, not a delay you can clear from here.
             </p>
-          </>
-        )}
-      </WkPanel>
+          ) : (
+            <>
+              <div className="mt-4">
+                <AdminButton
+                  variant="primary"
+                  disabled={busy || blocking.length > 0}
+                  onClick={() => void propose()}
+                >
+                  {busy ? 'Sending…' : 'Send to the lore director'}
+                </AdminButton>
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>
+                She writes the name, the lore for each rank, and claims which Story Pillar answers
+                lead players to this character. It comes back here for final review.
+              </p>
+            </>
+          )}
+        </AdminCard>
+      </AdminSection>
     </div>
   );
 }
