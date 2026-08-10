@@ -22,7 +22,12 @@ import {
 import type { SceneBehavior, SceneBehaviorContext } from './types';
 
 /**
- * Wildlife in Courtyard V2 — /dev/scene?start=CourtyardV2
+ * Wildlife in a courtyard — CourtyardV2 and CourtyardV3 both run this.
+ *
+ * Nothing here names a scene. It reads whatever `L15_WILDLIFE` the Editor saved
+ * and is handed that scene's own blockers and elevation, so a new courtyard needs
+ * a line in `SCENE_BEHAVIORS` and nothing else. It was called `courtyardV2.ts`
+ * until 2026-08-09, when V3 became the second caller and the name started lying.
  *
  * The same brain the Wildlife Lab runs, given the courtyard's own walls instead
  * of the lab's open floor. That swap is the entire integration, and it is one
@@ -102,7 +107,7 @@ export function attachCourtyardWildlife(
 
   if (wildlife.missing) {
     console.info(
-      '[wildlife] CourtyardV2 has no L15_WILDLIFE layer yet. Add one, drop animals ' +
+      '[wildlife] This scene has no L15_WILDLIFE layer yet. Add one, drop animals ' +
         'in it, and draw green #33ff88 rectangles when you want to say where they roam.',
     );
   }

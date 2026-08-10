@@ -157,3 +157,29 @@ describe('readSceneWildlife', () => {
     expect(found.areas[0].height).toBeCloseTo(200);
   });
 });
+
+/**
+ * The registration trap.
+ *
+ * A walkable scene has to be named in FOUR places in two files: three sets in
+ * courtyardRuntime.ts and the SCENE_BEHAVIORS table. CourtyardV3 was in three of
+ * them. Nothing errored — an unregistered scene looks exactly like a scene that
+ * legitimately has no behaviour — so the animals simply stood still.
+ *
+ * This asserts the invariant that was implied and never checked: if you can walk
+ * around in it, its behaviour is looked up.
+ */
+describe('every explorable scene has a behaviour registered', () => {
+  it('leaves no walkable scene silently inert', async () => {
+    const { EXPLORABLE_SCENES } = await import('../castle/v2/courtyardRuntime');
+    const { SCENE_BEHAVIORS } = await import('./sceneBehaviors');
+
+    const missing = [...EXPLORABLE_SCENES].filter((name) => !SCENE_BEHAVIORS[name]);
+    expect(missing).toEqual([]);
+  });
+
+  it('runs both courtyards on the same brain', async () => {
+    const { SCENE_BEHAVIORS } = await import('./sceneBehaviors');
+    expect(SCENE_BEHAVIORS.CourtyardV3).toBe(SCENE_BEHAVIORS.CourtyardV2);
+  });
+});
