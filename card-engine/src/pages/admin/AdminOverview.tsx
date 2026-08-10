@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { Users as UsersIcon, Layers, ChevronRight } from 'lucide-react';
 import { getSystemStats, type SystemStats } from '../../services/persistence/adminService';
 import { getSupabaseClient } from '../../services/persistence/supabaseClient';
-import { FAILURE_TYPES } from '../../data/archetypeLayers';
-import type { ProposalFailureType } from '../../types/archetypeProposal';
 import {
   AdminPage, AdminSection, AdminCard, AdminMetricCard,
   AdminStatusBadge, AdminEmptyState, AdminSkeleton,
@@ -26,10 +24,6 @@ function relativeAge(iso: string): string {
   return `${Math.floor(d / 365)}y ago`;
 }
 
-function failureLabel(ft: string): string {
-  return FAILURE_TYPES.find((f) => f.id === (ft as ProposalFailureType))?.label ?? ft;
-}
-
 interface LeonardoBalance {
   checkedAt: string;
   available: boolean;
@@ -38,8 +32,7 @@ interface LeonardoBalance {
   renewalDate?: string | null;
   error?: string;
 }
-interface InboxRow { kind: 'proposal' | 'judgment'; id: string; summary: string; createdAt: string; href: string }
-interface ResolvedRow { id: string; archetype: string; failureType: string; status: string; decidedAt: string | null; commitSha: string | null }
+interface InboxRow { kind: 'judgment'; id: string; summary: string; createdAt: string; href: string }
 
 const ACTIONABLE_DISPOSITIONS = [
   'archetype_prompt_change_candidate',
@@ -54,7 +47,6 @@ export function AdminOverview() {
   const [leonardo, setLeonardo] = useState<LeonardoBalance | null>(null);
   const [leonardoErr, setLeonardoErr] = useState<string | null>(null);
   const [inbox, setInbox] = useState<InboxRow[] | null>(null);
-  const [resolved, setResolved] = useState<ResolvedRow[] | null>(null);
 
   useEffect(() => {
     setError(null);
@@ -80,23 +72,25 @@ export function AdminOverview() {
     const supabase = getSupabaseClient();
     if (!supabase) return;
     void (async () => {
-      const [openProps, judgments, resolvedProps] = await Promise.all([
-        supabase.from('archetype_proposals').select('id, archetype, failure_type, created_at').in('status', ['submitted', 'awaiting_claude']),
-        supabase.from('prompt_test_judgments').select('id, disposition, created_at').in('disposition', ACTIONABLE_DISPOSITIONS),
-        supabase.from('archetype_proposals').select('id, archetype, failure_type, status, decided_at, commit_sha').in('status', ['shipped', 'rejected']).order('decided_at', { ascending: false }).limit(5),
-      ]);
-      const rows: InboxRow[] = [];
-      for (const p of (openProps.data ?? []) as Array<{ id: string; archetype: string; failure_type: string; created_at: string }>) {
-        rows.push({ kind: 'proposal', id: p.id, summary: `${p.archetype} — ${failureLabel(p.failure_type)}`, createdAt: p.created_at, href: `/admin/proposals?archetype=${encodeURIComponent(p.archetype)}&proposal=${p.id}` });
-      }
-      for (const j of (judgments.data ?? []) as Array<{ id: string; disposition: string; created_at: string }>) {
-        rows.push({ kind: 'judgment', id: j.id, summary: j.disposition.replace(/_/g, ' '), createdAt: j.created_at, href: '/admin/prompt-lab' });
-      }
-      rows.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      // The archetype_proposals feed was removed 2026-08-10 with the proposal
+      // desk it linked to. Its rows pointed at /admin/proposals?proposal=<id>,
+      // which now redirects to the Workshop — a page that cannot display a
+      // proposal — so the inbox would have shown live-looking items that went
+      // nowhere. The table and its rows are left untouched in the database.
+      const { data: judgments } = await supabase
+        .from('prompt_test_judgments')
+        .select('id, disposition, created_at')
+        .in('disposition', ACTIONABLE_DISPOSITIONS);
+      const rows: InboxRow[] = ((judgments ?? []) as Array<{ id: string; disposition: string; created_at: string }>)
+        .map((j) => ({
+          kind: 'judgment' as const,
+          id: j.id,
+          summary: j.disposition.replace(/_/g, ' '),
+          createdAt: j.created_at,
+          href: '/admin/prompt-lab',
+        }))
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       setInbox(rows);
-      setResolved(((resolvedProps.data ?? []) as Array<{ id: string; archetype: string; failure_type: string; status: string; decided_at: string | null; commit_sha: string | null }>).map((r) => ({
-        id: r.id, archetype: r.archetype, failureType: r.failure_type, status: r.status, decidedAt: r.decided_at, commitSha: r.commit_sha,
-      })));
     })();
   }, []);
 
@@ -114,11 +108,6 @@ export function AdminOverview() {
       {/* Inbox — top slot; the only action-demanding module. */}
       <AdminSection title="Inbox" subtitle="Needs a decision — oldest first">
         <InboxList rows={inbox} />
-      </AdminSection>
-
-      {/* Recently resolved — collapsed; keeps closures visible on the dash. */}
-      <AdminSection>
-        <ResolvedStrip rows={resolved} />
       </AdminSection>
 
       {/* Provider funds. */}
@@ -159,7 +148,7 @@ function InboxList({ rows }: { rows: InboxRow[] | null }) {
     return <AdminCard><AdminSkeleton lines={4} /></AdminCard>;
   }
   if (rows.length === 0) {
-    return <AdminEmptyState title="Inbox zero" description="Open proposals and flagged judgments will appear here, oldest first." />;
+    return <AdminEmptyState title="Inbox zero" description="Flagged Prompt Lab judgments will appear here, oldest first." />;
   }
   const shown = rows.slice(0, INBOX_CAP);
   return (
@@ -168,9 +157,7 @@ function InboxList({ rows }: { rows: InboxRow[] | null }) {
         {shown.map((r, i) => (
           <li key={`${r.kind}-${r.id}`} style={{ borderTop: i === 0 ? undefined : '1px solid var(--admin-border)' }}>
             <Link to={r.href} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors">
-              <AdminStatusBadge tone={r.kind === 'proposal' ? 'accent' : 'attention'}>
-                {r.kind === 'proposal' ? 'Proposal' : 'Judgment'}
-              </AdminStatusBadge>
+              <AdminStatusBadge tone="attention">Judgment</AdminStatusBadge>
               <span className="text-sm flex-1 truncate" style={{ color: 'var(--admin-text)' }}>{r.summary}</span>
               <span className="text-xs shrink-0" style={{ color: 'var(--admin-text-muted)' }}>filed {relativeAge(r.createdAt)}</span>
               <ChevronRight size={16} className="shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
@@ -184,33 +171,6 @@ function InboxList({ rows }: { rows: InboxRow[] | null }) {
         </div>
       )}
     </AdminCard>
-  );
-}
-
-function ResolvedStrip({ rows }: { rows: ResolvedRow[] | null }) {
-  const total = rows?.length ?? 0;
-  return (
-    <details style={{ background: 'var(--admin-surface-subtle)', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-control)' }}>
-      <summary className="cursor-pointer px-4 py-3 text-xs uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-        Recently resolved ({total})
-      </summary>
-      <div className="p-2" style={{ borderTop: '1px solid var(--admin-border)' }}>
-        {total === 0 ? (
-          <div className="px-2 py-2 text-xs" style={{ color: 'var(--admin-text-muted)' }}>No shipped or rejected proposals yet.</div>
-        ) : (
-          <ul>
-            {rows!.map((r, i) => (
-              <li key={r.id} className="flex items-center gap-3 px-2 py-2" style={{ borderTop: i === 0 ? undefined : '1px solid var(--admin-border)' }}>
-                <AdminStatusBadge tone={r.status === 'shipped' ? 'success' : 'neutral'}>{r.status}</AdminStatusBadge>
-                <span className="text-xs flex-1 truncate" style={{ color: 'var(--admin-text)' }}>{r.archetype} — {failureLabel(r.failureType)}</span>
-                {r.commitSha && <code className="text-[11px] shrink-0" style={{ color: 'var(--admin-text-muted)' }}>{r.commitSha.slice(0, 7)}</code>}
-                <span className="text-[11px] shrink-0" style={{ color: 'var(--admin-text-muted)' }}>{r.decidedAt ? relativeAge(r.decidedAt) : '—'}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </details>
   );
 }
 

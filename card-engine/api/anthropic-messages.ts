@@ -14,11 +14,26 @@ export const config = { maxDuration: 60 };
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
 
+/**
+ * `content` widened to accept blocks as well as a plain string (2026-08-10).
+ *
+ * The handler already forwarded whatever it was given — it spreads
+ * `...forwardBody` into the upstream request — so image blocks worked in
+ * practice and only the type said otherwise. The Workshop reads a character's
+ * three rank images to write its identity sheet, and a lie in the type is the
+ * kind of thing that gets "fixed" later by someone who trusts it.
+ *
+ * Blocks are not inspected here. This is a proxy; Anthropic validates the
+ * shape, and narrowing it locally would mean re-implementing their schema and
+ * falling behind it.
+ */
+type ContentBlock = Record<string, unknown>;
+
 interface RequestBody {
   model: string;
   max_tokens: number;
   temperature?: number;
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  messages: Array<{ role: 'user' | 'assistant'; content: string | ContentBlock[] }>;
   gameAction?: string;
   cardId?: string;
 }

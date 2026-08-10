@@ -40,7 +40,7 @@ const GROUPS: readonly NavGroup[] = [
     label: 'AI Studio',
     items: [
       { label: 'Prompt Lab', to: '/admin/prompt-lab', icon: FlaskConical },
-      { label: 'Proposals', to: '/admin/proposals', icon: Hammer, directorOk: true },
+      { label: 'Workshop', to: '/admin/workshop', icon: Hammer, directorOk: true },
     ],
   },
   {

@@ -20,7 +20,7 @@ const TITLE_BY_PATH: Record<string, string> = {
   '/admin/cards': 'Live Card Audit',
   '/admin/abilities': 'Ability Review',
   '/admin/prompt-lab': 'Prompt Lab',
-  '/admin/proposals': 'Proposals',
+  '/admin/workshop': 'Workshop',
   '/admin/costs': 'Costs',
   '/admin/diagnostics': 'Diagnostics',
 };

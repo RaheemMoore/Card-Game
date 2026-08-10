@@ -42,6 +42,542 @@
   color: var(--admin-text);
 }
 
+/* ── Workshop design tokens ────────────────────────────────────────────
+   The Workshop borrows studio-wiki's language rather than the admin
+   dashboard's, because it is a place you WORK IN for hours rather than a
+   console you check. Same values as studio-wiki/src/styles.css.
+
+   This is the third hand-copy of these tokens (styles.css, then
+   pages/dev/PhaserSchool.tsx's inline `S` object, now here). There is no
+   shared token package across the two Vite apps and no import path that
+   would survive both builds, so the copy is deliberate — but if a fourth
+   surface ever needs them, that is the signal to extract a package
+   instead of copying again.
+
+   Scoped to .workshop-root so nothing leaks into the admin chrome the
+   Workshop is mounted inside. */
+:root {
+  --wk-canvas: #201f30;
+  --wk-surface: #302f42;
+  --wk-surface-2: #3a394d;
+  --wk-line: #4a4960;
+  --wk-text: #f7f6ff;
+  --wk-muted: #aaa9bd;
+  --wk-accent: #7c70ff;
+  --wk-accent-wash: rgba(124, 112, 255, 0.18);
+  --wk-success: #2fe5a7;
+  --wk-warning: #f5b544;
+  --wk-danger: #ff707d;
+  --wk-radius: 12px;
+}
+
+.workshop-root {
+  font-family: var(--admin-font);
+  font-feature-settings: 'tnum' 1;
+  color: var(--wk-text);
+  background: var(--wk-canvas);
+  min-height: 100%;
+}
+
+/* --- Panel: the container everything composes from --------------------- */
+.wk-panel {
+  background: var(--wk-surface);
+  border: 1px solid var(--wk-line);
+  border-radius: var(--wk-radius);
+  padding: 18px 20px;
+}
+.wk-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.wk-panel-heading:empty { display: none; }
+.wk-panel-heading h2 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+/* --- Eyebrow ----------------------------------------------------------- */
+.wk-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8f85ff;
+  margin: 0 0 6px;
+}
+
+/* --- Page header ------------------------------------------------------- */
+.wk-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 26px;
+}
+.wk-page-header h1 {
+  font-size: clamp(24px, 2.6vw, 34px);
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  margin: 0;
+}
+.wk-page-header p {
+  color: var(--wk-muted);
+  font-size: 13px;
+  margin: 8px 0 0;
+  max-width: 68ch;
+}
+
+/* --- Status pill ------------------------------------------------------- */
+.wk-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.wk-status-empty { background: rgba(170, 169, 189, 0.12); color: var(--wk-muted); }
+.wk-status-draft { background: rgba(170, 169, 189, 0.16); color: #c9c8da; }
+.wk-status-seeded { background: rgba(124, 112, 255, 0.16); color: #a79dff; }
+.wk-status-awaiting-lore { background: rgba(245, 181, 68, 0.14); color: var(--wk-warning); }
+.wk-status-lore-ready { background: rgba(124, 112, 255, 0.2); color: #b3a9ff; }
+.wk-status-approved { background: rgba(47, 229, 167, 0.13); color: var(--wk-success); }
+.wk-status-permanent { background: rgba(47, 229, 167, 0.22); color: var(--wk-success); }
+.wk-status-retired { background: rgba(255, 112, 125, 0.13); color: var(--wk-danger); }
+
+/* --- Stage rail -------------------------------------------------------- */
+.wk-stage-nav {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(150px, 1fr);
+  gap: 10px;
+  margin-bottom: 26px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 4px;
+}
+.wk-stage {
+  scroll-snap-align: start;
+  text-align: left;
+  background: var(--wk-surface);
+  border: 1px solid var(--wk-line);
+  border-radius: var(--wk-radius);
+  padding: 12px 13px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  cursor: pointer;
+  transition: background-color 0.16s, border-color 0.16s, transform 0.16s;
+}
+.wk-stage:hover:not(:disabled) { transform: translateY(-2px); border-color: #6a6885; }
+.wk-stage:disabled { opacity: 0.45; cursor: not-allowed; }
+.wk-stage-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--wk-muted);
+}
+.wk-stage-label {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wk-stage-foot {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wk-muted);
+}
+.wk-stage-current {
+  background: var(--wk-accent-wash);
+  border-color: #8278f2;
+}
+.wk-stage-current .wk-stage-foot { color: #a79dff; }
+
+/* --- Roster board ------------------------------------------------------ */
+.wk-archetype-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.wk-tab {
+  background: var(--wk-surface);
+  border: 1px solid var(--wk-line);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--wk-muted);
+  cursor: pointer;
+  transition: background-color 0.16s, color 0.16s, border-color 0.16s;
+}
+.wk-tab:hover { color: var(--wk-text); border-color: #6a6885; }
+.wk-tab[aria-pressed='true'] {
+  background: var(--wk-accent-wash);
+  border-color: #8278f2;
+  color: #fff;
+}
+.wk-tab-count {
+  margin-left: 7px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.wk-matrix-scroll { overflow-x: auto; }
+.wk-matrix {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 640px;
+  font-size: 12px;
+}
+.wk-matrix th,
+.wk-matrix td {
+  border-bottom: 1px solid var(--wk-line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+.wk-matrix thead th {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wk-muted);
+  position: sticky;
+  top: 0;
+  background: var(--wk-surface);
+  z-index: 1;
+}
+.wk-matrix tbody tr:hover td { background: rgba(124, 112, 255, 0.05); }
+.wk-slot-index {
+  font-variant-numeric: tabular-nums;
+  color: var(--wk-muted);
+  width: 40px;
+}
+.wk-slot-name { font-weight: 600; }
+.wk-slot-empty { color: var(--wk-muted); font-style: italic; }
+.wk-variant-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+  background: rgba(170, 169, 189, 0.22);
+}
+.wk-variant-dot-permanent { background: var(--wk-success); }
+.wk-variant-dot-draft { background: var(--wk-accent); }
+
+/* --- Empty state ------------------------------------------------------- */
+.wk-empty {
+  border: 1px dashed var(--wk-line);
+  border-radius: var(--wk-radius);
+  padding: 34px 24px;
+  text-align: center;
+  color: var(--wk-muted);
+  font-size: 13px;
+}
+.wk-empty strong { display: block; color: var(--wk-text); font-size: 15px; margin-bottom: 6px; }
+
+/* --- Save chip --------------------------------------------------------- */
+.wk-save-chip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wk-muted);
+}
+.wk-save-chip[data-state='saved'] { color: var(--wk-success); }
+.wk-save-chip[data-state='error'] { color: var(--wk-danger); }
+
+/* --- Form controls ----------------------------------------------------- */
+.wk-field-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wk-muted);
+  margin-bottom: 5px;
+}
+.wk-select {
+  width: 100%;
+  background: var(--wk-surface-2);
+  border: 1px solid var(--wk-line);
+  border-radius: 8px;
+  color: var(--wk-text);
+  font: inherit;
+  font-size: 12px;
+  padding: 7px 9px;
+  min-height: 34px;
+}
+.wk-select:disabled { opacity: 0.5; }
+
+.wk-primary {
+  width: 100%;
+  background: var(--wk-accent);
+  border: 1px solid var(--wk-accent);
+  border-radius: 8px;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 14px;
+  min-height: 38px;
+  cursor: pointer;
+  transition: background-color 0.16s, opacity 0.16s;
+}
+.wk-primary:hover:not(:disabled) { background: #8a7fff; }
+.wk-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.wk-note { font-size: 11px; color: var(--wk-muted); margin: 0; line-height: 1.5; }
+.wk-error { font-size: 12px; color: var(--wk-danger); margin: 0 0 10px; }
+.wk-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--wk-muted);
+  line-height: 1.55;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+/* --- Disclosure -------------------------------------------------------- */
+.wk-details {
+  background: var(--wk-surface);
+  border: 1px solid var(--wk-line);
+  border-radius: var(--wk-radius);
+  padding: 12px 16px;
+}
+.wk-details > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wk-text);
+  list-style: none;
+}
+.wk-details > summary::-webkit-details-marker { display: none; }
+.wk-details > summary::before { content: '▸ '; color: var(--wk-muted); }
+.wk-details[open] > summary::before { content: '▾ '; }
+
+/* --- Bench ------------------------------------------------------------- */
+.wk-candidate {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 16px;
+  border: 1px solid var(--wk-line);
+  border-radius: var(--wk-radius);
+  padding: 14px;
+  background: var(--wk-surface-2);
+}
+.wk-candidate-art img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid var(--wk-line);
+}
+.wk-candidate-body { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.wk-candidate-head { display: grid; gap: 3px; }
+.wk-candidate-head strong { font-size: 15px; }
+.wk-candidate-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.wk-candidate-actions .wk-primary { width: auto; }
+
+@media (max-width: 1100px) {
+  .wk-bench-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .wk-bench-grid > div:first-child { position: static !important; }
+  .wk-candidate { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --- Triptych ---------------------------------------------------------- */
+.wk-triptych {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.wk-triptych-panel {
+  display: grid;
+  gap: 7px;
+  justify-items: center;
+  background: var(--wk-surface-2);
+  border: 1px solid var(--wk-line);
+  border-radius: var(--wk-radius);
+  padding: 10px;
+  min-width: 0;
+  color: inherit;
+  font: inherit;
+}
+button.wk-triptych-panel { cursor: pointer; transition: border-color 0.16s; }
+button.wk-triptych-panel:hover { border-color: #6a6885; }
+.wk-triptych-panel.is-selected { border-color: #8278f2; background: var(--wk-accent-wash); }
+.wk-triptych-rank {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wk-muted);
+}
+.wk-triptych-panel img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+}
+.wk-triptych-gap {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border: 1px dashed var(--wk-line);
+  border-radius: 8px;
+  color: var(--wk-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+.wk-triptych-caption { font-size: 11px; color: var(--wk-muted); text-align: center; }
+
+/* --- Image drop -------------------------------------------------------- */
+.wk-drop { min-width: 0; }
+.wk-drop-zone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  border: 1px dashed var(--wk-line);
+  border-radius: var(--wk-radius);
+  background: var(--wk-surface-2);
+  overflow: hidden;
+}
+.wk-drop-zone.has-art { border-style: solid; }
+.wk-drop-zone img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.wk-drop-prompt {
+  padding: 14px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--wk-muted);
+  cursor: pointer;
+  line-height: 1.5;
+}
+.wk-drop-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.wk-drop-zone.has-art .wk-drop-input { pointer-events: none; }
+
+@media (max-width: 720px) {
+  .wk-triptych { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --- Identity diff ----------------------------------------------------- */
+.wk-diff { display: grid; gap: 1px; background: var(--wk-line); border: 1px solid var(--wk-line); border-radius: var(--wk-radius); overflow: hidden; }
+.wk-diff-head,
+.wk-diff-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1.3fr) minmax(0, 1.3fr);
+  gap: 12px;
+  background: var(--wk-surface);
+  padding: 10px 12px;
+}
+.wk-diff-head {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--wk-muted);
+  background: var(--wk-surface-2);
+}
+.wk-diff-field { display: grid; gap: 4px; align-content: start; font-size: 12px; font-weight: 600; }
+.wk-diff-proposed { display: grid; gap: 6px; align-content: start; }
+.wk-diff-proposed p { font-size: 12px; color: var(--wk-muted); margin: 0; line-height: 1.5; }
+.wk-diff-proposed .wk-tab { justify-self: start; padding: 3px 9px; font-size: 11px; }
+.wk-conf {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-style: normal;
+  justify-self: start;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.wk-conf-high { background: rgba(47, 229, 167, 0.13); color: var(--wk-success); }
+.wk-conf-medium { background: rgba(245, 181, 68, 0.14); color: var(--wk-warning); }
+.wk-conf-low { background: rgba(255, 112, 125, 0.13); color: var(--wk-danger); }
+
+@media (max-width: 860px) {
+  .wk-diff-head { display: none; }
+  .wk-diff-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --- Review thread ----------------------------------------------------- */
+.wk-note-card {
+  background: var(--wk-surface-2);
+  border: 1px solid var(--wk-line);
+  border-left: 3px solid var(--wk-line);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.wk-note-card.is-sendback { border-left-color: var(--wk-warning); }
+.wk-note-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 10px;
+  color: var(--wk-muted);
+  margin-bottom: 5px;
+}
+.wk-note-meta strong { font-size: 11px; color: var(--wk-text); }
+.wk-note-card p { font-size: 12px; margin: 0; line-height: 1.55; white-space: pre-wrap; }
+
+/* --- Checklist --------------------------------------------------------- */
+.wk-checklist { display: grid; gap: 8px; }
+.wk-checklist li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  font-size: 12px;
+}
+.wk-checklist li > span { font-weight: 700; line-height: 1.5; }
+.wk-checklist li p { margin: 0; line-height: 1.5; }
+.wk-checklist li.is-ok > span { color: var(--wk-success); }
+.wk-checklist li.is-blocked > span { color: var(--wk-muted); }
+.wk-checklist li.is-blocked > div > p:first-child { color: var(--wk-muted); }
+
+@media (max-width: 1100px) {
+  .wk-with-thread { grid-template-columns: minmax(0, 1fr) !important; }
+  .wk-with-thread > div:last-child { position: static !important; }
+}
+
+/* --- Focus + motion ---------------------------------------------------- */
+.workshop-root :focus-visible {
+  outline: 2px solid var(--wk-warning);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workshop-root * { transition: none !important; }
+}
+
 @theme {
   --color-void: #0a0a0f;
   --color-abyss: #12121a;

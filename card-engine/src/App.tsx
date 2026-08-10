@@ -11,7 +11,7 @@ import { AdminCosts } from './pages/admin/AdminCosts';
 import { AdminAbilities } from './pages/admin/AdminAbilities';
 import { AdminDiagnostics } from './pages/admin/AdminDiagnostics';
 import { AdminPromptLab } from './pages/admin/AdminPromptLab';
-import { ArchetypeWorkshop } from './pages/admin/ArchetypeWorkshop';
+import { Workshop } from './pages/admin/workshop/Workshop';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
@@ -127,14 +127,17 @@ const CourtyardV2Preview = import.meta.env.DEV
 // falls through immediately with the same initializeWallet() call.
 
 /**
- * Preserves the query string when the retired /admin/workshop path redirects to
- * /admin/proposals. A bare <Navigate to="/admin/proposals"> would drop
- * ?archetype=&proposal=, so a bookmarked link to one specific proposal would
- * silently land on the page with nothing selected.
+ * The redirect now points the other way (2026-08-10). /admin/workshop is the
+ * real page again — the permanent-card authoring line — and the proposal desk
+ * it used to redirect TO has been retired. Both old paths land here.
+ *
+ * Query strings are preserved for the same reason as before: Tori has links
+ * bookmarked, and dropping ?archetype= would silently land her on the page with
+ * nothing selected rather than 404ing where she would notice.
  */
 function WorkshopRedirect() {
   const { search } = useLocation();
-  return <Navigate to={{ pathname: '/admin/proposals', search }} replace />;
+  return <Navigate to={{ pathname: '/admin/workshop', search }} replace />;
 }
 
 export default function App() {
@@ -387,13 +390,11 @@ export default function App() {
             <Route path="abilities" element={<AdminAbilities />} />
             <Route path="diagnostics" element={<AdminDiagnostics />} />
             <Route path="prompt-lab" element={<AdminPromptLab />} />
-            <Route path="proposals" element={<ArchetypeWorkshop />} />
-            {/* Renamed 2026-07-31: the page is a proposal desk, and "Workshop"
-                now means a working mode (see PRODUCTION.md §6). Tori has this
-                path bookmarked and deep links carry ?archetype=&proposal=, so
-                the old route redirects WITH its query string rather than 404ing
-                or silently dropping which proposal was being opened. */}
-            <Route path="workshop" element={<WorkshopRedirect />} />
+            <Route path="workshop" element={<Workshop />} />
+            {/* Retired 2026-08-10. The proposal desk was built for a review
+                process that never took, and the Workshop replaced it. Both the
+                old path and its bookmarks redirect rather than 404. */}
+            <Route path="proposals" element={<WorkshopRedirect />} />
           </Route>
 
           {/* Player: fantasy-themed shell (background + NavBar + offset). */}

@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Hammer } from 'lucide-react';
 import { ARCHETYPE_NAMES, type ArchetypeName, type Card, type CardStats, type Rank } from '../../types/card';
-import { stashLabHandoff } from '../../services/labWorkshopHandoff';
 import {
   AdminPage,
   AdminCard,
@@ -829,69 +826,29 @@ function SessionPanel(props: {
             </div>
           );
         })}
-
-        <SendBatchToWorkshop session={session} />
       </div>
     </AdminPreviewPanel>
   );
 }
 
-// One button for the whole batch. Sends every completed tier's IMAGE (by
+// (Retired) One button for the whole batch. Sent every completed tier's IMAGE (by
 // stable object path) to the Workshop as the critique subject — no per-tier
 // buttons. The Workshop shows the images and lets the reviewer pick which tier
 // to critique; the chosen tier's runId rides along so regen-verify can re-run
 // that exact generation with the shipped fix.
-function SendBatchToWorkshop({ session }: { session: SessionSummary }) {
-  const navigate = useNavigate();
-  const completed = TIERS
-    .map((tier) => session.runs.find((r) => r.tier === tier && r.status === 'success' && r.output_object_path))
-    .filter((r): r is RunSummary => Boolean(r));
-
-  if (completed.length === 0) {
-    return (
-      <div className="text-xs italic pt-1" style={{ color: 'var(--admin-text-muted)' }}>
-        Run at least one tier before sending to the Workshop.
-      </div>
-    );
-  }
-
-  const send = () => {
-    const tiers = completed.map((r) => ({
-      tier: r.tier,
-      runId: r.id,
-      objectPath: r.output_object_path,
-      cardName: r.claude_response?.cardName,
-      nameAndTitle: r.claude_response?.nameAndTitle,
-      lore: r.claude_response?.lore,
-      portraitPrompt: r.claude_response?.portraitPrompt,
-      negativePrompt: r.claude_response?.negativePrompt,
-    }));
-    // Primary = highest completed tier (last in TIERS order), the usual subject.
-    const primary = tiers[tiers.length - 1];
-    stashLabHandoff({
-      source: 'prompt-lab',
-      archetype: session.archetype,
-      tiers,
-      primaryRunId: primary.runId,
-      runId: primary.runId,
-      tier: primary.tier,
-      cardName: primary.cardName,
-      nameAndTitle: primary.nameAndTitle,
-      lore: primary.lore,
-      portraitPrompt: primary.portraitPrompt,
-      negativePrompt: primary.negativePrompt,
-    });
-    navigate(`/admin/proposals?archetype=${encodeURIComponent(session.archetype)}&from=lab`);
-  };
-
-  return (
-    <div className="pt-2">
-      <AdminButton variant="primary" icon={<Hammer size={14} />} onClick={send} className="w-full">
-        Send to Workshop ({completed.length} {completed.length === 1 ? 'image' : 'images'})
-      </AdminButton>
-    </div>
-  );
-}
+/**
+ * Retired 2026-08-10 with the proposal desk it sent to.
+ *
+ * This stashed a lab batch in localStorage and navigated to
+ * /admin/proposals?from=lab, where the Workshop's triage form read it as a
+ * critique subject. That page is gone, and the handoff had nowhere to land —
+ * the button would have looked like it worked and quietly done nothing.
+ *
+ * The capability comes back as "Use as seed" on the Workshop's bench, where
+ * Prompt Lab is being absorbed. There the hand-off is not a hand-off at all,
+ * because you never leave the page. services/labWorkshopHandoff.ts is left in
+ * place for that step.
+ */
 
 const RUN_STATUS_BADGE: Record<RunSummary['status'], { label: string; tone: BadgeTone }> = {
   running: { label: 'running', tone: 'warning' },

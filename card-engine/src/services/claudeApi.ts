@@ -1058,6 +1058,34 @@ export interface GenerateCardTextInput {
    * compact per-path visual anchor block. Ignored for other archetypes.
    */
   narrativeAxis?: { path: string };
+  /**
+   * Workshop bench only (2026-08-10). Raw `ImageDirective` fields an operator
+   * pinned by hand, merged OVER the pins resolved from the visual questions so
+   * an explicit choice always beats an authored option's.
+   *
+   * This exists because the bench is a design tool, not the player flow: when
+   * a specific character is wanted and no authored option pins that
+   * combination, the alternative is re-rolling until chance produces it. The
+   * player path never sets this — there, the ritual is supposed to decide.
+   *
+   * Only honoured on a fresh roll (`cardId` set, no `existingHiddenFate`),
+   * exactly like the question pins it overrides.
+   */
+  imagePinOverrides?: ImageDirective;
+}
+
+/**
+ * Drop undefined (and empty-string) fields so a partially-filled override
+ * object never blanks a pin that the questions legitimately set. An operator
+ * clearing a dropdown means "stop pinning this", which is the same as absent.
+ */
+function stripUndefined(directive: ImageDirective | undefined): ImageDirective {
+  if (!directive) return {};
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(directive)) {
+    if (value !== undefined && value !== null && value !== '') out[key] = value;
+  }
+  return out as ImageDirective;
 }
 
 export async function generateCardText(input: GenerateCardTextInput): Promise<GeneratedText> {
@@ -1078,9 +1106,16 @@ export async function generateCardText(input: GenerateCardTextInput): Promise<Ge
   // BOTH the identity roll (form → species, build) and the locked-selection seed
   // below (weapon / companion). Non-piloted archetypes return {} so the roll
   // keeps its `species:'humanoid'` default — no regression.
+  // Bench overrides are merged LAST so a hand-pinned field beats whatever the
+  // chosen options resolved to. Undefined keys are dropped rather than allowed
+  // to blank out a pin — an override object is a set of decisions, not a
+  // complete replacement of the directive.
   const imagePins: ImageDirective =
     input.cardId && !input.existingHiddenFate
-      ? collectImagePins(input.archetype, input.element.element as ElementName, input.answers)
+      ? {
+          ...collectImagePins(input.archetype, input.element.element as ElementName, input.answers),
+          ...stripUndefined(input.imagePinOverrides),
+        }
       : {};
   const rolled =
     input.cardId && !input.existingHiddenFate

@@ -6,11 +6,29 @@ import { getSupabaseClient } from './persistence/supabaseClient';
 // now go through /api/anthropic-messages, which validates the caller's
 // Supabase JWT and records usage into api_usage_events.
 
+/**
+ * A content block — text, or an image the model should look at.
+ *
+ * Deliberately loose. This is a pass-through to Anthropic's API; typing the
+ * full block union here would mean maintaining a copy of their schema and
+ * silently falling behind it. The endpoint forwards the body verbatim and
+ * Anthropic validates.
+ */
+export type AnthropicContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; source: { type: 'url'; url: string } }
+  | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } };
+
 export interface AnthropicMessagesRequest {
   model: string;
   max_tokens: number;
   temperature?: number;
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  /**
+   * `content` accepts blocks as well as a plain string (2026-08-10). The proxy
+   * always forwarded them; only this type said otherwise. The Workshop reads a
+   * character's three rank images to describe them.
+   */
+  messages: Array<{ role: 'user' | 'assistant'; content: string | AnthropicContentBlock[] }>;
   /** Optional telemetry tag surfaced in the ops dashboard. */
   gameAction?: string;
   cardId?: string;
