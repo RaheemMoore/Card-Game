@@ -552,6 +552,21 @@
         "type": "image",
         "key": "nature-rocks-scrub-cluster",
         "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-tree-broadleaf-large-v2",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-large-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-shrub-young-tree-cluster-v2",
+        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-rocks-scrub-cluster-v2",
+        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster-v2.png"
       }
     ]
   },
@@ -606,6 +621,11 @@
         "type": "image",
         "key": "tree-pale-bare",
         "url": "assets/kits/halo-stone-castle/recovered/castle-trees-b-3.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-tree-broadleaf-small-v2",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small-v2.png"
       },
       {
         "type": "image",

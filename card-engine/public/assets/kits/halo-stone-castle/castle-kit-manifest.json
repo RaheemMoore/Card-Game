@@ -2079,6 +2079,46 @@
       "notes": "Raheem, 2026-08-07: the tan+white brick should be the ROAD; the kerb should be 'a solid or darker tan block, not white and tan spotted'. So this is the same brick with the cream speckle removed (543 px above luma 195 mapped to base tan rgb(197,150,106)) and darkened to 0.70 â€” mortar only to 0.90, else the kerb becomes a black grid. Road/kerb luma gap 153 -> 104 = 49. Zero generations. A grey-stone recolour was tried first and rejected: 'I actually like the colour of the tan bricks.'"
     },
     {
+      "assetId": "castle.nature.tree.broadleaf.large.v2",
+      "label": "Broadleaf tree, large — PixelLab redraw (v2)",
+      "status": "KEEP",
+      "path": "nature/trees/castle-tree-broadleaf-large-v2.png",
+      "sourceSubject": "pixellab image-to-pixelart from castle-tree-broadleaf-large",
+      "rawSource": "nature/trees/castle-tree-broadleaf-large.png",
+      "usedTrimmedExport": true,
+      "notes": "RESOLUTION, NOT ANGLE. The v1 tree's projection was already right — canopy read from above, short splayed trunk. Its problem was that 142px of art was being placed at 3.00x in CourtyardV3, so its pixels were 2.1x the hero's and 3x the ground tiles'. That density mismatch is what read as blur, and no post-process fixes it because the pixels are not there. POST /image-to-pixelart redraws the SAME tree at 306px, so it now runs at 1.4x — exactly what the hero runs at. At 428px on screen it clears the castle wall's 202px, which is what Raheem asked for. 1 generation, $0.015. Measured: 31 colours / 77% flatness before, 36 / 81.3% after. A second probe pre-upscaled the input with LANCZOS and measured WORSE (76.3%), so the input is fed native — that finding is why the other three cost one generation each instead of two."
+    },
+    {
+      "assetId": "castle.nature.tree.broadleaf.small.v2",
+      "label": "Broadleaf tree, small — PixelLab redraw (v2)",
+      "status": "HUMAN REVIEW",
+      "path": "nature/trees/castle-tree-broadleaf-small-v2.png",
+      "sourceSubject": "pixellab image-to-pixelart from castle-tree-broadleaf-small",
+      "rawSource": "nature/trees/castle-tree-broadleaf-small.png",
+      "usedTrimmedExport": true,
+      "notes": "117px -> 255px, 36 colours, 81.6% flatness. HUMAN REVIEW rather than KEEP because the canopy improved but the trunk did not: it came back thinner and darker and lost the pale bark the v1 had. Flagged to Raheem 2026-08-10 as the one asset in the set that is arguably a step sideways. Generated at the same global scale 2.2535 as the other three so their relative proportions survive — sizing each piece to fill the 320 cap independently would have silently destroyed that."
+    },
+    {
+      "assetId": "castle.nature.shrub.young-tree.cluster.v2",
+      "label": "Shrub / young-tree cluster — PixelLab redraw (v2)",
+      "status": "KEEP",
+      "path": "nature/shrubs/castle-shrub-young-tree-cluster-v2.png",
+      "sourceSubject": "pixellab image-to-pixelart from castle-shrub-young-tree-cluster",
+      "rawSource": "nature/shrubs/castle-shrub-young-tree-cluster.png",
+      "usedTrimmedExport": true,
+      "notes": "90px -> 195px, 36 colours, 79.3% flatness. This one came back on a CREAM background with a black frame rim rather than white, so it keyed with --shave 3 --bg 253,239,197: key_white's pale-border detection rejects a warm cream (blue channel 197 fails the 232 test) and reported 'keying nothing' until told explicitly. Worth remembering — the redraw does not always hand back white."
+    },
+    {
+      "assetId": "castle.nature.rocks.scrub.cluster.v2",
+      "label": "Rock + low scrub cluster — PixelLab redraw (v2)",
+      "status": "KEEP",
+      "path": "nature/rocks/castle-rock-low-scrub-cluster-v2.png",
+      "sourceSubject": "pixellab image-to-pixelart from castle-rock-low-scrub-cluster",
+      "rawSource": "nature/rocks/castle-rock-low-scrub-cluster.png",
+      "usedTrimmedExport": true,
+      "notes": "75px -> 164px, 36 colours, 73.6% flatness. THE WHITE-SPECKLE BUG LIVES HERE. This piece came out with ~150 white specks through the twig tangle and three rounds of keying (higher tolerance, --fill-enclosed down to 1, --bleed-pale) barely moved it, because the specks were not a keying miss at all: measured pale pixels BEFORE quantizing were ZERO. The quantizer was building its palette from the TRANSPARENT pixels, which still carry the keyed-out cream in their RGB channels, then mapping light edge pixels into those invented pale entries. Neutralising the transparent region to the median opaque colour before quantizing fixed it to zero and gave back 3-11 palette entries per asset that were being spent on a colour nothing visible used. Any future i2p piece must quantize opaque-only."
+    },
+    {
       "assetId": "castle.ground.tileset.cliff.rock.32",
       "label": "Cliff rock plateau — wang 32",
       "status": "KEEP",
