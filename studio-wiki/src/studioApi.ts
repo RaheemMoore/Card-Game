@@ -1,4 +1,5 @@
 import type { Card } from '../../card-engine/src/types/card';
+import type { CuratedCharacter } from '../../card-engine/src/types/curatedCard';
 
 export type ReviewStatus = 'needs_review' | 'keep' | 'x_out';
 export type StudioRole = 'user' | 'admin' | 'lore_director';
@@ -279,4 +280,168 @@ export async function updateStudioIdea(id: string, body: string): Promise<Studio
   });
   if (!response.ok) throw new Error((await response.text()) || 'Could not update the idea.');
   return ideaFromRow(((await response.json()) as IdeaRow[])[0]);
+}
+
+// ---------------------------------------------------------------------------
+// Lore proposals — the Workshop hands a character here (2026-08-10).
+//
+// Raheem spoke to the lore director and settled that Tori owns the lore for
+// every card before it becomes permanent. The Workshop assembles the art and
+// the identity sheet, then sends the character to her desk; she writes the
+// name, the lore for each rank, and claims which Story Pillar answers lead
+// players to this character. It goes back for final review.
+//
+// Straight PostgREST against `curated_characters`. She is a `lore_director`, so
+// the existing "director write" policy already covers her — no new grant.
+//
+// A note on the read-modify-write below: the character lives in a single `data`
+// jsonb column, so a partial update means fetching the row, merging, and
+// writing the whole object back. That is a lost-update race if two people edit
+// the same character at once. It is accepted deliberately — there are two
+// people in this studio and a character is on exactly one person's desk at a
+// time — but it is a real limitation, not an oversight, and if the team ever
+// grows this is the first thing that needs a proper conditional write.
+// ---------------------------------------------------------------------------
+
+export interface LoreProposal {
+  id: string;
+  archetype: string;
+  slotIndex: number;
+  status: string;
+  displayName: string;
+  proposedAt: string | null;
+  character: CuratedCharacter;
+}
+
+interface CuratedRow {
+  id: string;
+  archetype: string;
+  slot_index: number;
+  status: string;
+  display_name: string | null;
+  data: CuratedCharacter;
+  updated_at: string;
+}
+
+function proposalFromRow(row: CuratedRow): LoreProposal {
+  return {
+    id: row.id,
+    archetype: row.archetype,
+    slotIndex: row.slot_index,
+    status: row.status,
+    displayName: row.display_name ?? row.data?.displayName ?? row.id,
+    proposedAt: row.data?.proposedAt ?? null,
+    character: row.data,
+  };
+}
+
+const CURATED_SELECT = 'id,archetype,slot_index,status,display_name,data,updated_at';
+
+/**
+ * Everything waiting on her, oldest first — the thing that has been sitting
+ * longest is the thing most worth doing next.
+ */
+export async function listLoreProposals(): Promise<LoreProposal[]> {
+  const response = await supabaseRequest(
+    `/rest/v1/curated_characters?select=${CURATED_SELECT}&status=eq.awaiting_lore&order=updated_at.asc`,
+  );
+  if (!response.ok) throw new Error((await response.text()) || 'Could not open the proposals.');
+  return ((await response.json()) as CuratedRow[]).map(proposalFromRow);
+}
+
+/** Characters she has finished, so she can see what is waiting on review. */
+export async function listConfirmedLore(limit = 10): Promise<LoreProposal[]> {
+  const response = await supabaseRequest(
+    `/rest/v1/curated_characters?select=${CURATED_SELECT}&status=in.(lore_ready,approved)&order=updated_at.desc&limit=${limit}`,
+  );
+  if (!response.ok) throw new Error((await response.text()) || 'Could not load finished lore.');
+  return ((await response.json()) as CuratedRow[]).map(proposalFromRow);
+}
+
+async function writeCharacter(
+  id: string,
+  character: CuratedCharacter,
+  status?: string,
+): Promise<LoreProposal> {
+  const body: Record<string, unknown> = { data: character };
+  if (status) body.status = status;
+  if (character.displayName) body.display_name = character.displayName;
+  const response = await supabaseRequest(
+    `/rest/v1/curated_characters?id=eq.${encodeURIComponent(id)}&select=${CURATED_SELECT}`,
+    { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify(body) },
+  );
+  if (!response.ok) throw new Error((await response.text()) || 'Could not save.');
+  const rows = (await response.json()) as CuratedRow[];
+  if (rows.length === 0) throw new Error('Nothing was saved — the character may have moved on.');
+  return proposalFromRow(rows[0]);
+}
+
+/** Autosave. Leaves the status alone — she is still working. */
+export async function saveCharacterLore(character: CuratedCharacter): Promise<LoreProposal> {
+  return writeCharacter(character.id, character);
+}
+
+/**
+ * Hand it back to the Workshop. Stamps who confirmed it and when, and appends
+ * the current draft to the history so a later send-back can never lose it.
+ */
+export async function confirmCharacterLore(character: CuratedCharacter): Promise<LoreProposal> {
+  const session = getStudioSession();
+  const confirmedBy = session?.email ?? 'lore director';
+  const now = new Date().toISOString();
+  const drafts = character.loreDrafts ?? [];
+  const next: CuratedCharacter = {
+    ...character,
+    loreConfirmedBy: confirmedBy,
+    loreConfirmedAt: now,
+    loreDrafts: character.lore
+      ? [...drafts, { ...character.lore, id: `draft_${drafts.length + 1}_${Date.now()}`, authoredAt: now, author: confirmedBy }]
+      : drafts,
+  };
+  return writeCharacter(character.id, next, 'lore_ready');
+}
+
+/**
+ * Open a session without anyone typing anything.
+ *
+ * Raheem, 2026-08-10: *"Let's remove the login requirement from the wiki desk
+ * feature. It makes it difficult to test and see. We should be able to see each
+ * others desk."*
+ *
+ * Supabase anonymous sign-in gives the browser a real JWT whose role is
+ * `authenticated`, which is what the `curated_characters` read policy requires.
+ * So the desk opens with no form and no shared password.
+ *
+ * WRITES ARE STILL GATED, deliberately. The `director write` policy checks
+ * `is_lore_director()`, which an anonymous session is not. That matters because
+ * this wiki is deployed publicly and its anon key ships in the browser — an
+ * anon-writable roster table would let anyone who finds the URL rewrite or
+ * delete the permanent cards. Reading is harmless; writing is not.
+ *
+ * Practically: anyone can open the desk and read every proposal. Saving lore
+ * needs a real account, once per browser.
+ */
+export async function ensureViewerSession(): Promise<StudioSession | null> {
+  const existing = await restoreStudioSession();
+  if (existing) return existing;
+  if (!isStudioDataConfigured()) return null;
+
+  const config = requireConfig();
+  const response = await fetch(`${config.url}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { apikey: config.anon, 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) return null;
+
+  const auth = (await response.json()) as AuthResponse;
+  if (!auth.access_token) return null;
+  const next = toSession(auth, await profileRole(auth.access_token, auth.user.id).catch(() => 'user' as StudioRole));
+  storeSession(next);
+  return next;
+}
+
+/** True when this session may actually WRITE lore, as opposed to read it. */
+export function canWriteLore(session: StudioSession | null): boolean {
+  return Boolean(session && isStudioPartnerRole(session.role));
 }

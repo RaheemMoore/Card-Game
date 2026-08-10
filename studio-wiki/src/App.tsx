@@ -6,6 +6,8 @@ import { MissingMedia, PageHeader, Panel, RepoLink, RouteCard, SpritePlayer, Sta
 import { archetypes, bossStates, developmentCards, elements, navigation, permanentCards, searchEntries } from './content';
 import type { CardEvidenceState, DevelopmentCardRecord } from './content';
 import { MarkdownBody, sectionsFromMarkdown } from './markdown';
+import { useStudioSession, StudioSignIn } from './studioSession';
+import { LoreDesk } from './LoreDesk';
 import { ElementPerformancePlayer } from './ElementPerformancePlayer';
 import workshopArena from './assets/workshop-arena.png';
 import workshopBoss from './assets/workshop-boss.png';
@@ -124,31 +126,6 @@ function Characters() {
   const [selected, setSelected] = useState(0); const item = archetypes[selected];
   const acceptedCards = permanentCards.filter((card) => card.archetype === item[0]);
   return <><PageHeader eyebrow="VISUAL WIKI" title="Characters & Archetypes" intro="The eleven collectible identities. Select an emblem to inspect its canon and the permanent cards accepted for that archetype." status="SHIPPED"/><div className="character-layout"><Panel title="The eleven archetypes" className="emblem-panel"><div className="emblem-grid">{archetypes.map((entry, index) => <button className={selected === index ? 'emblem-card selected' : 'emblem-card'} key={entry[0]} onClick={() => setSelected(index)} aria-pressed={selected === index}><img src={`/assets/archetype-emblems/${entry[1]}`} alt={`${entry[0]} emblem`}/><span>{entry[0]}</span></button>)}</div></Panel><Panel className="archetype-detail"><img className="detail-emblem" src={`/assets/archetype-emblems/${item[1]}`} alt=""/><p className="eyebrow">SELECTED ARCHETYPE</p><h2>{item[0]}</h2><p>{item[3]}</p><dl><div><dt>Primary symbol</dt><dd>{item[2]}</dd></div><div><dt>Progression</dt><dd>Foundation → Forged → Ascendant</dd></div><div><dt>Identity rule</dt><dd>Rank growth preserves the person.</dd></div></dl><RepoLink path="card-engine/src/data/archetypeBible/"/></Panel></div><Panel title={`${item[0]} permanent cards`} action={<span className="card-section-state card-section-empty">{acceptedCards.length} ACCEPTED</span>}><div className="archetype-card-roster" aria-live="polite">{acceptedCards.length === 0 ? <><img src={`/assets/archetype-emblems/${item[1]}`} alt=""/><div><p className="eyebrow">HUMAN-ACCEPTED PERMANENT</p><h3>No {item[0]} cards have been accepted into the game.</h3><p>Select another emblem to inspect its permanent roster. Development cards live on the first-class Cards page and never appear here unless they receive explicit human acceptance.</p></div></> : acceptedCards.map((card) => <article key={card.name}><img src={card.image} alt={`${card.title} permanent card`}/><h3>{card.title}</h3></article>)}</div></Panel></>;
-}
-
-function useStudioSession() {
-  const [session, setSession] = useState<StudioSession | null>(() => getStudioSession());
-  const [checking, setChecking] = useState(true);
-  useEffect(() => {
-    const sync = () => setSession(getStudioSession());
-    const unsubscribe = subscribeStudioSession(sync);
-    restoreStudioSession().finally(() => { sync(); setChecking(false); });
-    return unsubscribe;
-  }, []);
-  return { session, checking };
-}
-
-function StudioSignIn({ purpose }: { purpose: string }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [working, setWorking] = useState(false);
-  const configured = isStudioDataConfigured();
-  return <Panel className="studio-signin">
-    <LogIn/><div><p className="eyebrow">TEAM ACCESS</p><h2>Sign in with your Card Engine account</h2><p>{purpose} This uses the same account as the game; the Wiki never stores your password.</p>
-      {!configured ? <div className="studio-service-note"><TriangleAlert/><span>The live workspace will activate after Supabase environment configuration is added to this Wiki deployment.</span></div> : <form onSubmit={async (event) => { event.preventDefault(); setWorking(true); setError(''); try { await signInToStudio(email, password); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not sign in.'); } finally { setWorking(false); } }}><label>Email<input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)}/></label><label>Password<input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)}/></label><button disabled={working}>{working ? <RefreshCw className="spin"/> : <LogIn/>}{working ? 'Signing in…' : 'Open the Studio'}</button>{error && <p className="studio-form-error" role="alert">{error}</p>}</form>}
-    </div>
-  </Panel>;
 }
 
 function cardStatEntries(card: LiveReviewCard) {
@@ -582,6 +559,9 @@ function WorkBoardPage({ kind }: { kind: Exclude<WorkBoardKind, 'raheem'> }) {
   return <>
     <PageHeader eyebrow={config.eyebrow} title={config.title} intro={config.intro} status="IN FLIGHT"/>
     <WorkBoardNav current={kind}/>
+    {/* Cards the Workshop has sent for lore sit ABOVE the PRODUCTION.md
+        projection — they are live work waiting on her, not reading material. */}
+    {kind === 'tori' ? <LoreDesk/> : null}
     <Panel className={`work-board-ledger work-board-ledger-${kind}`}>
       <div className="work-ledger-mark">{config.icon}</div>
       <div><p className="eyebrow">LIVE REPOSITORY PROJECTION</p><h2>{config.source}</h2><p>Last sourced {updated}. Update the owning section through the <strong>production-log</strong> workflow; this page never keeps a separate browser-only task list.</p></div>
