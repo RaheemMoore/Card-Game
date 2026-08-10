@@ -1,0 +1,20 @@
+{
+  "_why": "The probe I should have run before spending a 20-generation building kit. Raheem's reference cliffs are organic and lobed; shape_style 'round' plus high raggedness is the parameter pair built for exactly that, and slope_size gives the wall height the building kit was supposed to provide.",
+  "_probe": "ONE call, look at it, THEN decide. No reference image yet because Raheem's screenshot is not on disk \u2014 this is testing whether the procedural shape controls alone get near it.",
+  "lower_description": "sandy dirt ground, warm tan, flat and open",
+  "upper_description": "raised rocky plateau top, warm brown packed earth with tufts of grass and scattered stones",
+  "transition_description": "a natural rock cliff face dropping from the plateau to the ground, rounded lobed boulders and strata, warm brown and grey-brown stone, darker in the shadow at its foot",
+  "mode": "pro",
+  "raggedness": 0.85,
+  "spread_x": 0.35,
+  "slope_size": 0.75,
+  "transition_size": 0.5,
+  "view": "high top-down",
+  "tile_size": {
+    "width": 32,
+    "height": 32
+  },
+  "text_guidance_scale": 9,
+  "seed": 7,
+  "_shape_style": "REJECTED with 422: 'shape_style cannot be combined with mode=pro'. Kept pro and dropped shape_style, because pro is the mode that carries raggedness (the lobed boundary noise) AND slope_size (the wall height) \u2014 the two things the reference actually needs. shape_style='round' is only available on standard, which has neither. The 422 cost nothing: validation fires before any generation."
+}
