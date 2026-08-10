@@ -31,6 +31,7 @@
                     "type": "EditableTilemapLayer",
                     "id": "fe869ff4-48d2-4b60-a53b-d6a68128b4bc",
                     "label": "ground",
+                    "y": -1,
                     "tilemapId": "7bb446a5-ba9c-4fb2-a680-a1fa9a079df7"
                 },
                 {
@@ -59,30 +60,6 @@
                     "scaleY": 0.75,
                     "originY": 0,
                     "flipX": true
-                },
-                {
-                    "type": "Image",
-                    "id": "18b22e54-5dd2-48f4-b7e6-f95ea8594202",
-                    "label": "SHADOW_forge",
-                    "texture": {
-                        "key": "shadow-contact"
-                    },
-                    "x": 1733,
-                    "y": 485,
-                    "scaleX": 2.05,
-                    "alpha": 0.85
-                },
-                {
-                    "type": "Image",
-                    "id": "44e7fcb4-e20d-4f5a-b475-50029f3c387d",
-                    "label": "SHADOW_archivist",
-                    "texture": {
-                        "key": "shadow-contact"
-                    },
-                    "x": 915,
-                    "y": 484,
-                    "scaleX": 2.05,
-                    "alpha": 0.85
                 }
             ]
         },
@@ -766,6 +743,8 @@
             "type": "Layer",
             "id": "b65e4d4f-cabb-4077-9aac-2b5ec001ad4e",
             "label": "L12.5 Back Canopy",
+            "visible": false,
+            "editorRender": false,
             "list": [
                 {
                     "type": "Image",
@@ -943,18 +922,19 @@
             "label": "L3_CASTLE",
             "list": [
                 {
-                    "type": "Image",
-                    "id": "4d8b64b9-b7aa-4319-96bf-f43e8ad2fc97",
-                    "label": "battleTower",
+                    "type": "TileSprite",
+                    "id": "e4fd3f7c-f34b-426d-8536-5a1e666eb4c9",
+                    "label": "wallSouthRunWest",
                     "texture": {
-                        "key": "tower-battle-v3"
+                        "key": "wall-straight-v3"
                     },
-                    "x": 1224,
-                    "y": -57,
+                    "x": 1930,
+                    "y": 820,
+                    "scaleY": -1,
+                    "angle": 180,
                     "originX": 0,
-                    "originY": 0,
-                    "scaleX": 1.43,
-                    "scaleY": 1.43
+                    "width": 1254,
+                    "height": 202
                 },
                 {
                     "type": "TileSprite",
@@ -963,64 +943,115 @@
                     "texture": {
                         "key": "wall-straight-v3"
                     },
-                    "x": 706,
-                    "y": -6,
+                    "x": 641,
+                    "y": 163,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8606472291741316,
                     "originX": 0,
                     "originY": 0,
-                    "width": 1221,
+                    "width": 1647,
                     "height": 202
                 },
                 {
                     "type": "TileSprite",
-                    "id": "e4fd3f7c-f34b-426d-8536-5a1e666eb4c9",
-                    "label": "wallSouthRunWest",
+                    "id": "c59b81b4-5947-45f4-ad95-b29a5b411992",
+                    "label": "wallWest_seg1",
                     "texture": {
-                        "key": "wall-straight-v3"
+                        "key": "wall-side-v3"
                     },
-                    "x": 706,
-                    "y": 928,
-                    "scaleY": -1,
+                    "x": 533,
+                    "y": 228,
                     "originX": 0,
                     "originY": 0,
-                    "width": 397,
-                    "height": 202
+                    "width": 125,
+                    "height": 50
                 },
                 {
                     "type": "TileSprite",
-                    "id": "1f684376-dd03-453b-9082-cad7abfdc34d",
-                    "label": "wallSouthRunEast",
+                    "id": "4b1aa834-df60-417a-8ef2-1290d6b75b8c",
+                    "label": "wallWest_seg2",
                     "texture": {
-                        "key": "wall-straight-v3"
+                        "key": "wall-side-v3"
                     },
-                    "x": 1529,
-                    "y": 928,
-                    "scaleY": -1,
+                    "x": 533,
+                    "y": 278,
                     "originX": 0,
                     "originY": 0,
-                    "width": 398,
-                    "height": 202
+                    "width": 125,
+                    "height": 54,
+                    "tilePositionY": 50
                 },
                 {
-                    "type": "Image",
-                    "id": "be6aa94a-ac68-4d60-a1db-9fc0c6065541",
-                    "label": "wallWestSeg1",
+                    "type": "TileSprite",
+                    "id": "d5e5f679-45ea-4321-a600-2ff99fd9c50b",
+                    "label": "wallWest_seg3",
                     "texture": {
                         "key": "wall-side-v3"
                     },
-                    "x": 523,
-                    "y": 302,
+                    "x": 533,
+                    "y": 332,
                     "originX": 0,
-                    "originY": 0
+                    "originY": 0,
+                    "width": 125,
+                    "height": 53,
+                    "tilePositionY": 104
                 },
                 {
-                    "type": "Image",
-                    "id": "b766adaf-a702-4842-9dc2-1db55a765ae9",
-                    "label": "wallEastSeg1",
+                    "type": "TileSprite",
+                    "id": "0370a816-8260-45d6-8ec4-dfc877d53005",
+                    "label": "wallWest_seg4",
                     "texture": {
                         "key": "wall-side-v3"
                     },
-                    "x": 2110,
-                    "y": 302,
+                    "x": 533,
+                    "y": 385,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 53,
+                    "tilePositionY": 157
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "c29ca2f1-df5b-4760-9907-38c5ad9f0600",
+                    "label": "wallWest_seg5",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 533,
+                    "y": 438,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 54,
+                    "tilePositionY": 210
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "843dc915-2e1a-4732-a28c-1123ac737a07",
+                    "label": "wallWest_seg6",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 533,
+                    "y": 492,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 54,
+                    "tilePositionY": 264
+                },
+                {
+                    "type": "Image",
+                    "id": "4d8b64b9-b7aa-4319-96bf-f43e8ad2fc97",
+                    "label": "battleTower",
+                    "texture": {
+                        "key": "tower-battle-v3"
+                    },
+                    "x": 506,
+                    "y": 520,
+                    "scaleX": 1.43,
+                    "scaleY": 1.43,
                     "originX": 0,
                     "originY": 0
                 },
@@ -1031,20 +1062,10 @@
                     "texture": {
                         "key": "tower-corner-v3"
                     },
-                    "x": 523,
-                    "y": -6,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "bb533cd3-f439-44fa-bcf9-79f62c3687d8",
-                    "label": "towerCornerNE",
-                    "texture": {
-                        "key": "tower-corner-v3"
-                    },
-                    "x": 1927,
-                    "y": -6,
+                    "x": 521,
+                    "y": 64,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8,
                     "originX": 0,
                     "originY": 0
                 },
@@ -1055,20 +1076,8 @@
                     "texture": {
                         "key": "tower-corner-v3"
                     },
-                    "x": 523,
-                    "y": 659,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "b6c390c8-6f25-47a7-8ad7-a305720195dd",
-                    "label": "towerCornerSE",
-                    "texture": {
-                        "key": "tower-corner-v3"
-                    },
-                    "x": 1927,
-                    "y": 659,
+                    "x": 2630,
+                    "y": 106,
                     "originX": 0,
                     "originY": 0
                 },
@@ -1079,10 +1088,10 @@
                     "texture": {
                         "key": "gate-house-v3"
                     },
-                    "x": 1103,
-                    "y": 654,
-                    "scaleX": 1.45,
-                    "scaleY": 1.45,
+                    "x": 1049,
+                    "y": 595,
+                    "scaleX": 1.65,
+                    "scaleY": 1.65,
                     "originX": 0,
                     "originY": 0
                 },
@@ -1145,6 +1154,123 @@
                     "y": 100,
                     "originX": 0,
                     "originY": 0
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "69e3b0f8-67ac-4e1d-9758-cad7072c7457",
+                    "label": "wallEast_seg1",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 1927,
+                    "y": 228,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 50
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "d14eaa42-aa8e-4043-a6bf-070badfb373b",
+                    "label": "wallEast_seg2",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 1927,
+                    "y": 278,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 54,
+                    "tilePositionY": 50
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "7e5f842c-1593-4b0c-b350-cb6a5417f067",
+                    "label": "wallEast_seg3",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 1927,
+                    "y": 332,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 53,
+                    "tilePositionY": 104
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "7d5aa105-b51e-40f1-b825-39ab1d28941f",
+                    "label": "wallEast_seg4",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 1927,
+                    "y": 385,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 53,
+                    "tilePositionY": 157
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "66881d2b-7788-4940-86eb-f2740c15aba2",
+                    "label": "wallEast_seg5",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 1927,
+                    "y": 438,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 54,
+                    "tilePositionY": 210
+                },
+                {
+                    "type": "TileSprite",
+                    "id": "1bdee175-8afa-45ee-b9b3-fa89ab610f99",
+                    "label": "wallEast_seg6",
+                    "texture": {
+                        "key": "wall-side-v3"
+                    },
+                    "x": 1927,
+                    "y": 492,
+                    "originX": 0,
+                    "originY": 0,
+                    "width": 125,
+                    "height": 54,
+                    "tilePositionY": 264
+                },
+                {
+                    "type": "Image",
+                    "id": "91e5a47a-f860-4e08-9830-91e368d30dbf",
+                    "label": "battleTower_1",
+                    "texture": {
+                        "key": "tower-battle-v3"
+                    },
+                    "x": 1899,
+                    "y": 519,
+                    "scaleX": 1.43,
+                    "scaleY": 1.43,
+                    "originX": 0,
+                    "originY": 0
+                },
+                {
+                    "type": "Image",
+                    "id": "bb533cd3-f439-44fa-bcf9-79f62c3687d8",
+                    "label": "towerCornerNE",
+                    "texture": {
+                        "key": "tower-corner-v3"
+                    },
+                    "x": 1916,
+                    "y": 64,
+                    "scaleX": 0.8,
+                    "scaleY": 0.8,
+                    "originX": 0,
+                    "originY": 0
                 }
             ]
         },
@@ -1152,6 +1278,8 @@
             "type": "Layer",
             "id": "65795cfa-e278-4a56-be62-0f60321ae078",
             "label": "L12_FOREST_CANOPY",
+            "visible": false,
+            "editorRender": false,
             "list": [
                 {
                     "type": "Image",
@@ -2081,36 +2209,10 @@
                         "key": "anim-apprentice-cardwright-study-east",
                         "frame": 0
                     },
-                    "x": 1563,
-                    "y": 761,
+                    "x": 1335,
+                    "y": 594,
                     "scaleX": 0.667,
                     "scaleY": 0.667,
-                    "originY": 1
-                },
-                {
-                    "type": "Image",
-                    "id": "c1bd40b8-47ca-4579-a5f3-758f54112a0d",
-                    "label": "ARCHIVIST_A_as_generated",
-                    "texture": {
-                        "key": "archivist-v1"
-                    },
-                    "x": 3144,
-                    "y": -26,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                },
-                {
-                    "type": "Image",
-                    "id": "4c9c949f-d5c3-4a63-860a-731ee69e3822",
-                    "label": "ARCHIVIST_B_stone20",
-                    "texture": {
-                        "key": "archivist-v1-stone20"
-                    },
-                    "x": 2420,
-                    "y": -301,
-                    "scaleX": 2,
-                    "scaleY": 2,
                     "originY": 1
                 },
                 {
@@ -2120,10 +2222,10 @@
                     "texture": {
                         "key": "forge-v2"
                     },
-                    "x": 1731,
-                    "y": 477,
-                    "scaleX": 2,
-                    "scaleY": 2,
+                    "x": 1671,
+                    "y": 496,
+                    "scaleX": 1.6,
+                    "scaleY": 1.6,
                     "originY": 1
                 }
             ]
@@ -2132,44 +2234,19 @@
             "type": "Layer",
             "id": "42145479-22f3-43da-b340-5ed576b70da9",
             "label": "L5_QUADRANT_NW",
-            "list": [
-                {
-                    "type": "Image",
-                    "id": "5bfa6bcf-1d78-474e-b3da-62bc5df94763",
-                    "label": "FORGE_A_castle_lavender",
-                    "texture": {
-                        "key": "forge-v1"
-                    },
-                    "x": 4462,
-                    "y": 346,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                },
-                {
-                    "type": "Image",
-                    "id": "054c02b5-879a-4d7d-9e10-e29ab94f6c87",
-                    "label": "FORGE_B_warm_rock",
-                    "texture": {
-                        "key": "forge-v1-warm"
-                    },
-                    "x": 3151,
-                    "y": 339,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                }
-            ]
+            "list": []
         },
         {
             "type": "Layer",
             "id": "d167cbd5-d317-4e10-a314-bf8dc852c1b5",
-            "label": "L6_QUADRANT_SW"
+            "label": "L6_QUADRANT_SW",
+            "list": []
         },
         {
             "type": "Layer",
             "id": "deff59c9-e255-4a72-bf64-96af7cf8ab74",
-            "label": "L7_QUADRANT_SE"
+            "label": "L7_QUADRANT_SE",
+            "list": []
         },
         {
             "type": "Layer",
@@ -2292,41 +2369,15 @@
                 },
                 {
                     "type": "Image",
-                    "id": "f7d370fb-5f96-4a05-b783-c5b64f5c6590",
-                    "label": "COMPARE_A_leonardo_cutout",
-                    "texture": {
-                        "key": "forge-v1"
-                    },
-                    "x": 3812,
-                    "y": 326,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                },
-                {
-                    "type": "Image",
-                    "id": "6021b2a1-afcf-4d87-95a9-16d2d7a5fd72",
-                    "label": "COMPARE_C_archivist_leonardo",
-                    "texture": {
-                        "key": "archivist-v1-stone20"
-                    },
-                    "x": 3802,
-                    "y": -28,
-                    "scaleX": 2,
-                    "scaleY": 2,
-                    "originY": 1
-                },
-                {
-                    "type": "Image",
                     "id": "a982894f-cadd-4dcb-859e-2a6b79a34142",
                     "label": "COMPARE_D_archivist_pixellab",
                     "texture": {
                         "key": "archivist-v2"
                     },
-                    "x": 921,
-                    "y": 480,
-                    "scaleX": 2,
-                    "scaleY": 2,
+                    "x": 933,
+                    "y": 491,
+                    "scaleX": 1.6,
+                    "scaleY": 1.6,
                     "originY": 1
                 }
             ]
@@ -2429,54 +2480,6 @@
                     },
                     "x": -671,
                     "y": 446,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "52a324b1-f934-4add-bd73-bff37fab031d",
-                    "label": "VOID_rug_0",
-                    "texture": {
-                        "key": "rugs-frame-0"
-                    },
-                    "x": -871,
-                    "y": 666,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "54e39545-cc09-4137-ba47-fc9d01f4e1cb",
-                    "label": "VOID_rug_1",
-                    "texture": {
-                        "key": "rugs-frame-1"
-                    },
-                    "x": -671,
-                    "y": 666,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "7fe9d507-cc50-42ba-ac9c-444906e15048",
-                    "label": "VOID_rug_2",
-                    "texture": {
-                        "key": "rugs-frame-2"
-                    },
-                    "x": -471,
-                    "y": 666,
-                    "originX": 0,
-                    "originY": 0
-                },
-                {
-                    "type": "Image",
-                    "id": "b83886e0-b3d6-43dc-b73c-10fe42fc315d",
-                    "label": "VOID_rug_3",
-                    "texture": {
-                        "key": "rugs-frame-3"
-                    },
-                    "x": -271,
-                    "y": 666,
                     "originX": 0,
                     "originY": 0
                 },
@@ -3725,10 +3728,12 @@
                     "type": "Rectangle",
                     "id": "7acbfacf-9ea4-457e-b7e8-f24ea09b9d86",
                     "label": "DOOR_forge",
-                    "x": 1642,
-                    "y": 441,
-                    "originX": 0,
-                    "originY": 0,
+                    "x": 1683.8429952859879,
+                    "y": 496.43787813186646,
+                    "scaleX": 0.4536652674694463,
+                    "scaleY": 0.8192454180958244,
+                    "originX": 1,
+                    "originY": 1,
                     "isFilled": true,
                     "fillColor": "#ff9933",
                     "fillAlpha": 0.4,
@@ -3742,10 +3747,12 @@
                     "type": "Rectangle",
                     "id": "7fc018f7-967c-4d13-acbc-0f7a1c54fdf0",
                     "label": "DOOR_collection_archive",
-                    "x": 830,
-                    "y": 484,
-                    "originX": 0,
-                    "originY": 0,
+                    "x": 961.503336429596,
+                    "y": 488.85823822021484,
+                    "scaleX": 0.4354806886093996,
+                    "scaleY": 0.7803197276512894,
+                    "originX": 1,
+                    "originY": 1,
                     "isFilled": true,
                     "fillColor": "#9966ff",
                     "fillAlpha": 0.4,

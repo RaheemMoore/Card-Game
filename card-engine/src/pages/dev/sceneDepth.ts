@@ -117,6 +117,62 @@ export function groundContactY(obj: Phaser.GameObjects.GameObject): number {
 }
 
 /**
+ * THE ESCAPE HATCH — setting `Depth` on an object in the Editor.
+ *
+ * Y-sorting cannot resolve INTERLOCKING architecture, and pretending otherwise
+ * was wrong. A corner tower and the wall that meets it have no correct order
+ * derivable from their base Y: CourtyardV3's `towerCornerNW` contacts the ground
+ * at 279 and `wallNorthRun` at 337, so the wall drew across the tower's doorway.
+ * Raheem, 2026-08-09, comparing his Editor to the running game: "the towers and
+ * things are out of order."
+ *
+ * So a non-zero `Depth` in the Editor's Game Object section means:
+ *
+ *   **"sort me as if I stood at this Y."**
+ *
+ * Not a raw depth — a substitute ground-contact line. It still gets the elevation
+ * stride added, so an override interacts with terraces and with the hero exactly
+ * the way a real base line would, and a tower pinned at 1000 is still correctly
+ * behind someone standing at 1100. Leave it at 0 and nothing changes.
+ *
+ * Use it ONLY where geometry genuinely interlocks — towers into walls, an arch
+ * over a road. Reaching for it because a shrub looks wrong is how a scene ends up
+ * hand-ordered again, which is the thing the band exists to stop.
+ */
+
+/**
+ * Pieces that sort lower than they stand, by texture key.
+ *
+ * A corner tower is the one shape y-sorting genuinely cannot place. Everything
+ * else in the courtyard has a footprint you can reason about: a shrub is a point,
+ * a wall run is a line. A tower is a JUNCTION — walls arrive at it from two
+ * directions and all of them have to pass behind, but the tower's own base is
+ * north of theirs, so contact-Y puts it behind every one of them.
+ *
+ * Two thirds of that problem was never the tower's fault and is now gone.
+ * `castle-wall-side-v3` was ONE 318px-tall sprite spanning y 228..546 with a
+ * single depth taken from its southern tip, so its whole length — including the
+ * end tucked under the tower — drew in front of everything north of 546. That is
+ * the failure this file's header describes, and on 2026-08-09 both side walls
+ * were cut into six stacked TileSprite segments the way V2's already were. A wall
+ * segment ending at 278 now correctly passes behind the tower's base at 279.
+ *
+ * What remains is only `wallNorthRun`, whose base at 337 is a TRUE horizontal
+ * line 58px south of the tower's 279 — nothing to segment, no packing to fix, the
+ * geometry simply says "wall in front" where the art needs "tower in front". So
+ * the tower sorts as if it stood 60px further south: past 337, nowhere near the
+ * battle tower at 965 that really does stand in front of it.
+ *
+ * Keyed on TEXTURE rather than on an object, deliberately. Raheem set depths by
+ * hand in the .scene and his next Editor save erased them — the Editor rewrites
+ * that file wholesale, so anything that must survive a save lives here. Keying on
+ * texture also means the next corner tower is right the moment it is placed.
+ */
+export const CONTACT_BIAS_BY_TEXTURE: Record<string, number> = {
+  'tower-corner-v3': 60,
+};
+
+/**
  * Depth for a static object, including its elevation.
  *
  * The cliff-face rule: a face image belongs to the LOWER level and sorts on its
@@ -127,13 +183,18 @@ export function groundContactY(obj: Phaser.GameObjects.GameObject): number {
 export function depthOf(
   obj: Phaser.GameObjects.GameObject,
   map: ElevationMap = EMPTY_ELEVATION,
+  contactOverride?: number,
 ): number {
-  const contact = groundContactY(obj);
+  const key = (obj as Phaser.GameObjects.Image).texture?.key ?? '';
+  // A Depth set in the Editor is an explicit instruction and beats the table —
+  // which also means the table stops applying the moment the art is fixed
+  // properly and someone authors a real value.
+  const contact =
+    contactOverride ?? groundContactY(obj) + (CONTACT_BIAS_BY_TEXTURE[key] ?? 0);
   const bounds = (obj as Phaser.GameObjects.Image).getBounds?.();
   const centreX = bounds ? bounds.centerX : 0;
   const level = levelAt(centreX, contact, map) ?? 0;
 
-  const key = (obj as Phaser.GameObjects.Image).texture?.key ?? '';
   const isTerrainFace = key.startsWith('terrain-wall-');
 
   return level * LEVEL_STRIDE + contact + (isTerrainFace ? -1 : 0);
@@ -180,13 +241,31 @@ export function buildDepthBand(
     if ((root as unknown) === (band as unknown) || excluded.has(root)) continue;
 
     const asLayer = root as unknown as Phaser.GameObjects.Layer;
-    const movable: Phaser.GameObjects.GameObject[] =
-      typeof asLayer.getAll === 'function' ? [...asLayer.list] : [root];
+    const isLayer = typeof asLayer.getAll === 'function';
+    const movable: Phaser.GameObjects.GameObject[] = isLayer ? [...asLayer.list] : [root];
+
+    // A hidden layer hides its children by PARENTAGE, not by a flag on each child.
+    // Move them out and the hiding evaporates — the eye is left switched off on a
+    // layer that no longer contains anything. Raheem, 2026-08-09, having turned off
+    // both canopy layers in the Editor and watched the trees turn up anyway: "I made
+    // them invisible in the editor, so I thought when I launch it, they should also
+    // be invisible."
+    //
+    // So the layer's visibility is folded into each child on the way past. Note this
+    // is one-way and one-time: the Editor's eye is an authoring decision baked in at
+    // load, and re-showing the layer afterwards will not bring them back. That is
+    // the right trade — the alternative is not collapsing the layers at all, and
+    // then a wall and the hero can never sort against each other.
+    const hidden = isLayer && asLayer.visible === false;
 
     for (const child of movable) {
       if (excluded.has(child)) continue;
       band.add(child);
-      (child as Phaser.GameObjects.Image).setDepth?.(depthOf(child, map));
+      const image = child as Phaser.GameObjects.Image;
+      if (hidden) image.setVisible?.(false);
+      // Read BEFORE the write below overwrites it.
+      const authored = typeof image.depth === 'number' && image.depth !== 0 ? image.depth : undefined;
+      image.setDepth?.(depthOf(child, map, authored));
       sorted += 1;
     }
   }

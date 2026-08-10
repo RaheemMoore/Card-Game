@@ -11,18 +11,25 @@ function obj(bottom: number, label = '') {
   return {
     label,
     depth: 0,
+    visible: true,
+    texture: { key: '' },
     getBounds: () => ({ bottom }),
     setDepth(d: number) {
       this.depth = d;
       return this;
     },
+    setVisible(v: boolean) {
+      this.visible = v;
+      return this;
+    },
   };
 }
 
-function layer(list: unknown[]) {
+function layer(list: unknown[], visible = true) {
   return {
     list,
     depth: 0,
+    visible,
     getAll: () => list,
     add(child: unknown) {
       list.push(child);
@@ -107,6 +114,104 @@ describe('buildDepthBand', () => {
     expect(markers.depth).toBe(DEPTH.markers);
     expect(colliders.depth).toBe(DEPTH.colliders);
     expect(band.layer.depth).toBe(DEPTH.band);
+  });
+
+  /**
+   * The Editor's eye icon, honoured. Raheem turned off both canopy layers in
+   * CourtyardV3, saved, launched, and the trees were still there — the band had
+   * moved them out of the layer whose `visible:false` was hiding them.
+   */
+  it('carries a hidden layer onto its children as they are moved out', () => {
+    const tree = obj(613, 'nature_tree_broadleaf_large');
+    const wall = obj(1216, 'wall');
+    const scene = sceneWith({
+      l12_FOREST_CANOPY: layer([tree], false),
+      l3_CASTLE: layer([wall]),
+    });
+
+    buildDepthBand(scene);
+
+    expect(tree.visible).toBe(false);
+    // Still sorted — hidden is not the same as absent, and unhiding must not
+    // require rebuilding the band.
+    expect(tree.depth).toBe(613);
+    // A visible layer's children are untouched.
+    expect(wall.visible).toBe(true);
+  });
+
+  it('leaves an object hidden on its own hidden inside a visible layer', () => {
+    const shelved = obj(400, 'FORGE_booth');
+    shelved.visible = false;
+    const scene = sceneWith({ l9_SHELF_offmap: layer([shelved]) });
+
+    buildDepthBand(scene);
+
+    expect(shelved.visible).toBe(false);
+  });
+
+  /**
+   * Interlocking architecture. The NW corner tower contacts at 279 and the north
+   * wall at 337, so y-sort alone draws the wall across the tower's doorway.
+   */
+  it('honours a Depth authored in the Editor as a substitute contact line', () => {
+    const tower = obj(279, 'towerCornerNW');
+    tower.depth = 1000; // set in the Editor
+    const wall = obj(337, 'wallNorthRun');
+    const scene = sceneWith({ l3_CASTLE: layer([tower, wall]) });
+
+    buildDepthBand(scene);
+
+    expect(wall.depth).toBe(337);
+    expect(tower.depth).toBe(1000);
+    expect(tower.depth).toBeGreaterThan(wall.depth);
+  });
+
+  /**
+   * The corner tower at its junction, with the side wall already segmented.
+   * Done in code, not the .scene — the Editor rewrites that file on save and
+   * erased two hand-set depths on 2026-08-09.
+   */
+  it('sorts a corner tower over the walls that arrive at it', () => {
+    const tower = obj(279, 'towerCornerNW');
+    tower.texture = { key: 'tower-corner-v3' };
+    const northWall = obj(337, 'wallNorthRun');
+    const battle = obj(966, 'battleTower');
+    const scene = sceneWith({ l3_CASTLE: layer([northWall, tower, battle]) });
+
+    buildDepthBand(scene);
+
+    expect(tower.depth).toBe(339);
+    expect(tower.depth).toBeGreaterThan(northWall.depth);
+    // ...but still behind the battle tower, which really does stand in front.
+    expect(tower.depth).toBeLessThan(battle.depth);
+  });
+
+  /**
+   * Segmentation, which is what removed the need for a large bias. The top
+   * segment must end ABOVE the tower's base or it draws across its doorway.
+   */
+  it('passes a side-wall segment behind the tower it tucks under', () => {
+    const tower = obj(279, 'towerCornerNW');
+    tower.texture = { key: 'tower-corner-v3' };
+    const seg1 = obj(278, 'wallWest_seg1'); // 228..278
+    const seg2 = obj(332, 'wallWest_seg2'); // 278..332
+    const seg6 = obj(546, 'wallWest_seg6'); // 492..546
+    const scene = sceneWith({ l3_CASTLE: layer([seg1, seg2, seg6, tower]) });
+
+    buildDepthBand(scene);
+
+    expect(seg1.depth).toBeLessThan(tower.depth);
+    // Everything from the second segment down is south of the tower and in front,
+    // which is what makes the hero visible walking beside the wall.
+    expect(seg2.depth).toBe(332);
+    expect(seg6.depth).toBe(546);
+  });
+
+  it('leaves an unauthored object on its real contact line', () => {
+    const tree = obj(613, 'tree');
+    const scene = sceneWith({ l8_NATURE: layer([tree]) });
+    buildDepthBand(scene);
+    expect(tree.depth).toBe(613);
   });
 
   it('does not swallow its own band layer while walking the children', () => {

@@ -73,19 +73,32 @@ def draw_tilemap(canvas, scene, js, urls):
             canvas.paste(tile, ((i % w) * tw, (i // w) * th), tile)
 
 
-def draw_object(canvas, o, urls):
+def place_object(o, urls):
+    """The image and its top-left corner, or None if there is nothing to draw.
+
+    Split out of draw_object so --ysort can ask where an object's BOTTOM is
+    without drawing it — that bottom edge is the whole basis of the game's
+    sorting, and computing it from origin and height by hand is exactly the
+    hand-rolled formula sceneDepth.py warns about.
+    """
     if o.get("visible") is False:
-        return
+        return None
     key = (o.get("texture") or {}).get("key")
     if not key or key not in urls:
-        return
+        return None
     img = Image.open(urls[key]).convert("RGBA")
 
     if o["type"] == "TileSprite":
         w, h = int(o.get("width", img.width)), int(o.get("height", img.height))
+        # tilePosition scrolls the texture INSIDE the frame, wrapping. Ignoring it
+        # drew every wall segment as the same top-of-texture strip, which made a
+        # correctly segmented wall look broken — a harness bug that would have been
+        # read as an art bug. Segmented walls are exactly what this is used for.
+        tpx = int(o.get("tilePositionX", 0)) % img.width
+        tpy = int(o.get("tilePositionY", 0)) % img.height
         tiled = Image.new("RGBA", (w, h))
-        for y in range(0, h, img.height):
-            for x in range(0, w, img.width):
+        for y in range(-tpy, h, img.height):
+            for x in range(-tpx, w, img.width):
                 tiled.paste(img, (x, y), img)
         img = tiled
 
@@ -101,7 +114,79 @@ def draw_object(canvas, o, urls):
     ox, oy = o.get("originX", 0.5), o.get("originY", 0.5)
     x = round(o.get("x", 0) - img.width * ox)
     y = round(o.get("y", 0) - img.height * oy)
+    return img, x, y
+
+
+def draw_object(canvas, o, urls):
+    placed = place_object(o, urls)
+    if placed is None:
+        return
+    img, x, y = placed
     canvas.alpha_composite(img, (x, y))
+
+
+# ------------------------------------------------------------------ y-sorting
+#
+# A second draw order, matching what the GAME does rather than what the Editor
+# shows. See card-engine/src/pages/dev/sceneDepth.ts — this mirrors it, and the
+# two must be changed together.
+
+LEVEL_STRIDE = 100_000
+
+# Layer LABELS as they appear in the .scene, matching EXCLUDED_LAYER_VARS.
+EXCLUDED_LAYERS = {
+    "L1_GROUND", "L11_MARKERS", "L14_COLLIDERS",
+    "L20_GROUND_L0", "L21_GROUND_L1", "L22_GROUND_L2", "L23_RAMPS",
+}
+LEVEL_LAYERS = ["L20_GROUND_L0", "L21_GROUND_L1", "L22_GROUND_L2"]
+
+
+def rect_bounds(o):
+    """A plate rectangle as (left, top, right, bottom)."""
+    w, h = o.get("width", 0), o.get("height", 0)
+    left = o.get("x", 0) - w * o.get("originX", 0.5)
+    top = o.get("y", 0) - h * o.get("originY", 0.5)
+    return left, top, left + w, top + h
+
+
+def read_plates(display_list):
+    """(level, bounds) for every elevation plate, highest level first."""
+    plates = []
+    by_label = {e.get("label"): e for e in display_list if e.get("type") == "Layer"}
+    for level, label in enumerate(LEVEL_LAYERS):
+        layer = by_label.get(label)
+        if not layer:
+            continue
+        for c in layer.get("list", []):
+            if c.get("type") == "Rectangle":
+                plates.append((level, rect_bounds(c)))
+    return sorted(plates, key=lambda p: -p[0])
+
+
+def level_at(x, y, plates):
+    for level, (l, t, r, b) in plates:
+        if l <= x <= r and t <= y <= b:
+            return level
+    return None
+
+
+# Mirrors CONTACT_BIAS_BY_TEXTURE in sceneDepth.ts. Change both together.
+CONTACT_BIAS_BY_TEXTURE = {
+    "tower-corner-v3": 60,
+}
+
+
+def depth_of(bottom, centre_x, key, plates, authored=None):
+    # A non-zero Depth authored in the Editor replaces the contact line. See the
+    # escape-hatch note in sceneDepth.ts — same rule, and they must agree.
+    if authored:
+        bottom = authored
+    else:
+        bottom += CONTACT_BIAS_BY_TEXTURE.get(key, 0)
+    level = level_at(centre_x, bottom, plates)
+    if level is None:
+        level = 0
+    return level * LEVEL_STRIDE + bottom + (-1 if key.startswith("terrain-wall-") else 0), level
 
 
 def main():
@@ -109,6 +194,11 @@ def main():
     ap.add_argument("scene")
     ap.add_argument("--out")
     ap.add_argument("--skip", nargs="*", default=["L10_VOID_library", "L9_SHELF_offmap", "L5_QUADRANT_NW"])
+    ap.add_argument("--ysort", action="store_true",
+                    help="draw in the GAME's order (ground-contact Y + elevation) "
+                         "instead of the Editor's layer order")
+    ap.add_argument("--report", action="store_true",
+                    help="print every object's contact Y, level and depth, game order")
     a = ap.parse_args()
 
     scene = json.load(open(os.path.join(ROOT, f"{a.scene}.scene"), encoding="utf-8"))
@@ -121,16 +211,55 @@ def main():
     draw_tilemap(canvas, scene, js, urls)
 
     drawn = 0
-    for e in scene["displayList"]:
-        if e.get("label") in a.skip or e.get("visible") is False:
-            continue
-        if e.get("type") == "Layer":
-            for c in e.get("list", []):
-                draw_object(canvas, c, urls)
+    if not a.ysort:
+        for e in scene["displayList"]:
+            if e.get("label") in a.skip or e.get("visible") is False:
+                continue
+            if e.get("type") == "Layer":
+                for c in e.get("list", []):
+                    draw_object(canvas, c, urls)
+                    drawn += 1
+            else:
+                draw_object(canvas, e, urls)
                 drawn += 1
-        else:
-            draw_object(canvas, e, urls)
+    else:
+        plates = read_plates(scene["displayList"])
+        band = []
+
+        for e in scene["displayList"]:
+            label = e.get("label")
+            if label in a.skip or e.get("visible") is False:
+                continue
+            is_layer = e.get("type") == "Layer"
+
+            # The ground layer draws first and never sorts — same as DEPTH.ground.
+            if label == "L1_GROUND":
+                for c in e.get("list", []):
+                    draw_object(canvas, c, urls)
+                    drawn += 1
+                continue
+            if label in EXCLUDED_LAYERS:
+                continue
+
+            for c in (e.get("list", []) if is_layer else [e]):
+                placed = place_object(c, urls)
+                if placed is None:
+                    continue
+                img, x, y = placed
+                bottom = y + img.height
+                key = (c.get("texture") or {}).get("key") or ""
+                depth, level = depth_of(bottom, x + img.width / 2, key, plates, c.get("depth"))
+                band.append((depth, level, bottom, c.get("label", "?"), label, placed))
+
+        band.sort(key=lambda r: r[0])
+        for depth, level, bottom, lbl, parent, (img, x, y) in band:
+            canvas.alpha_composite(img, (x, y))
             drawn += 1
+
+        if a.report:
+            print(f"{'depth':>9} {'lvl':>3} {'botY':>6}  {'object':<34} layer")
+            for depth, level, bottom, lbl, parent, _ in band:
+                print(f"{depth:>9.0f} {level:>3} {bottom:>6.0f}  {lbl:<34} {parent}")
 
     out = a.out or os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", f"_{a.scene}.png")
     os.makedirs(os.path.dirname(out), exist_ok=True)
