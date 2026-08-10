@@ -3,11 +3,11 @@
   "version": 1,
   "sourceFamily": "scene-castle-kit-family-review",
   "rawOutputsPreserved": true,
-  "assetCount": 237,
+  "assetCount": 295,
   "assets": [
     {
       "assetId": "castle.wall.straight.front.healthy",
-      "label": "Straight Curtain Wall — Front Run",
+      "label": "Straight Curtain Wall â€” Front Run",
       "status": "KEEP",
       "path": "structures/walls/castle-wall-straight-front-healthy.png",
       "sourceSubject": "scene-castle-kit-poc",
@@ -79,7 +79,7 @@
     },
     {
       "assetId": "castle.ground.tileset.grass-dirt.32",
-      "label": "Grass ↔ Packed Dirt Tileset — 32 px",
+      "label": "Grass â†” Packed Dirt Tileset â€” 32 px",
       "status": "HUMAN REVIEW",
       "path": "ground/tilesets/castle-ground-grass-dirt-wang-32.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -88,7 +88,7 @@
     },
     {
       "assetId": "castle.ground.tileset.forestfloor-dirt.32",
-      "label": "Deep Forest Floor ↔ Shaded Dirt Tileset — 32 px",
+      "label": "Deep Forest Floor â†” Shaded Dirt Tileset â€” 32 px",
       "status": "KEEP",
       "path": "ground/tilesets/castle-ground-forestfloor-dirt-wang-32.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -99,7 +99,7 @@
     },
     {
       "assetId": "castle.review.ground.neutral",
-      "label": "Ground Assembly — Neutral Source",
+      "label": "Ground Assembly â€” Neutral Source",
       "status": "REVIEW BOARD",
       "path": "review/ground/castle-ground-layout-neutral.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -108,7 +108,7 @@
     },
     {
       "assetId": "castle.review.ground.day",
-      "label": "Ground Assembly — Day Lighting",
+      "label": "Ground Assembly â€” Day Lighting",
       "status": "REVIEW BOARD",
       "path": "review/ground/castle-ground-layout-day.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -117,7 +117,7 @@
     },
     {
       "assetId": "castle.review.ground.night",
-      "label": "Ground Assembly — Night Lighting",
+      "label": "Ground Assembly â€” Night Lighting",
       "status": "REVIEW BOARD",
       "path": "review/ground/castle-ground-layout-night.png",
       "sourceSubject": "scene-castle-ground-gate",
@@ -126,7 +126,7 @@
     },
     {
       "assetId": "castle.ground.tileset.dirt-paving.32",
-      "label": "Packed Dirt ↔ Scholar Paving Tileset — 32 px",
+      "label": "Packed Dirt â†” Scholar Paving Tileset â€” 32 px",
       "status": "HUMAN REVIEW",
       "path": "ground/tilesets/castle-ground-dirt-paving-wang-32.png",
       "sourceSubject": "scene-castle-ground-paving",
@@ -171,7 +171,7 @@
     },
     {
       "assetId": "castle.wall.straight.side.healthy",
-      "label": "Straight Curtain Wall — Side Run",
+      "label": "Straight Curtain Wall â€” Side Run",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-straight-side-healthy.png",
       "sourceSubject": "scene-castle-kit-topology",
@@ -279,7 +279,7 @@
     },
     {
       "assetId": "castle.ground.tileset.grass-paving.32",
-      "label": "Grass ↔ Pale Stone Paving Tileset — 32 px",
+      "label": "Grass â†” Pale Stone Paving Tileset â€” 32 px",
       "status": "HUMAN REVIEW",
       "path": "ground/tilesets/castle-ground-grass-paving-wang-32.png",
       "sourceSubject": "castle-cliff-kit",
@@ -288,7 +288,7 @@
     },
     {
       "assetId": "castle.terrain.cliff-face.rock",
-      "label": "Cliff Face — Natural Rock (mirror-tiled)",
+      "label": "Cliff Face â€” Natural Rock (mirror-tiled)",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-face-rock.png",
       "sourceSubject": "castle-cliff-faces",
@@ -297,7 +297,7 @@
     },
     {
       "assetId": "castle.terrain.cliff-face.mossy",
-      "label": "Cliff Face — Mossy Stone (mirror-tiled)",
+      "label": "Cliff Face â€” Mossy Stone (mirror-tiled)",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-face-mossy.png",
       "sourceSubject": "castle-cliff-faces",
@@ -306,7 +306,7 @@
     },
     {
       "assetId": "castle.terrain.cliff-face.waterfall",
-      "label": "Cliff Face — Waterfall (mirror-tiled)",
+      "label": "Cliff Face â€” Waterfall (mirror-tiled)",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-face-waterfall.png",
       "sourceSubject": "castle-cliff-faces",
@@ -315,7 +315,7 @@
     },
     {
       "assetId": "castle.terrain.cliff-face.arcane",
-      "label": "Cliff Face — Arcane Fissure (mirror-tiled)",
+      "label": "Cliff Face â€” Arcane Fissure (mirror-tiled)",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-face-arcane.png",
       "sourceSubject": "castle-cliff-faces",
@@ -324,7 +324,7 @@
     },
     {
       "assetId": "castle.terrain.cliff-face.tall",
-      "label": "Cliff Face — Tall / Mountain (mirror-tiled)",
+      "label": "Cliff Face â€” Tall / Mountain (mirror-tiled)",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-face-tall.png",
       "sourceSubject": "castle-cliff-faces",
@@ -333,7 +333,7 @@
     },
     {
       "assetId": "castle.terrain.cliff.scree",
-      "label": "Cliff Scree — rubble at the foot",
+      "label": "Cliff Scree â€” rubble at the foot",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-scree.png",
       "sourceSubject": "castle-cliff-faces",
@@ -342,7 +342,7 @@
     },
     {
       "assetId": "castle.terrain.cliff.stair",
-      "label": "Cliff Stair — carved stone ascent",
+      "label": "Cliff Stair â€” carved stone ascent",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-stair.png",
       "sourceSubject": "castle-cliff-faces",
@@ -351,7 +351,7 @@
     },
     {
       "assetId": "castle.terrain.cliff.ramp-dirt",
-      "label": "Cliff Ramp — worn dirt track",
+      "label": "Cliff Ramp â€” worn dirt track",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-cliff-ramp-dirt.png",
       "sourceSubject": "castle-cliff-faces",
@@ -360,7 +360,7 @@
     },
     {
       "assetId": "castle.terrain.wall.face-rock",
-      "label": "Cliff Wall Face — Rock, 1:1 tall (mirror-tiled)",
+      "label": "Cliff Wall Face â€” Rock, 1:1 tall (mirror-tiled)",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-wall-face-rock.png",
       "sourceSubject": "castle-cliff-wall",
@@ -369,7 +369,7 @@
     },
     {
       "assetId": "castle.terrain.wall.face-mossy",
-      "label": "Cliff Wall Face — Mossy, hue-matched to rock",
+      "label": "Cliff Wall Face â€” Mossy, hue-matched to rock",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-wall-face-mossy.png",
       "sourceSubject": "castle-cliff-wall",
@@ -378,7 +378,7 @@
     },
     {
       "assetId": "castle.terrain.wall.endcap",
-      "label": "Cliff Wall End Cap — derived from the rock face",
+      "label": "Cliff Wall End Cap â€” derived from the rock face",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-wall-endcap.png",
       "sourceSubject": "castle-cliff-wall",
@@ -387,7 +387,7 @@
     },
     {
       "assetId": "castle.terrain.wall.stair",
-      "label": "Cliff Wall Stair — full height",
+      "label": "Cliff Wall Stair â€” full height",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-wall-stair.png",
       "sourceSubject": "castle-cliff-wall",
@@ -396,7 +396,7 @@
     },
     {
       "assetId": "castle.terrain.wall.pillar",
-      "label": "Cliff Wall Pillar — stands on the stair join",
+      "label": "Cliff Wall Pillar â€” stands on the stair join",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-wall-pillar.png",
       "sourceSubject": "castle-cliff-wall",
@@ -405,7 +405,7 @@
     },
     {
       "assetId": "castle.terrain.wall.boulders",
-      "label": "Cliff Wall Boulders — derived from the rock face base",
+      "label": "Cliff Wall Boulders â€” derived from the rock face base",
       "status": "HUMAN REVIEW",
       "path": "terrain/castle-wall-boulders.png",
       "sourceSubject": "castle-cliff-wall",
@@ -414,7 +414,7 @@
     },
     {
       "assetId": "castle.wall.straight.v2",
-      "label": "Curtain Wall — flat elevation, 288px (v2)",
+      "label": "Curtain Wall â€” flat elevation, 288px (v2)",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-straight-v2.png",
       "sourceSubject": "castle-walls-v3",
@@ -423,7 +423,7 @@
     },
     {
       "assetId": "castle.wall.corner-outer.v2",
-      "label": "Wall Corner Outer — 288px (v2)",
+      "label": "Wall Corner Outer â€” 288px (v2)",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-corner-outer-v2.png",
       "sourceSubject": "castle-walls-v3",
@@ -432,7 +432,7 @@
     },
     {
       "assetId": "castle.wall.corner-inner.v2",
-      "label": "Wall Corner Inner — 288px (v2)",
+      "label": "Wall Corner Inner â€” 288px (v2)",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-corner-inner-v2.png",
       "sourceSubject": "castle-walls-v3",
@@ -441,7 +441,7 @@
     },
     {
       "assetId": "castle.tower.watch.v2",
-      "label": "Watch Tower — flat elevation, 384px (v2)",
+      "label": "Watch Tower â€” flat elevation, 384px (v2)",
       "status": "HUMAN REVIEW",
       "path": "structures/towers/castle-tower-watch-v2.png",
       "sourceSubject": "castle-walls-v3",
@@ -450,18 +450,18 @@
     },
     {
       "assetId": "castle.tower.cap.v2",
-      "label": "Watch Tower — Upper Keep Only",
+      "label": "Watch Tower â€” Upper Keep Only",
       "status": "KEEP",
       "path": "structures/towers/castle-tower-cap-v2.png",
       "sourceSubject": "castle-walls-v2",
       "rawSource": "castle-tower-watch-v2.png",
       "usedTrimmedExport": true,
       "derivedFrom": "castle.tower.watch.v2",
-      "note": "Crop, not a generation. Raheem 2026-08-07: the whole tower \"looks ridiculous\" at the left and right corners, but the round top alone, or the base alone as a walk-in entrance, would work. Top 210px of castle-tower-watch-v2, padded to 224 (9x7 tiles) with the art anchored to the TOP, because a cap sits ON something. Cut at y=210, where the silhouette jumps from 108px wide to 183 — the exact seam where the keep flares into its base, measured not guessed."
+      "note": "Crop, not a generation. Raheem 2026-08-07: the whole tower \"looks ridiculous\" at the left and right corners, but the round top alone, or the base alone as a walk-in entrance, would work. Top 210px of castle-tower-watch-v2, padded to 224 (9x7 tiles) with the art anchored to the TOP, because a cap sits ON something. Cut at y=210, where the silhouette jumps from 108px wide to 183 â€” the exact seam where the keep flares into its base, measured not guessed."
     },
     {
       "assetId": "castle.tower.base.v2",
-      "label": "Watch Tower — Base With Entrance",
+      "label": "Watch Tower â€” Base With Entrance",
       "status": "KEEP",
       "path": "structures/towers/castle-tower-base-v2.png",
       "sourceSubject": "castle-walls-v2",
@@ -472,7 +472,7 @@
     },
     {
       "assetId": "castle.gate.house.v2",
-      "label": "Gatehouse — flat elevation, 320px (v2)",
+      "label": "Gatehouse â€” flat elevation, 320px (v2)",
       "status": "HUMAN REVIEW",
       "path": "structures/gate/castle-gate-house-v2.png",
       "sourceSubject": "castle-walls-v3",
@@ -481,7 +481,7 @@
     },
     {
       "assetId": "castle.gate.drawbridge",
-      "label": "Gatehouse with lowered drawbridge — 384x384",
+      "label": "Gatehouse with lowered drawbridge â€” 384x384",
       "status": "HUMAN REVIEW",
       "path": "structures/gate/castle-gate-drawbridge.png",
       "sourceSubject": "castle-walls-v4",
@@ -490,7 +490,7 @@
     },
     {
       "assetId": "castle.wall.side",
-      "label": "Curtain Wall — SIDE run, top-down, tiles vertically",
+      "label": "Curtain Wall â€” SIDE run, top-down, tiles vertically",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-side.png",
       "sourceSubject": "castle-walls-v4",
@@ -499,7 +499,7 @@
     },
     {
       "assetId": "castle.wall.north",
-      "label": "Curtain Wall — NORTH run, top-down, tiles horizontally",
+      "label": "Curtain Wall â€” NORTH run, top-down, tiles horizontally",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-north.png",
       "sourceSubject": "castle-walls-v4",
@@ -508,7 +508,7 @@
     },
     {
       "assetId": "castle.wall.corner-turn",
-      "label": "Wall Corner — top-down bastion joining side to front",
+      "label": "Wall Corner â€” top-down bastion joining side to front",
       "status": "HUMAN REVIEW",
       "path": "structures/walls/castle-wall-corner-turn.png",
       "sourceSubject": "castle-walls-v4",
@@ -517,7 +517,7 @@
     },
     {
       "assetId": "castle.gate.drawbridge.solid",
-      "label": "Gatehouse with drawbridge — SOLID (no see-through holes)",
+      "label": "Gatehouse with drawbridge â€” SOLID (no see-through holes)",
       "status": "HUMAN REVIEW",
       "path": "structures/gate/castle-gate-drawbridge-solid.png",
       "sourceSubject": "castle-walls-v4",
@@ -526,7 +526,7 @@
     },
     {
       "assetId": "castle.gate.drawbridge.v5",
-      "label": "Gatehouse with drawbridge v5 — v3 wall style clauses, sky cut",
+      "label": "Gatehouse with drawbridge v5 â€” v3 wall style clauses, sky cut",
       "status": "HUMAN REVIEW",
       "path": "structures/gate/castle-gate-drawbridge-v5.png",
       "sourceSubject": "castle-gate-v5",
@@ -535,7 +535,7 @@
     },
     {
       "assetId": "castle.ground.tileset.dirt-floor.32",
-      "label": "Dirt ↔ Honey Flagstone Castle Floor Tileset — 32 px",
+      "label": "Dirt â†” Honey Flagstone Castle Floor Tileset â€” 32 px",
       "status": "HUMAN REVIEW",
       "path": "ground/tilesets/castle-ground-dirt-floor-wang-32.png",
       "sourceSubject": "castle-floor-tileset",
@@ -2020,17 +2020,17 @@
     },
     {
       "assetId": "castle.forge.v1",
-      "label": "The Forge — exterior (Leonardo/Gemini concept, castle-matched)",
+      "label": "The Forge â€” exterior (Leonardo/Gemini concept, castle-matched)",
       "status": "KEEP",
       "path": "structures/buildings/castle-forge-v1.png",
       "sourceSubject": "leonardo gemini-2.5-flash-image gen 1f192915-fc78-6320-98b3-a468ddc3aacd",
       "rawSource": "scripts/bg-harness/refs/forge-approved/leonardo-original.jpg",
       "usedTrimmedExport": true,
-      "notes": "Raheem-generated. BOX-downsampled x1/3 to native 314x216 (no quantize — quantizing cost 12.6% saturation), stone value-matched 20% toward the castle ramp (hue/sat untouched), ground skirt cut at the foundation line so courtyard paving meets it."
+      "notes": "Raheem-generated. BOX-downsampled x1/3 to native 314x216 (no quantize â€” quantizing cost 12.6% saturation), stone value-matched 20% toward the castle ramp (hue/sat untouched), ground skirt cut at the foundation line so courtyard paving meets it."
     },
     {
       "assetId": "castle.forge.v1.warm",
-      "label": "The Forge — exterior, warm/rock-matched variant",
+      "label": "The Forge â€” exterior, warm/rock-matched variant",
       "status": "KEEP",
       "path": "structures/buildings/castle-forge-v1-warm.png",
       "sourceSubject": "variant of castle.forge.v1",
@@ -2040,7 +2040,7 @@
     },
     {
       "assetId": "castle.archivist.v1",
-      "label": "The Archivist — exterior (as generated)",
+      "label": "The Archivist â€” exterior (as generated)",
       "status": "KEEP",
       "path": "structures/buildings/castle-archivist-v1.png",
       "sourceSubject": "leonardo gemini-2.5-flash-image",
@@ -2050,7 +2050,7 @@
     },
     {
       "assetId": "castle.archivist.v1.stone20",
-      "label": "The Archivist — exterior, 20% stone-matched",
+      "label": "The Archivist â€” exterior, 20% stone-matched",
       "status": "KEEP",
       "path": "structures/buildings/castle-archivist-v1-stone20.png",
       "sourceSubject": "leonardo gemini-2.5-flash-image",
@@ -2060,37 +2060,37 @@
     },
     {
       "assetId": "castle.shadow.contact",
-      "label": "Contact shadow — soft ground occlusion blob",
+      "label": "Contact shadow â€” soft ground occlusion blob",
       "status": "KEEP",
       "path": "structures/buildings/castle-shadow-contact.png",
       "sourceSubject": "procedural",
       "rawSource": "generated in-repo",
       "usedTrimmedExport": true,
-      "notes": "AMBIENT OCCLUSION, NOT A CAST SHADOW. Non-directional on purpose: it is the darkening where an object occludes ambient light at its base, so it is correct at every time of day and does NOT need redoing when a sun direction is chosen. Raheem, 2026-08-07, worried a shadow would have to change once time-of-day is picked — this one will not. Cast shadows are a separate, later, directional asset. Reusable under any building or prop; scale to the object's width."
+      "notes": "AMBIENT OCCLUSION, NOT A CAST SHADOW. Non-directional on purpose: it is the darkening where an object occludes ambient light at its base, so it is correct at every time of day and does NOT need redoing when a sun direction is chosen. Raheem, 2026-08-07, worried a shadow would have to change once time-of-day is picked â€” this one will not. Cast shadows are a separate, later, directional asset. Reusable under any building or prop; scale to the object's width."
     },
     {
       "assetId": "castle.ground.tileset.tan.kerb.32",
-      "label": "Tan kerb (plain, darker) — wang 32",
+      "label": "Tan kerb (plain, darker) â€” wang 32",
       "status": "KEEP",
       "path": "ground/tilesets/castle-ground-tan-kerb-wang-32.png",
       "sourceSubject": "recolour of castle-ground-dirt-floor-wang-32",
       "rawSource": "ground/tilesets/castle-ground-dirt-floor-wang-32.png",
       "usedTrimmedExport": true,
-      "notes": "Raheem, 2026-08-07: the tan+white brick should be the ROAD; the kerb should be 'a solid or darker tan block, not white and tan spotted'. So this is the same brick with the cream speckle removed (543 px above luma 195 mapped to base tan rgb(197,150,106)) and darkened to 0.70 — mortar only to 0.90, else the kerb becomes a black grid. Road/kerb luma gap 153 -> 104 = 49. Zero generations. A grey-stone recolour was tried first and rejected: 'I actually like the colour of the tan bricks.'"
+      "notes": "Raheem, 2026-08-07: the tan+white brick should be the ROAD; the kerb should be 'a solid or darker tan block, not white and tan spotted'. So this is the same brick with the cream speckle removed (543 px above luma 195 mapped to base tan rgb(197,150,106)) and darkened to 0.70 â€” mortar only to 0.90, else the kerb becomes a black grid. Road/kerb luma gap 153 -> 104 = 49. Zero generations. A grey-stone recolour was tried first and rejected: 'I actually like the colour of the tan bricks.'"
     },
     {
       "assetId": "castle.forge.v2",
-      "label": "The Forge — exterior, PixelLab redraw (v2)",
+      "label": "The Forge â€” exterior, PixelLab redraw (v2)",
       "status": "KEEP",
       "path": "structures/buildings/castle-forge-v2.png",
       "sourceSubject": "pixellab image-to-pixelart from gemini gen 1f192915",
       "rawSource": "scripts/sprite-lab/out/forge-i2p/forge-pixellab.png",
       "usedTrimmedExport": true,
-      "notes": "THE QUALITY FIX. v1 was Gemini art box-downsampled: measured 0.6% flatness and 26,393 colours — a photo shrunk down, not pixel art, which is why it read soft beside the kit. v2 feeds the ORIGINAL 942px Gemini crop to PixelLab POST /image-to-pixelart (first ever use of that endpoint in this project; 1 generation) which REDRAWS it. Then: white keyed by border flood, ground cut at row 187 (ground share jumped 16%->60%), fabric quantized to 40 colours, and the portal given its OWN 24-colour ramp so the rainbow is not starved by the stone. Result 64 colours, 42.9% flatness, saturation 58.4. Castle wall reference is 48 colours / 59.4%."
+      "notes": "THE QUALITY FIX. v1 was Gemini art box-downsampled: measured 0.6% flatness and 26,393 colours â€” a photo shrunk down, not pixel art, which is why it read soft beside the kit. v2 feeds the ORIGINAL 942px Gemini crop to PixelLab POST /image-to-pixelart (first ever use of that endpoint in this project; 1 generation) which REDRAWS it. Then: white keyed by border flood, ground cut at row 187 (ground share jumped 16%->60%), fabric quantized to 40 colours, and the portal given its OWN 24-colour ramp so the rainbow is not starved by the stone. Result 64 colours, 42.9% flatness, saturation 58.4. Castle wall reference is 48 colours / 59.4%."
     },
     {
       "assetId": "castle.forge.v2.portal.glow",
-      "label": "The Forge — portal glow, separate layer",
+      "label": "The Forge â€” portal glow, separate layer",
       "status": "KEEP",
       "path": "structures/buildings/castle-forge-v2-portal-glow.png",
       "sourceSubject": "pixellab image-to-pixelart from gemini gen 1f192915",
@@ -2100,7 +2100,7 @@
     },
     {
       "assetId": "castle.archivist.v2",
-      "label": "The Archivist — exterior, PixelLab redraw (v2)",
+      "label": "The Archivist â€” exterior, PixelLab redraw (v2)",
       "status": "KEEP",
       "path": "structures/buildings/castle-archivist-v2.png",
       "sourceSubject": "pixellab image-to-pixelart from gemini gen 1f192970",
@@ -2110,17 +2110,17 @@
     },
     {
       "assetId": "castle.wall.straight.v3",
-      "label": "Curtain wall, straight run — v3 (16-bit topdown kit)",
+      "label": "Curtain wall, straight run â€” v3 (16-bit topdown kit)",
       "status": "KEEP",
       "path": "structures/walls/castle-wall-straight-v3.png",
       "sourceSubject": "gemini H2 'closed shutters' plate",
       "rawSource": "scripts/bg-harness/out/castle-kit-final/wall.png",
       "usedTrimmedExport": true,
-      "notes": "318x212, 38 colours, 72.6% flatness (kit baseline 59.4%). Front and back runs; mirror vertically for the opposite side. Tiles horizontally. Keys to 0px on purpose — it runs to the frame edge and has no surround to remove. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+      "notes": "318x212, 38 colours, 72.6% flatness (kit baseline 59.4%). Front and back runs; mirror vertically for the opposite side. Tiles horizontally. Keys to 0px on purpose â€” it runs to the frame edge and has no surround to remove. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
     },
     {
       "assetId": "castle.wall.side.v3",
-      "label": "Curtain wall, side run — v3 (16-bit topdown kit)",
+      "label": "Curtain wall, side run â€” v3 (16-bit topdown kit)",
       "status": "KEEP",
       "path": "structures/walls/castle-wall-side-v3.png",
       "sourceSubject": "gemini V3 'seamless vertically tileable' plate",
@@ -2130,33 +2130,611 @@
     },
     {
       "assetId": "castle.gate.house.v3",
-      "label": "Gatehouse — v3 (16-bit topdown kit)",
+      "label": "Gatehouse â€” v3 (16-bit topdown kit)",
       "status": "KEEP",
       "path": "structures/gate/castle-gate-house-v3.png",
       "sourceSubject": "gemini G5 'remove the centre crystal' plate",
       "rawSource": "scripts/bg-harness/out/castle-kit-final/gate.png",
       "usedTrimmedExport": true,
-      "notes": "294x221, 47 colours, 63.3% flatness. Sits in a gap in the front wall run. The arch opening is transparent by design — you see through it. Floating runes were removed from the source plate: the solid cores came off as their own connected components, the palest glyphs had to be cleared by region because they sit above the white cutoff and nothing could see them. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+      "notes": "294x221, 47 colours, 63.3% flatness. Sits in a gap in the front wall run. The arch opening is transparent by design â€” you see through it. Floating runes were removed from the source plate: the solid cores came off as their own connected components, the palest glyphs had to be cleared by region because they sit above the white cutoff and nothing could see them. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
     },
     {
       "assetId": "castle.tower.corner.v3",
-      "label": "Corner tower — v3 (16-bit topdown kit)",
+      "label": "Corner tower â€” v3 (16-bit topdown kit)",
       "status": "KEEP",
       "path": "structures/towers/castle-tower-corner-v3.png",
       "sourceSubject": "composited from the battle tower plate, zero generations",
       "rawSource": "scripts/bg-harness/out/castle-kit-final/corner-tower.png",
       "usedTrimmedExport": true,
-      "notes": "183x269, 46 colours, 58.9% flatness. Terminates a wall run and turns a corner — put one on every corner and the kit needs no corner wall piece at all, which is how both reference tilemaps do it. Built by grafting the battle tower's crown (rows 0-172) onto its own base (rows 400-end), skipping the middle storeys: same plate, so palette, angle and lighting match by construction. Seam lands on a cornice; widths there are 200 and 205. SCALE IS NOT 1:1 WITH THE WALLS. This piece's plate was framed at a different internal scale in Leonardo; composited against the wall, its door only matches the wall's doors at about 2.6x. That multiplier is already baked into this asset (generated at scale 0.8125 vs the walls' 0.3125), so place it at the same Phaser scale as the walls. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+      "notes": "183x269, 46 colours, 58.9% flatness. Terminates a wall run and turns a corner â€” put one on every corner and the kit needs no corner wall piece at all, which is how both reference tilemaps do it. Built by grafting the battle tower's crown (rows 0-172) onto its own base (rows 400-end), skipping the middle storeys: same plate, so palette, angle and lighting match by construction. Seam lands on a cornice; widths there are 200 and 205. SCALE IS NOT 1:1 WITH THE WALLS. This piece's plate was framed at a different internal scale in Leonardo; composited against the wall, its door only matches the wall's doors at about 2.6x. That multiplier is already baked into this asset (generated at scale 0.8125 vs the walls' 0.3125), so place it at the same Phaser scale as the walls. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
     },
     {
       "assetId": "castle.tower.battle.v3",
-      "label": "Battle Tower — v3 (16-bit topdown kit)",
+      "label": "Battle Tower â€” v3 (16-bit topdown kit)",
       "status": "KEEP",
       "path": "structures/towers/castle-tower-battle-v3.png",
       "sourceSubject": "gemini T3 'steampunk metal infrastructure' plate",
       "rawSource": "scripts/bg-harness/out/castle-kit-final/battle-tower.png",
       "usedTrimmedExport": true,
-      "notes": "184x457, 47 colours, 54.8% flatness. The landmark that rises over the back wall — game function, not decoration: CLAUDE.md makes the tower the game's gate. Cut out of a full landscape by keying grass and taking the seed's island; the banner poles reach up and touch the curtain-wall arch, so they were severed above the crown rim rather than clipped (a box low enough to cut the wall also slices the crown). Banners are deliberately absent — a flag should ripple, so it belongs in a Phaser layer, not baked into a static plate. Generated in TWO BANDS split at row 290, a cornice: /image-to-pixelart caps output at 320 in BOTH dimensions, so whole it would have come back 130x320. SCALE IS NOT 1:1 WITH THE WALLS. This piece's plate was framed at a different internal scale in Leonardo; composited against the wall, its door only matches the wall's doors at about 2.6x. That multiplier is already baked into this asset (generated at scale 0.8125 vs the walls' 0.3125), so place it at the same Phaser scale as the walls. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+      "notes": "184x457, 47 colours, 54.8% flatness. The landmark that rises over the back wall â€” game function, not decoration: CLAUDE.md makes the tower the game's gate. Cut out of a full landscape by keying grass and taking the seed's island; the banner poles reach up and touch the curtain-wall arch, so they were severed above the crown rim rather than clipped (a box low enough to cut the wall also slices the crown). Banners are deliberately absent â€” a flag should ripple, so it belongs in a Phaser layer, not baked into a static plate. Generated in TWO BANDS split at row 290, a cornice: /image-to-pixelart caps output at 320 in BOTH dimensions, so whole it would have come back 130x320. SCALE IS NOT 1:1 WITH THE WALLS. This piece's plate was framed at a different internal scale in Leonardo; composited against the wall, its door only matches the wall's doors at about 2.6x. That multiplier is already baked into this asset (generated at scale 0.8125 vs the walls' 0.3125), so place it at the same Phaser scale as the walls. Leonardo/Gemini plate (Raheem, improved from a cut reference) -> lib/harmonise_materials.py (metal pass, then stone COLOUR-CAST pass; value never scaled) -> POST /image-to-pixelart -> harmonise again, anchored on the wall, because PixelLab reinterprets colour hard (stone hue ran 232deg on the wall to 170deg on the battle tower) -> lib/quantize_shared.py, ONE 48-colour palette across all five with equal per-piece sampling -> lib/key_white.py -> dehalo --min-value 185. Reproduce with scripts/bg-harness/castle-pixellab.sh."
+    },
+    {
+      "assetId": "castle.nature.water.pond-basin",
+      "label": "Pond — basin (ground decal)",
+      "status": "HUMAN REVIEW",
+      "path": "nature/water/castle-pond-basin.png",
+      "sourceSubject": "pond",
+      "rawSource": "bg-harness/out/pond/pond-master.jpg",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.nature.water.pond-cliff-north",
+      "label": "Pond — north cliff lip (occluder overlay, same canvas as basin)",
+      "status": "HUMAN REVIEW",
+      "path": "nature/water/castle-pond-cliff-north.png",
+      "sourceSubject": "pond",
+      "rawSource": "bg-harness/out/pond/pond-master.jpg",
+      "usedTrimmedExport": true
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.floor",
+      "label": "Cliff kit v1 — floor",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/00_floor.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/00_floor.png",
+      "usedTrimmedExport": false,
+      "notes": "PixelLab /create-tiles-pro, tile_feature=building, building_wall_tiles=3, square_topdown, high top-down, tile_size 32, seed 7. 20 generations. A cliff is structurally a building kit: a plateau floor, connectable 3-tile walls and every corner. /create-tileset cannot do it — it returns a FLAT 16-tile boundary between two ground materials with no vertical face. Tiles are 52x111 for a 32px cell, so they OVERLAP and are placed on a 32px grid as images rather than painted as tilemap tiles. tile_feature blocks style_images, so there is no Leonardo design step here — colour comes from the shared castle-kit palette instead. Kit B of two; kit A was the accidental duplicate and is not shipped. See _rules.json for the placement map."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.sides-N",
+      "label": "Cliff kit v1 — sides N",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/01_sides-N.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/01_sides-N.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.sides-E",
+      "label": "Cliff kit v1 — sides E",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/02_sides-E.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/02_sides-E.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.sides-S",
+      "label": "Cliff kit v1 — sides S",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/03_sides-S.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/03_sides-S.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.sides-W",
+      "label": "Cliff kit v1 — sides W",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/04_sides-W.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/04_sides-W.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.corners-NE",
+      "label": "Cliff kit v1 — corners NE",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/05_corners-NE.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/05_corners-NE.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.corners-SE",
+      "label": "Cliff kit v1 — corners SE",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/06_corners-SE.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/06_corners-SE.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.corners-SW",
+      "label": "Cliff kit v1 — corners SW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/07_corners-SW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/07_corners-SW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.corners-NW",
+      "label": "Cliff kit v1 — corners NW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/08_corners-NW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/08_corners-NW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-corners-NE",
+      "label": "Cliff kit v1 — outer corners NE",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/09_outer_corners-NE.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/09_outer_corners-NE.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-corners-SE",
+      "label": "Cliff kit v1 — outer corners SE",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/10_outer_corners-SE.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/10_outer_corners-SE.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-corners-SW",
+      "label": "Cliff kit v1 — outer corners SW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/11_outer_corners-SW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/11_outer_corners-SW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-corners-NW",
+      "label": "Cliff kit v1 — outer corners NW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/12_outer_corners-NW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/12_outer_corners-NW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-hub",
+      "label": "Cliff kit v1 — partition hub",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/13_partition-hub.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/13_partition-hub.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-N",
+      "label": "Cliff kit v1 — partition N",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/14_partition-N.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/14_partition-N.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-E",
+      "label": "Cliff kit v1 — partition E",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/15_partition-E.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/15_partition-E.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-S",
+      "label": "Cliff kit v1 — partition S",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/16_partition-S.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/16_partition-S.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-W",
+      "label": "Cliff kit v1 — partition W",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/17_partition-W.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/17_partition-W.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-wall-N",
+      "label": "Cliff kit v1 — partition wall N",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/18_partition_wall-N.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/18_partition_wall-N.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-wall-E",
+      "label": "Cliff kit v1 — partition wall E",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/19_partition_wall-E.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/19_partition_wall-E.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-wall-S",
+      "label": "Cliff kit v1 — partition wall S",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/20_partition_wall-S.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/20_partition_wall-S.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-wall-W",
+      "label": "Cliff kit v1 — partition wall W",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/21_partition_wall-W.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/21_partition_wall-W.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-NE",
+      "label": "Cliff kit v1 — partition multi NE",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/22_partition_multi-NE.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/22_partition_multi-NE.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-NW",
+      "label": "Cliff kit v1 — partition multi NW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/23_partition_multi-NW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/23_partition_multi-NW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-ES",
+      "label": "Cliff kit v1 — partition multi ES",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/24_partition_multi-ES.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/24_partition_multi-ES.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-SW",
+      "label": "Cliff kit v1 — partition multi SW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/25_partition_multi-SW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/25_partition_multi-SW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-NES",
+      "label": "Cliff kit v1 — partition multi NES",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/26_partition_multi-NES.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/26_partition_multi-NES.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-NSW",
+      "label": "Cliff kit v1 — partition multi NSW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/27_partition_multi-NSW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/27_partition_multi-NSW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-NEW",
+      "label": "Cliff kit v1 — partition multi NEW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/28_partition_multi-NEW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/28_partition_multi-NEW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-ESW",
+      "label": "Cliff kit v1 — partition multi ESW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/29_partition_multi-ESW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/29_partition_multi-ESW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-multi-NESW",
+      "label": "Cliff kit v1 — partition multi NESW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/30_partition_multi-NESW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/30_partition_multi-NESW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.pillar",
+      "label": "Cliff kit v1 — pillar",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/31_pillar.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/31_pillar.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Na",
+      "label": "Cliff kit v1 — doors Na",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/32_doors-Na.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/32_doors-Na.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Nb",
+      "label": "Cliff kit v1 — doors Nb",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/33_doors-Nb.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/33_doors-Nb.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Ea",
+      "label": "Cliff kit v1 — doors Ea",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/34_doors-Ea.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/34_doors-Ea.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Eb",
+      "label": "Cliff kit v1 — doors Eb",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/35_doors-Eb.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/35_doors-Eb.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Sa",
+      "label": "Cliff kit v1 — doors Sa",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/36_doors-Sa.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/36_doors-Sa.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Sb",
+      "label": "Cliff kit v1 — doors Sb",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/37_doors-Sb.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/37_doors-Sb.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Wa",
+      "label": "Cliff kit v1 — doors Wa",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/38_doors-Wa.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/38_doors-Wa.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.doors-Wb",
+      "label": "Cliff kit v1 — doors Wb",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/39_doors-Wb.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/39_doors-Wb.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.stairs0",
+      "label": "Cliff kit v1 — stairs0",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/40_stairs0.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/40_stairs0.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.stairs1",
+      "label": "Cliff kit v1 — stairs1",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/41_stairs1.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/41_stairs1.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.stairs-east0",
+      "label": "Cliff kit v1 — stairs east0",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/42_stairs_east0.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/42_stairs_east0.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.stairs-east1",
+      "label": "Cliff kit v1 — stairs east1",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/43_stairs_east1.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/43_stairs_east1.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.floor-roof",
+      "label": "Cliff kit v1 — floor roof",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/44_floor_roof.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/44_floor_roof.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-doors-Va",
+      "label": "Cliff kit v1 — partition doors Va",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/45_partition_doors-Va.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/45_partition_doors-Va.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-doors-Vb",
+      "label": "Cliff kit v1 — partition doors Vb",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/46_partition_doors-Vb.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/46_partition_doors-Vb.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-doors-Ha",
+      "label": "Cliff kit v1 — partition doors Ha",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/47_partition_doors-Ha.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/47_partition_doors-Ha.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.partition-doors-Hb",
+      "label": "Cliff kit v1 — partition doors Hb",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/48_partition_doors-Hb.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/48_partition_doors-Hb.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-NES",
+      "label": "Cliff kit v1 — outer multi NES",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/49_outer_multi-NES.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/49_outer_multi-NES.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-NEW",
+      "label": "Cliff kit v1 — outer multi NEW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/50_outer_multi-NEW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/50_outer_multi-NEW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-NSW",
+      "label": "Cliff kit v1 — outer multi NSW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/51_outer_multi-NSW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/51_outer_multi-NSW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-ESW",
+      "label": "Cliff kit v1 — outer multi ESW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/52_outer_multi-ESW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/52_outer_multi-ESW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-NESW",
+      "label": "Cliff kit v1 — outer multi NESW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/53_outer_multi-NESW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/53_outer_multi-NESW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-NS",
+      "label": "Cliff kit v1 — outer multi NS",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/54_outer_multi-NS.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/54_outer_multi-NS.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
+    },
+    {
+      "assetId": "castle.terrain.cliff-kit.outer-multi-EW",
+      "label": "Cliff kit v1 — outer multi EW",
+      "status": "KEEP",
+      "path": "terrain/cliff-kit-v1/55_outer_multi-EW.png",
+      "sourceSubject": "pixellab create-tiles-pro building kit (cliff), tile_id db40f575",
+      "rawSource": "scripts/bg-harness/out/cliff-kit-B/55_outer_multi-EW.png",
+      "usedTrimmedExport": false,
+      "notes": "Part of castle.terrain.cliff-kit — see the floor entry for the full pipeline note."
     }
   ]
 }
