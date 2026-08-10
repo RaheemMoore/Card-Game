@@ -52,6 +52,18 @@ def main():
 
     cfg = json.load(open(a.config, encoding="utf-8"))
     body = {k: v for k, v in cfg.items() if not k.startswith("_")}
+
+    # Reference images live as PATHS in the config, not inline base64 — a config
+    # you cannot read is a config nobody checks before spending. Any key named
+    # `_ref_<field>` is loaded here and sent as <field>.
+    for key, path in list(cfg.items()):
+        if not key.startswith("_ref_"):
+            continue
+        field = key[len("_ref_"):]
+        with open(path, "rb") as f:
+            body[field] = {"type": "base64", "base64": base64.b64encode(f.read()).decode(),
+                           "format": "png"}
+        print(f"  reference {field:26s} <- {path}")
     print(json.dumps(body, indent=1))
     if a.dry_run:
         print("\ndry run — nothing spent")

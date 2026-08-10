@@ -1,20 +1,26 @@
 {
-  "_why": "The probe I should have run before spending a 20-generation building kit. Raheem's reference cliffs are organic and lobed; shape_style 'round' plus high raggedness is the parameter pair built for exactly that, and slope_size gives the wall height the building kit was supposed to provide.",
-  "_probe": "ONE call, look at it, THEN decide. No reference image yet because Raheem's screenshot is not on disk \u2014 this is testing whether the procedural shape controls alone get near it.",
-  "lower_description": "sandy dirt ground, warm tan, flat and open",
-  "upper_description": "raised rocky plateau top, warm brown packed earth with tufts of grass and scattered stones",
-  "transition_description": "a natural rock cliff face dropping from the plateau to the ground, rounded lobed boulders and strata, warm brown and grey-brown stone, darker in the shadow at its foot",
+  "_why": "Probe 2. Probe 1 proved the SHAPE language is right — organic lobed rock boundaries, nothing a rectilinear building kit could make. What it did not produce is the DROP: slope_size 0.75 gave a flat boundary with no face.",
+
+  "_changes_from_probe_1": "Two, and only two. slope_size 0.75 -> 1.0 for the tallest face the endpoint will give, and transition_size 0.5 -> 1.0 because the docs say values above 0.5 switch to the extended 4x8 layout, which is 32 tiles instead of 16 and is where the extra rows for a taller face have to come from. Plus the reference images, which Raheem has now supplied — those are the whole point and could not be used before.",
+
+  "_refs": "Crops from Raheem's own reference screenshot, each a PURE sample of one material. A reference containing two terrains teaches the model the wrong boundary, which is why the first 'lower' crop was rejected: it caught a tree stump and a cliff edge. The replacement was chosen by scanning for the lowest-variance warm bright patch — std 2.1, mean (225,173,89).",
+
+  "_ref_upper_reference_image": "scripts/bg-harness/refs/cliff/upper.png",
+  "_ref_lower_reference_image": "scripts/bg-harness/refs/cliff/lower.png",
+  "_ref_transition_reference_image": "scripts/bg-harness/refs/cliff/transition.png",
+
+  "lower_description": "flat warm sand, pale golden, open and smooth",
+  "upper_description": "raised plateau top of warm red-brown packed earth",
+  "transition_description": "a natural rock cliff face dropping from the plateau to the sand below, built from rounded lobed boulders stacked in clusters, dark brown rock with lighter tan highlights on each boulder, deep shadow at its foot",
+
   "mode": "pro",
   "raggedness": 0.85,
   "spread_x": 0.35,
-  "slope_size": 0.75,
-  "transition_size": 0.5,
+  "slope_size": 1.0,
+  "transition_size": 1.0,
   "view": "high top-down",
-  "tile_size": {
-    "width": 32,
-    "height": 32
-  },
+  "tile_size": { "width": 32, "height": 32 },
   "text_guidance_scale": 9,
-  "seed": 7,
-  "_shape_style": "REJECTED with 422: 'shape_style cannot be combined with mode=pro'. Kept pro and dropped shape_style, because pro is the mode that carries raggedness (the lobed boundary noise) AND slope_size (the wall height) \u2014 the two things the reference actually needs. shape_style='round' is only available on standard, which has neither. The 422 cost nothing: validation fires before any generation."
+  "tileset_adherence": 140,
+  "seed": 7
 }
