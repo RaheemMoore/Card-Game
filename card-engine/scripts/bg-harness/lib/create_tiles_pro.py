@@ -188,7 +188,12 @@ def main():
         status = res.get("status") or res.get("state") or "?"
         tiles = res.get("tiles") or (res.get("tileset") or {}).get("tiles") or []
         print(f"  {int(time.time()-t0):4d}s  status={status}  tiles={len(tiles)}")
-        if tiles or str(status).lower() in ("completed", "succeeded", "done"):
+        # A building kit NEVER returns inline `tiles` — it returns storage_urls.
+        # Testing only for `tiles` meant the poller kept polling a job that had
+        # been finished for twenty minutes, timed out, and looked like a failure.
+        # That is the exact appearance that led to re-running the command and
+        # paying for a second kit.
+        if tiles or res.get("storage_urls") or str(status).lower() in ("completed", "succeeded", "done"):
             written, total = save_tiles(res, a.out)
             print(f"\n{written} file(s) from {total} tiles -> {a.out}")
             return
