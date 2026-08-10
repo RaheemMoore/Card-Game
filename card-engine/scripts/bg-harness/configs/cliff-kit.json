@@ -1,0 +1,26 @@
+{
+  "_why": "Raheem, 2026-08-09: the courtyard's cliffs 'suck'. Diagnosed from his reference tilemap — those cliffs are a connectable TILE SET with lobed, non-repeating edges, and ours are fixed sprites (a 768x256 face, a 192x256 stepped endcap) which can only produce straight runs and stair-steps. That is a format problem, not an art problem: our terrain measures 60-72% flatness, perfectly good pixel art in the wrong shape.",
+
+  "_why_building_kit": "A cliff is structurally a building kit: a plateau floor, connectable walls, and every corner. /create-tileset looked like the obvious endpoint and is not — its response is exactly 16 tiles with terrain types ['lower','upper'], a FLAT boundary between two ground materials with no vertical face, so it cannot make a cliff you climb.",
+
+  "_cost_of_this_route": "tile_feature cannot be combined with style_images, so there is no way to point this at a Leonardo design — style comes from text alone. Raheem accepted that for cliffs specifically, because connectivity is the thing that cannot be hand-authored cheaply, and the palette pass downstream is unaffected: these get indexed onto castle-kit.gpl like everything else.",
+
+  "_height": "3 tiles = 96px against a 71px hero, so it reads as CLIMB rather than step-up. Two tiles would be 64px — shorter than he is — and would read as a hop. It matters because monsters camp at the foot and a climb animation is planned, so the face has to look scalable.",
+
+  "_view": "high top-down to match the castle kit, which sits at roughly the same angle. building_wall_angle is deliberately left unset on this first attempt: it decouples wall storey height from ground pitch, which is a second variable to tune only once the first result can be judged.",
+
+  "_layout": "materials is the documented default for square_topdown and is described as 'more consistent' than grid. Consistency is what a tile set needs — grid paints each piece individually, which is richer but risks 16 tiles that do not agree with each other.",
+
+  "description": "2D pixel art tiles for a 16-bit top-down RPG, in the style of a Pokemon or Stardew Valley overworld map. A natural rock cliff separating a raised grassy plateau from lower ground: the flat plateau top is walkable, and a rough stone cliff face drops away below its edge. Flat cel shading, clean dark outlines, a strictly limited palette, chunky readable shapes, no gradients and no dithering.",
+
+  "tile_type": "square_topdown",
+  "tile_size": 32,
+  "tile_view": "high top-down",
+  "tile_feature": "building",
+  "building_wall_tiles": 3,
+  "building_layout": "materials",
+  "building_floor_description": "flat grassy dirt plateau top, packed earth with scattered small stones and tufts of dry grass, warm brown and muted green",
+  "building_wall_description": "rough natural rock cliff face with horizontal strata bands, deep vertical cracks and chipped ledges, warm grey-brown stone darkening toward the base",
+  "outline_mode": "outline",
+  "seed": 7
+}
