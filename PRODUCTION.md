@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-07 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-09 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -58,7 +58,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-07 -->
+<!-- updated: 2026-08-09 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -101,19 +101,24 @@ the real number is two.
 
 *Five minutes. Safe. See [§4 stranded branches](#stranded-branches).*
 
-### ⚠ Risk worth naming — the Still Season still exists in only one place
+### ⚠ Risk worth naming — two big pieces of work exist on one machine each
 
-An entire boss and arena — sprites, clips, signature layers, arena plate, configs, two new
-manifests — representing days of work and real generation spend, is not in the repository.
-Only `debt-bearer` and `emberborn-wraith` are committed under
+**The Still Season.** An entire boss and arena — sprites, clips, signature layers, arena
+plate, configs, two new manifests — representing days of work and real generation spend, is
+not in the repository. Only `debt-bearer` and `emberborn-wraith` are committed under
 `card-engine/public/assets/combat/bosses/`.
 
-This got sharper on 2026-08-04, not softer. You just pulled two checkpoints onto `main` so
-you could work from any device — and the Still Season is the one thing that did **not** come
-with them. Whichever machine holds it is now the only copy, and every other device you sit
-down at will be missing it without saying so.
+**The whole castle redesign.** `castle-grand-redesign` is **34 commits ahead of `main` and
+has never been pushed** — no remote copy exists. It holds the new castle kit (extracted from
+Raheem's own picks, harmonised, indexed onto one shared palette), the CourtyardV3 scene built
+on it, and the offline scene renderer. That is the current castle, and today it lives in one
+place.
 
-*Open the laptop that has it and push it.*
+Both got sharper on 2026-08-04, not softer: two checkpoints were pulled onto `main` so you
+could work from any device, and neither of these came with them. Every other device you sit
+down at is missing them without saying so.
+
+*Push the branch. Then open the laptop with the Still Season and push that.*
 
 ---
 
@@ -341,7 +346,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-07 -->
+<!-- updated: 2026-08-09 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -359,7 +364,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
 | IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
-| IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Courtyard V2 is a pending replacement: its forge quadrant is playable and locally verified on `codex/courtyard-forge-vfx`, but the other quadrants and production integration are unfinished. |
+| IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Two replacements now exist in sequence: Courtyard V2 (forge quadrant playable, other quadrants unfinished) and **CourtyardV3**, which supersedes it — a fresh scene built on the new castle kit, on the unpushed `castle-grand-redesign` branch. V3 now draws the way the Editor shows it: hidden layers stay hidden, and the two side walls are cut into six stacked segments each so a wall no longer paints over the tower it meets — or over the hero walking beside its northern half. Neither V2 nor V3 is the production castle yet. |
 | IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
@@ -377,27 +382,46 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Three. The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
+Four. The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
 Courtyard V2 forge checkpoint both live on `main` now.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
+| `castle-grand-redesign` | 34 | 0 | The new castle kit, CourtyardV3, the offline scene renderer. **Local only — never pushed** |
 | `combat-cards-and-resource` | 3 | 71 | Boss readout + Debt-Bearer fix |
 | `feat/warband-battle-mvp` | 1 | 186 | Tested warband combat core. **Local only — never pushed** |
 | `claude/vigilant-kowalevski-e30267` | 1 | 205 | One Workshop fix. Will conflict if revived |
 
-**`feat/warband-battle-mvp` has never been pushed.** Like the Still Season, it exists on one
-machine and will be silently absent from every other device you open. If it is worth keeping
-(Q2), push it; if it is not, say so and it becomes a `WON'T DO`.
+**Two of these have never been pushed.** `feat/warband-battle-mvp` (a tested combat core, 186
+commits back) and `castle-grand-redesign` (34 commits, the current castle). Like the Still
+Season, they exist on one machine and will be silently absent from every other device you
+open. The redesign should be pushed today; for the warband core, if it is worth keeping (Q2)
+push it, and if it is not, say so and it becomes a `WON'T DO`.
 
 ---
 
-<!-- updated: 2026-08-07 -->
+<!-- updated: 2026-08-09 -->
 ## 4. Open threads
 
-**80 things started and not finished.** This is the list that didn't exist before. It will
+**83 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
+
+### Courtyard V3 depth — 3 items
+
+The scene now draws the way the Editor shows it. What's left is the debt that fix sat on.
+
+An object is drawn at the Y where it touches the ground, which is exact for a wall running
+east–west and a lie for one running north–south — that wall's base is a long strip, and it
+claims to stand at its southern tip along its whole length. The two side walls are now cut
+into six stacked pieces each. **Nobody has checked whether any other piece in V3 has the same
+shape.**
+
+| What | Where |
+|---|---|
+| Audit the rest of V3 for north–south runs that still need cutting — anything long whose footprint points away from the camera | `CourtyardV3.scene`, layers `L2_TERRAIN` / `L3_CASTLE` |
+| Remove the 60px corner-tower bias by aligning the tower and north-wall bases. The bias exists only because `towerCornerNW` contacts ground 58px north of `wallNorthRun`, and a true horizontal base cannot be segmented away | `card-engine/src/pages/dev/sceneDepth.ts:171` |
+| A rock at the NE corner now draws in front of the upper wall segments where the un-segmented wall used to hide it. Correct by the sorting rule, but it is a visible change Raheem has not ruled on | `CourtyardV3.scene`, `L8_NATURE` |
 
 ### Studio Wiki release — 2 items
 
@@ -822,6 +846,7 @@ The short version:
 | `boss-sheet.mjs` | Plays packed boss clips at real fps — motion review |
 | `/dev/boss-readout` | Measures the fight: beats, damage, telegraph timing |
 | `finish_arena.py` | Deterministic arena finishing — crop, grade, pixelize |
+| `render_scene.py` | Draws a Phaser Editor scene to a PNG with no browser. `--ysort` draws it in the **game's** order instead of the Editor's, so "why doesn't the game match my screen?" has an answer you can look at |
 
 ---
 
@@ -870,10 +895,39 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-07 -->
+<!-- updated: 2026-08-09 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-09 — Raheem does not cut north–south walls; that work is mine
+
+Raheem, after following the reasoning end to end: *"I will not be chopping north and south
+facing walls into segments. That's something I'm looking forward to you doing… that's what you
+would be great at, figuring out those depths and the error ratios."*
+
+He places pieces; I cut them and own the sorting maths. In practice this means that when a
+scene gains a wall, fence, hedgerow, bridge or cliff face pointing away from the camera, I cut
+it without being asked and say so up front — rather than handing back an instruction to go set
+values in the Editor.
+
+*Why it matters:* the alternative was discovered the hard way the same evening. Told to "set
+the depth on those towers," I wrote the numbers into the scene file; his next save erased them
+within the hour, because Phaser Editor rewrites that file wholesale from its own memory and
+does not merge. A fix that only survives until the next Ctrl+S is not a fix.
+
+### 2026-08-09 — Depth corrections live in code, not in the .scene
+
+Anything the game needs that the Editor would overwrite now lives in
+`card-engine/src/pages/dev/sceneDepth.ts`. The Editor owns `CourtyardV3.scene` and rewrites it
+on every save; the code is the only place a correction is safe. Genuine placement — where a
+piece sits, how a wall is cut — still belongs in the scene file, and I ask him to close the
+scene in the Editor before I touch it.
+
+*What it closed:* three separate reasons the running game disagreed with what he had placed —
+layers switched off in the Editor coming back on, side walls painting over the towers they
+meet, and a corner tower sorting behind every wall that arrives at it. It also closed the
+question of where this class of fix belongs, which had just cost a wasted round trip.
 
 ### 2026-08-07 — The Production Guide page retires; the Studio Wiki is the only door
 
