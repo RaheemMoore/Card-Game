@@ -22,6 +22,26 @@ export function randomPointInBounds(
   };
 }
 
+/**
+ * The point of `bounds` closest to `from` — the spot on the water an animal
+ * standing over there would naturally walk to.
+ *
+ * Clamping rather than picking a perimeter point matters: an animal that is
+ * already inside the box (a fox on the bank of a pond whose box overlaps it) gets
+ * its own position back and stops, instead of being sent across to the far shore.
+ */
+export function nearestPointIn(bounds: WildlifeBounds, from: WildlifePoint): WildlifePoint {
+  return {
+    x: Math.min(bounds.x + bounds.width, Math.max(bounds.x, from.x)),
+    y: Math.min(bounds.y + bounds.height, Math.max(bounds.y, from.y)),
+  };
+}
+
+/** Straight-line distance from a point to the nearest edge of a box (0 if inside). */
+export function distanceToBounds(bounds: WildlifeBounds, from: WildlifePoint): number {
+  return distanceBetween(from, nearestPointIn(bounds, from));
+}
+
 export function pointAwayFrom(
   current: WildlifePoint,
   threat: WildlifePoint,

@@ -235,6 +235,11 @@ const WILDLIFE_SHEETS = [
   'wildlife-fox-trot',
   'wildlife-fox-sniff',
   'wildlife-fox-sit-alert',
+  // Drinking is reached only through the brain, so nothing names this sheet
+  // either — and it caught exactly the failure this comment warns about the very
+  // first time a clip was added after the list was written. Add the key here
+  // whenever a new clip lands, or it loads in the review lab and nowhere else.
+  'wildlife-fox-drink',
   'wildlife-rabbit-hop',
   'wildlife-rabbit-nibble-groom',
   'wildlife-tortoise-toddle',
@@ -284,6 +289,7 @@ export function makeScene(
     private wildlife: SceneWildlife = {
       animals: [],
       areas: [],
+      water: [],
       shapes: [],
       improvised: [],
       missing: true,

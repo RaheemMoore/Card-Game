@@ -13,6 +13,7 @@ import {
   type ElevationMap,
 } from '../../castle/v2-preview/elevation';
 import { LEVEL_STRIDE } from '../sceneDepth';
+import { createWaterRipples } from './waterRipples';
 import {
   ANIMATION_SETS,
   WILDLIFE_FEET,
@@ -118,6 +119,8 @@ export function attachCourtyardWildlife(
     );
   }
 
+  const drinkers: WildlifeAgent[] = [];
+
   for (const placed of wildlife.animals) {
     const profile = WILDLIFE_SPECIES[placed.species];
     const size = WILDLIFE_FEET[placed.species];
@@ -156,20 +159,60 @@ export function attachCourtyardWildlife(
     };
     standing.push({ sprite: placed.sprite, footing });
 
-    manager.add(
-      new WildlifeAgent(placed.sprite, profile, {
+    const agent = new WildlifeAgent(placed.sprite, profile, {
         roamBounds: placed.roamBounds,
         animations: ANIMATION_SETS[placed.species],
         moveResolver: makeMoveResolver(size, blockers, elevation, footing),
-      }),
-    );
+      // Every pond in the scene is offered to every animal; the agent keeps only
+      // what is near enough to be worth walking to. Nothing here has to know
+      // which animal lives beside which water.
+      waterSources: wildlife.water,
+      feet: size,
+    });
+    manager.add(agent);
+    drinkers.push(agent);
   }
 
-  const stopWatchingMotion = watchReducedMotion((off) => manager.setMotionOff(off));
+  // The same rings the lab has. Wired here in the SAME pass on purpose: the fox's
+  // drink sheet shipped to the review lab and nowhere else earlier today, because
+  // "add it to the other scene" was left as a later step. Once is enough.
+  const ripples = createWaterRipples(scene);
+  const LAP_MS = 520;
+  const lapTimers = new Map<WildlifeAgent, number>();
+  let lapCount = 0;
+
+  const stopWatchingMotion = watchReducedMotion((off) => {
+    manager.setMotionOff(off);
+    ripples.setMotionOff(off);
+  });
 
   return {
     update(now, deltaMs, playerPosition) {
       manager.update(now, deltaMs, playerPosition);
+
+      for (const agent of drinkers) {
+        const contact = agent.drinkContactPoint();
+        if (!contact) {
+          lapTimers.delete(agent);
+          continue;
+        }
+        const due = (lapTimers.get(agent) ?? 0) - deltaMs;
+        if (due <= 0) {
+          // The tongue, out past the waterline.
+          ripples.pulse(contact.x, contact.y);
+          // And any paw that is genuinely in the water — normally none, since the
+          // water is solid to a land animal. Heavier and on every other lap, so
+          // when it does happen it reads as a different kind of disturbance.
+          if (lapCount % 2 === 0) {
+            for (const paw of agent.wetFeet()) ripples.pulse(paw.x, paw.y, 1.45);
+          }
+          lapCount += 1;
+          lapTimers.set(agent, LAP_MS);
+        } else {
+          lapTimers.set(agent, due);
+        }
+      }
+      ripples.update(deltaMs);
 
       // WildlifeAgent sets `depth = y`, which is right for a flat world and is all
       // the shared library should know. The courtyard has terraces, so the level

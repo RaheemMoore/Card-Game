@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type Phaser from 'phaser';
 import { COLLIDER_COLORS } from './sceneColliders';
-import { ROAM_COLOR, readSceneWildlife } from './sceneWildlife';
+import { ROAM_COLOR, WATER_COLOR, readSceneWildlife } from './sceneWildlife';
 
 /**
  * The Editor's objects are read by shape, not by class, so plain objects with the
@@ -181,5 +181,78 @@ describe('every explorable scene has a behaviour registered', () => {
   it('runs both courtyards on the same brain', async () => {
     const { SCENE_BEHAVIORS } = await import('./sceneBehaviors');
     expect(SCENE_BEHAVIORS.CourtyardV3).toBe(SCENE_BEHAVIORS.CourtyardV2);
+  });
+});
+
+/**
+ * Water discovery.
+ *
+ * Raheem, 2026-08-09: "anywhere we place a pond and animals, they should just
+ * know to use this action." These are that sentence, written down as checks — a
+ * pond is recognised by its ART, wherever in the scene tree it happens to sit,
+ * with nothing authored alongside it.
+ */
+function pond(x: number, y: number, props: Record<string, unknown> = {}) {
+  return {
+    x, y, width: 300, height: 270,
+    displayWidth: 300, displayHeight: 270,
+    originX: 0.5, originY: 0.5, scaleX: 1, scaleY: 1,
+    texture: { key: 'nature-water-pond-basin' },
+    ...props,
+  } as unknown as Phaser.GameObjects.Sprite;
+}
+
+const waterBox = (props: Partial<Phaser.GameObjects.Rectangle> = {}) =>
+  roamBox({ fillColor: WATER_COLOR, ...props } as Partial<Phaser.GameObjects.Rectangle>);
+
+describe('water discovery', () => {
+  it('finds a pond sitting on the ground layer, with nothing authored', () => {
+    const ground = { list: [pond(500, 400)] };
+    const found = readSceneWildlife({
+      l15_WILDLIFE: { list: [roamBox(), animal('wildlife-fox-trot', 50, 50)] },
+      children: { list: [ground] },
+    } as unknown as Phaser.Scene);
+    expect(found.water).toHaveLength(1);
+    expect(found.water[0].bounds).toEqual({ x: 350, y: 265, width: 300, height: 270 });
+    // No pixel access in a stubbed texture manager, so the shape falls back to
+    // the box rather than failing — inside is inside, outside is outside.
+    expect(found.water[0].contains({ x: 500, y: 400 })).toBe(true);
+    expect(found.water[0].contains({ x: 10, y: 10 })).toBe(false);
+  });
+
+  it('counts one pond once, however many ways the tree reaches it', () => {
+    const theOnePond = pond(500, 400);
+    const layer = { list: [roamBox(), theOnePond] };
+    const found = readSceneWildlife({
+      l15_WILDLIFE: layer,
+      children: { list: [layer] },
+    } as unknown as Phaser.Scene);
+    expect(found.water).toHaveLength(1);
+  });
+
+  it('accepts a hand-drawn blue box for water that is not its own sprite', () => {
+    const found = readSceneWildlife(
+      sceneWith([roamBox(), waterBox({ x: 400, y: 400 }), animal('wildlife-fox-trot', 50, 50)]),
+    );
+    expect(found.water).toHaveLength(1);
+    expect(found.areas).toHaveLength(1);
+  });
+
+  it('does not mistake a pond for an animal', () => {
+    const found = readSceneWildlife(sceneWith([roamBox(), pond(50, 50)]));
+    expect(found.animals).toHaveLength(0);
+  });
+
+  it('reports water even in a scene with no wildlife layer at all', () => {
+    const found = readSceneWildlife({
+      children: { list: [{ list: [pond(500, 400)] }] },
+    } as unknown as Phaser.Scene);
+    expect(found.missing).toBe(true);
+    expect(found.water).toHaveLength(1);
+  });
+
+  it('finds no water in a scene that has none', () => {
+    const found = readSceneWildlife(sceneWith([roamBox(), animal('wildlife-fox-trot', 50, 50)]));
+    expect(found.water).toHaveLength(0);
   });
 });

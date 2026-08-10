@@ -2345,14 +2345,14 @@ export const CHATGPT_LESSONS: Lesson[] = [
           {
             kind: 'callout',
             tone: 'key',
-            title: 'The brain only ever says one of five words.',
+            title: 'The brain only ever says one of six words.',
             text:
-              '`idle` · `roam` · `signature` · `observe` · `flee`. It knows nothing about sprites, sheets or frames. That is exactly why all three animals can share it — and why new artwork never means new decisions.',
+              '`idle` · `roam` · `signature` · `observe` · `flee` · `drink`. It knows nothing about sprites, sheets or frames. That is exactly why all three animals can share it — and why new artwork never means new decisions.',
           },
           {
             kind: 'bullets',
             items: [
-              '**Layer 1 — reflex.** Are you close? Fox and rabbit run, tortoise watches. This interrupts whatever was happening.',
+              '**Layer 1 — reflex.** Are you close? Fox and rabbit run, tortoise watches. This interrupts whatever was happening — including a drink.',
               '**Layer 2 — ordinary life.** Only runs when you are not a factor and the current activity has finished its time.',
             ],
           },
@@ -2370,15 +2370,24 @@ export const CHATGPT_LESSONS: Lesson[] = [
               ['Energy', 'Resting', 'Running hardest, roaming a little', 'Resting when tired'],
               ['Curiosity', 'Resting', 'Roaming or watching', 'Wandering when bored'],
               ['Its own urge', 'Always, slowly', 'Reset to zero the moment it acts', 'Sniff · nibble · tuck, on a rising itch'],
+              ['**Thirst**', 'Always — and about twice as fast while running', 'Almost to zero on finishing a drink', 'Walking to water, if there is any'],
             ],
+          },
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Thirst is the one drive that can be impossible to satisfy.',
+            text:
+              'The other three always have an answer. Thirst only counts if there is water the animal could actually reach — **no water nearby and drinking is never even considered**, so an animal in a dry scene behaves exactly as it did before ponds existed. Nothing is switched on or off by hand.',
           },
           {
             kind: 'bullets',
             items: [
               'It cannot repeat the activity it just finished.',
               'The last two are scored down to about a third.',
-              'Each activity waits a cooldown before it can come round again — the fox’s sniff waits 4.5 seconds.',
-              'So a fox trots until curiosity drains, rests until energy returns, and sniffs on a rising itch. Never the same order twice.',
+              'Each activity waits a cooldown before it can come round again — the fox’s sniff waits 4.5 seconds, its drink waits 14.',
+              'Thirst is scored **squared**, so a slightly thirsty fox still prefers to wander and a very thirsty one commits to the water. A plain multiplier made drinking a constant low nag and the fox drifted pondward all day.',
+              'So a fox trots until curiosity drains, rests until energy returns, sniffs on a rising itch, and walks to the pond when it has earned a drink. Never the same order twice.',
             ],
           },
           {
@@ -2401,7 +2410,8 @@ export const CHATGPT_LESSONS: Lesson[] = [
             blurb:
               'One flat floor, no walls, three animals and a live readout. Behaviour with nothing to hide behind. **WASD** to walk.',
             learn: [
-              'The readout shows activity plus the three drives, per animal.',
+              'The readout shows activity plus four drives per animal: **E**nergy, **C**uriosity, **S**ignature urge, **T**hirst.',
+              '`T … (no water)` means there is nothing to drink from in this scene. Drop a pond in and the note goes.',
               '`(you)` after an activity means the reflex layer interrupted.',
               'The fox stops about 82px away and turns to watch; the rabbit goes further.',
               'The tortoise does not run. It never will — that is its profile, not a bug.',
@@ -2524,6 +2534,86 @@ export const CHATGPT_LESSONS: Lesson[] = [
               'Swapping the flat floor for real walls was one function, not a second physics system.',
               'All five animals here are currently inside green boxes, so all five are on the boundary method.',
             ],
+          },
+        ],
+      },
+      {
+        id: 'water-and-drinking',
+        title: 'Water — the zone you do not have to draw',
+        blocks: [
+          {
+            kind: 'callout',
+            tone: 'key',
+            title: 'Drop a pond in. That is the whole job.',
+            text:
+              'There is **no drinking zone to place**. The pond is recognised by its artwork, anywhere in the scene, in any layer. Animals near enough to it start walking over for a drink on their own — nothing is linked, registered or switched on. Raheem, 2026-08-09: **“anywhere we place a pond and animals, they should just know to use this action.”**',
+          },
+          {
+            kind: 'gallery',
+            pixel: true,
+            caption:
+              'The pond is two pieces that sit at the same spot. The basin is the ground you cannot walk into; the cliff lip is a separate overlay so an animal can stand BEHIND the rock and be hidden by it.',
+            items: [
+              { src: `${KIT}/nature/water/castle-pond-basin.png`, label: 'pond-basin', sub: 'ground — the drinkable part' },
+              { src: `${KIT}/nature/water/castle-pond-cliff-north.png`, label: 'pond-cliff-north', sub: 'overlay — sorts like a wall' },
+            ],
+          },
+          {
+            kind: 'steps',
+            items: [
+              { who: 'raheem', do: 'Drag `pond-basin` from the Blocks panel into the scene, on the ground layer with the paving and trees.', see: 'A pond. Nothing else needed for drinking to work.' },
+              { who: 'raheem', do: 'Drag `pond-cliff-north` in on top, at the SAME x and y.', see: 'It looks identical — the overlay is a duplicate of pixels already there. It only shows itself when something walks behind it.' },
+              { who: 'raheem', do: 'Draw the water edge in `L14_COLLIDERS` so nobody walks into the pond.', see: 'Animals now stop at the bank instead of standing in the water.' },
+              { who: 'raheem', do: 'Drop a fox or a rabbit anywhere near it.', see: 'Within a minute or so it walks over, stands at the edge, puts its head down, and goes back to what it was doing.' },
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'warn',
+            title: 'The collider is the one thing you DO have to draw.',
+            text:
+              'Not to make drinking work — to stop the animal walking into the middle of the pond. It aims at the water and lets collision stop it, which is why it always ends up on the near bank whichever side it came from. Without a collider it wades in and drinks from the centre.',
+          },
+          {
+            kind: 'table',
+            head: ['Thing', 'Do you place it?', 'What happens if you do not'],
+            rows: [
+              ['The animal', '**Yes** — drag it in', 'No animal'],
+              ['Walking zone (green box)', 'Optional', 'It invents a home range around where you dropped it'],
+              ['**Drinking zone**', '**No — there is no such thing**', '—'],
+              ['The pond art', '**Yes** — drag it in', 'Nothing to drink from; animals behave as before'],
+              ['Water collider', 'Yes, strongly advised', 'Animals stand in the pond to drink'],
+              ['Blue **#33ccff** box', 'Only for painted water', 'A stream painted into a background is not drinkable'],
+            ],
+          },
+          {
+            kind: 'bullets',
+            items: [
+              '**Reach.** An animal considers water within about 60% of its territory’s size. A pond just outside the green box still counts — you place water where it looks right, not where the boxes are.',
+              '**Fox and rabbit drink. The tortoise does not.** That is its profile, not a bug — at 20px/s the walk would eat most of a minute.',
+              '**They still spook.** Walk up mid-drink and the reflex layer wins: the rabbit bolts with its thirst unquenched, and comes back for it later.',
+              '**Staggered on purpose.** Animals start with different thirst, so three of them never march to the water together like a parade.',
+            ],
+          },
+          {
+            kind: 'callout',
+            tone: 'tip',
+            title: 'The drinking clips are stand-ins right now.',
+            text:
+              'The fox is playing its **sniff** and the rabbit its **nibble** — both are already head-down at ground level, so they read well enough to judge the timing and the approach. Real drink clips are a PixelLab job once the behaviour is signed off; when they land, nothing else changes.',
+          },
+          {
+            kind: 'try',
+            title: 'Prove the pond is doing it, not a script',
+            steps: [
+              'Open the Wildlife Lab. **There is no pond in it yet** — that is the point of starting here.',
+              'Read the `T` bar on each animal. It climbs, it says `(no water)`, and it never falls. The want is real and unanswerable.',
+              'Now drag `pond-basin` into the scene near the fox, save, and refresh.',
+              'The `(no water)` note disappears. Wait, and the fox walks over, stands at the edge and drinks — and the `T` bar drops to almost nothing.',
+              'Walk at it mid-drink. It bolts with its thirst unquenched, then comes back for it later.',
+            ],
+            proves:
+              'Drinking is not scheduled anywhere and nothing was wired. It is a want the animal always has, that only becomes possible when water exists — so placing the pond IS the entire setup.',
           },
         ],
       },
@@ -2714,6 +2804,9 @@ export const CHATGPT_LESSONS: Lesson[] = [
       'You watched a drive bar rise and fall in the Wildlife Lab readout.',
       'You added or moved an animal, saved, refreshed, and saw it living where you put it.',
       'You can list the three reasons an animal might refuse to move.',
+      'You can say what you place to make an animal drink — and what you deliberately do NOT place.',
+      'You dropped a pond near an animal and watched it walk over and drink without wiring anything.',
+      'You can explain why thirst is the only drive that can go unanswered.',
     ],
   },
 ];

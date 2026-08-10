@@ -29,6 +29,9 @@ export const SHEETS = {
   foxTrot: { texture: 'wildlife-fox-trot', columns: 7, fps: 9 },
   foxSniff: { texture: 'wildlife-fox-sniff', columns: 7, fps: 7 },
   foxSitAlert: { texture: 'wildlife-fox-sit-alert', columns: 9, fps: 7 },
+  // Slower than the sniff it replaced. A sniff is quick and searching; lapping is
+  // steady, and at 7fps it read as frantic.
+  foxDrink: { texture: 'wildlife-fox-drink', columns: 7, fps: 6 },
   rabbitHop: { texture: 'wildlife-rabbit-hop', columns: 7, fps: 9 },
   rabbitNibble: { texture: 'wildlife-rabbit-nibble-groom', columns: 7, fps: 7 },
   tortoiseToddle: { texture: 'wildlife-tortoise-toddle', columns: 7, fps: 5 },
@@ -98,12 +101,20 @@ export const ANIMATION_SETS: Record<WildlifeSpeciesId, WildlifeAnimationSet> = {
     signature: loopSet('foxSniff'),
     observe: loopSet('foxSitAlert'),
     idle: stillSet('foxSitAlert'),
+    // Real clip as of 2026-08-10, generated against the SAME PixelLab object as
+    // the trot and the sniff, so it is the same fox — frame 0 of every direction
+    // is pixel-identical to the trot's, which is how the facing was verified.
+    // (It replaced a sniff stand-in, which was indistinguishable from an actual
+    // sniff and so made drinking impossible to confirm by eye.)
+    drink: loopSet('foxDrink'),
   },
   'forest-rabbit': {
     move: loopSet('rabbitHop'),
     signature: loopSet('rabbitNibble'),
     observe: stillSet('rabbitHop'),
     idle: stillSet('rabbitHop'),
+    /** STAND-IN — see the fox. Nibbling is head-down too. */
+    drink: loopSet('rabbitNibble'),
   },
   'glowcap-tortoise': {
     move: loopSet('tortoiseToddle'),

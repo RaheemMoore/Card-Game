@@ -30,6 +30,15 @@
       },
       {
         "type": "spritesheet",
+        "key": "wildlife-fox-drink",
+        "url": "assets/wildlife-lab/fox-drink-4dir.png",
+        "frameConfig": {
+          "frameWidth": 227,
+          "frameHeight": 108
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "wildlife-rabbit-hop",
         "url": "assets/wildlife-lab/rabbit-hop-4dir.png",
         "frameConfig": {

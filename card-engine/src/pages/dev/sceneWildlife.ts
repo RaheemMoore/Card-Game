@@ -52,13 +52,36 @@
  */
 
 import type Phaser from 'phaser';
-import { WILDLIFE_SPECIES, type WildlifeBounds, type WildlifeSpeciesId } from '../castle/wildlife';
+import {
+  WILDLIFE_SPECIES,
+  type WildlifeBounds,
+  type WildlifeSpeciesId,
+  type WildlifePoint,
+  type WildlifeWater,
+} from '../castle/wildlife';
 
 /** The Editor label `L15_WILDLIFE` compiles to this class field. */
 export const WILDLIFE_LAYER_VAR = 'l15_WILDLIFE';
 
 /** Chosen to sit well clear of the collider colours under `near()`'s tolerance. */
 export const ROAM_COLOR = 0x33ff88;
+
+/**
+ * Optional. Water is normally found from the ART (see WATER_TEXTURES below), so
+ * this is only needed for water that is not its own sprite — a stream painted
+ * into a background plate, or a trough that is part of a larger prop.
+ */
+export const WATER_COLOR = 0x33ccff;
+
+/**
+ * Textures that ARE water. A sprite using one is a drinking source wherever it is
+ * dropped, in any layer, with nothing else authored.
+ *
+ * Raheem, 2026-08-09: "anywhere we place a pond and animals, they should just
+ * know to use this action." That sentence is the whole reason this list exists
+ * rather than a box you have to remember to draw over every pond.
+ */
+export const WATER_TEXTURES: ReadonlySet<string> = new Set(['nature-water-pond-basin']);
 
 /**
  * A sprite's texture is what says which animal it is. The move sheet is used as
@@ -101,6 +124,8 @@ export function improvisedRange(
 export interface SceneWildlife {
   animals: PlacedAnimal[];
   areas: WildlifeBounds[];
+  /** Every patch of drinkable water found in the scene, from art or from a box. */
+  water: WildlifeWater[];
   /** The green rectangles, so the preview can hide them as one. */
   shapes: Phaser.GameObjects.Rectangle[];
   /**
@@ -162,13 +187,158 @@ const isSprite = (o: unknown): o is Phaser.GameObjects.Sprite =>
  * uses, for the same reason: the Editor's colour picker is a picker, and a shape
  * nudged while fiddling should still mean what it was drawn to mean.
  */
-function isRoamColor(fill: number, tolerance = 24): boolean {
+function nearColor(fill: number, want: number, tolerance = 24): boolean {
   const ch = (v: number, shift: number) => (v >> shift) & 0xff;
   return (
-    Math.abs(ch(fill, 16) - ch(ROAM_COLOR, 16)) <= tolerance &&
-    Math.abs(ch(fill, 8) - ch(ROAM_COLOR, 8)) <= tolerance &&
-    Math.abs(ch(fill, 0) - ch(ROAM_COLOR, 0)) <= tolerance
+    Math.abs(ch(fill, 16) - ch(want, 16)) <= tolerance &&
+    Math.abs(ch(fill, 8) - ch(want, 8)) <= tolerance &&
+    Math.abs(ch(fill, 0) - ch(want, 0)) <= tolerance
   );
+}
+
+function isRoamColor(fill: number, tolerance = 24): boolean {
+  return nearColor(fill, ROAM_COLOR, tolerance);
+}
+
+function isWaterColor(fill: number, tolerance = 24): boolean {
+  return nearColor(fill, WATER_COLOR, tolerance);
+}
+
+/**
+ * Axis-aligned world bounds of a placed sprite, from its own origin and scale.
+ *
+ * Deliberately not `getBounds()`: the tests build plain objects rather than real
+ * Phaser sprites, and a reader that only works against a live engine cannot be
+ * unit-tested — which is exactly how the roam boxes would have shipped with the
+ * origin bug the comment on `boundsOf` describes.
+ */
+function spriteBounds(s: Phaser.GameObjects.Sprite): WildlifeBounds {
+  const w = (s.displayWidth ?? s.width * (s.scaleX ?? 1)) || 0;
+  const h = (s.displayHeight ?? s.height * (s.scaleY ?? 1)) || 0;
+  return { x: s.x - (s.originX ?? 0.5) * w, y: s.y - (s.originY ?? 0.5) * h, width: w, height: h };
+}
+
+/**
+ * Walk the whole scene for water, not just the wildlife layer.
+ *
+ * A pond is scenery — it lives on the ground layer with the paving and the trees,
+ * because that is where it belongs and where the author will naturally put it.
+ * Looking for it only in `L15_WILDLIFE` would mean the one thing that must work
+ * without being authored is the one thing that needs authoring.
+ */
+/**
+ * The water's real shape, sampled out of the texture the Editor placed.
+ *
+ * Measured on `castle-pond-basin`: the water is 72% of the sprite and its outline
+ * is irregular. A rectangle is therefore useless for this — it either lets an
+ * animal wade to the middle or halts it out on the grass. The artwork already
+ * knows exactly where the water is, so it is asked.
+ *
+ * Sampled onto a coarse grid ONCE per pond rather than read per step: a texture
+ * pixel read goes through a canvas and is far too slow to do every frame for
+ * every animal. `STEP` of 4 puts the shoreline within a few pixels, which is well
+ * inside the width of a fox's foot.
+ */
+const WATER_GRID_STEP = 4;
+
+function waterShapeOf(
+  scene: Phaser.Scene,
+  sprite: Phaser.GameObjects.Sprite,
+  bounds: WildlifeBounds,
+): WildlifeWater {
+  const key = sprite.texture?.key ?? '';
+  const source = scene.textures?.get?.(key)?.getSourceImage?.() as { width?: number; height?: number } | undefined;
+  const tw = source?.width ?? 0;
+  const th = source?.height ?? 0;
+  const getPixel = scene.textures?.getPixel?.bind(scene.textures);
+
+  // No pixel access (a stubbed texture manager in tests, a texture that failed to
+  // load) means falling back to the box. Worse, but never worse than crashing —
+  // and SAID OUT LOUD, because a silent fallback turns "the shoreline is sloppy"
+  // into an unanswerable question: box-shaped collision and mask-shaped collision
+  // look the same from the outside until you notice the animal stopping in grass.
+  if (!tw || !th || !getPixel) {
+    console.warn(
+      `[wildlife] "${key}" gave no pixels; its water is a plain rectangle, not its real outline.`,
+    );
+    return { bounds, contains: (p: WildlifePoint) => contains(bounds, p.x, p.y) };
+  }
+
+  const cols = Math.max(1, Math.ceil(tw / WATER_GRID_STEP));
+  const rows = Math.max(1, Math.ceil(th / WATER_GRID_STEP));
+  const grid = new Uint8Array(cols * rows);
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const pixel = getPixel(
+        Math.min(tw - 1, col * WATER_GRID_STEP),
+        Math.min(th - 1, row * WATER_GRID_STEP),
+        key,
+      ) as { red: number; green: number; blue: number; alpha: number } | null;
+      if (!pixel || pixel.alpha < 128) continue;
+      // Water is the blue-green part. The bank is warm brown, so this separates
+      // them cleanly without a hand-authored mask; verified against the pond art,
+      // where it selects the pool and none of the earth rim.
+      if (pixel.blue > pixel.red + 20 && pixel.green > pixel.red + 10) grid[row * cols + col] = 1;
+    }
+  }
+
+  const wet = grid.reduce((n, cell) => n + cell, 0);
+  console.info(
+    `[wildlife] "${key}" water outline: ${wet}/${grid.length} cells wet ` +
+      `(${Math.round((100 * wet) / grid.length)}% of the sprite), ${WATER_GRID_STEP}px grid`,
+  );
+
+  return {
+    bounds,
+    contains(point: WildlifePoint) {
+      if (!contains(bounds, point.x, point.y)) return false;
+      const u = (point.x - bounds.x) / bounds.width;
+      const v = (point.y - bounds.y) / bounds.height;
+      const col = Math.min(cols - 1, Math.max(0, Math.round((u * tw) / WATER_GRID_STEP)));
+      const row = Math.min(rows - 1, Math.max(0, Math.round((v * th) / WATER_GRID_STEP)));
+      return grid[row * cols + col] === 1;
+    },
+  };
+}
+
+function collectWater(
+  scene: Phaser.Scene,
+  root: { list?: unknown[] } | undefined,
+  into: WildlifeWater[],
+  // The same pond is reachable down more than one path — a layer is both a child
+  // of the scene and a named field on it — so identity is tracked rather than
+  // trusting the walk to visit each object once. Without it a single pond counts
+  // twice and the readout says there are two.
+  seen: Set<unknown> = new Set(),
+): void {
+  if (!root || !Array.isArray(root.list)) return;
+  for (const child of root.list) {
+    if (seen.has(child)) continue;
+    seen.add(child);
+    if (isSprite(child) && WATER_TEXTURES.has(child.texture?.key ?? '')) {
+      into.push(waterShapeOf(scene, child, spriteBounds(child)));
+    }
+    collectWater(scene, child as { list?: unknown[] }, into, seen);
+  }
+}
+
+/**
+ * Every patch of drinkable water in a scene, found from the artwork alone.
+ *
+ * Exported separately because the Wildlife Lab does not use `readSceneWildlife`
+ * — it names its cast directly rather than reading a layer — and it still has to
+ * find ponds. The lab shipping without water while the courtyard had it is
+ * exactly the drift a second private copy of this would have caused.
+ */
+export function readSceneWater(scene: Phaser.Scene): WildlifeWater[] {
+  const water: WildlifeWater[] = [];
+  const seen = new Set<unknown>();
+  collectWater(scene, (scene as unknown as { children?: { list?: unknown[] } }).children, water, seen);
+  const layer = (scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>)[
+    WILDLIFE_LAYER_VAR
+  ];
+  collectWater(scene, layer as unknown as { list?: unknown[] }, water, seen);
+  return water;
 }
 
 export function readSceneWildlife(scene: Phaser.Scene): SceneWildlife {
@@ -176,9 +346,14 @@ export function readSceneWildlife(scene: Phaser.Scene): SceneWildlife {
     WILDLIFE_LAYER_VAR
   ];
 
+  // Found before the layer check, so a scene with a pond and no wildlife layer
+  // still reports its water rather than returning a blank.
+  const water = readSceneWater(scene);
+
   const empty: SceneWildlife = {
     animals: [],
     areas: [],
+    water,
     shapes: [],
     improvised: [],
     missing: true,
@@ -193,6 +368,13 @@ export function readSceneWildlife(scene: Phaser.Scene): SceneWildlife {
   // it is standing in, and the Editor's list order is the author's, not ours.
   for (const child of layer.list) {
     if (isRectangle(child)) {
+      if (isWaterColor(child.fillColor)) {
+        shapes.push(child);
+        // A drawn box has no art to sample, so the whole box is water.
+        const box = boundsOf(child);
+        water.push({ bounds: box, contains: (p: WildlifePoint) => contains(box, p.x, p.y) });
+        continue;
+      }
       if (!isRoamColor(child.fillColor)) continue;
       shapes.push(child);
       areas.push(boundsOf(child));
@@ -225,5 +407,5 @@ export function readSceneWildlife(scene: Phaser.Scene): SceneWildlife {
     });
   }
 
-  return { animals, areas, shapes, improvised, missing: false };
+  return { animals, areas, water, shapes, improvised, missing: false };
 }

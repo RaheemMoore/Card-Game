@@ -14,12 +14,30 @@ type Clip = {
   fps: number;
 };
 
+/**
+ * Something the animal can do that has NO artwork yet.
+ *
+ * Listed beside the real clips rather than left off, because this page is where
+ * Raheem tracks what each animal can do — and a board that only shows finished
+ * work cannot tell you what is missing. Greyed out and unclickable, so it can
+ * never be mistaken for a clip that exists.
+ */
+type Planned = {
+  id: string;
+  label: string;
+  purpose: string;
+  /** Where it sits in the agreed order: fox, then rabbit, then fish, then tortoise. */
+  queue: string;
+};
+
 type Animal = {
   id: AnimalId;
   label: string;
   role: string;
   accent: string;
   clips: Clip[];
+  /** Behaviour the brain already supports, or will, with no clip drawn for it yet. */
+  planned?: Planned[];
 };
 
 const DIRECTIONS: Direction[] = ['down', 'up', 'left', 'right'];
@@ -61,6 +79,17 @@ const ANIMALS: Animal[] = [
         frames: 9,
         fps: 7,
       },
+      {
+        id: 'drink',
+        label: 'Drink',
+        purpose:
+          'Walks to a pond when thirsty, stops with every paw on the bank, and laps at the edge. Rings spread from the exact point the muzzle meets the water — drawn by the game, not baked into the clip, so they appear wherever it happens to drink.',
+        src: '/assets/wildlife-lab/fox-drink-4dir.png',
+        frameWidth: 227,
+        frameHeight: 108,
+        frames: 7,
+        fps: 6,
+      },
     ],
   },
   {
@@ -90,6 +119,15 @@ const ANIMALS: Animal[] = [
         fps: 7,
       },
     ],
+    planned: [
+      {
+        id: 'drink',
+        label: 'Drink',
+        purpose:
+          'Already decided by the brain — the rabbit gets thirsty and walks to water. It borrows the nibble clip until its own is drawn, so on screen a drink looks exactly like a nibble.',
+        queue: 'next, after the fox is signed off',
+      },
+    ],
   },
   {
     id: 'tortoise',
@@ -106,6 +144,15 @@ const ANIMALS: Animal[] = [
         frameHeight: 106,
         frames: 7,
         fps: 5,
+      },
+    ],
+    planned: [
+      {
+        id: 'swim',
+        label: 'Swim',
+        purpose:
+          'Gets into the pond, floats about and climbs out again. Needs the brain to let some creatures ENTER water, which today is solid to everyone — the same change the fish need, so the two get built together.',
+        queue: 'last — after the fish',
       },
     ],
   },
@@ -252,7 +299,22 @@ export function WildlifeAnimationLab() {
                 aria-pressed={clip.id === entry.id}
                 style={{ ...S.pill, ...(clip.id === entry.id ? S.pillOn : {}) }}>{entry.label}</button>
             ))}
+            {(animal.planned ?? []).map((entry) => (
+              <span
+                key={entry.id}
+                title={`${entry.purpose} — ${entry.queue}`}
+                style={S.pillPlanned}
+              >
+                {entry.label} · not drawn yet
+              </span>
+            ))}
           </div>
+          {(animal.planned ?? []).map((entry) => (
+            <p key={entry.id} style={S.plannedNote}>
+              <strong>{entry.label}</strong> — {entry.purpose}{' '}
+              <em style={{ color: '#8a8f9f' }}>({entry.queue})</em>
+            </p>
+          ))}
 
           <ControlLabel number="3" text="Choose a direction" />
           <div style={S.directionGrid}>
@@ -352,6 +414,17 @@ const S: Record<string, React.CSSProperties> = {
   pills: { display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 22 },
   pill: { border: '1px solid #353949', borderRadius: 999, background: '#202431', color: '#aaa6ba', padding: '7px 10px', cursor: 'pointer' },
   pillOn: { color: '#fff', borderColor: '#7c70ff', background: '#302a52' },
+  // Dashed and dimmed, and NOT a button — a planned behaviour must never look
+  // like a clip you could click and fail to play.
+  pillPlanned: {
+    border: '1px dashed #3d4356',
+    borderRadius: 999,
+    background: 'transparent',
+    color: '#6e7488',
+    padding: '7px 10px',
+    fontSize: 12,
+  },
+  plannedNote: { color: '#7f8495', fontSize: 11, lineHeight: 1.45, margin: '8px 2px 0' },
   directionGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 },
   direction: { border: '1px solid #353949', borderRadius: 8, background: '#202431', color: '#aaa6ba', padding: '8px 5px', cursor: 'pointer', textTransform: 'capitalize' },
   directionOn: { color: '#fff', borderColor: '#7c70ff', background: '#302a52' },
