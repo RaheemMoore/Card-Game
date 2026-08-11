@@ -460,6 +460,15 @@
       }
     ]
   },
+  "halo-stone-castle--gates": {
+    "files": [
+      {
+        "type": "image",
+        "key": "gate-house-v3",
+        "url": "assets/kits/halo-stone-castle/structures/gate/castle-gate-house-v3.png"
+      }
+    ]
+  },
   "halo-stone-castle--gates--unreviewed": {
     "files": [
       {
@@ -504,7 +513,7 @@
       }
     ]
   },
-  "halo-stone-castle--ground-overlays--unreviewed": {
+  "halo-stone-castle--ground-overlays": {
     "files": [
       {
         "type": "image",
@@ -518,13 +527,46 @@
       },
       {
         "type": "image",
+        "key": "ground-overlay-cart-ruts",
+        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
+      }
+    ]
+  },
+  "halo-stone-castle--ground-overlays--unreviewed": {
+    "files": [
+      {
+        "type": "image",
         "key": "ground-overlay-weeds-dense",
         "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-weeds-dense-needs-cut.png"
+      }
+    ]
+  },
+  "halo-stone-castle--nature": {
+    "files": [
+      {
+        "type": "image",
+        "key": "nature-shrub-young-tree-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
       },
       {
         "type": "image",
-        "key": "ground-overlay-cart-ruts",
-        "url": "assets/kits/halo-stone-castle/ground/overlays/castle-ground-overlay-cart-ruts.png"
+        "key": "nature-rocks-scrub-cluster",
+        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-tree-broadleaf-large-v2",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-large-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-shrub-young-tree-cluster-v2",
+        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-rocks-scrub-cluster-v2",
+        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster-v2.png"
       }
     ]
   },
@@ -539,16 +581,6 @@
         "type": "image",
         "key": "nature-tree-broadleaf-small",
         "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small.png"
-      },
-      {
-        "type": "image",
-        "key": "nature-shrub-young-tree-cluster",
-        "url": "assets/kits/halo-stone-castle/nature/shrubs/castle-shrub-young-tree-cluster.png"
-      },
-      {
-        "type": "image",
-        "key": "nature-rocks-scrub-cluster",
-        "url": "assets/kits/halo-stone-castle/nature/rocks/castle-rock-low-scrub-cluster.png"
       },
       {
         "type": "image",
@@ -589,6 +621,21 @@
         "type": "image",
         "key": "tree-pale-bare",
         "url": "assets/kits/halo-stone-castle/recovered/castle-trees-b-3.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-tree-broadleaf-small-v2",
+        "url": "assets/kits/halo-stone-castle/nature/trees/castle-tree-broadleaf-small-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-water-pond-basin",
+        "url": "assets/kits/halo-stone-castle/nature/water/castle-pond-basin.png"
+      },
+      {
+        "type": "image",
+        "key": "nature-water-pond-cliff-north",
+        "url": "assets/kits/halo-stone-castle/nature/water/castle-pond-cliff-north.png"
       }
     ]
   },
@@ -990,6 +1037,290 @@
       }
     ]
   },
+  "halo-stone-castle--terrain": {
+    "files": [
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-floor",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/00_floor.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-sides-N",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/01_sides-N.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-sides-E",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/02_sides-E.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-sides-S",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/03_sides-S.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-sides-W",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/04_sides-W.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-corners-NE",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/05_corners-NE.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-corners-SE",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/06_corners-SE.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-corners-SW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/07_corners-SW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-corners-NW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/08_corners-NW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-corners-NE",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/09_outer_corners-NE.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-corners-SE",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/10_outer_corners-SE.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-corners-SW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/11_outer_corners-SW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-corners-NW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/12_outer_corners-NW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-hub",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/13_partition-hub.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-N",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/14_partition-N.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-E",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/15_partition-E.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-S",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/16_partition-S.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-W",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/17_partition-W.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-wall-N",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/18_partition_wall-N.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-wall-E",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/19_partition_wall-E.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-wall-S",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/20_partition_wall-S.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-wall-W",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/21_partition_wall-W.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-NE",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/22_partition_multi-NE.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-NW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/23_partition_multi-NW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-ES",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/24_partition_multi-ES.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-SW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/25_partition_multi-SW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-NES",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/26_partition_multi-NES.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-NSW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/27_partition_multi-NSW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-NEW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/28_partition_multi-NEW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-ESW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/29_partition_multi-ESW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-multi-NESW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/30_partition_multi-NESW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-pillar",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/31_pillar.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Na",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/32_doors-Na.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Nb",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/33_doors-Nb.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Ea",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/34_doors-Ea.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Eb",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/35_doors-Eb.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Sa",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/36_doors-Sa.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Sb",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/37_doors-Sb.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Wa",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/38_doors-Wa.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-doors-Wb",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/39_doors-Wb.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-stairs0",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/40_stairs0.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-stairs1",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/41_stairs1.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-stairs-east0",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/42_stairs_east0.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-stairs-east1",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/43_stairs_east1.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-floor-roof",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/44_floor_roof.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-doors-Va",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/45_partition_doors-Va.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-doors-Vb",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/46_partition_doors-Vb.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-doors-Ha",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/47_partition_doors-Ha.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-partition-doors-Hb",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/48_partition_doors-Hb.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-NES",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/49_outer_multi-NES.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-NEW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/50_outer_multi-NEW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-NSW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/51_outer_multi-NSW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-ESW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/52_outer_multi-ESW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-NESW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/53_outer_multi-NESW.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-NS",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/54_outer_multi-NS.png"
+      },
+      {
+        "type": "image",
+        "key": "terrain-cliff-kit-outer-multi-EW",
+        "url": "assets/kits/halo-stone-castle/terrain/cliff-kit-v1/55_outer_multi-EW.png"
+      }
+    ]
+  },
   "halo-stone-castle--terrain--unreviewed": {
     "files": [
       {
@@ -1083,6 +1414,15 @@
           "frameWidth": 32,
           "frameHeight": 32
         }
+      },
+      {
+        "type": "spritesheet",
+        "key": "ground-tileset-cliff-rock-32",
+        "url": "assets/kits/halo-stone-castle/ground/tilesets/castle-cliff-rock-wang-32.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
       }
     ]
   },
@@ -1137,6 +1477,16 @@
         "type": "image",
         "key": "tower-base-v2",
         "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-base-v2.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-corner-v3",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-corner-v3.png"
+      },
+      {
+        "type": "image",
+        "key": "tower-battle-v3",
+        "url": "assets/kits/halo-stone-castle/structures/towers/castle-tower-battle-v3.png"
       }
     ]
   },
@@ -1180,6 +1530,16 @@
         "type": "image",
         "key": "wall-corner-outer-healthy",
         "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-corner-outer-healthy.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-straight-v3",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-straight-v3.png"
+      },
+      {
+        "type": "image",
+        "key": "wall-side-v3",
+        "url": "assets/kits/halo-stone-castle/structures/walls/castle-wall-side-v3.png"
       }
     ]
   },

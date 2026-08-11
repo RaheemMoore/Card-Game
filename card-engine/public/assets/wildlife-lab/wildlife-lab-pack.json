@@ -30,6 +30,15 @@
       },
       {
         "type": "spritesheet",
+        "key": "wildlife-fox-drink",
+        "url": "assets/wildlife-lab/fox-drink-4dir.png",
+        "frameConfig": {
+          "frameWidth": 227,
+          "frameHeight": 108
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "wildlife-rabbit-hop",
         "url": "assets/wildlife-lab/rabbit-hop-4dir.png",
         "frameConfig": {
@@ -48,11 +57,38 @@
       },
       {
         "type": "spritesheet",
+        "key": "wildlife-rabbit-drink",
+        "url": "assets/wildlife-lab/rabbit-drink-4dir.png",
+        "frameConfig": {
+          "frameWidth": 146,
+          "frameHeight": 120
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "wildlife-tortoise-toddle",
         "url": "assets/wildlife-lab/tortoise-toddle-4dir.png",
         "frameConfig": {
           "frameWidth": 154,
           "frameHeight": 106
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-tortoise-float",
+        "url": "assets/wildlife-lab/tortoise-float-4dir.png",
+        "frameConfig": {
+          "frameWidth": 161,
+          "frameHeight": 103
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "wildlife-fish-swim",
+        "url": "assets/wildlife-lab/fish-swim-4dir.png",
+        "frameConfig": {
+          "frameWidth": 60,
+          "frameHeight": 60
         }
       }
     ]

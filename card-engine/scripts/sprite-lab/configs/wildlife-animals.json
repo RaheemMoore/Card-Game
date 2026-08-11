@@ -8,7 +8,9 @@
     "The low top-down view matches the locked courtyard camera language: body and face cues remain readable while feet stay anchored to the ground.",
     "LIVE API CORRECTION, 2026-08-07: /create-8-direction-object rejects both seed and style_images when creating directly from a description. The first request 422ed before generation and cost 0. These animals are therefore not seed-reproducible; preserve the raw provider job, object id, all eight rotations, exact prompt, actual usage, validation result, runtime review, and human approval state.",
     "After the base pass, object ids are copied into the animation config. Movement and every initial signature activity are animated in down, left, right, and up facings so an activity never snaps the animal to an unrelated direction.",
-    "No blind rerolls. Retry only an objectively broken or zero-usage stalled job while the full batch remains under 200 generations."
+    "No blind rerolls. Retry only an objectively broken or zero-usage stalled job while the full batch remains under 200 generations.",
+    "FISH, 2026-08-10. The 200-generation ceiling above covered the first three animals and is closed at 196; Raheem opened a new budget for water life. Full four directions approved, one ordinary pond fish.",
+    "GENERATION SIZE IS NOT WORLD SIZE, and the fish is where that first bites. The animals are generated at 168 and drawn at 0.4-0.7 scale, a mild downscale. A fish reads at roughly 35px in a 364px pond, so generating it at 168 would mean a 0.2 downscale and the pixel grid would be destroyed - the same defect measured on the Leonardo pond before it was redrawn. Generated at 64 so its native pixels are close to the size they are shown at."
   ],
   "styleReference": "style-ref-hero.png",
   "rotations": [
@@ -37,6 +39,15 @@
         "description": "one small gentle magical woodland tortoise, ordinary believable tortoise body with sturdy short legs, warm olive skin, domed deep moss-green shell with amber scute lines, a thin natural moss layer on the upper shell and exactly three tiny pale turquoise bioluminescent mushroom caps growing from the rear shell, subtle contained glow only around the caps, friendly old eyes and extended head, slightly magical but still clearly a tortoise, charming readable 2D pixel art, low three-quarter top-down game view with face still visible, complete isolated body and all four feet visible, centered on transparent canvas, restrained single dark pixel outline, compact color clusters, basic shading, no scenery, no ground plants, no cast shadow",
         "view": "low top-down",
         "size": 168
+      }
+    },
+    {
+      "id": "pond-fish",
+      "styleAnchor": false,
+      "params": {
+        "description": "one small ordinary freshwater pond fish, simple rounded body tapering to a soft fanned tail fin, warm orange-gold scales with a paler cream belly, one small dark eye, small delicate side fins, calm natural fish anatomy simplified into charming readable 2D pixel art, low three-quarter top-down game view looking down on the fish, complete isolated body centered on transparent canvas, restrained single dark pixel outline, compact color clusters, basic shading, no water, no waves, no bubbles, no splash, no scenery, no cast shadow",
+        "view": "low top-down",
+        "size": 64
       }
     }
   ],

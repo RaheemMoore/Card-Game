@@ -1,6 +1,6 @@
-export type WildlifeSpeciesId = 'red-fox' | 'forest-rabbit' | 'glowcap-tortoise';
+export type WildlifeSpeciesId = 'red-fox' | 'forest-rabbit' | 'glowcap-tortoise' | 'pond-fish';
 
-export type WildlifeActivity = 'idle' | 'roam' | 'signature' | 'observe' | 'flee';
+export type WildlifeActivity = 'idle' | 'roam' | 'signature' | 'observe' | 'flee' | 'drink';
 
 export type WildlifeFacing = 'down' | 'left' | 'right' | 'up';
 
@@ -16,6 +16,23 @@ export interface WildlifeBounds {
   height: number;
 }
 
+/**
+ * A patch of drinkable water, and the exact shape of it.
+ *
+ * `bounds` alone is not enough and measuring proved it: the pond's water is 72%
+ * of its sprite and wildly irregular, so a rectangle either lets an animal wade
+ * into the middle or stops it out in the grass. `contains` answers for a single
+ * point, which is what both jobs actually need — "may I step here" and "am I at
+ * the edge yet".
+ *
+ * The shape comes from the artwork, so no collider has to be drawn for a pond to
+ * work. A scene may still supply its own for water that is not a sprite.
+ */
+export interface WildlifeWater {
+  bounds: WildlifeBounds;
+  contains(point: WildlifePoint): boolean;
+}
+
 export interface WildlifeRoutine {
   activity: Exclude<WildlifeActivity, 'flee'>;
   /** Relative likelihood after context and recent-memory rules are applied. */
@@ -28,7 +45,17 @@ export interface WildlifeRoutine {
 export interface WildlifeSpeciesProfile {
   id: WildlifeSpeciesId;
   label: string;
-  movementStyle: 'hop' | 'toddle' | 'trot';
+  movementStyle: 'hop' | 'toddle' | 'trot' | 'swim';
+  /**
+   * Which side of the waterline this creature lives on. Defaults to `'land'`, so
+   * every existing profile keeps its behaviour untouched.
+   *
+   * It inverts three rules rather than adding a fourth: water is solid to a land
+   * animal and land is solid to a fish; a land animal roams to dry points and a
+   * fish to wet ones; a land animal stuck in water walks out and a fish stranded
+   * on land swims back. Same code, read the other way round.
+   */
+  habitat?: 'land' | 'water' | 'amphibious';
   roamSpeed: number;
   fleeSpeed: number;
   arrivalRadius: number;
@@ -37,12 +64,39 @@ export interface WildlifeSpeciesProfile {
   closePlayerResponse: 'flee' | 'observe';
   routines: readonly WildlifeRoutine[];
   signatureLabel: string;
+  /**
+   * How close to the water's edge counts as "at the water".
+   *
+   * A species drinks if and only if it has a `drink` routine — there is no second
+   * boolean saying so, because two places to declare one fact is how a tortoise
+   * ends up with a drinking clip it never plays. The tortoise simply has no such
+   * routine.
+   */
+  drinkRange?: number;
+  drinkLabel?: string;
+  /**
+   * How far past the waterline the muzzle reaches when the head is down.
+   *
+   * Without it the ripple lands on the shoreline immediately in front of the
+   * paws — which is where the FEET are, not where the tongue is, and it read as
+   * the water reacting to the wrong part of the animal.
+   */
+  muzzleReach?: number;
 }
 
 export interface WildlifeStimulus {
   now: number;
   playerPosition?: WildlifePoint;
   playerDistance?: number;
+  /**
+   * Whether there is drinkable water this animal could actually reach.
+   *
+   * A boolean, not a position, on purpose: the brain decides WHETHER to drink and
+   * stays ignorant of where anything is, exactly as it is ignorant of sprites. The
+   * agent owns "which pond and how do I get there". Keeping that line is what lets
+   * a pond be dropped anywhere without the brain learning about the world.
+   */
+  waterAvailable?: boolean;
 }
 
 export interface WildlifeDecision {
@@ -59,6 +113,8 @@ export interface WildlifeNeeds {
   curiosity: number;
   /** Desire to perform the species' characteristic activity. */
   signatureUrge: number;
+  /** Desire to find water. Rises with time and faster with exertion. */
+  thirst: number;
 }
 
 export interface WildlifeBrainSnapshot {
@@ -74,6 +130,13 @@ export interface WildlifeAnimationSet {
   move: Partial<Record<WildlifeFacing, string>>;
   signature: Partial<Record<WildlifeFacing, string>>;
   observe?: Partial<Record<WildlifeFacing, string>>;
+  /** Falls back to `signature` while the real head-down clips are being made. */
+  drink?: Partial<Record<WildlifeFacing, string>>;
+  /**
+   * Used in place of `move` and `idle` while the creature is actually in water.
+   * Only an amphibious animal ever has both this and a walking clip.
+   */
+  swim?: Partial<Record<WildlifeFacing, string>>;
 }
 
 /**

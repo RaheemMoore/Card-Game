@@ -1,0 +1,58 @@
+{
+  "_why": "Raheem, 2026-08-09, pointing at a top-down reference map: 'you see that little pond on the right with the rock in it and how it looks like it has a cool ledge. I want that pond as an asset.' There is NO water body anywhere in the kit today — a check of public/assets/kits/halo-stone-castle turns up castle-cliff-face-waterfall and a fountain occluder band, and nothing else. No pond, no still-water tile, no shoreline. The wildlife-lab animals have nothing to drink from. This is the first water piece; the other pond shapes, the drinking puddle and the shoreline transition are deliberately NOT in this batch until this one passes review.",
+
+  "_style_decision": "Raheem chose MATCH THE EXISTING KIT over the reference's brighter, more saturated 16-bit look. The reference is a different art style; finishing this onto the shared 48-colour castle-kit.hex means it drops in beside the existing trees and paving instead of starting a second style the whole kit would eventually have to be re-graded to meet. Do not chase the reference's saturation in the prompt — the palette is pinned in prose and enforced again at quantize.",
+
+  "_the_risk": "castle-grand-topdown.json _the_finding is the governing constraint here and it is BAD news for a pond: 'free-standing objects centred on white became isometric every single time (H, I, K, F)', and 'angle adjectives do not help'. A pond is precisely that subject shape. The mitigation is not a better adjective — it is COMPOSITION. A pond is not an object standing on ground, it IS ground: a hole cut into it. So the GRASS spans the frame edge to edge and the pond is cut into that spanning plane, which is structurally the same composition as kit-b-wall-straight (E), the only composition this model has ever held the angle on. Both states below open on the ground plane, never on the pond. If this still comes back isometric, the finding is broader than walls and that is worth knowing for every future scenery piece.",
+
+  "_no_angle_adjective": "_round_3 recorded that 'TILTED TOWARD THE VIEWER AT SEVENTY DEGREES' made things WORSE — the model reads 'tilt the object' as 'draw it isometric'. There is therefore no per-state angle adjective in this file at all. The angle lives in the styleHeader and in the frame-spanning composition, nowhere else.",
+
+  "_positive_not_negative": "Standing rule: never negate an absence in the highest-attention part of the frame. 'Still water' is written positively as 'opaque matte flat water of one even tone' rather than as 'no ripples, no reflections, no motion' — the arena spent ten images learning that a negated absence renders as an ambiguous presence. Likewise the concave shape is 'ONE SINGLE UNBROKEN body of water', not 'not two pools', because models regularly split a kidney outline into two disconnected puddles.",
+
+  "_waterfall_bleed": "The kit already ships castle-cliff-face-waterfall with turbulent white-capped water. This pond must read as CALM and unmistakably a different water feature, or the two become indistinguishable game-wide. Whitecaps, spray and foam are banned in the negative and calmness is asserted positively in both lines.",
+
+  "_model_choice": "lucid-origin, alchemy false, styleRef false — inherited wholesale from castle-grand-topdown.json. Lucid Origin holds a flat top-down game-map read (harness.mjs:31-36); Phoenix pulls to perspective matte painting. Lucid Origin rejects the style-reference controlnet, so the palette is pinned in prose. Alchemy OFF returns a smooth painted render rather than a 3D one, which is closer to a flat game asset; PixelLab image-to-pixelart is what actually makes it pixel art.",
+
+  "_native_scale": "1024x1024. Generate large and downsample: PixelLab image-to-pixelart takes input <=1280 and outputs <=320 per axis. Target final is roughly 160x128 for the full pond+bank (5x4 wang tiles at 32px) with the water body around 96x64. Do not chase final resolution out of Leonardo.",
+
+  "_scale_cues": "Ground wang tiles are 32px and the hero is ~30x69. 'Small' here is scoped against the COURTYARD, not against the hero — a pond sized to the hero reads as a puddle. Both lines name a human-figure scale datum for the same reason castle-grand-topdown.json does: the redraw carries whatever scale cues the painting has, and a lucky unprompted figure in state E is the only reason that run could be measured at all.",
+
+  "_two_states_not_four": "castle-grand-topdown.json _rules(2): never fire more than TWO generations at a time, and stay on ONE piece until it is right. The two states here differ on the two variables actually in doubt — outline shape (kidney vs oval) and whether the boulder belongs in the sprite at all. They are not re-rolls of one prompt, which _rules(1) bans.",
+
+  "_boulder_question": "environment-art-director's ruling: the boulder probably should NOT be baked in — the kit already ships castle.nature.rocks.scrub.cluster, and a baked boulder can never be reused, can never take its own y-sort depth against the hero, and duplicates art already paid for. State A includes it, state B omits it. One round answers it for free instead of arguing it.",
+
+  "_workflow": "Gate on these two. Raheem picks. Then: crop to the pond -> POST /image-to-pixelart (feed the ORIGINAL 1024px art, never a downsample) -> border-flood white key with --fill-enclosed 300 (a global threshold would punch out the water's own highlights) -> NO ground-skirt cut, because a pond IS ground and the earth bank is the asset; trim to the outer rim instead -> quantize onto the shared castle-kit.hex at 48 colours -> check distinct-colour count IN THE WATER REGION specifically, not just overall -> dehalo --min-value 185 on the bank/grass seam. Split in post into bank and water fill as two registered assets from ONE generation, the way castle.tower.cap.v2 and castle.tower.base.v2 were cut from one image; two separate generations cannot be trusted to align on the same pixels.",
+
+  "_depth_note": "sceneDepth.ts excludes L1_GROUND from the y-sort band precisely so 'a pebble decal sorted into the band would draw over the hero's head'. A pond has no vertical relief — it is a ground decal like castle-ground-overlay-grass-clover and belongs on the ground layer, beneath everything, with no contactY. What it needs instead is a COLLIDER matching the water's inner footprint only, so the player can stand on the earth bank but not walk into the water.",
+
+  "model": "lucid-origin",
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1024,
+  "height": 1024,
+
+  "negative": "isometric, three-quarter view, perspective, vanishing point, front elevation, side elevation, straight-on view, eye-level view, horizon line, sky, clouds, horizon, distant landscape, waterfall, rapids, whitecaps, foam, spray, splash, ripples, waves, mirror reflection, reflected trees, two separate pools, divided water, fountain, well, stone basin, tiled edge, brick lining, buildings, walls, castle, path, road, bridge, photorealistic, photograph, 3d render, cgi, realistic, painterly, soft focus, blurry, depth of field, gradient background, vignette, nude, bare chest, bare torso, shirtless, cleavage, midriff, text, letters, signature, watermark, logo, ui, hud, frame, border, dark, gloomy, grim, murky, swamp, stagnant, algae bloom",
+
+  "_prompt_budget": "harness.mjs:95 caps styleHeader + line at 1500 chars COMBINED and Leonardo TRUNCATES server-side rather than rejecting, silently dropping whatever sits at the end. Header is 592, leaving 908 per state. Both states are validated under that; if either line grows, compress the prose and never the composition sentences.",
+
+  "styleHeader": "2D game art for a 16-bit top-down RPG tilemap, like a Pokemon overworld map. SEEN FROM HIGH ABOVE AT A STEEP DOWNWARD ANGLE — a MAP view of the ground itself, not a picture of a place. The whole image is one continuous GROUND PLANE filling the frame corner to corner. Flat cel shading, dark outlines, limited palette, chunky readable shapes, even sun from above with no cast shadows. Muted mossy green grass, warm brown earth, pale lavender-grey stone, soft slate-blue water, amber accents. Restrained desaturated colour, never bright or candy-coloured.",
+
+  "familyLabels": {
+    "pond": "First water piece — pond cut into a spanning ground plane"
+  },
+
+  "states": [
+    {
+      "id": "pond-a-kidney",
+      "label": "A — Kidney pond, earth bank ledge, boulder in the water",
+      "family": "pond",
+      "line": "A field of grass fills the ENTIRE FRAME corner to corner, an unbroken ground plane seen from directly above. Cut down into that grass at the centre is a small still pond. ONE SINGLE UNBROKEN body of water with a soft curved kidney outline, its surface opaque matte slate-blue of one even tone, calm and glassy. Ringing the water completely is a raised bank of bare warm-brown earth, a clear ledge two or three paces wide where the turf has been cut back and the soil steps down to the waterline, its lip catching a lighter rim of sunlit dirt. The grass meets that earth bank in a soft irregular organic edge, never a drawn line or a straight border. A single grey boulder sits in the shallows near the middle of the pond, breaking the surface. A few tufts of reed grow at the bank. A single tiny human figure stands on the grass at one side for scale; the pond is about three times that figure's height across."
+    },
+    {
+      "id": "pond-b-oval",
+      "label": "B — Rounded pond, pebble shore, no boulder",
+      "family": "pond",
+      "line": "A field of grass fills the ENTIRE FRAME corner to corner, an unbroken ground plane seen from directly above. Cut down into that grass at the centre is a small still pond. ONE SINGLE UNBROKEN body of water with a rounded oval outline, its surface opaque matte slate-blue of one even tone, calm and glassy, shading to a paler tone in a narrow band around the rim. Ringing the water completely is a raised bank of bare warm-brown earth scattered with small pale grey pebbles, a clear ledge two or three paces wide where the turf has been cut back and the soil steps down to the waterline. The grass meets that earth bank in a soft irregular organic edge, never a drawn line or a straight border. The water surface is completely empty and unbroken. A few tufts of reed grow at the bank. A single tiny human figure stands on the grass at one side for scale; the pond is about three times that figure's height across."
+    }
+  ]
+}

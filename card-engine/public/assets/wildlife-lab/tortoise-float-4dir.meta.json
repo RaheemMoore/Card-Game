@@ -1,0 +1,60 @@
+{
+  "image": "tortoise-float-4dir.png",
+  "frameWidth": 161,
+  "frameHeight": 103,
+  "columns": 7,
+  "rows": [
+    {
+      "direction": "down",
+      "idle": 0,
+      "walk": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "direction": "up",
+      "idle": 7,
+      "walk": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "direction": "left",
+      "idle": 14,
+      "walk": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    {
+      "direction": "right",
+      "idle": 21,
+      "walk": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ]
+    }
+  ],
+  "baselineY": 100,
+  "targetBodyHeight": 97,
+  "anchor": "bbox",
+  "note": "Frame index = row * columns + column. Every frame is normalized to one body height and aligned on a shared feet baseline; idle comes from the same animation as the walk so the two cannot disagree on scale. east=screen right, west=screen left."
+}

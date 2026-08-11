@@ -47,6 +47,10 @@ export class WildlifeBrain {
       energy: 0.55 + random() * 0.25,
       curiosity: 0.35 + random() * 0.35,
       signatureUrge: 0.2 + random() * 0.35,
+      // Staggered on purpose. Animals created in the same frame with identical
+      // thirst all walk to the pond together, which reads as a scripted parade
+      // rather than as three creatures that happened to get thirsty.
+      thirst: 0.1 + random() * 0.5,
     };
   }
 
@@ -66,15 +70,32 @@ export class WildlifeBrain {
     const previous = this.current?.activity;
     if (this.current) this.remember(this.current.activity);
 
-    const available = this.profile.routines.filter((routine) => {
+    // No water in reach means the drink routine is not a candidate at all — the
+    // animal does not stand around wanting something it cannot have, it simply
+    // behaves exactly as it did before there were ponds. This one filter is the
+    // whole of "put a pond down and they know what to do".
+    const possible = this.profile.routines.filter(
+      (routine) => routine.activity !== 'drink' || stimulus.waterAvailable === true,
+    );
+
+    const available = possible.filter((routine) => {
       const coolingDown = (this.cooldownUntil.get(routine.activity) ?? 0) > stimulus.now;
       return !coolingDown && routine.activity !== previous;
     });
-    const fallback = this.profile.routines.filter(
+    const fallback = possible.filter(
       (routine) => (this.cooldownUntil.get(routine.activity) ?? 0) <= stimulus.now,
     );
     const candidates =
-      available.length > 0 ? available : fallback.length > 0 ? fallback : this.profile.routines;
+      available.length > 0 ? available : fallback.length > 0 ? fallback : possible;
+    if (candidates.length === 0) {
+      this.current = {
+        activity: 'idle',
+        startedAt: stimulus.now,
+        endsAt: stimulus.now + 1_000,
+        reason: 'routine',
+      };
+      return this.current;
+    }
     let routine = candidates[0];
     let bestScore = -Infinity;
     for (const candidate of candidates) {
@@ -92,6 +113,9 @@ export class WildlifeBrain {
       reason: 'routine',
     };
     if (routine.activity === 'signature') this.needs.signatureUrge = 0;
+    // Slaked, but not to bone dry — a small residue means the next drink is not
+    // a fixed interval away, so a watched animal never looks metronomic.
+    if (routine.activity === 'drink') this.needs.thirst = this.random() * 0.12;
     this.cooldownUntil.set(routine.activity, this.current.endsAt + routine.cooldownMs);
     return this.current;
   }
@@ -102,6 +126,34 @@ export class WildlifeBrain {
       needs: { ...this.needs },
       recent: [...this.recent],
     };
+  }
+
+  /**
+   * Make this animal thirsty right now, and let it reconsider immediately.
+   *
+   * A review affordance, not a game mechanic. Thirst takes tens of seconds to
+   * build, and with stand-in artwork a drink looks exactly like the fox's sniff —
+   * so without a way to force it, "do they actually drink?" is a question you
+   * answer by staring at a field hoping to catch one. Clearing the current
+   * decision is the important half: raising the need alone would change nothing
+   * until whatever it was already doing ran out of time.
+   */
+  makeThirsty(): void {
+    this.needs.thirst = 1;
+    this.current = null;
+    this.cooldownUntil.delete('drink');
+  }
+
+  /**
+   * Force one activity for a while. A review affordance, like `makeThirsty`.
+   *
+   * Needed because the brain re-decides every frame and would immediately
+   * overwrite anything the agent set by hand — so "make the tortoise go for a
+   * swim" has to be expressed as a decision, not as a position.
+   */
+  hold(activity: WildlifeActivity, now: number, durationMs: number): WildlifeDecision {
+    this.current = { activity, startedAt: now, endsAt: now + durationMs, reason: 'routine' };
+    return this.current;
   }
 
   reset(): void {
@@ -119,6 +171,13 @@ export class WildlifeBrain {
       needMultiplier = 0.35 + this.needs.signatureUrge * 2.4;
     }
     if (routine.activity === 'observe') needMultiplier = 0.35 + this.needs.curiosity;
+    // Steeper than the others, and squared. A slightly thirsty animal should stay
+    // slightly more likely to wander than to drink; a very thirsty one should go
+    // to the water and mean it. A linear term gives neither — it makes drinking a
+    // constant low-grade nag, and the animal drifts pondward all day.
+    if (routine.activity === 'drink') {
+      needMultiplier = 0.15 + this.needs.thirst * this.needs.thirst * 4.2;
+    }
 
     const memoryPenalty = this.recent.includes(routine.activity) ? 0.35 : 1;
     const naturalVariation = 0.9 + this.random() * 0.2;
@@ -139,9 +198,21 @@ export class WildlifeBrain {
     const curiosityDelta =
       activity === 'roam' || activity === 'observe' ? -0.025 : activity === 'idle' ? 0.02 : 0.008;
 
+    // Exertion is thirsty work; drinking is the only thing that reverses it, and
+    // that happens on the decision itself rather than here.
+    //
+    // These were a third higher until they were MEASURED: a fox drank every 20
+    // seconds and a rabbit every 16, which is not an animal that gets thirsty, it
+    // is an animal that lives at the pond. Drinking is meant to be a thing you
+    // occasionally notice, so the rates are set from the cadence we want out the
+    // far end rather than from what felt right written down. See drinkCadence.test.ts.
+    const thirstDelta =
+      activity === 'flee' ? 0.006 : activity === 'roam' ? 0.003 : activity === 'drink' ? 0 : 0.0015;
+
     this.needs.energy = clamp01(this.needs.energy + energyDelta * seconds);
     this.needs.curiosity = clamp01(this.needs.curiosity + curiosityDelta * seconds);
     this.needs.signatureUrge = clamp01(this.needs.signatureUrge + 0.014 * seconds);
+    this.needs.thirst = clamp01(this.needs.thirst + thirstDelta * seconds);
   }
 
   private playerReaction(stimulus: WildlifeStimulus): 'flee' | 'observe' | null {

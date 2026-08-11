@@ -13,16 +13,24 @@ import {
   type ElevationMap,
 } from '../../castle/v2-preview/elevation';
 import { LEVEL_STRIDE } from '../sceneDepth';
+import { createWaterRipples } from './waterRipples';
 import {
   ANIMATION_SETS,
+  WATER_LAYER,
   WILDLIFE_FEET,
+  applySubmergedLook,
   createWildlifeAnimations,
   watchReducedMotion,
 } from './wildlifeShared';
 import type { SceneBehavior, SceneBehaviorContext } from './types';
 
 /**
- * Wildlife in Courtyard V2 — /dev/scene?start=CourtyardV2
+ * Wildlife in a courtyard — CourtyardV2 and CourtyardV3 both run this.
+ *
+ * Nothing here names a scene. It reads whatever `L15_WILDLIFE` the Editor saved
+ * and is handed that scene's own blockers and elevation, so a new courtyard needs
+ * a line in `SCENE_BEHAVIORS` and nothing else. It was called `courtyardV2.ts`
+ * until 2026-08-09, when V3 became the second caller and the name started lying.
  *
  * The same brain the Wildlife Lab runs, given the courtyard's own walls instead
  * of the lab's open floor. That swap is the entire integration, and it is one
@@ -35,6 +43,11 @@ import type { SceneBehavior, SceneBehaviorContext } from './types';
  * same number, since the sprites are anchored at their feet. So an animal walking
  * behind a tree is occluded, and draws in front again coming south, with no code
  * written about trees.
+ *
+ * A FISH is the exception, and deliberately so: it is under the water rather than
+ * standing on the ground, so it sorts into a small fixed band just above the pond
+ * and below the surface. Sorting it by its own Y would put it on top of the
+ * ripples it is supposed to be swimming beneath.
  */
 
 /** The feet rectangle for an animal standing at a point. */
@@ -98,11 +111,11 @@ export function attachCourtyardWildlife(
 
   const manager = new WildlifeManager();
   const drawn: Phaser.GameObjects.Rectangle[] = [];
-  const standing: { sprite: Phaser.GameObjects.Sprite; footing: Footing }[] = [];
+  const standing: { sprite: Phaser.GameObjects.Sprite; footing: Footing; agent: WildlifeAgent }[] = [];
 
   if (wildlife.missing) {
     console.info(
-      '[wildlife] CourtyardV2 has no L15_WILDLIFE layer yet. Add one, drop animals ' +
+      '[wildlife] This scene has no L15_WILDLIFE layer yet. Add one, drop animals ' +
         'in it, and draw green #33ff88 rectangles when you want to say where they roam.',
     );
   }
@@ -112,6 +125,8 @@ export function attachCourtyardWildlife(
         'it stands. Draw a green #33ff88 box around it to say where it should roam instead.',
     );
   }
+
+  const drinkers: WildlifeAgent[] = [];
 
   for (const placed of wildlife.animals) {
     const profile = WILDLIFE_SPECIES[placed.species];
@@ -149,29 +164,73 @@ export function attachCourtyardWildlife(
       level:
         levelAt(placed.sprite.x, placed.sprite.y - size.height / 2, elevation) ?? 0,
     };
-    standing.push({ sprite: placed.sprite, footing });
-
-    manager.add(
-      new WildlifeAgent(placed.sprite, profile, {
+    const agent = new WildlifeAgent(placed.sprite, profile, {
         roamBounds: placed.roamBounds,
         animations: ANIMATION_SETS[placed.species],
         moveResolver: makeMoveResolver(size, blockers, elevation, footing),
-      }),
-    );
+      // Every pond in the scene is offered to every animal; the agent keeps only
+      // what is near enough to be worth walking to. Nothing here has to know
+      // which animal lives beside which water.
+      waterSources: wildlife.water,
+      feet: size,
+    });
+    if (profile.habitat === 'water') applySubmergedLook(placed.sprite);
+    standing.push({ sprite: placed.sprite, footing, agent });
+    manager.add(agent);
+    drinkers.push(agent);
   }
 
-  const stopWatchingMotion = watchReducedMotion((off) => manager.setMotionOff(off));
+  // The same rings the lab has. Wired here in the SAME pass on purpose: the fox's
+  // drink sheet shipped to the review lab and nowhere else earlier today, because
+  // "add it to the other scene" was left as a later step. Once is enough.
+  const ripples = createWaterRipples(scene, WATER_LAYER.surface);
+  const LAP_MS = 520;
+  const lapTimers = new Map<WildlifeAgent, number>();
+  let lapCount = 0;
+
+  const stopWatchingMotion = watchReducedMotion((off) => {
+    manager.setMotionOff(off);
+    ripples.setMotionOff(off);
+  });
 
   return {
     update(now, deltaMs, playerPosition) {
       manager.update(now, deltaMs, playerPosition);
+
+      for (const agent of drinkers) {
+        const contact = agent.drinkContactPoint();
+        if (!contact) {
+          lapTimers.delete(agent);
+          continue;
+        }
+        const due = (lapTimers.get(agent) ?? 0) - deltaMs;
+        if (due <= 0) {
+          // The tongue, out past the waterline.
+          ripples.pulse(contact.x, contact.y);
+          // And any paw that is genuinely in the water — normally none, since the
+          // water is solid to a land animal. Heavier and on every other lap, so
+          // when it does happen it reads as a different kind of disturbance.
+          if (lapCount % 2 === 0) {
+            for (const paw of agent.wetFeet()) ripples.pulse(paw.x, paw.y, 1.45);
+          }
+          lapCount += 1;
+          lapTimers.set(agent, LAP_MS);
+        } else {
+          lapTimers.set(agent, due);
+        }
+      }
+      ripples.update(deltaMs);
 
       // WildlifeAgent sets `depth = y`, which is right for a flat world and is all
       // the shared library should know. The courtyard has terraces, so the level
       // term is added here — the same split as the move resolver, and for the same
       // reason: the animal owns "where I touch the ground", the scene owns what
       // that means in a world with height.
-      for (const { sprite, footing } of standing) {
+      for (const { sprite, footing, agent } of standing) {
+        // A swimmer already sorted itself into the water band, and a terrace term
+        // would lift it straight back out — on top of the very ripples it is
+        // supposed to be under. Water has no floor level; leave it alone.
+        if (agent.isSubmerged()) continue;
         sprite.setDepth(footing.level * LEVEL_STRIDE + sprite.y);
       }
     },

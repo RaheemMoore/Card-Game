@@ -1,0 +1,39 @@
+{
+  "subject": "castle-ruins-props",
+  "label": "Courtyard ground — ruined stonework (BATCH A of 2)",
+
+  "notes": [
+    "WHY: comparing /castle against Raheem's top-down reference on 2026-08-08, the reference's signature ground piece is a broken stone column, and the castle kit has no ruined stonework of any kind. Everything else the reference does with ground we either already own (rock + shrub clusters, now cleared) or can fake with overlays. This is the genuine gap.",
+
+    "STYLE ANCHOR IS THE SHIPPED ROCK CLUSTER, not the hero and not the wall. This deviates from the rug-era rule ('anchor to the hero crop, never a crop of shipped furniture') and the deviation is deliberate. The rule exists to stop scenery dragging the CAST toward stone tones — it was written when the plate-as-colour-reference cost the chibi hero his face contrast. Nothing here is a character. What these props must match is the two nature clusters they will sit beside, which are native kit art at exactly the low top-down angle we need. CLAUDE.md is explicit that on kit calls the angle is held by the style reference image and not the view parameter, and a tower batch already came back part-isometric for want of this. The isometric tower crop in castle-cliff-kit was the obvious stone anchor and is exactly the wrong one.",
+
+    "SIZE IS NOT REQUESTABLE HERE. /create-1-direction-object refuses `size` whenever `style_images` is supplied, so these land around 100-128px whatever we ask. That is roughly right for this batch — a broken column should read at 2-4 tiles — so no resample is planned. Batch B is the one that needs bringing down.",
+
+    "LOW DIRECTIONAL REQUIREMENT BY DESIGN. Every item here is radially symmetric or near enough: a column drum, a rubble pile and a cracked slab read the same from any facing. That is the cheapest quality lever in the prop pipeline and it is chosen before a generation is spent — no orientation variants will ever be needed, and none of these can repeat the card-rack failure that cost six generations fighting a mandatory front face.",
+
+    "NO SEED IS POSSIBLE. /create-1-direction-object has no seed parameter and rejects it outright. This config records intent, not a rebuildable result.",
+
+    "Four items in one call costs the same as one. M5.7 is not engaged — no figures.",
+
+    "PROBE. Unproven: whether an anchor whose subject is a rounded boulder will carry over to CUT masonry, which has straight edges and tooled faces the anchor never shows. Risk is columns that come back as lumpy rocks. Attempt order is this call, then one re-roll with 'carved', 'fluted' and 'tooled' pushed harder in the item text. TWO CALLS TOTAL for this batch, then ship whatever the better one gave and move on."
+  ],
+
+  "styleReference": "style-ref-rock-cluster.png",
+
+  "objects": [
+    {
+      "id": "ruins",
+      "note": "Ruined stonework for the courtyard's open ground. Judged in ground_review.py on the real grass at zoom 1.5 before any of it is placed.",
+      "params": {
+        "description": "four pieces of ruined pale-grey carved castle stonework lying on open ground, low three-quarter top-down pixel-art game view, neutral even daylight, dark internal outlines, weathered and moss-flecked, each piece isolated on transparency with no ground base and no square tile border: 1). a broken standing column 2). a toppled column with loose drums 3). a pile of broken masonry blocks 4). a cracked flagstone slab; no buildings, no walls, no trees, no figures, no text",
+        "view": "top-down",
+        "item_descriptions": [
+          "a single broken stone column standing upright, snapped off partway up with a jagged fractured top, fluted carved shaft, simple moulded base, pale weathered grey limestone with faint moss in the flutes, isolated on transparency, no ground beneath it",
+          "a toppled stone column lying on its side with two or three loose cylindrical drums scattered beside it, tooled carved surfaces, cracked and chipped, pale weathered grey limestone, isolated on transparency, no ground beneath it",
+          "a low pile of broken squared masonry blocks heaped together, straight cut edges and tooled faces, some blocks cracked, pale weathered grey limestone with moss between them, isolated on transparency, no ground beneath it",
+          "a single cracked flagstone slab lying flat, squared edges, a fracture running across it and one corner broken away, pale weathered grey limestone, isolated on transparency, no ground beneath it"
+        ]
+      }
+    }
+  ]
+}

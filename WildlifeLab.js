@@ -46,21 +46,21 @@ class WildlifeLab extends Phaser.Scene {
 		roamingAreaGuide.lineWidth = 3;
 
 		// foxLabel
-		const foxLabel = this.add.text(230, 370, "", {});
+		const foxLabel = this.add.text(125, 370, "", {});
 		foxLabel.setOrigin(0.5, 0);
-		foxLabel.text = "FOX LIVE\nroam • sniff • sit";
+		foxLabel.text = "FOX LIVE\nroam • sniff • sit • drink";
 		foxLabel.setStyle({ "align": "center", "color": "#ffe0bd", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
 
 		// rabbitLabel
-		const rabbitLabel = this.add.text(400, 370, "", {});
+		const rabbitLabel = this.add.text(237, 369, "", {});
 		rabbitLabel.setOrigin(0.5, 0);
-		rabbitLabel.text = "RABBIT LIVE\nhop • nibble";
+		rabbitLabel.text = "RABBIT LIVE\nhop • nibble • drink";
 		rabbitLabel.setStyle({ "align": "center", "color": "#f0e6d8", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
 
 		// tortoiseLabel
-		const tortoiseLabel = this.add.text(570, 370, "", {});
+		const tortoiseLabel = this.add.text(339, 372, "", {});
 		tortoiseLabel.setOrigin(0.5, 0);
-		tortoiseLabel.text = "TORTOISE LIVE\nslow walk";
+		tortoiseLabel.text = "TORTOISE LIVE\nslow walk • float";
 		tortoiseLabel.setStyle({ "align": "center", "color": "#b8f4cb", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
 
 		// labInstructions
@@ -70,24 +70,47 @@ class WildlifeLab extends Phaser.Scene {
 		labInstructions.setStyle({ "align": "center", "color": "#f6e6b5", "fontFamily": "Arial", "fontSize": "15px", "fontStyle": " " });
 
 		// foxSprite
-		const foxSprite = this.add.sprite(230, 315, "wildlife-fox-trot", 0);
+		const foxSprite = this.add.sprite(126, 355, "wildlife-fox-trot", 0);
 		foxSprite.scaleX = 0.7;
 		foxSprite.scaleY = 0.7;
 		foxSprite.setOrigin(0.5, 1);
 
 		// rabbitSprite
-		const rabbitSprite = this.add.sprite(400, 315, "wildlife-rabbit-hop", 0);
+		const rabbitSprite = this.add.sprite(239, 351, "wildlife-rabbit-hop", 0);
 		rabbitSprite.scaleX = 0.4;
 		rabbitSprite.scaleY = 0.4;
 		rabbitSprite.setOrigin(0.5, 1);
 
 		// tortoiseSprite
-		const tortoiseSprite = this.add.sprite(570, 315, "wildlife-tortoise-toddle", 0);
+		const tortoiseSprite = this.add.sprite(348, 356, "wildlife-tortoise-toddle", 0);
 		tortoiseSprite.scaleX = 0.66;
 		tortoiseSprite.scaleY = 0.66;
 		tortoiseSprite.setOrigin(0.5, 1);
 
+		// nature_water_pond_basin
+		const nature_water_pond_basin = this.add.image(560, 334, "nature-water-pond-basin");
+		nature_water_pond_basin.scaleX = 1.2;
+		nature_water_pond_basin.scaleY = 1.2;
+
+		// nature_water_pond_cliff_north
+		const nature_water_pond_cliff_north = this.add.image(560, 334, "nature-water-pond-cliff-north");
+		nature_water_pond_cliff_north.scaleX = 1.2;
+		nature_water_pond_cliff_north.scaleY = 1.2;
+
+		// fishLabel
+		const fishLabel = this.add.text(560, 308, "", {});
+		fishLabel.setOrigin(0.5, 0);
+		fishLabel.text = "FISH LIVE\nswim";
+		fishLabel.setStyle({ "align": "center", "color": "#eaf7ff", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
+
+		// fishSprite
+		const fishSprite = this.add.sprite(560, 300, "wildlife-fish-swim", 0);
+		fishSprite.scaleX = 0.6;
+		fishSprite.scaleY = 0.6;
+		fishSprite.setOrigin(0.5, 1);
+
 		this.roamingAreaGuide = roamingAreaGuide;
+		this.fishSprite = fishSprite;
 		this.foxSprite = foxSprite;
 		this.rabbitSprite = rabbitSprite;
 		this.tortoiseSprite = tortoiseSprite;
@@ -103,6 +126,8 @@ class WildlifeLab extends Phaser.Scene {
 	rabbitSprite;
 	/** @type {Phaser.GameObjects.Sprite} */
 	tortoiseSprite;
+	/** @type {Phaser.GameObjects.Sprite} */
+	fishSprite;
 
 	/* START-USER-CODE */
 

@@ -239,6 +239,33 @@
           "frameWidth": 58,
           "frameHeight": 59
         }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-chibi-56",
+        "url": "assets/castle/hero/sizetest/chibi-56.png",
+        "frameConfig": {
+          "frameWidth": 28,
+          "frameHeight": 56
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-chibi-48",
+        "url": "assets/castle/hero/sizetest/chibi-48.png",
+        "frameConfig": {
+          "frameWidth": 24,
+          "frameHeight": 48
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-chibi-40",
+        "url": "assets/castle/hero/sizetest/chibi-40.png",
+        "frameConfig": {
+          "frameWidth": 20,
+          "frameHeight": 40
+        }
       }
     ]
   },

@@ -9,6 +9,7 @@ import {
   type PackEntry,
   type Status,
 } from '../castle/v2/courtyardRuntime';
+import { SCENE_BEHAVIORS } from './sceneBehaviors';
 import { HERO_SHEET } from '../../data/castle/heroSprite';
 
 /**
@@ -39,6 +40,8 @@ export function ScenePreview() {
     // identifier is ever allowed through.
     return /^[A-Za-z_][A-Za-z0-9_]*$/.test(raw) ? raw : DEFAULT_SCENE;
   }, []);
+
+  const hasBehavior = SCENE_BEHAVIORS[sceneName] !== undefined;
 
   useEffect(() => {
     let game: import('phaser').Game | undefined;
@@ -100,11 +103,15 @@ export function ScenePreview() {
       <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/70 px-3 py-2 text-xs text-white/80">
         <div className="font-bold text-amber-300">{sceneName}</div>
         <div>
-          {sceneName === 'CourtyardV2'
+          {/*
+            This said "Scene behavior is running" for every scene it had no line
+            for — including CourtyardV3, which had no behaviour registered at all.
+            It read as reassurance while the animals stood still. The fallback now
+            claims nothing, and SCENE_BEHAVIORS is the single source of the claim.
+          */}
+          {hasBehavior
             ? 'WASD / arrows to walk · SPACE to jump up a ledge · ?levels=show · ?colliders=show · ?wildlife=show'
-            : sceneName === 'WildlifeLab'
-              ? 'WASD / arrows to walk · get close and watch them react'
-              : 'Scene behavior is running'}
+            : 'WASD / arrows to walk · no scene behaviour registered'}
         </div>
         <div className="text-white/40">Save in the Editor, then refresh</div>
         {status.phase === 'ready' && status.message && (

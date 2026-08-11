@@ -12,6 +12,7 @@ export type {
   WildlifeMoveResolver,
   WildlifeNeeds,
   WildlifePoint,
+  WildlifeWater,
   WildlifeSpeciesId,
   WildlifeSpeciesProfile,
 } from './types';

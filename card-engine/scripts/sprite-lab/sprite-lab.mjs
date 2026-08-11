@@ -283,6 +283,20 @@ async function cmdGen(subject) {
     console.log(`= adopting existing character ${c.characterId}`);
   }
 
+  // A config can describe NO CHARACTER AT ALL — `wildlife-animations` is the
+  // case: those animals were made as OBJECTS, and that file exists only to hang
+  // further clips on them by object id. Its home is `scene`, not `gen`. Say so,
+  // because the failure without this is `Cannot read properties of undefined
+  // (reading 'description')` from inside character creation, which sends you
+  // looking for a broken config instead of a mistyped command.
+  if (!c.identity && !c.characterId && !m.characterId) {
+    throw new Error(
+      `"${subject}" declares no character (no identity, no characterId).\n` +
+        `  If it is animation-only, it belongs to the scene pass:\n` +
+        `      node scripts/sprite-lab/sprite-lab.mjs scene ${subject}`,
+    );
+  }
+
   // 1. The character itself — generated once, ever.
   if (!m.characterId) {
     // Two pipelines, and they are NOT interchangeable:

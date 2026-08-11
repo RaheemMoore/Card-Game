@@ -29,9 +29,19 @@ export const SHEETS = {
   foxTrot: { texture: 'wildlife-fox-trot', columns: 7, fps: 9 },
   foxSniff: { texture: 'wildlife-fox-sniff', columns: 7, fps: 7 },
   foxSitAlert: { texture: 'wildlife-fox-sit-alert', columns: 9, fps: 7 },
+  // Slower than the sniff it replaced. A sniff is quick and searching; lapping is
+  // steady, and at 7fps it read as frantic.
+  foxDrink: { texture: 'wildlife-fox-drink', columns: 7, fps: 6 },
   rabbitHop: { texture: 'wildlife-rabbit-hop', columns: 7, fps: 9 },
   rabbitNibble: { texture: 'wildlife-rabbit-nibble-groom', columns: 7, fps: 7 },
+  // Quicker than the fox's lapping. A rabbit at open water takes small fast sips
+  // and keeps its head up between them.
+  rabbitDrink: { texture: 'wildlife-rabbit-drink', columns: 7, fps: 7 },
   tortoiseToddle: { texture: 'wildlife-tortoise-toddle', columns: 7, fps: 5 },
+  // Slow. A fish's body wave is a lazy thing, and at 9fps it looked panicked.
+  fishSwim: { texture: 'wildlife-fish-swim', columns: 7, fps: 5 },
+  // Slower still than the toddle. Floating is the laziest thing in the pond.
+  tortoiseFloat: { texture: 'wildlife-tortoise-float', columns: 7, fps: 4 },
 } as const;
 
 export type SheetName = keyof typeof SHEETS;
@@ -98,18 +108,47 @@ export const ANIMATION_SETS: Record<WildlifeSpeciesId, WildlifeAnimationSet> = {
     signature: loopSet('foxSniff'),
     observe: loopSet('foxSitAlert'),
     idle: stillSet('foxSitAlert'),
+    // Real clip as of 2026-08-10, generated against the SAME PixelLab object as
+    // the trot and the sniff, so it is the same fox — frame 0 of every direction
+    // is pixel-identical to the trot's, which is how the facing was verified.
+    // (It replaced a sniff stand-in, which was indistinguishable from an actual
+    // sniff and so made drinking impossible to confirm by eye.)
+    drink: loopSet('foxDrink'),
   },
   'forest-rabbit': {
     move: loopSet('rabbitHop'),
     signature: loopSet('rabbitNibble'),
     observe: stillSet('rabbitHop'),
     idle: stillSet('rabbitHop'),
+    // Real clip as of 2026-08-10, and the last stand-in in the set. Generated
+    // against the same PixelLab object as the hop — frame 0 of all four directions
+    // is pixel-identical to the hop's, which is how the facing was verified before
+    // it was wired to anything.
+    drink: loopSet('rabbitDrink'),
   },
+  /**
+   * The fish has ONE sheet, and that is honest rather than thin: a fish that has
+   * stopped swimming is still moving, so its idle is the same loop and its
+   * signature — breaking the surface — is the swim clip carried up an arc by the
+   * scene. Nothing here pretends to art that does not exist.
+   */
+  'pond-fish': {
+    move: loopSet('fishSwim'),
+    signature: loopSet('fishSwim'),
+    observe: loopSet('fishSwim'),
+    idle: loopSet('fishSwim'),
+  },
+  /**
+   * The only amphibious animal. `swim` is used in place of `move` and `idle`
+   * whenever it is actually in the water, which is why it needs no new activity —
+   * a tortoise crossing the pond is still roaming, it just looks different doing it.
+   */
   'glowcap-tortoise': {
     move: loopSet('tortoiseToddle'),
     signature: stillSet('tortoiseToddle'),
     observe: stillSet('tortoiseToddle'),
     idle: stillSet('tortoiseToddle'),
+    swim: loopSet('tortoiseFloat'),
   },
 };
 
@@ -125,7 +164,47 @@ export const WILDLIFE_FEET: Record<WildlifeSpeciesId, { width: number; height: n
   'red-fox': { width: 26, height: 12 },
   'forest-rabbit': { width: 16, height: 10 },
   'glowcap-tortoise': { width: 24, height: 12 },
+  // A fish has no feet; this is the patch of water its body occupies, and it is
+  // what keeps its nose from crossing the shoreline.
+  'pond-fish': { width: 18, height: 10 },
 };
+
+/**
+ * WHERE THE WATERLINE SITS IN THE DEPTH STACK.
+ *
+ * The pond is placed by the Editor at depth 0 and land animals set their depth to
+ * their own Y, which is in the hundreds. That leaves a narrow band just above the
+ * pond for everything that belongs to the water itself, and the order inside it is
+ * the whole illusion: a fish UNDER the surface, the surface OVER the fish.
+ *
+ * Ripples used to sit at 1 and fish at their own Y, so a ring spread underneath the
+ * fish it was supposed to be on top of.
+ */
+export const WATER_LAYER = {
+  /** Below the surface. Fish live here. */
+  submerged: 2,
+  /** The surface itself — ripples, and anything that happens on top of the water. */
+  surface: 12,
+} as const;
+
+/**
+ * Make a sprite look like it is under water rather than sitting on it.
+ *
+ * A fish is entirely below the surface, which makes this far cheaper than the
+ * partial case: no cropping and no masking, because there is no waterline crossing
+ * the body. Two things do the work — the water's own colour multiplied through the
+ * sprite, and enough transparency that the pond reads through it.
+ *
+ * Deliberately restrained. Pushed further the fish stops being orange and starts
+ * being a blue smudge, and at 36px there is not much fish left to lose.
+ */
+export const SUBMERGED_TINT = 0x8fd4e8;
+export const SUBMERGED_ALPHA = 0.82;
+
+export function applySubmergedLook(sprite: Phaser.GameObjects.Sprite): void {
+  sprite.setTint(SUBMERGED_TINT);
+  sprite.setAlpha(SUBMERGED_ALPHA);
+}
 
 /**
  * Reduced motion, wired to the manager's existing switch. Returns the unsubscribe
