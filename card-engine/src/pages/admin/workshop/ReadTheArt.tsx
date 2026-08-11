@@ -10,7 +10,7 @@ import { API_COST_CATALOG } from '../../../data/economy/apiCostCatalog';
 import {
   AdminCard, AdminSection, AdminButton, AdminTextArea, AdminAlert, AdminEmptyState,
 } from '../../../components/admin/ui';
-import { Triptych, FieldDiffHeader, FieldDiffRow, StatusBadge } from '../../../components/admin/workshop';
+import { Triptych, FieldDiffHeader, FieldDiffRow, StatusBadge, StageIntro } from '../../../components/admin/workshop';
 
 /**
  * Stage 3 — read the art.
@@ -85,6 +85,23 @@ export function ReadTheArt({ character }: { character: CuratedCharacter }) {
 
   return (
     <div className="grid gap-4">
+      <StageIntro
+        step="03"
+        title="Read the art — write down who this character actually is"
+        next="the description goes with the card to Tori, who writes its name and story from it."
+      >
+        <p className="m-0 mb-2">
+          Claude looks at all three pictures and describes the person in them &mdash; body, age,
+          skin, hair, clothing, scars, the setting. You accept each line, edit it, or leave it out.
+          Nothing is saved until you press Accept.
+        </p>
+        <p className="m-0">
+          This is the record of what the character looks like, and everything downstream trusts it:
+          the lore is written against it, and later ranks have to stay the same person. Reading all
+          three ranks together is what keeps them consistent.
+        </p>
+      </StageIntro>
+
       <AdminSection
         title={character.displayName || character.id}
         actions={<StatusBadge status={character.status} />}

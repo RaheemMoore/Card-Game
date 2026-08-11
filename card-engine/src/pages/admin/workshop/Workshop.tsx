@@ -93,7 +93,15 @@ export function Workshop() {
   return (
     <AdminPage
       title="Workshop"
-      description="Every card in the game today is temporary. A character becomes permanent by crossing this tool — generated or brought in, described from its own art, written by the lore director, then judged."
+      description={
+        <>
+          Where a card earns its place in the game. Every card that exists today is temporary; one
+          becomes <strong>permanent</strong> only by crossing this tool. The stages run left to
+          right: make or bring three pictures of a character, describe who they are, hand them to
+          the lore director for a name and a story, then judge the result together. Each stage
+          explains itself when you open it.
+        </>
+      }
       actions={
         character ? (
           <div className="flex items-center gap-2">

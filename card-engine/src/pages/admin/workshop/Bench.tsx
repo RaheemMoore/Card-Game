@@ -14,6 +14,7 @@ import type { BenchCandidate } from '../../../services/workshop/benchController'
 import {
   AdminCard, AdminSection, AdminButton, AdminSelect, AdminAlert, AdminEmptyState,
 } from '../../../components/admin/ui';
+import { StageIntro } from '../../../components/admin/workshop';
 
 /**
  * Stage 1 — the bench. "Generate a starting point."
@@ -49,6 +50,23 @@ export function Bench({ onUseAsSeed }: { onUseAsSeed?: (candidate: BenchCandidat
   const elements = useMemo(() => elementsAvailableToArchetype(state.archetype), [state.archetype]);
 
   return (
+    <>
+      <StageIntro
+        step="01"
+        title="Bench — get a first image worth building on"
+        next="when one is good enough, press Use as seed. It carries over to Intake and claims a character slot."
+      >
+        <p className="m-0 mb-2">
+          This runs the Image Engine to make <strong>one Foundation portrait</strong>. It is a
+          starting point, not a finished card &mdash; a face to react to, so you are not designing a
+          character from a blank page.
+        </p>
+        <p className="m-0">
+          Answer as little or as much as you like; anything you leave alone is rolled. Nothing here
+          is saved to the roster until you choose a candidate. Each press costs a real generation.
+        </p>
+      </StageIntro>
+
     <div className="grid gap-4 items-start lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       {/* Controls */}
       <div className="grid gap-3 lg:sticky lg:top-4">
@@ -154,6 +172,7 @@ export function Bench({ onUseAsSeed }: { onUseAsSeed?: (candidate: BenchCandidat
         )}
       </AdminSection>
     </div>
+    </>
   );
 }
 

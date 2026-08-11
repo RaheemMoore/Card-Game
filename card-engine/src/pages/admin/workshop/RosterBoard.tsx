@@ -6,7 +6,7 @@ import { getCuratedRosterStore } from '../../../services/persistence/CuratedRost
 import {
   AdminCard, AdminSection, AdminButton, AdminAlert, AdminSkeleton, AdminEmptyState,
 } from '../../../components/admin/ui';
-import { StatusBadge } from '../../../components/admin/workshop';
+import { StatusBadge, StageIntro } from '../../../components/admin/workshop';
 import { useCuratedRoster } from './useCuratedRoster';
 
 /**
@@ -52,6 +52,27 @@ export function RosterBoard({ onOpenCharacter }: { onOpenCharacter?: (id: string
 
   return (
     <>
+      <StageIntro
+        step="00"
+        title="Roster — every character in the game, and every empty space"
+        next="pick an archetype below, then start a character at the Bench or bring three images to Intake."
+      >
+        <p className="m-0 mb-2">
+          Each archetype holds <strong>ten characters</strong>. A character is one person &mdash; the
+          same face at Foundation, Forged and Ascendant. Once a character is finished it gets made
+          again in <strong>every element that archetype allows</strong>, and each of those is a
+          separate collectible card.
+        </p>
+        <p className="m-0">
+          So ten Lycanthrope characters &times; five Lycanthrope elements = fifty Lycanthrope cards.
+          That is what the number on each tab means: the most permanent cards that archetype can
+          ever produce.
+        </p>
+      </StageIntro>
+
+      <p className="text-[11px] uppercase tracking-wider font-semibold mb-2" style={{ color: 'var(--admin-text-muted)' }}>
+        Archetype — and the cards it can produce
+      </p>
       <div className="flex flex-wrap gap-1.5 mb-4">
         {ARCHETYPE_NAMES.map((a) => {
           const count = elementsAvailableToArchetype(a).length;
@@ -83,8 +104,15 @@ export function RosterBoard({ onOpenCharacter }: { onOpenCharacter?: (id: string
       </div>
 
       <AdminSection
-        title={`${archetype} — ${ROSTER_SLOTS_PER_ARCHETYPE} slots × ${elements.length} element${elements.length === 1 ? '' : 's'}`}
-        subtitle={`${store.getPermanentVariants().length} permanent of ${projectedTotal} possible across every archetype`}
+        title={`${archetype} — ${ROSTER_SLOTS_PER_ARCHETYPE} character slots, ${elements.length} element${elements.length === 1 ? '' : 's'} each`}
+        subtitle={
+          <>
+            One row per character slot. The dots are its element versions — filled means that card
+            is live in the game. <strong>{store.getPermanentVariants().length}</strong> card
+            {store.getPermanentVariants().length === 1 ? ' is' : 's are'} permanent so far, out of{' '}
+            <strong>{projectedTotal}</strong> the full roster would hold across all eleven archetypes.
+          </>
+        }
       >
         <AdminCard padded={false}>
           {loading ? (

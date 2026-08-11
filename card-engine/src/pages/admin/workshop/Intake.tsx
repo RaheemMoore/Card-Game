@@ -12,7 +12,7 @@ import type { BenchCandidate } from '../../../services/workshop/benchController'
 import {
   AdminCard, AdminSection, AdminButton, AdminField, AdminSelect, AdminAlert, AdminEmptyState,
 } from '../../../components/admin/ui';
-import { Triptych, ImageDrop, StatusBadge } from '../../../components/admin/workshop';
+import { Triptych, ImageDrop, StatusBadge, StageIntro } from '../../../components/admin/workshop';
 import { useCuratedRoster } from './useCuratedRoster';
 
 /**
@@ -60,6 +60,25 @@ export function Intake({
 
   return (
     <div className="grid gap-4">
+      <StageIntro
+        step="02"
+        title="Intake — claim a character slot and give it its three pictures"
+        next="once all three are in, Read the art describes who the character is."
+      >
+        <p className="m-0 mb-2">
+          A <strong>character slot</strong> is one of the ten places an archetype has for a
+          character. Taking a slot creates the record everything else attaches to &mdash; the
+          pictures, the description, the lore, and eventually every element version of the card.
+          Nothing is permanent yet; a slot can sit half-finished for as long as you like.
+        </p>
+        <p className="m-0">
+          Every character needs <strong>three pictures</strong>: Foundation, Forged and Ascendant.
+          The same person at the start, the middle and the peak of their story. Start below in
+          whichever way suits &mdash; from a bench image, from art you already made, or from a card
+          that already exists in the game.
+        </p>
+      </StageIntro>
+
       {seed && <SeedDoor seed={seed} onCreated={onCharacterCreated} onConsumed={onSeedConsumed} />}
       <NewCharacterDoor onCreated={onCharacterCreated} />
       <PromoteDoor onCreated={onCharacterCreated} />
@@ -99,7 +118,7 @@ function useCreateForm(source: 'generated' | 'upload' | 'promoted') {
 
   const create = async (decorate?: (c: CuratedCharacter) => CuratedCharacter): Promise<string | null> => {
     if (!displayName.trim()) {
-      setError('Give it a working name first — it is how you will find this slot again.');
+      setError('Give it a name to work with first — it is how you will find this character again.');
       return null;
     }
     setBusy(true);
@@ -132,7 +151,12 @@ function SlotPicker({
       <AdminSelect label="Archetype" value={archetype} onChange={(e) => onArchetype(e.target.value as ArchetypeName)}>
         {ARCHETYPE_NAMES.map((a) => <option key={a} value={a}>{a}</option>)}
       </AdminSelect>
-      <AdminSelect label="Roster slot" value={slotIndex} onChange={(e) => onSlot(Number(e.target.value))}>
+      <AdminSelect
+        label="Character slot"
+        hint={`Which of ${archetype}'s ten character places this takes. Taken slots are greyed out.`}
+        value={slotIndex}
+        onChange={(e) => onSlot(Number(e.target.value))}
+      >
         {Array.from({ length: ROSTER_SLOTS_PER_ARCHETYPE }, (_, i) => i + 1).map((n) => {
           const taken = store.getCharacterInSlot(archetype, n);
           return (
@@ -149,10 +173,10 @@ function SlotPicker({
 function NameField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <AdminField
-      label="Working name"
+      label="What you'll call it for now"
       value={value}
-      placeholder="How you will refer to this slot"
-      hint="Yours, not the player's. The card's real name is written with the lore."
+      placeholder="e.g. the scarred shield-bearer"
+      hint="A label for you and Tori to find this character by while you build it. Players never see it — the card's real name is written later, with the lore."
       onChange={(e) => onChange(e.target.value)}
     />
   );
@@ -168,7 +192,7 @@ function SeedDoor({
   if (!initialised) { form.setArchetype(seed.archetype); setInitialised(true); }
 
   return (
-    <AdminSection title="Start from the bench candidate">
+    <AdminSection title="Start from the bench image" subtitle="Use the candidate you just generated as this character&rsquo;s starting point.">
       <AdminCard>
         <div className="grid gap-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
           <div>
@@ -211,7 +235,7 @@ function SeedDoor({
 function NewCharacterDoor({ onCreated }: { onCreated: (id: string) => void }) {
   const form = useCreateForm('upload');
   return (
-    <AdminSection title="Bring three images you already made">
+    <AdminSection title="Start from pictures you already have" subtitle="You made the three rank images elsewhere and want to bring them in.">
       <AdminCard>
         <div className="grid gap-3 max-w-xl">
           <p className="text-xs leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>
@@ -256,7 +280,7 @@ function PromoteDoor({ onCreated }: { onCreated: (id: string) => void }) {
   };
 
   return (
-    <AdminSection title="Promote a temporary card">
+    <AdminSection title="Start from a card already in the game" subtitle="Copy an existing temporary card&rsquo;s description and lore into a new slot.">
       <AdminCard>
         <div className="grid gap-3 max-w-2xl">
           <p className="text-xs leading-relaxed m-0" style={{ color: 'var(--admin-text-muted)' }}>

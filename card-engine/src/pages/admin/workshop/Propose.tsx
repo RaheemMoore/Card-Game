@@ -4,7 +4,7 @@ import type { CuratedCharacter } from '../../../types/curatedCard';
 import { getCuratedRosterStore } from '../../../services/persistence/CuratedRosterStore';
 import { READABLE_FIELDS } from '../../../services/workshop/readArt';
 import { AdminCard, AdminSection, AdminButton, AdminAlert } from '../../../components/admin/ui';
-import { Triptych, Checklist, StatusBadge } from '../../../components/admin/workshop';
+import { Triptych, Checklist, StatusBadge, StageIntro } from '../../../components/admin/workshop';
 
 /**
  * Stage 4 — propose.
@@ -106,6 +106,18 @@ export function Propose({ character }: { character: CuratedCharacter }) {
 
   return (
     <div className="grid gap-4">
+      <StageIntro
+        step="04"
+        title="Propose — hand the character to the lore director"
+        next="it appears on Tori's desk in the Studio Wiki. She names it, writes the lore for each rank, and chooses which player answers lead to it."
+      >
+        <p className="m-0">
+          Your half is the pictures and the description. Hers is the story. The checklist below is
+          only about your half &mdash; it deliberately does not ask for lore, because that is the
+          thing you are asking her for. Sending an unfinished card just means it bounces back.
+        </p>
+      </StageIntro>
+
       <AdminSection
         title={character.displayName || character.id}
         actions={<StatusBadge status={character.status} />}

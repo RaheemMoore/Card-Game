@@ -131,6 +131,59 @@ export function StageRail({
 }
 
 // ---------------------------------------------------------------------------
+// StageIntro — what this stage is for, before anything else on the page.
+//
+// The Workshop is seven stages behind one route, so the admin convention of a
+// single page description cannot carry it: by the time you are on Intake, the
+// page-level text is about the pipeline, not about what the form in front of
+// you does. Raheem, first time through: "It took me a little while looking
+// around here to figure out what each page was for. That should be clear."
+//
+// So every stage opens by saying what it is, what it produces, and where that
+// goes next. `next` matters as much as `children` — most confusion here was not
+// "what is this screen" but "what happens after I press the button".
+// ---------------------------------------------------------------------------
+
+export function StageIntro({
+  step,
+  title,
+  children,
+  next,
+}: {
+  step: string;
+  title: string;
+  children: ReactNode;
+  next?: ReactNode;
+}) {
+  return (
+    <AdminCard surface="subtle" className="mb-4">
+      <div className="flex items-baseline gap-2.5 mb-1.5">
+        <span
+          className="text-[10px] font-bold tracking-[0.1em] tabular-nums"
+          style={{ color: 'var(--admin-accent-alt)' }}
+        >
+          {step}
+        </span>
+        <h2 className="text-sm font-semibold m-0" style={{ color: 'var(--admin-text)' }}>
+          {title}
+        </h2>
+      </div>
+      <div className="text-[13px] leading-relaxed" style={{ color: 'var(--admin-text-muted)', maxWidth: '72ch' }}>
+        {children}
+      </div>
+      {next && (
+        <p
+          className="text-[12px] leading-relaxed mt-2.5 pt-2.5 m-0"
+          style={{ color: 'var(--admin-text-muted)', borderTop: '1px solid var(--admin-border)', maxWidth: '72ch' }}
+        >
+          <strong style={{ color: 'var(--admin-text)' }}>Then: </strong>{next}
+        </p>
+      )}
+    </AdminCard>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Triptych — Foundation | Forged | Ascendant.
 //
 // A rank with no art shows a dashed gap saying so. It is never filled with a
