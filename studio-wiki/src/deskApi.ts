@@ -87,6 +87,9 @@ export const updateReply = (id: string, body: string) => call<DeskState>({ actio
 export const removeReply = (id: string) => call<DeskState>({ action: 'replyRemove', id });
 export const markDeskSeen = (person: DeskPerson) => call<DeskState>({ action: 'seen', person });
 
+/** Change the shared phrase from inside the studio — no console, no redeploy. */
+export const rotatePassphrase = (current: string, next: string) => call<DeskState>({ action: 'rotate', current, next });
+
 export function storedPerson(): DeskPerson | null {
   if (typeof window === 'undefined') return null;
   try {

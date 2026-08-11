@@ -103,8 +103,41 @@ on conflict (person) do nothing;
 -- bypasses RLS — that function's passphrase check is the real gate, and this is what
 -- guarantees there is no second, unguarded door straight into the browser.
 
+-- ---------------------------------------------------------------------------
+-- 5. The passphrase itself lives here, not in an environment variable
+-- ---------------------------------------------------------------------------
+--
+-- An env var would mean a dashboard trip to set it and a redeploy to change it.
+-- Keeping the scrypt hash in a server-only row means the studio can be opened and
+-- the passphrase rotated from the Wiki itself, by either partner, with no console
+-- access and nothing to remember about where the value is configured.
+--
+-- Only the hash and its salt are stored — the phrase itself is never written down
+-- anywhere the database can leak. `STUDIO_PASSPHRASE` still wins if it is set, so
+-- an env var remains available as an override without a code change.
+
+create table if not exists public.studio_access (
+  id boolean primary key default true,
+  salt text not null,
+  hash text not null,
+  updated_at timestamptz not null default now(),
+  constraint studio_access_single_row check (id)
+);
+
+-- ---------------------------------------------------------------------------
+-- 6. All three tables are server-only
+-- ---------------------------------------------------------------------------
+--
+-- RLS is enabled with NO permissive policies, so anon and authenticated get nothing
+-- at all. The `/api/desk` function reaches them with the service-role key, which
+-- bypasses RLS — that function's passphrase check is the real gate, and this is what
+-- guarantees there is no second, unguarded door straight into the browser. It also
+-- means the passphrase hash is unreachable from the browser under any circumstance.
+
 alter table public.studio_idea_replies enable row level security;
 alter table public.studio_desk_reads enable row level security;
+alter table public.studio_access enable row level security;
 
 revoke all on public.studio_idea_replies from anon, authenticated;
 revoke all on public.studio_desk_reads from anon, authenticated;
+revoke all on public.studio_access from anon, authenticated;

@@ -14,7 +14,7 @@
  * person may edit or delete anything; the label exists so a note is still readable
  * six months later.
  */
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 type HeaderValue = string | string[] | undefined;
 
@@ -39,13 +39,21 @@ const MAX_TAGS = 12;
 
 type Person = (typeof PEOPLE)[number];
 
+/**
+ * Only the Supabase pair is required.
+ *
+ * `STUDIO_PASSPHRASE` is an OPTIONAL override — the passphrase normally lives as a
+ * scrypt hash in `studio_access`, so opening the studio and rotating the phrase need
+ * no dashboard trip and no redeploy. `STUDIO_COOKIE_SECRET` falls back to the service
+ * key, which is already secret and already required; a separate value is only worth
+ * setting if you want to sign both devices out without rotating the database key.
+ */
 function env() {
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const passphrase = process.env.STUDIO_PASSPHRASE;
   const secret = process.env.STUDIO_COOKIE_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !service || !passphrase || !secret) return null;
-  return { url: url.replace(/\/$/, ''), service, passphrase, secret };
+  if (!url || !service || !secret) return null;
+  return { url: url.replace(/\/$/, ''), service, secret, passphraseOverride: process.env.STUDIO_PASSPHRASE };
 }
 
 function first(value: HeaderValue): string | undefined {
@@ -121,6 +129,38 @@ function tagList(value: unknown): string[] | null {
 
 type Config = NonNullable<ReturnType<typeof env>>;
 
+const SCRYPT_KEY_LENGTH = 64;
+
+function scryptHash(passphrase: string, salt: string): string {
+  return scryptSync(passphrase.normalize('NFKC'), salt, SCRYPT_KEY_LENGTH).toString('base64');
+}
+
+/**
+ * Check a supplied phrase against the stored hash.
+ *
+ * scrypt is deliberately slow, so a wrong guess costs the guesser real time. The
+ * comparison is constant-time, and a missing row fails closed rather than open — a
+ * studio with no passphrase set must be shut, not wide open.
+ */
+async function passphraseAccepted(config: Config, supplied: string): Promise<boolean> {
+  if (config.passphraseOverride) return sameSecret(supplied, config.passphraseOverride);
+  const response = await db(config, '/studio_access?select=salt,hash&limit=1');
+  if (!response.ok) return false;
+  const rows = await response.json() as Array<{ salt: string; hash: string }>;
+  const row = rows[0];
+  if (!row) return false;
+  return sameSecret(scryptHash(supplied, row.salt), row.hash);
+}
+
+async function storePassphrase(config: Config, passphrase: string): Promise<Response> {
+  const salt = randomBytes(16).toString('base64');
+  return db(config, '/studio_access', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal,resolution=merge-duplicates' },
+    body: JSON.stringify({ id: true, salt, hash: scryptHash(passphrase, salt), updated_at: new Date().toISOString() }),
+  });
+}
+
 async function db(config: Config, path: string, init: RequestInit = {}): Promise<Response> {
   return fetch(`${config.url}/rest/v1${path}`, {
     ...init,
@@ -194,7 +234,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   // Unlocking is the only action reachable without the cookie.
   if (action === 'unlock') {
     const supplied = typeof input.passphrase === 'string' ? input.passphrase : '';
-    if (!sameSecret(supplied, config.passphrase)) {
+    if (!supplied || !(await passphraseAccepted(config, supplied))) {
       res.status(401).json({ error: 'That is not the studio passphrase.' });
       return;
     }
@@ -339,6 +379,29 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           return;
         }
         const response = await db(config, `/studio_idea_replies?id=eq.${id}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+        if (!response.ok) throw new Error(await response.text());
+        break;
+      }
+
+      // Rotating from inside the studio, so neither partner needs console access to
+      // change a phrase they no longer trust. Requires already being unlocked, and
+      // re-checks the current phrase so a borrowed open laptop cannot lock the owner out.
+      case 'rotate': {
+        const current = typeof input.current === 'string' ? input.current : '';
+        const next = typeof input.next === 'string' ? input.next.trim() : '';
+        if (!current || !(await passphraseAccepted(config, current))) {
+          res.status(401).json({ error: 'The current passphrase does not match.' });
+          return;
+        }
+        if (next.length < 10) {
+          res.status(400).json({ error: 'Use at least 10 characters for the new passphrase.' });
+          return;
+        }
+        if (config.passphraseOverride) {
+          res.status(409).json({ error: 'STUDIO_PASSPHRASE is set on this deployment and overrides the stored phrase. Clear it to rotate from here.' });
+          return;
+        }
+        const response = await storePassphrase(config, next);
         if (!response.ok) throw new Error(await response.text());
         break;
       }

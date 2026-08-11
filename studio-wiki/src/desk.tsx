@@ -16,12 +16,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Check, ChevronDown, Command, Hand, Lock, MessageSquare, NotebookPen, Pin, Plus, RefreshCw, Search, Trash2, TriangleAlert, Unlock, X } from 'lucide-react';
+import { Check, ChevronDown, Command, Hand, Key, Lock, MessageSquare, NotebookPen, Pin, Plus, RefreshCw, Search, Trash2, TriangleAlert, Unlock, X } from 'lucide-react';
 import { Panel } from './components';
 import {
   DESK_NAMES, DESK_PEOPLE, DeskLockedError, EMPTY_DESK_STATE, collectTags, createNote, filterNotes,
-  lockDesks, markDeskSeen, addReply, readDesks, rememberPerson, removeNote, removeReply, sortNotes,
-  storedPerson, unlockDesks, unreadCount, updateNote, updateReply, otherPerson,
+  lockDesks, markDeskSeen, addReply, readDesks, rememberPerson, removeNote, removeReply, rotatePassphrase,
+  sortNotes, storedPerson, unlockDesks, unreadCount, updateNote, updateReply, otherPerson,
 } from './deskApi';
 import type { DeskNote, DeskPerson, DeskReply, DeskState } from './deskApi';
 
@@ -80,8 +80,8 @@ type GatePhase = 'checking' | 'locked' | 'open' | 'unavailable';
  * the static wiki pages, whose content is compiled into the JS bundle at build
  * time; truly protecting those needs Vercel Deployment Protection at the edge.
  *
- * A 401 locks. A service error does NOT — bricking the whole Wiki because an env
- * var is missing is a worse failure than the one this guards against, so that case
+ * A 401 locks. A service error does NOT — bricking the whole Wiki because Supabase
+ * is unreachable is a worse failure than the one this guards against, so that case
  * offers a way through with the desks explicitly marked unavailable.
  */
 export function StudioGate({ children }: { children: ReactNode }) {
@@ -116,7 +116,7 @@ export function StudioGate({ children }: { children: ReactNode }) {
       <h1>The studio is locked.</h1>
       {phase === 'unavailable' ? <>
         <p className="studio-gate-warning"><TriangleAlert aria-hidden="true"/>{error || 'The desk service is not configured for this deployment.'}</p>
-        <p>The Wiki’s reference pages still work. The desks need <code>STUDIO_PASSPHRASE</code>, <code>STUDIO_COOKIE_SECRET</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code> set on this deployment.</p>
+        <p>The Wiki’s reference pages still work. The desks need <code>SUPABASE_URL</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code> set on this deployment; the passphrase itself lives in the database, not in an environment variable.</p>
         <button className="studio-gate-bypass" onClick={() => setBypassed(true)}>Continue without the desks</button>
       </> : <>
         <p>One passphrase, shared by Raheem and Tori. Enter it once and this device stays open.</p>
@@ -272,6 +272,39 @@ function NoteCard({ note, replies, viewer, apply }: {
   </article>;
 }
 
+/**
+ * Change the shared phrase without leaving the Wiki.
+ *
+ * The phrase lives as a scrypt hash in the database rather than an environment
+ * variable precisely so this control can exist: neither partner needs a Vercel
+ * login, and a phrase that turns out to be awkward to say out loud can be replaced
+ * in ten seconds instead of surviving forever because changing it was a chore.
+ */
+function PassphraseControl() {
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [state, setState] = useState<'idle' | 'working' | 'done'>('idle');
+  const [error, setError] = useState('');
+
+  if (!open) return <button className="studio-signout" onClick={() => setOpen(true)}><Key/>Change passphrase</button>;
+
+  return <form className="desk-passphrase-form" onSubmit={async (event) => {
+    event.preventDefault();
+    setState('working');
+    setError('');
+    try { await rotatePassphrase(current, next); setState('done'); setCurrent(''); setNext(''); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not change the passphrase.'); setState('idle'); }
+  }}>
+    <label>Current<input type="password" autoComplete="current-password" required value={current} onChange={(event) => setCurrent(event.target.value)}/></label>
+    <label>New<input type="password" autoComplete="new-password" required minLength={10} value={next} onChange={(event) => setNext(event.target.value)}/></label>
+    <button disabled={state === 'working'}>{state === 'working' ? <RefreshCw className="spin"/> : <Key/>}Change</button>
+    <button type="button" onClick={() => { setOpen(false); setError(''); setState('idle'); }}>Cancel</button>
+    {state === 'done' && <p className="desk-passphrase-done" role="status"><Check/>Changed. Tell the other person — devices already open stay open.</p>}
+    {error && <p className="studio-form-error" role="alert">{error}</p>}
+  </form>;
+}
+
 // ---------------------------------------------------------------------------
 // The desk — one component, both people
 // ---------------------------------------------------------------------------
@@ -366,6 +399,7 @@ export function Desk({ person, reference }: { person: DeskPerson; reference?: Re
         {unread > 0
           ? <button className="desk-badge desk-badge-unread" onClick={() => { void markSeen(); }}>{unread} new from {DESK_NAMES[otherPerson(viewer)]} · mark seen</button>
           : <span className="desk-badge desk-badge-clear"><Check/>Nothing new</span>}
+        <PassphraseControl/>
         <button className="studio-signout" onClick={() => { void lockDesks().then(() => window.location.reload()); }}><Lock/>Lock the studio</button>
       </div>
     </div>
