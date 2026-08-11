@@ -16,7 +16,9 @@ import { LEVEL_STRIDE } from '../sceneDepth';
 import { createWaterRipples } from './waterRipples';
 import {
   ANIMATION_SETS,
+  WATER_LAYER,
   WILDLIFE_FEET,
+  applySubmergedLook,
   createWildlifeAnimations,
   watchReducedMotion,
 } from './wildlifeShared';
@@ -41,6 +43,11 @@ import type { SceneBehavior, SceneBehaviorContext } from './types';
  * same number, since the sprites are anchored at their feet. So an animal walking
  * behind a tree is occluded, and draws in front again coming south, with no code
  * written about trees.
+ *
+ * A FISH is the exception, and deliberately so: it is under the water rather than
+ * standing on the ground, so it sorts into a small fixed band just above the pond
+ * and below the surface. Sorting it by its own Y would put it on top of the
+ * ripples it is supposed to be swimming beneath.
  */
 
 /** The feet rectangle for an animal standing at a point. */
@@ -169,6 +176,7 @@ export function attachCourtyardWildlife(
       waterSources: wildlife.water,
       feet: size,
     });
+    if (profile.habitat === 'water') applySubmergedLook(placed.sprite);
     manager.add(agent);
     drinkers.push(agent);
   }
@@ -176,7 +184,7 @@ export function attachCourtyardWildlife(
   // The same rings the lab has. Wired here in the SAME pass on purpose: the fox's
   // drink sheet shipped to the review lab and nowhere else earlier today, because
   // "add it to the other scene" was left as a later step. Once is enough.
-  const ripples = createWaterRipples(scene);
+  const ripples = createWaterRipples(scene, WATER_LAYER.surface);
   const LAP_MS = 520;
   const lapTimers = new Map<WildlifeAgent, number>();
   let lapCount = 0;

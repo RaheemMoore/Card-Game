@@ -1,4 +1,4 @@
-export type WildlifeSpeciesId = 'red-fox' | 'forest-rabbit' | 'glowcap-tortoise';
+export type WildlifeSpeciesId = 'red-fox' | 'forest-rabbit' | 'glowcap-tortoise' | 'pond-fish';
 
 export type WildlifeActivity = 'idle' | 'roam' | 'signature' | 'observe' | 'flee' | 'drink';
 
@@ -45,7 +45,17 @@ export interface WildlifeRoutine {
 export interface WildlifeSpeciesProfile {
   id: WildlifeSpeciesId;
   label: string;
-  movementStyle: 'hop' | 'toddle' | 'trot';
+  movementStyle: 'hop' | 'toddle' | 'trot' | 'swim';
+  /**
+   * Which side of the waterline this creature lives on. Defaults to `'land'`, so
+   * every existing profile keeps its behaviour untouched.
+   *
+   * It inverts three rules rather than adding a fourth: water is solid to a land
+   * animal and land is solid to a fish; a land animal roams to dry points and a
+   * fish to wet ones; a land animal stuck in water walks out and a fish stranded
+   * on land swims back. Same code, read the other way round.
+   */
+  habitat?: 'land' | 'water' | 'amphibious';
   roamSpeed: number;
   fleeSpeed: number;
   arrivalRadius: number;
@@ -122,6 +132,11 @@ export interface WildlifeAnimationSet {
   observe?: Partial<Record<WildlifeFacing, string>>;
   /** Falls back to `signature` while the real head-down clips are being made. */
   drink?: Partial<Record<WildlifeFacing, string>>;
+  /**
+   * Used in place of `move` and `idle` while the creature is actually in water.
+   * Only an amphibious animal ever has both this and a walking clip.
+   */
+  swim?: Partial<Record<WildlifeFacing, string>>;
 }
 
 /**

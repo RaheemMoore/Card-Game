@@ -8,7 +8,10 @@
     "Diagonal travel uses the nearest cardinal animation while the reviewed diagonal base rotations remain available for still poses and later expansion. This keeps the first playable set coherent and inside the approved ceiling.",
     "Rabbit alert uses its directional still with a small Phaser breathing/attention motion. Tortoise watch and tuck/glow use its directional still with restrained Phaser scale, tint, and glow motion. These are real visible animations but do not need new anatomy frames.",
     "Do not rerun a completed entry. The harness manifest is the spend ledger and resumes around completed work.",
-    "BUDGET NOTE, Raheem 2026-08-10: the 200-generation ceiling above was scoped to getting the first three animals into the game and is CLOSED at 196. Drinking is a new subject with its own budget. Flow agreed: fox complete -> test -> rabbit complete -> test -> fish -> tortoise last. One animal all the way through before the next one starts."
+    "BUDGET NOTE, Raheem 2026-08-10: the 200-generation ceiling above was scoped to getting the first three animals into the game and is CLOSED at 196. Drinking is a new subject with its own budget. Flow agreed: fox complete -> test -> rabbit complete -> test -> fish -> tortoise last. One animal all the way through before the next one starts.",
+    "WEST IS MIRRORED, NOT GENERATED, for the fish. /create-8-direction-object returned a fish facing RIGHT for both east and west - distinct images, same facing, verified by silhouette IoU (1.00 as-is, 0.66 mirrored) and by eye. North and south came back correct. Rather than re-roll 40 generations hoping for a different result, west is built by mirroring east at pack time: a fish is bilaterally symmetric, so that is exact rather than a fudge, and it saves 3 generations on every clip.",
+    "TORTOISE FLOAT, 2026-08-10. Raheem chose this over a rabbit drink clip, and the reasoning holds up: the rabbit renders at 59x48, where head-down-chewing and head-down-lapping differ by a few pixels, while a floating tortoise is a pose the kit does not have at all. It also makes the tortoise the first AMPHIBIOUS creature - allowed on both sides of the waterline, where every animal so far is locked to one.",
+    "RABBIT DRINK, 2026-08-10. Generated in all FOUR directions like the fox's drink, not three-plus-mirror like the fish and tortoise: the fox's drink came back with genuinely distinct east and west from this same endpoint, so the duplication seen on the fish was a rotation-base problem rather than an animation one. Verified after the fact rather than assumed - if west duplicates east it gets mirrored."
   ],
   "objectAnimations": [
     {
@@ -100,6 +103,46 @@
       "objectId": "1b9fe8ca-f58e-4612-9bd2-a61ab19f0983",
       "displayName": "drink",
       "description": "seamless red fox drinking cycle in place, lowers its narrow muzzle to the water and laps steadily with small quick tongue flicks, head dips and lifts a little between laps, ears relaxed and tail settled, then returns to the exact starting stance, paws remain planted, body identity and proportions stay unchanged, no camera movement, no background",
+      "directions": [
+        "south",
+        "west",
+        "east",
+        "north"
+      ],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "fish-swim",
+      "objectId": "bef297a4-a95c-4e43-8706-bd3e5cfc9598",
+      "displayName": "swim",
+      "description": "seamless calm fish swimming cycle in place, body flexes in a gentle S wave from head to tail, tail fin sweeps smoothly side to side, side fins paddle in small steady beats, the fish holds its position and returns to the exact starting stance, identity and facing stay unchanged, no water, no bubbles, no background",
+      "directions": [
+        "south",
+        "east",
+        "north"
+      ],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "tortoise-float",
+      "objectId": "5b0e1f5b-4260-4b52-99d6-9f4a622111b6",
+      "displayName": "float",
+      "description": "seamless calm tortoise floating cycle in place, the domed shell rides high and level as if buoyant, head lifted clear and steady, all four legs paddle in slow easy strokes below the body, the whole animal bobs very gently up and down and returns to the exact starting stance, identity and facing stay unchanged, no water, no waves, no ripples, no bubbles, no background",
+      "directions": [
+        "south",
+        "east",
+        "north"
+      ],
+      "frameCount": 6,
+      "mode": "v3"
+    },
+    {
+      "id": "rabbit-drink",
+      "objectId": "168c1786-41be-42b2-b3f6-152301ce6590",
+      "displayName": "drink",
+      "description": "seamless cautious rabbit drinking cycle in place, lowers its head to the water and takes small quick sips, nose twitching between them, ears stay upright and alert and flick once, body crouched low and still, then returns to the exact starting stance, paws remain planted, identity and facing stay unchanged, no water, no grass, no background",
       "directions": [
         "south",
         "west",

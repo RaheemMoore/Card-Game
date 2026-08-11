@@ -18,11 +18,20 @@ const CLIPS: WildlifeAnimationSet = {
   idle: facings('idle'), drink: facings('drink'),
 };
 
+/**
+ * The pond's real geometry, not a convenient one.
+ *
+ * A pond SPRITE's bounds include its earth bank, so the water is a smaller, inset
+ * shape within a larger box — which means an animal stopped at the waterline is
+ * inside the bounds and outside the water. Modelling the bounds as if they were the
+ * water made these tests pass against the very facing bug they exist to catch.
+ */
 const POND: WildlifeBounds = { x: 446, y: 266, width: 146, height: 136 };
+const BANK: WildlifeBounds = { x: 416, y: 236, width: 206, height: 196 };
 const ROAM: WildlifeBounds = { x: 55, y: 165, width: 690, height: 330 };
 const inPond = (p: { x: number; y: number }) =>
   p.x > POND.x && p.x < POND.x + POND.width && p.y > POND.y && p.y < POND.y + POND.height;
-const WATER = { bounds: POND, contains: inPond };
+const WATER = { bounds: BANK, contains: inPond };
 
 function fakeSprite(x: number, y: number) {
   const sprite = {
@@ -43,7 +52,15 @@ function drinkingFox(startX: number, startY: number) {
   });
   for (let now = 0; now <= 400_000; now += 100) {
     agent.update(now, 100);
-    if (agent.drinkContactPoint()) return { agent, sprite };
+    if (!agent.drinkContactPoint()) continue;
+    // KEEP GOING for a second after it arrives, and assert on THAT.
+    //
+    // The frame it arrives on still carries the facing from the walk, which is
+    // correct by accident — the standing-still branch has not run yet. Asserting
+    // there made these tests pass against the very bug they exist to catch, which
+    // was only found by re-introducing the bug and watching them stay green.
+    for (let held = now + 100; held <= now + 1_000; held += 100) agent.update(held, 100);
+    return { agent, sprite };
   }
   return { agent, sprite };
 }
@@ -102,5 +119,68 @@ describe('where the ripple goes', () => {
     });
     // Before it has ever reached the water there is nothing to disturb.
     expect(agent.drinkContactPoint()).toBeNull();
+  });
+});
+
+/**
+ * Which way it turns when it gets there.
+ *
+ * The bug this pins, in Raheem's words: "the fox keeps standing on the left side of
+ * the pond, but is using the forward drinking motion." The facing was taken from a
+ * point CLAMPED into the water's bounding box — and an animal stopped at the
+ * waterline is inside that box, so the clamp returned its own position, the vector
+ * was (0,0), and the ternary fell through to 'down' for every side of the pond.
+ */
+describe('which way it faces to drink', () => {
+  const CENTRE = { x: POND.x + POND.width / 2, y: POND.y + POND.height / 2 };
+
+  const cases: { from: string; start: { x: number; y: number }; clip: string }[] = [
+    { from: 'the west shore', start: { x: 120, y: CENTRE.y }, clip: 'drink-right' },
+    { from: 'the east shore', start: { x: 700, y: CENTRE.y }, clip: 'drink-left' },
+    { from: 'the north shore', start: { x: CENTRE.x, y: 185 }, clip: 'drink-down' },
+    { from: 'the south shore', start: { x: CENTRE.x, y: 470 }, clip: 'drink-up' },
+  ];
+
+  for (const { from, start, clip } of cases) {
+    it(`turns to the water when it drinks from ${from}`, () => {
+      const { agent, sprite } = drinkingFox(start.x, start.y);
+      expect(agent.drinkContactPoint()).not.toBeNull();
+      expect(sprite.anims.currentAnim?.key).toBe(clip);
+    });
+  }
+
+  it('never answers down just because it is inside the water bounding box', () => {
+    // The real geometry, which the fixture above does not reproduce: a pond SPRITE's
+    // bounds include its bank, so the water is a smaller shape inside a bigger box.
+    // An animal stopped on the bank is therefore inside the bounds and outside the
+    // water — the exact state where the old clamp returned the animal's own position
+    // and forced the forward clip on every side of the pond.
+    const bank = { x: 400, y: 220, width: 240, height: 230 };
+    const pool = { x: 446, y: 266, width: 146, height: 136 };
+    const water = {
+      bounds: bank,
+      contains: (p: { x: number; y: number }) =>
+        p.x > pool.x && p.x < pool.x + pool.width && p.y > pool.y && p.y < pool.y + pool.height,
+    };
+
+    const sprite = fakeSprite(120, pool.y + pool.height / 2);
+    const agent = new WildlifeAgent(sprite as unknown as Phaser.GameObjects.Sprite, WILDLIFE_SPECIES['red-fox'], {
+      roamBounds: ROAM, animations: CLIPS, waterSources: [water],
+      feet: { width: 26, height: 12 }, random: () => 0.5,
+    });
+    for (let now = 0; now <= 400_000; now += 100) {
+      agent.update(now, 100);
+      if (!agent.drinkContactPoint()) continue;
+      for (let held = now + 100; held <= now + 1_000; held += 100) agent.update(held, 100);
+      break;
+    }
+
+    const insideBounds =
+      sprite.x >= bank.x && sprite.x <= bank.x + bank.width &&
+      sprite.y >= bank.y && sprite.y <= bank.y + bank.height;
+    expect(insideBounds).toBe(true);
+    expect(water.contains({ x: sprite.x, y: sprite.y })).toBe(false);
+    // Approaching from the west, it must look EAST at the water.
+    expect(sprite.anims.currentAnim?.key).toBe('drink-right');
   });
 });

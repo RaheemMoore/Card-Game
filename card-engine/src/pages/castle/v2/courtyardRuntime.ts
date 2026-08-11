@@ -242,7 +242,10 @@ const WILDLIFE_SHEETS = [
   'wildlife-fox-drink',
   'wildlife-rabbit-hop',
   'wildlife-rabbit-nibble-groom',
+  'wildlife-rabbit-drink',
   'wildlife-tortoise-toddle',
+  'wildlife-fish-swim',
+  'wildlife-tortoise-float',
 ] as const;
 
 export const ALWAYS_LOADED: Record<string, readonly string[]> = {

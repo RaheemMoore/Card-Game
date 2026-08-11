@@ -61,6 +61,14 @@ export const WILDLIFE_SPECIES: Record<WildlifeSpeciesId, WildlifeSpeciesProfile>
     fleeRadius: 58,
     closePlayerResponse: 'observe',
     signatureLabel: 'tuck in and softly glow',
+    // THE ONLY AMPHIBIOUS ANIMAL, Raheem 2026-08-10: "it'll be cool for it to maybe
+    // hang out around the water and just float like a shell around the water."
+    //
+    // It needs no "get in the water" routine, and deliberately has none. Amphibious
+    // simply means the waterline stops being a boundary, so its ordinary roaming
+    // sometimes picks a spot in the pond and it ambles in — which is a more
+    // convincing reason to be swimming than a decision to swim.
+    habitat: 'amphibious',
     // No `drink` routine, so no drinking — Raheem's call, 2026-08-09. A tortoise
     // ambling to the water and back would eat most of a minute at 20px/s, and the
     // glow is what it is for. Giving it one is a two-line change if that shifts.
@@ -69,6 +77,37 @@ export const WILDLIFE_SPECIES: Record<WildlifeSpeciesId, WildlifeSpeciesProfile>
       { activity: 'idle', weight: 5, durationMs: [1_800, 4_500], cooldownMs: 500 },
       { activity: 'signature', weight: 3, durationMs: [2_000, 4_000], cooldownMs: 5_000 },
       { activity: 'observe', weight: 2, durationMs: [1_200, 2_600], cooldownMs: 2_200 },
+    ],
+  },
+  /**
+   * The first creature that lives IN the water rather than beside it.
+   *
+   * No drinking, for the obvious reason, and no `observe`: a fish does not stop to
+   * watch you, it leaves. `fleeRadius` is small because the player can never get
+   * into the pond — only lean over it — so a fish that bolted at the same distance
+   * as a rabbit would spend the whole game hiding.
+   *
+   * `signature` is the jump. It is paced by the same rising urge and cooldown as the
+   * fox's sniff, which is what makes it the occasional surprise Raheem asked for
+   * rather than a metronome.
+   */
+  'pond-fish': {
+    id: 'pond-fish',
+    label: 'Pond Fish',
+    movementStyle: 'swim',
+    habitat: 'water',
+    // Unhurried, and quick when startled — a fish cruises then darts.
+    roamSpeed: 26,
+    fleeSpeed: 88,
+    arrivalRadius: 5,
+    noticeRadius: 70,
+    fleeRadius: 44,
+    closePlayerResponse: 'flee',
+    signatureLabel: 'break the surface',
+    routines: [
+      { activity: 'roam', weight: 6, durationMs: [2_200, 5_000], cooldownMs: 600 },
+      { activity: 'idle', weight: 2, durationMs: [700, 1_800], cooldownMs: 800 },
+      { activity: 'signature', weight: 3, durationMs: [900, 1_400], cooldownMs: 22_000 },
     ],
   },
 };

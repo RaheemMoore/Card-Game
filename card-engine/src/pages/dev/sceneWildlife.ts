@@ -91,6 +91,7 @@ export const SPECIES_BY_TEXTURE: Readonly<Record<string, WildlifeSpeciesId>> = {
   'wildlife-fox-trot': 'red-fox',
   'wildlife-rabbit-hop': 'forest-rabbit',
   'wildlife-tortoise-toddle': 'glowcap-tortoise',
+  'wildlife-fish-swim': 'pond-fish',
 };
 
 export interface PlacedAnimal {
@@ -389,6 +390,27 @@ export function readSceneWildlife(scene: Phaser.Scene): SceneWildlife {
   for (const sprite of sprites) {
     const species = SPECIES_BY_TEXTURE[sprite.texture?.key ?? ''];
     if (!species) continue;
+
+    // A FISH'S TERRITORY IS THE POND IT WAS DROPPED IN.
+    //
+    // Green boxes are for land. Asking someone to draw one over the pond as well
+    // would break the promise the pond already keeps — place it and it works — and
+    // a box drawn generously (as they are meant to be) would send a fish at the
+    // grass. The water's own bounds are exactly the right territory, and they come
+    // from the artwork.
+    if (WILDLIFE_SPECIES[species].habitat === 'water') {
+      const pool =
+        water.find((w) => contains(w.bounds, sprite.x, sprite.y)) ??
+        water.find((w) => w.contains({ x: sprite.x, y: sprite.y }));
+      if (pool) {
+        animals.push({ sprite, species, roamBounds: pool.bounds, improvised: false });
+        continue;
+      }
+      console.warn(
+        `[wildlife] ${species} at ${Math.round(sprite.x)},${Math.round(sprite.y)} is not in any ` +
+          'water; it will stay put. Drop it inside a pond.',
+      );
+    }
 
     // Tested at the feet, not the centre — a sprite is anchored on the ground it
     // stands on, and its middle can sit well outside a box its feet are inside.

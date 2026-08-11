@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-type AnimalId = 'fox' | 'rabbit' | 'tortoise';
+type AnimalId = 'fox' | 'rabbit' | 'tortoise' | 'fish';
 type Direction = 'down' | 'up' | 'left' | 'right';
 
 type Clip = {
@@ -118,14 +118,16 @@ const ANIMALS: Animal[] = [
         frames: 7,
         fps: 7,
       },
-    ],
-    planned: [
       {
         id: 'drink',
         label: 'Drink',
         purpose:
-          'Already decided by the brain — the rabbit gets thirsty and walks to water. It borrows the nibble clip until its own is drawn, so on screen a drink looks exactly like a nibble.',
-        queue: 'next, after the fox is signed off',
+          'Small quick sips with its ears up, which is how a rabbit drinks at open water. Everything around the clip — facing the water from whichever side it arrives on, keeping its paws dry, turning away afterwards — it already had: those live in the shared brain, so it inherited them from the fox rather than needing them built again.',
+        src: '/assets/wildlife-lab/rabbit-drink-4dir.png',
+        frameWidth: 146,
+        frameHeight: 120,
+        frames: 7,
+        fps: 7,
       },
     ],
   },
@@ -145,14 +147,44 @@ const ANIMALS: Animal[] = [
         frames: 7,
         fps: 5,
       },
+      {
+        id: 'float',
+        label: 'Float',
+        purpose:
+          'The only amphibious animal — it ambles into the pond, drifts about with the fish, and climbs out again. There is no "go swimming" decision: the waterline simply stops being a boundary for it, so ordinary roaming sometimes picks a spot in the water.',
+        src: '/assets/wildlife-lab/tortoise-float-4dir.png',
+        frameWidth: 161,
+        frameHeight: 103,
+        frames: 7,
+        fps: 4,
+      },
     ],
-    planned: [
+  },
+  {
+    id: 'fish',
+    label: 'Pond fish',
+    role: 'Lives in the water, not beside it',
+    accent: '#f0a25c',
+    clips: [
       {
         id: 'swim',
         label: 'Swim',
         purpose:
-          'Gets into the pond, floats about and climbs out again. Needs the brain to let some creatures ENTER water, which today is solid to everyone — the same change the fish need, so the two get built together.',
-        queue: 'last — after the fish',
+          'Cruises the pond it was dropped in, confined to the water’s real shape taken from the pond artwork — the exact inverse of the rule that keeps the fox out of it. West is mirrored from east: the generator returned a right-facing fish for both, and a fish is symmetrical, so flipping is exact rather than a fudge.',
+        src: '/assets/wildlife-lab/fish-swim-4dir.png',
+        frameWidth: 60,
+        frameHeight: 60,
+        frames: 7,
+        fps: 5,
+      },
+    ],
+    planned: [
+      {
+        id: 'jump',
+        label: 'Break the surface',
+        purpose:
+          'The occasional leap, paced by the same rising urge and cooldown as the fox’s sniff. The fish stays logically in the water and only its picture arcs, so the confinement never has to bend.',
+        queue: 'next, once the swim is signed off',
       },
     ],
   },

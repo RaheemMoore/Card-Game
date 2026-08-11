@@ -94,7 +94,7 @@
             "x": 237,
             "y": 369,
             "originX": 0.5,
-            "text": "RABBIT LIVE\nhop \u2022 nibble",
+            "text": "RABBIT LIVE\nhop \u2022 nibble \u2022 drink",
             "align": "center",
             "fontFamily": "Arial",
             "fontSize": "12px",
@@ -108,7 +108,7 @@
             "x": 339,
             "y": 372,
             "originX": 0.5,
-            "text": "TORTOISE LIVE\nslow walk",
+            "text": "TORTOISE LIVE\nslow walk \u2022 float",
             "align": "center",
             "fontFamily": "Arial",
             "fontSize": "12px",
@@ -197,6 +197,35 @@
             "y": 334,
             "scaleX": 1.2,
             "scaleY": 1.2
+        },
+        {
+            "type": "Sprite",
+            "id": "cce44c71-a23b-4ec6-9d95-a90120003410",
+            "label": "fishSprite",
+            "scope": "CLASS",
+            "texture": {
+                "key": "wildlife-fish-swim",
+                "frame": 0
+            },
+            "x": 560,
+            "y": 300,
+            "scaleX": 0.6,
+            "scaleY": 0.6,
+            "originY": 1
+        },
+        {
+            "type": "Text",
+            "id": "7a472403-eba0-407f-95c3-4a17cabedea4",
+            "label": "fishLabel",
+            "x": 560,
+            "y": 308,
+            "originX": 0.5,
+            "text": "FISH LIVE\nswim",
+            "align": "center",
+            "fontFamily": "Arial",
+            "fontSize": "12px",
+            "fontStyle": "bold",
+            "color": "#eaf7ff"
         }
     ],
     "plainObjects": [],

@@ -13,7 +13,7 @@ import {
   watchReducedMotion,
 } from './wildlifeShared';
 import { readSceneWater } from '../sceneWildlife';
-import { WILDLIFE_FEET } from './wildlifeShared';
+import { WILDLIFE_FEET, WATER_LAYER, applySubmergedLook } from './wildlifeShared';
 import { createWaterRipples } from './waterRipples';
 import type { SceneBehavior, SceneBehaviorContext } from './types';
 
@@ -41,6 +41,7 @@ const CAST: readonly {
   { field: 'foxSprite', species: 'red-fox', facing: 'right' },
   { field: 'rabbitSprite', species: 'forest-rabbit', facing: 'left' },
   { field: 'tortoiseSprite', species: 'glowcap-tortoise', facing: 'right' },
+  { field: 'fishSprite', species: 'pond-fish', facing: 'right' },
 ];
 
 /**
@@ -108,6 +109,7 @@ const ACTIVITY_LABEL: Record<string, { text: string; color: string }> = {
   // The two that matter for this feature, in the one colour nothing else uses.
   drink: { text: 'to the water', color: '#7fe3ff' },
   drinking: { text: 'drinking', color: '#7fe3ff' },
+  swimming: { text: 'swimming', color: '#7fe3ff' },
 };
 
 export function attachWildlifeLab(
@@ -145,20 +147,34 @@ export function attachWildlifeLab(
       continue;
     }
     const profile = WILDLIFE_SPECIES[member.species];
+    // A fish's territory is the pond it was dropped in, not the green guide — the
+    // same rule readSceneWildlife applies in the courtyard. A generously drawn roam
+    // box would send it at the grass, which is the one place it cannot go.
+    const home =
+      profile.habitat === 'water'
+        ? (waterSources.find((w) => w.contains({ x: sprite.x, y: sprite.y })) ??
+            waterSources[0])?.bounds ?? roamBounds
+        : roamBounds;
+    if (profile.habitat === 'water' && home === roamBounds) {
+      console.warn(
+        `[wildlife-lab] ${profile.label} is not inside any water; drop it in the pond.`,
+      );
+    }
     const agent = new WildlifeAgent(sprite, profile, {
-      roamBounds,
+      roamBounds: home,
       animations: ANIMATION_SETS[member.species],
       initialFacing: member.facing,
       waterSources,
       feet: WILDLIFE_FEET[member.species],
     });
+    if (profile.habitat === 'water') applySubmergedLook(sprite);
     manager.add(agent);
     agents.push({ label: profile.label, agent });
   }
 
   // Rings under the muzzle. Unlike the debug overlays this is NOT gated behind
   // ?wildlife=show — it is part of the scene, not an authoring aid.
-  const ripples = createWaterRipples(scene);
+  const ripples = createWaterRipples(scene, WATER_LAYER.surface);
   // One ring per lap, not one per frame. Slower than the fox's 6fps clip so the
   // rings read as separate touches rather than a continuous boil.
   const LAP_MS = 520;
@@ -239,6 +255,33 @@ export function attachWildlifeLab(
   // does nothing — `?thirsty=1` needs no focus and no timing.
   scene.input.keyboard?.on('keydown-T', parched);
 
+  /**
+   * F sends every amphibious animal into the water.
+   *
+   * T is thirst, and the tortoise does not drink — so without this there is no way
+   * to test the one animal that swims except to watch a 20px/s tortoise until it
+   * happens to wander in. Same shape as T: a key and a URL flag, because a keypress
+   * that lands on the wrong element is indistinguishable from a broken feature.
+   */
+  let swimNow = 0;
+  const goSwim = () => {
+    const sent = agents.filter(({ agent }) => agent.goSwimming(swimNow));
+    banner.setText(
+      sent.length
+        ? `${sent.length} heading for the water`
+        : 'nothing here swims — the tortoise is the only one',
+    );
+    banner.setVisible(true);
+    bannerLeft = 2_000;
+    console.info(`[wildlife-lab] ${sent.length} amphibious animal(s) sent to the water.`);
+  };
+  scene.input.keyboard?.on('keydown-F', goSwim);
+
+  const swimFlag =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('swim') !== null;
+  let swimTimer: ReturnType<typeof setInterval> | undefined;
+
   const thirstyFlag =
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).get('thirsty') !== null;
@@ -249,9 +292,14 @@ export function attachWildlifeLab(
     // reloading. Test-only: nothing outside this lab reads the flag.
     thirstTimer = setInterval(parched, 12_000);
   }
+  if (swimFlag) {
+    // Long enough for a tortoise to reach the pond, float a while, and come out.
+    swimTimer = setInterval(goSwim, 45_000);
+  }
 
   return {
     update(now, deltaMs, playerPosition) {
+      swimNow = now;
       manager.update(now, deltaMs, playerPosition);
 
       // Ripples first: they belong to the world, and run whether or not the
@@ -287,7 +335,10 @@ export function attachWildlifeLab(
         const { current } = tag.agent.snapshot();
         const activity = current?.activity ?? 'idle';
         const arrived = activity === 'drink' && tag.agent.drinkContactPoint() !== null;
-        const look = ACTIVITY_LABEL[arrived ? 'drinking' : activity] ?? ACTIVITY_LABEL.idle;
+        const afloat = tag.agent.inWater();
+        const look =
+          ACTIVITY_LABEL[arrived ? 'drinking' : afloat ? 'swimming' : activity] ??
+          ACTIVITY_LABEL.idle;
         tag.text
           .setText(look.text)
           .setColor(look.color)
@@ -332,7 +383,8 @@ export function attachWildlifeLab(
         // The affordance has to be on screen. A review key nobody knows about is
         // the same as no review key.
         waterSources.length
-          ? `press T (or add ?thirsty=1) — everyone gets thirsty${thirstyFlag ? ' · AUTO every 12s' : ''}`
+          ? `T = thirsty (drink) · F = swim (tortoise)` +
+            `${thirstyFlag ? ' · auto-thirsty' : ''}${swimFlag ? ' · auto-swim' : ''}`
           : 'no water in this scene — drag a pond in, save, refresh',
         '',
         ...agents.map(({ label, agent }) => {
@@ -363,7 +415,9 @@ export function attachWildlifeLab(
       banner.destroy();
       for (const tag of tags) tag.text.destroy();
       scene.input.keyboard?.off('keydown-T', parched);
+      scene.input.keyboard?.off('keydown-F', goSwim);
       if (thirstTimer) clearInterval(thirstTimer);
+      if (swimTimer) clearInterval(swimTimer);
       drinkLines?.destroy();
       for (const outline of waterOutlines) outline.destroy();
     },

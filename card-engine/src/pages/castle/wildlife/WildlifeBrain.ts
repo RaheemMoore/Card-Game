@@ -144,6 +144,18 @@ export class WildlifeBrain {
     this.cooldownUntil.delete('drink');
   }
 
+  /**
+   * Force one activity for a while. A review affordance, like `makeThirsty`.
+   *
+   * Needed because the brain re-decides every frame and would immediately
+   * overwrite anything the agent set by hand — so "make the tortoise go for a
+   * swim" has to be expressed as a decision, not as a position.
+   */
+  hold(activity: WildlifeActivity, now: number, durationMs: number): WildlifeDecision {
+    this.current = { activity, startedAt: now, endsAt: now + durationMs, reason: 'routine' };
+    return this.current;
+  }
+
   reset(): void {
     this.current = null;
     this.cooldownUntil.clear();

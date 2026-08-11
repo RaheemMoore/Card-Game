@@ -48,19 +48,19 @@ class WildlifeLab extends Phaser.Scene {
 		// foxLabel
 		const foxLabel = this.add.text(125, 370, "", {});
 		foxLabel.setOrigin(0.5, 0);
-		foxLabel.text = "FOX LIVE\nroam • sniff • sit";
+		foxLabel.text = "FOX LIVE\nroam • sniff • sit • drink";
 		foxLabel.setStyle({ "align": "center", "color": "#ffe0bd", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
 
 		// rabbitLabel
 		const rabbitLabel = this.add.text(237, 369, "", {});
 		rabbitLabel.setOrigin(0.5, 0);
-		rabbitLabel.text = "RABBIT LIVE\nhop • nibble";
+		rabbitLabel.text = "RABBIT LIVE\nhop • nibble • drink";
 		rabbitLabel.setStyle({ "align": "center", "color": "#f0e6d8", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
 
 		// tortoiseLabel
 		const tortoiseLabel = this.add.text(339, 372, "", {});
 		tortoiseLabel.setOrigin(0.5, 0);
-		tortoiseLabel.text = "TORTOISE LIVE\nslow walk";
+		tortoiseLabel.text = "TORTOISE LIVE\nslow walk • float";
 		tortoiseLabel.setStyle({ "align": "center", "color": "#b8f4cb", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
 
 		// labInstructions
@@ -97,7 +97,20 @@ class WildlifeLab extends Phaser.Scene {
 		nature_water_pond_cliff_north.scaleX = 1.2;
 		nature_water_pond_cliff_north.scaleY = 1.2;
 
+		// fishLabel
+		const fishLabel = this.add.text(560, 308, "", {});
+		fishLabel.setOrigin(0.5, 0);
+		fishLabel.text = "FISH LIVE\nswim";
+		fishLabel.setStyle({ "align": "center", "color": "#eaf7ff", "fontFamily": "Arial", "fontSize": "12px", "fontStyle": "bold" });
+
+		// fishSprite
+		const fishSprite = this.add.sprite(560, 300, "wildlife-fish-swim", 0);
+		fishSprite.scaleX = 0.6;
+		fishSprite.scaleY = 0.6;
+		fishSprite.setOrigin(0.5, 1);
+
 		this.roamingAreaGuide = roamingAreaGuide;
+		this.fishSprite = fishSprite;
 		this.foxSprite = foxSprite;
 		this.rabbitSprite = rabbitSprite;
 		this.tortoiseSprite = tortoiseSprite;
@@ -113,6 +126,8 @@ class WildlifeLab extends Phaser.Scene {
 	rabbitSprite;
 	/** @type {Phaser.GameObjects.Sprite} */
 	tortoiseSprite;
+	/** @type {Phaser.GameObjects.Sprite} */
+	fishSprite;
 
 	/* START-USER-CODE */
 

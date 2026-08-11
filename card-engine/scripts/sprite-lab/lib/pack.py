@@ -58,7 +58,13 @@ def body_metrics(im):
     foot_band = a[max(bottom - max(1, int(height * 0.15)), 0):bottom + 1, :]
     fy, fx = np.nonzero(foot_band)
     centre = float(fx.mean()) if len(fx) else float(xs.mean())
-    return {"top": int(top), "bottom": int(bottom), "height": int(height), "foot_x": centre}
+    return {
+        "top": int(top),
+        "bottom": int(bottom),
+        "height": int(height),
+        "width": int(xs.max() - xs.min() + 1),
+        "foot_x": centre,
+    }
 
 
 def build_plan(d, prefer=None):
@@ -105,7 +111,7 @@ def build_plan(d, prefer=None):
     return plan
 
 
-def main(frames_dir, out_png, out_json, prefer=None, anchor="feet"):
+def main(frames_dir, out_png, out_json, prefer=None, anchor="feet", measure="height"):
     plan = build_plan(frames_dir, [prefer] if prefer else None)
 
     # Uniform column count: trim every row to the shortest so the grid is
@@ -126,14 +132,30 @@ def main(frames_dir, out_png, out_json, prefer=None, anchor="feet"):
             row.append((im, m))
         loaded.append((name, row))
 
-    # One shared target body height for the whole character.
-    target = float(np.median([m["height"] for _, row in loaded for _, m in row]))
+    # WHICH MEASUREMENT STAYS CONSTANT AS THE BODY TURNS?
+    #
+    # For a quadruped it is height: a fox seen from any facing is about as tall on
+    # screen, so scaling every frame to one height keeps it the same animal.
+    #
+    # For a FISH it is not. Its long axis rotates with it, so its height is its
+    # length when it swims north and its depth when it swims east — normalising on
+    # height made the vertical frames 40% the size of the horizontal ones, which is
+    # the very "hero shrank walking left" defect rule 3 exists to prevent, caused by
+    # the fix rather than solved by it. `longest` measures the body's longest side,
+    # which a rotation does not change.
+    key = "height" if measure == "height" else None
+    if key:
+        target = float(np.median([m["height"] for _, row in loaded for _, m in row]))
+        size_of = lambda m: m["height"]
+    else:
+        target = float(np.median([max(m["height"], m["width"]) for _, row in loaded for _, m in row]))
+        size_of = lambda m: max(m["height"], m["width"])
 
     scaled = []
     for name, row in loaded:
         out_row = []
         for im, m in row:
-            s = target / m["height"]
+            s = target / size_of(m)
             w, h = max(1, round(im.width * s)), max(1, round(im.height * s))
             resized = im.resize((w, h), Image.NEAREST)
             anchor_x = m["foot_x"] * s if anchor == "feet" else resized.width / 2
@@ -203,5 +225,12 @@ if __name__ == "__main__":
     parser.add_argument("out_json")
     parser.add_argument("--prefer", help="exact animation name to pack")
     parser.add_argument("--anchor", choices=("feet", "bbox"), default="feet")
+    parser.add_argument(
+        "--measure",
+        choices=("height", "longest"),
+        default="height",
+        help="what is held constant across facings: body height (limbed animals) or "
+             "the body's longest side (a fish, whose long axis rotates with it)",
+    )
     args = parser.parse_args()
-    main(args.frames_dir, args.out_png, args.out_json, args.prefer, args.anchor)
+    main(args.frames_dir, args.out_png, args.out_json, args.prefer, args.anchor, args.measure)
