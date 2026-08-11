@@ -446,8 +446,7 @@
                     "y": 239,
                     "scaleX": 1.374,
                     "scaleY": 1.374,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -460,8 +459,7 @@
                     "y": 294,
                     "scaleX": 0.871,
                     "scaleY": 0.871,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -474,8 +472,7 @@
                     "y": 243,
                     "scaleX": 1.433,
                     "scaleY": 1.433,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -488,8 +485,7 @@
                     "y": 292,
                     "scaleX": 1.287,
                     "scaleY": 1.287,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -502,8 +498,7 @@
                     "y": 259,
                     "scaleX": 1.096,
                     "scaleY": 1.096,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -516,8 +511,7 @@
                     "y": 263,
                     "scaleX": 1.021,
                     "scaleY": 1.021,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -530,8 +524,7 @@
                     "y": 328,
                     "scaleX": 0.828,
                     "scaleY": 0.828,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -544,8 +537,7 @@
                     "y": 287,
                     "scaleX": 1.13,
                     "scaleY": 1.13,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -558,8 +550,7 @@
                     "y": 265,
                     "scaleX": 1.103,
                     "scaleY": 1.103,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -572,8 +563,7 @@
                     "y": 340,
                     "scaleX": 0.814,
                     "scaleY": 0.814,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -586,8 +576,7 @@
                     "y": 299,
                     "scaleX": 0.938,
                     "scaleY": 0.938,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -600,8 +589,7 @@
                     "y": 497,
                     "scaleX": 0.977,
                     "scaleY": 0.977,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -614,8 +602,7 @@
                     "y": 650,
                     "scaleX": 1.074,
                     "scaleY": 1.074,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -628,8 +615,7 @@
                     "y": 745,
                     "scaleX": 1.329,
                     "scaleY": 1.329,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -642,8 +628,7 @@
                     "y": 688,
                     "scaleX": 1.249,
                     "scaleY": 1.249,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -656,8 +641,7 @@
                     "y": 850,
                     "scaleX": 1.486,
                     "scaleY": 1.486,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -670,8 +654,7 @@
                     "y": 940,
                     "scaleX": 1.345,
                     "scaleY": 1.345,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -684,8 +667,7 @@
                     "y": 1115,
                     "scaleX": 1.182,
                     "scaleY": 1.182,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -698,8 +680,7 @@
                     "y": 1116,
                     "scaleX": 1.222,
                     "scaleY": 1.222,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -712,8 +693,7 @@
                     "y": 1101,
                     "scaleX": 1.475,
                     "scaleY": 1.475,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -726,8 +706,7 @@
                     "y": 1170,
                     "scaleX": 0.993,
                     "scaleY": 0.993,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -740,8 +719,7 @@
                     "y": 1103,
                     "scaleX": 1.029,
                     "scaleY": 1.029,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -754,8 +732,7 @@
                     "y": 1226,
                     "scaleX": 1.18,
                     "scaleY": 1.18,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -768,8 +745,7 @@
                     "y": 1199,
                     "scaleX": 1.089,
                     "scaleY": 1.089,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -782,8 +758,7 @@
                     "y": 1179,
                     "scaleX": 0.942,
                     "scaleY": 0.942,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 }
             ]
         },
@@ -1706,8 +1681,7 @@
                     "y": 224,
                     "scaleX": 2.624,
                     "scaleY": 2.624,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1720,8 +1694,7 @@
                     "y": 290,
                     "scaleX": 2.736,
                     "scaleY": 2.736,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1734,8 +1707,7 @@
                     "y": 226,
                     "scaleX": 2.725,
                     "scaleY": 2.725,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1748,8 +1720,7 @@
                     "y": 267,
                     "scaleX": 2.808,
                     "scaleY": 2.808,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1762,8 +1733,7 @@
                     "y": 243,
                     "scaleX": 2.798,
                     "scaleY": 2.798,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1776,8 +1746,7 @@
                     "y": 275,
                     "scaleX": 2.703,
                     "scaleY": 2.703,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1790,8 +1759,7 @@
                     "y": 252,
                     "scaleX": 2.703,
                     "scaleY": 2.703,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1804,8 +1772,7 @@
                     "y": 257,
                     "scaleX": 2.612,
                     "scaleY": 2.612,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1818,8 +1785,7 @@
                     "y": 325,
                     "scaleX": 3.179,
                     "scaleY": 3.179,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1832,8 +1798,7 @@
                     "y": 279,
                     "scaleX": 2.941,
                     "scaleY": 2.941,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1846,8 +1811,7 @@
                     "y": 210,
                     "scaleX": 2.434,
                     "scaleY": 2.434,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1860,8 +1824,7 @@
                     "y": 264,
                     "scaleX": 2.776,
                     "scaleY": 2.776,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1874,8 +1837,7 @@
                     "y": 258,
                     "scaleX": 3.071,
                     "scaleY": 3.071,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1888,8 +1850,7 @@
                     "y": 278,
                     "scaleX": 2.855,
                     "scaleY": 2.855,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1902,8 +1863,7 @@
                     "y": 318,
                     "scaleX": 3.107,
                     "scaleY": 3.107,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1916,8 +1876,7 @@
                     "y": 337,
                     "scaleX": 3.199,
                     "scaleY": 3.199,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1930,8 +1889,7 @@
                     "y": 257,
                     "scaleX": 2.919,
                     "scaleY": 2.919,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1944,8 +1902,7 @@
                     "y": 305,
                     "scaleX": 3.026,
                     "scaleY": 3.026,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1958,8 +1915,7 @@
                     "y": 296,
                     "scaleX": 2.76,
                     "scaleY": 2.76,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1972,8 +1928,7 @@
                     "y": 404,
                     "scaleX": 3.06,
                     "scaleY": 3.06,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -1986,8 +1941,7 @@
                     "y": 431,
                     "scaleX": 3.186,
                     "scaleY": 3.186,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2000,8 +1954,7 @@
                     "y": 489,
                     "scaleX": 2.827,
                     "scaleY": 2.827,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2014,8 +1967,7 @@
                     "y": 472,
                     "scaleX": 2.691,
                     "scaleY": 2.691,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2028,8 +1980,7 @@
                     "y": 607,
                     "scaleX": 2.844,
                     "scaleY": 2.844,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2042,8 +1993,7 @@
                     "y": 639,
                     "scaleX": 2.884,
                     "scaleY": 2.884,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2056,8 +2006,7 @@
                     "y": 731,
                     "scaleX": 2.904,
                     "scaleY": 2.904,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2070,8 +2019,7 @@
                     "y": 671,
                     "scaleX": 2.563,
                     "scaleY": 2.563,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2084,8 +2032,7 @@
                     "y": 764,
                     "scaleX": 2.749,
                     "scaleY": 2.749,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2098,8 +2045,7 @@
                     "y": 822,
                     "scaleX": 3.131,
                     "scaleY": 3.131,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2112,8 +2058,7 @@
                     "y": 908,
                     "scaleX": 2.93,
                     "scaleY": 2.93,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2126,8 +2071,7 @@
                     "y": 833,
                     "scaleX": 2.802,
                     "scaleY": 2.802,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2140,8 +2084,7 @@
                     "y": 926,
                     "scaleX": 2.662,
                     "scaleY": 2.662,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2154,8 +2097,7 @@
                     "y": 1105,
                     "scaleX": 3.153,
                     "scaleY": 3.153,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2168,8 +2110,7 @@
                     "y": 1068,
                     "scaleX": 3.086,
                     "scaleY": 3.086,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2182,8 +2123,7 @@
                     "y": 1105,
                     "scaleX": 2.65,
                     "scaleY": 2.65,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2196,8 +2136,7 @@
                     "y": 1083,
                     "scaleX": 2.595,
                     "scaleY": 2.595,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2210,8 +2149,7 @@
                     "y": 1166,
                     "scaleX": 3.073,
                     "scaleY": 3.073,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2224,8 +2162,7 @@
                     "y": 1094,
                     "scaleX": 2.988,
                     "scaleY": 2.988,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2238,8 +2175,7 @@
                     "y": 1165,
                     "scaleX": 2.631,
                     "scaleY": 2.631,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2252,8 +2188,7 @@
                     "y": 1216,
                     "scaleX": 2.989,
                     "scaleY": 2.989,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2266,8 +2201,7 @@
                     "y": 1192,
                     "scaleX": 2.653,
                     "scaleY": 2.653,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 },
                 {
                     "type": "Image",
@@ -2280,8 +2214,7 @@
                     "y": 1176,
                     "scaleX": 2.652,
                     "scaleY": 2.652,
-                    "originX": 0.5,
-                    "originY": 1.0
+                    "originY": 1
                 }
             ]
         },

@@ -305,255 +305,176 @@ class CourtyardV2 extends Phaser.Scene {
 		const seamline_under_0 = this.add.image(448, 239, "nature-shrub-young-tree-cluster");
 		seamline_under_0.scaleX = 1.374;
 		seamline_under_0.scaleY = 1.374;
-		seamline_under_0.setOrigin(0.5, 1.0);
+		seamline_under_0.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_0);
 
 		// seamline_under_1
 		const seamline_under_1 = this.add.image(526, 294, "nature-rocks-scrub-cluster");
 		seamline_under_1.scaleX = 0.871;
 		seamline_under_1.scaleY = 0.871;
-		seamline_under_1.setOrigin(0.5, 1.0);
+		seamline_under_1.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_1);
 
 		// seamline_under_2
 		const seamline_under_2 = this.add.image(646, 243, "nature-shrub-young-tree-cluster");
 		seamline_under_2.scaleX = 1.433;
 		seamline_under_2.scaleY = 1.433;
-		seamline_under_2.setOrigin(0.5, 1.0);
+		seamline_under_2.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_2);
 
 		// seamline_under_5
 		const seamline_under_5 = this.add.image(929, 292, "nature-rocks-scrub-cluster");
 		seamline_under_5.scaleX = 1.287;
 		seamline_under_5.scaleY = 1.287;
-		seamline_under_5.setOrigin(0.5, 1.0);
+		seamline_under_5.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_5);
 
 		// seamline_under_6
 		const seamline_under_6 = this.add.image(1010, 259, "nature-shrub-young-tree-cluster");
 		seamline_under_6.scaleX = 1.096;
 		seamline_under_6.scaleY = 1.096;
-		seamline_under_6.setOrigin(0.5, 1.0);
+		seamline_under_6.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_6);
 
 		// seamline_under_7
 		const seamline_under_7 = this.add.image(1101, 263, "nature-shrub-young-tree-cluster");
 		seamline_under_7.scaleX = 1.021;
 		seamline_under_7.scaleY = 1.021;
-		seamline_under_7.setOrigin(0.5, 1.0);
+		seamline_under_7.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_7);
 
 		// seamline_under_8
 		const seamline_under_8 = this.add.image(1260, 328, "nature-rocks-scrub-cluster");
 		seamline_under_8.scaleX = 0.828;
 		seamline_under_8.scaleY = 0.828;
-		seamline_under_8.setOrigin(0.5, 1.0);
+		seamline_under_8.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_8);
 
 		// seamline_under_9
 		const seamline_under_9 = this.add.image(1422, 287, "nature-shrub-young-tree-cluster");
 		seamline_under_9.scaleX = 1.13;
 		seamline_under_9.scaleY = 1.13;
-		seamline_under_9.setOrigin(0.5, 1.0);
+		seamline_under_9.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_9);
 
 		// seamline_under_12
 		const seamline_under_12 = this.add.image(1716, 265, "nature-shrub-young-tree-cluster");
 		seamline_under_12.scaleX = 1.103;
 		seamline_under_12.scaleY = 1.103;
-		seamline_under_12.setOrigin(0.5, 1.0);
+		seamline_under_12.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_12);
 
 		// seamline_under_15
 		const seamline_under_15 = this.add.image(2024, 340, "nature-rocks-scrub-cluster");
 		seamline_under_15.scaleX = 0.814;
 		seamline_under_15.scaleY = 0.814;
-		seamline_under_15.setOrigin(0.5, 1.0);
+		seamline_under_15.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_15);
 
 		// seamline_under_18
 		const seamline_under_18 = this.add.image(352, 299, "nature-shrub-young-tree-cluster");
 		seamline_under_18.scaleX = 0.938;
 		seamline_under_18.scaleY = 0.938;
-		seamline_under_18.setOrigin(0.5, 1.0);
+		seamline_under_18.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_18);
 
 		// seamline_under_21
 		const seamline_under_21 = this.add.image(2213, 497, "nature-rocks-scrub-cluster");
 		seamline_under_21.scaleX = 0.977;
 		seamline_under_21.scaleY = 0.977;
-		seamline_under_21.setOrigin(0.5, 1.0);
+		seamline_under_21.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_21);
 
 		// seamline_under_24
 		const seamline_under_24 = this.add.image(397, 650, "nature-rocks-scrub-cluster");
 		seamline_under_24.scaleX = 1.074;
 		seamline_under_24.scaleY = 1.074;
-		seamline_under_24.setOrigin(0.5, 1.0);
+		seamline_under_24.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_24);
 
 		// seamline_under_25
 		const seamline_under_25 = this.add.image(414, 745, "nature-shrub-young-tree-cluster");
 		seamline_under_25.scaleX = 1.329;
 		seamline_under_25.scaleY = 1.329;
-		seamline_under_25.setOrigin(0.5, 1.0);
+		seamline_under_25.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_25);
 
 		// seamline_under_26
 		const seamline_under_26 = this.add.image(2149, 688, "nature-rocks-scrub-cluster");
 		seamline_under_26.scaleX = 1.249;
 		seamline_under_26.scaleY = 1.249;
-		seamline_under_26.setOrigin(0.5, 1.0);
+		seamline_under_26.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_26);
 
 		// seamline_under_30
 		const seamline_under_30 = this.add.image(2190, 850, "nature-shrub-young-tree-cluster");
 		seamline_under_30.scaleX = 1.486;
 		seamline_under_30.scaleY = 1.486;
-		seamline_under_30.setOrigin(0.5, 1.0);
+		seamline_under_30.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_30);
 
 		// seamline_under_31
 		const seamline_under_31 = this.add.image(2171, 940, "nature-shrub-young-tree-cluster");
 		seamline_under_31.scaleX = 1.345;
 		seamline_under_31.scaleY = 1.345;
-		seamline_under_31.setOrigin(0.5, 1.0);
+		seamline_under_31.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_31);
 
 		// seamline_under_32
 		const seamline_under_32 = this.add.image(357, 1115, "nature-shrub-young-tree-cluster");
 		seamline_under_32.scaleX = 1.182;
 		seamline_under_32.scaleY = 1.182;
-		seamline_under_32.setOrigin(0.5, 1.0);
+		seamline_under_32.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_32);
 
 		// seamline_under_34
 		const seamline_under_34 = this.add.image(76, 1116, "nature-shrub-young-tree-cluster");
 		seamline_under_34.scaleX = 1.222;
 		seamline_under_34.scaleY = 1.222;
-		seamline_under_34.setOrigin(0.5, 1.0);
+		seamline_under_34.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_34);
 
 		// seamline_under_35
 		const seamline_under_35 = this.add.image(-3, 1101, "nature-shrub-young-tree-cluster");
 		seamline_under_35.scaleX = 1.475;
 		seamline_under_35.scaleY = 1.475;
-		seamline_under_35.setOrigin(0.5, 1.0);
+		seamline_under_35.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_35);
 
 		// seamline_under_36
 		const seamline_under_36 = this.add.image(224, 1170, "nature-shrub-young-tree-cluster");
 		seamline_under_36.scaleX = 0.993;
 		seamline_under_36.scaleY = 0.993;
-		seamline_under_36.setOrigin(0.5, 1.0);
+		seamline_under_36.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_36);
 
 		// seamline_under_37
 		const seamline_under_37 = this.add.image(2219, 1103, "nature-rocks-scrub-cluster");
 		seamline_under_37.scaleX = 1.029;
 		seamline_under_37.scaleY = 1.029;
-		seamline_under_37.setOrigin(0.5, 1.0);
+		seamline_under_37.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_37);
 
 		// seamline_under_39
 		const seamline_under_39 = this.add.image(2199, 1226, "nature-shrub-young-tree-cluster");
 		seamline_under_39.scaleX = 1.18;
 		seamline_under_39.scaleY = 1.18;
-		seamline_under_39.setOrigin(0.5, 1.0);
+		seamline_under_39.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_39);
 
 		// seamline_under_40
 		const seamline_under_40 = this.add.image(2254, 1199, "nature-shrub-young-tree-cluster");
 		seamline_under_40.scaleX = 1.089;
 		seamline_under_40.scaleY = 1.089;
-		seamline_under_40.setOrigin(0.5, 1.0);
+		seamline_under_40.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_40);
 
 		// seamline_under_41
 		const seamline_under_41 = this.add.image(2466, 1179, "nature-shrub-young-tree-cluster");
 		seamline_under_41.scaleX = 0.942;
 		seamline_under_41.scaleY = 0.942;
-		seamline_under_41.setOrigin(0.5, 1.0);
+		seamline_under_41.setOrigin(0.5, 1);
 		l13_Forest_Under_Brush.add(seamline_under_41);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		// L12.5 Back Canopy
 		const l12_5_Back_Canopy = this.add.layer();
@@ -868,444 +789,6 @@ class CourtyardV2 extends Phaser.Scene {
 		// L12_FOREST_CANOPY
 		const l12_FOREST_CANOPY = this.add.layer();
 
-		// seamline_canopy_0
-		const seamline_canopy_0 = this.add.image(457, 224, "nature-tree-broadleaf-small");
-		seamline_canopy_0.scaleX = 2.624;
-		seamline_canopy_0.scaleY = 2.624;
-		seamline_canopy_0.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_0);
-
-		// seamline_canopy_1
-		const seamline_canopy_1 = this.add.image(545, 290, "nature-tree-broadleaf-large");
-		seamline_canopy_1.scaleX = 2.736;
-		seamline_canopy_1.scaleY = 2.736;
-		seamline_canopy_1.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_1);
-
-		// seamline_canopy_2
-		const seamline_canopy_2 = this.add.image(643, 226, "nature-tree-broadleaf-small");
-		seamline_canopy_2.scaleX = 2.725;
-		seamline_canopy_2.scaleY = 2.725;
-		seamline_canopy_2.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_2);
-
-		// seamline_canopy_3
-		const seamline_canopy_3 = this.add.image(765, 267, "nature-tree-broadleaf-large");
-		seamline_canopy_3.scaleX = 2.808;
-		seamline_canopy_3.scaleY = 2.808;
-		seamline_canopy_3.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_3);
-
-		// seamline_canopy_4
-		const seamline_canopy_4 = this.add.image(856, 243, "nature-tree-broadleaf-large");
-		seamline_canopy_4.scaleX = 2.798;
-		seamline_canopy_4.scaleY = 2.798;
-		seamline_canopy_4.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_4);
-
-		// seamline_canopy_5
-		const seamline_canopy_5 = this.add.image(929, 275, "nature-tree-broadleaf-small");
-		seamline_canopy_5.scaleX = 2.703;
-		seamline_canopy_5.scaleY = 2.703;
-		seamline_canopy_5.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_5);
-
-		// seamline_canopy_6
-		const seamline_canopy_6 = this.add.image(1033, 252, "nature-tree-broadleaf-large");
-		seamline_canopy_6.scaleX = 2.703;
-		seamline_canopy_6.scaleY = 2.703;
-		seamline_canopy_6.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_6);
-
-		// seamline_canopy_7
-		const seamline_canopy_7 = this.add.image(1135, 257, "nature-tree-broadleaf-large");
-		seamline_canopy_7.scaleX = 2.612;
-		seamline_canopy_7.scaleY = 2.612;
-		seamline_canopy_7.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_7);
-
-		// seamline_canopy_8
-		const seamline_canopy_8 = this.add.image(1227, 325, "nature-tree-broadleaf-large");
-		seamline_canopy_8.scaleX = 3.179;
-		seamline_canopy_8.scaleY = 3.179;
-		seamline_canopy_8.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_8);
-
-		// seamline_canopy_9
-		const seamline_canopy_9 = this.add.image(1417, 279, "nature-tree-broadleaf-large");
-		seamline_canopy_9.scaleX = 2.941;
-		seamline_canopy_9.scaleY = 2.941;
-		seamline_canopy_9.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_9);
-
-		// seamline_canopy_10
-		const seamline_canopy_10 = this.add.image(1540, 210, "nature-tree-broadleaf-small");
-		seamline_canopy_10.scaleX = 2.434;
-		seamline_canopy_10.scaleY = 2.434;
-		seamline_canopy_10.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_10);
-
-		// seamline_canopy_11
-		const seamline_canopy_11 = this.add.image(1619, 264, "nature-tree-broadleaf-small");
-		seamline_canopy_11.scaleX = 2.776;
-		seamline_canopy_11.scaleY = 2.776;
-		seamline_canopy_11.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_11);
-
-		// seamline_canopy_12
-		const seamline_canopy_12 = this.add.image(1696, 258, "nature-tree-broadleaf-large");
-		seamline_canopy_12.scaleX = 3.071;
-		seamline_canopy_12.scaleY = 3.071;
-		seamline_canopy_12.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_12);
-
-		// seamline_canopy_13
-		const seamline_canopy_13 = this.add.image(1826, 278, "nature-tree-broadleaf-large");
-		seamline_canopy_13.scaleX = 2.855;
-		seamline_canopy_13.scaleY = 2.855;
-		seamline_canopy_13.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_13);
-
-		// seamline_canopy_14
-		const seamline_canopy_14 = this.add.image(1922, 318, "nature-tree-broadleaf-large");
-		seamline_canopy_14.scaleX = 3.107;
-		seamline_canopy_14.scaleY = 3.107;
-		seamline_canopy_14.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_14);
-
-		// seamline_canopy_15
-		const seamline_canopy_15 = this.add.image(1989, 337, "nature-tree-broadleaf-large");
-		seamline_canopy_15.scaleX = 3.199;
-		seamline_canopy_15.scaleY = 3.199;
-		seamline_canopy_15.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_15);
-
-		// seamline_canopy_16
-		const seamline_canopy_16 = this.add.image(2112, 257, "nature-tree-broadleaf-large");
-		seamline_canopy_16.scaleX = 2.919;
-		seamline_canopy_16.scaleY = 2.919;
-		seamline_canopy_16.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_16);
-
-		// seamline_canopy_17
-		const seamline_canopy_17 = this.add.image(2250, 305, "nature-tree-broadleaf-large");
-		seamline_canopy_17.scaleX = 3.026;
-		seamline_canopy_17.scaleY = 3.026;
-		seamline_canopy_17.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_17);
-
-		// seamline_canopy_18
-		const seamline_canopy_18 = this.add.image(369, 296, "nature-tree-broadleaf-large");
-		seamline_canopy_18.scaleX = 2.76;
-		seamline_canopy_18.scaleY = 2.76;
-		seamline_canopy_18.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_18);
-
-		// seamline_canopy_19
-		const seamline_canopy_19 = this.add.image(2269, 404, "nature-tree-broadleaf-large");
-		seamline_canopy_19.scaleX = 3.06;
-		seamline_canopy_19.scaleY = 3.06;
-		seamline_canopy_19.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_19);
-
-		// seamline_canopy_20
-		const seamline_canopy_20 = this.add.image(395, 431, "nature-tree-broadleaf-large");
-		seamline_canopy_20.scaleX = 3.186;
-		seamline_canopy_20.scaleY = 3.186;
-		seamline_canopy_20.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_20);
-
-		// seamline_canopy_21
-		const seamline_canopy_21 = this.add.image(2222, 489, "nature-tree-broadleaf-large");
-		seamline_canopy_21.scaleX = 2.827;
-		seamline_canopy_21.scaleY = 2.827;
-		seamline_canopy_21.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_21);
-
-		// seamline_canopy_22
-		const seamline_canopy_22 = this.add.image(431, 472, "nature-tree-broadleaf-small");
-		seamline_canopy_22.scaleX = 2.691;
-		seamline_canopy_22.scaleY = 2.691;
-		seamline_canopy_22.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_22);
-
-		// seamline_canopy_23
-		const seamline_canopy_23 = this.add.image(2214, 607, "nature-tree-broadleaf-large");
-		seamline_canopy_23.scaleX = 2.844;
-		seamline_canopy_23.scaleY = 2.844;
-		seamline_canopy_23.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_23);
-
-		// seamline_canopy_24
-		const seamline_canopy_24 = this.add.image(398, 639, "nature-tree-broadleaf-large");
-		seamline_canopy_24.scaleX = 2.884;
-		seamline_canopy_24.scaleY = 2.884;
-		seamline_canopy_24.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_24);
-
-		// seamline_canopy_25
-		const seamline_canopy_25 = this.add.image(414, 731, "nature-tree-broadleaf-large");
-		seamline_canopy_25.scaleX = 2.904;
-		seamline_canopy_25.scaleY = 2.904;
-		seamline_canopy_25.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_25);
-
-		// seamline_canopy_26
-		const seamline_canopy_26 = this.add.image(2165, 671, "nature-tree-broadleaf-small");
-		seamline_canopy_26.scaleX = 2.563;
-		seamline_canopy_26.scaleY = 2.563;
-		seamline_canopy_26.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_26);
-
-		// seamline_canopy_27
-		const seamline_canopy_27 = this.add.image(2218, 764, "nature-tree-broadleaf-large");
-		seamline_canopy_27.scaleX = 2.749;
-		seamline_canopy_27.scaleY = 2.749;
-		seamline_canopy_27.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_27);
-
-		// seamline_canopy_28
-		const seamline_canopy_28 = this.add.image(426, 822, "nature-tree-broadleaf-large");
-		seamline_canopy_28.scaleX = 3.131;
-		seamline_canopy_28.scaleY = 3.131;
-		seamline_canopy_28.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_28);
-
-		// seamline_canopy_29
-		const seamline_canopy_29 = this.add.image(458, 908, "nature-tree-broadleaf-small");
-		seamline_canopy_29.scaleX = 2.93;
-		seamline_canopy_29.scaleY = 2.93;
-		seamline_canopy_29.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_29);
-
-		// seamline_canopy_30
-		const seamline_canopy_30 = this.add.image(2178, 833, "nature-tree-broadleaf-small");
-		seamline_canopy_30.scaleX = 2.802;
-		seamline_canopy_30.scaleY = 2.802;
-		seamline_canopy_30.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_30);
-
-		// seamline_canopy_31
-		const seamline_canopy_31 = this.add.image(2199, 926, "nature-tree-broadleaf-large");
-		seamline_canopy_31.scaleX = 2.662;
-		seamline_canopy_31.scaleY = 2.662;
-		seamline_canopy_31.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_31);
-
-		// seamline_canopy_32
-		const seamline_canopy_32 = this.add.image(327, 1105, "nature-tree-broadleaf-large");
-		seamline_canopy_32.scaleX = 3.153;
-		seamline_canopy_32.scaleY = 3.153;
-		seamline_canopy_32.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_32);
-
-		// seamline_canopy_33
-		const seamline_canopy_33 = this.add.image(441, 1068, "nature-tree-broadleaf-large");
-		seamline_canopy_33.scaleX = 3.086;
-		seamline_canopy_33.scaleY = 3.086;
-		seamline_canopy_33.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_33);
-
-		// seamline_canopy_34
-		const seamline_canopy_34 = this.add.image(105, 1105, "nature-tree-broadleaf-large");
-		seamline_canopy_34.scaleX = 2.65;
-		seamline_canopy_34.scaleY = 2.65;
-		seamline_canopy_34.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_34);
-
-		// seamline_canopy_35
-		const seamline_canopy_35 = this.add.image(9, 1083, "nature-tree-broadleaf-small");
-		seamline_canopy_35.scaleX = 2.595;
-		seamline_canopy_35.scaleY = 2.595;
-		seamline_canopy_35.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_35);
-
-		// seamline_canopy_36
-		const seamline_canopy_36 = this.add.image(204, 1166, "nature-tree-broadleaf-large");
-		seamline_canopy_36.scaleX = 3.073;
-		seamline_canopy_36.scaleY = 3.073;
-		seamline_canopy_36.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_36);
-
-		// seamline_canopy_37
-		const seamline_canopy_37 = this.add.image(2208, 1094, "nature-tree-broadleaf-large");
-		seamline_canopy_37.scaleX = 2.988;
-		seamline_canopy_37.scaleY = 2.988;
-		seamline_canopy_37.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_37);
-
-		// seamline_canopy_38
-		const seamline_canopy_38 = this.add.image(2428, 1165, "nature-tree-broadleaf-small");
-		seamline_canopy_38.scaleX = 2.631;
-		seamline_canopy_38.scaleY = 2.631;
-		seamline_canopy_38.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_38);
-
-		// seamline_canopy_39
-		const seamline_canopy_39 = this.add.image(2189, 1216, "nature-tree-broadleaf-large");
-		seamline_canopy_39.scaleX = 2.989;
-		seamline_canopy_39.scaleY = 2.989;
-		seamline_canopy_39.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_39);
-
-		// seamline_canopy_40
-		const seamline_canopy_40 = this.add.image(2283, 1192, "nature-tree-broadleaf-large");
-		seamline_canopy_40.scaleX = 2.653;
-		seamline_canopy_40.scaleY = 2.653;
-		seamline_canopy_40.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_40);
-
-		// seamline_canopy_41
-		const seamline_canopy_41 = this.add.image(2495, 1176, "nature-tree-broadleaf-large");
-		seamline_canopy_41.scaleX = 2.652;
-		seamline_canopy_41.scaleY = 2.652;
-		seamline_canopy_41.setOrigin(0.5, 1.0);
-		l12_FOREST_CANOPY.add(seamline_canopy_41);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		// nature_tree_broadleaf_large
 		const nature_tree_broadleaf_large = this.add.image(57, -117, "nature-tree-broadleaf-large");
 		nature_tree_broadleaf_large.scaleX = 3;
@@ -1437,6 +920,300 @@ class CourtyardV2 extends Phaser.Scene {
 		nature_tree_broadleaf_large_19.scaleX = 3;
 		nature_tree_broadleaf_large_19.scaleY = 3;
 		l12_FOREST_CANOPY.add(nature_tree_broadleaf_large_19);
+
+		// seamline_canopy_0
+		const seamline_canopy_0 = this.add.image(457, 224, "nature-tree-broadleaf-small");
+		seamline_canopy_0.scaleX = 2.624;
+		seamline_canopy_0.scaleY = 2.624;
+		seamline_canopy_0.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_0);
+
+		// seamline_canopy_1
+		const seamline_canopy_1 = this.add.image(545, 290, "nature-tree-broadleaf-large");
+		seamline_canopy_1.scaleX = 2.736;
+		seamline_canopy_1.scaleY = 2.736;
+		seamline_canopy_1.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_1);
+
+		// seamline_canopy_2
+		const seamline_canopy_2 = this.add.image(643, 226, "nature-tree-broadleaf-small");
+		seamline_canopy_2.scaleX = 2.725;
+		seamline_canopy_2.scaleY = 2.725;
+		seamline_canopy_2.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_2);
+
+		// seamline_canopy_3
+		const seamline_canopy_3 = this.add.image(765, 267, "nature-tree-broadleaf-large");
+		seamline_canopy_3.scaleX = 2.808;
+		seamline_canopy_3.scaleY = 2.808;
+		seamline_canopy_3.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_3);
+
+		// seamline_canopy_4
+		const seamline_canopy_4 = this.add.image(856, 243, "nature-tree-broadleaf-large");
+		seamline_canopy_4.scaleX = 2.798;
+		seamline_canopy_4.scaleY = 2.798;
+		seamline_canopy_4.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_4);
+
+		// seamline_canopy_5
+		const seamline_canopy_5 = this.add.image(929, 275, "nature-tree-broadleaf-small");
+		seamline_canopy_5.scaleX = 2.703;
+		seamline_canopy_5.scaleY = 2.703;
+		seamline_canopy_5.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_5);
+
+		// seamline_canopy_6
+		const seamline_canopy_6 = this.add.image(1033, 252, "nature-tree-broadleaf-large");
+		seamline_canopy_6.scaleX = 2.703;
+		seamline_canopy_6.scaleY = 2.703;
+		seamline_canopy_6.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_6);
+
+		// seamline_canopy_7
+		const seamline_canopy_7 = this.add.image(1135, 257, "nature-tree-broadleaf-large");
+		seamline_canopy_7.scaleX = 2.612;
+		seamline_canopy_7.scaleY = 2.612;
+		seamline_canopy_7.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_7);
+
+		// seamline_canopy_8
+		const seamline_canopy_8 = this.add.image(1227, 325, "nature-tree-broadleaf-large");
+		seamline_canopy_8.scaleX = 3.179;
+		seamline_canopy_8.scaleY = 3.179;
+		seamline_canopy_8.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_8);
+
+		// seamline_canopy_9
+		const seamline_canopy_9 = this.add.image(1417, 279, "nature-tree-broadleaf-large");
+		seamline_canopy_9.scaleX = 2.941;
+		seamline_canopy_9.scaleY = 2.941;
+		seamline_canopy_9.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_9);
+
+		// seamline_canopy_10
+		const seamline_canopy_10 = this.add.image(1540, 210, "nature-tree-broadleaf-small");
+		seamline_canopy_10.scaleX = 2.434;
+		seamline_canopy_10.scaleY = 2.434;
+		seamline_canopy_10.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_10);
+
+		// seamline_canopy_11
+		const seamline_canopy_11 = this.add.image(1619, 264, "nature-tree-broadleaf-small");
+		seamline_canopy_11.scaleX = 2.776;
+		seamline_canopy_11.scaleY = 2.776;
+		seamline_canopy_11.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_11);
+
+		// seamline_canopy_12
+		const seamline_canopy_12 = this.add.image(1696, 258, "nature-tree-broadleaf-large");
+		seamline_canopy_12.scaleX = 3.071;
+		seamline_canopy_12.scaleY = 3.071;
+		seamline_canopy_12.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_12);
+
+		// seamline_canopy_13
+		const seamline_canopy_13 = this.add.image(1826, 278, "nature-tree-broadleaf-large");
+		seamline_canopy_13.scaleX = 2.855;
+		seamline_canopy_13.scaleY = 2.855;
+		seamline_canopy_13.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_13);
+
+		// seamline_canopy_14
+		const seamline_canopy_14 = this.add.image(1922, 318, "nature-tree-broadleaf-large");
+		seamline_canopy_14.scaleX = 3.107;
+		seamline_canopy_14.scaleY = 3.107;
+		seamline_canopy_14.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_14);
+
+		// seamline_canopy_15
+		const seamline_canopy_15 = this.add.image(1989, 337, "nature-tree-broadleaf-large");
+		seamline_canopy_15.scaleX = 3.199;
+		seamline_canopy_15.scaleY = 3.199;
+		seamline_canopy_15.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_15);
+
+		// seamline_canopy_16
+		const seamline_canopy_16 = this.add.image(2112, 257, "nature-tree-broadleaf-large");
+		seamline_canopy_16.scaleX = 2.919;
+		seamline_canopy_16.scaleY = 2.919;
+		seamline_canopy_16.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_16);
+
+		// seamline_canopy_17
+		const seamline_canopy_17 = this.add.image(2250, 305, "nature-tree-broadleaf-large");
+		seamline_canopy_17.scaleX = 3.026;
+		seamline_canopy_17.scaleY = 3.026;
+		seamline_canopy_17.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_17);
+
+		// seamline_canopy_18
+		const seamline_canopy_18 = this.add.image(369, 296, "nature-tree-broadleaf-large");
+		seamline_canopy_18.scaleX = 2.76;
+		seamline_canopy_18.scaleY = 2.76;
+		seamline_canopy_18.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_18);
+
+		// seamline_canopy_19
+		const seamline_canopy_19 = this.add.image(2269, 404, "nature-tree-broadleaf-large");
+		seamline_canopy_19.scaleX = 3.06;
+		seamline_canopy_19.scaleY = 3.06;
+		seamline_canopy_19.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_19);
+
+		// seamline_canopy_20
+		const seamline_canopy_20 = this.add.image(395, 431, "nature-tree-broadleaf-large");
+		seamline_canopy_20.scaleX = 3.186;
+		seamline_canopy_20.scaleY = 3.186;
+		seamline_canopy_20.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_20);
+
+		// seamline_canopy_21
+		const seamline_canopy_21 = this.add.image(2222, 489, "nature-tree-broadleaf-large");
+		seamline_canopy_21.scaleX = 2.827;
+		seamline_canopy_21.scaleY = 2.827;
+		seamline_canopy_21.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_21);
+
+		// seamline_canopy_22
+		const seamline_canopy_22 = this.add.image(431, 472, "nature-tree-broadleaf-small");
+		seamline_canopy_22.scaleX = 2.691;
+		seamline_canopy_22.scaleY = 2.691;
+		seamline_canopy_22.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_22);
+
+		// seamline_canopy_23
+		const seamline_canopy_23 = this.add.image(2214, 607, "nature-tree-broadleaf-large");
+		seamline_canopy_23.scaleX = 2.844;
+		seamline_canopy_23.scaleY = 2.844;
+		seamline_canopy_23.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_23);
+
+		// seamline_canopy_24
+		const seamline_canopy_24 = this.add.image(398, 639, "nature-tree-broadleaf-large");
+		seamline_canopy_24.scaleX = 2.884;
+		seamline_canopy_24.scaleY = 2.884;
+		seamline_canopy_24.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_24);
+
+		// seamline_canopy_25
+		const seamline_canopy_25 = this.add.image(414, 731, "nature-tree-broadleaf-large");
+		seamline_canopy_25.scaleX = 2.904;
+		seamline_canopy_25.scaleY = 2.904;
+		seamline_canopy_25.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_25);
+
+		// seamline_canopy_26
+		const seamline_canopy_26 = this.add.image(2165, 671, "nature-tree-broadleaf-small");
+		seamline_canopy_26.scaleX = 2.563;
+		seamline_canopy_26.scaleY = 2.563;
+		seamline_canopy_26.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_26);
+
+		// seamline_canopy_27
+		const seamline_canopy_27 = this.add.image(2218, 764, "nature-tree-broadleaf-large");
+		seamline_canopy_27.scaleX = 2.749;
+		seamline_canopy_27.scaleY = 2.749;
+		seamline_canopy_27.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_27);
+
+		// seamline_canopy_28
+		const seamline_canopy_28 = this.add.image(426, 822, "nature-tree-broadleaf-large");
+		seamline_canopy_28.scaleX = 3.131;
+		seamline_canopy_28.scaleY = 3.131;
+		seamline_canopy_28.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_28);
+
+		// seamline_canopy_29
+		const seamline_canopy_29 = this.add.image(458, 908, "nature-tree-broadleaf-small");
+		seamline_canopy_29.scaleX = 2.93;
+		seamline_canopy_29.scaleY = 2.93;
+		seamline_canopy_29.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_29);
+
+		// seamline_canopy_30
+		const seamline_canopy_30 = this.add.image(2178, 833, "nature-tree-broadleaf-small");
+		seamline_canopy_30.scaleX = 2.802;
+		seamline_canopy_30.scaleY = 2.802;
+		seamline_canopy_30.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_30);
+
+		// seamline_canopy_31
+		const seamline_canopy_31 = this.add.image(2199, 926, "nature-tree-broadleaf-large");
+		seamline_canopy_31.scaleX = 2.662;
+		seamline_canopy_31.scaleY = 2.662;
+		seamline_canopy_31.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_31);
+
+		// seamline_canopy_32
+		const seamline_canopy_32 = this.add.image(327, 1105, "nature-tree-broadleaf-large");
+		seamline_canopy_32.scaleX = 3.153;
+		seamline_canopy_32.scaleY = 3.153;
+		seamline_canopy_32.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_32);
+
+		// seamline_canopy_33
+		const seamline_canopy_33 = this.add.image(441, 1068, "nature-tree-broadleaf-large");
+		seamline_canopy_33.scaleX = 3.086;
+		seamline_canopy_33.scaleY = 3.086;
+		seamline_canopy_33.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_33);
+
+		// seamline_canopy_34
+		const seamline_canopy_34 = this.add.image(105, 1105, "nature-tree-broadleaf-large");
+		seamline_canopy_34.scaleX = 2.65;
+		seamline_canopy_34.scaleY = 2.65;
+		seamline_canopy_34.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_34);
+
+		// seamline_canopy_35
+		const seamline_canopy_35 = this.add.image(9, 1083, "nature-tree-broadleaf-small");
+		seamline_canopy_35.scaleX = 2.595;
+		seamline_canopy_35.scaleY = 2.595;
+		seamline_canopy_35.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_35);
+
+		// seamline_canopy_36
+		const seamline_canopy_36 = this.add.image(204, 1166, "nature-tree-broadleaf-large");
+		seamline_canopy_36.scaleX = 3.073;
+		seamline_canopy_36.scaleY = 3.073;
+		seamline_canopy_36.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_36);
+
+		// seamline_canopy_37
+		const seamline_canopy_37 = this.add.image(2208, 1094, "nature-tree-broadleaf-large");
+		seamline_canopy_37.scaleX = 2.988;
+		seamline_canopy_37.scaleY = 2.988;
+		seamline_canopy_37.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_37);
+
+		// seamline_canopy_38
+		const seamline_canopy_38 = this.add.image(2428, 1165, "nature-tree-broadleaf-small");
+		seamline_canopy_38.scaleX = 2.631;
+		seamline_canopy_38.scaleY = 2.631;
+		seamline_canopy_38.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_38);
+
+		// seamline_canopy_39
+		const seamline_canopy_39 = this.add.image(2189, 1216, "nature-tree-broadleaf-large");
+		seamline_canopy_39.scaleX = 2.989;
+		seamline_canopy_39.scaleY = 2.989;
+		seamline_canopy_39.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_39);
+
+		// seamline_canopy_40
+		const seamline_canopy_40 = this.add.image(2283, 1192, "nature-tree-broadleaf-large");
+		seamline_canopy_40.scaleX = 2.653;
+		seamline_canopy_40.scaleY = 2.653;
+		seamline_canopy_40.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_40);
+
+		// seamline_canopy_41
+		const seamline_canopy_41 = this.add.image(2495, 1176, "nature-tree-broadleaf-large");
+		seamline_canopy_41.scaleX = 2.652;
+		seamline_canopy_41.scaleY = 2.652;
+		seamline_canopy_41.setOrigin(0.5, 1);
+		l12_FOREST_CANOPY.add(seamline_canopy_41);
 
 		// L8_NATURE
 		const l8_NATURE = this.add.layer();
