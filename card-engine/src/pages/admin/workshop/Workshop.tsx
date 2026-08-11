@@ -9,6 +9,8 @@ import { Bench } from './Bench';
 import { Intake } from './Intake';
 import { ReadTheArt } from './ReadTheArt';
 import { Propose } from './Propose';
+import { ReviewSpace } from './ReviewSpace';
+import { Variants } from './Variants';
 import { ReviewThread } from './ReviewThread';
 import { useCuratedRoster } from './useCuratedRoster';
 
@@ -120,6 +122,8 @@ export function Workshop() {
 
       {stage === 'roster' ? (
         <RosterBoard onOpenCharacter={openCharacter} />
+      ) : stage === 'review' ? (
+        <ReviewSpace onOpenCharacter={openCharacter} />
       ) : stage === 'bench' ? (
         <Bench
           onUseAsSeed={(candidate) => {
@@ -143,6 +147,8 @@ export function Workshop() {
               character ? <ReadTheArt character={character} /> : <NoCharacter onBack={() => selectStage('roster')} />
             ) : stage === 'propose' ? (
               character ? <Propose character={character} /> : <NoCharacter onBack={() => selectStage('roster')} />
+            ) : stage === 'variants' ? (
+              character ? <Variants character={character} /> : <NoCharacter onBack={() => selectStage('roster')} />
             ) : (
               <AdminCard surface="subtle">
                 <AdminEmptyState
