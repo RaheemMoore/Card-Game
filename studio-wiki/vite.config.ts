@@ -1,7 +1,7 @@
 import { execSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import sirv from 'sirv';
 import { WIKI_ASSET_PATHS } from './asset-manifest.ts';
@@ -131,8 +131,59 @@ function studioContent(): Plugin {
   };
 }
 
+/**
+ * Run the `api/` folder in `vite dev`.
+ *
+ * Vite does not execute Vercel Functions, so without this the desks are dead in
+ * local development and the only way to see them is to deploy — which is exactly
+ * the loop that makes people stop testing before they push. `ssrLoadModule` picks up
+ * edits to `api/*.ts` on the next request, so the handler hot-reloads like the rest.
+ *
+ * Dev only: `configureServer` never runs in a production build.
+ */
+function devApi(): Plugin {
+  return {
+    name: 'studio-wiki-dev-api',
+    configureServer(server) {
+      // The handler reads `process.env`, which Vite does not populate from `.env`
+      // for unprefixed names — that is a browser-safety rule and it is correct, but
+      // it also means server-side keys are invisible to a dev API without this.
+      // Dev only, and it never overwrites a value the shell already set.
+      const fileEnv = loadEnv('development', import.meta.dirname, '');
+      for (const [key, value] of Object.entries(fileEnv)) {
+        if (!key.startsWith('VITE_') && process.env[key] === undefined) process.env[key] = value;
+      }
+      server.middlewares.use(async (req, res, next) => {
+        const path = req.url?.split('?')[0] ?? '';
+        if (!path.startsWith('/api/')) return next();
+        const file = resolve(import.meta.dirname, `${path.slice(1)}.ts`);
+        if (!existsSync(file)) return next();
+        try {
+          const chunks: Buffer[] = [];
+          for await (const chunk of req) chunks.push(chunk as Buffer);
+          const raw = Buffer.concat(chunks).toString('utf8');
+          const loaded = await server.ssrLoadModule(file) as { default: (request: unknown, response: unknown) => Promise<void> };
+          await loaded.default(
+            { method: req.method, headers: req.headers, query: {}, body: raw ? JSON.parse(raw) : {} },
+            {
+              status(code: number) { res.statusCode = code; return this; },
+              setHeader(name: string, value: string | string[]) { res.setHeader(name, value); },
+              json(body: unknown) { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(body)); },
+              end() { res.end(); },
+            },
+          );
+        } catch (cause) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Dev API handler failed.', detail: cause instanceof Error ? cause.message : String(cause) }));
+        }
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), studioContent(), wikiAssets()],
+  plugins: [react(), studioContent(), wikiAssets(), devApi()],
   // Not `card-engine/public` — wikiAssets() serves it in dev and ships the
   // displayed subset at build. Pointing publicDir here copied all 77 MB.
   publicDir: false,

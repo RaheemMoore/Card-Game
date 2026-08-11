@@ -251,36 +251,12 @@ export async function recordCardReview(cardId: string, disposition: ReviewStatus
   if (!response.ok) throw new Error((await response.text()) || 'Could not save the team verdict.');
 }
 
-interface IdeaRow { id: string; owner_id: string; body: string; created_at: string; updated_at: string }
-const ideaFromRow = (row: IdeaRow): StudioIdea => ({ id: row.id, ownerId: row.owner_id, body: row.body, createdAt: row.created_at, updatedAt: row.updated_at });
-
-export async function listStudioIdeas(): Promise<StudioIdea[]> {
-  const response = await supabaseRequest('/rest/v1/studio_ideas?select=id,owner_id,body,created_at,updated_at&order=created_at.desc');
-  if (!response.ok) throw new Error((await response.text()) || 'Could not open Raheem’s notebook.');
-  return ((await response.json()) as IdeaRow[]).map(ideaFromRow);
-}
-
-export async function createStudioIdea(body: string): Promise<StudioIdea> {
-  const active = await restoreStudioSession();
-  if (!active) throw new Error('Sign in to capture an idea.');
-  const response = await supabaseRequest('/rest/v1/studio_ideas', {
-    method: 'POST',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify({ owner_id: active.userId, body: body.trim() }),
-  });
-  if (!response.ok) throw new Error((await response.text()) || 'Could not save the idea.');
-  return ideaFromRow(((await response.json()) as IdeaRow[])[0]);
-}
-
-export async function updateStudioIdea(id: string, body: string): Promise<StudioIdea> {
-  const response = await supabaseRequest(`/rest/v1/studio_ideas?id=eq.${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    headers: { Prefer: 'return=representation' },
-    body: JSON.stringify({ body: body.trim() }),
-  });
-  if (!response.ok) throw new Error((await response.text()) || 'Could not update the idea.');
-  return ideaFromRow(((await response.json()) as IdeaRow[])[0]);
-}
+// The `studio_ideas` helpers that used to live here moved to `deskApi.ts` on
+// 2026-08-10. The desks no longer reach PostgREST from the browser at all: they go
+// through `/api/desk`, which is gated by the shared studio passphrase rather than by
+// a per-person account. What remains in this file is only what the Cards review room
+// still needs, and that room deliberately keeps its Supabase sign-in — its verdicts
+// write `card_review_decisions.reviewer_id`, a real foreign key to a profile.
 
 // ---------------------------------------------------------------------------
 // Lore proposals — the Workshop hands a character here (2026-08-10).

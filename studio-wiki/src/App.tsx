@@ -16,8 +16,10 @@ import studioWorkflow from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_WORKFLOW.pn
 import studioRoster from '../../docs/CARD_ENGINE_STUDIO_V2_CURRENT_AGENTS_SKILLS.png';
 import { SEED_ABILITIES } from '../../card-engine/src/data/abilities/seedAbilities';
 import { getApprovedArt } from '../../card-engine/src/data/abilities/visualManifest';
-import { createStudioIdea, getStudioSession, isStudioDataConfigured, isStudioPartnerRole, listLiveReviewCards, listStudioIdeas, recordCardReview, restoreStudioSession, signInToStudio, signOutOfStudio, subscribeStudioSession, updateStudioIdea } from './studioApi';
-import type { LiveReviewCard, ReviewStatus, StudioIdea, StudioSession } from './studioApi';
+import { getStudioSession, isStudioDataConfigured, listLiveReviewCards, recordCardReview, restoreStudioSession, signInToStudio, signOutOfStudio, subscribeStudioSession } from './studioApi';
+import type { LiveReviewCard, ReviewStatus, StudioSession } from './studioApi';
+import { Desk, PersonPicker, StudioGate } from './desk';
+import type { DeskPerson } from './deskApi';
 
 const iconsByPath = {
   '/': Command, '/characters': Users, '/bosses': Swords, '/characters/cards': Layers, '/elements': Gem, '/abilities': Sparkles, '/world': Castle, '/interface': LayoutPanelLeft, '/minigames': CircleHelp,
@@ -67,6 +69,7 @@ function Shell() {
       <nav aria-label="Studio Wiki">
         {navigation.map((group) => <div className="nav-group" key={group.group}><p>{group.group}</p>{group.items.map(([itemPath, label]) => { const Icon = iconsByPath[itemPath]; return <a href={itemPath} className={path === itemPath ? 'active' : ''} aria-current={path === itemPath ? 'page' : undefined} key={itemPath} onClick={() => setMenu(false)}><Icon/><span>{label}</span></a>; })}</div>)}
       </nav>
+      <PersonPicker/>
       <BuildStamp/>
     </aside>
     <div className="main-column">
@@ -75,13 +78,13 @@ function Shell() {
         '/': <Home/>, '/characters': <Characters/>, '/characters/cards': <Cards/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
         '/world': <World/>, '/interface': <Interface/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
-        '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>, '/work/raheem': <RaheemDesk/>,
+        '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <DeskPage person="tori"/>, '/work/raheem': <DeskPage person="raheem"/>,
       } as Record<string, ReactNode>)[path] ?? <Home/>}</main>
     </div>
   </div>;
 }
 
-export function App() { return <Shell/>; }
+export function App() { return <StudioGate><Shell/></StudioGate>; }
 
 /**
  * How current is this page?
@@ -469,38 +472,48 @@ function Minigames() {
   </>;
 }
 
-function IdeaNote({ idea, onSaved, canEdit }: { idea: StudioIdea; onSaved: (idea: StudioIdea) => void; canEdit: boolean }) {
-  const [body, setBody] = useState(idea.body);
-  const [state, setState] = useState<'saved' | 'saving' | 'error'>('saved');
-  useEffect(() => { setBody(idea.body); }, [idea.id, idea.body]);
-  useEffect(() => {
-    if (!canEdit || body === idea.body || !body.trim()) return;
-    setState('saving');
-    const timer = window.setTimeout(async () => { try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } }, 700);
-    return () => window.clearTimeout(timer);
-  }, [body, canEdit, idea.id, idea.body, onSaved]);
-  return <article className="idea-note"><header><span>{canEdit ? 'YOUR NOTE' : 'STUDIO PARTNER'} · {new Date(idea.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>{canEdit && <span className={`idea-save-state ${state}`} aria-live="polite">{state === 'saving' ? <><RefreshCw className="spin"/>Saving…</> : state === 'error' ? <><TriangleAlert/>Could not save</> : <><Check/>Saved</>}</span>}</header><textarea aria-label={`Idea from ${new Date(idea.createdAt).toLocaleDateString()}`} value={body} readOnly={!canEdit} onChange={(event) => setBody(event.target.value)} onBlur={async () => { if (canEdit && body.trim() && body !== idea.body) { setState('saving'); try { const saved = await updateStudioIdea(idea.id, body); onSaved(saved); setState('saved'); } catch { setState('error'); } } }}/><footer>{canEdit ? 'Editable note' : 'Shared read-only note'} · no task status · no delete action</footer></article>;
+/**
+ * Both desks, one component.
+ *
+ * `/work/raheem` and `/work/tori` differ by a prop and nothing else — that is the
+ * mechanism behind "there should be no differentiation", rather than a promise made
+ * in copy. Tori's desk additionally carries the PRODUCTION.md §1 lore projection as
+ * a reference panel, because that view was genuinely useful; it is now beside her
+ * notebook instead of standing in for one.
+ */
+function DeskPage({ person }: { person: DeskPerson }) {
+  const isTori = person === 'tori';
+  return <>
+    <PageHeader
+      eyebrow={isTori ? 'WORK BOARD · LORE DIRECTOR' : 'WORK BOARD · STUDIO LEAD'}
+      title={isTori ? 'Tori’s Desk' : 'Raheem’s Desk'}
+      intro={isTori
+        ? 'Tori’s working notebook, open to both of you, with the lore ledger kept alongside it.'
+        : 'A quiet place to capture ideas without letting them interrupt the work already in motion.'}
+      status="IN FLIGHT"
+    />
+    <WorkBoardNav current={person}/>
+    <Desk person={person} reference={isTori ? <><LoreDesk/><ToriLoreLedger/></> : undefined}/>
+  </>;
 }
 
-function RaheemDesk() {
-  const { session, checking } = useStudioSession();
-  const [ideas, setIdeas] = useState<StudioIdea[]>([]);
-  const [draft, setDraft] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const load = async () => { setLoading(true); setError(''); try { setIdeas(await listStudioIdeas()); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not open the notebook.'); } finally { setLoading(false); } };
-  useEffect(() => { if (isStudioPartnerRole(session?.role)) load(); }, [session?.userId, session?.role]);
-  const add = async () => { if (!draft.trim() || saving) return; setSaving(true); setError(''); try { const idea = await createStudioIdea(draft); setIdeas((current) => [idea, ...current]); setDraft(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Could not save the idea.'); } finally { setSaving(false); } };
-  const update = (saved: StudioIdea) => setIdeas((current) => current.map((idea) => idea.id === saved.id ? saved : idea));
-  return <><PageHeader eyebrow="WORK BOARD · STUDIO LEAD" title="Raheem’s Desk" intro="A quiet place to capture ideas without letting them interrupt the work already in motion." status="IN FLIGHT"/><WorkBoardNav current="raheem"/>
-    <section className="desk-how"><div><NotebookPen/><p className="eyebrow">HOW THIS DESK WORKS</p><h2>Write it down. Keep your focus. Return when the time is right.</h2><p>Ideas here are durable shared Studio notes—not tasks, promises, priorities, or automatic instructions for Codex and Claude. Raheem and Tori can read the notebook together; each person edits only the notes they authored.</p></div><ol><li><span>1</span>Capture the thought in plain language.</li><li><span>2</span>Keep working on today’s goal.</li><li><span>3</span>Revisit and edit your note later.</li></ol></section>
-    {checking ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening Raheem’s desk…</Panel> : !session ? <StudioSignIn purpose="The shared Studio notebook follows Raheem and Tori across devices."/> : !isStudioPartnerRole(session.role) ? <Panel className="desk-locked"><Shield/><h2>This is a Studio partner space.</h2><p>You are signed in as {session.email}, but this notebook is limited to the admin and lore-director roles.</p><button className="studio-signout" onClick={signOutOfStudio}>Sign out</button></Panel> : <>
-      <Panel className="idea-composer" title="Capture an idea" action={<span>SHARED · DURABLE · NOT A TASK</span>}><label htmlFor="idea-draft">What do you want to remember?</label><textarea id="idea-draft" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); add(); } }} placeholder="Write the idea before it pulls you away from the current goal…"/><div><p><Command/>Ctrl/Cmd + Enter to save</p><button disabled={!draft.trim() || saving} onClick={add}>{saving ? <RefreshCw className="spin"/> : <Plus/>}{saving ? 'Saving…' : 'Add idea'}</button></div>{error && <p className="studio-form-error" role="alert">{error}</p>}</Panel>
-      <div className="idea-notebook-heading"><div><p className="eyebrow">THE NOTEBOOK</p><h2>{ideas.length} saved {ideas.length === 1 ? 'idea' : 'ideas'}</h2></div><button className="studio-signout" onClick={signOutOfStudio}>Sign out · {session.email}</button></div>
-      {loading ? <Panel className="review-loading"><RefreshCw className="spin"/>Opening the notebook…</Panel> : ideas.length ? <div className="idea-notebook">{ideas.map((idea) => <IdeaNote key={idea.id} idea={idea} onSaved={update} canEdit={idea.ownerId === session.userId}/>)}</div> : <Panel className="review-empty"><Feather/><h2>The first page is blank.</h2><p>Capture an idea above. It will remain here until you decide what, if anything, it should become.</p></Panel>}
-    </>}
-  </>;
+/** The old `/work/tori` page, demoted from "the desk" to "the reference beside it". */
+function ToriLoreLedger() {
+  const sections = productionSectionGroup("1. Tori's desk");
+  const updated = /\*\*Last updated:\*\*\s*([^·\n]+)/.exec(productionMarkdown)?.[1]?.trim() ?? 'repository source';
+  return <details className="desk-reference">
+    <summary><Feather aria-hidden="true"/>From the production ledger · PRODUCTION.md · Lore §1<ChevronDown aria-hidden="true"/></summary>
+    <div>
+      <Panel className="work-board-ledger work-board-ledger-tori">
+        <div className="work-ledger-mark"><Feather/></div>
+        <div><p className="eyebrow">LIVE REPOSITORY PROJECTION</p><h2>PRODUCTION.md · Lore §1</h2><p>Last sourced {updated}. This is a build-time snapshot of the repository, not a place to write — notes go on the desk above.</p></div>
+        <RepoLink path="PRODUCTION.md"/>
+      </Panel>
+      {sections.length
+        ? sections.map((section, index) => <Panel className="work-source-card" title={section.heading.replace(/\s*\{#[^}]+\}/, '')} key={`${section.heading}-${index}`}><MarkdownBody lines={section.body} limit={80}/></Panel>)
+        : <Panel className="work-parse-error"><TriangleAlert/><h2>Source section unavailable</h2><p>The expected PRODUCTION.md · Lore §1 heading could not be parsed. Nothing has been substituted.</p></Panel>}
+    </div>
+  </details>;
 }
 
 type WorkBoardKind = 'advice' | 'active' | 'required' | 'tori' | 'raheem';
@@ -526,8 +539,8 @@ function WorkBoardNav({ current }: { current: WorkBoardKind }) {
     ['advice', '/work/advice', 'AI Advice', 'Ranked recommendations', Lightbulb],
     ['active', '/work/active', 'Active Work', 'What is in motion', ListChecks],
     ['required', '/work/required', 'Required & Deferred', 'Necessary and delayed', TriangleAlert],
-    ['tori', '/work/tori', "Tori's Desk", 'Lore assignments', Feather],
-    ['raheem', '/work/raheem', "Raheem's Desk", 'Private ideas notebook', NotebookPen],
+    ['tori', '/work/tori', "Tori's Desk", 'Shared notebook · open to both', Feather],
+    ['raheem', '/work/raheem', "Raheem's Desk", 'Shared notebook · open to both', NotebookPen],
   ];
   return <section className="work-board-navigation" aria-labelledby="work-board-navigation-title">
     <div className="work-board-navigation-heading">
@@ -546,12 +559,11 @@ function WorkBoardNav({ current }: { current: WorkBoardKind }) {
   </section>;
 }
 
-function WorkBoardPage({ kind }: { kind: Exclude<WorkBoardKind, 'raheem'> }) {
+function WorkBoardPage({ kind }: { kind: Exclude<WorkBoardKind, 'raheem' | 'tori'> }) {
   const configs = {
     advice: { eyebrow: 'WORK BOARD · STUDIO LEAD RECOMMENDATIONS', title: 'AI Advice', intro: 'What Codex and Claude think will most improve the game next—ranked, explained, and always yours to overrule.', heading: "0. What I'd work on next", source: 'PRODUCTION.md §0', icon: <Lightbulb/> },
     active: { eyebrow: 'WORK BOARD · CURRENT EXECUTION', title: 'Active Work', intro: 'The work that is genuinely in motion now, including its current state and the branches carrying it.', heading: '3. Status board', source: 'PRODUCTION.md §3', icon: <ListChecks/> },
     required: { eyebrow: 'WORK BOARD · UNFINISHED OBLIGATIONS', title: 'Required & Deferred', intro: 'Necessary gaps, conscious deferrals, and stranded work—visible so “later” never quietly becomes “forgotten.”', heading: '4. Open threads', source: 'PRODUCTION.md §4', icon: <TriangleAlert/> },
-    tori: { eyebrow: 'WORK BOARD · LORE DIRECTOR', title: "Tori's Desk", intro: 'Lore work waiting for Tori: what is provisional, what needs review, and where her judgment changes the game most.', heading: "1. Tori's desk", source: 'PRODUCTION.md · Lore §1', icon: <Feather/> },
   } as const;
   const config = configs[kind];
   const sourceSections = productionSectionGroup(config.heading).map((section, index) => kind === 'active' && index === 0 ? { ...section, body: inFlightOnly(section.body) } : section);
@@ -559,9 +571,6 @@ function WorkBoardPage({ kind }: { kind: Exclude<WorkBoardKind, 'raheem'> }) {
   return <>
     <PageHeader eyebrow={config.eyebrow} title={config.title} intro={config.intro} status="IN FLIGHT"/>
     <WorkBoardNav current={kind}/>
-    {/* Cards the Workshop has sent for lore sit ABOVE the PRODUCTION.md
-        projection — they are live work waiting on her, not reading material. */}
-    {kind === 'tori' ? <LoreDesk/> : null}
     <Panel className={`work-board-ledger work-board-ledger-${kind}`}>
       <div className="work-ledger-mark">{config.icon}</div>
       <div><p className="eyebrow">LIVE REPOSITORY PROJECTION</p><h2>{config.source}</h2><p>Last sourced {updated}. Update the owning section through the <strong>production-log</strong> workflow; this page never keeps a separate browser-only task list.</p></div>
