@@ -467,24 +467,14 @@ export async function approveProposal(
 // proposal's PR into main and marks it shipped with the real commit SHA. The
 // client never merges directly — the endpoint holds the GitHub token and does
 // the authoritative DB write.
-export async function shipProposal(
-  id: string,
-): Promise<{ shipped: true; prNumber: number; commitSha: string }> {
-  const supabase = client();
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error('No Supabase session.');
-  const r = await fetch('/api/admin-ship-proposal', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-    body: JSON.stringify({ proposalId: id }),
-  });
-  const body = (await r.json().catch(() => ({}))) as { error?: string; prNumber?: number; commitSha?: string };
-  if (!r.ok) throw new Error(body.error ?? `Ship failed (${r.status}).`);
-  return { shipped: true, prNumber: body.prNumber!, commitSha: body.commitSha! };
-}
-
-// Send a proposal back to the director with a required reason.
+/**
+ * shipProposal() removed 2026-08-10 with the proposals desk.
+ *
+ * It POSTed to /api/admin-ship-proposal, which merged a GitHub PR and stamped
+ * a commit sha onto the proposal. The only caller was ArchetypeWorkshop, which
+ * is gone. The endpoint went with it — the Hobby plan allows twelve serverless
+ * functions and the Workshop's art upload needed the slot.
+ */
 export async function rejectProposal(id: string, reason: string): Promise<ArchetypeProposal> {
   return updateArchetypeProposalStatus(id, { status: 'rejected', decidedReason: reason });
 }
