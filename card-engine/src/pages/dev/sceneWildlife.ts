@@ -302,6 +302,23 @@ function waterShapeOf(
   };
 }
 
+/**
+ * Ground layers, which `buildDepthBand` leaves alone and pins beneath the band.
+ * A pond has to live in one of these.
+ */
+const GROUND_LAYER_VARS = ['l1_GROUND', 'l20_GROUND_L0', 'l21_GROUND_L1', 'l22_GROUND_L2'];
+
+/**
+ * Everything sitting in a ground layer, or null when the scene has none — which
+ * means it is not depth-sorted and there is nothing to warn about.
+ */
+function groundLayerContents(scene: Phaser.Scene): Set<unknown> | null {
+  const fields = scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>;
+  const present = GROUND_LAYER_VARS.map((v) => fields[v]).filter(Boolean);
+  if (present.length === 0) return null;
+  return new Set(present.flatMap((layer) => layer!.list));
+}
+
 function collectWater(
   scene: Phaser.Scene,
   root: { list?: unknown[] } | undefined,
@@ -311,6 +328,7 @@ function collectWater(
   // trusting the walk to visit each object once. Without it a single pond counts
   // twice and the readout says there are two.
   seen: Set<unknown> = new Set(),
+  parent: Set<unknown> | null = null,
 ): void {
   if (!root || !Array.isArray(root.list)) return;
   for (const child of root.list) {
@@ -318,8 +336,25 @@ function collectWater(
     seen.add(child);
     if (isSprite(child) && WATER_TEXTURES.has(child.texture?.key ?? '')) {
       into.push(waterShapeOf(scene, child, spriteBounds(child)));
+      // A POND IS FLOOR, AND HAS TO BE PARENTED LIKE FLOOR.
+      //
+      // `buildDepthBand` sweeps anything NOT in an excluded ground layer into the
+      // y-sorted band and gives it its own ground-contact Y as a depth. A pond's
+      // contact Y is its SOUTH edge, so a pond left at the scene root sorts in
+      // front of every animal standing on its bank — they vanish underneath it.
+      //
+      // Invisible in the Wildlife Lab, which has no depth band at all and draws in
+      // authored order, so the bench cannot catch this and the warning has to.
+      // `parent` is null in exactly that case, which is why it gates the check.
+      if (parent && !parent.has(child)) {
+        console.warn(
+          `[wildlife] water "${child.texture?.key}" is not in a ground layer, so it ` +
+            'will sort into the depth band and draw OVER animals standing on its ' +
+            'bank. Move it into L1_GROUND.',
+        );
+      }
     }
-    collectWater(scene, child as { list?: unknown[] }, into, seen);
+    collectWater(scene, child as { list?: unknown[] }, into, seen, parent);
   }
 }
 
@@ -334,11 +369,18 @@ function collectWater(
 export function readSceneWater(scene: Phaser.Scene): WildlifeWater[] {
   const water: WildlifeWater[] = [];
   const seen = new Set<unknown>();
-  collectWater(scene, (scene as unknown as { children?: { list?: unknown[] } }).children, water, seen);
+  const ground = groundLayerContents(scene);
+  collectWater(
+    scene,
+    (scene as unknown as { children?: { list?: unknown[] } }).children,
+    water,
+    seen,
+    ground,
+  );
   const layer = (scene as unknown as Record<string, Phaser.GameObjects.Layer | undefined>)[
     WILDLIFE_LAYER_VAR
   ];
-  collectWater(scene, layer as unknown as { list?: unknown[] }, water, seen);
+  collectWater(scene, layer as unknown as { list?: unknown[] }, water, seen, ground);
   return water;
 }
 

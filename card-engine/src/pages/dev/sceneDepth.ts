@@ -168,8 +168,39 @@ export function groundContactY(obj: Phaser.GameObjects.GameObject): number {
  * that file wholesale, so anything that must survive a save lives here. Keying on
  * texture also means the next corner tower is right the moment it is placed.
  */
-export const CONTACT_BIAS_BY_TEXTURE: Record<string, number> = {
+export const CONTACT_BIAS_BY_TEXTURE: Record<
+  string,
+  number | ((obj: Phaser.GameObjects.Image) => number)
+> = {
   'tower-corner-v3': 60,
+
+  /**
+   * AN OCCLUDER LIP SORTS ON ITS BASE, NOT ON ITS CANVAS.
+   *
+   * `split_occluder_lip.py` copies the pond's raised north rim onto a duplicate of
+   * the FULL basin canvas — same size, same transform, so the two always line up
+   * and a cut edge can never show. The cost is that its bounds say the sprite ends
+   * at the pond's south shore, 375px of empty pixels below anything it draws.
+   * Sorted on that, the lip covers the whole pond and every animal near it.
+   *
+   * The lip's real base is 13 rows down a 221-row canvas — the NORTHERNMOST point
+   * of the waterline, deliberately, because the base is not a straight line. It
+   * runs 92px further south on the east flank than the west, and one depth cannot
+   * describe a curve. Taking the southernmost reading instead put the line behind
+   * a fox on the west bank standing a full body-length in FRONT of the rim
+   * (Raheem, 2026-08-11). The northernmost errs the harmless way: the lip occludes
+   * only what is clearly north of the pond, and an animal on the far east rim
+   * draws over a few pixels of lip it might have hidden behind.
+   *
+   * A function rather than a constant because the bias is in WORLD pixels and the
+   * pond is placed at 1.2 in the Wildlife Lab and 1.8 in CourtyardV3. A number
+   * would be correct in exactly one scene.
+   *
+   * This lives here rather than as an authored Depth in the Editor for the reason
+   * given below: the Editor rewrites the .scene wholesale and erases hand-set
+   * depths on the next save.
+   */
+  'nature-water-pond-cliff-north': (img) => -(221 - 13) * (img.scaleY || 1),
 };
 
 /**
@@ -189,8 +220,10 @@ export function depthOf(
   // A Depth set in the Editor is an explicit instruction and beats the table —
   // which also means the table stops applying the moment the art is fixed
   // properly and someone authors a real value.
-  const contact =
-    contactOverride ?? groundContactY(obj) + (CONTACT_BIAS_BY_TEXTURE[key] ?? 0);
+  const rule = CONTACT_BIAS_BY_TEXTURE[key];
+  const bias =
+    typeof rule === 'function' ? rule(obj as Phaser.GameObjects.Image) : (rule ?? 0);
+  const contact = contactOverride ?? groundContactY(obj) + bias;
   const bounds = (obj as Phaser.GameObjects.Image).getBounds?.();
   const centreX = bounds ? bounds.centerX : 0;
   const level = levelAt(centreX, contact, map) ?? 0;

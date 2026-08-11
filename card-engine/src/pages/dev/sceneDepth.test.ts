@@ -248,3 +248,61 @@ describe('the castle question — in front of the wall or behind it', () => {
     expect(depthOfHeroAt(1217).hero).toBeGreaterThan(SOUTH_WALL_BASE);
   });
 });
+
+describe('the pond lip — an occluder drawn on a canvas far bigger than itself', () => {
+  /**
+   * `split_occluder_lip.py` copies the raised north rim onto a duplicate of the
+   * FULL basin canvas, so the sprite's bounds end at the pond's south shore while
+   * its art stops near the north waterline. Sorted on its bounds it swallows the
+   * whole pond, which is what put a fox on the west bank behind a rim it was
+   * standing in front of.
+   *
+   * These pin the rule to the geometry it was measured from: the lip's base is 13
+   * rows down a 221-row canvas, and the pond is placed at a different scale in each
+   * scene that has one.
+   */
+  const CANVAS = 221;
+  const LIP_BASE_ROW = 13;
+
+  /** A pond lip placed like CourtyardV3's: centre y 1200, scale 1.8. */
+  function lipAt(centreY: number, scale: number) {
+    const half = (CANVAS * scale) / 2;
+    return {
+      ...obj(centreY + half, 'pondCliffNorth'),
+      texture: { key: 'nature-water-pond-cliff-north' },
+      scaleY: scale,
+      getBounds: () => ({ bottom: centreY + half, centerX: 2000 }),
+    };
+  }
+
+  const depthOfLip = (centreY: number, scale: number) => {
+    const lip = lipAt(centreY, scale);
+    const scene = sceneWith({ l8_NATURE: layer([lip]) });
+    buildDepthBand(scene);
+    return lip.depth;
+  };
+
+  it('sorts on the lip base in CourtyardV3, not on the canvas bottom', () => {
+    // Canvas bottom is 1399 — 375px of empty pixels south of anything it draws.
+    expect(depthOfLip(1200, 1.8)).toBeCloseTo(1200 - (CANVAS / 2 - LIP_BASE_ROW) * 1.8, 4);
+    expect(depthOfLip(1200, 1.8)).toBeLessThan(1399);
+  });
+
+  it('a fox on the west bank draws OVER the lip', () => {
+    // The reported bug. The fox stands well south of the northernmost waterline;
+    // sorted on the canvas bottom it disappeared behind the rim.
+    expect(1150).toBeGreaterThan(depthOfLip(1200, 1.8));
+  });
+
+  it('but an animal north of the pond is still hidden behind it', () => {
+    // The lip has to keep doing its job, or there was no reason to split it out.
+    expect(990).toBeLessThan(depthOfLip(1200, 1.8));
+  });
+
+  it('tracks the placement scale, because the two ponds are sized differently', () => {
+    // A constant bias would be right in exactly one scene. The Wildlife Lab places
+    // the same pond at 1.2.
+    expect(depthOfLip(334, 1.2)).toBeCloseTo(334 - (CANVAS / 2 - LIP_BASE_ROW) * 1.2, 4);
+    expect(depthOfLip(1200, 1.8)).not.toBeCloseTo(depthOfLip(1200, 1.2), 0);
+  });
+});

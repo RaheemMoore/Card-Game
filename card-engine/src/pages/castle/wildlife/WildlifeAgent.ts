@@ -294,11 +294,24 @@ export class WildlifeAgent {
     return null;
   }
 
+  /**
+   * True while this animal belongs UNDER the water rather than on the ground.
+   *
+   * Public because a scene that owns its own depth stack has to know not to sort
+   * this one by its feet. The courtyard adds a terrace term to every animal's
+   * depth, and doing that to a fish would lift it out of the water band and put
+   * it on top of the ripples it is swimming beneath.
+   */
+  isSubmerged(): boolean {
+    // A tortoise in the pond sorts like a fish; on the grass it sorts like a fox.
+    return this.aquatic || (this.amphibious && this.inWater());
+  }
+
   /** A land animal sorts by its feet; a fish sorts under the water's surface. */
   private setDepthForHabitat(): void {
-    // A tortoise in the pond sorts like a fish; on the grass it sorts like a fox.
-    const submerged = this.aquatic || (this.amphibious && this.inWater());
-    this.sprite.setDepth(submerged ? SUBMERGED_DEPTH + this.sprite.y * 0.001 : this.sprite.y);
+    this.sprite.setDepth(
+      this.isSubmerged() ? SUBMERGED_DEPTH + this.sprite.y * 0.001 : this.sprite.y,
+    );
   }
 
   /**

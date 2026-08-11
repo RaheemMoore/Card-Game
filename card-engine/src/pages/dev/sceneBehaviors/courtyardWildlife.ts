@@ -111,7 +111,7 @@ export function attachCourtyardWildlife(
 
   const manager = new WildlifeManager();
   const drawn: Phaser.GameObjects.Rectangle[] = [];
-  const standing: { sprite: Phaser.GameObjects.Sprite; footing: Footing }[] = [];
+  const standing: { sprite: Phaser.GameObjects.Sprite; footing: Footing; agent: WildlifeAgent }[] = [];
 
   if (wildlife.missing) {
     console.info(
@@ -164,8 +164,6 @@ export function attachCourtyardWildlife(
       level:
         levelAt(placed.sprite.x, placed.sprite.y - size.height / 2, elevation) ?? 0,
     };
-    standing.push({ sprite: placed.sprite, footing });
-
     const agent = new WildlifeAgent(placed.sprite, profile, {
         roamBounds: placed.roamBounds,
         animations: ANIMATION_SETS[placed.species],
@@ -177,6 +175,7 @@ export function attachCourtyardWildlife(
       feet: size,
     });
     if (profile.habitat === 'water') applySubmergedLook(placed.sprite);
+    standing.push({ sprite: placed.sprite, footing, agent });
     manager.add(agent);
     drinkers.push(agent);
   }
@@ -227,7 +226,11 @@ export function attachCourtyardWildlife(
       // term is added here — the same split as the move resolver, and for the same
       // reason: the animal owns "where I touch the ground", the scene owns what
       // that means in a world with height.
-      for (const { sprite, footing } of standing) {
+      for (const { sprite, footing, agent } of standing) {
+        // A swimmer already sorted itself into the water band, and a terrace term
+        // would lift it straight back out — on top of the very ripples it is
+        // supposed to be under. Water has no floor level; leave it alone.
+        if (agent.isSubmerged()) continue;
         sprite.setDepth(footing.level * LEVEL_STRIDE + sprite.y);
       }
     },
