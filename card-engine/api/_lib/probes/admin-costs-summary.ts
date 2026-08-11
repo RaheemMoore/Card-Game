@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { verifyUser } from './_lib/auth.js';
-import { calculateAnthropicCostUsd } from './_lib/anthropicPricing.js';
+import { verifyUser } from '../auth.js';
+import { calculateAnthropicCostUsd } from '../anthropicPricing.js';
 
 // Admin-only Costs summary. Aggregates api_usage_events into the shape
 // the /admin/costs page needs. Single round-trip so the Costs page
@@ -14,8 +14,6 @@ import { calculateAnthropicCostUsd } from './_lib/anthropicPricing.js';
 //     tokens × published Haiku rate; cost_source='calculated'.
 //   - Rows without either are ignored for cost (still counted for
 //     call totals).
-
-export const config = { maxDuration: 15 };
 
 let cachedAdmin: SupabaseClient | null = null;
 function getAdminClient(): SupabaseClient | null {
@@ -69,7 +67,7 @@ function eventCostUsd(row: EventRow): number | null {
   return calculateAnthropicCostUsd(row.model, row.input_units, row.output_units, row.started_at);
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export async function costsSummary(req: VercelRequest, res: VercelResponse) {
   const caller = await verifyUser(req);
   if (!caller || !caller.isAdmin) {
     res.status(403).json({ error: 'Admin only' });

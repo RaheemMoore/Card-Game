@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyUser } from './_lib/auth.js';
+import { verifyUser } from '../auth.js';
 
 // Admin-only Leonardo balance endpoint.
 //
@@ -10,8 +10,6 @@ import { verifyUser } from './_lib/auth.js';
 // Cheap enough to call on every Overview load (~90ms upstream, one
 // outbound HTTP). No caching layer yet — revisit if Hobby GB-hours
 // pressure shows up.
-
-export const config = { maxDuration: 15 };
 
 const LEONARDO_URL = 'https://cloud.leonardo.ai/api/rest/v1/me';
 
@@ -27,7 +25,7 @@ interface LeonardoUserDetails {
   apiPlanTokenRenewalDate?: string | null;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export async function leonardoBalance(req: VercelRequest, res: VercelResponse) {
   const caller = await verifyUser(req);
   if (!caller || !caller.isAdmin) {
     res.status(403).json({ error: 'Admin only' });

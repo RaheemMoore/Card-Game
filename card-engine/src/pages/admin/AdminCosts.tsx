@@ -75,7 +75,7 @@ export function AdminCosts() {
         return;
       }
       try {
-        const r = await fetch('/api/admin-costs-summary', {
+        const r = await fetch('/api/admin-metrics?probe=costs', {
           headers: { authorization: `Bearer ${token}` },
         });
         if (!r.ok) {

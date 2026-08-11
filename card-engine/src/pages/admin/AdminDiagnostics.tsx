@@ -95,15 +95,15 @@ export function AdminDiagnostics() {
         <div className="space-y-3">
           <ProbeCard
             title="Anthropic Admin API"
-            endpoint="/api/anthropic-admin-usage"
+            endpoint="/api/admin-metrics?probe=anthropic-usage"
             slot={anthropic}
-            onRun={() => run('/api/anthropic-admin-usage', setAnthropic)}
+            onRun={() => run('/api/admin-metrics?probe=anthropic-usage', setAnthropic)}
           />
           <ProbeCard
             title="Leonardo Account"
-            endpoint="/api/leonardo-account"
+            endpoint="/api/admin-metrics?probe=leonardo-account"
             slot={leonardo}
-            onRun={() => run('/api/leonardo-account', setLeonardo)}
+            onRun={() => run('/api/admin-metrics?probe=leonardo-account', setLeonardo)}
           />
         </div>
       </AdminSection>

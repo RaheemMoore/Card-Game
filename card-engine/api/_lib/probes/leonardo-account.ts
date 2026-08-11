@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyUser } from './_lib/auth.js';
+import { verifyUser } from '../auth.js';
 
 // Phase 0 diagnostic spike — probes Leonardo's account endpoints on the
 // project's LEONARDO_API_KEY to see what live balance/quota data is
@@ -13,8 +13,6 @@ import { verifyUser } from './_lib/auth.js';
 // Their production API historically exposes credit balance directly on
 // /me. This confirms whether it's still true on the current plan and
 // documents field names for the eventual dashboard.
-
-export const config = { maxDuration: 30 };
 
 const LEONARDO_BASE = 'https://cloud.leonardo.ai/api/rest/v1';
 
@@ -68,7 +66,7 @@ async function probe(path: string, apiKey: string): Promise<ProbeResult> {
   }
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export async function leonardoAccount(req: VercelRequest, res: VercelResponse) {
   const caller = await verifyUser(req);
   if (!caller || !caller.isAdmin) {
     res.status(403).json({ error: 'Admin only' });

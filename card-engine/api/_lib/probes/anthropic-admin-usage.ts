@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyUser } from './_lib/auth.js';
+import { verifyUser } from '../auth.js';
 
 // Phase 0 diagnostic spike — probes the Anthropic Admin API against the
 // project's ANTHROPIC_ADMIN_API_KEY and returns a JSON report of what
@@ -16,8 +16,6 @@ import { verifyUser } from './_lib/auth.js';
 // usage + cost — the balance concept is a Console-only artifact. The
 // probe confirms that empirically so we can display "Live balance
 // unavailable" with correct diagnostic context per the plan §4.
-
-export const config = { maxDuration: 30 };
 
 const ADMIN_BASE = 'https://api.anthropic.com';
 const ANTHROPIC_VERSION = '2023-06-01';
@@ -77,7 +75,7 @@ async function probe(path: string, apiKey: string, params?: URLSearchParams): Pr
   }
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export async function anthropicAdminUsage(req: VercelRequest, res: VercelResponse) {
   const caller = await verifyUser(req);
   if (!caller || !caller.isAdmin) {
     res.status(403).json({ error: 'Admin only' });

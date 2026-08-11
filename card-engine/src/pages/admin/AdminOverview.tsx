@@ -61,7 +61,7 @@ export function AdminOverview() {
       const token = data.session?.access_token;
       if (!token) { setLeonardoErr('No session'); return; }
       try {
-        const r = await fetch('/api/admin-leonardo-balance', { headers: { authorization: `Bearer ${token}` } });
+        const r = await fetch('/api/admin-metrics?probe=leonardo-balance', { headers: { authorization: `Bearer ${token}` } });
         if (!r.ok) { setLeonardoErr(`HTTP ${r.status}`); return; }
         setLeonardo((await r.json()) as LeonardoBalance);
       } catch (err) { setLeonardoErr(String(err)); }
