@@ -579,6 +579,13 @@ export function makeScene(
      * press, so holding cannot outrun the recovery it is gated behind.
      */
     private fireHeld = false;
+    /**
+     * Set by a keydown/pointerdown event, cleared once the frame has seen it.
+     *
+     * Events cannot be missed the way polled state can, so this guarantees a tap
+     * is always worth at least one frame of charge and therefore always fires.
+     */
+    private firePressedLatch = false;
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
      * Truth for collision, level and depth. The SPRITE's y is this minus the
@@ -896,6 +903,14 @@ export function makeScene(
       this.jumpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
       this.fireKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+      // Latch the press from the EVENT as well as polling the key, so a tap that
+      // starts and ends between two frames still counts.
+      keyboard.on('keydown-F', () => {
+        this.firePressedLatch = true;
+      });
+      this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+        if (p.leftButtonDown()) this.firePressedLatch = true;
+      });
       // A controlled source of knockdown until real enemies exist. K is a
       // deliberate stand-in for being hit hard, so the scatter-and-recover loop
       // can be played and tuned before anything in the world can hit him.
@@ -1076,7 +1091,7 @@ export function makeScene(
       this.readSelection();
 
       const feet = { x: this.player.x, y: this.feetY };
-      const wasExploring = this.action.phase === 'explore';
+      const previousPhase = this.action.phase;
       this.action = stepAction(
         this.action,
         {
@@ -1092,7 +1107,7 @@ export function makeScene(
 
       // He just went down. Scatter once, on the transition — not every frame he
       // spends on the floor.
-      if (this.action.phase === 'knockdown' && wasExploring !== undefined && !this.wasDown) {
+      if (this.action.phase === 'knockdown' && !this.wasDown) {
         this.scatterCards();
         this.playKnockdown();
       }
@@ -1107,7 +1122,11 @@ export function makeScene(
 
       // The throw starts: the card leaves the hand's control until it resolves, so
       // it cannot be fired twice or scattered out from under its own shot.
-      if (wasExploring && this.action.phase === 'windup') {
+      // Entering the windup is the moment the throw commits — and since charging
+      // was added, the phase before it is 'charging', never 'explore'. Testing for
+      // the old transition meant the card was never marked committed at all, so a
+      // slot never went purple and nothing stopped it being fired twice.
+      if (previousPhase !== 'windup' && this.action.phase === 'windup') {
         this.committedSlot = this.hand.selected;
         this.hand = commitSelected(this.hand);
         this.emitHand();
@@ -1312,7 +1331,17 @@ export function makeScene(
      * and swaps it back, rather than playing a row of the walking sheet.
      */
     private playKnockdown() {
-      if (!this.player || !this.anims.exists(KNOCKDOWN_ANIM)) return;
+      if (!this.player) return;
+      if (!this.anims.exists(KNOCKDOWN_ANIM)) {
+        // Silence here is what let the fall ship unplayable: the texture was
+        // registered and packed but never force-loaded, so this returned early
+        // every time and looked exactly like "the animation was not made yet".
+        console.warn(
+          `[combat] ${KNOCKDOWN_SHEET.key} is not loaded, so the fall cannot play. ` +
+            'It has to be listed in alwaysLoaded — nothing names it in the scene source.',
+        );
+        return;
+      }
       this.player.anims.stop();
       this.player.setTexture(KNOCKDOWN_SHEET.key, 0);
       // Both sheets are authored so he stands 71px tall, so this is 1:1 and the
@@ -1400,7 +1429,12 @@ export function makeScene(
         (this.fireKey?.isDown ?? false) ||
         (pad?.R2 ?? 0) > 0.5 ||
         (pad?.A ?? false);
-      this.fireHeld = firePressed;
+      // HELD state, plus anything latched by the events below. Polling alone
+      // dropped a tap that began and ended between two samples: firing used to
+      // need one frame with the key down, and charge-and-release needs a press
+      // AND a release, so a quick tap could vanish without a trace.
+      this.fireHeld = firePressed || this.firePressedLatch;
+      this.firePressedLatch = false;
 
       const inputs = buildAimInputs(
         { move, pointerScreen, pointerWorld, stick, firePressed },

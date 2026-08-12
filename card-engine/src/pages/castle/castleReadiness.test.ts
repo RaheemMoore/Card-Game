@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { PRODUCTION_SCENE } from './v2/courtyardRuntime';
 import { EXPLORABLE_SCENES, ALWAYS_LOADED } from './v2/sceneManifest';
+import { allEffectTextureKeys } from './combat/effectKit';
+import { KNOCKDOWN_SHEET } from '../../data/castle/knockdownSprite';
 import { SCENE_BEHAVIORS } from '../dev/sceneBehaviors';
 import { DOOR_COLORS, COLLIDER_COLORS } from '../dev/sceneColliders';
 
@@ -63,6 +65,22 @@ describe('the courtyard /castle loads is ready to be the courtyard', () => {
   it('carries a collision layer with blockers in it', () => {
     expect(scene).toContain('L14_COLLIDERS');
     expect(scene).toContain(hex(COLLIDER_COLORS.block));
+  });
+
+  it('force-loads every texture the code plays rather than the scene names', () => {
+    // THE TRAP THIS CLOSES, having now caught three separate assets. Textures are
+    // loaded by scanning the compiled scene for quoted keys, so anything chosen at
+    // RUN time — the element a card fires, the clip a fall plays — is never named
+    // there and is silently skipped. The result is not an error: the sheet is
+    // registered, packed and correct, and the animation simply never happens,
+    // which is indistinguishable from art that was never made.
+    //
+    // The knockdown shipped exactly that way and Raheem found it in play.
+    const forceLoaded = new Set(ALWAYS_LOADED[PRODUCTION_SCENE] ?? []);
+    const playedFromCode = [KNOCKDOWN_SHEET.key, ...allEffectTextureKeys()];
+
+    const missing = playedFromCode.filter((key) => !forceLoaded.has(key));
+    expect(missing).toEqual([]);
   });
 
   it('owns a ground tilemap, so world bounds come from the map', () => {

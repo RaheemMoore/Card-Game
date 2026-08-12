@@ -63,6 +63,16 @@ const WILDLIFE_SHEETS = [
 const HERO_SIZE_TESTS = ['hero-chibi-56', 'hero-chibi-48', 'hero-chibi-40'] as const;
 
 /**
+ * Clips the hero plays that are not his walking sheet.
+ *
+ * Same trap as the two lists around it, and it has now caught three different
+ * assets: no scene NAMES these, because they are played from code, so
+ * entriesUsedBy skips them and the clip silently never runs. The knockdown
+ * shipped registered, packed, timed and unplayable for exactly this reason.
+ */
+const HERO_CLIPS = ['hero-knockdown'] as const;
+
+/**
  * The elemental blast and impact sheets.
  *
  * Same reason as the size tests: no scene NAMES them, because which element a
@@ -103,19 +113,19 @@ export const SCENE_MANIFEST: Record<string, SceneTraits> = {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...EFFECT_SHEETS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...EFFECT_SHEETS],
   },
   CourtyardV3: {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...EFFECT_SHEETS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...EFFECT_SHEETS],
   },
   WildlifeLab: {
     explorable: true,
     ySort: false,
     behavior: attachWildlifeLab,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...EFFECT_SHEETS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...EFFECT_SHEETS],
   },
 };
 
