@@ -4,7 +4,7 @@ import { getCuratedRosterStore } from '../../../services/persistence/CuratedRost
 import { getCurrentUser } from '../../../services/persistence/supabaseClient';
 import { withTiebreaker } from '../../../services/workshop/loreReadiness';
 import { useCuratedRoster } from '../workshop/useCuratedRoster';
-import { devSeedCharacter } from './devSeed';
+import { devSeedRoster } from './devSeed';
 import type { SaveState } from '../../../components/admin/workshop';
 
 /**
@@ -25,7 +25,7 @@ export function useLoreDesk() {
   // production builds.
   if (import.meta.env.DEV && !store.isHydrated()
       && new URLSearchParams(window.location.search).get('dev_seed') === '1') {
-    store.seedForTest([devSeedCharacter()]);
+    store.seedForTest(devSeedRoster());
   }
   const roster = useCuratedRoster();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -116,11 +116,18 @@ export function useLoreDesk() {
     setDraft(null);
   }, [draft]);
 
+  // The other characters in this archetype — who the tiebreaker questions
+  // must separate her from, and whose names a new name must not collide with.
+  const siblings = draft
+    ? store.getCharactersForArchetype(draft.archetype).filter((c) => c.id !== draft.id)
+    : [];
+
   return {
     loading: roster.loading,
     error: roster.error,
     reload: roster.reload,
     queue,
+    siblings,
     selectedId,
     select,
     draft,

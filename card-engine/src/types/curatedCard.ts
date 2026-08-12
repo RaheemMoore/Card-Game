@@ -122,6 +122,16 @@ export interface VisualTiebreakerClaim {
  * 2026-08-11: the questions players answer should come out of the lore that
  * already exists, and Tori confirms the ones associated with a character).
  *
+ * These are the TIEBREAKER ROUND (Raheem, 2026-08-12). The shared Story
+ * Pillar answers narrow an archetype's bank to two or three candidates; these
+ * separate those finalists. A question's job is therefore to DISTINGUISH this
+ * character from her same-archetype siblings, not to characterise her in the
+ * abstract — one every character of the archetype would answer identically
+ * decides nothing. See buildQuestionPrompt in services/workshop/loreAssist.ts.
+ *
+ * Distinct from `visualTiebreaker` above, which is the structural picture
+ * round that runs last when the narrative answers still tie.
+ *
  * Ids are globally unique (`gq_<characterId>_<n>`), so a sibling character can
  * claim options on another character's approved question later without a
  * remodel. Approving a question writes an ordinary AnswerBinding for it; a

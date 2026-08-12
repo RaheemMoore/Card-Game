@@ -72,6 +72,13 @@ export function loreProblems(character: CuratedCharacter, questionIds: string[])
 /**
  * The visual tiebreaker is structural rather than authored.
  *
+ * This is the LAST round and the last resort. The NARRATIVE tiebreaker runs
+ * before it — the bespoke questions in `generatedQuestions`, drafted from the
+ * character's lore (see buildQuestionPrompt in loreAssist.ts). Those separate
+ * the finalists by what a player believes; this one separates them by which
+ * face a player is drawn to, when the answers still tie. Two different
+ * tiebreakers, deliberately, and only one of them is written by hand.
+ *
  * The tiebreaker question is "which of these calls to you", and the OPTIONS
  * are the archetype's characters themselves, shown by their Foundation art. So
  * every character is automatically its own option and there is nothing for the

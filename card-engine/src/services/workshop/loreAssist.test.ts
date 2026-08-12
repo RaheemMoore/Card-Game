@@ -89,12 +89,71 @@ describe('parseSuggestions', () => {
 });
 
 describe('buildQuestionPrompt', () => {
+  const sister = (id: string, name: string, premise: string): CuratedCharacter =>
+    character({
+      id,
+      displayName: name,
+      coreLore: premise,
+      lore: { cardName: name, nameAndTitle: name, rankLore: { Foundation: `${name} stayed.` } },
+    });
+
   it('carries the lore and real story-pillar style examples', () => {
     const prompt = buildQuestionPrompt(character());
     expect(prompt).toContain('She left the war.');
     expect(prompt).toContain('STYLE');
     // At least one real Barbarian question made it in as an example.
     expect(prompt).toMatch(/Q: .+\?/);
+  });
+
+  it('frames the round as a tiebreaker whose job is separation', () => {
+    const prompt = buildQuestionPrompt(character());
+    expect(prompt).toContain('TIEBREAKER ROUND');
+    expect(prompt).toContain('SEPARATE her');
+  });
+
+  it('names every sister so the distractors have real owners', () => {
+    const prompt = buildQuestionPrompt(character(), [
+      sister('char_a', 'Veska Bone-Mender', 'A field surgeon who stayed behind.'),
+      sister('char_b', 'Imani Red-Cliff', 'A scout who never came back the same.'),
+    ]);
+    expect(prompt).toContain('Veska Bone-Mender');
+    expect(prompt).toContain('Imani Red-Cliff');
+    expect(prompt).toContain('A field surgeon who stayed behind.');
+    // Rule 1 asks the model to test each question against a REAL sister.
+    expect(prompt).toContain('how would Veska Bone-Mender answer this?');
+  });
+
+  it('never lists the character as her own sister', () => {
+    const self = character();
+    const prompt = buildQuestionPrompt(self, [self, sister('char_a', 'Veska', 'A surgeon.')]);
+    expect(prompt).not.toContain('- Ravenna');
+    expect(prompt).toContain('- Veska');
+  });
+
+  it('falls back cleanly when she is the first in her archetype', () => {
+    const prompt = buildQuestionPrompt(character(), []);
+    expect(prompt).toContain('no other characters in this archetype yet');
+    expect(prompt).toContain('plausible sibling');
+    // No empty bullet where the sisters would have been.
+    expect(prompt).not.toMatch(/^- *$/m);
+    expect(prompt).toContain('how would her sister answer this?');
+  });
+
+  it('truncates sister lore rather than tripling the prompt', () => {
+    const windy = sister('char_a', 'Veska', 'x'.repeat(5000));
+    const prompt = buildQuestionPrompt(character(), [windy]);
+    expect(prompt).not.toContain('x'.repeat(400));
+    expect(prompt.length).toBeLessThan(12000);
+  });
+
+  it('caps the sister list so a full roster cannot crowd out the rules', () => {
+    const many = Array.from({ length: 20 }, (_, i) =>
+      sister(`char_${i}`, `Sister${i}`, `Premise ${i}.`),
+    );
+    const prompt = buildQuestionPrompt(character(), many);
+    expect(prompt).toContain('Sister0');
+    expect(prompt).not.toContain('Sister15');
+    expect(prompt).toContain('Return ONLY a JSON object');
   });
 });
 

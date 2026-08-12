@@ -36,7 +36,8 @@ const MODEL = 'claude-haiku-4-5-20251001';
 // Shared context builders
 // ---------------------------------------------------------------------------
 
-function identityLines(character: CuratedCharacter): string {
+/** @internal — shared with nameAssist.ts, not a public API. */
+export function identityLines(character: CuratedCharacter): string {
   const entries = Object.entries(character.identity ?? {}).filter(
     ([, v]) => typeof v === 'string' && v.trim(),
   );
@@ -46,7 +47,8 @@ function identityLines(character: CuratedCharacter): string {
     .join('\n');
 }
 
-function canonLines(archetype: ArchetypeName): string {
+/** @internal — shared with nameAssist.ts, not a public API. */
+export function canonLines(archetype: ArchetypeName): string {
   const chapter = ARCHETYPE_BIBLE[archetype];
   if (!chapter) return '(no chapter)';
   return [
@@ -58,7 +60,8 @@ function canonLines(archetype: ArchetypeName): string {
   ].join('\n');
 }
 
-function draftLines(character: CuratedCharacter): string {
+/** @internal — shared with nameAssist.ts, not a public API. */
+export function draftLines(character: CuratedCharacter): string {
   const lore = character.lore;
   const rank = (r: Rank) => {
     const text = lore?.rankLore?.[r]?.trim();
@@ -197,9 +200,53 @@ function styleExamples(archetype: ArchetypeName): string {
     .join('\n\n');
 }
 
-export function buildQuestionPrompt(character: CuratedCharacter): string {
+/**
+ * The sisters block — the other characters in this archetype a player could
+ * end up with instead. Capped and trimmed: their names and a line each is
+ * what separation needs, and passing whole lore would triple the prompt.
+ */
+const MAX_SIBLINGS_IN_PROMPT = 9;
+const SIBLING_LORE_CHARS = 200;
+
+function siblingLines(siblings: readonly CuratedCharacter[]): string {
+  const usable = siblings.slice(0, MAX_SIBLINGS_IN_PROMPT);
+  if (usable.length === 0) {
+    return '(no other characters in this archetype yet — write questions that would still separate her from a plausible sibling: someone with the same archetype who answered the same wound differently.)';
+  }
+  return usable
+    .map((s) => {
+      const name = s.lore?.cardName?.trim() || s.displayName || 'unnamed';
+      const premise = (s.coreLore ?? '').trim().slice(0, SIBLING_LORE_CHARS);
+      const line = (s.lore?.rankLore?.Foundation ?? '').trim().slice(0, SIBLING_LORE_CHARS);
+      const detail = [premise, line].filter(Boolean).join(' — ');
+      return `- ${name}${detail ? `: ${detail}` : ''}`;
+    })
+    .join('\n');
+}
+
+/**
+ * Bespoke questions are a TIEBREAKER ROUND (Raheem, 2026-08-12).
+ *
+ * The shared Story Pillar answers narrow an archetype's bank to two or three
+ * candidates; these questions separate those finalists. That makes the job
+ * discrimination, not description — a question every character of this
+ * archetype would answer the same way decides nothing, however well written.
+ * Hence the sisters block: the distractors need named owners.
+ *
+ * This is the NARRATIVE tiebreaker. There is also a structural VISUAL
+ * tiebreaker that runs last — see `withTiebreaker` in loreReadiness.ts — which
+ * shows the surviving finalists' Foundation portraits and asks which calls to
+ * you. Nothing is authored for that one; do not confuse the two.
+ */
+export function buildQuestionPrompt(
+  character: CuratedCharacter,
+  siblings: readonly CuratedCharacter[] = [],
+): string {
+  const others = siblings.filter((s) => s.id !== character.id);
+  const firstSister =
+    others[0]?.lore?.cardName?.trim() || others[0]?.displayName || 'her sister';
   return [
-    `You are drafting SELECTION QUESTIONS for a fantasy card game. Players answer a short series of in-world questions, and their answers lead them to one permanent ${character.archetype} character from a curated bank. You are writing questions derived from ONE character's finished lore, below. The lore director will edit and approve them.`,
+    `You are drafting the TIEBREAKER ROUND of selection questions for a fantasy card game. Players answer in-world questions on their way in, and the answers lead them to one permanent ${character.archetype} character from a curated bank. You are writing questions for ONE character, derived from her finished lore. The lore director will edit and approve them.`,
     '',
     'THE CHARACTER (what the art shows):',
     identityLines(character),
@@ -207,17 +254,23 @@ export function buildQuestionPrompt(character: CuratedCharacter): string {
     `${character.archetype.toUpperCase()} CANON:`,
     canonLines(character.archetype),
     '',
-    'THE FINISHED LORE:',
+    'HER FINISHED LORE:',
     draftLines(character),
+    '',
+    `HER SISTERS — the other ${character.archetype}s a player could end up with instead. These are who your questions must SEPARATE her from:`,
+    siblingLines(others),
     '',
     'STYLE — these are real questions from the game. Match this voice exactly: in-world, second person, evocative, with complete-sentence answers a player chooses between:',
     styleExamples(character.archetype),
     '',
+    `WHAT THIS ROUND IS FOR. By the time a player reaches these questions, the shared questions have already narrowed the bank to two or three ${character.archetype}s — the sisters above are the likely finalists. A question that every ${character.archetype} would answer the same way is worthless here, however well written.`,
+    '',
     'Draft 3 to 5 questions. RULES:',
-    '1. Each question grows out of something specific in THIS character\'s lore — a wound, a vow, a temptation, a way of seeing — but must read as a question about the PLAYER, never about the character. The player has never heard of this character.',
-    '2. Each question has 4 or 5 answer options. One or two options are true of this character; the others are plausible answers a different kind of person would choose — real alternatives, not filler.',
-    '3. Never name the character or quote the lore directly. The lore is the soil, not the text.',
-    '4. No question may be answerable from the art alone, and none may mention cards, ranks, or game mechanics.',
+    `1. Each question must SEPARATE her from the sisters above. Before you write one, ask: how would ${firstSister} answer this? If the answer is "the same way", the question is dead — throw it out and find the axis where they actually diverge. Aim at the disagreement, not at the description.`,
+    '2. Each question grows out of something specific in HER lore — a wound, a vow, a temptation, a way of seeing — but must read as a question about the PLAYER, never about the character. The player has never heard of any of these characters.',
+    '3. Each question has 4 or 5 answer options. One or two are true of her; the REST must be answers a SISTER would genuinely choose — real alternatives with a real owner, not filler and not strawmen.',
+    '4. Never name any character or quote the lore directly. The lore is the soil, not the text.',
+    '5. No question may be answerable from the art alone, and none may mention cards, ranks, or game mechanics. The round after this one is a picture round — do not duplicate it by asking about appearance.',
     '',
     'Return ONLY a JSON object, no prose around it, shaped:',
     '{"questions":[{"prompt":"...","options":["...","..."],"trueOfThisCharacter":[0]}]}',
@@ -289,12 +342,13 @@ export function parseGeneratedQuestions(
 
 export async function requestGeneratedQuestions(
   character: CuratedCharacter,
+  siblings: readonly CuratedCharacter[] = [],
 ): Promise<Array<{ question: GeneratedQuestion; trueOptionIds: string[] }>> {
   const response = await callAnthropicMessages({
     model: MODEL,
     max_tokens: 2000,
     temperature: 0.8,
-    messages: [{ role: 'user', content: buildQuestionPrompt(character) }],
+    messages: [{ role: 'user', content: buildQuestionPrompt(character, siblings) }],
     gameAction: 'desk_generate_questions',
     cardId: character.id,
   });
@@ -323,8 +377,11 @@ export function nextQuestionIndex(character: CuratedCharacter): number {
 
 // ---------------------------------------------------------------------------
 
-/** Same tolerant extraction as readArt.parseReading. */
-function extractObject(raw: string): object {
+/**
+ * Same tolerant extraction as readArt.parseReading.
+ * @internal — shared with nameAssist.ts, not a public API.
+ */
+export function extractObject(raw: string): object {
   const start = raw.indexOf('{');
   const end = raw.lastIndexOf('}');
   if (start === -1 || end <= start) {

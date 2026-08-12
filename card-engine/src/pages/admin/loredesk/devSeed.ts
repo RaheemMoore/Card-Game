@@ -4,16 +4,24 @@ import type { HiddenFate } from '../../../types/bible';
 /**
  * DEV-only named scenario: `/admin/lore-desk?dev_admin=1&dev_seed=1`.
  *
- * Seeds the roster store with one deterministic awaiting_lore character so the
- * desk's layout, rank sync, claim grid, Question Forge, and confirm gate can
- * be exercised without Supabase env keys. Same philosophy as the castle's
- * studioBridge scenarios — a repeatable state a human can be pointed at, not a
- * lucky local database. Never bundled into production paths: the caller gates
- * on import.meta.env.DEV.
+ * Seeds the roster store with deterministic characters so the desk's layout,
+ * rank sync, claim stepper, tiebreaker questions, name assist and confirm
+ * gate can be exercised without Supabase env keys. Same philosophy as the
+ * castle's studioBridge scenarios — a repeatable state a human can be pointed
+ * at, not a lucky local database. Never bundled into production paths: the
+ * caller gates on import.meta.env.DEV.
  *
- * Art uses the checked-in archetype emblems — three DIFFERENT images so the
- * rank-tab portrait swap is visible at a glance.
+ * TWO characters, both Barbarian, and that is the point. One is on the desk
+ * awaiting lore; the other is already finished. With only one character the
+ * sibling branches — the "her sisters" block in the question prompt and the
+ * name-collision list — are unreachable locally, so the half of this feature
+ * that does the actual work would only ever be exercised against production
+ * data.
  */
+export function devSeedRoster(): CuratedCharacter[] {
+  return [devSeedCharacter(), devSeedSibling()];
+}
+
 export function devSeedCharacter(): CuratedCharacter {
   const identity: Partial<HiddenFate> = {
     age: 'middle-aged',
@@ -62,5 +70,46 @@ export function devSeedCharacter(): CuratedCharacter {
         body: 'Forged reads too soft for what the art shows — she is planted, not wandering.',
       },
     ],
+  };
+}
+
+/**
+ * A finished sibling in the same archetype. Exists so the desk's sibling
+ * paths are reachable in dev: she is who the tiebreaker questions must
+ * separate Ravenna from, and her name is what the name candidates must not
+ * collide with.
+ */
+function devSeedSibling(): CuratedCharacter {
+  return {
+    id: 'char_barbarian_dev_sister',
+    archetype: 'Barbarian',
+    slotIndex: 2,
+    status: 'approved',
+    displayName: 'DEV — Veska',
+    identity: {
+      age: 'elderly',
+      sex: 'female presenting',
+      bodyType: 'small, wiry, stooped',
+      skinTone: 'pale olive, cool undertone',
+      posture: 'leaning on a staff, head tilted to listen',
+      clothingConstruction: 'quilted layers under a hide apron, full coverage',
+    } as HiddenFate,
+    identityAcceptedAt: '2026-08-01T00:00:00.000Z',
+    coreLore: 'A field surgeon who stayed when the clan moved on.',
+    lore: {
+      cardName: 'Veska Bone-Mender',
+      nameAndTitle: 'Veska Bone-Mender',
+      rankLore: {
+        Foundation: 'She learned early that the ones who run are the ones who live, and decided to be wrong on purpose.',
+        Forged: 'The camp that grew around her was never planned; people simply stopped leaving.',
+        Ascendant: 'She has outlived every warrior she ever patched, and says so without triumph.',
+      },
+    },
+    loreDrafts: [],
+    loreConfirmedBy: 'dev-seed',
+    loreConfirmedAt: '2026-08-02T00:00:00.000Z',
+    answerBindings: [],
+    provenance: { source: 'upload', authoredBy: 'dev-seed' },
+    reviewThread: [],
   };
 }
