@@ -56,6 +56,25 @@ import { HERO_FEET } from '../../../data/castle/heroSprite';
 export const DEFAULT_SCENE = 'CourtyardV2';
 
 /**
+ * The courtyard `/castle` actually loads.
+ *
+ * V3 took over on 2026-08-12. It is the scene built on the Halo Stone kit, the one
+ * in the recording, and the one combat is being built into; V2 was the forge
+ * quadrant and three unfinished ones. The switch waited on a readiness gate rather
+ * than on the scene merely existing — see castleReadiness.test.ts, which is that
+ * gate written down.
+ *
+ * It is a constant and not a literal because the name was written three times in
+ * CastleV2.tsx — the source, the always-loaded lookup, and the scene itself — and
+ * two out of three is a courtyard that loads V3's art with V2's animation sheets.
+ *
+ * There is no fallback to V2, deliberately. Raheem, 2026-08-12: "I don't have any
+ * plans to go back to v two. We're moving on past that." V2 stays loadable from
+ * `/dev/scene` for comparison, but nothing a player touches reaches it.
+ */
+export const PRODUCTION_SCENE = 'CourtyardV3';
+
+/**
  * Every pack that might supply textures. The Editor's scenes reference keys from
  * all of them and the compiled code carries no loader of its own, so a preview
  * loads the lot — this is a dev route and correctness beats a few hundred KB.

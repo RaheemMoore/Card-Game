@@ -6,6 +6,7 @@ import {
   fetchSceneSource,
   loadPackEntries,
   makeScene,
+  PRODUCTION_SCENE,
   type PackEntry,
   type Status,
 } from './courtyardRuntime';
@@ -91,7 +92,7 @@ export function CastleV2() {
         [Phaser, allEntries, source] = await Promise.all([
           import('phaser').then((m) => m.default),
           loadPackEntries(),
-          fetchSceneSource('CourtyardV2'),
+          fetchSceneSource(PRODUCTION_SCENE),
         ]);
       } catch (err) {
         if (!cancelled) setStatus({ phase: 'error', message: String(err) });
@@ -101,12 +102,12 @@ export function CastleV2() {
 
       const entries = entriesUsedBy(source, allEntries, [
         HERO_SHEET.key,
-        ...(ALWAYS_LOADED.CourtyardV2 ?? []),
+        ...(ALWAYS_LOADED[PRODUCTION_SCENE] ?? []),
       ]);
 
       const Scene = makeScene(
         Phaser,
-        'CourtyardV2',
+        PRODUCTION_SCENE,
         source,
         entries,
         (s) => {
