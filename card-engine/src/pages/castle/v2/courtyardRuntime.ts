@@ -38,7 +38,7 @@ import {
   type SceneDoor,
 } from '../../dev/sceneColliders';
 import { GROUND_SHADOW as HERO_SHADOW, makeGroundShadowTexture } from '../groundShadow';
-import { buildDepthBand, LEVEL_STRIDE } from '../../dev/sceneDepth';
+import { buildDepthBand, DEPTH, LEVEL_STRIDE } from '../../dev/sceneDepth';
 import { feetBlocked } from '../v2-preview/walkBlocking';
 import {
   EMPTY_ELEVATION,
@@ -52,13 +52,7 @@ import {
   type ElevationMap,
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
-import {
-  ALWAYS_LOADED,
-  EXPLORABLE_SCENES,
-  SCENE_MANIFEST,
-  YSORT_SCENES,
-  type SceneTraits,
-} from './sceneManifest';
+import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
 import { quantiseFacing, resolveAim, initialAim, type AimState } from '../combat/aim';
 import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
 import {
@@ -67,6 +61,17 @@ import {
   walkScale,
   type ActionState,
 } from '../combat/actionState';
+import {
+  HAND_SIZE,
+  canFire,
+  commitSelected,
+  cycleSelection,
+  emptyHand,
+  handFromCards,
+  releaseCommitted,
+  selectSlot,
+  type Hand,
+} from '../combat/hand';
 import {
   CARD_HEIGHT_PX,
   DEFAULT_BLAST,
@@ -202,6 +207,16 @@ function resolveZoom(): number {
 const WALK_SPEED = 190;
 
 /**
+ * The hand a profile with no cards gets.
+ *
+ * Combat has to be testable before the forge has been used — on a fresh account,
+ * in the harness, and in a scene loaded straight from the Editor. These are ids
+ * that deliberately match no real card, so anything that resolves one and finds
+ * nothing is looking at a placeholder rather than at corrupt data.
+ */
+const PLACEHOLDER_CARD_IDS = ['practice_1', 'practice_2', 'practice_3', 'practice_4'] as const;
+
+/**
  * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
  *
  * CourtyardV2 shipped with no observation handle at all — the `Phaser.Game` is a
@@ -256,7 +271,17 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       targets?: { pos: { x: number; y: number }; alive: boolean }[];
     };
     if (!s.action) return null;
+    const hand = (scene as unknown as { hand?: { slots: { cardId: string | null; state: string }[]; selected: number | null } }).hand;
+    const ids = (hand?.slots ?? []).map((x) => x.cardId).filter(Boolean);
     return {
+      hand: hand
+        ? {
+            selected: hand.selected,
+            slots: hand.slots.map((x) => `${x.cardId ?? '-'}:${x.state}`),
+            // The §7.4 invariant, checkable from outside rather than believed.
+            noDuplicates: ids.length === new Set(ids).size,
+          }
+        : null,
       phase: s.action.phase,
       elapsedMs: Math.round(s.action.elapsedMs),
       committedAim: s.action.committedAim,
@@ -300,8 +325,11 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
  * it cost. Re-exported here because this module is what the shell and the preview
  * import; the manifest is the declaration, this is the door to it.
  */
-export { EXPLORABLE_SCENES, YSORT_SCENES, ALWAYS_LOADED, SCENE_MANIFEST };
-export type { SceneTraits };
+// NOT re-exported from here. Tunnelling the manifest's bindings back out through
+// this module broke the Vite dev server outright ("Export 'ALWAYS_LOADED' is not
+// defined in module") while tsc and the production build both stayed happy — and
+// a runtime that only fails in dev is the worst place to hide a barrel. Import
+// them from './sceneManifest', which is where they are declared anyway.
 
 export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
 
@@ -320,6 +348,14 @@ export interface RuntimeHooks {
   onDoorEnter?: (destination: DoorDestination) => void;
   /** Fires on Escape. The pause menu is the shell's, not the world's. */
   onPause?: () => void;
+  /**
+   * Canonical `Card.cardId`s to fill the hand with, most-recent first.
+   *
+   * Passed in rather than read from storage here so the world stays independent
+   * of persistence — `/dev/scene` can hand it fixtures, and the castle hands it
+   * the player's real collection, without the scene knowing which is which.
+   */
+  cardIds?: readonly string[];
 }
 
 export function makeScene(
@@ -371,7 +407,19 @@ export function makeScene(
      * card IDs is the next one — wiring the collection in before a single blast
      * feels right would mean tuning the verb through a menu.
      */
-    private hasReadyCard = true;
+    /**
+     * The four cards he carries.
+     *
+     * Seeded from the player's real collection where there is one, and from
+     * placeholder ids otherwise so the courtyard is testable on a fresh profile.
+     * The hand owns which card is where; nothing here writes a slot directly.
+     */
+    private hand: Hand = emptyHand();
+    private slotKeys: Phaser.Input.Keyboard.Key[] = [];
+    private hudSlots: { frame: Phaser.GameObjects.Rectangle; pip: Phaser.GameObjects.Rectangle }[] = [];
+    private shoulderHeld = false;
+    /** Slot index of the shot in flight, so its card is released when it lands. */
+    private committedSlot: number | null = null;
     /**
      * Fire is held rather than tapped, which gives repeat fire at the cadence of
      * windup + active + recovery. The state machine only leaves `explore` on a
@@ -548,7 +596,7 @@ export function makeScene(
         // After spawnPlayer, so the dummy can be placed relative to a world that
         // already knows where the hero stands, and after the depth band so both
         // it and the held card join the same sorted layer as everything else.
-        this.setupCombat(bounds);
+        this.setupCombat(bounds, hooks.cardIds ?? []);
       }
 
       if (this.player) {
@@ -669,6 +717,14 @@ export function makeScene(
       this.jumpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
       this.fireKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+      // 1-4 pick a card. ONE/TWO/THREE/FOUR are the number row, not the numpad;
+      // a laptop without a numpad is the common case, not the exception.
+      this.slotKeys = [
+        Phaser.Input.Keyboard.KeyCodes.ONE,
+        Phaser.Input.Keyboard.KeyCodes.TWO,
+        Phaser.Input.Keyboard.KeyCodes.THREE,
+        Phaser.Input.Keyboard.KeyCodes.FOUR,
+      ].map((code) => keyboard.addKey(code));
       this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     }
 
@@ -730,7 +786,7 @@ export function makeScene(
      * is scaffolding: putting it in the .scene file would mean Raheem has to
      * delete it later, and would collide with his own editing of that file.
      */
-    private setupCombat(bounds: Phaser.Geom.Rectangle) {
+    private setupCombat(bounds: Phaser.Geom.Rectangle, cardIds: readonly string[]) {
       const dummyX = Phaser.Math.Clamp(bounds.centerX + 260, bounds.x + 80, bounds.right - 80);
       const dummyY = Phaser.Math.Clamp(bounds.centerY + 40, bounds.y + 80, bounds.bottom - 80);
 
@@ -750,6 +806,79 @@ export function makeScene(
       this.heldCard.setStrokeStyle(2, 0x6b4a1f);
       this.heldCard.setVisible(false);
       this.depthBand?.add(this.heldCard);
+
+      this.hand = handFromCards(cardIds.length > 0 ? cardIds : PLACEHOLDER_CARD_IDS);
+      this.buildHandHud();
+    }
+
+    /**
+     * The hand, drawn in screen space.
+     *
+     * `setScrollFactor(0)` pins it to the camera and `DEPTH.markers` puts it above
+     * every elevation level — a HUD that sorted with the world would slide under a
+     * terrace the moment the player climbed one.
+     *
+     * Subordinate to the world on purpose: small, low-contrast, bottom-centred.
+     * The card art belongs on the card, and a HUD that competes with the courtyard
+     * is the failure the UI direction warns about. Real card faces replace these
+     * pips once the shape is proven in play.
+     */
+    private buildHandHud() {
+      const cam = this.cameras.main;
+      const w = 34;
+      const gap = 8;
+      const totalWidth = HAND_SIZE * w + (HAND_SIZE - 1) * gap;
+      const left = cam.width / 2 - totalWidth / 2 + w / 2;
+      const y = cam.height - 40;
+
+      this.hudSlots = Array.from({ length: HAND_SIZE }, (_, i) => {
+        const x = left + i * (w + gap);
+        const frame = this.add.rectangle(x, y, w, w * 1.4, 0x0d0b08, 0.55);
+        frame.setStrokeStyle(2, 0x8a7a55);
+        frame.setScrollFactor(0).setDepth(DEPTH.markers + 1);
+        const pip = this.add.rectangle(x, y, w - 12, w * 1.4 - 12, 0xf2e2b6);
+        pip.setScrollFactor(0).setDepth(DEPTH.markers + 2);
+        return { frame, pip };
+      });
+      this.refreshHandHud();
+    }
+
+    /** Repaint the slots from the hand. Called whenever a slot could have changed. */
+    private refreshHandHud() {
+      this.hudSlots.forEach((hud, i) => {
+        const slot = this.hand.slots[i];
+        const isSelected = this.hand.selected === i;
+
+        // The four states have to be tellable apart at a glance while running:
+        // holding a card, having lost one, mid-throw, and nothing there at all.
+        const fill =
+          slot.state === 'ready' ? 0xf2e2b6 : slot.state === 'committed' ? 0x9a8ac0 : 0x2a2620;
+        hud.pip.setFillStyle(fill, slot.state === 'empty' ? 0.25 : 1);
+        hud.pip.setVisible(slot.state !== 'empty');
+
+        hud.frame.setStrokeStyle(isSelected ? 3 : 2, isSelected ? 0xffd479 : 0x8a7a55);
+        hud.frame.setFillStyle(0x0d0b08, isSelected ? 0.75 : 0.55);
+      });
+    }
+
+    /** Number keys pick a slot; shoulder buttons cycle for a pad. */
+    private readSelection() {
+      for (let i = 0; i < this.slotKeys.length; i++) {
+        if (Phaser.Input.Keyboard.JustDown(this.slotKeys[i])) {
+          this.hand = selectSlot(this.hand, i);
+          this.refreshHandHud();
+        }
+      }
+
+      const pad = this.input.gamepad?.getPad(0);
+      const shoulder = pad?.L1 ? -1 : pad?.R1 ? 1 : 0;
+      if (shoulder !== 0 && !this.shoulderHeld) {
+        this.hand = cycleSelection(this.hand, shoulder as 1 | -1);
+        this.refreshHandHud();
+      }
+      // Edge-detected by hand: a held shoulder button would otherwise cycle the
+      // whole hand every frame and settle on whatever the release landed on.
+      this.shoulderHeld = shoulder !== 0;
     }
 
     /**
@@ -762,12 +891,15 @@ export function makeScene(
     private updateCombat(delta: number) {
       if (!this.player) return;
 
+      this.readSelection();
+
       const feet = { x: this.player.x, y: this.feetY };
+      const wasExploring = this.action.phase === 'explore';
       this.action = stepAction(
         this.action,
         {
           firePressed: this.fireHeld,
-          hasReadyCard: this.hasReadyCard,
+          hasReadyCard: canFire(this.hand),
           // Knockdown arrives with the card-scatter milestone. Passing the flag
           // as a literal keeps the machine's only entry to it honest until then,
           // rather than leaving a field nothing ever sets.
@@ -776,6 +908,23 @@ export function makeScene(
         },
         delta,
       );
+
+      // The throw starts: the card leaves the hand's control until it resolves, so
+      // it cannot be fired twice or scattered out from under its own shot.
+      if (wasExploring && this.action.phase === 'windup') {
+        this.committedSlot = this.hand.selected;
+        this.hand = commitSelected(this.hand);
+        this.refreshHandHud();
+      }
+
+      // And comes back when control does. Tied to the state machine rather than to
+      // the projectile, because a shot that flies off the map never resolves and
+      // its card would never return.
+      if (this.action.phase === 'explore' && this.committedSlot !== null) {
+        this.hand = releaseCommitted(this.hand, this.committedSlot);
+        this.committedSlot = null;
+        this.refreshHandHud();
+      }
 
       if (this.action.fireThisStep && this.action.committedAim) {
         const origin = cardOrigin(feet, this.action.committedAim);

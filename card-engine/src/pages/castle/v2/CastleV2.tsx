@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ALWAYS_LOADED,
   entriesUsedBy,
   fetchSceneSource,
   loadPackEntries,
@@ -10,7 +9,9 @@ import {
   type PackEntry,
   type Status,
 } from './courtyardRuntime';
+import { ALWAYS_LOADED } from './sceneManifest';
 import { HERO_SHEET } from '../../../data/castle/heroSprite';
+import { getAllCards } from '../../../services/storage';
 import { DOOR_LABELS, type DoorDestination } from '../../dev/sceneColliders';
 import { PauseMenu } from '../PauseMenu';
 import { CollectionStall } from '../stalls/CollectionStall';
@@ -121,6 +122,15 @@ export function CastleV2() {
           onPause: () => {
             if (!cancelled) setPaused((p) => !p);
           },
+          // His actual characters, newest first. The world takes ids and never
+          // touches storage itself, so the harness can hand it fixtures instead.
+          // An empty collection falls back to practice cards rather than to a
+          // courtyard where the attack silently does nothing.
+          cardIds: getAllCards()
+            .slice()
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            .slice(0, 4)
+            .map((c) => c.cardId),
         },
       );
 

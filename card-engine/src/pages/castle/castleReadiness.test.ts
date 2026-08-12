@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { PRODUCTION_SCENE, EXPLORABLE_SCENES, ALWAYS_LOADED } from './v2/courtyardRuntime';
+import { PRODUCTION_SCENE } from './v2/courtyardRuntime';
+import { EXPLORABLE_SCENES, ALWAYS_LOADED } from './v2/sceneManifest';
 import { SCENE_BEHAVIORS } from '../dev/sceneBehaviors';
 import { DOOR_COLORS, COLLIDER_COLORS } from '../dev/sceneColliders';
 

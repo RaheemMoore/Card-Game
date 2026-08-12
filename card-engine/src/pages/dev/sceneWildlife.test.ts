@@ -171,7 +171,7 @@ describe('readSceneWildlife', () => {
  */
 describe('every explorable scene has a behaviour registered', () => {
   it('leaves no walkable scene silently inert', async () => {
-    const { EXPLORABLE_SCENES } = await import('../castle/v2/courtyardRuntime');
+    const { EXPLORABLE_SCENES } = await import('../castle/v2/sceneManifest');
     const { SCENE_BEHAVIORS } = await import('./sceneBehaviors');
 
     const missing = [...EXPLORABLE_SCENES].filter((name) => !SCENE_BEHAVIORS[name]);
