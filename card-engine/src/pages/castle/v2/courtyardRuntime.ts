@@ -276,9 +276,28 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       targets?: { pos: { x: number; y: number }; alive: boolean }[];
     };
     if (!s.action) return null;
-    const hand = (scene as unknown as { hand?: { slots: { cardId: string | null; state: string }[]; selected: number | null } }).hand;
+    const scn = scene as unknown as {
+      hand?: { slots: { cardId: string | null; state: string }[]; selected: number | null };
+      hudSlots?: { frame: { x: number; y: number; visible: boolean } }[];
+    };
+    const cam = scene.cameras.main;
+    const hand = scn.hand;
     const ids = (hand?.slots ?? []).map((x) => x.cardId).filter(Boolean);
     return {
+      // Where the HUD actually is, versus how big the viewport actually is.
+      // "I see no cards" has two very different causes — nothing was built, or
+      // it was built off-screen — and they are indistinguishable by looking.
+      hud: {
+        viewport: { w: Math.round(cam.width), h: Math.round(cam.height) },
+        slots: (scn.hudSlots ?? []).map((s2) => ({
+          x: Math.round(s2.frame.x),
+          y: Math.round(s2.frame.y),
+          visible: s2.frame.visible,
+        })),
+        onScreen: (scn.hudSlots ?? []).every(
+          (s2) => s2.frame.x > 0 && s2.frame.x < cam.width && s2.frame.y > 0 && s2.frame.y < cam.height,
+        ),
+      },
       hand: hand
         ? {
             selected: hand.selected,
