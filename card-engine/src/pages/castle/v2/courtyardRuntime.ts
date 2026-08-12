@@ -52,6 +52,13 @@ import {
   type ElevationMap,
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
+import {
+  ALWAYS_LOADED,
+  EXPLORABLE_SCENES,
+  SCENE_MANIFEST,
+  YSORT_SCENES,
+  type SceneTraits,
+} from './sceneManifest';
 
 export const DEFAULT_SCENE = 'CourtyardV2';
 
@@ -223,55 +230,13 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
 }
 
 /**
- * Scenes that get the walkable hero.
- *
- * WildlifeLab is here because its subject IS the reaction to a player — the
- * animals' flee and observe radii cannot be reviewed without something to walk
- * at them — so it needs the hero for the same reason the courtyard does.
+ * Which scenes are walkable, y-sorted, animated and force-loaded now lives in one
+ * record — see sceneManifest.ts for why these were four hand-kept lists and what
+ * it cost. Re-exported here because this module is what the shell and the preview
+ * import; the manifest is the declaration, this is the door to it.
  */
-export const EXPLORABLE_SCENES = new Set(['CourtyardV2', 'CourtyardV3', 'WildlifeLab']);
-
-/**
- * Scenes whose objects are collapsed into one y-sorted band (see sceneDepth.ts).
- *
- * Opt-in rather than universal: y-sorting reparents every object, which is right
- * for a world you walk around in and wrong for a lab whose whole job is to show
- * clips in a fixed arrangement.
- */
-const YSORT_SCENES = new Set(['CourtyardV2', 'CourtyardV3']);
-
-/**
- * Texture keys a scene needs that never appear in its compiled source.
- *
- * `entriesUsedBy` finds keys by looking for them quoted in the code, which works
- * only for textures sitting on a placed object. Both wildlife scenes place an
- * animal on its MOVE sheet; sniff, sit-and-listen and nibble are reached solely
- * through animations created at run time, so nothing would name them and they
- * would silently fail to load — no error, just an animal missing two thirds of
- * its behaviour.
- */
-const WILDLIFE_SHEETS = [
-  'wildlife-fox-trot',
-  'wildlife-fox-sniff',
-  'wildlife-fox-sit-alert',
-  // Drinking is reached only through the brain, so nothing names this sheet
-  // either — and it caught exactly the failure this comment warns about the very
-  // first time a clip was added after the list was written. Add the key here
-  // whenever a new clip lands, or it loads in the review lab and nowhere else.
-  'wildlife-fox-drink',
-  'wildlife-rabbit-hop',
-  'wildlife-rabbit-nibble-groom',
-  'wildlife-rabbit-drink',
-  'wildlife-tortoise-toddle',
-  'wildlife-fish-swim',
-  'wildlife-tortoise-float',
-] as const;
-
-export const ALWAYS_LOADED: Record<string, readonly string[]> = {
-  WildlifeLab: WILDLIFE_SHEETS,
-  CourtyardV2: WILDLIFE_SHEETS,
-  CourtyardV3: WILDLIFE_SHEETS,
-};
+export { EXPLORABLE_SCENES, YSORT_SCENES, ALWAYS_LOADED, SCENE_MANIFEST };
+export type { SceneTraits };
 
 export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
 

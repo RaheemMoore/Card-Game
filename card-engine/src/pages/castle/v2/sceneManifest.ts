@@ -1,0 +1,115 @@
+import { attachWildlifeLab } from '../../dev/sceneBehaviors/wildlifeLab';
+import { attachCourtyardWildlife } from '../../dev/sceneBehaviors/courtyardWildlife';
+import type { SceneBehaviorFactory } from '../../dev/sceneBehaviors/types';
+
+/**
+ * What every Phaser Editor scene is, declared once.
+ *
+ * THE TRAP THIS REPLACES. A walkable scene used to be named in four separate
+ * places — `EXPLORABLE_SCENES`, `YSORT_SCENES` and `ALWAYS_LOADED` in
+ * courtyardRuntime.ts, and `SCENE_BEHAVIORS` in sceneBehaviors/index.ts. Three
+ * were lists of strings and the fourth a lookup table, so the compiler could not
+ * relate them, and a scene present in three of four produced no error anywhere.
+ * CourtyardV3 landed exactly that way: sprites placed, roam boxes drawn, sheets
+ * loaded, swept into the depth band, and standing perfectly still, because nothing
+ * had been attached to move them. Raheem, 2026-08-09: "the animals aren't moving
+ * around and showing their usual behaviors."
+ *
+ * An unregistered scene is indistinguishable from a scene that legitimately has no
+ * behaviour, so there was nothing to throw. The fix is not a better comment — the
+ * old one warned about this in detail and it happened anyway. It is making the
+ * four facts one record, so a scene cannot be half-registered: adding a row is
+ * adding all four, and the sets below are derived rather than maintained.
+ *
+ * `sceneManifest.test.ts` holds the invariants a row still has to satisfy.
+ */
+
+/**
+ * Texture keys a scene needs that never appear in its compiled source.
+ *
+ * `entriesUsedBy` finds keys by looking for them quoted in the code, which works
+ * only for textures sitting on a placed object. Both wildlife scenes place an
+ * animal on its MOVE sheet; sniff, sit-and-listen and nibble are reached solely
+ * through animations created at run time, so nothing would name them and they
+ * would silently fail to load — no error, just an animal missing two thirds of
+ * its behaviour.
+ */
+const WILDLIFE_SHEETS = [
+  'wildlife-fox-trot',
+  'wildlife-fox-sniff',
+  'wildlife-fox-sit-alert',
+  // Drinking is reached only through the brain, so nothing names this sheet
+  // either — and it caught exactly the failure this comment warns about the very
+  // first time a clip was added after the list was written. Add the key here
+  // whenever a new clip lands, or it loads in the review lab and nowhere else.
+  'wildlife-fox-drink',
+  'wildlife-rabbit-hop',
+  'wildlife-rabbit-nibble-groom',
+  'wildlife-rabbit-drink',
+  'wildlife-tortoise-toddle',
+  'wildlife-fish-swim',
+  'wildlife-tortoise-float',
+] as const;
+
+export interface SceneTraits {
+  /**
+   * Gets the walkable hero.
+   *
+   * WildlifeLab is explorable because its subject IS the reaction to a player —
+   * the animals' flee and observe radii cannot be reviewed without something to
+   * walk at them — so it needs the hero for the same reason the courtyard does.
+   */
+  explorable: boolean;
+
+  /**
+   * Objects are collapsed into one y-sorted band (see sceneDepth.ts).
+   *
+   * Opt-in rather than universal: y-sorting reparents every object, which is
+   * right for a world you walk around in and wrong for a lab whose whole job is
+   * to show clips in a fixed arrangement.
+   */
+  ySort: boolean;
+
+  /** Per-scene runtime behaviour, attached after the compiled scene is built. */
+  behavior?: SceneBehaviorFactory;
+
+  /** Texture keys to force-load because nothing in the scene source names them. */
+  alwaysLoaded?: readonly string[];
+}
+
+export const SCENE_MANIFEST: Record<string, SceneTraits> = {
+  CourtyardV2: {
+    explorable: true,
+    ySort: true,
+    behavior: attachCourtyardWildlife,
+    alwaysLoaded: WILDLIFE_SHEETS,
+  },
+  CourtyardV3: {
+    explorable: true,
+    ySort: true,
+    behavior: attachCourtyardWildlife,
+    alwaysLoaded: WILDLIFE_SHEETS,
+  },
+  WildlifeLab: {
+    explorable: true,
+    ySort: false,
+    behavior: attachWildlifeLab,
+    alwaysLoaded: WILDLIFE_SHEETS,
+  },
+};
+
+const rows = Object.entries(SCENE_MANIFEST);
+
+export const EXPLORABLE_SCENES = new Set(
+  rows.filter(([, t]) => t.explorable).map(([name]) => name),
+);
+
+export const YSORT_SCENES = new Set(rows.filter(([, t]) => t.ySort).map(([name]) => name));
+
+export const ALWAYS_LOADED: Record<string, readonly string[]> = Object.fromEntries(
+  rows.filter(([, t]) => t.alwaysLoaded).map(([name, t]) => [name, t.alwaysLoaded!]),
+);
+
+export const SCENE_BEHAVIORS: Record<string, SceneBehaviorFactory> = Object.fromEntries(
+  rows.filter(([, t]) => t.behavior).map(([name, t]) => [name, t.behavior!]),
+);
