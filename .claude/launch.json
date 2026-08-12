@@ -2,11 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "//": "Port 5190, not 5173: the admin/Lore-Desk session runs its own dev server from the main checkout on the default port, and two Vite servers racing for 5173 serve each other's worktree. --port is passed to Vite explicitly because Vite ignores the launcher's PORT env var and falls back to its config default.",
       "name": "card-engine-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "card-engine"],
-      "port": 5173,
-      "autoPort": true
+      "runtimeArgs": ["run", "dev", "--prefix", "card-engine", "--", "--port", "5190", "--strictPort"],
+      "port": 5190,
+      "autoPort": false
     },
     {
       "//": "The Studio Wiki is its own Vite app and its own Vercel project. It reads PRODUCTION.md at build time and serves card-engine/public as its publicDir, so it must run from the repo root context, not standalone.",
