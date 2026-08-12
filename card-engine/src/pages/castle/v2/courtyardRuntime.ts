@@ -53,6 +53,7 @@ import {
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
 import {
+  KNOCKDOWN_ANCHOR,
   KNOCKDOWN_ANIM,
   KNOCKDOWN_DURATIONS_MS,
   KNOCKDOWN_SHEET,
@@ -364,10 +365,51 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
     if (!s.action) return null;
     const scn = scene as unknown as {
       hand?: { slots: { cardId: string | null; state: string }[]; selected: number | null };
+      player?: Phaser.GameObjects.Sprite;
+      fireStats?: Record<string, number | string>;
     };
     const hand = scn.hand;
     const ids = (hand?.slots ?? []).map((x) => x.cardId).filter(Boolean);
+    const p = scn.player;
     return {
+      /**
+       * What the hero sprite ACTUALLY is right now.
+       *
+       * "He just turns into a dark spot" is one symptom covering four different
+       * causes — wrong texture, wrong frame, wrong origin, wrong scale — and a
+       * screenshot cannot separate them. This can, in one paste.
+       */
+      hero: p
+        ? {
+            texture: p.texture?.key,
+            frame: String(p.frame?.name),
+            anim: p.anims?.currentAnim?.key ?? null,
+            playing: p.anims?.isPlaying ?? false,
+            origin: { x: p.originX, y: +p.originY.toFixed(3) },
+            scale: { x: +p.scaleX.toFixed(3), y: +p.scaleY.toFixed(3) },
+            display: { w: Math.round(p.displayWidth), h: Math.round(p.displayHeight) },
+            visible: p.visible,
+            alpha: p.alpha,
+          }
+        : null,
+      /**
+       * Whether the textures the CODE plays are actually in memory.
+       *
+       * Nothing in the scene source names these, so they load only by being in
+       * alwaysLoaded — the trap that has now silently disabled three assets.
+       */
+      textures: {
+        knockdown: scene.textures.exists('hero-knockdown'),
+        walk: scene.textures.exists('hero-chibi'),
+        fireStream: scene.textures.exists('fx-lash-fire-stream'),
+      },
+      /**
+       * Where the fire chain breaks, rather than merely that it did.
+       *
+       * input -> charging -> release -> windup -> fireThisStep -> projectile.
+       * Each counter is the last stage that was reached.
+       */
+      fire: scn.fireStats ?? null,
       // Cards lying in the world. A scatter that strands one is the failure this
       // whole milestone is about, so it is reported rather than eyeballed.
       onGround: (
@@ -568,6 +610,7 @@ export function makeScene(
     private heroSheetKey: string = HERO_SHEET.key;
     /** Scale the walking sheet renders at, restored after the fall's sheet swap. */
     private heroScale = 1;
+    private standUpTimer?: Phaser.Time.TimerEvent;
 
     /** Walk animation key, namespaced so two sheets cannot share a cycle. */
     private heroWalkKey(facing: HeroFacing) {
@@ -586,6 +629,22 @@ export function makeScene(
      * is always worth at least one frame of charge and therefore always fires.
      */
     private firePressedLatch = false;
+    /**
+     * DEV counters for the fire chain, read by __cardEngineDev.castleCombat().
+     *
+     * Every stage the press has to survive gets its own tally, so a report of
+     * "shooting is broken" resolves to a stage instead of a guess. They only
+     * ever increment, so a stuck stage is the last one with a number.
+     */
+    private fireStats: Record<string, number | string> = {
+      latchHits: 0,
+      framesHeld: 0,
+      enteredCharging: 0,
+      enteredWindup: 0,
+      fireSteps: 0,
+      projectilesSpawned: 0,
+      lastPhase: 'explore',
+    };
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
      * Truth for collision, level and depth. The SPRITE's y is this minus the
@@ -1105,6 +1164,13 @@ export function makeScene(
         delta,
       );
 
+      if (this.action.phase !== previousPhase) {
+        this.fireStats.lastPhase = `${previousPhase}->${this.action.phase}`;
+        if (this.action.phase === 'charging') (this.fireStats.enteredCharging as number)++;
+        if (this.action.phase === 'windup') (this.fireStats.enteredWindup as number)++;
+      }
+      if (this.action.fireThisStep) (this.fireStats.fireSteps as number)++;
+
       // He just went down. Scatter once, on the transition — not every frame he
       // spends on the floor.
       if (this.action.phase === 'knockdown' && !this.wasDown) {
@@ -1166,6 +1232,7 @@ export function makeScene(
             .setStrokeStyle(2, 0xffffff);
         this.depthBand?.add(gfx);
         this.projectiles.push({ sim, gfx, kit, charge });
+        (this.fireStats.projectilesSpawned as number)++;
       }
 
       for (const shot of this.projectiles) {
@@ -1347,6 +1414,10 @@ export function makeScene(
       // Both sheets are authored so he stands 71px tall, so this is 1:1 and the
       // swap does not change his size.
       this.player.setScale(1);
+      // The fall's frames carry empty space below the feet where the walk sheet
+      // has almost none, so the walk's origin of 1.0 would lift him ~24px off the
+      // ground exactly as he is supposed to be hitting it.
+      this.player.setOrigin(KNOCKDOWN_ANCHOR.x, KNOCKDOWN_ANCHOR.y);
       this.player.play(KNOCKDOWN_ANIM);
     }
 
@@ -1357,15 +1428,25 @@ export function makeScene(
       // Restore the walking sheet on time rather than on the animation event —
       // a clip that never completes would otherwise leave him lying down with
       // full control, which looks like the sprite broke.
-      this.time.delayedCall(ACTION_TIMING.standUpMs, () => this.restoreWalkSprite());
+      //
+      // One timer at a time: knocked down again mid-stand-up, a second call would
+      // fire later and swap the walk sheet back in on top of a fresh fall.
+      this.standUpTimer?.remove();
+      this.standUpTimer = this.time.delayedCall(ACTION_TIMING.standUpMs, () =>
+        this.restoreWalkSprite(),
+      );
     }
 
     /** Back to the walking sheet and its scale. */
     private restoreWalkSprite() {
       if (!this.player) return;
+      this.standUpTimer?.remove();
+      this.standUpTimer = undefined;
       this.player.anims.stop();
       this.player.setTexture(this.heroSheetKey, idleFrame(this.facing));
       this.player.setScale(this.heroScale);
+      // Back to feet-at-the-bottom, or he would walk around sunk into the floor.
+      this.player.setOrigin(0.5, 1);
     }
 
     /** A readable reaction, so a hit cannot be mistaken for a miss. */
@@ -1434,6 +1515,8 @@ export function makeScene(
       // need one frame with the key down, and charge-and-release needs a press
       // AND a release, so a quick tap could vanish without a trace.
       this.fireHeld = firePressed || this.firePressedLatch;
+      if (this.firePressedLatch) (this.fireStats.latchHits as number)++;
+      if (this.fireHeld) (this.fireStats.framesHeld as number)++;
       this.firePressedLatch = false;
 
       const inputs = buildAimInputs(

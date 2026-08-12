@@ -13,6 +13,7 @@ import {
 import slamTwin from '../../../public/assets/castle/hero/card-slam/card-slam-sheet.json';
 import {
   KNOCKDOWN_SHEET,
+  KNOCKDOWN_ANCHOR,
   KNOCKDOWN_DURATIONS_MS,
   KNOCKDOWN_TOTAL_MS,
 } from '../../data/castle/knockdownSprite';
@@ -143,6 +144,17 @@ describe('asset pack ↔ runtime parity', () => {
     expect(KNOCKDOWN_TOTAL_MS).toBe(ACTION_TIMING.knockdownMs);
     expect(knockdownTwin.animation.durationsMs).toEqual([...KNOCKDOWN_DURATIONS_MS]);
     expect(knockdownTwin.frameCount).toBe(KNOCKDOWN_SHEET.frameCount);
+  });
+
+  it('anchors the fall where its feet actually are', () => {
+    // 0.95 was copied from the card slam and lifted him ~24px off the ground at
+    // the sprite swap — he left the floor on the frame he was meant to hit it.
+    // The number belongs to THIS art, so the module and the twin must agree.
+    expect(KNOCKDOWN_ANCHOR.y).toBeCloseTo(knockdownTwin.anchor.y, 3);
+    expect(KNOCKDOWN_ANCHOR.x).toBeCloseTo(knockdownTwin.anchor.x, 3);
+    // Well clear of the walk sheet's near-1.0: if these ever converge, someone
+    // has copied a number again instead of measuring one.
+    expect(KNOCKDOWN_ANCHOR.y).toBeLessThan(0.9);
   });
 
   it('carries every keeper sheet whose art has landed, at matching frame sizes', () => {

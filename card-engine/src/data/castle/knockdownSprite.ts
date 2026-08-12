@@ -49,10 +49,18 @@ export const KNOCKDOWN_DURATIONS_MS: readonly number[] = [
 export const KNOCKDOWN_TOTAL_MS = KNOCKDOWN_DURATIONS_MS.reduce((a, b) => a + b, 0);
 
 /**
- * Feet origin, matching the walking sheet so he does not jump on the frame the
- * fall starts.
+ * Feet origin — MEASURED from the art, not copied from another clip.
+ *
+ * 0.95 was inherited from the card slam and is wrong here: every knockdown frame
+ * carries an empty skirt below the feet (24px while he is still upright), where
+ * the walking sheet's feet sit 1px off the frame bottom. Rendered at the walk's
+ * origin of 1.0 the whole body lifts about 24 world pixels the instant the
+ * texture swaps, which reads as him leaving the ground rather than falling to it.
+ *
+ * 88/112 = 0.786 is the row his feet actually occupy in frame 0, so the swap
+ * keeps his feet where his feet were.
  */
-export const KNOCKDOWN_ANCHOR = { x: 0.5, y: 0.95 } as const;
+export const KNOCKDOWN_ANCHOR = { x: 0.5, y: 0.786 } as const;
 
 /**
  * Only the south (screen-facing) direction exists, deliberately.
