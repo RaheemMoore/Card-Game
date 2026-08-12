@@ -1,40 +1,32 @@
+import { useSyncExternalStore } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePromptLabChain } from '../../services/forge/usePromptLabChain';
+import * as bench from '../../services/workshop/benchController';
 
 /**
- * Global Prompt Lab indicator. Mounted once in AdminShell so it floats over
- * every admin route. The promptLabController already runs tier generations in
- * module scope (they survive navigating to another admin page) — but nothing
- * told the admin a run was still cooking once they left. This pill does: while
- * any tier slot is running it pulses, and clicking jumps back to the Lab.
+ * "A paid generation is still running" — floating over every admin route.
+ *
+ * Mounted once in AdminShell. `benchController` runs its generations at module
+ * scope precisely so navigating away mid-run does not kill them, which leaves
+ * a hole: an operator can start a Leonardo call, walk to another stage, and
+ * have nothing on screen saying money is still moving. This pill is that
+ * signal, and clicking it goes back to the bench.
+ *
+ * Repointed from `promptLabController` to `benchController` when the Prompt Lab
+ * was retired (2026-08-12). The indicator deliberately OUTLIVED the page it was
+ * built for: losing it would have been a regression smuggled in as a cleanup.
  */
 export function LabIndicator() {
   const navigate = useNavigate();
-  const chain = usePromptLabChain();
+  const state = useSyncExternalStore(bench.subscribe, bench.getState, bench.getState);
 
-  const runningTier =
-    chain.foundation.phase === 'running'
-      ? 'Foundation'
-      : chain.forged.phase === 'running'
-        ? 'Forged'
-        : chain.ascendant.phase === 'running'
-          ? 'Ascendant'
-          : null;
-
-  if (!runningTier) return null;
-
-  const step =
-    (chain.foundation.phase === 'running' && chain.foundation.step) ||
-    (chain.forged.phase === 'running' && chain.forged.step) ||
-    (chain.ascendant.phase === 'running' && chain.ascendant.step) ||
-    'Generating…';
+  if (state.status.phase !== 'running') return null;
 
   return (
     <button
       type="button"
-      onClick={() => navigate('/admin/prompt-lab')}
-      aria-label={`Prompt Lab is generating the ${runningTier} tier — return to the Lab`}
-      title={step}
+      onClick={() => navigate('/admin/workshop?stage=bench')}
+      aria-label={`The bench is generating a ${state.archetype} candidate — return to it`}
+      title={state.status.step}
       className="fixed z-50 bottom-6 right-6 flex items-center gap-2 rounded-full pl-2 pr-4 py-2
         font-semibold text-sm shadow-lg transition-transform hover:scale-105 forge-pulse"
       style={{
@@ -49,7 +41,7 @@ export function LabIndicator() {
       >
         <span className="w-3.5 h-3.5 border-2 border-sky-300/40 border-t-sky-300 rounded-full animate-spin" />
       </span>
-      <span className="whitespace-nowrap">Lab · {runningTier}</span>
+      <span className="whitespace-nowrap">Bench · {state.archetype}</span>
     </button>
   );
 }

@@ -1,6 +1,6 @@
 # Leonardo Playbook
 
-A **living** knowledge store for what actually works when prompting Leonardo (Phoenix) for this game's art. Subagents start cold every session — this file is how learnings compound over time. The **art-prompt-director** agent reads this before any image work and **appends** a dated entry whenever we observe a real result (good or bad), especially via the Prompt Lab regen-verify loop.
+A **living** knowledge store for what actually works when prompting Leonardo (Phoenix) for this game's art. Subagents start cold every session — this file is how learnings compound over time. The **art-prompt-director** agent reads this before any image work and **appends** a dated entry whenever we observe a real result (good or bad), especially from a Workshop bench run. (This said "the Prompt Lab regen-verify loop" until 2026-08-12; that loop never had a caller and went with the Lab.)
 
 > Rule: never delete a learning — supersede it with a newer dated entry. Keep entries concrete (name the element/effect, the exact language, the observed outcome).
 

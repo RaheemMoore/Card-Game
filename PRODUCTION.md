@@ -575,7 +575,7 @@ Found while writing §6. Every one of these is a tool that exists and doesn't fu
 | Arena gallery prints `style-ref · undefined` — reads `st.strength`, which arena configs never set | `scripts/bg-harness/harness.mjs:242` |
 | Arena gallery lede is hardcoded Druid forge copy ("one grove, remembered and corrupted") — wrong for every arena | `scripts/bg-harness/harness.mjs` (`cmdSheet`) |
 | No ability, lore or balance readout — three engines with no window | see §6 |
-| Prompt Lab has no screenshot in the guide (admin-gated, uncapturable) | §6 Card image workshop |
+| The Workshop bench has no screenshot in the guide (admin-gated, uncapturable) — was the Prompt Lab's thread until it retired | §6 Card image workshop |
 
 ### Doc drift — 6 items
 
@@ -738,12 +738,21 @@ them. Newly found, logged in §4.
 **A day here:** change how portraits get assembled, then look at the same character across
 Foundation, Forged and Ascendant to see whether they're still the same person.
 
-`PARTIAL` — make: `imageEngine` + `portraitAssembler` · see: `/admin/prompt-lab` (**paid**) ·
-run: `art-pipeline`
+`PARTIAL` — make: `imageEngine` + `portraitAssembler` · see: `/admin/workshop?stage=bench`
+(**paid**) · run: `art-pipeline`
 
-Prompt Lab is genuinely good — real Story Pillar questions, real element gating, three tiers
-side by side. But **every comparison spends real money**, and there's no free replay of past
-runs the way the arena gallery re-reads a manifest for nothing. That's the gap.
+**The gap is closed and the Prompt Lab is gone (2026-08-12).** Past bench candidates now
+re-display for free: the image bytes are stripped on save, but the objects sit in
+`prompt-test-artifacts` for thirty days and signed URLs are fetched on load. Comparing two
+earlier candidates costs nothing where it used to cost a fresh Leonardo roll.
+
+The Lab itself was retired the same day. It chained Foundation → Forged → Ascendant in-app,
+and rank art is made outside the app now from one good Foundation seed. Worth recording why
+its best-looking feature was not the loss it appeared: the Lab seeded its answers from
+`storyPillars.ts`, whose option ids `collectImagePins` does not recognise, so those answers
+never reached the image — its pictures came from the blind identity roll. The bench answers
+`visualQuestionsFor`, which is what the live forge actually runs. For image work the bench is
+not a reduced Lab, it is a more honest one.
 
 *No screenshot: the page is behind admin auth and I can't capture it. Adding one is a §4 thread.*
 

@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, Sparkles, FlaskConical, Hammer, Feather,
+  LayoutDashboard, Users, Sparkles, Hammer, Feather,
   Receipt, Activity, PanelLeftClose, PanelLeftOpen, LogOut, ArrowLeft,
   LibraryBig, ExternalLink,
   type LucideIcon,
@@ -39,7 +39,6 @@ const GROUPS: readonly NavGroup[] = [
   {
     label: 'AI Studio',
     items: [
-      { label: 'Prompt Lab', to: '/admin/prompt-lab', icon: FlaskConical },
       { label: 'Workshop', to: '/admin/workshop', icon: Hammer, directorOk: true },
       { label: 'Lore Desk', to: '/admin/lore-desk', icon: Feather, directorOk: true },
     ],
