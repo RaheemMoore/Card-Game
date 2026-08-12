@@ -54,7 +54,7 @@ import {
 import { HERO_FEET } from '../../../data/castle/heroSprite';
 import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
 import { quantiseFacing, resolveAim, initialAim, type AimState, type Vec2 } from '../combat/aim';
-import type { ElementName } from '../../../types/bible';
+import { ELEMENT_NAMES, type ElementName } from '../../../types/bible';
 import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
 import {
   initialAction,
@@ -250,6 +250,23 @@ const HERO_SHEETS: Record<string, { key: string; frameHeight: number }> = {
 function resolveHeroSheet(): { key: string; frameHeight: number } {
   const asked = new URLSearchParams(window.location.search).get('hero');
   return (asked && HERO_SHEETS[asked]) || HERO_SHEETS.chibi;
+}
+
+/**
+ * `?element=fire` forces every card in the hand to fire that element.
+ *
+ * Without it the blast art is unreachable on a fresh profile: practice cards
+ * carry no element, so every shot falls back to the placeholder circle and the
+ * 27 elements of PixelLab art might as well not be there. Reviewing art you
+ * cannot make appear is not reviewing it.
+ *
+ * Case-insensitive and validated against the Bible's own list, so a typo shows
+ * as the placeholder rather than as a missing texture.
+ */
+function resolveForcedElement(): ElementName | undefined {
+  const raw = new URLSearchParams(window.location.search).get('element');
+  if (!raw) return undefined;
+  return ELEMENT_NAMES.find((e) => e.toLowerCase() === raw.toLowerCase());
 }
 
 function resolveHeroHeight(): number {
@@ -942,7 +959,11 @@ export function makeScene(
       this.heldCard.setVisible(false);
       this.depthBand?.add(this.heldCard);
 
-      for (const c of cards) this.cardElements.set(c.cardId, c.element);
+      const forced = resolveForcedElement();
+      for (const c of cards) this.cardElements.set(c.cardId, forced ?? c.element);
+      // Practice cards have no element of their own, so the override has to reach
+      // them too or the flag does nothing on exactly the profile that needs it.
+      if (forced) for (const id of PLACEHOLDER_CARD_IDS) this.cardElements.set(id, forced);
       this.hand = handFromCards(
         cards.length > 0 ? cards.map((c) => c.cardId) : PLACEHOLDER_CARD_IDS,
       );
