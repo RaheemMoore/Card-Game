@@ -65,6 +65,7 @@ function pngSize(path) {
 const SHEETS = [
   { key: 'hero-chibi', dir: 'hero', manifest: 'chibi.json' },
   { key: 'hero-cardwright', dir: 'hero', manifest: 'cardwright.json' },
+  { key: 'hero-card-slam', dir: 'hero/card-slam', manifest: 'card-slam-sheet.json' },
   { key: 'keeper-dwarf', dir: 'keepers', manifest: 'dwarf-breathe.json' },
   { key: 'keeper-archivist', dir: 'keepers', manifest: 'archivist-breathe.json' },
   { key: 'prop-horse', dir: 'keepers', manifest: 'horse-eating.json' },

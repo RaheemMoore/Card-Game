@@ -215,6 +215,15 @@
       },
       {
         "type": "spritesheet",
+        "key": "hero-card-slam",
+        "url": "assets/castle/hero/card-slam/card-slam-sheet.png",
+        "frameConfig": {
+          "frameWidth": 84,
+          "frameHeight": 84
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "keeper-dwarf",
         "url": "assets/castle/keepers/dwarf-breathe.png",
         "frameConfig": {

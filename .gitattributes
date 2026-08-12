@@ -4,3 +4,9 @@
 .claude/**/*.md text eol=lf
 .claude/**/*.json text eol=lf
 .claude/**/*.py text eol=lf
+
+# Generated asset packs are byte-compared by `npm run assets:pack:check`. Checked
+# out with CRLF they read as stale on a clean tree, so the check cannot gate anything.
+card-engine/public/asset-pack.json text eol=lf
+card-engine/public/assets/**/area.json text eol=lf
+card-engine/public/assets/**/kit-pack.json text eol=lf

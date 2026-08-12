@@ -4,6 +4,13 @@ import { describe, expect, it } from 'vitest';
 import pack from '../../../public/asset-pack.json';
 import { OCCLUDERS, occluderKey, occluderPath } from '../../data/castle/occluders';
 import { HERO_SHEET } from '../../data/castle/heroSprite';
+import {
+  CARD_SLAM_SHEET,
+  CARD_SLAM_ANCHOR,
+  CARD_SLAM_DURATIONS_MS,
+  CARD_SLAM_TOTAL_MS,
+} from '../../data/castle/cardSlamSprite';
+import slamTwin from '../../../public/assets/castle/hero/card-slam/card-slam-sheet.json';
 import { KEEPERS } from '../../data/castle/keepers';
 import { WATER_LAYER } from '../../data/castle/courtyardLayers';
 
@@ -75,6 +82,38 @@ describe('asset pack ↔ runtime parity', () => {
       frameWidth: HERO_SHEET.frameWidth,
       frameHeight: HERO_SHEET.frameHeight,
     });
+  });
+
+  it('carries the card-slam performance at its own frame size', () => {
+    // The slam is 84x84 where the walk sheet is 36x71. Registering it against the
+    // hero's grid would slice a different animation out of the same pixels and
+    // still render something, which is why this asserts the sizes independently.
+    const slam = entries.get(CARD_SLAM_SHEET.key);
+    expect(slam, 'card-slam sheet missing — re-run build-asset-pack.mjs').toBeDefined();
+    expect(slam!.url).toBe(CARD_SLAM_SHEET.path);
+    expect(slam!.raw.type).toBe('spritesheet');
+    expect(slam!.raw.frameConfig).toEqual({
+      frameWidth: CARD_SLAM_SHEET.frameWidth,
+      frameHeight: CARD_SLAM_SHEET.frameHeight,
+    });
+  });
+
+  it('keeps the slam timing one duration per frame, with its two holds intact', () => {
+    // A uniform frameRate would drop the 280ms opening presentation and the 700ms
+    // palm-down pose the summon resolves from, and the ritual stops reading.
+    expect(CARD_SLAM_DURATIONS_MS).toHaveLength(CARD_SLAM_SHEET.frameCount);
+    expect(CARD_SLAM_DURATIONS_MS[0]).toBe(280);
+    expect(CARD_SLAM_DURATIONS_MS.at(-1)).toBe(700);
+    // 280 opening + 15 x 90 transition + 700 palm-down hold.
+    expect(CARD_SLAM_TOTAL_MS).toBe(2330);
+
+    // And that the module still agrees with the sheet PixelLab actually wrote. A
+    // regeneration rewrites the twin; without this the code would keep animating
+    // to the old timing against new art.
+    expect(slamTwin.animation.durationsMs).toEqual([...CARD_SLAM_DURATIONS_MS]);
+    expect(slamTwin.anchor.x).toBe(CARD_SLAM_ANCHOR.x);
+    expect(slamTwin.anchor.y).toBe(CARD_SLAM_ANCHOR.y);
+    expect(slamTwin.frameCount).toBe(CARD_SLAM_SHEET.frameCount);
   });
 
   it('carries every keeper sheet whose art has landed, at matching frame sizes', () => {
