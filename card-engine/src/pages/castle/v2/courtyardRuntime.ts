@@ -61,6 +61,21 @@ import {
 } from './sceneManifest';
 import { quantiseFacing, resolveAim, initialAim, type AimState } from '../combat/aim';
 import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
+import {
+  initialAction,
+  stepAction,
+  walkScale,
+  type ActionState,
+} from '../combat/actionState';
+import {
+  CARD_HEIGHT_PX,
+  DEFAULT_BLAST,
+  cardOrigin,
+  spawnProjectile,
+  stepProjectile,
+  type BlastTarget,
+  type Projectile,
+} from '../combat/blast';
 
 export const DEFAULT_SCENE = 'CourtyardV2';
 
@@ -227,6 +242,34 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
     };
   };
 
+  /**
+   * The attack, on `__cardEngineDev.castleCombat()`.
+   *
+   * The phase and the live projectiles are the two things a screenshot cannot
+   * show — a still frame cannot distinguish "recovering" from "stuck", which is
+   * precisely the failure an animation-driven state machine would produce.
+   */
+  dev.castleCombat = () => {
+    const s = scene as unknown as {
+      action?: { phase: string; elapsedMs: number; committedAim: { x: number; y: number } | null };
+      projectiles?: { sim: { id: number; pos: { x: number; y: number }; outcome: string } }[];
+      targets?: { pos: { x: number; y: number }; alive: boolean }[];
+    };
+    if (!s.action) return null;
+    return {
+      phase: s.action.phase,
+      elapsedMs: Math.round(s.action.elapsedMs),
+      committedAim: s.action.committedAim,
+      projectiles: (s.projectiles ?? []).map((p) => ({
+        id: p.sim.id,
+        x: Math.round(p.sim.pos.x),
+        y: Math.round(p.sim.pos.y),
+        outcome: p.sim.outcome,
+      })),
+      targets: s.targets ?? [],
+    };
+  };
+
   dev.castleFraming = () => {
     const hero = (scene as unknown as { player?: Phaser.GameObjects.Sprite }).player;
     const tile = 32;
@@ -315,6 +358,26 @@ export function makeScene(
      */
     private aim: AimState = initialAim();
     private pointerTracker = newPointerTracker();
+    private action: ActionState = initialAction();
+    private projectiles: { sim: Projectile; gfx: Phaser.GameObjects.Arc }[] = [];
+    private targets: BlastTarget[] = [];
+    private targetGfx: Phaser.GameObjects.Rectangle[] = [];
+    /** The card he holds up. Visible only while a shot is being thrown. */
+    private heldCard?: Phaser.GameObjects.Rectangle;
+    /**
+     * Whether a card is selected and ready to fire.
+     *
+     * One card, hardcoded, for this milestone. The four-slot hand keyed to real
+     * card IDs is the next one — wiring the collection in before a single blast
+     * feels right would mean tuning the verb through a menu.
+     */
+    private hasReadyCard = true;
+    /**
+     * Fire is held rather than tapped, which gives repeat fire at the cadence of
+     * windup + active + recovery. The state machine only leaves `explore` on a
+     * press, so holding cannot outrun the recovery it is gated behind.
+     */
+    private fireHeld = false;
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
      * Truth for collision, level and depth. The SPRITE's y is this minus the
@@ -331,6 +394,7 @@ export function makeScene(
     /** Which doorway the feet are in right now. Reported on change only. */
     private atDoor: DoorDestination | null = null;
     private interactKey?: Phaser.Input.Keyboard.Key;
+    private fireKey?: Phaser.Input.Keyboard.Key;
     private pauseKey?: Phaser.Input.Keyboard.Key;
     /** Which zones the feet were inside last frame, so enter/leave fire once. */
     private insideZones = new Set<number>();
@@ -479,7 +543,13 @@ export function makeScene(
       // on the grounds that a hero hides the subject — true of a lab that only
       // plays clips, but WildlifeLab's subject is how the animals REACT to a
       // player, so there it is the hero's absence that hides the subject.
-      if (EXPLORABLE_SCENES.has(sceneName)) this.spawnPlayer(bounds);
+      if (EXPLORABLE_SCENES.has(sceneName)) {
+        this.spawnPlayer(bounds);
+        // After spawnPlayer, so the dummy can be placed relative to a world that
+        // already knows where the hero stands, and after the depth band so both
+        // it and the held card join the same sorted layer as everything else.
+        this.setupCombat(bounds);
+      }
 
       if (this.player) {
         // Follow wherever there IS a hero, rather than naming one scene. This was
@@ -598,6 +668,7 @@ export function makeScene(
       this.wasd = keyboard.addKeys('W,A,S,D') as typeof this.wasd;
       this.jumpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+      this.fireKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
       this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     }
 
@@ -635,6 +706,7 @@ export function makeScene(
       if (this.player && this.cursors) this.sampleAim(this.readMove());
 
       this.movePlayer(delta);
+      this.updateCombat(delta);
 
       // Last, so anything reacting to the player reads where the player is NOW
       // rather than where they were a frame ago.
@@ -643,6 +715,123 @@ export function makeScene(
         delta,
         this.player ? { x: this.player.x, y: this.player.y } : undefined,
       );
+    }
+
+    /**
+     * Stand up a training dummy and the held card.
+     *
+     * Both are flat coloured shapes on purpose. This milestone is proving that a
+     * blast leaves the card, crosses the world, respects walls and lands — and a
+     * placeholder that is obviously a placeholder cannot be mistaken for approved
+     * art or quietly ship. The pixel art for them is a later, cheaper decision
+     * once the sizes and distances are known from play.
+     *
+     * The dummy is spawned in CODE rather than authored in the Editor because it
+     * is scaffolding: putting it in the .scene file would mean Raheem has to
+     * delete it later, and would collide with his own editing of that file.
+     */
+    private setupCombat(bounds: Phaser.Geom.Rectangle) {
+      const dummyX = Phaser.Math.Clamp(bounds.centerX + 260, bounds.x + 80, bounds.right - 80);
+      const dummyY = Phaser.Math.Clamp(bounds.centerY + 40, bounds.y + 80, bounds.bottom - 80);
+
+      this.targets = [{ pos: { x: dummyX, y: dummyY }, radiusPx: 26, alive: true }];
+      this.targetGfx = this.targets.map((t) => {
+        const r = this.add.rectangle(t.pos.x, t.pos.y - 34, 44, 68, 0xb45c2a);
+        r.setStrokeStyle(3, 0x2a1608);
+        // Feet origin and ground-contact depth, the same contract every actor in
+        // the world obeys — a target that ignored it would sort through walls.
+        r.setOrigin(0.5, 1);
+        r.setDepth(this.level * LEVEL_STRIDE + t.pos.y);
+        this.depthBand?.add(r);
+        return r;
+      });
+
+      this.heldCard = this.add.rectangle(0, 0, 16, 24, 0xf2e2b6);
+      this.heldCard.setStrokeStyle(2, 0x6b4a1f);
+      this.heldCard.setVisible(false);
+      this.depthBand?.add(this.heldCard);
+    }
+
+    /**
+     * Advance the attack: state, then spawning, then flight.
+     *
+     * Order matters. The state machine decides on this frame whether a shot is
+     * born, and the shot must then be stepped in the same frame it is created, or
+     * every projectile spends its first frame sitting on the hero.
+     */
+    private updateCombat(delta: number) {
+      if (!this.player) return;
+
+      const feet = { x: this.player.x, y: this.feetY };
+      this.action = stepAction(
+        this.action,
+        {
+          firePressed: this.fireHeld,
+          hasReadyCard: this.hasReadyCard,
+          // Knockdown arrives with the card-scatter milestone. Passing the flag
+          // as a literal keeps the machine's only entry to it honest until then,
+          // rather than leaving a field nothing ever sets.
+          heavyHit: false,
+          aim: this.aim.aim,
+        },
+        delta,
+      );
+
+      if (this.action.fireThisStep && this.action.committedAim) {
+        const origin = cardOrigin(feet, this.action.committedAim);
+        const sim = spawnProjectile(origin, this.action.committedAim, DEFAULT_BLAST);
+        const gfx = this.add.circle(origin.x, origin.y - CARD_HEIGHT_PX, 7, 0x8fd6ff);
+        gfx.setStrokeStyle(2, 0xffffff);
+        this.depthBand?.add(gfx);
+        this.projectiles.push({ sim, gfx });
+      }
+
+      for (const shot of this.projectiles) {
+        shot.sim = stepProjectile(shot.sim, delta, this.colliders.blockers, this.targets);
+        shot.gfx.setPosition(shot.sim.pos.x, shot.sim.pos.y - CARD_HEIGHT_PX);
+        // Depth from the GROUND point, not from where it is drawn. See §7.6 and
+        // CARD_HEIGHT_PX — sorting on the drawn height makes a blast pass in
+        // front of walls it flew behind.
+        shot.gfx.setDepth(this.level * LEVEL_STRIDE + shot.sim.pos.y);
+
+        if (shot.sim.outcome === 'hitTarget' && shot.sim.hitTargetIndex !== null) {
+          this.reactToHit(shot.sim.hitTargetIndex);
+        }
+      }
+
+      this.projectiles = this.projectiles.filter((shot) => {
+        if (shot.sim.outcome === 'flying') return true;
+        shot.gfx.destroy();
+        return false;
+      });
+
+      // The held card rides the hero while a shot is being thrown, so the shot
+      // visibly comes FROM it.
+      if (this.heldCard) {
+        const throwing = this.action.phase === 'windup' || this.action.phase === 'active';
+        this.heldCard.setVisible(throwing);
+        if (throwing) {
+          const lead = cardOrigin(feet, this.action.committedAim ?? this.aim.aim);
+          this.heldCard.setPosition(lead.x, lead.y - CARD_HEIGHT_PX);
+          this.heldCard.setDepth(this.level * LEVEL_STRIDE + this.feetY + 1);
+        }
+      }
+    }
+
+    /** A readable reaction, so a hit cannot be mistaken for a miss. */
+    private reactToHit(index: number) {
+      const gfx = this.targetGfx[index];
+      if (!gfx) return;
+      this.tweens.killTweensOf(gfx);
+      gfx.setFillStyle(0xffe9a8);
+      this.tweens.add({
+        targets: gfx,
+        x: gfx.x + 6,
+        duration: 55,
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => gfx.setFillStyle(0xb45c2a),
+      });
     }
 
     /** Walk intent from the keys. Arrows and WASD are the same axis, not two. */
@@ -677,12 +866,20 @@ export function makeScene(
       const pointerScreen = hasPointer ? { x: p.x, y: p.y } : null;
       const pointerWorld = hasPointer ? { x: p.worldX, y: p.worldY } : null;
 
-      // Fire is the left mouse button or the pad's right trigger. Deliberately
+      // Fire is the left mouse button, F, or the pad's right trigger. Deliberately
       // NOT E, SPACE or ESC — those are the door, the ledge hop and the pause
       // menu, and a combat verb that also opens a door is a bug waiting for the
       // first fight next to the Archive.
+      //
+      // F exists because the mouse should not be mandatory: aiming with the keys
+      // alone has to be a complete way to play, and a verb reachable only by
+      // holding a mouse button is one a keyboard player cannot use at all.
       const firePressed =
-        (hasPointer && p.leftButtonDown()) || (pad?.R2 ?? 0) > 0.5 || (pad?.A ?? false);
+        (hasPointer && p.leftButtonDown()) ||
+        (this.fireKey?.isDown ?? false) ||
+        (pad?.R2 ?? 0) > 0.5 ||
+        (pad?.A ?? false);
+      this.fireHeld = firePressed;
 
       const inputs = buildAimInputs(
         { move, pointerScreen, pointerWorld, stick, firePressed },
@@ -728,7 +925,10 @@ export function makeScene(
       this.facing = quantiseFacing({ x: dx, y: dy });
       this.player.anims.play(walkKey(this.facing), true);
 
-      const step = (WALK_SPEED * delta) / 1000;
+      // Firing slows the walk rather than rooting it — he is meant to be fragile,
+      // not helpless (§12.8). walkScale is 1 outside combat, so exploration is
+      // untouched by this line.
+      const step = (WALK_SPEED * walkScale(this.action.phase) * delta) / 1000;
       const b = this.cameras.main.getBounds();
 
       // Collision is tested against the FEET, not the sprite. A top-down hero is

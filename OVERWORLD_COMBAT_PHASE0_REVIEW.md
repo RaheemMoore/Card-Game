@@ -29,18 +29,27 @@ The handoff's §5.2 treats "dark or unfinished void beyond the composed environm
 strongest prototype signal, and Phase 1 is built around removing developer overlays from the
 player view. Measured against the running scene, **both premises are wrong.**
 
-Runtime readout from `/dev/scene?scene=CourtyardV3`:
+Runtime readout from `/dev/scene?start=CourtyardV3`:
 
 ```
 tilemap           2560 x 1920 px  (80 x 60 tiles @ 32px)
 camera bounds     0,0,2560,1920   — exactly the tilemap
 ground layer      4800 tiles, 0 empty (0.0% holes)
 zoom              1.5
-l14_COLLIDERS     40 shapes, 0 visible
-l11_MARKERS       layer hidden
-objects y-sorted  236
+blockers          41 polygons, 1 zone, none visible
+elevation         2 plates, no unlandable warnings
+doors             forge, collection
+objects y-sorted  119
 player spawn      1280, 960 (map centre)
 ```
+
+**The dev route's parameter is `?start=`, not `?scene=`.** An earlier draft of this note
+reported 40 colliders and 236 sorted objects, which are **CourtyardV2's** numbers: given
+a parameter it does not read, the route silently falls back to `DEFAULT_SCENE`, and V2
+has the same 2560x1920 tilemap, so the mistake did not look like one. The figures above
+are re-measured against the real V3 and match the "119 y-sorted · 41 blockers · 2 level
+plates" burned into the gameplay recording — which independently confirms the recording
+is of V3.
 
 - **The world is fully bounded and fully tiled.** The camera cannot scroll outside the map, and
   there is not one missing ground tile. The player cannot reach void, which is a Phase 1
