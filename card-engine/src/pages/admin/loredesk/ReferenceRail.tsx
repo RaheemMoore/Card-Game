@@ -70,6 +70,13 @@ export function ReferenceRail({
               src={url}
               alt={`${activeRank} portrait`}
               className="w-full block motion-safe:animate-[fadeIn_0.3s_ease]"
+              // Capped because the rail goes FULL WIDTH when the desk stacks
+              // below 1024px, and a portrait at that width fills the screen
+              // before you reach a single field. A fixed cap rather than vh:
+              // the desk is often open in a tall narrow pane, where 48vh is
+              // still 600px and caps nothing. In the three-column layout the
+              // rail is ~300px, so a 3:4 portrait is 400px and never binds.
+              style={{ maxHeight: 420, objectFit: 'contain', margin: '0 auto' }}
             />
           </button>
         ) : (
