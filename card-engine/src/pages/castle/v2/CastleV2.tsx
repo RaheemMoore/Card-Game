@@ -6,6 +6,7 @@ import {
   loadPackEntries,
   makeScene,
   PRODUCTION_SCENE,
+  type HandView,
   type PackEntry,
   type Status,
 } from './courtyardRuntime';
@@ -53,6 +54,7 @@ export function CastleV2() {
   const [atDoor, setAtDoor] = useState<DoorDestination | null>(null);
   const [openStall, setOpenStall] = useState<DoorDestination | null>(null);
   const [paused, setPaused] = useState(false);
+  const [hand, setHand] = useState<HandView | null>(null);
 
   // Only decides whether the pause menu lists Admin. Defaults to 'user', so a
   // failed lookup hides a menu item rather than locking anyone out.
@@ -122,6 +124,9 @@ export function CastleV2() {
           onPause: () => {
             if (!cancelled) setPaused((p) => !p);
           },
+          onHandChange: (h) => {
+            if (!cancelled) setHand(h);
+          },
           // His actual characters, newest first. The world takes ids and never
           // touches storage itself, so the harness can hand it fixtures instead.
           // An empty collection falls back to practice cards rather than to a
@@ -186,6 +191,45 @@ export function CastleV2() {
           <span className="font-fantasy text-sm font-bold">
             {DOOR_LABELS[atDoor]} · ⌨ E
           </span>
+        </div>
+      )}
+
+      {/* The hand. DOM rather than Phaser: it is screen-space chrome like the
+          doorway prompt above, and the Phaser version was built correctly and
+          drawn off the bottom edge because camera-space UI has to be re-placed
+          on every resize. Small and low-contrast on purpose — the courtyard is
+          the thing worth looking at. Card faces replace the pips later. */}
+      {hand && !paused && (
+        <div
+          className="pointer-events-none absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2"
+          role="status"
+          aria-label="Cards carried"
+        >
+          {hand.slots.map((slot, i) => {
+            const selected = hand.selected === i;
+            const fill =
+              slot.state === 'ready'
+                ? '#f2e2b6'
+                : slot.state === 'committed'
+                  ? '#9a8ac0'
+                  : 'transparent';
+            return (
+              <div
+                key={i}
+                className="grid h-14 w-10 place-items-center rounded-sm border-2 transition-colors"
+                style={{
+                  borderColor: selected ? '#ffd479' : '#8a7a55',
+                  background: selected ? 'rgba(13,11,8,0.78)' : 'rgba(13,11,8,0.55)',
+                }}
+              >
+                <div
+                  className="h-9 w-6 rounded-[2px]"
+                  style={{ background: fill, opacity: slot.state === 'empty' ? 0.2 : 1 }}
+                />
+                <span className="text-[10px] leading-none text-amber-200/70">{i + 1}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 

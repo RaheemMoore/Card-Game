@@ -38,7 +38,7 @@ import {
   type SceneDoor,
 } from '../../dev/sceneColliders';
 import { GROUND_SHADOW as HERO_SHADOW, makeGroundShadowTexture } from '../groundShadow';
-import { buildDepthBand, DEPTH, LEVEL_STRIDE } from '../../dev/sceneDepth';
+import { buildDepthBand, LEVEL_STRIDE } from '../../dev/sceneDepth';
 import { feetBlocked } from '../v2-preview/walkBlocking';
 import {
   EMPTY_ELEVATION,
@@ -62,7 +62,6 @@ import {
   type ActionState,
 } from '../combat/actionState';
 import {
-  HAND_SIZE,
   canFire,
   commitSelected,
   cycleSelection,
@@ -216,10 +215,6 @@ const WALK_SPEED = 190;
  */
 const PLACEHOLDER_CARD_IDS = ['practice_1', 'practice_2', 'practice_3', 'practice_4'] as const;
 
-/** Hand HUD slot metrics, in screen pixels. */
-const HUD_SLOT_W = 34;
-const HUD_SLOT_H = Math.round(34 * 1.4);
-const HUD_SLOT_GAP = 8;
 
 /**
  * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
@@ -278,26 +273,10 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
     if (!s.action) return null;
     const scn = scene as unknown as {
       hand?: { slots: { cardId: string | null; state: string }[]; selected: number | null };
-      hudSlots?: { frame: { x: number; y: number; visible: boolean } }[];
     };
-    const cam = scene.cameras.main;
     const hand = scn.hand;
     const ids = (hand?.slots ?? []).map((x) => x.cardId).filter(Boolean);
     return {
-      // Where the HUD actually is, versus how big the viewport actually is.
-      // "I see no cards" has two very different causes — nothing was built, or
-      // it was built off-screen — and they are indistinguishable by looking.
-      hud: {
-        viewport: { w: Math.round(cam.width), h: Math.round(cam.height) },
-        slots: (scn.hudSlots ?? []).map((s2) => ({
-          x: Math.round(s2.frame.x),
-          y: Math.round(s2.frame.y),
-          visible: s2.frame.visible,
-        })),
-        onScreen: (scn.hudSlots ?? []).every(
-          (s2) => s2.frame.x > 0 && s2.frame.x < cam.width && s2.frame.y > 0 && s2.frame.y < cam.height,
-        ),
-      },
       hand: hand
         ? {
             selected: hand.selected,
@@ -365,6 +344,12 @@ export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
  * That is what lets `/dev/scene` ignore doors entirely while `/castle` turns the
  * same event into the Forge.
  */
+/** What the shell needs to draw the hand. A snapshot, not the live object. */
+export interface HandView {
+  selected: number | null;
+  slots: { cardId: string | null; state: string }[];
+}
+
 export interface RuntimeHooks {
   /** Fires when the hero steps into or out of a doorway. `null` on leaving. */
   onDoorChange?: (destination: DoorDestination | null) => void;
@@ -372,6 +357,14 @@ export interface RuntimeHooks {
   onDoorEnter?: (destination: DoorDestination) => void;
   /** Fires on Escape. The pause menu is the shell's, not the world's. */
   onPause?: () => void;
+  /**
+   * Fires whenever the hand changes — selection, commit, drop or recovery.
+   *
+   * The row of card slots is the shell's, drawn in the DOM alongside the doorway
+   * prompt and the pause menu. The world reports what it holds; it does not draw
+   * a HUD.
+   */
+  onHandChange?: (hand: HandView) => void;
   /**
    * Canonical `Card.cardId`s to fill the hand with, most-recent first.
    *
@@ -440,7 +433,6 @@ export function makeScene(
      */
     private hand: Hand = emptyHand();
     private slotKeys: Phaser.Input.Keyboard.Key[] = [];
-    private hudSlots: { frame: Phaser.GameObjects.Rectangle; pip: Phaser.GameObjects.Rectangle }[] = [];
     private shoulderHeld = false;
     /** Slot index of the shot in flight, so its card is released when it lands. */
     private committedSlot: number | null = null;
@@ -832,7 +824,7 @@ export function makeScene(
       this.depthBand?.add(this.heldCard);
 
       this.hand = handFromCards(cardIds.length > 0 ? cardIds : PLACEHOLDER_CARD_IDS);
-      this.buildHandHud();
+      this.emitHand();
     }
 
     /**
@@ -847,55 +839,23 @@ export function makeScene(
      * is the failure the UI direction warns about. Real card faces replace these
      * pips once the shape is proven in play.
      */
-    private buildHandHud() {
-      this.hudSlots = Array.from({ length: HAND_SIZE }, () => {
-        const frame = this.add.rectangle(0, 0, HUD_SLOT_W, HUD_SLOT_H, 0x0d0b08, 0.55);
-        frame.setStrokeStyle(2, 0x8a7a55);
-        frame.setScrollFactor(0).setDepth(DEPTH.markers + 1);
-        const pip = this.add.rectangle(0, 0, HUD_SLOT_W - 12, HUD_SLOT_H - 12, 0xf2e2b6);
-        pip.setScrollFactor(0).setDepth(DEPTH.markers + 2);
-        return { frame, pip };
-      });
-
-      this.layoutHandHud();
-      // The canvas is Scale.RESIZE and its size is NOT final when create() runs.
-      // Laying the HUD out once put it below the bottom of the window — present,
-      // built, and invisible, which reads as "the hand was never made". Anything
-      // pinned to the viewport has to be re-placed whenever the viewport changes.
-      this.scale.on('resize', this.layoutHandHud, this);
-      this.events.once('shutdown', () => this.scale.off('resize', this.layoutHandHud, this));
-      this.refreshHandHud();
-    }
-
-    /** Place the slots along the bottom centre of whatever the viewport is now. */
-    private layoutHandHud = () => {
-      const cam = this.cameras.main;
-      const totalWidth = HAND_SIZE * HUD_SLOT_W + (HAND_SIZE - 1) * HUD_SLOT_GAP;
-      const left = cam.width / 2 - totalWidth / 2 + HUD_SLOT_W / 2;
-      const y = cam.height - HUD_SLOT_H;
-
-      this.hudSlots.forEach((hud, i) => {
-        const x = left + i * (HUD_SLOT_W + HUD_SLOT_GAP);
-        hud.frame.setPosition(x, y);
-        hud.pip.setPosition(x, y);
-      });
-    };
-
-    /** Repaint the slots from the hand. Called whenever a slot could have changed. */
-    private refreshHandHud() {
-      this.hudSlots.forEach((hud, i) => {
-        const slot = this.hand.slots[i];
-        const isSelected = this.hand.selected === i;
-
-        // The four states have to be tellable apart at a glance while running:
-        // holding a card, having lost one, mid-throw, and nothing there at all.
-        const fill =
-          slot.state === 'ready' ? 0xf2e2b6 : slot.state === 'committed' ? 0x9a8ac0 : 0x2a2620;
-        hud.pip.setFillStyle(fill, slot.state === 'empty' ? 0.25 : 1);
-        hud.pip.setVisible(slot.state !== 'empty');
-
-        hud.frame.setStrokeStyle(isSelected ? 3 : 2, isSelected ? 0xffd479 : 0x8a7a55);
-        hud.frame.setFillStyle(0x0d0b08, isSelected ? 0.75 : 0.55);
+    /**
+     * Tell the shell what the hand looks like now.
+     *
+     * The row of slots is DOM, rendered by CastleV2 beside the doorway prompt and
+     * the pause menu, which were already React. It lived in Phaser first and was
+     * built correctly and drawn off the bottom of the window, because anything
+     * positioned from camera dimensions has to be re-placed every time the canvas
+     * resizes and one missed listener makes it vanish with no error.
+     *
+     * Screen-space UI has no business being in camera space to begin with: the
+     * world is what Phaser is for. In the DOM the row cannot be lost, cannot sort
+     * underneath a terrace, and scales with the page like the rest of the shell.
+     */
+    private emitHand() {
+      hooks.onHandChange?.({
+        selected: this.hand.selected,
+        slots: this.hand.slots.map((slot) => ({ cardId: slot.cardId, state: slot.state })),
       });
     }
 
@@ -904,7 +864,7 @@ export function makeScene(
       for (let i = 0; i < this.slotKeys.length; i++) {
         if (Phaser.Input.Keyboard.JustDown(this.slotKeys[i])) {
           this.hand = selectSlot(this.hand, i);
-          this.refreshHandHud();
+          this.emitHand();
         }
       }
 
@@ -912,7 +872,7 @@ export function makeScene(
       const shoulder = pad?.L1 ? -1 : pad?.R1 ? 1 : 0;
       if (shoulder !== 0 && !this.shoulderHeld) {
         this.hand = cycleSelection(this.hand, shoulder as 1 | -1);
-        this.refreshHandHud();
+        this.emitHand();
       }
       // Edge-detected by hand: a held shoulder button would otherwise cycle the
       // whole hand every frame and settle on whatever the release landed on.
@@ -952,7 +912,7 @@ export function makeScene(
       if (wasExploring && this.action.phase === 'windup') {
         this.committedSlot = this.hand.selected;
         this.hand = commitSelected(this.hand);
-        this.refreshHandHud();
+        this.emitHand();
       }
 
       // And comes back when control does. Tied to the state machine rather than to
@@ -961,7 +921,7 @@ export function makeScene(
       if (this.action.phase === 'explore' && this.committedSlot !== null) {
         this.hand = releaseCommitted(this.hand, this.committedSlot);
         this.committedSlot = null;
-        this.refreshHandHud();
+        this.emitHand();
       }
 
       if (this.action.fireThisStep && this.action.committedAim) {
