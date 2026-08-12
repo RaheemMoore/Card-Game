@@ -1,6 +1,7 @@
 import { attachWildlifeLab } from '../../dev/sceneBehaviors/wildlifeLab';
 import { attachCourtyardWildlife } from '../../dev/sceneBehaviors/courtyardWildlife';
 import type { SceneBehaviorFactory } from '../../dev/sceneBehaviors/types';
+import { allEffectTextureKeys } from '../combat/effectKit';
 
 /**
  * What every Phaser Editor scene is, declared once.
@@ -61,6 +62,16 @@ const WILDLIFE_SHEETS = [
  */
 const HERO_SIZE_TESTS = ['hero-chibi-56', 'hero-chibi-48', 'hero-chibi-40'] as const;
 
+/**
+ * The elemental blast and impact sheets.
+ *
+ * Same reason as the size tests: no scene NAMES them, because which element a
+ * player fires is decided at run time by the cards in their hand. Left out,
+ * entriesUsedBy would skip all 52 and every blast would fall back to the
+ * placeholder circle with nothing reporting why.
+ */
+const EFFECT_SHEETS = allEffectTextureKeys();
+
 export interface SceneTraits {
   /**
    * Gets the walkable hero.
@@ -92,19 +103,19 @@ export const SCENE_MANIFEST: Record<string, SceneTraits> = {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...EFFECT_SHEETS],
   },
   CourtyardV3: {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...EFFECT_SHEETS],
   },
   WildlifeLab: {
     explorable: true,
     ySort: false,
     behavior: attachWildlifeLab,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...EFFECT_SHEETS],
   },
 };
 

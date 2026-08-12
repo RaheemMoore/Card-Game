@@ -131,11 +131,15 @@ export function CastleV2() {
           // touches storage itself, so the harness can hand it fixtures instead.
           // An empty collection falls back to practice cards rather than to a
           // courtyard where the attack silently does nothing.
-          cardIds: getAllCards()
+          //
+          // The element comes along because it chooses the blast's art. A card
+          // forged before elements existed simply has none, and fires the
+          // placeholder rather than refusing to fire.
+          cards: getAllCards()
             .slice()
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
             .slice(0, 4)
-            .map((c) => c.cardId),
+            .map((c) => ({ cardId: c.cardId, element: c.elementSelection?.element })),
         },
       );
 

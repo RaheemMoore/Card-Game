@@ -506,5 +506,495 @@
         }
       }
     ]
+  },
+  "combat-effects": {
+    "files": [
+      {
+        "type": "spritesheet",
+        "key": "fx-growth-nature-bloom",
+        "url": "assets/combat/effects/packed/fx-growth-nature-bloom.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-growth-nature-wrap",
+        "url": "assets/combat/effects/packed/fx-growth-nature-wrap.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-beast-impact",
+        "url": "assets/combat/effects/packed/fx-lash-beast-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-beast-stream",
+        "url": "assets/combat/effects/packed/fx-lash-beast-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-blood-impact",
+        "url": "assets/combat/effects/packed/fx-lash-blood-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-blood-stream",
+        "url": "assets/combat/effects/packed/fx-lash-blood-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-bone-impact",
+        "url": "assets/combat/effects/packed/fx-lash-bone-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-bone-stream",
+        "url": "assets/combat/effects/packed/fx-lash-bone-stream.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-cosmic-impact",
+        "url": "assets/combat/effects/packed/fx-lash-cosmic-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-cosmic-stream",
+        "url": "assets/combat/effects/packed/fx-lash-cosmic-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-dream-impact",
+        "url": "assets/combat/effects/packed/fx-lash-dream-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-dream-stream",
+        "url": "assets/combat/effects/packed/fx-lash-dream-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-earth-impact",
+        "url": "assets/combat/effects/packed/fx-lash-earth-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-earth-stream",
+        "url": "assets/combat/effects/packed/fx-lash-earth-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-fire-impact",
+        "url": "assets/combat/effects/packed/fx-lash-fire-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-fire-stream",
+        "url": "assets/combat/effects/packed/fx-lash-fire-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-ice-impact",
+        "url": "assets/combat/effects/packed/fx-lash-ice-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-ice-stream",
+        "url": "assets/combat/effects/packed/fx-lash-ice-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-infernal-impact",
+        "url": "assets/combat/effects/packed/fx-lash-infernal-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-infernal-stream",
+        "url": "assets/combat/effects/packed/fx-lash-infernal-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-light-impact",
+        "url": "assets/combat/effects/packed/fx-lash-light-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-light-stream",
+        "url": "assets/combat/effects/packed/fx-lash-light-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-lunar-impact",
+        "url": "assets/combat/effects/packed/fx-lash-lunar-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-lunar-stream",
+        "url": "assets/combat/effects/packed/fx-lash-lunar-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-metal-impact",
+        "url": "assets/combat/effects/packed/fx-lash-metal-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-metal-stream",
+        "url": "assets/combat/effects/packed/fx-lash-metal-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-moon-impact",
+        "url": "assets/combat/effects/packed/fx-lash-moon-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-moon-stream",
+        "url": "assets/combat/effects/packed/fx-lash-moon-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-nanite-impact",
+        "url": "assets/combat/effects/packed/fx-lash-nanite-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-nanite-stream",
+        "url": "assets/combat/effects/packed/fx-lash-nanite-stream.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-nocturne-impact",
+        "url": "assets/combat/effects/packed/fx-lash-nocturne-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-nocturne-stream",
+        "url": "assets/combat/effects/packed/fx-lash-nocturne-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-plasma-impact",
+        "url": "assets/combat/effects/packed/fx-lash-plasma-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-plasma-stream",
+        "url": "assets/combat/effects/packed/fx-lash-plasma-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-poison-impact",
+        "url": "assets/combat/effects/packed/fx-lash-poison-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-poison-stream",
+        "url": "assets/combat/effects/packed/fx-lash-poison-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-prism-impact",
+        "url": "assets/combat/effects/packed/fx-lash-prism-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-prism-stream",
+        "url": "assets/combat/effects/packed/fx-lash-prism-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-psychic-impact",
+        "url": "assets/combat/effects/packed/fx-lash-psychic-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-psychic-stream",
+        "url": "assets/combat/effects/packed/fx-lash-psychic-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-sanguine-impact",
+        "url": "assets/combat/effects/packed/fx-lash-sanguine-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-sanguine-stream",
+        "url": "assets/combat/effects/packed/fx-lash-sanguine-stream.png",
+        "frameConfig": {
+          "frameWidth": 32,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-shadow-impact",
+        "url": "assets/combat/effects/packed/fx-lash-shadow-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-shadow-stream",
+        "url": "assets/combat/effects/packed/fx-lash-shadow-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-spirit-impact",
+        "url": "assets/combat/effects/packed/fx-lash-spirit-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-spirit-stream",
+        "url": "assets/combat/effects/packed/fx-lash-spirit-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-storm-impact",
+        "url": "assets/combat/effects/packed/fx-lash-storm-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-storm-stream",
+        "url": "assets/combat/effects/packed/fx-lash-storm-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-void-impact",
+        "url": "assets/combat/effects/packed/fx-lash-void-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-void-stream",
+        "url": "assets/combat/effects/packed/fx-lash-void-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-water-impact",
+        "url": "assets/combat/effects/packed/fx-lash-water-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-water-stream",
+        "url": "assets/combat/effects/packed/fx-lash-water-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-wind-impact",
+        "url": "assets/combat/effects/packed/fx-lash-wind-impact.png",
+        "frameConfig": {
+          "frameWidth": 64,
+          "frameHeight": 64
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "fx-lash-wind-stream",
+        "url": "assets/combat/effects/packed/fx-lash-wind-stream.png",
+        "frameConfig": {
+          "frameWidth": 128,
+          "frameHeight": 32
+        }
+      }
+    ]
   }
 }

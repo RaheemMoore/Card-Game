@@ -7,6 +7,7 @@ import {
   spawnProjectile,
   stepProjectile,
   SUBSTEP_PX,
+  scaleBlast,
   type BlastTarget,
 } from './blast';
 import type { Polygon } from '../v2-preview/walkBlocking';
@@ -117,6 +118,42 @@ describe('stepProjectile', () => {
     const settled = { ...p.pos };
     p = stepProjectile(p, 100, [], []);
     expect(p.pos).toEqual(settled);
+  });
+});
+
+describe('scaleBlast', () => {
+  it('makes a full charge bigger, faster and harder than a tap', () => {
+    // All three move together on purpose. A shot that only did more damage would
+    // look identical to a tap, and the player has no number on screen to read.
+    const tap = scaleBlast(DEFAULT_BLAST, 0);
+    const full = scaleBlast(DEFAULT_BLAST, 1);
+    expect(full.damage).toBeGreaterThan(tap.damage);
+    expect(full.radiusPx).toBeGreaterThan(tap.radiusPx);
+    expect(full.speed).toBeGreaterThan(tap.speed);
+  });
+
+  it('leaves range alone, so charging is a choice and not an obligation', () => {
+    // If a charged shot outranged an uncharged one, charging would be the only
+    // correct play at distance and the decision would evaporate.
+    expect(scaleBlast(DEFAULT_BLAST, 0).rangePx).toBe(DEFAULT_BLAST.rangePx);
+    expect(scaleBlast(DEFAULT_BLAST, 1).rangePx).toBe(DEFAULT_BLAST.rangePx);
+  });
+
+  it('never produces a shot that cannot hurt or cannot move', () => {
+    const tap = scaleBlast(DEFAULT_BLAST, 0);
+    expect(tap.damage).toBeGreaterThan(0);
+    expect(tap.speed).toBeGreaterThan(0);
+    expect(tap.radiusPx).toBeGreaterThan(0);
+  });
+
+  it('clamps a charge outside 0..1 rather than trusting it', () => {
+    expect(scaleBlast(DEFAULT_BLAST, 5)).toEqual(scaleBlast(DEFAULT_BLAST, 1));
+    expect(scaleBlast(DEFAULT_BLAST, -3)).toEqual(scaleBlast(DEFAULT_BLAST, 0));
+  });
+
+  it('keeps the card identity fields untouched', () => {
+    // Charge changes force, never what element the card is.
+    expect(scaleBlast(DEFAULT_BLAST, 1).visualKey).toBe(DEFAULT_BLAST.visualKey);
   });
 });
 

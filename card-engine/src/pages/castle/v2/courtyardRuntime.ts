@@ -54,6 +54,7 @@ import {
 import { HERO_FEET } from '../../../data/castle/heroSprite';
 import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
 import { quantiseFacing, resolveAim, initialAim, type AimState, type Vec2 } from '../combat/aim';
+import type { ElementName } from '../../../types/bible';
 import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
 import {
   initialAction,
@@ -74,6 +75,13 @@ import {
   selectSlot,
   type Hand,
 } from '../combat/hand';
+import { effectKitFor, type EffectKit } from '../combat/effectKit';
+import {
+  createBlastSprite,
+  createChargeEmitter,
+  playImpact,
+  updateChargeEmitter,
+} from '../combat/blastVfx';
 import {
   PICKUP_RADIUS,
   SCATTER_FLIGHT_MS,
@@ -84,6 +92,7 @@ import {
   CARD_HEIGHT_PX,
   DEFAULT_BLAST,
   cardOrigin,
+  scaleBlast,
   spawnProjectile,
   stepProjectile,
   type BlastTarget,
@@ -312,7 +321,12 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
    */
   dev.castleCombat = () => {
     const s = scene as unknown as {
-      action?: { phase: string; elapsedMs: number; committedAim: { x: number; y: number } | null };
+      action?: {
+        phase: string;
+        elapsedMs: number;
+        chargeLevel: number;
+        committedAim: { x: number; y: number } | null;
+      };
       projectiles?: { sim: { id: number; pos: { x: number; y: number }; outcome: string } }[];
       targets?: { pos: { x: number; y: number }; alive: boolean }[];
     };
@@ -342,6 +356,11 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
         : null,
       phase: s.action.phase,
       elapsedMs: Math.round(s.action.elapsedMs),
+      // The one number the player is acting on and the screen only hints at.
+      chargeLevel: +s.action.chargeLevel.toFixed(2),
+      element:
+        (scene as unknown as { selectedKit?: () => { exact: boolean; stream: { key: string } | null } })
+          .selectedKit?.()?.stream?.key ?? 'placeholder',
       committedAim: s.action.committedAim,
       projectiles: (s.projectiles ?? []).map((p) => ({
         id: p.sim.id,
@@ -421,13 +440,16 @@ export interface RuntimeHooks {
    */
   onHandChange?: (hand: HandView) => void;
   /**
-   * Canonical `Card.cardId`s to fill the hand with, most-recent first.
+   * The cards to fill the hand with, most-recent first.
    *
    * Passed in rather than read from storage here so the world stays independent
    * of persistence — `/dev/scene` can hand it fixtures, and the castle hands it
    * the player's real collection, without the scene knowing which is which.
+   *
+   * The element rides along because it decides which blast art the card fires;
+   * looking it up later would mean the world reaching back into the collection.
    */
-  cardIds?: readonly string[];
+  cards?: readonly { cardId: string; element?: ElementName }[];
 }
 
 export function makeScene(
@@ -467,7 +489,15 @@ export function makeScene(
     private aim: AimState = initialAim();
     private pointerTracker = newPointerTracker();
     private action: ActionState = initialAction();
-    private projectiles: { sim: Projectile; gfx: Phaser.GameObjects.Arc }[] = [];
+    private projectiles: {
+      sim: Projectile;
+      gfx: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
+      kit: EffectKit;
+      charge: number;
+    }[] = [];
+    /** Element per card id, so a shot knows which art it wears. */
+    private cardElements = new Map<string, ElementName | undefined>();
+    private chargeEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
     private targets: BlastTarget[] = [];
     private targetGfx: Phaser.GameObjects.Rectangle[] = [];
     /** The card he holds up. Visible only while a shot is being thrown. */
@@ -686,7 +716,7 @@ export function makeScene(
         // After spawnPlayer, so the dummy can be placed relative to a world that
         // already knows where the hero stands, and after the depth band so both
         // it and the held card join the same sorted layer as everything else.
-        this.setupCombat(bounds, hooks.cardIds ?? []);
+        this.setupCombat(bounds, hooks.cards ?? []);
       }
 
       if (this.player) {
@@ -888,7 +918,10 @@ export function makeScene(
      * is scaffolding: putting it in the .scene file would mean Raheem has to
      * delete it later, and would collide with his own editing of that file.
      */
-    private setupCombat(bounds: Phaser.Geom.Rectangle, cardIds: readonly string[]) {
+    private setupCombat(
+      bounds: Phaser.Geom.Rectangle,
+      cards: readonly { cardId: string; element?: ElementName }[],
+    ) {
       const dummyX = Phaser.Math.Clamp(bounds.centerX + 260, bounds.x + 80, bounds.right - 80);
       const dummyY = Phaser.Math.Clamp(bounds.centerY + 40, bounds.y + 80, bounds.bottom - 80);
 
@@ -909,7 +942,10 @@ export function makeScene(
       this.heldCard.setVisible(false);
       this.depthBand?.add(this.heldCard);
 
-      this.hand = handFromCards(cardIds.length > 0 ? cardIds : PLACEHOLDER_CARD_IDS);
+      for (const c of cards) this.cardElements.set(c.cardId, c.element);
+      this.hand = handFromCards(
+        cards.length > 0 ? cards.map((c) => c.cardId) : PLACEHOLDER_CARD_IDS,
+      );
       this.emitHand();
     }
 
@@ -1019,12 +1055,30 @@ export function makeScene(
       }
 
       if (this.action.fireThisStep && this.action.committedAim) {
+        const kit = this.selectedKit();
+        const charge = this.action.chargeLevel;
         const origin = cardOrigin(feet, this.action.committedAim);
-        const sim = spawnProjectile(origin, this.action.committedAim, DEFAULT_BLAST);
-        const gfx = this.add.circle(origin.x, origin.y - CARD_HEIGHT_PX, 7, 0x8fd6ff);
-        gfx.setStrokeStyle(2, 0xffffff);
+        // Charge changes the shot itself, not just how it looks — see scaleBlast.
+        const sim = spawnProjectile(origin, this.action.committedAim, scaleBlast(DEFAULT_BLAST, charge));
+
+        // The element's own art where it exists; the placeholder circle only when
+        // nothing has been drawn for it, so a missing sheet is visible rather
+        // than silently absent.
+        const art = createBlastSprite(
+          this,
+          kit,
+          origin.x,
+          origin.y - CARD_HEIGHT_PX,
+          this.action.committedAim,
+          charge,
+        );
+        const gfx =
+          art ??
+          this.add
+            .circle(origin.x, origin.y - CARD_HEIGHT_PX, 5 + 4 * charge, 0x8fd6ff)
+            .setStrokeStyle(2, 0xffffff);
         this.depthBand?.add(gfx);
-        this.projectiles.push({ sim, gfx });
+        this.projectiles.push({ sim, gfx, kit, charge });
       }
 
       for (const shot of this.projectiles) {
@@ -1038,6 +1092,19 @@ export function makeScene(
         if (shot.sim.outcome === 'hitTarget' && shot.sim.hitTargetIndex !== null) {
           this.reactToHit(shot.sim.hitTargetIndex);
         }
+
+        // The burst plays wherever the shot stopped, walls included — a blast
+        // that vanishes against stone reads as the collision being broken.
+        if (shot.sim.outcome === 'hitTarget' || shot.sim.outcome === 'hitBlocker') {
+          playImpact(
+            this,
+            shot.kit,
+            shot.sim.pos.x,
+            shot.sim.pos.y - CARD_HEIGHT_PX,
+            this.level * LEVEL_STRIDE + shot.sim.pos.y + 1,
+            shot.charge,
+          );
+        }
       }
 
       this.projectiles = this.projectiles.filter((shot) => {
@@ -1046,10 +1113,32 @@ export function makeScene(
         return false;
       });
 
+      // The gather, while he is winding one up. Position follows the card so the
+      // power visibly collects INTO the thing that will throw it.
+      const charging = this.action.phase === 'charging';
+      if (charging) {
+        const lead = cardOrigin(feet, this.aim.aim);
+        if (!this.chargeEmitter) {
+          this.chargeEmitter = createChargeEmitter(this, this.selectedKit().palette);
+          this.chargeEmitter.setDepth(this.level * LEVEL_STRIDE + this.feetY + 2);
+          this.depthBand?.add(this.chargeEmitter);
+        }
+        this.chargeEmitter.emitting = true;
+        updateChargeEmitter(
+          this.chargeEmitter,
+          this.action.chargeLevel,
+          lead.x,
+          lead.y - CARD_HEIGHT_PX,
+        );
+      } else if (this.chargeEmitter) {
+        this.chargeEmitter.emitting = false;
+      }
+
       // The held card rides the hero while a shot is being thrown, so the shot
       // visibly comes FROM it.
       if (this.heldCard) {
-        const throwing = this.action.phase === 'windup' || this.action.phase === 'active';
+        const throwing =
+          charging || this.action.phase === 'windup' || this.action.phase === 'active';
         this.heldCard.setVisible(throwing);
         if (throwing) {
           const lead = cardOrigin(feet, this.action.committedAim ?? this.aim.aim);
@@ -1139,6 +1228,12 @@ export function makeScene(
         survivors.push(p);
       }
       this.pickups = survivors;
+    }
+
+    /** The effect kit of whatever card is selected right now. */
+    private selectedKit(): EffectKit {
+      const slot = this.hand.selected === null ? null : this.hand.slots[this.hand.selected];
+      return effectKitFor(slot?.cardId ? this.cardElements.get(slot.cardId) : undefined);
     }
 
     /** A readable reaction, so a hit cannot be mistaken for a miss. */

@@ -47,6 +47,29 @@ export const DEFAULT_BLAST: BlastDef = {
   visualKey: 'blast-default',
 };
 
+/**
+ * Apply a charge level to a blast.
+ *
+ * A charged shot is bigger, faster and harder, and the three move together on
+ * purpose: a shot that only did more damage would look identical to a tap, and
+ * the player would have no way to read what they had built other than a number
+ * they never see. Size and speed are what make a full charge legible across a
+ * courtyard.
+ *
+ * Range deliberately does NOT scale. Letting a charged shot outrange an uncharged
+ * one turns charging into the only correct option at distance, and the choice
+ * between a quick tap and a held shot stops being a choice.
+ */
+export function scaleBlast(def: BlastDef, chargeLevel: number): BlastDef {
+  const t = Math.max(0, Math.min(1, chargeLevel));
+  return {
+    ...def,
+    speed: def.speed * (0.75 + 0.35 * t),
+    radiusPx: Math.round(def.radiusPx * (0.7 + 0.6 * t)),
+    damage: Math.round(def.damage * (0.4 + 1.6 * t)),
+  };
+}
+
 export interface Projectile {
   id: number;
   pos: Vec2;

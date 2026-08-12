@@ -19,6 +19,7 @@ import type { Vec2 } from './aim';
 
 export type ActionPhase =
   | 'explore'
+  | 'charging'
   | 'windup'
   | 'active'
   | 'recovery'
@@ -34,12 +35,27 @@ export type ActionPhase =
  * are one exported object rather than scattered literals.
  */
 export const ACTION_TIMING = {
-  windupMs: 140,
+  /**
+   * How long a full charge takes to build. Player-controlled: this is the only
+   * duration in the game the player sets, by deciding when to let go.
+   */
+  chargeMaxMs: 900,
+  /** Release to the projectile leaving the card — the thrust, not the draw. */
+  windupMs: 180,
   activeMs: 60,
-  recoveryMs: 220,
+  recoveryMs: 320,
   knockdownMs: 900,
   standUpMs: 320,
 } as const;
+
+/**
+ * What a bare tap is worth, as a fraction of a full charge.
+ *
+ * Not zero. A tap has to DO something or the weapon feels broken while the
+ * player is still learning that holding matters; it just has to be visibly worse
+ * than waiting. Consumed by scaleBlast() in blast.ts.
+ */
+export const MIN_CHARGE_LEVEL = 0.25;
 
 export interface ActionState {
   phase: ActionPhase;
@@ -60,6 +76,15 @@ export interface ActionState {
    * effects and can be unit-tested by asserting on its output.
    */
   fireThisStep: boolean;
+  /**
+   * How much charge the shot carries, 0 to 1.
+   *
+   * While `charging` this rises with the hold and is what the gather effect reads
+   * to grow. It is FROZEN at the moment of release, for the same reason the aim
+   * is: what the player let go of is what they should get, regardless of what
+   * happens over the following frames.
+   */
+  chargeLevel: number;
 }
 
 export interface ActionInput {
@@ -74,7 +99,7 @@ export interface ActionInput {
 }
 
 export function initialAction(): ActionState {
-  return { phase: 'explore', elapsedMs: 0, committedAim: null, fireThisStep: false };
+  return { phase: 'explore', elapsedMs: 0, committedAim: null, fireThisStep: false, chargeLevel: 0 };
 }
 
 /** Phases during which the player cannot start another attack. */
@@ -82,7 +107,7 @@ export const isBusy = (phase: ActionPhase) => phase !== 'explore';
 
 /** Phases during which the player keeps full walking control. */
 export const canWalk = (phase: ActionPhase) =>
-  phase === 'explore' || phase === 'windup' || phase === 'recovery';
+  phase === 'explore' || phase === 'charging' || phase === 'windup' || phase === 'recovery';
 
 /**
  * Movement multiplier for the phase.
@@ -95,6 +120,10 @@ export function walkScale(phase: ActionPhase): number {
   switch (phase) {
     case 'explore':
       return 1;
+    case 'charging':
+      // Slower than a walk, faster than a crawl. Charging while repositioning is
+      // the interesting decision; charging while rooted is just waiting.
+      return 0.6;
     case 'windup':
       return 0.45;
     case 'recovery':
@@ -105,12 +134,24 @@ export function walkScale(phase: ActionPhase): number {
   }
 }
 
-const enter = (phase: ActionPhase, committedAim: Vec2 | null, fireThisStep = false): ActionState => ({
+const enter = (
+  phase: ActionPhase,
+  committedAim: Vec2 | null,
+  chargeLevel = 0,
+  fireThisStep = false,
+): ActionState => ({
   phase,
   elapsedMs: 0,
   committedAim,
   fireThisStep,
+  chargeLevel,
 });
+
+/** Charge held so far, as a fraction of a full one, floored at a tap's worth. */
+export function chargeFrom(heldMs: number): number {
+  const t = Math.min(1, heldMs / ACTION_TIMING.chargeMaxMs);
+  return MIN_CHARGE_LEVEL + (1 - MIN_CHARGE_LEVEL) * t;
+}
 
 /**
  * Advance one frame.
@@ -133,20 +174,37 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
       // No card, no attack — the cards ARE the offense, so an empty hand is a
       // character with nothing to do but run.
       if (input.firePressed && input.hasReadyCard) {
-        return enter('windup', { ...input.aim });
+        return enter('charging', null, chargeFrom(0));
       }
-      return { ...state, elapsedMs, fireThisStep: false };
+      return { ...state, elapsedMs, fireThisStep: false, chargeLevel: 0 };
+
+    case 'charging': {
+      // Losing the card mid-charge cancels it. Otherwise he would keep winding up
+      // something he is no longer holding.
+      if (!input.hasReadyCard) return enter('explore', null);
+
+      // RELEASE IS THE COMMIT. Both the charge and the aim are frozen here, and
+      // for the same reason: the shot should be the one the player let go of, not
+      // whatever the inputs happen to say two frames later.
+      if (!input.firePressed) {
+        return enter('windup', { ...input.aim }, state.chargeLevel);
+      }
+
+      // Holding past full does not overcharge. It holds, so a player can charge
+      // fully and then take their time choosing where to point it.
+      return { ...state, elapsedMs, fireThisStep: false, chargeLevel: chargeFrom(elapsedMs) };
+    }
 
     case 'windup':
       if (elapsedMs >= t.windupMs) {
-        // The projectile is born on entry to `active`, with the aim captured at
-        // the start of the windup rather than the aim as it is now.
-        return enter('active', state.committedAim, true);
+        // The projectile is born on entry to `active`, carrying the aim and the
+        // charge captured at release rather than anything current.
+        return enter('active', state.committedAim, state.chargeLevel, true);
       }
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'active':
-      if (elapsedMs >= t.activeMs) return enter('recovery', state.committedAim);
+      if (elapsedMs >= t.activeMs) return enter('recovery', state.committedAim, state.chargeLevel);
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'recovery':

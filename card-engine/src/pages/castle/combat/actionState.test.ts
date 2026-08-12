@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  chargeFrom,
+  MIN_CHARGE_LEVEL,
   initialAction,
   stepAction,
   walkScale,
@@ -47,6 +49,8 @@ describe('action state', () => {
 
   it('runs windup, active, recovery and returns control', () => {
     let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    expect(s.phase).toBe('charging');
+    s = stepAction(s, input({ firePressed: false }), 16);
     expect(s.phase).toBe('windup');
 
     const total = ACTION_TIMING.windupMs + ACTION_TIMING.activeMs + ACTION_TIMING.recoveryMs;
@@ -57,14 +61,16 @@ describe('action state', () => {
   it('spawns exactly one projectile per press', () => {
     // A flag that stuck on for the whole active phase would fire four shots at
     // 60fps for one button press.
-    const s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ firePressed: false }), 16);
     const { fired } = run(s, 60);
     expect(fired).toBe(1);
   });
 
-  it('commits the aim at windup so a shot cannot be bent afterwards', () => {
+  it('commits the aim at release so a shot cannot be bent afterwards', () => {
     // Handoff §7.3: moving the mouse after the throw must not curve the throw.
     let s = stepAction(initialAction(), input({ firePressed: true, aim: { x: 1, y: 0 } }), 16);
+    s = stepAction(s, input({ firePressed: false, aim: { x: 1, y: 0 } }), 16);
     const frames = Math.ceil(ACTION_TIMING.windupMs / 16) + 1;
     for (let i = 0; i < frames; i++) {
       s = stepAction(s, input({ aim: { x: -1, y: 0 } }), 16);
@@ -78,6 +84,7 @@ describe('action state', () => {
     // The whole reason this module is pure. One long frame — a tab regaining
     // focus, a GC pause — must resolve the phase, not strand the player in it.
     let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ firePressed: false }), 16);
     s = stepAction(s, input(), 5000);
     expect(s.phase).not.toBe('windup');
   });
@@ -87,6 +94,7 @@ describe('action state', () => {
       let s = initialAction();
       if (setup !== 'explore') {
         s = stepAction(s, input({ firePressed: true }), 16);
+        s = stepAction(s, input({ firePressed: false }), 16);
         if (setup === 'recovery') s = run(s, 20).state;
       }
       const hit = stepAction(s, input({ heavyHit: true }), 16);
@@ -96,6 +104,7 @@ describe('action state', () => {
 
   it('drops a committed shot when the hit lands mid-cast', () => {
     let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ firePressed: false }), 16);
     s = stepAction(s, input({ heavyHit: true }), 16);
     expect(s.committedAim).toBeNull();
     expect(s.fireThisStep).toBe(false);
@@ -119,6 +128,77 @@ describe('action state', () => {
     const early = s.elapsedMs;
     s = stepAction(s, input({ heavyHit: true }), 16);
     expect(s.elapsedMs).toBeGreaterThan(early);
+  });
+
+  it('charges while held and only fires on release', () => {
+    // "You're gonna have to charge up, let go of your attack." Holding must not
+    // spray shots, and letting go must produce exactly one.
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    expect(s.phase).toBe('charging');
+
+    const held = run(s, 20, { firePressed: true });
+    expect(held.state.phase).toBe('charging');
+    expect(held.fired).toBe(0);
+
+    const released = run(held.state, 40, { firePressed: false });
+    expect(released.fired).toBe(1);
+  });
+
+  it('grows the charge with the hold, and stops at full', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    const early = s.chargeLevel;
+    s = run(s, 10, { firePressed: true }).state;
+    const mid = s.chargeLevel;
+    s = run(s, 200, { firePressed: true }).state;
+
+    expect(mid).toBeGreaterThan(early);
+    expect(s.chargeLevel).toBeCloseTo(1);
+    // Holding past full must not overcharge, so a player can charge fully and
+    // then take their time aiming.
+    s = run(s, 200, { firePressed: true }).state;
+    expect(s.chargeLevel).toBeCloseTo(1);
+  });
+
+  it('still gives a tap something to fire', () => {
+    // A tap that did nothing would read as a broken weapon while the player is
+    // still learning that holding matters.
+    expect(chargeFrom(0)).toBe(MIN_CHARGE_LEVEL);
+    expect(MIN_CHARGE_LEVEL).toBeGreaterThan(0);
+    expect(chargeFrom(0)).toBeLessThan(chargeFrom(9999));
+  });
+
+  it('carries the released charge all the way to the shot', () => {
+    // Frozen at release, like the aim. What the player let go of is what fires.
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = run(s, 60, { firePressed: true }).state;
+    const atRelease = s.chargeLevel;
+
+    let fired: number | null = null;
+    for (let i = 0; i < 40 && fired === null; i++) {
+      s = stepAction(s, input({ firePressed: false }), 16);
+      if (s.fireThisStep) fired = s.chargeLevel;
+    }
+    expect(fired).toBeCloseTo(atRelease);
+  });
+
+  it('cancels the charge if the card leaves his hand', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ firePressed: true, hasReadyCard: false }), 16);
+    expect(s.phase).toBe('explore');
+  });
+
+  it('loses the charge to a heavy hit', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = run(s, 40, { firePressed: true }).state;
+    s = stepAction(s, input({ heavyHit: true }), 16);
+    expect(s.phase).toBe('knockdown');
+    expect(s.chargeLevel).toBe(0);
+  });
+
+  it('lets him keep moving while charging, but slower', () => {
+    expect(walkScale('charging')).toBeGreaterThan(0);
+    expect(walkScale('charging')).toBeLessThan(walkScale('explore'));
+    expect(canWalk('charging')).toBe(true);
   });
 
   it('slows the walk while firing instead of rooting him', () => {
