@@ -216,6 +216,11 @@ const WALK_SPEED = 190;
  */
 const PLACEHOLDER_CARD_IDS = ['practice_1', 'practice_2', 'practice_3', 'practice_4'] as const;
 
+/** Hand HUD slot metrics, in screen pixels. */
+const HUD_SLOT_W = 34;
+const HUD_SLOT_H = Math.round(34 * 1.4);
+const HUD_SLOT_GAP = 8;
+
 /**
  * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
  *
@@ -824,24 +829,38 @@ export function makeScene(
      * pips once the shape is proven in play.
      */
     private buildHandHud() {
-      const cam = this.cameras.main;
-      const w = 34;
-      const gap = 8;
-      const totalWidth = HAND_SIZE * w + (HAND_SIZE - 1) * gap;
-      const left = cam.width / 2 - totalWidth / 2 + w / 2;
-      const y = cam.height - 40;
-
-      this.hudSlots = Array.from({ length: HAND_SIZE }, (_, i) => {
-        const x = left + i * (w + gap);
-        const frame = this.add.rectangle(x, y, w, w * 1.4, 0x0d0b08, 0.55);
+      this.hudSlots = Array.from({ length: HAND_SIZE }, () => {
+        const frame = this.add.rectangle(0, 0, HUD_SLOT_W, HUD_SLOT_H, 0x0d0b08, 0.55);
         frame.setStrokeStyle(2, 0x8a7a55);
         frame.setScrollFactor(0).setDepth(DEPTH.markers + 1);
-        const pip = this.add.rectangle(x, y, w - 12, w * 1.4 - 12, 0xf2e2b6);
+        const pip = this.add.rectangle(0, 0, HUD_SLOT_W - 12, HUD_SLOT_H - 12, 0xf2e2b6);
         pip.setScrollFactor(0).setDepth(DEPTH.markers + 2);
         return { frame, pip };
       });
+
+      this.layoutHandHud();
+      // The canvas is Scale.RESIZE and its size is NOT final when create() runs.
+      // Laying the HUD out once put it below the bottom of the window — present,
+      // built, and invisible, which reads as "the hand was never made". Anything
+      // pinned to the viewport has to be re-placed whenever the viewport changes.
+      this.scale.on('resize', this.layoutHandHud, this);
+      this.events.once('shutdown', () => this.scale.off('resize', this.layoutHandHud, this));
       this.refreshHandHud();
     }
+
+    /** Place the slots along the bottom centre of whatever the viewport is now. */
+    private layoutHandHud = () => {
+      const cam = this.cameras.main;
+      const totalWidth = HAND_SIZE * HUD_SLOT_W + (HAND_SIZE - 1) * HUD_SLOT_GAP;
+      const left = cam.width / 2 - totalWidth / 2 + HUD_SLOT_W / 2;
+      const y = cam.height - HUD_SLOT_H;
+
+      this.hudSlots.forEach((hud, i) => {
+        const x = left + i * (HUD_SLOT_W + HUD_SLOT_GAP);
+        hud.frame.setPosition(x, y);
+        hud.pip.setPosition(x, y);
+      });
+    };
 
     /** Repaint the slots from the hand. Called whenever a slot could have changed. */
     private refreshHandHud() {
