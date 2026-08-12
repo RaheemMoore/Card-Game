@@ -253,20 +253,28 @@ function resolveHeroSheet(): { key: string; frameHeight: number } {
 }
 
 /**
- * `?element=fire` forces every card in the hand to fire that element.
+ * `?element=` overrides what the hand fires.
  *
  * Without it the blast art is unreachable on a fresh profile: practice cards
  * carry no element, so every shot falls back to the placeholder circle and the
  * 27 elements of PixelLab art might as well not be there. Reviewing art you
  * cannot make appear is not reviewing it.
  *
+ * One element fills every slot (`?element=fire`); a comma-separated list deals
+ * them out per slot (`?element=fire,void,storm,ice`), which is the form worth
+ * having — comparing elements means switching between them with 1-4 in the same
+ * courtyard under the same light, not reloading the page four times.
+ *
  * Case-insensitive and validated against the Bible's own list, so a typo shows
  * as the placeholder rather than as a missing texture.
  */
-function resolveForcedElement(): ElementName | undefined {
+function resolveForcedElements(): ElementName[] {
   const raw = new URLSearchParams(window.location.search).get('element');
-  if (!raw) return undefined;
-  return ELEMENT_NAMES.find((e) => e.toLowerCase() === raw.toLowerCase());
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((part) => ELEMENT_NAMES.find((e) => e.toLowerCase() === part.trim().toLowerCase()))
+    .filter((e): e is ElementName => e !== undefined);
 }
 
 function resolveHeroHeight(): number {
@@ -959,11 +967,18 @@ export function makeScene(
       this.heldCard.setVisible(false);
       this.depthBand?.add(this.heldCard);
 
-      const forced = resolveForcedElement();
-      for (const c of cards) this.cardElements.set(c.cardId, forced ?? c.element);
+      const forced = resolveForcedElements();
+      // A single element fills the hand; a list is dealt out slot by slot and
+      // repeats if it is shorter than the hand.
+      const forcedFor = (i: number) => (forced.length ? forced[i % forced.length] : undefined);
+
+      cards.forEach((c, i) => this.cardElements.set(c.cardId, forcedFor(i) ?? c.element));
       // Practice cards have no element of their own, so the override has to reach
       // them too or the flag does nothing on exactly the profile that needs it.
-      if (forced) for (const id of PLACEHOLDER_CARD_IDS) this.cardElements.set(id, forced);
+      PLACEHOLDER_CARD_IDS.forEach((id, i) => {
+        const e = forcedFor(i);
+        if (e) this.cardElements.set(id, e);
+      });
       this.hand = handFromCards(
         cards.length > 0 ? cards.map((c) => c.cardId) : PLACEHOLDER_CARD_IDS,
       );

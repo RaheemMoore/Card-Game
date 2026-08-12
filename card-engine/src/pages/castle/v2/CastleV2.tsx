@@ -237,6 +237,33 @@ export function CastleV2() {
         </div>
       )}
 
+      {/* What the keys do.
+          Raheem, testing the knockdown: "I don't know which one it is now because
+          f shoots, space jumps, WSD walks." A verb nobody can find is a verb that
+          does not exist, and reading it back out of a chat log is not a control
+          scheme. Small, dim, bottom-left, out of the way of the world. */}
+      {!paused && !openStall && (
+        <div
+          className="pointer-events-none absolute bottom-5 left-5 select-none rounded-md px-3 py-2 text-[11px] leading-relaxed"
+          style={{ background: 'rgba(13,11,8,0.55)', color: 'rgba(242,226,182,0.72)' }}
+          aria-label="Controls"
+        >
+          {[
+            ['WASD', 'walk'],
+            ['1-4', 'pick card'],
+            ['hold F', 'charge · release to fire'],
+            ['K', 'knock down'],
+            ['SPACE', 'hop a ledge'],
+            ['E', 'enter a door'],
+          ].map(([key, what]) => (
+            <div key={key} className="flex gap-2">
+              <span className="w-16 shrink-0 font-bold text-amber-200/90">{key}</span>
+              <span>{what}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {status.phase === 'loading' && (
         <div className="absolute inset-0 grid place-items-center text-white/60">
           Entering the courtyard…
