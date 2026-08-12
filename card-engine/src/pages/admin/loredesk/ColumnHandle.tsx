@@ -3,14 +3,21 @@ import { useRef, useState } from 'react';
 /**
  * The drag grip between two desk columns.
  *
- * Sits in its own grid track, so dragging never overlaps the content on
- * either side. Pointer capture rather than window listeners: the drag keeps
- * working when the cursor outruns the 10px strip, and it ends cleanly even if
- * the pointer is released outside the window.
+ * ⚠ `alignSelf: stretch` is load-bearing. The desk grid is `items-start`, so a
+ * grid item with no content collapses to ZERO height — the first version of
+ * this handle was 10px wide and 0px tall, with a perfectly correct
+ * `col-resize` cursor on a surface that did not exist. It looked implemented
+ * and could not be grabbed (Raheem, 2026-08-12).
  *
- * Keyboard-operable because this moves real layout — arrows nudge, Home
- * resets. A mouse-only affordance would put the column widths out of reach
- * for anyone who does not use one.
+ * The grip is `sticky` rather than centred because the desk is far taller
+ * than the viewport; a marker pinned to the middle of a 1700px column is off
+ * screen most of the time. Sticky keeps it beside you wherever you have
+ * scrolled to.
+ *
+ * Pointer capture rather than window listeners: the drag keeps working when
+ * the cursor outruns the 10px strip, and ends cleanly if the pointer is
+ * released outside the window. Keyboard-operable because this moves real
+ * layout — arrows nudge, Home resets.
  */
 export function ColumnHandle({
   label,
@@ -28,7 +35,10 @@ export function ColumnHandle({
   onReset: () => void;
 }) {
   const [dragging, setDragging] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const start = useRef<{ x: number; width: number; container: number } | null>(null);
+
+  const active = dragging || hovered;
 
   const containerWidth = (el: HTMLElement) =>
     el.parentElement?.getBoundingClientRect().width ?? window.innerWidth;
@@ -61,6 +71,10 @@ export function ColumnHandle({
         setDragging(false);
       }}
       onPointerCancel={() => { start.current = null; setDragging(false); }}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
       onDoubleClick={onReset}
       onKeyDown={(e) => {
         const step = e.shiftKey ? 48 : 16;
@@ -71,25 +85,61 @@ export function ColumnHandle({
         if (e.key === 'Home') { e.preventDefault(); onReset(); }
       }}
       title={`${label} — drag to resize, double-click to reset`}
-      className="group relative focus-visible:outline-none"
-      style={{ cursor: 'col-resize', touchAction: 'none' }}
+      className="relative focus-visible:outline-none"
+      style={{
+        // Without this the handle has no height at all. See the docblock.
+        alignSelf: 'stretch',
+        cursor: 'col-resize',
+        touchAction: 'none',
+        minHeight: 120,
+      }}
     >
-      {/* The visible line is thinner than the hit area — 10px to grab, 2px to see. */}
+      {/* Full-height hairline, so the seam between columns is always visible. */}
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-1/2 transition-colors"
+        className="absolute inset-y-0 transition-colors"
         style={{
-          width: 2,
-          marginLeft: -1,
+          left: '50%',
+          width: active ? 3 : 1,
+          marginLeft: active ? -1.5 : -0.5,
           borderRadius: 2,
-          background: dragging ? 'var(--admin-accent)' : 'var(--admin-border)',
+          background: dragging
+            ? 'var(--admin-accent)'
+            : hovered
+              ? 'var(--admin-accent-alt)'
+              : 'var(--admin-border)',
         }}
       />
+
+      {/* The grab affordance. Sticky so it stays beside you down a long page. */}
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-1/2 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity"
-        style={{ width: 2, marginLeft: -1, borderRadius: 2, background: 'var(--admin-accent)' }}
-      />
+        className="sticky flex flex-col items-center justify-center gap-1 mx-auto transition-colors"
+        style={{
+          top: '45vh',
+          width: 10,
+          height: 34,
+          borderRadius: 999,
+          background: dragging
+            ? 'var(--admin-accent)'
+            : active
+              ? 'var(--admin-accent-alt)'
+              : 'var(--admin-surface-strong)',
+          border: `1px solid ${active ? 'transparent' : 'var(--admin-border)'}`,
+        }}
+      >
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            style={{
+              width: 2,
+              height: 2,
+              borderRadius: 999,
+              background: active ? '#fff' : 'var(--admin-text-muted)',
+            }}
+          />
+        ))}
+      </span>
     </div>
   );
 }
