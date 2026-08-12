@@ -48,6 +48,7 @@ export function LoreDeskPage() {
       <AdminPage title="Lore Desk">
         <StoryDesk
           character={desk.draft}
+          siblings={desk.siblings}
           queueCount={desk.queue.length}
           saveState={desk.saveState}
           saveError={desk.saveError}

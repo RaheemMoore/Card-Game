@@ -3,16 +3,14 @@ import { ArrowLeft } from 'lucide-react';
 import { RANKS, type Rank } from '../../../types/card';
 import type { CuratedCharacter } from '../../../types/curatedCard';
 import { ARCHETYPE_BIBLE } from '../../../data/archetypeBible';
-import {
-  getQuestionsForArchetype,
-  getOptionsForQuestion,
-} from '../../../data/storyPillars';
+import { getQuestionsForArchetype } from '../../../data/storyPillars';
 import { loreProblems } from '../../../services/workshop/loreReadiness';
 import { AdminButton, AdminCard, AdminField, AdminTextArea } from '../../../components/admin/ui';
 import { SaveChip, type SaveState } from '../../../components/admin/workshop';
 import { ReferenceRail } from './ReferenceRail';
 import { AssistPanel } from './AssistPanel';
-import { QuestionForge } from './QuestionForge';
+import { NameAssist } from './NameAssist';
+import { RoutingSection } from './RoutingSection';
 
 /**
  * The desk itself — the three-region story-creation layout.
@@ -26,6 +24,7 @@ import { QuestionForge } from './QuestionForge';
  */
 export function StoryDesk({
   character,
+  siblings,
   queueCount,
   saveState,
   saveError,
@@ -34,6 +33,8 @@ export function StoryDesk({
   onConfirm,
 }: {
   character: CuratedCharacter;
+  /** The rest of this archetype's bank — for naming and the tiebreaker round. */
+  siblings: readonly CuratedCharacter[];
   queueCount: number;
   saveState: SaveState;
   saveError: string | null;
@@ -98,6 +99,9 @@ export function StoryDesk({
     (character.answerBindings ?? [])
       .find((b) => b.questionId === questionId)
       ?.optionIds.includes(optionId) ?? false;
+
+  const claimedCountFor = (questionId: string) =>
+    (character.answerBindings ?? []).find((b) => b.questionId === questionId)?.optionIds.length ?? 0;
 
   const confirm = async () => {
     setConfirming(true);
@@ -185,6 +189,11 @@ export function StoryDesk({
               value={character.coreLore ?? ''}
               onChange={(e) => onChange({ ...character, coreLore: e.target.value })}
             />
+            <NameAssist
+              character={character}
+              siblings={siblings}
+              onApply={(cardName, nameAndTitle) => setLore({ cardName, nameAndTitle })}
+            />
           </AdminCard>
 
           {/* Rank writing — tabs mirror the reference rail */}
@@ -250,57 +259,16 @@ export function StoryDesk({
             </div>
           </AdminCard>
 
-          {/* Story pillar claims */}
-          <AdminCard className="grid gap-3">
-            <h2 className="m-0 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text)' }}>
-              Which answers lead to this character?
-            </h2>
-            <p className="m-0 text-[11px] leading-relaxed" style={{ color: 'var(--admin-text-muted)' }}>
-              A player answers these on their way in. Claim the ones that are true of this
-              character — those answers are how they find each other. Every question needs at
-              least one.
-            </p>
-            {questions.map((q) => {
-              const claimedCount = (character.answerBindings ?? []).find((b) => b.questionId === q.id)?.optionIds.length ?? 0;
-              return (
-                <details key={q.id} open={claimedCount === 0}>
-                  <summary
-                    className="cursor-pointer select-none text-xs font-medium flex items-center gap-2"
-                    style={{ color: 'var(--admin-text)' }}
-                  >
-                    <span className="flex-1">{q.prompt}</span>
-                    <span
-                      className="shrink-0 text-[10px] font-bold tabular-nums px-1.5 py-0.5"
-                      style={{
-                        color: claimedCount ? 'var(--admin-success)' : 'var(--admin-text-muted)',
-                        border: '1px solid var(--admin-border)',
-                        borderRadius: '999px',
-                      }}
-                    >
-                      {claimedCount} claimed
-                    </span>
-                  </summary>
-                  <ul className="mt-2 grid gap-1.5 m-0 p-0 list-none">
-                    {getOptionsForQuestion(character.archetype, q.id).map((option) => (
-                      <li key={option.id}>
-                        <label className="flex items-start gap-2 text-xs cursor-pointer" style={{ color: 'var(--admin-text)' }}>
-                          <input
-                            type="checkbox"
-                            checked={claimed(q.id, option.id)}
-                            onChange={() => toggleClaim(q.id, option.id)}
-                            className="shrink-0 mt-0.5 w-4 h-4 accent-[var(--admin-accent)]"
-                          />
-                          <span>{option.text}</span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              );
-            })}
-          </AdminCard>
-
-          <QuestionForge character={character} loreComplete={loreFieldsComplete} onChange={onChange} />
+          <RoutingSection
+            character={character}
+            siblings={siblings}
+            questions={questions}
+            loreComplete={loreFieldsComplete}
+            claimedCountFor={claimedCountFor}
+            isClaimed={claimed}
+            onToggle={toggleClaim}
+            onChange={onChange}
+          />
 
           {/* Confirm */}
           <AdminCard surface="glass" className="grid gap-2.5">

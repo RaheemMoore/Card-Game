@@ -9,7 +9,7 @@ import {
   approvedQuestions,
 } from '../../../services/workshop/loreReadiness';
 import { getCurrentUser } from '../../../services/persistence/supabaseClient';
-import { AdminButton, AdminCard, AdminField, AdminStatusBadge } from '../../../components/admin/ui';
+import { AdminButton, AdminField, AdminStatusBadge } from '../../../components/admin/ui';
 
 /**
  * The Question Forge — bespoke selection questions drafted FROM the lore.
@@ -26,10 +26,13 @@ import { AdminButton, AdminCard, AdminField, AdminStatusBadge } from '../../../c
  */
 export function QuestionForge({
   character,
+  siblings,
   loreComplete,
   onChange,
 }: {
   character: CuratedCharacter;
+  /** The other characters in this archetype — who these questions must separate them from. */
+  siblings: readonly CuratedCharacter[];
   /** Generation is blocked until the lore itself is written. */
   loreComplete: boolean;
   onChange: (next: CuratedCharacter) => void;
@@ -44,7 +47,7 @@ export function QuestionForge({
     setBusy(true);
     setError(null);
     try {
-      const drafted = await requestGeneratedQuestions(character);
+      const drafted = await requestGeneratedQuestions(character, siblings);
       if (drafted.length === 0) {
         setError('The model returned nothing usable. Try again.');
         return;
@@ -77,15 +80,20 @@ export function QuestionForge({
     }
   };
 
+  // The review criterion, named. A director staring at five drafted questions
+  // needs the test, not a reminder that the questions exist.
+  const firstSister =
+    siblings[0]?.lore?.cardName?.trim() || siblings[0]?.displayName || null;
+
   return (
-    <AdminCard className="grid gap-3">
+    <div className="grid gap-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h2
           className="m-0 text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5"
           style={{ color: 'var(--admin-text)' }}
         >
           <Wand2 size={14} style={{ color: 'var(--admin-accent-alt)' }} aria-hidden="true" />
-          Question Forge
+          Their tiebreaker questions
         </h2>
         <div className="flex items-center gap-2">
           <AdminStatusBadge tone={approvedCount >= MIN_APPROVED_GENERATED_QUESTIONS ? 'success' : 'warning'}>
@@ -97,16 +105,17 @@ export function QuestionForge({
             disabled={busy || !loreComplete}
             title={loreComplete ? undefined : 'Finish the lore first — the questions come out of it.'}
           >
-            {busy ? 'Drafting…' : questions.length ? 'Draft more' : 'Draft questions from this lore'}
+            {busy ? 'Drafting…' : questions.length ? 'Draft more' : 'Draft questions from their lore'}
           </AdminButton>
         </div>
       </div>
 
-      <p className="m-0 text-[11px] leading-relaxed" style={{ color: 'var(--admin-text-muted)' }}>
-        Players answer a short series of in-world questions on their way to a character. These are
-        drafted from this character's finished lore — edit the words, tick the answers that are true
-        of them, and approve the ones worth keeping. Nothing joins the game undrafted or unapproved.
-      </p>
+      {questions.length > 0 && (
+        <p className="m-0 text-[11px] leading-relaxed" style={{ color: 'var(--admin-text-muted)' }}>
+          Ask of each: would {firstSister ?? 'another character in this archetype'} answer this the
+          same way? If yes, discard it — it separates nobody.
+        </p>
+      )}
 
       {!loreComplete && (
         <p className="m-0 text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
@@ -122,7 +131,7 @@ export function QuestionForge({
           <QuestionCard key={q.id} character={character} question={q} onChange={onChange} />
         ))}
       </ul>
-    </AdminCard>
+    </div>
   );
 }
 
