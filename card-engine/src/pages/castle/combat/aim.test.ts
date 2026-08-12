@@ -32,10 +32,12 @@ describe('quantiseFacing', () => {
     expect(quantiseFacing({ x: 1, y: 0 })).toBe('right');
   });
 
-  it('resolves an exact diagonal horizontally rather than arbitrarily', () => {
-    // Has to land somewhere; left/right reads better on a mostly-silhouette body.
-    expect(quantiseFacing({ x: 0.707, y: 0.707 })).toBe('right');
-    expect(quantiseFacing({ x: -0.707, y: -0.707 })).toBe('left');
+  it('resolves an exact diagonal the same way the walk code does', () => {
+    // Vertical wins the tie in movePlayer(). If these two ever disagree, the body
+    // faces one way walking and another way aiming, at 45 degrees and nowhere
+    // else — a defect that surfaces late and gets blamed on the art.
+    expect(quantiseFacing({ x: 0.707, y: 0.707 })).toBe('down');
+    expect(quantiseFacing({ x: -0.707, y: -0.707 })).toBe('up');
   });
 });
 

@@ -100,14 +100,18 @@ const normalise = (v: Vec2, fallback: Vec2): Vec2 => {
 /**
  * Nearest of the four poses.
  *
- * Screen axes: +y is down, so a positive y is 'down'. The comparison is on
- * absolute magnitude, and the horizontal wins a tie — an exact diagonal has to
- * resolve somewhere, and left/right reads better than up/down for a body that is
- * mostly a silhouette.
+ * Screen axes: +y is down, so a positive y is 'down'.
+ *
+ * VERTICAL WINS A TIE, matching how the walk code has always resolved a diagonal
+ * (`movePlayer` in courtyardRuntime.ts): "the convention the sheet's four rows
+ * were drawn for". Aim and walk must agree here — two quantisers disagreeing only
+ * on the diagonal produces a body that faces one way while walking and another
+ * while aiming, at exactly 45 degrees and nowhere else, which is the kind of
+ * defect that gets found late and blamed on the art.
  */
 export function quantiseFacing(aim: Vec2): Facing {
-  if (Math.abs(aim.x) >= Math.abs(aim.y)) return aim.x >= 0 ? 'right' : 'left';
-  return aim.y >= 0 ? 'down' : 'up';
+  if (Math.abs(aim.y) >= Math.abs(aim.x)) return aim.y >= 0 ? 'down' : 'up';
+  return aim.x >= 0 ? 'right' : 'left';
 }
 
 /** The state a scene starts in: facing the camera, owned by nothing in particular. */

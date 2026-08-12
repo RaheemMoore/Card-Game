@@ -59,6 +59,7 @@ import {
   YSORT_SCENES,
   type SceneTraits,
 } from './sceneManifest';
+import { quantiseFacing } from '../combat/aim';
 
 export const DEFAULT_SCENE = 'CourtyardV2';
 
@@ -644,8 +645,10 @@ export function makeScene(
       }
 
       // Vertical wins ties so a diagonal reads as up/down, which is the convention
-      // the sheet's four rows were drawn for.
-      this.facing = Math.abs(dy) >= Math.abs(dx) ? (dy > 0 ? 'down' : 'up') : dx > 0 ? 'right' : 'left';
+      // the sheet's four rows were drawn for. Shared with combat aim rather than
+      // written twice — two quantisers agree everywhere except the diagonal, and
+      // disagreeing only there is a defect nobody finds by looking at the code.
+      this.facing = quantiseFacing({ x: dx, y: dy });
       this.player.anims.play(walkKey(this.facing), true);
 
       const step = (WALK_SPEED * delta) / 1000;
