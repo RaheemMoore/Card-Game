@@ -59,7 +59,8 @@ import {
   YSORT_SCENES,
   type SceneTraits,
 } from './sceneManifest';
-import { quantiseFacing } from '../combat/aim';
+import { quantiseFacing, resolveAim, initialAim, type AimState } from '../combat/aim';
+import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
 
 export const DEFAULT_SCENE = 'CourtyardV2';
 
@@ -206,6 +207,26 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
     string,
     unknown
   >;
+  /**
+   * Who owns aim, and where it points, on `__cardEngineDev.castleAim()`.
+   *
+   * Aim ownership is invisible until something is fired, and by then a wrong
+   * owner looks like a projectile bug. This makes the arbitration observable
+   * while walking: hold a stick, waggle the mouse, watch `owner` change and
+   * confirm that a resting hand does not.
+   */
+  dev.castleAim = () => {
+    const s = scene as unknown as { aim?: { owner: string; aim: { x: number; y: number }; facing: string; ownerActiveAt: number } };
+    if (!s.aim) return null;
+    return {
+      owner: s.aim.owner,
+      facing: s.aim.facing,
+      aim: { x: +s.aim.aim.x.toFixed(3), y: +s.aim.aim.y.toFixed(3) },
+      degrees: +((Math.atan2(s.aim.aim.y, s.aim.aim.x) * 180) / Math.PI).toFixed(1),
+      ownerIdleMs: Math.round(scene.time.now - s.aim.ownerActiveAt),
+    };
+  };
+
   dev.castleFraming = () => {
     const hero = (scene as unknown as { player?: Phaser.GameObjects.Sprite }).player;
     const tile = 32;
@@ -284,6 +305,16 @@ export function makeScene(
     };
     private depthBand?: Phaser.GameObjects.Layer;
     private sortedCount = 0;
+    /**
+     * Aim is resolved every frame even with no combat in the scene yet.
+     *
+     * It costs nothing, and it means the seam is exercised by ordinary walking
+     * from the day it lands rather than first being run on the day a projectile
+     * needs it — which is when an input bug would be hardest to tell apart from a
+     * projectile bug.
+     */
+    private aim: AimState = initialAim();
+    private pointerTracker = newPointerTracker();
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
      * Truth for collision, level and depth. The SPRITE's y is this minus the
@@ -596,6 +627,13 @@ export function makeScene(
 
     update(time: number, delta: number) {
       this.compiledUpdate?.call(this, time, delta);
+
+      // Before movePlayer, and outside it, so aim keeps resolving through a jump.
+      // Sampled only on the frames movePlayer would skip and the pointer tracker
+      // would carry a stale screen position across the hop, then report the whole
+      // gap as travel on landing and hand aim to a mouse nobody touched.
+      if (this.player && this.cursors) this.sampleAim(this.readMove());
+
       this.movePlayer(delta);
 
       // Last, so anything reacting to the player reads where the player is NOW
@@ -607,22 +645,61 @@ export function makeScene(
       );
     }
 
+    /** Walk intent from the keys. Arrows and WASD are the same axis, not two. */
+    private readMove() {
+      return moveVector(
+        this.cursors!.left.isDown || this.wasd!.A.isDown,
+        this.cursors!.right.isDown || this.wasd!.D.isDown,
+        this.cursors!.up.isDown || this.wasd!.W.isDown,
+        this.cursors!.down.isDown || this.wasd!.S.isDown,
+      );
+    }
+
+    /**
+     * Read the three devices and resolve who is aiming.
+     *
+     * The Phaser-specific half of the input seam; the rules live in combat/aim.ts.
+     * Gamepad support is optional at run time — `this.input.gamepad` is undefined
+     * unless the plugin is enabled, and a courtyard that throws because nobody
+     * plugged in a controller would be a poor trade for a feature nobody is using
+     * yet.
+     */
+    private sampleAim(move: { x: number; y: number }) {
+      if (!this.player) return;
+
+      const pad = this.input.gamepad?.getPad(0);
+      const stick = pad?.rightStick ? { x: pad.rightStick.x, y: pad.rightStick.y } : { x: 0, y: 0 };
+
+      // A pointer that has never been over the canvas reports 0,0, which aims at
+      // the top-left corner of the world. `active` is what tells them apart.
+      const p = this.input.activePointer;
+      const hasPointer = p !== undefined && p.active;
+      const pointerScreen = hasPointer ? { x: p.x, y: p.y } : null;
+      const pointerWorld = hasPointer ? { x: p.worldX, y: p.worldY } : null;
+
+      // Fire is the left mouse button or the pad's right trigger. Deliberately
+      // NOT E, SPACE or ESC — those are the door, the ledge hop and the pause
+      // menu, and a combat verb that also opens a door is a bug waiting for the
+      // first fight next to the Archive.
+      const firePressed =
+        (hasPointer && p.leftButtonDown()) || (pad?.R2 ?? 0) > 0.5 || (pad?.A ?? false);
+
+      const inputs = buildAimInputs(
+        { move, pointerScreen, pointerWorld, stick, firePressed },
+        { x: this.player.x, y: this.feetY },
+        this.pointerTracker,
+        this.time.now,
+      );
+      this.aim = resolveAim(this.aim, inputs);
+    }
+
     private movePlayer(delta: number) {
       if (!this.player) return;
       if (this.jump) return this.advanceJump(delta);
 
-      const left = this.cursors!.left.isDown || this.wasd!.A.isDown;
-      const right = this.cursors!.right.isDown || this.wasd!.D.isDown;
-      const up = this.cursors!.up.isDown || this.wasd!.W.isDown;
-      const down = this.cursors!.down.isDown || this.wasd!.S.isDown;
-
-      let dx = (right ? 1 : 0) - (left ? 1 : 0);
-      let dy = (down ? 1 : 0) - (up ? 1 : 0);
-      if (dx !== 0 && dy !== 0) {
-        const inv = Math.SQRT1_2;
-        dx *= inv;
-        dy *= inv;
-      }
+      const intent = this.readMove();
+      const dx = intent.x;
+      const dy = intent.y;
 
       if (this.pauseKey && Phaser.Input.Keyboard.JustDown(this.pauseKey)) {
         hooks.onPause?.();
