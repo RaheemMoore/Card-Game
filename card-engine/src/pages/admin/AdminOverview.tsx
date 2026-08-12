@@ -32,14 +32,74 @@ interface LeonardoBalance {
   renewalDate?: string | null;
   error?: string;
 }
-interface InboxRow { kind: 'judgment'; id: string; summary: string; createdAt: string; href: string }
+/**
+ * The Inbox shows the roster's pending work (2026-08-12).
+ *
+ * It used to read flagged `prompt_test_judgments`, whose only writer was the
+ * Prompt Lab. That made the studio's one action-demanding module depend on a
+ * page being retired — and since nothing else ever wrote a judgment, the
+ * Inbox would not merely have emptied, it could never have filled again.
+ *
+ * The curated roster is the real answer: a character at `awaiting_lore` is
+ * waiting on the lore director, one at `lore_ready` is waiting on Raheem.
+ * That is the studio's actual queue, and both sides can see whose turn it is.
+ * The judgments table is left in the database unread, the same treatment
+ * `archetype_proposals` got above.
+ */
+type InboxKind = 'lore' | 'review';
 
-const ACTIONABLE_DISPOSITIONS = [
-  'archetype_prompt_change_candidate',
-  'global_prompt_change_candidate',
-  'model_settings_investigation',
-  'regenerate_same_prompt',
-];
+interface InboxRow {
+  kind: InboxKind;
+  id: string;
+  summary: string;
+  createdAt: string;
+  href: string;
+}
+
+const INBOX_LABEL: Record<InboxKind, string> = {
+  lore: 'With Tori',
+  review: 'Your review',
+};
+
+/** The shape the Inbox reads out of `curated_characters`. */
+export interface CuratedInboxSource {
+  id: string;
+  status: string;
+  display_name: string | null;
+  data: { archetype?: string; proposedAt?: string; loreConfirmedAt?: string } | null;
+  updated_at?: string;
+}
+
+/**
+ * Pure so the queue's rules can be tested without a database: which timestamp
+ * counts as "filed", what an unnamed slot is called, and where each row goes.
+ * Exported for AdminOverview.inbox.test.ts.
+ */
+export function toInboxRows(source: readonly CuratedInboxSource[]): InboxRow[] {
+  return source
+    .filter((c) => c.status === 'awaiting_lore' || c.status === 'lore_ready')
+    .map((c) => {
+      const waitingOnLore = c.status === 'awaiting_lore';
+      const name = c.display_name?.trim() || c.data?.archetype || c.id;
+      // Age from when it ENTERED the queue, not when the row last changed — an
+      // autosave while the lore is being written must not make a card look
+      // freshly filed and jump it down the list.
+      const since =
+        (waitingOnLore ? c.data?.proposedAt : c.data?.loreConfirmedAt) ?? c.updated_at ?? '';
+      return {
+        kind: (waitingOnLore ? 'lore' : 'review') as InboxKind,
+        id: c.id,
+        summary: waitingOnLore
+          ? `${name} — waiting on lore`
+          : `${name} — lore confirmed, needs your review`,
+        createdAt: since,
+        href: waitingOnLore
+          ? '/admin/lore-desk'
+          : `/admin/workshop?stage=review&character=${encodeURIComponent(c.id)}`,
+      };
+    })
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+}
 
 export function AdminOverview() {
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -77,20 +137,12 @@ export function AdminOverview() {
       // which now redirects to the Workshop — a page that cannot display a
       // proposal — so the inbox would have shown live-looking items that went
       // nowhere. The table and its rows are left untouched in the database.
-      const { data: judgments } = await supabase
-        .from('prompt_test_judgments')
-        .select('id, disposition, created_at')
-        .in('disposition', ACTIONABLE_DISPOSITIONS);
-      const rows: InboxRow[] = ((judgments ?? []) as Array<{ id: string; disposition: string; created_at: string }>)
-        .map((j) => ({
-          kind: 'judgment' as const,
-          id: j.id,
-          summary: j.disposition.replace(/_/g, ' '),
-          createdAt: j.created_at,
-          href: '/admin/prompt-lab',
-        }))
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      setInbox(rows);
+      const { data, error: err } = await supabase
+        .from('curated_characters')
+        .select('id, status, display_name, data, updated_at')
+        .in('status', ['awaiting_lore', 'lore_ready']);
+      if (err) { setInbox([]); return; }
+      setInbox(toInboxRows((data ?? []) as CuratedInboxSource[]));
     })();
   }, []);
 
@@ -148,7 +200,12 @@ function InboxList({ rows }: { rows: InboxRow[] | null }) {
     return <AdminCard><AdminSkeleton lines={4} /></AdminCard>;
   }
   if (rows.length === 0) {
-    return <AdminEmptyState title="Inbox zero" description="Flagged Prompt Lab judgments will appear here, oldest first." />;
+    return (
+      <AdminEmptyState
+        title="Inbox zero"
+        description="Characters waiting on lore, or on your review, appear here — oldest first."
+      />
+    );
   }
   const shown = rows.slice(0, INBOX_CAP);
   return (
@@ -157,7 +214,11 @@ function InboxList({ rows }: { rows: InboxRow[] | null }) {
         {shown.map((r, i) => (
           <li key={`${r.kind}-${r.id}`} style={{ borderTop: i === 0 ? undefined : '1px solid var(--admin-border)' }}>
             <Link to={r.href} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors">
-              <AdminStatusBadge tone="attention">Judgment</AdminStatusBadge>
+              {/* Whose turn it is, said plainly — the two operators need to
+                  see at a glance which items are theirs to move. */}
+              <AdminStatusBadge tone={r.kind === 'review' ? 'attention' : 'neutral'}>
+                {INBOX_LABEL[r.kind]}
+              </AdminStatusBadge>
               <span className="text-sm flex-1 truncate" style={{ color: 'var(--admin-text)' }}>{r.summary}</span>
               <span className="text-xs shrink-0" style={{ color: 'var(--admin-text-muted)' }}>filed {relativeAge(r.createdAt)}</span>
               <ChevronRight size={16} className="shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
