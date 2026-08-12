@@ -51,6 +51,16 @@ const WILDLIFE_SHEETS = [
   'wildlife-tortoise-float',
 ] as const;
 
+/**
+ * The pre-resampled hero sheets, kept loadable in every walkable scene.
+ *
+ * `entriesUsedBy` only loads textures the compiled scene names, and no scene
+ * names these — they are chosen at run time by `?hero=`. Without this the flag
+ * silently falls back to a missing texture, which Phaser draws as a green box
+ * and reports nowhere.
+ */
+const HERO_SIZE_TESTS = ['hero-chibi-56', 'hero-chibi-48', 'hero-chibi-40'] as const;
+
 export interface SceneTraits {
   /**
    * Gets the walkable hero.
@@ -82,19 +92,19 @@ export const SCENE_MANIFEST: Record<string, SceneTraits> = {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: WILDLIFE_SHEETS,
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS],
   },
   CourtyardV3: {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: WILDLIFE_SHEETS,
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS],
   },
   WildlifeLab: {
     explorable: true,
     ySort: false,
     behavior: attachWildlifeLab,
-    alwaysLoaded: WILDLIFE_SHEETS,
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS],
   },
 };
 

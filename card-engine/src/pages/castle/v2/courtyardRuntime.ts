@@ -212,6 +212,43 @@ function resolveZoom(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ZOOM;
 }
 
+/**
+ * Hero size, overridable at run time so scale can be judged in play.
+ *
+ * Two independent knobs, and conflating them is why "is he too big?" has been
+ * hard to answer:
+ *
+ *   HOW BIG HE READS  — `?heroHeight=` in world units against 32px tiles.
+ *   HOW SHARP HE IS   — `?hero=` picks which pre-resampled sheet supplies the
+ *                       pixels. 36x71 is the shipped one; 56/48/40 were area-
+ *                       averaged offline for exactly this comparison.
+ *
+ * Both are FREE. The camera and the display size cost nothing to change, where
+ * regenerating the character costs money and throws away an approved identity —
+ * so this question gets settled with flags before anything is generated.
+ *
+ * Nothing here rescales the castle. Its pieces are placed by hand in the Editor
+ * at scales Raheem chose, and they are approved art; making the world bigger to
+ * suit the hero is the expensive way round.
+ */
+const HERO_SHEETS: Record<string, { key: string; frameHeight: number }> = {
+  chibi: { key: HERO_SHEET.key, frameHeight: HERO_SHEET.frameHeight },
+  '56': { key: 'hero-chibi-56', frameHeight: 56 },
+  '48': { key: 'hero-chibi-48', frameHeight: 48 },
+  '40': { key: 'hero-chibi-40', frameHeight: 40 },
+};
+
+function resolveHeroSheet(): { key: string; frameHeight: number } {
+  const asked = new URLSearchParams(window.location.search).get('hero');
+  return (asked && HERO_SHEETS[asked]) || HERO_SHEETS.chibi;
+}
+
+function resolveHeroHeight(): number {
+  const raw = new URLSearchParams(window.location.search).get('heroHeight');
+  const parsed = raw === null ? NaN : Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : HERO_WORLD_HEIGHT;
+}
+
 const WALK_SPEED = 190;
 
 /**
@@ -466,6 +503,13 @@ export function makeScene(
     private knockdownKey?: Phaser.Input.Keyboard.Key;
     /** Edge-detects the fall, so the scatter fires once rather than every frame. */
     private wasDown = false;
+    /** Which sheet the hero is actually drawn from this run. */
+    private heroSheetKey: string = HERO_SHEET.key;
+
+    /** Walk animation key, namespaced so two sheets cannot share a cycle. */
+    private heroWalkKey(facing: HeroFacing) {
+      return `${this.heroSheetKey}:${walkKey(facing)}`;
+    }
     /**
      * Fire is held rather than tapped, which gives repeat fire at the cadence of
      * windup + active + recovery. The state machine only leaves `explore` on a
@@ -714,7 +758,8 @@ export function makeScene(
       const x = Number(url.get('x') ?? bounds.centerX);
       const y = Number(url.get('y') ?? bounds.centerY);
 
-      const scale = HERO_WORLD_HEIGHT / HERO_SHEET.frameHeight;
+      const sheet = resolveHeroSheet();
+      const scale = resolveHeroHeight() / sheet.frameHeight;
 
       this.feetY = y;
       this.level = levelAt(x, y - HERO_FEET.height / 2, this.elevation) ?? 0;
@@ -729,7 +774,7 @@ export function makeScene(
         .setAlpha(HERO_SHADOW.alpha);
 
       this.player = this.add
-        .sprite(x, y, HERO_SHEET.key, idleFrame('down'))
+        .sprite(x, y, sheet.key, idleFrame('down'))
         .setOrigin(0.5, 1)
         .setScale(scale)
         // Fallback for a scene with no depth band: above every Editor layer,
@@ -747,11 +792,18 @@ export function makeScene(
       }
       this.applyHeroTransform();
 
+      // Animation keys are namespaced BY SHEET. Phaser's animation manager is
+      // global, so a plain `hero-walk-down` created from the 36x71 sheet would be
+      // reused when a smaller sheet is selected — idle from one sheet and the
+      // walk cycle from another, which is the "hero shrank 25% walking left"
+      // failure the sprite playbook was written about.
+      this.heroSheetKey = sheet.key;
       for (const f of HERO_FACINGS) {
-        if (this.anims.exists(walkKey(f))) continue;
+        const key = this.heroWalkKey(f);
+        if (this.anims.exists(key)) continue;
         this.anims.create({
-          key: walkKey(f),
-          frames: walkFrames(f).map((frame) => ({ key: HERO_SHEET.key, frame })),
+          key,
+          frames: walkFrames(f).map((frame) => ({ key: sheet.key, frame })),
           frameRate: HERO_WALK_FPS,
           repeat: -1,
         });
@@ -1194,7 +1246,7 @@ export function makeScene(
       // written twice — two quantisers agree everywhere except the diagonal, and
       // disagreeing only there is a defect nobody finds by looking at the code.
       this.facing = quantiseFacing({ x: dx, y: dy });
-      this.player.anims.play(walkKey(this.facing), true);
+      this.player.anims.play(this.heroWalkKey(this.facing), true);
 
       // Firing slows the walk rather than rooting it — he is meant to be fragile,
       // not helpless (§12.8). walkScale is 1 outside combat, so exploration is
