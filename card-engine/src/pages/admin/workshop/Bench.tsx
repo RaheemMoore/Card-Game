@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import { ARCHETYPE_NAMES, type ArchetypeName } from '../../../types/card';
 import type { ElementName, ImageDirective } from '../../../types/bible';
 import { visualQuestionsFor } from '../../../data/visualPillars';
@@ -35,7 +35,12 @@ import { StageIntro } from '../../../components/admin/workshop';
  */
 
 function useBench(): bench.BenchState {
-  return useSyncExternalStore(bench.subscribe, bench.getState, bench.getState);
+  const state = useSyncExternalStore(bench.subscribe, bench.getState, bench.getState);
+  // Candidates that survived a reload have their bytes stripped but their
+  // storage path kept. Pull signed URLs for them once on mount — free, and it
+  // is what stops "look at that earlier one again" costing a generation.
+  useEffect(() => { void bench.replayStrippedCandidates(); }, []);
+  return state;
 }
 
 const COST = API_COST_CATALOG.forge_card.estimatedDirectCostUsd;
@@ -300,17 +305,27 @@ function CandidateCard({
     <AdminCard>
       <div className="grid gap-4 sm:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
         <div>
-          {candidate.imageDataUrl ? (
+          {/* Fresh bytes first; a signed URL from storage is the free fallback
+              after a reload. Only when the object has aged out of the 30-day
+              sweep is there genuinely nothing to show. */}
+          {candidate.imageDataUrl || candidate.replayUrl ? (
             <img
-              src={candidate.imageDataUrl}
+              src={candidate.imageDataUrl || candidate.replayUrl}
               alt={candidate.cardName ?? 'Generated candidate'}
               className="w-full block"
               style={{ borderRadius: 'var(--admin-radius-control)', border: '1px solid var(--admin-border)' }}
             />
+          ) : candidate.replayExpired ? (
+            <AdminEmptyState
+              title="Image aged out"
+              description="Generated images are kept for 30 days. The run and its prompt are still here."
+            />
+          ) : candidate.objectPath ? (
+            <AdminEmptyState title="Fetching the image…" description="Reloading it from storage — no new generation." />
           ) : (
             <AdminEmptyState
               title="Image not kept"
-              description="The picture is not stored in the browser between reloads. The run itself is saved."
+              description="This run recorded no stored image, so it cannot be shown again."
             />
           )}
         </div>
