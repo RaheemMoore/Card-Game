@@ -61,14 +61,36 @@ export const walkFrames = (facing: HeroFacing) =>
   Array.from({ length: HERO_SHEET.columns - 1 }, (_, i) => ROW[facing] * HERO_SHEET.columns + 1 + i);
 
 /**
- * On-screen hero height in world units, against a 1536×1152 courtyard plate.
- * The paving scale is the thing to tune against — a person should read as a
- * person next to the fountain, not as a doll or a giant.
+ * On-screen hero height in world units. The paving scale is the thing to tune
+ * against — a person should read as a person next to the fountain, not as a doll
+ * or a giant.
+ *
+ * 71 IS THE SHEET'S NATIVE FRAME HEIGHT, and that is the point. Raheem chose it
+ * on 2026-08-12 after comparing 100, 85 and 71 in the real courtyard at a real
+ * window size: "71 feels right."
+ *
+ * It was 100, which stretched a 71px sheet by 1.41 and then let the camera
+ * magnify that by another 1.5 — a combined 2.11, on no whole-pixel boundary, so
+ * the hero read softer than the castle beside him. At 71 the sprite is drawn 1:1
+ * and only the camera scales it, which is the sharpest he can be without new art.
+ *
+ * He also now occupies about 11% of screen height against roughly 12% in the
+ * reference Raheem is aiming at, where before he was 15%.
+ *
+ * Keepers derive their heights from this (see keepers.ts), so they follow.
  */
-export const HERO_WORLD_HEIGHT = 100;
+export const HERO_WORLD_HEIGHT = 71;
 
 /** Walk cycle rate. Tied to movement speed at runtime so he doesn't skate. */
 export const HERO_WALK_FPS = 10;
 
-/** Feet-only collider, in world units — deliberately far smaller than the art. */
-export const HERO_FEET = { width: 34, height: 20 } as const;
+/**
+ * Feet-only collider, in world units — deliberately far smaller than the art.
+ *
+ * Shrunk with him on 2026-08-12, keeping the same proportion it always had:
+ * roughly two thirds of his drawn width, a fifth of his height. Left at 34x20
+ * while he came down to 71 it would have been 94% of a 36px-wide sprite, so he
+ * would have been stopped by walls that visibly were not in front of him — the
+ * collider feeling nothing like the character it belongs to.
+ */
+export const HERO_FEET = { width: 24, height: 14 } as const;
