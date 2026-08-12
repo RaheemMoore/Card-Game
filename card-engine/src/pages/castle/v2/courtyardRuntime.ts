@@ -52,11 +52,17 @@ import {
   type ElevationMap,
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
+import {
+  KNOCKDOWN_ANIM,
+  KNOCKDOWN_DURATIONS_MS,
+  KNOCKDOWN_SHEET,
+} from '../../../data/castle/knockdownSprite';
 import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
 import { quantiseFacing, resolveAim, initialAim, type AimState, type Vec2 } from '../combat/aim';
 import { ELEMENT_NAMES, type ElementName } from '../../../types/bible';
 import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
 import {
+  ACTION_TIMING,
   initialAction,
   stepAction,
   walkScale,
@@ -560,6 +566,8 @@ export function makeScene(
     private wasDown = false;
     /** Which sheet the hero is actually drawn from this run. */
     private heroSheetKey: string = HERO_SHEET.key;
+    /** Scale the walking sheet renders at, restored after the fall's sheet swap. */
+    private heroScale = 1;
 
     /** Walk animation key, namespaced so two sheets cannot share a cycle. */
     private heroWalkKey(facing: HeroFacing) {
@@ -815,6 +823,9 @@ export function makeScene(
 
       const sheet = resolveHeroSheet();
       const scale = resolveHeroHeight() / sheet.frameHeight;
+      // Remembered because the knockdown swaps to its own sheet and has to put
+      // this back afterwards.
+      this.heroScale = scale;
 
       this.feetY = y;
       this.level = levelAt(x, y - HERO_FEET.height / 2, this.elevation) ?? 0;
@@ -861,6 +872,21 @@ export function makeScene(
           frames: walkFrames(f).map((frame) => ({ key: sheet.key, frame })),
           frameRate: HERO_WALK_FPS,
           repeat: -1,
+        });
+      }
+
+      // The fall. Per-frame durations rather than a frame rate, so the trip stays
+      // fast and the sprawl holds — and they sum to the knockdown phase exactly,
+      // because the art was timed to the state machine rather than the reverse.
+      if (this.textures.exists(KNOCKDOWN_SHEET.key) && !this.anims.exists(KNOCKDOWN_ANIM)) {
+        this.anims.create({
+          key: KNOCKDOWN_ANIM,
+          frames: KNOCKDOWN_DURATIONS_MS.map((duration, i) => ({
+            key: KNOCKDOWN_SHEET.key,
+            frame: i,
+            duration,
+          })),
+          repeat: 0,
         });
       }
 
@@ -1068,7 +1094,13 @@ export function makeScene(
       // spends on the floor.
       if (this.action.phase === 'knockdown' && wasExploring !== undefined && !this.wasDown) {
         this.scatterCards();
+        this.playKnockdown();
       }
+      // Standing up runs the same clip backwards. It costs nothing, it is honest
+      // about being a prototype, and it is far better than snapping upright — a
+      // purpose-made stand-up clip is a separate decision once this has been
+      // played.
+      if (this.action.phase === 'standUp' && this.wasDown) this.playStandUp();
       this.wasDown = this.action.phase === 'knockdown';
 
       this.updatePickups(delta);
@@ -1270,6 +1302,41 @@ export function makeScene(
     private selectedKit(): EffectKit {
       const slot = this.hand.selected === null ? null : this.hand.slots[this.hand.selected];
       return effectKitFor(slot?.cardId ? this.cardElements.get(slot.cardId) : undefined);
+    }
+
+    /**
+     * Put him on the floor.
+     *
+     * The fall lives on its OWN sheet at its own frame size, because a sprawled
+     * body does not fit the walk sheet's 36x71 box — so this swaps the texture
+     * and swaps it back, rather than playing a row of the walking sheet.
+     */
+    private playKnockdown() {
+      if (!this.player || !this.anims.exists(KNOCKDOWN_ANIM)) return;
+      this.player.anims.stop();
+      this.player.setTexture(KNOCKDOWN_SHEET.key, 0);
+      // Both sheets are authored so he stands 71px tall, so this is 1:1 and the
+      // swap does not change his size.
+      this.player.setScale(1);
+      this.player.play(KNOCKDOWN_ANIM);
+    }
+
+    /** Get up: the fall, reversed, inside the stand-up window. */
+    private playStandUp() {
+      if (!this.player || !this.anims.exists(KNOCKDOWN_ANIM)) return;
+      this.player.playReverse(KNOCKDOWN_ANIM);
+      // Restore the walking sheet on time rather than on the animation event —
+      // a clip that never completes would otherwise leave him lying down with
+      // full control, which looks like the sprite broke.
+      this.time.delayedCall(ACTION_TIMING.standUpMs, () => this.restoreWalkSprite());
+    }
+
+    /** Back to the walking sheet and its scale. */
+    private restoreWalkSprite() {
+      if (!this.player) return;
+      this.player.anims.stop();
+      this.player.setTexture(this.heroSheetKey, idleFrame(this.facing));
+      this.player.setScale(this.heroScale);
     }
 
     /** A readable reaction, so a hit cannot be mistaken for a miss. */

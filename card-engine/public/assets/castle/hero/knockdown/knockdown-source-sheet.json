@@ -1,0 +1,9 @@
+{
+  "image": "knockdown-source-sheet.png",
+  "frameWidth": 208,
+  "frameHeight": 236,
+  "frameCount": 13,
+  "columns": 13,
+  "rows": 1,
+  "note": "Raw PixelLab output, unresampled. The master; the display sheet is derived from this."
+}

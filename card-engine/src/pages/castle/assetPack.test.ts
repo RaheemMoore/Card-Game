@@ -11,6 +11,13 @@ import {
   CARD_SLAM_TOTAL_MS,
 } from '../../data/castle/cardSlamSprite';
 import slamTwin from '../../../public/assets/castle/hero/card-slam/card-slam-sheet.json';
+import {
+  KNOCKDOWN_SHEET,
+  KNOCKDOWN_DURATIONS_MS,
+  KNOCKDOWN_TOTAL_MS,
+} from '../../data/castle/knockdownSprite';
+import knockdownTwin from '../../../public/assets/castle/hero/knockdown/knockdown-sheet.json';
+import { ACTION_TIMING } from './combat/actionState';
 import { KEEPERS } from '../../data/castle/keepers';
 import { WATER_LAYER } from '../../data/castle/courtyardLayers';
 
@@ -114,6 +121,28 @@ describe('asset pack ↔ runtime parity', () => {
     expect(slamTwin.anchor.x).toBe(CARD_SLAM_ANCHOR.x);
     expect(slamTwin.anchor.y).toBe(CARD_SLAM_ANCHOR.y);
     expect(slamTwin.frameCount).toBe(CARD_SLAM_SHEET.frameCount);
+  });
+
+  it('carries the fall at its own frame size, not the walk grid', () => {
+    // A sprawled body is wider than it is tall; forcing it into the walk's
+    // 36x71 box would clip his own arms off and still render something.
+    const fall = entries.get(KNOCKDOWN_SHEET.key);
+    expect(fall, 'knockdown sheet missing — re-run build-asset-pack.mjs').toBeDefined();
+    expect(fall!.url).toBe(KNOCKDOWN_SHEET.path);
+    expect(fall!.raw.frameConfig).toEqual({
+      frameWidth: KNOCKDOWN_SHEET.frameWidth,
+      frameHeight: KNOCKDOWN_SHEET.frameHeight,
+    });
+  });
+
+  it('times the fall to the knockdown phase exactly', () => {
+    // The art was timed to the state machine rather than the reverse, so if
+    // either moves without the other he either stands up mid-air or lies on the
+    // floor with full control.
+    expect(KNOCKDOWN_DURATIONS_MS).toHaveLength(KNOCKDOWN_SHEET.frameCount);
+    expect(KNOCKDOWN_TOTAL_MS).toBe(ACTION_TIMING.knockdownMs);
+    expect(knockdownTwin.animation.durationsMs).toEqual([...KNOCKDOWN_DURATIONS_MS]);
+    expect(knockdownTwin.frameCount).toBe(KNOCKDOWN_SHEET.frameCount);
   });
 
   it('carries every keeper sheet whose art has landed, at matching frame sizes', () => {
