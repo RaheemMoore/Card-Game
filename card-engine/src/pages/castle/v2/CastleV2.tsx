@@ -198,6 +198,20 @@ export function CastleV2() {
         </div>
       )}
 
+      {/* Says out loud why nothing happened when he pressed fire. Being disarmed
+          is the CORRECT reason the attack refuses, and it is invisible — which
+          reads exactly like the game being broken. */}
+      {hand && hand.blockedCount > 0 && !paused && !openStall && (
+        <div
+          key={hand.blockedCount}
+          role="status"
+          className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 animate-[fadeIn_120ms_ease-out] rounded-md px-3 py-1.5 text-xs font-bold"
+          style={{ background: 'rgba(60,20,20,0.82)', color: '#ffd0d0' }}
+        >
+          Your cards are on the ground — go and get them
+        </div>
+      )}
+
       {/* The hand. DOM rather than Phaser: it is screen-space chrome like the
           doorway prompt above, and the Phaser version was built correctly and
           drawn off the bottom edge because camera-space UI has to be re-placed

@@ -136,8 +136,14 @@ export const SCATTER_FLIGHT_MS = 420;
 /**
  * How close he must get to sweep a card up.
  *
- * Generous on purpose. Walk-over pickup that demands precision turns a playful
- * scramble into a chore, and the handoff is explicit that recovery should be
- * cute urgency rather than punishment.
+ * Generous on purpose, and 26 was not generous — it is barely wider than his own
+ * feet collider (24), so collecting a card meant standing almost exactly on a
+ * point you cannot see, because the card is DRAWN with its base on that point and
+ * its body above it. Raheem played for 52 seconds with four cards on the ground
+ * and recovered none of them, which reads as "shooting is broken" rather than as
+ * "I am disarmed" — the attack correctly refuses to fire with no card in hand.
+ *
+ * 44 is about his body width. Walk-over pickup that demands precision turns a
+ * playful scramble into a chore, and recovery is supposed to be cute urgency.
  */
-export const PICKUP_RADIUS = 26;
+export const PICKUP_RADIUS = 44;

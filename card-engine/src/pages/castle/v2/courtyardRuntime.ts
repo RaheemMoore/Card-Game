@@ -495,6 +495,15 @@ export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
 export interface HandView {
   selected: number | null;
   slots: { cardId: string | null; state: string }[];
+  /**
+   * Increments each time he tries to fire with nothing to fire.
+   *
+   * Without it, being disarmed is indistinguishable from the game being broken:
+   * Raheem played 52 seconds with all four cards on the ground, pressing fire,
+   * and reported the attack as broken — which it was not. The shell pulses the
+   * row so the answer is on screen at the moment the question is asked.
+   */
+  blockedCount: number;
 }
 
 export interface RuntimeHooks {
@@ -629,6 +638,8 @@ export function makeScene(
      * is always worth at least one frame of charge and therefore always fires.
      */
     private firePressedLatch = false;
+    /** How many times he has pressed fire with no card able to answer. */
+    private blockedCount = 0;
     /**
      * DEV counters for the fire chain, read by __cardEngineDev.castleCombat().
      *
@@ -1114,6 +1125,7 @@ export function makeScene(
       hooks.onHandChange?.({
         selected: this.hand.selected,
         slots: this.hand.slots.map((slot) => ({ cardId: slot.cardId, state: slot.state })),
+        blockedCount: this.blockedCount,
       });
     }
 
@@ -1163,6 +1175,14 @@ export function makeScene(
         },
         delta,
       );
+
+      // Pressing fire while disarmed must SAY so. The rule that the cards are his
+      // only weapon is correct and invisible, and invisible correctness reads
+      // exactly like a bug.
+      if (this.fireHeld && this.action.phase === 'explore' && !canFire(this.hand)) {
+        this.blockedCount++;
+        this.emitHand();
+      }
 
       if (this.action.phase !== previousPhase) {
         this.fireStats.lastPhase = `${previousPhase}->${this.action.phase}`;

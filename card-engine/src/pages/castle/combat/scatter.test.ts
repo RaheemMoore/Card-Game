@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { scatterArc, scatterPoints, PICKUP_RADIUS, SCATTER_FLIGHT_MS } from './scatter';
 import type { Vec2 } from './aim';
+import { HERO_FEET } from '../../../data/castle/heroSprite';
 
 /** A deterministic stand-in for Math.random, so a scatter can be replayed. */
 const seeded = (seed = 1) => {
@@ -113,8 +114,18 @@ describe('scatterArc', () => {
 
 describe('recovery tuning', () => {
   it('is forgiving enough to sweep a card up while running', () => {
-    // A precise walk-over turns a playful scramble into a chore.
-    expect(PICKUP_RADIUS).toBeGreaterThanOrEqual(20);
+    // A precise walk-over turns a playful scramble into a chore. 26 was barely
+    // wider than his own 24-unit feet collider, and Raheem played 52 seconds with
+    // four cards down and collected none — which he reported, reasonably, as the
+    // attack being broken, because a disarmed Card-wright cannot fire.
+    expect(PICKUP_RADIUS).toBeGreaterThan(HERO_FEET.width);
+    expect(PICKUP_RADIUS).toBeGreaterThanOrEqual(40);
     expect(SCATTER_FLIGHT_MS).toBeLessThan(800);
+  });
+
+  it('leaves room to stand between two cards without sweeping both', () => {
+    // The other side of the same number: if pickup reached further than cards are
+    // spaced, one walk-over would hoover up a pile and the scramble would vanish.
+    expect(PICKUP_RADIUS).toBeLessThan(55);
   });
 });
