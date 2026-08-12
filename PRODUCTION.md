@@ -108,17 +108,14 @@ plate, configs, two new manifests — representing days of work and real generat
 not in the repository. Only `debt-bearer` and `emberborn-wraith` are committed under
 `card-engine/public/assets/combat/bosses/`.
 
-**The whole castle redesign.** `castle-grand-redesign` is **34 commits ahead of `main` and
-has never been pushed** — no remote copy exists. It holds the new castle kit (extracted from
-Raheem's own picks, harmonised, indexed onto one shared palette), the CourtyardV3 scene built
-on it, and the offline scene renderer. That is the current castle, and today it lives in one
-place.
+~~**The whole castle redesign.**~~ **RESOLVED 2026-08-11.** `castle-grand-redesign` merged to
+`main` via [PR #37](https://github.com/RaheemMoore/Card-Game/pull/37) (`74887fb`). The new castle
+kit, the CourtyardV3 scene, and the offline scene renderer are all on `main` and pushed. The
+courtyard wildlife work rode in with it.
 
-Both got sharper on 2026-08-04, not softer: two checkpoints were pulled onto `main` so you
-could work from any device, and neither of these came with them. Every other device you sit
-down at is missing them without saying so.
+The Still Season is still the outstanding one: it exists on one machine and nothing else.
 
-*Push the branch. Then open the laptop with the Still Season and push that.*
+*Open the laptop with the Still Season and push that.*
 
 ---
 
@@ -137,7 +134,7 @@ being raised in a chat and lost.*
 | Q10 | If forging stops making a live API call, do Forge Crystals still make sense as purchase-only? | They are purchase-only *because* each generation costs real money (economy plan §13). A pool weakens that rationale. Pricing changes need your explicit approval, so this needs your ruling before anything moves. |
 | Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
 | Q12 | Do you want walkable forest floor? You asked for animals "running around in the underbrush." The forest is currently traced solid edge to edge, so there is no forest to walk in — the animals are under the canopy at the courtyard's northern edge instead. Carving walkable pockets into the forest edge is collider work, and the animals need no code change to follow. | It is the difference between animals *at* the forest and animals *in* it. |
-| Q13 | Is the Halo Stone wall-kit blocker still real? §4 says nothing should be built from the kit until its projection is ruled on. But the courtyard now has placed wall pieces and the `MISSING_*Wall_run` markers are gone, so it looks decided in practice. I have not rewritten that note, because it was your call and I do not know which way you went. | A blocking note nobody believes is how this file starts lying. |
+| Q13 | ~~Is the Halo Stone wall-kit blocker still real?~~ **Answered by events, 2026-08-11.** The kit shipped to `main` in PR #37 and CourtyardV3 is built from it — 295 assets, one shared indexed palette, wall pieces placed and resegmented. Treating it as blocked would now contradict the scene. Say so if you meant to rule the other way; otherwise the §4 note stands retired. | A blocking note nobody believes is how this file starts lying. |
 | Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
 ---
@@ -364,7 +361,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
 | IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
-| IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Two replacements now exist in sequence: Courtyard V2 (forge quadrant playable, other quadrants unfinished) and **CourtyardV3**, which supersedes it — a fresh scene built on the new castle kit, on the unpushed `castle-grand-redesign` branch. V3 now draws the way the Editor shows it: hidden layers stay hidden, and the two side walls are cut into six stacked segments each so a wall no longer paints over the tower it meets — or over the hero walking beside its northern half. Neither V2 nor V3 is the production castle yet. |
+| IN FLIGHT | Castle courtyard | The current courtyard remains live and **all 4 stalls are unwired**. Two replacements now exist in sequence: Courtyard V2 (forge quadrant playable, other quadrants unfinished) and **CourtyardV3**, which supersedes it — a fresh scene built on the new castle kit, now on `main` (PR #37, 2026-08-11). V3 draws the way the Editor shows it: hidden layers stay hidden, and the two side walls are cut into six stacked segments each so a wall no longer paints over the tower it meets — or over the hero walking beside its northern half. The castle wall and the archive/forge fronts were resegmented again on 2026-08-12. **`/castle` still loads CourtyardV2** (`CastleV2.tsx`) — replacing it with V3 is the approved intention, gated on a readiness check, and is where the overworld-combat work is heading. Neither V2 nor V3 is the production castle yet. |
 | IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
@@ -382,21 +379,27 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-Four. The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
-Courtyard V2 forge checkpoint both live on `main` now.
+The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
+Courtyard V2 forge checkpoint both live on `main` now. `castle-grand-redesign` merged on
+2026-08-11 (PR #37) and is gone from this list.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
-| `castle-grand-redesign` | 34 | 0 | The new castle kit, CourtyardV3, the offline scene renderer. **Local only — never pushed** |
+| `prompt-lab-replay` | 14 | 0 | Lore Desk in the admin app, Prompt Lab retirement, bench replay. **Actively worked** |
+| `overworld-card-combat` | 3 | 0 | Card-slam registration, pack-check LF fix, courtyard collider resegmentation. The combat vertical slice builds here |
 | `combat-cards-and-resource` | 3 | 71 | Boss readout + Debt-Bearer fix |
 | `feat/warband-battle-mvp` | 1 | 186 | Tested warband combat core. **Local only — never pushed** |
 | `claude/vigilant-kowalevski-e30267` | 1 | 205 | One Workshop fix. Will conflict if revived |
 
-**Two of these have never been pushed.** `feat/warband-battle-mvp` (a tested combat core, 186
-commits back) and `castle-grand-redesign` (34 commits, the current castle). Like the Still
-Season, they exist on one machine and will be silently absent from every other device you
-open. The redesign should be pushed today; for the warband core, if it is worth keeping (Q2)
-push it, and if it is not, say so and it becomes a `WON'T DO`.
+**One of these has still never been pushed:** `feat/warband-battle-mvp`, a tested combat core
+186 commits back. Like the Still Season it exists on one machine and will be silently absent
+from every other device you open. If it is worth keeping (Q2) push it; if it is not, say so and
+it becomes a `WON'T DO`.
+
+**Two sessions are working this repo at once** (2026-08-12): the admin/Lore-Desk session on
+`prompt-lab-replay` in the main checkout, and the game/combat session on
+`overworld-card-combat` in its own worktree. They are deliberately disjoint — admin surface
+versus Phaser world — and neither should touch the other's files.
 
 ---
 
