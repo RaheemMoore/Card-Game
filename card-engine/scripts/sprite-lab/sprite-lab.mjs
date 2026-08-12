@@ -1005,7 +1005,14 @@ function cmdSheet(subject) {
   // paid for, and the review surface silently showed nothing. Raheem caught it.
   const rows = [];
   for (const f of m.frames ?? []) {
-    if (fs.existsSync(path.join(d, f.file))) rows.push({ file: f.file, cap: f.trail.join(' · ') });
+    // `trail` is how a frame got made, and it is absent on frames recorded by
+    // other scripts in this folder — adopting a character created by one of them
+    // and asking for a sheet threw here, which is the same failure the comment
+    // above describes: the art exists, is paid for, and the review surface shows
+    // nothing. A frame with no provenance is still a frame worth looking at.
+    if (fs.existsSync(path.join(d, f.file))) {
+      rows.push({ file: f.file, cap: (f.trail ?? []).join(' · ') });
+    }
   }
   for (const [key, a] of Object.entries(m.assets ?? {})) {
     for (const entry of a.files ?? []) {
