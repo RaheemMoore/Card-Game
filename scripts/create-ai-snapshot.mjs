@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import zlib from 'node:zlib';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -187,6 +188,111 @@ function isExcludedPath(relPosixPath) {
     return !CLAUDE_ALLOW_PREFIXES.some((p) => relPosixPath === p || relPosixPath.startsWith(p));
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Archiving
+// ---------------------------------------------------------------------------
+
+// Info-ZIP's `zip` ships with macOS and most Linux distros but not with
+// Windows. PowerShell's Compress-Archive is not a usable substitute here —
+// it fails outright on this repo's longest staged paths (bg-harness reference
+// art names run past MAX_PATH). So the fallback writes the archive directly
+// with zlib, which goes through Node's fs and has no such limit.
+// `unzip` (used for verification) is present on all three platforms via Git
+// for Windows.
+
+const CRC_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c;
+  }
+  return t;
+})();
+
+function crc32(buf) {
+  let c = -1;
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+}
+
+function listFilesRecursive(dir, base = dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listFilesRecursive(abs, base));
+    else if (entry.isFile()) out.push(path.relative(base, abs).split(path.sep).join('/'));
+  }
+  return out;
+}
+
+function writeZipWithZlib(zipPath, stagingDir) {
+  const local = [];
+  const central = [];
+  let offset = 0;
+
+  for (const rel of listFilesRecursive(stagingDir)) {
+    const data = fs.readFileSync(path.join(stagingDir, rel));
+    const deflated = zlib.deflateRawSync(data, { level: 9 });
+    const useDeflate = deflated.length < data.length;
+    const body = useDeflate ? deflated : data;
+    const method = useDeflate ? 8 : 0;
+    const name = Buffer.from(rel, 'utf8');
+    const crc = crc32(data);
+
+    const lh = Buffer.alloc(30);
+    lh.writeUInt32LE(0x04034b50, 0);
+    lh.writeUInt16LE(20, 4);          // version needed
+    lh.writeUInt16LE(0x0800, 6);      // UTF-8 filename flag
+    lh.writeUInt16LE(method, 8);
+    lh.writeUInt32LE(0, 10);          // dos time/date — zeroed, like `zip -X`
+    lh.writeUInt32LE(crc, 14);
+    lh.writeUInt32LE(body.length, 18);
+    lh.writeUInt32LE(data.length, 22);
+    lh.writeUInt16LE(name.length, 26);
+    local.push(lh, name, body);
+
+    const ch = Buffer.alloc(46);
+    ch.writeUInt32LE(0x02014b50, 0);
+    ch.writeUInt16LE(20, 4);          // version made by
+    ch.writeUInt16LE(20, 6);          // version needed
+    ch.writeUInt16LE(0x0800, 8);
+    ch.writeUInt16LE(method, 10);
+    ch.writeUInt32LE(0, 12);
+    ch.writeUInt32LE(crc, 16);
+    ch.writeUInt32LE(body.length, 20);
+    ch.writeUInt32LE(data.length, 24);
+    ch.writeUInt16LE(name.length, 28);
+    ch.writeUInt32LE((0o100644 << 16) >>> 0, 38); // external attrs: regular file 0644
+    ch.writeUInt32LE(offset, 42);
+    central.push(ch, name);
+
+    offset += 30 + name.length + body.length;
+  }
+
+  const centralBuf = Buffer.concat(central);
+  const count = central.length / 2;
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(count, 8);
+  eocd.writeUInt16LE(count, 10);
+  eocd.writeUInt32LE(centralBuf.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+
+  fs.writeFileSync(zipPath, Buffer.concat([...local, centralBuf, eocd]));
+}
+
+function zipStaging(zipPath, stagingDir) {
+  try {
+    execFileSync('zip', ['-rXq', zipPath, '.'], { cwd: stagingDir });
+    return;
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+  }
+  fs.rmSync(zipPath, { force: true });
+  writeZipWithZlib(zipPath, stagingDir);
 }
 
 // ---------------------------------------------------------------------------
@@ -791,7 +897,7 @@ function main() {
 
   console.log(`Creating ZIP: ${zipName}`);
   fs.rmSync(zipPath, { force: true });
-  execFileSync('zip', ['-rXq', zipPath, '.'], { cwd: stagingDir });
+  zipStaging(zipPath, stagingDir);
   const zipSizeBytes = fs.statSync(zipPath).size;
 
   console.log('Verifying ZIP...');
@@ -846,7 +952,15 @@ function main() {
   const report = buildSnapshotReport({ generatedAt, repoSizeBytes, stagingSizeBytes, zipSizeBytes, verification });
   fs.writeFileSync(path.join(outputDir, 'SNAPSHOT_REPORT.md'), report);
   fs.writeFileSync(path.join(manifestDir, 'SNAPSHOT_REPORT.md'), report);
-  execFileSync('zip', ['-uXq', zipPath, path.join(manifestDirRel, 'SNAPSHOT_REPORT.md')], { cwd: stagingDir });
+  try {
+    execFileSync('zip', ['-uXq', zipPath, path.join(manifestDirRel, 'SNAPSHOT_REPORT.md')], { cwd: stagingDir });
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+    // No Info-ZIP available: the report is already inside the staging tree,
+    // so a full re-zip folds it in just the same, only slower.
+    fs.rmSync(zipPath, { force: true });
+    zipStaging(zipPath, stagingDir);
+  }
   const finalZipSizeBytes = fs.statSync(zipPath).size;
 
   const allPass = Object.values(verification).every(Boolean);
