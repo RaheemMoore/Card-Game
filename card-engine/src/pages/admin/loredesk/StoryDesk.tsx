@@ -8,9 +8,11 @@ import { loreProblems } from '../../../services/workshop/loreReadiness';
 import { AdminButton, AdminCard, AdminField, AdminTextArea } from '../../../components/admin/ui';
 import { SaveChip, type SaveState } from '../../../components/admin/workshop';
 import { ReferenceRail } from './ReferenceRail';
-import { AssistPanel } from './AssistPanel';
+import { MuseColumn } from './MuseColumn';
 import { NameAssist } from './NameAssist';
 import { RoutingSection } from './RoutingSection';
+import { ColumnHandle } from './ColumnHandle';
+import { useDeskColumns } from './useDeskColumns';
 
 /**
  * The desk itself — the three-region story-creation layout.
@@ -43,6 +45,7 @@ export function StoryDesk({
   onConfirm: () => Promise<void>;
 }) {
   const [activeRank, setActiveRank] = useState<Rank>('Foundation');
+  const columns = useDeskColumns();
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
@@ -148,22 +151,30 @@ export function StoryDesk({
 
       {/* The three regions. Under 1024px everything stacks; from 1024px the
           reference rail joins and sticks; from 1440px the Muse gets its own
-          column (below that it renders after the writing column). */}
+          column (below that it renders after the writing column). Widths are
+          draggable — see useDeskColumns. */}
       <style>{`
         @media (min-width: 1024px) {
-          .lore-desk-grid { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr) !important; }
           .lore-desk-rail, .lore-desk-muse { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
-          .lore-desk-muse { grid-column: 2; }
-        }
-        @media (min-width: 1440px) {
-          .lore-desk-grid { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr) minmax(250px, 330px) !important; }
-          .lore-desk-muse { grid-column: auto; }
         }
       `}</style>
-      <div className="lore-desk-grid grid gap-4 items-start" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
+      <div
+        className="lore-desk-grid grid gap-4 items-start"
+        style={{ gridTemplateColumns: columns.gridTemplateColumns }}
+      >
         <div className="lore-desk-rail">
           <ReferenceRail character={character} activeRank={activeRank} onRankChange={setActiveRank} />
         </div>
+
+        {columns.mode !== 'stacked' && (
+          <ColumnHandle
+            label="Resize the character column"
+            width={columns.railWidth}
+            grows="left"
+            onResize={columns.resizeRail}
+            onReset={columns.reset}
+          />
+        )}
 
         {/* Writing canvas */}
         <div className="grid gap-4 min-w-0">
@@ -270,9 +281,18 @@ export function StoryDesk({
             onChange={onChange}
           />
 
-          {/* Confirm */}
+          {/* Confirm. The reasons live in the rail's "What's left" when it is
+              on screen — printing the same list twice on one screen is what
+              made the first version of this page unreadable. Stacked, the
+              rail is far below the button, so the reasons come back here. */}
           <AdminCard surface="glass" className="grid gap-2.5">
-            {problems.length > 0 ? (
+            {problems.length > 0 && columns.mode !== 'stacked' ? (
+              <p className="m-0 text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+                {problems.length} {problems.length === 1 ? 'thing is' : 'things are'} still
+                missing — they are listed under <strong style={{ color: 'var(--admin-text)' }}>What's
+                left</strong>, on the right.
+              </p>
+            ) : problems.length > 0 ? (
               <ul className="grid gap-1 m-0 p-0 list-none">
                 {problems.map((p) => (
                   <li key={p} className="text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
@@ -298,8 +318,18 @@ export function StoryDesk({
           </AdminCard>
         </div>
 
-        <div className="lore-desk-muse">
-          <AssistPanel character={character} onJumpToRank={setActiveRank} />
+        {columns.mode === 'wide' && (
+          <ColumnHandle
+            label="Resize the Muse column"
+            width={columns.museWidth}
+            grows="right"
+            onResize={columns.resizeMuse}
+            onReset={columns.reset}
+          />
+        )}
+
+        <div className="lore-desk-muse" style={{ gridColumn: columns.museGridColumn }}>
+          <MuseColumn character={character} problems={problems} onJumpToRank={setActiveRank} />
         </div>
       </div>
     </div>
