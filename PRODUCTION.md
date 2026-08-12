@@ -900,6 +900,54 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 *Why, not just what. Newest first. This section is append-only.*
 
+### 2026-08-11 — The lore desk is its own admin page, and questions come out of the lore
+
+Two decisions, one session.
+
+**Where the desk lives.** The lore editor was a provisional form in the Studio Wiki, and its
+own source carried a warning that it was awaiting a real design pass. Raheem asked whether the
+wiki was even the right home: *"if it would be better for the desk to maybe be somewhere else
+so that Tori and I can both use it… the goal is for this to be easier to do."* It moved to
+`/admin/lore-desk`. Explicitly **not** a Workshop stage — *"Make it his own navigation page
+below the workshop"* — because the Workshop is a seven-stage pipeline and writing is not a
+stage in it.
+
+Three things fell out of the move for free: both operators use one login-gated surface, the
+Anthropic proxy is same-origin (no CORS, no wiki env var, and **no new serverless function** —
+`card-engine/api/` had just been consolidated 12 → 9, and Raheem's instruction was to spend
+none of that headroom), and there is exactly one write surface against the character's jsonb
+row instead of two racing each other.
+
+**What the desk became.** Raheem's brief was that this stop being a workspace and become a
+story-creation space: *"We need to be able to see the character while typing out the lore."*
+So the character does not scroll away — a sticky rail holds one large portrait behind rank
+tabs, and those tabs are shared state with the writing canvas, so moving to the Forged
+paragraph moves the portrait to the Forged art. You are always looking at the person you are
+describing.
+
+The AI suggests **beside** the writing and never in it: one explicit button per paid call,
+cards to copy or dismiss, and continuity flags where the draft contradicts the art sheet or
+the canon. Nothing is ever inserted into a field. Draft-for-me buttons and a confirm-time
+consistency pass were both considered and declined — the register of the tool is a companion,
+not a ghostwriter.
+
+**Questions from the lore.** The larger change. Raheem: *"at the end, our idea is that you
+should use our lore to generate some questions from that… Tori also needs to confirm the
+questions that will be associated with this character."* Players answer questions on their way
+to a character; until now those questions were only the hand-authored Story Pillar bank. Now,
+once the lore is written, Claude drafts bespoke questions **from it**, in the Pillar voice, and
+the lore director edits the words, ticks which answers are true of this character, and approves
+each one. Approving writes the AnswerBinding in the same edit, so the two arrays cannot drift.
+
+Three approved questions became part of the confirm gate — paired, as always, with the SQL
+predicate (`20260812_lore_desk_generated_questions.sql`) so the button and the database can
+never disagree.
+
+**Deferred on purpose:** the player-side matcher that will consume these bindings, an
+archetype-level question pool table with sibling claiming, and cross-character dedupe. Nothing
+reads generated questions yet; the ids are globally unique and the binding shape is the
+ordinary one, so promoting them to their own table later is a data move rather than a remodel.
+
 ### 2026-08-09 — Raheem does not cut north–south walls; that work is mine
 
 Raheem, after following the reasoning end to end: *"I will not be chopping north and south
@@ -2682,6 +2730,17 @@ on. **When one gets built it moves out of this list**, leaving a line saying wha
 
 *This part belongs to Tori. It is the record of what is written, what is invented and
 waiting on her, and what order it is worth doing in.*
+
+> **The writing desk moved (2026-08-11).** Lore is now written at
+> **[/admin/lore-desk](https://card-engine-sigma.vercel.app/admin/lore-desk)** — its own
+> page below the Workshop in the admin studio, not in this wiki. This page keeps the
+> priorities; the writing happens there. It is a real workspace now rather than a form:
+> the character stays on screen while you write (the rank tabs move the portrait with
+> you), an AI panel offers angles, phrases and continuity flags beside the draft without
+> ever writing into it, and when the lore is finished a **Question Forge** drafts bespoke
+> selection questions *from that lore* for you to edit and approve. Three approved
+> questions are now required before a card can be confirmed — the questions a player
+> answers to find a character come out of the character's own story.
 
 **The short version: the bosses have no real story.** Everything currently written about
 them was invented by Claude to fill the field, has never been reviewed, and is not canon.

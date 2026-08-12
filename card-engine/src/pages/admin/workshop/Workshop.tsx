@@ -28,13 +28,14 @@ import { useCuratedRoster } from './useCuratedRoster';
  * The pipeline crosses two surfaces, which is why a stage can end in a hand-off
  * rather than a result:
  *
- *   WORKSHOP                    TORI'S DESK (studio wiki)     WORKSHOP
+ *   WORKSHOP                    LORE DESK (/admin/lore-desk)  WORKSHOP
  *   bench → intake →            lore + claim grid             review space
  *   read the art → propose ──►  confirm ────────────────►     approve → permanent
  *                                       ◄── send back ───     (with a note)
  *
  * Two things are deliberately NOT here:
- *   - **Lore.** It belongs to the lore director, at her desk in the wiki.
+ *   - **Lore.** It belongs to the lore director, at the Lore Desk — its own
+ *     admin page below this one (it lived in the studio wiki until 2026-08-11).
  *   - **Stats.** A curated character is an identity, not a statline. Players
  *     roll their own inside the archetype's bias tiers and level them through
  *     play, so two people who pull the same character differ.

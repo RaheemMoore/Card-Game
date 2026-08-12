@@ -35,7 +35,7 @@ import type {
  *                  being made OUTSIDE the app. A real working state, not a
  *                  nicety — without it a half-started character is invisible on
  *                  the roster board and gets stranded
- *   awaiting_lore  proposal sent; sitting on Tori's desk in the studio wiki
+ *   awaiting_lore  proposal sent; sitting on the Lore Desk (/admin/lore-desk)
  *   lore_ready     Tori confirmed; sitting in the Workshop's review queue
  *   approved       passed final review; its variants may now be published
  *   retired        pulled from the roster
@@ -179,7 +179,7 @@ export interface CuratedProvenance {
  * here.
  *
  * The thread travels between BOTH surfaces — the Workshop's review space and
- * Tori's desk in the wiki — so a send-back and the reply to it sit next to each
+ * the Lore Desk — so a send-back and the reply to it sit next to each
  * other rather than in two systems.
  */
 export interface ReviewNote {
@@ -207,9 +207,10 @@ export interface SignOff {
 // ---------- Loose drafts ----------
 
 /**
- * The lore itself — Tori's work, written at her desk in the studio wiki rather
- * than in the Workshop (Raheem, 2026-08-10: the lore director owns the lore for
- * every card before it becomes permanent).
+ * The lore itself — Tori's work, written at the Lore Desk rather than in the
+ * Workshop (Raheem, 2026-08-10: the lore director owns the lore for every card
+ * before it becomes permanent). The desk lived in the studio wiki until
+ * 2026-08-11, when it became its own admin page below the Workshop.
  *
  * The card's NAME lives here, not on the character, because naming is a lore
  * act. `displayName` on the character is only the operators' working handle for
