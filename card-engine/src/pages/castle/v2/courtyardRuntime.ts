@@ -53,7 +53,7 @@ import {
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
 import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
-import { quantiseFacing, resolveAim, initialAim, type AimState } from '../combat/aim';
+import { quantiseFacing, resolveAim, initialAim, type AimState, type Vec2 } from '../combat/aim';
 import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
 import {
   initialAction,
@@ -64,6 +64,9 @@ import {
 import {
   canFire,
   commitSelected,
+  recoverCard,
+  scatterHand,
+  type DroppedCard,
   cycleSelection,
   emptyHand,
   handFromCards,
@@ -71,6 +74,12 @@ import {
   selectSlot,
   type Hand,
 } from '../combat/hand';
+import {
+  PICKUP_RADIUS,
+  SCATTER_FLIGHT_MS,
+  scatterArc,
+  scatterPoints,
+} from '../combat/scatter';
 import {
   CARD_HEIGHT_PX,
   DEFAULT_BLAST,
@@ -277,6 +286,15 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
     const hand = scn.hand;
     const ids = (hand?.slots ?? []).map((x) => x.cardId).filter(Boolean);
     return {
+      // Cards lying in the world. A scatter that strands one is the failure this
+      // whole milestone is about, so it is reported rather than eyeballed.
+      onGround: (
+        scene as unknown as { pickups?: { card: { cardId: string }; to: { x: number; y: number } }[] }
+      ).pickups?.map((p) => ({
+        cardId: p.card.cardId,
+        x: Math.round(p.to.x),
+        y: Math.round(p.to.y),
+      })) ?? [],
       hand: hand
         ? {
             selected: hand.selected,
@@ -436,6 +454,18 @@ export function makeScene(
     private shoulderHeld = false;
     /** Slot index of the shot in flight, so its card is released when it lands. */
     private committedSlot: number | null = null;
+    /** Cards lying in the world, waiting to be walked over. */
+    private pickups: {
+      card: DroppedCard;
+      from: Vec2;
+      to: Vec2;
+      /** Milliseconds since it was thrown; drives the hop and then the bob. */
+      ageMs: number;
+      gfx: Phaser.GameObjects.Rectangle;
+    }[] = [];
+    private knockdownKey?: Phaser.Input.Keyboard.Key;
+    /** Edge-detects the fall, so the scatter fires once rather than every frame. */
+    private wasDown = false;
     /**
      * Fire is held rather than tapped, which gives repeat fire at the cadence of
      * windup + active + recovery. The state machine only leaves `explore` on a
@@ -733,6 +763,10 @@ export function makeScene(
       this.jumpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
       this.fireKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+      // A controlled source of knockdown until real enemies exist. K is a
+      // deliberate stand-in for being hit hard, so the scatter-and-recover loop
+      // can be played and tuned before anything in the world can hit him.
+      this.knockdownKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
       // 1-4 pick a card. ONE/TWO/THREE/FOUR are the number row, not the numpad;
       // a laptop without a numpad is the common case, not the exception.
       this.slotKeys = [
@@ -898,14 +932,22 @@ export function makeScene(
         {
           firePressed: this.fireHeld,
           hasReadyCard: canFire(this.hand),
-          // Knockdown arrives with the card-scatter milestone. Passing the flag
-          // as a literal keeps the machine's only entry to it honest until then,
-          // rather than leaving a field nothing ever sets.
-          heavyHit: false,
+          heavyHit: this.knockdownKey
+            ? Phaser.Input.Keyboard.JustDown(this.knockdownKey)
+            : false,
           aim: this.aim.aim,
         },
         delta,
       );
+
+      // He just went down. Scatter once, on the transition — not every frame he
+      // spends on the floor.
+      if (this.action.phase === 'knockdown' && wasExploring !== undefined && !this.wasDown) {
+        this.scatterCards();
+      }
+      this.wasDown = this.action.phase === 'knockdown';
+
+      this.updatePickups(delta);
 
       // The throw starts: the card leaves the hand's control until it resolves, so
       // it cannot be fired twice or scattered out from under its own shot.
@@ -963,6 +1005,88 @@ export function makeScene(
           this.heldCard.setDepth(this.level * LEVEL_STRIDE + this.feetY + 1);
         }
       }
+    }
+
+    /**
+     * He goes down; the cards go everywhere.
+     *
+     * Only cards actually in hand scatter — one mid-throw belongs to its action
+     * and one already lying in the grass cannot fall twice, and either of those
+     * dropping here is how a card comes to exist in two places at once.
+     */
+    private scatterCards() {
+      const { hand, dropped } = scatterHand(this.hand);
+      if (dropped.length === 0) return;
+      this.hand = hand;
+
+      const from = { x: this.player!.x, y: this.feetY };
+      const points = scatterPoints({
+        origin: from,
+        count: dropped.length,
+        random: Math.random,
+        // Standable is the runtime's existing answer, not a second opinion:
+        // inside the world, off the blockers, and on the plate he is on. A card
+        // on another elevation would be visible and unreachable, which is the
+        // worst of both.
+        isValid: (p) => {
+          const b = this.cameras.main.getBounds();
+          if (!Phaser.Geom.Rectangle.Contains(b, p.x, p.y)) return false;
+          const feet = { x: p.x, y: p.y, width: HERO_FEET.width, height: HERO_FEET.height };
+          if (feetBlocked(feet, this.colliders.blockers)) return false;
+          // levelAt returns null off any plate; ground level is 0 there, which is
+          // what walking on plain terrain already means.
+          return (levelAt(p.x, p.y, this.elevation) ?? 0) === this.level;
+        },
+      });
+
+      dropped.forEach((card, i) => {
+        const gfx = this.add.rectangle(from.x, from.y, 16, 24, 0xf2e2b6);
+        gfx.setStrokeStyle(2, 0x6b4a1f);
+        gfx.setOrigin(0.5, 1);
+        this.depthBand?.add(gfx);
+        this.pickups.push({ card, from, to: points[i], ageMs: 0, gfx });
+      });
+
+      this.emitHand();
+    }
+
+    /**
+     * Fly the dropped cards out, then let him sweep them up by walking over them.
+     *
+     * Recovery is deliberately physical and deliberately forgiving: he has to run
+     * to each card, but he does not have to stand on it precisely. The tension is
+     * meant to be "my cards are over there", not "my pickup missed".
+     */
+    private updatePickups(delta: number) {
+      if (this.pickups.length === 0 || !this.player) return;
+      const feet = { x: this.player.x, y: this.feetY };
+
+      const survivors: typeof this.pickups = [];
+      for (const p of this.pickups) {
+        p.ageMs += delta;
+        const t = p.ageMs / SCATTER_FLIGHT_MS;
+        const arc = scatterArc(p.from, p.to, t);
+
+        // Settled cards bob gently so they read as collectable rather than as
+        // scenery someone dropped.
+        const bob = t >= 1 ? Math.sin(p.ageMs / 260) * 3 : 0;
+        p.gfx.setPosition(arc.x, arc.y - arc.heightPx - bob);
+        // Depth from the ground point, never from the drawn height.
+        p.gfx.setDepth(this.level * LEVEL_STRIDE + arc.y);
+
+        // Only collectable once it has landed — otherwise a card can be caught
+        // out of the air at the moment it is thrown and never really drops.
+        const landed = t >= 1;
+        const near = Math.hypot(feet.x - p.to.x, feet.y - p.to.y) <= PICKUP_RADIUS;
+        if (landed && near) {
+          this.hand = recoverCard(this.hand, p.card);
+          this.emitHand();
+          p.gfx.destroy();
+          continue;
+        }
+        survivors.push(p);
+      }
+      this.pickups = survivors;
     }
 
     /** A readable reaction, so a hit cannot be mistaken for a miss. */

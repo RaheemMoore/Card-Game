@@ -191,6 +191,15 @@ export function cardLocations(hand: Hand): Map<string, SlotState> {
   return found;
 }
 
+/** Every slot currently lying in the world as a pickup. */
+export function droppedSlots(hand: Hand): DroppedCard[] {
+  const out: DroppedCard[] = [];
+  hand.slots.forEach((slot, i) => {
+    if (slot.state === 'dropped' && slot.cardId) out.push({ cardId: slot.cardId, slotIndex: i });
+  });
+  return out;
+}
+
 /** True when no card id appears in more than one slot. */
 export function hasNoDuplicates(hand: Hand): boolean {
   const ids = hand.slots.map((s) => s.cardId).filter((id): id is string => id !== null);
