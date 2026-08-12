@@ -116,6 +116,36 @@ export interface VisualTiebreakerClaim {
   optionId: string;
 }
 
+/**
+ * A bespoke selection question drafted by Claude FROM the finished lore, then
+ * edited and approved by the lore director at the Lore Desk (Raheem,
+ * 2026-08-11: the questions players answer should come out of the lore that
+ * already exists, and Tori confirms the ones associated with a character).
+ *
+ * Ids are globally unique (`gq_<characterId>_<n>`), so a sibling character can
+ * claim options on another character's approved question later without a
+ * remodel. Approving a question writes an ordinary AnswerBinding for it; a
+ * discarded question must have its binding removed in the same edit — see
+ * removeGeneratedQuestion in services/workshop/loreReadiness.ts.
+ */
+export interface GeneratedQuestionOption {
+  /** `${questionId}_a${n}` */
+  id: string;
+  text: string;
+}
+
+export interface GeneratedQuestion {
+  /** `gq_${characterId}_${n}` — globally unique across the roster. */
+  id: string;
+  prompt: string;
+  options: GeneratedQuestionOption[];
+  /** Drafts are Claude's; only the lore director moves one to approved. */
+  status: 'draft' | 'approved' | 'discarded';
+  generatedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+}
+
 // ---------- Provenance ----------
 
 /** What the Image Engine produced, when a character came off the bench. */
@@ -256,6 +286,11 @@ export interface CuratedCharacter {
   /** Claimed by Tori — the questions come out of who the character is. */
   answerBindings: AnswerBinding[];
   visualTiebreaker?: VisualTiebreakerClaim;
+  /**
+   * Bespoke selection questions drafted from this character's lore at the
+   * Lore Desk. Approved ones carry a matching AnswerBinding keyed on their id.
+   */
+  generatedQuestions?: GeneratedQuestion[];
 
   /** The `derived` art mode's source set. */
   masterArt?: Partial<Record<Rank, CuratedRankArt>>;
@@ -321,6 +356,14 @@ export const ROSTER_SLOTS_PER_ARCHETYPE = 10;
 
 /** Default binding weight. Raised only for a character's signature answers. */
 export const DEFAULT_BINDING_WEIGHT = 10;
+
+/**
+ * How many approved generated questions a character needs before its lore can
+ * be confirmed. Paired with curated_character_lore_is_ready() in
+ * supabase/migrations/20260812_lore_desk_generated_questions.sql — the SQL and
+ * this constant must change together.
+ */
+export const MIN_APPROVED_GENERATED_QUESTIONS = 3;
 
 export function curatedCharacterId(archetype: ArchetypeName, slug: string): string {
   return `char_${archetype.toLowerCase().replace(/\s+/g, '_')}_${slug}`;

@@ -12,6 +12,7 @@ import { AdminAbilities } from './pages/admin/AdminAbilities';
 import { AdminDiagnostics } from './pages/admin/AdminDiagnostics';
 import { AdminPromptLab } from './pages/admin/AdminPromptLab';
 import { Workshop } from './pages/admin/workshop/Workshop';
+import { LoreDeskPage } from './pages/admin/loredesk/LoreDeskPage';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
@@ -391,6 +392,7 @@ export default function App() {
             <Route path="diagnostics" element={<AdminDiagnostics />} />
             <Route path="prompt-lab" element={<AdminPromptLab />} />
             <Route path="workshop" element={<Workshop />} />
+            <Route path="lore-desk" element={<LoreDeskPage />} />
             {/* Retired 2026-08-10. The proposal desk was built for a review
                 process that never took, and the Workshop replaced it. Both the
                 old path and its bookmarks redirect rather than 404. */}

@@ -368,6 +368,6 @@ export const searchEntries = [
   { path: '/work/advice', title: 'AI Advice', text: 'recommendations priorities goals questions improve game Codex Claude advice next' },
   { path: '/work/active', title: 'Active Work', text: 'ongoing tasks in progress live branches current work status owners blockers checkpoints' },
   { path: '/work/required', title: 'Required & Deferred', text: 'open threads required blocked deferred sidestepped later functional gaps unfinished work' },
-  { path: '/work/tori', title: "Tori's Desk", text: 'lore assignments bosses telegraphs move names archetype voice canon review Tori' },
+  { path: '/work/tori', title: "Tori's Desk", text: 'lore assignments bosses telegraphs move names archetype voice canon review Tori lore desk moved admin writing' },
   { path: '/work/raheem', title: "Raheem's Desk", text: 'private ideas notebook capture remember focus notes not tasks' },
 ];
