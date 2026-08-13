@@ -1,4 +1,5 @@
 import { ACTION_TIMING, MIN_CHARGE_LEVEL, type ActionPhase } from './actionState';
+import type { AttackStyle } from './cardActions';
 import type { AttackFeel } from './feel';
 import type { Vec2 } from './aim';
 
@@ -74,7 +75,26 @@ const easeIn = (t: number) => t * t;
 
 const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
 
+/**
+ * Collapse negative zero.
+ *
+ * `-aim.x * 0` is `-0`, which is numerically zero and yet not `Object.is`-equal
+ * to it — so a pose that had gone perfectly still could still fail an equality
+ * check against a neutral one, and any consumer branching on the SIGN of a
+ * displacement would read a stationary body as moving left. Cheaper to never
+ * emit it than to make every reader defend against it.
+ */
+const z = (n: number) => (n === 0 ? 0 : n);
+
 export interface AttackPoseInput {
+  /**
+   * Which body language this action calls for.
+   *
+   * `ranged` is every attack that exists today: he holds the card up, plants,
+   * and the shot leaves the card. `melee` is the throw — kept, tested, and
+   * currently unreachable, waiting for a melee action to be designed.
+   */
+  style: AttackStyle;
   phase: ActionPhase;
   /** Time spent in THIS phase, ms. */
   elapsedMs: number;
@@ -106,6 +126,103 @@ export interface AttackPoseInput {
  * neutral. Those phases have their own art and must not be leaned on top of.
  */
 export function attackPose(input: AttackPoseInput): AttackPose {
+  return input.style === 'melee' ? meleePose(input) : rangedPose(input);
+}
+
+/**
+ * The BRACE — how he casts, and the only style anything currently uses.
+ *
+ * Raheem's direction, 2026-08-13: "we are a card architect or dealer or player.
+ * So we should hold up the card, get a firm stance, like, put one leg forward,
+ * one leg back, and then the blast shoots out the card. It should feel like a
+ * little impact, like a little jerk when the blast shoots out the card."
+ *
+ * The shape that follows from that, and the one thing that makes it read as a
+ * cast rather than a throw: he does NOT travel forward. He sinks. Charging
+ * settles him down into the stance, the wind-up braces harder, and then the
+ * blast leaving the card shoves him BACKWARD — the recoil is the impact, and it
+ * is the exact opposite of the melee lunge. A caster who steps into his own
+ * shot looks like he threw it.
+ *
+ * What this cannot do procedurally is put one leg forward and one leg back:
+ * that is a limb, and the walk sheet has no such frame. The crouch, the tilt
+ * and the recoil are the parts of a braced stance that CAN be expressed by
+ * moving a whole sprite, and they are here so the timing can be judged before
+ * any art is paid for.
+ */
+function rangedPose(input: AttackPoseInput): AttackPose {
+  const { phase, elapsedMs, chargeLevel, aim, feel } = input;
+  if (!aim) return NEUTRAL_POSE;
+
+  /**
+   * Sink into the stance. `drop` lowers him, `back` shifts his weight away
+   * from the target, `tilt` leans him away from the card he is holding up.
+   */
+  const brace = (drop: number, back: number, tilt: number): AttackPose => ({
+    offsetX: z(-aim.x * back),
+    offsetY: z(-aim.y * back * VERTICAL_BIAS + drop * 2),
+    // Crouching is SHORTER and WIDER, the same weight vocabulary the squash
+    // uses — a braced body is a compressed one.
+    scaleX: 1 + drop * 0.5,
+    scaleY: 1 - drop,
+    rotation: z(tilt * aim.x),
+  });
+
+  switch (phase) {
+    case 'charging': {
+      // Settling in as the power gathers. No travel: the whole statement is
+      // that he is planting himself.
+      const held = clamp01(
+        (chargeLevel - MIN_CHARGE_LEVEL) / Math.max(1 - MIN_CHARGE_LEVEL, 0.0001),
+      );
+      const t = 0.4 + 0.6 * held;
+      return brace(feel.squash * 0.55 * t, feel.windupLeanPx * 0.18 * t, -feel.tiltRad * 0.35 * t);
+    }
+
+    case 'windup': {
+      // The extra brace. He dips lowest here, immediately before the shot.
+      const t = easeOut(clamp01(elapsedMs / ACTION_TIMING.windupMs));
+      return brace(
+        feel.squash * (0.55 + 0.35 * t),
+        feel.windupLeanPx * (0.18 + 0.12 * t),
+        -feel.tiltRad * (0.35 + 0.2 * t),
+      );
+    }
+
+    case 'active': {
+      // THE JERK. 60ms, eased in so the first frame is already moving: the
+      // projectile is born on entry to this phase, and the recoil is the shot
+      // leaving, not a reaction to having seen it leave. He rises out of the
+      // crouch as he is pushed back — the brace unloads.
+      const t = easeIn(clamp01(elapsedMs / ACTION_TIMING.activeMs));
+      return brace(
+        feel.squash * 0.9 * (1 - t),
+        feel.windupLeanPx * 0.3 + feel.recoilPx * t,
+        -feel.tiltRad * (0.55 + 0.45 * t),
+      );
+    }
+
+    case 'recovery': {
+      // Absorbing it and standing back up.
+      const t = easeOut(clamp01(elapsedMs / ACTION_TIMING.recoveryMs));
+      return brace(0, (feel.windupLeanPx * 0.3 + feel.recoilPx) * (1 - t), -feel.tiltRad * (1 - t));
+    }
+
+    default:
+      return NEUTRAL_POSE;
+  }
+}
+
+/**
+ * The THROW — parked, and deliberately kept.
+ *
+ * Raheem on seeing it: "I do like the launch animation... but this launch
+ * animation should be reserved for melee attacks." Nothing selects `melee`
+ * today, because no card carries a melee action; this is the animation waiting
+ * for the mechanic, not dead code. It is still under test so it cannot rot
+ * before the mechanic that needs it arrives.
+ */
+function meleePose(input: AttackPoseInput): AttackPose {
   const { phase, elapsedMs, chargeLevel, aim, feel } = input;
   if (!aim) return NEUTRAL_POSE;
 
@@ -207,6 +324,85 @@ export const NEUTRAL_CARD: CardPose = {
 };
 
 export function cardPose(input: AttackPoseInput): CardPose {
+  return input.style === 'melee' ? meleeCardPose(input) : rangedCardPose(input);
+}
+
+/**
+ * The card as a WEAPON, not as ammunition.
+ *
+ * The single most important difference from the throw, and the one Raheem
+ * named: the card never leaves his hand. He holds it up, the blast comes out of
+ * it, and it is still there afterward. It stays visible through the shot and
+ * the recovery — a card that vanished at the moment of firing would be back to
+ * reading as something he threw.
+ *
+ * It is held UP and slightly toward the target: it is the emitter, so it wants
+ * to be between him and what he is shooting, high enough to read against the
+ * body rather than overlapping it.
+ */
+function rangedCardPose(input: AttackPoseInput): CardPose {
+  const { phase, elapsedMs, chargeLevel, aim, feel } = input;
+  if (!aim) return NEUTRAL_CARD;
+
+  const perpX = -aim.y;
+  const perpY = aim.x;
+
+  const hold = (
+    along: number,
+    lift: number,
+    rotation: number,
+    scale: number,
+  ): CardPose => ({
+    offsetX: aim.x * along + perpX * 5,
+    // `lift` is screen-up, unconditionally: raising the card is a vertical
+    // gesture regardless of which way he is aiming.
+    offsetY: (aim.y * along + perpY * 5) * VERTICAL_BIAS - lift,
+    rotation,
+    scale,
+    visible: true,
+  });
+
+  switch (phase) {
+    case 'charging': {
+      const held = clamp01(
+        (chargeLevel - MIN_CHARGE_LEVEL) / Math.max(1 - MIN_CHARGE_LEVEL, 0.0001),
+      );
+      // Raised and steady, growing as it fills. Steadiness is the point — the
+      // card is the thing that is NOT moving while everything gathers into it.
+      return hold(4, feel.cardRaisePx * (0.6 + 0.4 * held), -0.12, 1 + 0.4 * held);
+    }
+
+    case 'windup': {
+      // Pushes out toward the target as he braces behind it.
+      const t = easeOut(clamp01(elapsedMs / ACTION_TIMING.windupMs));
+      return hold(4 + 5 * t, feel.cardRaisePx, -0.12 - 0.06 * t, 1.4);
+    }
+
+    case 'active': {
+      // Kicks back and up as the blast leaves it. Same jerk as the body, on the
+      // object the blast actually came out of.
+      const t = easeIn(clamp01(elapsedMs / ACTION_TIMING.activeMs));
+      return hold(9 - feel.recoilPx * 0.8 * t, feel.cardRaisePx + 4 * t, -0.18 + 0.5 * t, 1.4 - 0.25 * t);
+    }
+
+    case 'recovery': {
+      // Lowered back to a rest, still in hand.
+      const t = easeOut(clamp01(elapsedMs / ACTION_TIMING.recoveryMs));
+      return hold(
+        (9 - feel.recoilPx * 0.8) * (1 - t),
+        feel.cardRaisePx * (1 - t),
+        0.32 * (1 - t),
+        1.15 - 0.15 * t,
+      );
+    }
+
+    default:
+      return NEUTRAL_CARD;
+  }
+}
+
+/** The card as AMMUNITION — the parked throw. See `meleePose`. */
+function meleeCardPose(input: AttackPoseInput): CardPose {
   const { phase, elapsedMs, chargeLevel, aim, feel } = input;
   if (!aim) return NEUTRAL_CARD;
 

@@ -232,11 +232,24 @@ export function CastleV2() {
           {hand.slots.map((slot, i) => {
             const selected = hand.selected === i;
             const dropped = slot.state === 'dropped';
+            /**
+             * The pip is the CARD, so it wears the card's element.
+             *
+             * Every slot used to be the same parchment cream, which made a hand
+             * of four look like four of the same thing — and it was, because the
+             * practice cards had no element at all. Now that they do, the row is
+             * the fastest possible answer to "which one shoots fire": you can
+             * see it without selecting anything.
+             *
+             * A committed card still goes purple: "this one is in the air" is
+             * more urgent than what it is made of, and it is the only feedback
+             * that a slot is spent.
+             */
             const fill =
-              slot.state === 'ready'
-                ? '#f2e2b6'
-                : slot.state === 'committed'
-                  ? '#9a8ac0'
+              slot.state === 'committed'
+                ? '#9a8ac0'
+                : slot.state === 'ready'
+                  ? slot.tint ?? '#f2e2b6'
                   : 'transparent';
             return (
               <div

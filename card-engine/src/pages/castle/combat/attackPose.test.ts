@@ -8,6 +8,7 @@ const FEEL = getAttackFeel('heavy', 'full');
 
 const pose = (over: Partial<AttackPoseInput> = {}) =>
   attackPose({
+    style: 'melee',
     phase: 'active',
     elapsedMs: ACTION_TIMING.activeMs,
     chargeLevel: 1,
@@ -16,7 +17,7 @@ const pose = (over: Partial<AttackPoseInput> = {}) =>
     ...over,
   });
 
-describe('attack pose', () => {
+describe('attack pose — MELEE (parked; rangedPose is what ships)', () => {
   it('stands neutral in every non-attacking phase', () => {
     // Knockdown, stand-up and the summon all have their own authored clips.
     // Leaning on top of one would fight art that was made to be seen straight.
@@ -87,6 +88,7 @@ describe('attack pose', () => {
 
   it('lunges further for a heavier shot', () => {
     const light = attackPose({
+      style: 'melee',
       phase: 'active',
       elapsedMs: ACTION_TIMING.activeMs,
       chargeLevel: MIN_CHARGE_LEVEL,
@@ -98,6 +100,7 @@ describe('attack pose', () => {
 
   it('is completely still when motion is off', () => {
     const off = attackPose({
+      style: 'melee',
       phase: 'active',
       elapsedMs: ACTION_TIMING.activeMs,
       chargeLevel: 1,
@@ -137,7 +140,7 @@ describe('attack pose', () => {
     const phases: ActionPhase[] = ['charging', 'windup', 'active', 'recovery'];
     for (const phase of phases) {
       for (let ms = 0; ms <= 1200; ms += 20) {
-        const p = attackPose({ phase, elapsedMs: ms, chargeLevel: 1, aim: AIM, feel: FEEL });
+        const p = attackPose({ style: 'melee', phase, elapsedMs: ms, chargeLevel: 1, aim: AIM, feel: FEEL });
         expect(Math.abs(p.offsetX)).toBeLessThanOrEqual(
           Math.max(FEEL.lungePx, FEEL.windupLeanPx) + 0.001,
         );
@@ -146,9 +149,10 @@ describe('attack pose', () => {
   });
 });
 
-describe('the card throws itself', () => {
+describe('the card throws itself — MELEE (parked)', () => {
   const card = (over: Partial<AttackPoseInput> = {}) =>
     cardPose({
+      style: 'melee',
       phase: 'windup',
       elapsedMs: 0,
       chargeLevel: 1,
@@ -208,6 +212,7 @@ describe('the card throws itself', () => {
 
   it('stays in hand, still, when motion is off', () => {
     const off = cardPose({
+      style: 'melee',
       phase: 'windup',
       elapsedMs: ACTION_TIMING.windupMs,
       chargeLevel: 1,
@@ -222,5 +227,147 @@ describe('the card throws itself', () => {
 
   it('has no opinion without an aim', () => {
     expect(card({ aim: null }).visible).toBe(false);
+  });
+});
+
+/**
+ * THE SHIPPED ATTACK.
+ *
+ * Raheem, 2026-08-13, after playing the throw: the blast is not a throw. He is
+ * a card wielder — he holds the card up, plants, and the shot comes out of it,
+ * with a jerk as it leaves. Everything below is that ruling as arithmetic, so
+ * "it looks like a throw again" is a failing test rather than another video.
+ */
+describe('braced cast — RANGED, the only style anything uses today', () => {
+  const brace = (over: Partial<AttackPoseInput> = {}) =>
+    attackPose({
+      style: 'ranged',
+      phase: 'active',
+      elapsedMs: ACTION_TIMING.activeMs,
+      chargeLevel: 1,
+      aim: AIM,
+      feel: FEEL,
+      ...over,
+    });
+
+  const card = (over: Partial<AttackPoseInput> = {}) =>
+    cardPose({
+      style: 'ranged',
+      phase: 'charging',
+      elapsedMs: 0,
+      chargeLevel: 1,
+      aim: AIM,
+      feel: FEEL,
+      ...over,
+    });
+
+  it('NEVER travels forward — that is what makes it a cast, not a throw', () => {
+    // The single assertion that protects the ruling. A caster who steps into
+    // his own shot has thrown it.
+    const phases: ActionPhase[] = ['charging', 'windup', 'active', 'recovery'];
+    for (const phase of phases) {
+      for (let ms = 0; ms <= 1200; ms += 20) {
+        const p = attackPose({ style: 'ranged', phase, elapsedMs: ms, chargeLevel: 1, aim: AIM, feel: FEEL });
+        expect(p.offsetX, `${phase} at ${ms}ms moved forward`).toBeLessThanOrEqual(0.001);
+      }
+    }
+  });
+
+  it('sinks into the stance as the charge builds', () => {
+    const tap = brace({ phase: 'charging', chargeLevel: MIN_CHARGE_LEVEL });
+    const full = brace({ phase: 'charging', chargeLevel: 1 });
+    // Shorter and wider: he is planting, and a planted body is a compressed one.
+    expect(full.scaleY).toBeLessThan(tap.scaleY);
+    expect(full.scaleY).toBeLessThan(1);
+    expect(full.scaleX).toBeGreaterThan(1);
+  });
+
+  it('braces LOWEST at the wind-up, immediately before the shot', () => {
+    const charging = brace({ phase: 'charging', chargeLevel: 1 });
+    const windup = brace({ phase: 'windup', elapsedMs: ACTION_TIMING.windupMs });
+    expect(windup.scaleY).toBeLessThan(charging.scaleY);
+  });
+
+  it('JERKS BACKWARD as the blast leaves — the recoil is the impact', () => {
+    const before = brace({ phase: 'windup', elapsedMs: ACTION_TIMING.windupMs });
+    const after = brace({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
+    // Further back than he ever was while winding up, by the recoil's width.
+    expect(after.offsetX).toBeLessThan(before.offsetX);
+    expect(before.offsetX - after.offsetX).toBeCloseTo(FEEL.recoilPx, 1);
+  });
+
+  it('is already recoiling on the first frame of the shot', () => {
+    // Same rule as the throw: the projectile is born on entry to `active`, so
+    // the shove is the shot leaving, not a reaction to having watched it go.
+    const first = brace({ phase: 'active', elapsedMs: 0 });
+    const last = brace({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
+    expect(last.offsetX).toBeLessThan(first.offsetX);
+  });
+
+  it('rises out of the crouch as it is pushed back', () => {
+    const windup = brace({ phase: 'windup', elapsedMs: ACTION_TIMING.windupMs });
+    const fired = brace({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
+    expect(fired.scaleY).toBeGreaterThan(windup.scaleY);
+  });
+
+  it('recoils harder for a heavier shot', () => {
+    const light = attackPose({
+      style: 'ranged',
+      phase: 'active',
+      elapsedMs: ACTION_TIMING.activeMs,
+      chargeLevel: MIN_CHARGE_LEVEL,
+      aim: AIM,
+      feel: getAttackFeel('light', 'full'),
+    });
+    expect(brace().offsetX).toBeLessThan(light.offsetX);
+  });
+
+  it('stands all the way back up by the end of recovery', () => {
+    const end = brace({ phase: 'recovery', elapsedMs: ACTION_TIMING.recoveryMs });
+    expect(end.offsetX).toBeCloseTo(0, 5);
+    expect(end.scaleX).toBeCloseTo(1, 5);
+    expect(end.scaleY).toBeCloseTo(1, 5);
+    expect(end.rotation).toBeCloseTo(0, 5);
+  });
+
+  it('is completely still when motion is off', () => {
+    const off = attackPose({
+      style: 'ranged',
+      phase: 'active',
+      elapsedMs: ACTION_TIMING.activeMs,
+      chargeLevel: 1,
+      aim: AIM,
+      feel: getAttackFeel('heavy', 'off'),
+    });
+    expect(off).toEqual(NEUTRAL_POSE);
+  });
+
+  it('KEEPS THE CARD IN HIS HAND through the shot and after it', () => {
+    // The difference from the throw, in one assertion. The card is the weapon,
+    // not the ammunition: if it vanished when he fired it would read as thrown.
+    expect(card({ phase: 'charging' }).visible).toBe(true);
+    expect(card({ phase: 'windup' }).visible).toBe(true);
+    expect(card({ phase: 'active' }).visible).toBe(true);
+    expect(card({ phase: 'recovery' }).visible).toBe(true);
+  });
+
+  it('holds the card UP, and higher as the charge fills', () => {
+    const tap = card({ chargeLevel: MIN_CHARGE_LEVEL });
+    const full = card({ chargeLevel: 1 });
+    // Screen-up is negative y.
+    expect(full.offsetY).toBeLessThan(0);
+    expect(full.offsetY).toBeLessThan(tap.offsetY);
+    expect(full.scale).toBeGreaterThan(tap.scale);
+  });
+
+  it('kicks the card back as the blast leaves it', () => {
+    const braced = card({ phase: 'windup', elapsedMs: ACTION_TIMING.windupMs });
+    const fired = card({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
+    expect(fired.offsetX).toBeLessThan(braced.offsetX);
+  });
+
+  it('puts the card away once he is not casting', () => {
+    expect(card({ phase: 'explore' }).visible).toBe(false);
+    expect(card({ phase: 'knockdown' }).visible).toBe(false);
   });
 });

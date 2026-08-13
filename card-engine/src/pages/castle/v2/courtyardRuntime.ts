@@ -76,7 +76,7 @@ import {
   walkScale,
   type ActionState,
 } from '../combat/actionState';
-import { resolveAction } from '../combat/cardActions';
+import { attackStyleFor, resolveAction, type AttackStyle } from '../combat/cardActions';
 import {
   CONSTRUCT_TUNING,
   initialConstruct,
@@ -339,6 +339,27 @@ const WALK_SPEED = 190;
  */
 const PLACEHOLDER_CARD_IDS = ['practice_1', 'practice_2', 'practice_3', 'practice_4'] as const;
 
+/**
+ * What the four practice cards are made of.
+ *
+ * WHY THIS EXISTS. Raheem, testing on 2026-08-13: "Right now, I'm only testing
+ * with the pseudo blue ball that's shooting out. It doesn't really relate to any
+ * card." He was looking at `launchBlast`'s fallback circle — the placeholder
+ * cards carried NO element, so `effectKitFor` had nothing to resolve, and the
+ * entire 26-element art library the courtyard already loads was unreachable in
+ * the only situation anyone actually tests in.
+ *
+ * A hand that cannot show what a card does is not a testable hand. These four
+ * are chosen to be told apart at a glance and to exercise the pipeline
+ * honestly: Fire and Blood because Raheem named them, Storm and Void because
+ * they are the most visually distant from those two and from each other. All
+ * four have their own animated stream art rather than a family stand-in.
+ *
+ * Overridden by `?element=`, and never used at all once the profile has real
+ * forged cards — those bring their own.
+ */
+const PRACTICE_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood', 'Storm', 'Void'];
+
 
 /**
  * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
@@ -429,6 +450,11 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
             playing: p.anims?.isPlaying ?? false,
             origin: { x: p.originX, y: +p.originY.toFixed(3) },
             scale: { x: +p.scaleX.toFixed(3), y: +p.scaleY.toFixed(3) },
+            // The lean, in radians. Added 2026-08-13: the pose gained rotation
+            // and the readout could not see it, so "is he tilting?" was a
+            // question only a screenshot could answer — which is exactly the
+            // gap this bridge exists to close.
+            rotation: +p.rotation.toFixed(3),
             display: { w: Math.round(p.displayWidth), h: Math.round(p.displayHeight) },
             visible: p.visible,
             alpha: p.alpha,
@@ -621,7 +647,12 @@ export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
 /** What the shell needs to draw the hand. A snapshot, not the live object. */
 export interface HandView {
   selected: number | null;
-  slots: { cardId: string | null; state: string }[];
+  slots: {
+    cardId: string | null;
+    state: string;
+    /** The element's colour, so a slot LOOKS like what it fires. Null when empty. */
+    tint: string | null;
+  }[];
   /**
    * Increments each time he tries to fire with nothing to fire.
    *
@@ -1421,10 +1452,11 @@ export function makeScene(
        * read it.
        */
       const pose = attackPose({
+        style: this.attackStyle(),
         phase: this.action.phase,
         elapsedMs: this.action.elapsedMs,
         chargeLevel: this.action.chargeLevel,
-        aim: this.action.committedAim ?? this.aim.aim,
+        aim: this.poseAim(),
         feel: getAttackFeel(severityForCharge(this.action.chargeLevel), this.motion),
       });
 
@@ -1555,12 +1587,16 @@ export function makeScene(
       // repeats if it is shorter than the hand.
       const forcedFor = (i: number) => (forced.length ? forced[i % forced.length] : undefined);
 
-      cards.forEach((c, i) => this.cardElements.set(c.cardId, forcedFor(i) ?? c.element));
-      // Practice cards have no element of their own, so the override has to reach
-      // them too or the flag does nothing on exactly the profile that needs it.
+      // A card with no element of its own gets one, so a hand is never four
+      // identical blue circles. See PRACTICE_ELEMENTS.
+      const practiceFor = (i: number) => PRACTICE_ELEMENTS[i % PRACTICE_ELEMENTS.length];
+      cards.forEach((c, i) =>
+        this.cardElements.set(c.cardId, forcedFor(i) ?? c.element ?? practiceFor(i)),
+      );
+      // Practice cards had no element AT ALL, which is why testing only ever
+      // showed the placeholder circle. The `?element=` override still wins.
       PLACEHOLDER_CARD_IDS.forEach((id, i) => {
-        const e = forcedFor(i);
-        if (e) this.cardElements.set(id, e);
+        this.cardElements.set(id, forcedFor(i) ?? practiceFor(i));
       });
       this.hand = handFromCards(
         cards.length > 0 ? cards.map((c) => c.cardId) : PLACEHOLDER_CARD_IDS,
@@ -1624,7 +1660,15 @@ export function makeScene(
     private emitHand() {
       hooks.onHandChange?.({
         selected: this.hand.selected,
-        slots: this.hand.slots.map((slot) => ({ cardId: slot.cardId, state: slot.state })),
+        slots: this.hand.slots.map((slot) => ({
+          cardId: slot.cardId,
+          state: slot.state,
+          // What this card SHOOTS, as a colour the shell can paint the chip
+          // with. Sent from here rather than looked up in React because the
+          // element↔card mapping lives in the scene, and a second copy of it in
+          // the HUD is a second thing that can disagree about what slot 1 is.
+          tint: slot.cardId ? effectKitFor(this.cardElements.get(slot.cardId)).palette[1] : null,
+        })),
         blockedCount: this.blockedCount,
       });
     }
@@ -1674,7 +1718,14 @@ export function makeScene(
       const previousPhase = this.action.phase;
       // Read and clear in one place. A latch left set would cancel the NEXT shot
       // too, which is a far more confusing bug than the one it exists to fix.
-      const cancelRequested = this.cancelLatch;
+      //
+      // A SCRIPTED hold is immune. The cancel exists because a lost focus means
+      // "the key-up is never coming" — but a scripted hold has no key-up to
+      // miss, it ends on its own clock. Without this exemption the command is
+      // unusable in the one place it matters: the preview pane bounces focus
+      // every few frames, so a scripted charge was cancelled and restarted
+      // forever and never once reached the wind-up. Found by running it.
+      const cancelRequested = this.cancelLatch && this.scriptedHoldMs <= 0;
       this.cancelLatch = false;
       if (cancelRequested) {
         // The held flag is sampled before this runs, so a cancel has to clear it
@@ -1907,7 +1958,7 @@ export function makeScene(
       // The held card rides the hero while a shot is being thrown, so the shot
       // visibly comes FROM it.
       if (this.heldCard) {
-        const aim = this.action.committedAim ?? this.aim.aim;
+        const aim = this.poseAim();
         /**
          * The card throws itself.
          *
@@ -1918,6 +1969,7 @@ export function makeScene(
          * — because on that frame it IS the projectile.
          */
         const cp = cardPose({
+          style: this.attackStyle(),
           phase: this.action.phase,
           elapsedMs: this.action.elapsedMs,
           chargeLevel: this.action.chargeLevel,
@@ -1926,6 +1978,13 @@ export function makeScene(
         });
         this.heldCard.setVisible(cp.visible);
         if (cp.visible) {
+          // The card in his hand IS the card he selected. Tinting it from the
+          // element's own palette is what makes "I am about to shoot fire"
+          // true before anything has been shot — and it costs one call, where
+          // real card faces are a whole art pipeline.
+          const kit = this.selectedKit();
+          this.heldCard.setFillStyle(colourOf(kit.palette[1]));
+          this.heldCard.setStrokeStyle(2, colourOf(kit.palette[2]));
           const lead = cardOrigin(feet, aim);
           this.heldCard.setPosition(lead.x + cp.offsetX, lead.y - CARD_HEIGHT_PX + cp.offsetY);
           this.heldCard.setRotation(cp.rotation);
@@ -2047,6 +2106,37 @@ export function makeScene(
     }
 
     /** The effect kit of whatever card is selected right now. */
+    /**
+     * Which body language the shot in progress calls for.
+     *
+     * Read from the CARD's action rather than assumed, so the day a melee card
+     * exists it poses correctly without a line changing here. Everything
+     * resolves to `ranged` today because every action is a blast.
+     *
+     * The committed slot wins over the selected one for the same reason
+     * `resolveAction` reads it in the fire path: pressing 1-4 mid-windup must
+     * not re-pose a throw that is already in the air.
+     */
+    /**
+     * The direction the body should be posing along.
+     *
+     * Committed aim first (a shot in flight owns its own direction), then a
+     * scripted hold's, then the live one. The middle case was missing and it
+     * cost a verification pass: a scripted shot flew at the construct while the
+     * hero braced along whatever direction the untouched mouse implied, so the
+     * lean read as zero and looked like the tilt was broken. The pose must face
+     * the way the shot is going, whoever is holding the trigger.
+     */
+    private poseAim(): { x: number; y: number } {
+      return this.action.committedAim ?? this.scriptedAim ?? this.aim.aim;
+    }
+
+    private attackStyle(): AttackStyle {
+      const slot = this.committedSlot ?? this.hand.selected;
+      const cardId = slot !== null ? this.hand.slots[slot]?.cardId ?? null : null;
+      return attackStyleFor(resolveAction(cardId, this.action.releaseKind));
+    }
+
     private selectedKit(): EffectKit {
       const slot = this.hand.selected === null ? null : this.hand.slots[this.hand.selected];
       return effectKitFor(slot?.cardId ? this.cardElements.get(slot.cardId) : undefined);

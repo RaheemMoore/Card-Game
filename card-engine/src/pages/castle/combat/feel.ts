@@ -230,6 +230,16 @@ export interface AttackFeel {
   cardDrawPx: number;
   /** How far past the hand it ends up at full extension, px. */
   cardThrowPx: number;
+  /**
+   * How hard the blast shoves him BACKWARD as it leaves the card, px.
+   *
+   * The ranged counterpart to `lungePx`, and deliberately smaller: a lunge is a
+   * decision he made, a recoil is something that happened to him. If the two
+   * were the same size the brace would read as a shove rather than as a shot.
+   */
+  recoilPx: number;
+  /** How high the card is held while casting, px above the resting hand. */
+  cardRaisePx: number;
 }
 
 /**
@@ -247,9 +257,36 @@ export interface AttackFeel {
  * not.
  */
 const ATTACK_FULL: Record<HitSeverity, AttackFeel> = {
-  light: { windupLeanPx: 4, lungePx: 10, squash: 0.08, tiltRad: 0.1, cardDrawPx: 10, cardThrowPx: 16 },
-  normal: { windupLeanPx: 8, lungePx: 18, squash: 0.13, tiltRad: 0.16, cardDrawPx: 14, cardThrowPx: 24 },
-  heavy: { windupLeanPx: 14, lungePx: 26, squash: 0.18, tiltRad: 0.24, cardDrawPx: 20, cardThrowPx: 32 },
+  light: {
+    windupLeanPx: 4,
+    lungePx: 10,
+    squash: 0.08,
+    tiltRad: 0.1,
+    cardDrawPx: 10,
+    cardThrowPx: 16,
+    recoilPx: 5,
+    cardRaisePx: 10,
+  },
+  normal: {
+    windupLeanPx: 8,
+    lungePx: 18,
+    squash: 0.13,
+    tiltRad: 0.16,
+    cardDrawPx: 14,
+    cardThrowPx: 24,
+    recoilPx: 9,
+    cardRaisePx: 14,
+  },
+  heavy: {
+    windupLeanPx: 14,
+    lungePx: 26,
+    squash: 0.18,
+    tiltRad: 0.24,
+    cardDrawPx: 20,
+    cardThrowPx: 32,
+    recoilPx: 14,
+    cardRaisePx: 18,
+  },
 };
 
 const ATTACK_NONE: AttackFeel = {
@@ -259,6 +296,8 @@ const ATTACK_NONE: AttackFeel = {
   tiltRad: 0,
   cardDrawPx: 0,
   cardThrowPx: 0,
+  recoilPx: 0,
+  cardRaisePx: 0,
 };
 
 /**
