@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-12 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-13 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -58,7 +58,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -82,6 +82,20 @@ quadrants are designed. Wiring now would mean wiring twice, since Courtyard V2 i
 moving.
 
 *Where:* `card-engine/src/pages/CardForge.tsx` · *Kit:* `card-engine/src/components/ui/`
+
+### ◆ Decide, don't build — what does a hit sound like?
+
+Combat now looks the way it should. It makes no noise at all, and sound is the single
+strongest thing left for making a hit feel like a hit — you hear a blow before you finish
+seeing it.
+
+The choice is where it comes from. **Synthesized in code** costs nothing, ships today, and
+is exactly how the Forge Strike minigame already works — but it will sound like a
+synthesizer. **Real recorded samples** sound like a real game and mean finding them,
+licensing them, and carrying the files. I have not started either, because building the
+wrong one and swapping it later spends the work twice.
+
+*Needs:* a ruling from you. See Q14.
 
 ### ◆ Decide, don't build — how long is the tower?
 
@@ -156,6 +170,7 @@ being raised in a chat and lost.*
 | Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
 | Q12 | Do you want walkable forest floor? You asked for animals "running around in the underbrush." The forest is currently traced solid edge to edge, so there is no forest to walk in — the animals are under the canopy at the courtyard's northern edge instead. Carving walkable pockets into the forest edge is collider work, and the animals need no code change to follow. | It is the difference between animals *at* the forest and animals *in* it. |
 | Q13 | ~~Is the Halo Stone wall-kit blocker still real?~~ **Answered by events, 2026-08-11.** The kit shipped to `main` in PR #37 and CourtyardV3 is built from it — 295 assets, one shared indexed palette, wall pieces placed and resegmented. Treating it as blocked would now contradict the scene. Say so if you meant to rule the other way; otherwise the §4 note stands retired. | A blocking note nobody believes is how this file starts lying. |
+| Q14 | Where does the courtyard's combat sound come from — synthesized in code, or real recorded samples? | There is no sound anywhere in the courtyard, and it is the last piece of the combat-feel work. Contact sound is the single strongest thing left for making a hit land. Code-synthesized costs nothing, ships instantly, and is exactly how the Forge Strike minigame already does it — but it will sound like a synthesizer. Real samples sound like a game and mean sourcing, licensing and files in the repo. **I will not build either until you say which**, because the second one is expensive to undo. |
 | Q9 | Should the review-snapshot helper stop being callable from the public API? | `fill_card_review_snapshot()` is a trigger helper, but it is also exposed as a signed-out-callable endpoint. Calling it directly just errors, so nothing is exposed today — it is unintended surface, not a live hole. A one-line permission change closes it. |
 
 ---
@@ -364,7 +379,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -384,6 +399,7 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | SHIPPED | Castle courtyard + overworld combat | **`/castle` is CourtyardV3 and it is a game you can play** (merged to main 2026-08-12). Hold F to charge, release to throw a real elemental blast — the 27-element PixelLab library from the boss battle, reused for zero new generations. Four cards carried, exactly one place each. K knocks him down and scatters them onto validated reachable ground to be physically collected. G plants a card and a keeper rises out of where it landed, using the slam performance approved 2026-08-07. Hero draws at his native 71px. The 4 stalls are still unwired, and the controls list is a deliberate placeholder Raheem has chosen to keep for now. **The Combat Truth Slice landed 2026-08-13** and replaced the two biggest placeholders: the inert dummy is now a training construct that notices you, turns, closes, telegraphs, commits, strikes, recovers, dies and revives — and a strong strike, not the K key, is what knocks him down. Tap is a quick action and hold-past-220ms is a heavy one, dispatched through a per-card seam. Getting up buys a 1.5s grace so nothing can chain-knock him. Water is a category the collider layer understands, **awaiting one shape drawn in the Editor** (see §4). |
+| IN FLIGHT | Combat feel — how a hit lands | **On `claude/combat-satisfaction-gameplay-00f99a`, not merged.** An attack now has a shape you can watch: he braces, the blast shoves him back, the construct flashes white and is visibly *shoved* rather than teleported, the world stops for a few dozen milliseconds on a heavy hit, and the card row under him fills as you charge and punches when you fire. The construct falls over when it dies instead of dimming and standing there. One severity scale — light, normal, heavy — drives every one of those, so a charged shot is louder than a tap in the same way everywhere. Two rules were held throughout and are guarded by tests: an ordinary enemy attack is still avoidable by walking (he has no dodge, roll or shield), and only a telegraphed strong hit scatters the hand. **No damage number changed.** `P` plays one complete scripted duel so two playtests are comparable. **Open: sound.** There is none in the courtyard, and the direction needs Raheem's ruling — see Q14. |
 | IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
@@ -410,6 +426,7 @@ Counted against `origin/main` on 2026-08-12.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
+| `claude/combat-satisfaction-gameplay-00f99a` | 7 | 0 | How a hit lands — brace, recoil, hitstop, visible knockback, the collapse on death, and the card row answering for the attack. Played and approved section by section; **sound is the only piece left and it needs a ruling (Q14)** |
 | `worktree-studio-desks-open` | 3 | 106 | Opening both studio desks to both people behind one shared passphrase. **Open as [PR #38](https://github.com/RaheemMoore/Card-Game/pull/38)** |
 | `combat-cards-and-resource` | 3 | 289 | Boss readout + Debt-Bearer fix |
 | `seraph-corruption-arc` | 6 | 503 | Superseded — the arc shipped from elsewhere. Almost certainly a `WON'T DO` |
@@ -1023,10 +1040,54 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-13 — The blast is a BRACE, not a throw — and the throw is saved for melee
+
+Raheem played the first version of the attack animation and ruled on the language. He liked
+the lunging throw, but it is the wrong move for this attack: **he is a card wielder, not
+someone throwing cards away.** For the primary ranged blast he holds the card up, plants
+into a firm stance, and the blast comes OUT of the card — with a small jerk backward as it
+fires. The card stays in his hand. It is the weapon, not the ammunition.
+
+The throw was kept rather than deleted, wired to a melee attack type that does not exist
+yet. It is fully written and tested and currently unreachable.
+
+*Why it matters:* it settles what the character IS, not just what an animation looks like,
+and that answer will govern every attack type added after this one. It also cost nothing —
+the work was already done and simply changed which door it sits behind.
+
+### 2026-08-13 — Green tests are not evidence that something was drawn
+
+Raheem recorded the game and said plainly: *"the hero doesn't do absolutely anything while
+attacking."* The attack pose had been reported as working on the strength of passing unit
+tests. The math was correct and had never been the problem — the code that put it on screen
+was only reached while walking, so standing still to charge and fire, which is exactly when
+it mattered, drew nothing at all.
+
+**The rule taken from it:** anything visual is verified by looking at it, or it is not
+verified. Every visual claim in this initiative since has been backed by a screenshot or by
+Raheem playing it. Where that was not possible — the card row went in during a session where
+the browser pane stopped rendering — the commit says so in as many words rather than
+implying otherwise.
+
+*What it closed:* the same failure had happened before and been recorded as a standing rule
+about looking at the live surface. This is that rule failing again in a new place, so it is
+written down again in the place it failed.
+
+### 2026-08-13 — Sound is the last piece, and it waits for a ruling
+
+Every visible part of how a hit lands is built and played. Sound is not, and will not start
+until Raheem answers Q14 — code-synthesized or real recorded samples. Synthesized is free
+and instant and already proven in the Forge Strike minigame; samples sound like a game and
+mean sourcing and licensing.
+
+*Why it matters:* this is the one decision in the initiative that is expensive to reverse.
+Building the wrong one and swapping it later would waste the work twice, so it is a question
+rather than a default.
 
 ### 2026-08-13 — The Combat Truth Slice: an enemy that talks back, and four rulings
 
