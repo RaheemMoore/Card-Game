@@ -61,6 +61,17 @@ export interface BenchCandidate {
   /** Empty after a reload — the bytes are not persisted. See `imageStripped`. */
   imageDataUrl: string;
   imageStripped?: boolean;
+  /**
+   * Where the image lives in `prompt-test-artifacts`. This is what makes a
+   * reloaded candidate viewable again without paying for a new generation:
+   * the bytes are stripped on save, but the object is still in the bucket and
+   * /api/prompt-lab-signed-url will mint a URL for it.
+   */
+  objectPath?: string;
+  /** A signed URL fetched for `objectPath`. Short-lived; never persisted. */
+  replayUrl?: string;
+  /** Set when the object has aged out of the 30-day retention sweep. */
+  replayExpired?: boolean;
   /** Everything that produced it, so "Adjust" can load it back. */
   directive: ImageDirective;
   overrides: ImageDirective;
@@ -168,7 +179,15 @@ function persist(): void {
       ...state,
       // A generation that was in flight when the tab closed cannot be resumed.
       status: state.status.phase === 'running' ? { phase: 'idle' } : state.status,
-      candidates: state.candidates.map((c) => ({ ...c, imageDataUrl: '', imageStripped: true })),
+      // Bytes go; `objectPath` stays, which is what lets a reload put the
+      // image back for free. `replayUrl` is deliberately dropped — a signed
+      // URL expires in 30 minutes and a stale one renders as a broken image.
+      candidates: state.candidates.map((c) => ({
+        ...c,
+        imageDataUrl: '',
+        imageStripped: true,
+        replayUrl: undefined,
+      })),
     };
     globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(slim));
   } catch {
@@ -349,6 +368,7 @@ export async function generateCandidate(opts: { newSeed: boolean } = { newSeed: 
     const candidate: BenchCandidate = {
       runId: persisted.runId,
       batchId: persisted.batchId,
+      objectPath: persisted.outputPath ?? undefined,
       createdAt: new Date().toISOString(),
       archetype,
       element,
@@ -413,7 +433,9 @@ interface RecordPayload {
  * table would split that history in half for no benefit. Runs are tagged
  * `source: 'workshop-bench'` in the input snapshot.
  */
-async function recordRun(payload: RecordPayload): Promise<{ batchId: string; runId: string }> {
+async function recordRun(
+  payload: RecordPayload,
+): Promise<{ batchId: string; runId: string; outputPath: string | null }> {
   const supabase = getSupabaseClient();
   if (!supabase) throw new Error('Supabase is not configured — the run cannot be recorded.');
   const { data } = await supabase.auth.getSession();
@@ -444,5 +466,63 @@ async function recordRun(payload: RecordPayload): Promise<{ batchId: string; run
   if (!response.ok) {
     throw new Error(`Recording failed (${response.status}): ${await response.text()}`);
   }
-  return (await response.json()) as { batchId: string; runId: string };
+  // The endpoint has always returned outputPath; the bench simply threw it
+  // away, which is the whole reason comparing two past candidates used to
+  // cost a fresh generation.
+  return (await response.json()) as { batchId: string; runId: string; outputPath: string | null };
+}
+
+// ---- Free replay ----------------------------------------------------------
+
+/**
+ * Put the images back on candidates that survived a reload.
+ *
+ * The bytes are stripped on every save (they are megabytes, and localStorage
+ * is not the place for them), but the objects are still sitting in
+ * `prompt-test-artifacts` for 30 days. Fetching signed URLs for them costs
+ * nothing; before this, seeing an earlier candidate again meant paying
+ * Leonardo to draw it a second time.
+ *
+ * Safe to call repeatedly — candidates that already have an image, no object
+ * path, or a known-expired object are skipped.
+ */
+export async function replayStrippedCandidates(): Promise<void> {
+  const needing = state.candidates.filter(
+    (c) => !c.imageDataUrl && !c.replayUrl && !c.replayExpired && c.objectPath,
+  );
+  if (needing.length === 0) return;
+
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return;
+
+  const resolved = await Promise.all(
+    needing.map(async (c) => {
+      try {
+        const r = await fetch(
+          `/api/prompt-lab-signed-url?path=${encodeURIComponent(c.objectPath!)}`,
+          { headers: { authorization: `Bearer ${token}` } },
+        );
+        if (!r.ok) return { runId: c.runId, url: null, expired: r.status === 404 };
+        const body = (await r.json()) as { url?: string };
+        return { runId: c.runId, url: body.url ?? null, expired: false };
+      } catch {
+        // A network blip should not mark the object gone — leave it to retry.
+        return { runId: c.runId, url: null, expired: false };
+      }
+    }),
+  );
+
+  const byRun = new Map(resolved.map((r) => [r.runId, r]));
+  setState({
+    candidates: state.candidates.map((c) => {
+      const hit = byRun.get(c.runId);
+      if (!hit) return c;
+      if (hit.url) return { ...c, replayUrl: hit.url };
+      if (hit.expired) return { ...c, replayExpired: true };
+      return c;
+    }),
+  });
 }

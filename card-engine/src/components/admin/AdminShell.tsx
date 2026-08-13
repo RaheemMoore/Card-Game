@@ -19,7 +19,6 @@ const TITLE_BY_PATH: Record<string, string> = {
   '/admin/users': 'Users',
   '/admin/cards': 'Live Card Audit',
   '/admin/abilities': 'Ability Review',
-  '/admin/prompt-lab': 'Prompt Lab',
   '/admin/workshop': 'Workshop',
   '/admin/lore-desk': 'Lore Desk',
   '/admin/costs': 'Costs',

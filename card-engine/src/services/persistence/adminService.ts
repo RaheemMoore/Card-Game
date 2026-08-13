@@ -338,35 +338,10 @@ export async function attachProposalVerifyEvidence(
   if (error) throw error;
 }
 
-/**
- * Fetches a single prompt_test_runs row (the original Lab generation a
- * proposal was filed against) so regen-verify can reproduce its inputs and
- * reference its "before" image. Guarded by the same admin RLS as the Lab.
- */
-export async function getPromptTestRun(runId: string): Promise<PromptTestRunRow | null> {
-  const { data, error } = await client()
-    .from('prompt_test_runs')
-    .select('id, archetype, tier, status, output_object_path, input_snapshot, claude_response')
-    .eq('id', runId)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as PromptTestRunRow | null) ?? null;
-}
-
-export interface PromptTestRunRow {
-  id: string;
-  archetype: ArchetypeName;
-  tier: 'Foundation' | 'Forged' | 'Ascendant';
-  status: string;
-  output_object_path: string | null;
-  input_snapshot: {
-    archetype?: ArchetypeName;
-    stats?: unknown;
-    element?: unknown;
-    answers?: unknown;
-  } | null;
-  claude_response: Record<string, unknown> | null;
-}
+// getPromptTestRun + PromptTestRunRow were removed 2026-08-12 with the Prompt
+// Lab. Their only consumer was services/regenVerify.ts, the Lab→Workshop→verify
+// loop, which nothing ever called despite CLAUDE.md describing it as shipped.
+// The prompt_test_runs table itself stays — the Workshop bench writes to it.
 
 export async function setUserRole(
   userId: string,
