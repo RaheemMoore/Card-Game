@@ -1503,6 +1503,12 @@ export function makeScene(
             (this.knockdownKey ? Phaser.Input.Keyboard.JustDown(this.knockdownKey) : false),
           aim: this.aim.aim,
           cancelRequested,
+          // Any direction gets him up. Read as HELD, so a player leaning on the
+          // stick through the fall stands the moment he is allowed to.
+          getUpRequested: (() => {
+            const m = this.readMove();
+            return m.x !== 0 || m.y !== 0;
+          })(),
         },
         delta,
       );

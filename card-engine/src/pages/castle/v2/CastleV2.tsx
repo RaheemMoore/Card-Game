@@ -346,7 +346,16 @@ export function CastleV2() {
             ['distance', `${combat.distance}`],
             ['its knockdown', combat.strongHits ? 'ARMED (Y)' : 'off (press Y)'],
             ['its brain', combat.aiEnabled ? 'running' : 'FROZEN (T)'],
-            ['you', combat.graceMs > 0 ? `protected ${(combat.graceMs / 1000).toFixed(1)}s` : combat.heroPhase],
+            [
+              'you',
+              // Down is the one state with an instruction attached, because it
+              // is the one state the player has to DO something to leave.
+              combat.heroPhase === 'knockdown'
+                ? 'DOWN — press a direction'
+                : combat.graceMs > 0
+                  ? `protected ${(combat.graceMs / 1000).toFixed(1)}s`
+                  : combat.heroPhase,
+            ],
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between gap-3">
               <span className="opacity-60">{label}</span>
@@ -358,7 +367,9 @@ export function CastleV2() {
                       ? '#ffb02e'
                       : value === 'open — hit it now'
                         ? '#8fe08f'
-                        : undefined,
+                        : value === 'DOWN — press a direction'
+                          ? '#ff9b6a'
+                          : undefined,
                 }}
               >
                 {value}

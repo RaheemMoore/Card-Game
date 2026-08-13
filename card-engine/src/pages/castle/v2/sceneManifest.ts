@@ -65,12 +65,20 @@ const HERO_SIZE_TESTS = ['hero-chibi-56', 'hero-chibi-48', 'hero-chibi-40'] as c
 /**
  * Clips the hero plays that are not his walking sheet.
  *
- * Same trap as the two lists around it, and it has now caught three different
+ * Same trap as the two lists around it, and it has now caught FOUR different
  * assets: no scene NAMES these, because they are played from code, so
  * entriesUsedBy skips them and the clip silently never runs. The knockdown
  * shipped registered, packed, timed and unplayable for exactly this reason.
+ *
+ * `hero-card-slam` was the fourth, found 2026-08-13 when Raheem reported "there
+ * is no animation associated with the summon". There was: `startSummon` plays
+ * it, guarded by `anims.exists()`. The sheet was packed, the anchor measured
+ * and the 17 frames approved on 2026-08-07 — and because it was missing from
+ * THIS list the texture never loaded, so the animation was never created, so
+ * the guard was false and the summon ran silently every single time. The guard
+ * that was supposed to prevent a crash hid the bug instead.
  */
-const HERO_CLIPS = ['hero-knockdown'] as const;
+const HERO_CLIPS = ['hero-knockdown', 'hero-card-slam'] as const;
 
 /**
  * The elemental blast and impact sheets.

@@ -45,7 +45,15 @@ export const ACTION_TIMING = {
   windupMs: 180,
   activeMs: 60,
   recoveryMs: 320,
-  knockdownMs: 900,
+  /**
+   * The fall itself — and the MINIMUM time on the ground, not the total.
+   *
+   * He now lies there until the player asks to get up (see `getUpRequested`),
+   * so this is the floor rather than the duration: long enough for the fall to
+   * finish playing, after which standing is his to choose. Matches
+   * KNOCKDOWN_TOTAL_MS by construction.
+   */
+  knockdownMs: 1200,
   standUpMs: 320,
   /**
    * The grounded summoning ritual, matching the approved 17-frame card slam
@@ -163,6 +171,20 @@ export interface ActionInput {
    * a character holding a card forever, which reads as a hung game.
    */
   cancelRequested: boolean;
+  /**
+   * The player is asking to get up — any movement key, held or tapped.
+   *
+   * Knockdown does NOT expire on its own. Raheem, watching himself bounce
+   * straight back up: "he should stay on the ground until you hit an arrow to
+   * make him get up." Getting up is the first thing he does after losing
+   * everything, and taking that beat away made the knockdown feel like a
+   * stumble rather than a defeat.
+   *
+   * It reads as HELD rather than pressed, so leaning on the stick through the
+   * fall stands him the moment he is allowed to move — which is what a player
+   * mashing forward expects, and it costs nothing to honour.
+   */
+  getUpRequested: boolean;
 }
 
 export function initialAction(): ActionState {
@@ -347,7 +369,10 @@ function stepPhase(state: ActionState, input: ActionInput, dtMs: number): Action
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'knockdown':
-      if (elapsedMs >= t.knockdownMs) return enter('standUp', null);
+      // He does NOT get up on his own. The fall has to finish first — standing
+      // out of a half-played fall looks like a glitch — and after that it is
+      // the player's move to make.
+      if (elapsedMs >= t.knockdownMs && input.getUpRequested) return enter('standUp', null);
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'standUp':

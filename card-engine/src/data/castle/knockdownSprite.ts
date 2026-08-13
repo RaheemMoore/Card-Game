@@ -36,13 +36,22 @@ export const KNOCKDOWN_SHEET = {
 export const KNOCKDOWN_ANIM = 'hero-knockdown';
 
 /**
- * Per-frame durations in milliseconds, summing to 900 — the knockdown phase.
+ * Per-frame durations in milliseconds, summing to 1200 — the knockdown phase.
  *
- * Not a uniform frame rate: twelve fast frames carry the stagger and the tip,
- * and the last one holds for 360ms on the ground.
+ * WAS 45ms a frame, which put the entire fall on screen in 540ms. Raheem,
+ * watching it: "the fall animation is way too fast for a human to see. It just
+ * doesn't look good." He was right — twelve frames at 45ms is a flicker, not a
+ * fall, and it is why the knockdown read as a dark smear rather than a man
+ * going down.
+ *
+ * 85ms a frame is roughly 12fps: slow enough to read the stagger and the tip,
+ * still quick enough to feel like an impact rather than a swoon. The last frame
+ * is short because it is no longer where he waits — he now HOLDS on the ground
+ * until the player asks to get up, so the lying-down time is unbounded and
+ * belongs to the state machine rather than to this table.
  */
 export const KNOCKDOWN_DURATIONS_MS: readonly number[] = [
-  45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 360,
+  85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 180,
 ];
 
 /** Total run time. Matches ACTION_TIMING.knockdownMs by construction. */

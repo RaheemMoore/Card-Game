@@ -20,6 +20,7 @@ const input = (over: Partial<ActionInput> = {}): ActionInput => ({
   heavyHit: false,
   aim: { x: 1, y: 0 },
   cancelRequested: false,
+  getUpRequested: false,
   ...over,
 });
 
@@ -126,15 +127,33 @@ describe('action state', () => {
     expect(s.fireThisStep).toBe(false);
   });
 
-  it('always stands back up, and cannot be stun-locked into a frozen pose', () => {
-    // Repeated hits should keep him down but never leave him in a phase with no
-    // exit — the failure mode is indistinguishable from a hung game.
+  it('stays on the ground until the player asks to get up', () => {
+    // Raheem: "he should stay on the ground until you hit an arrow to make him
+    // get up." Getting up is the first thing he does after losing everything,
+    // and taking that beat away made a defeat read as a stumble.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    const waited = run(s, 400); // ~6.4 seconds of doing nothing
+    expect(waited.state.phase).toBe('knockdown');
+  });
+
+  it('gets up when asked, and can always do so — no frozen pose', () => {
+    // The invariant did not disappear when the exit became player-driven; it
+    // moved. He must always be ABLE to get up, or the phase has no exit and the
+    // failure is indistinguishable from a hung game.
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
     for (let i = 0; i < 5; i++) s = stepAction(s, input({ heavyHit: true }), 16);
     expect(s.phase).toBe('knockdown');
 
-    const recovered = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4);
+    const frames = Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4;
+    const recovered = run(s, frames, { getUpRequested: true });
     expect(recovered.state.phase).toBe('explore');
+  });
+
+  it('will not stand out of a fall that has not finished playing', () => {
+    // Mashing forward during the fall must not snap him upright mid-topple.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    const early = run(s, Math.floor(ACTION_TIMING.knockdownMs / 16) - 4, { getUpRequested: true });
+    expect(early.state.phase).toBe('knockdown');
   });
 
   it('ignores a further hit once he is already down', () => {
@@ -348,7 +367,7 @@ describe('action state', () => {
     // down is standing right there when he gets up, and without a grace window
     // he watches four cards scatter twice with no move in between.
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
-    const upright = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4);
+    const upright = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4, { getUpRequested: true });
     expect(upright.state.phase).toBe('explore');
     expect(upright.state.graceRemainingMs).toBeGreaterThan(0);
 
@@ -367,7 +386,7 @@ describe('action state', () => {
     for (let i = 0; i < Math.floor(protectedMs / 16) - 2; i++) {
       const before = s.phase;
       // Swinging every half second.
-      s = stepAction(s, input({ heavyHit: i % 31 === 30 }), 16);
+      s = stepAction(s, input({ heavyHit: i % 31 === 30, getUpRequested: true }), 16);
       if (s.phase === 'knockdown' && before !== 'knockdown') knockdowns++;
     }
     expect(knockdowns).toBe(1);
@@ -375,7 +394,7 @@ describe('action state', () => {
 
   it('lets the grace run out, so he is not permanently safe', () => {
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
-    s = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4).state;
+    s = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4, { getUpRequested: true }).state;
     s = run(s, Math.ceil(ACTION_TIMING.knockdownGraceMs / 16) + 4).state;
     expect(s.graceRemainingMs).toBe(0);
 
