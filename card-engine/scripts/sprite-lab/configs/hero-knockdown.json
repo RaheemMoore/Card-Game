@@ -1,0 +1,58 @@
+{
+  "subject": "hero-knockdown",
+  "label": "The Card-wright (chibi) — trip and fall, south-facing proof",
+  "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+
+  "identity": {
+    "description": "Athletic middle-aged Black man, a card-wright artisan, drawn as a big-headed chibi game character. Close-cropped black hair greying at the temples, short trimmed beard, warm dark brown skin, friendly readable face. Wears a slate-grey canvas work apron with brass tool loops over a deep teal rolled-sleeve tunic, dark work trousers, and a hard brass-cornered card case on his hip.",
+    "avoid": "no sword, no weapons, no shield, no brown leather adventurer gear, no armour, no wizard robe, no cape, no chosen-one insignia, no background, no floor, no magic effects, no cards, no blood, no injury, no torn clothing, no exposed torso, no camera movement"
+  },
+
+  "bibleNotes": [
+    "Derived from the exact approved Card-wright character record; identity and costume must not change.",
+    "He is knocked over, not hurt. The Card-wright is deliberately weak, and the tone of losing his cards is cute and lightly chaotic rather than harsh — this is a pratfall, not an injury.",
+    "Fully clothed from neck to feet in every frame (Fashion Bible M5.7). The apron and tunic must stay closed and in place through the tumble.",
+    "The cards are NOT in this clip. Phaser scatters the player's real cards and owns the dust, the impact and the camera response, so the same fall serves every hand."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 128, "height": 128 }
+  },
+
+  "palette": {
+    "reference": null,
+    "note": "No scene palette reference. Player readability and identity continuity take priority, matching hero-card-slam."
+  },
+
+  "seed": 902551,
+  "directions": ["south"],
+
+  "animations": [
+    {
+      "id": "hero-knockdown-south-v1",
+      "name": "hero-knockdown-south-v1",
+      "mode": "v3",
+      "action": "Begin standing upright in the exact front-facing start pose. He is struck and loses his footing: he lurches backward, one leg kicks up off the ground, both arms fly outward and upward in a wide startled sprawl, and he tips over backward. He lands flat on his back with his head toward the viewer, both arms flung out wide to either side, both legs bent and raised off the ground, and holds that sprawled pose. His face stays visible and dazed but unhurt, looking up. The same person, face, beard, teal tunic, slate apron, brass loops, trousers, boots, body size, and camera angle remain consistent in every frame. Fully clothed throughout; the apron and tunic stay closed. Full body always visible and entirely inside the frame. No cards, no weapons, no blood, no injury, no torn clothing, no magic, no dust, no impact effects, no background, no floor, no camera movement.",
+      "frameCount": 12,
+      "directions": ["south"],
+      "startFromRotation": "south"
+    }
+  ],
+
+  "animationNotes": [
+    "SOUTH ONLY, ON PURPOSE. Animation is per-direction, so a clip exists only on the faces we pay for. This is the proof; if the pose and timing are approved, the remaining three directions are extended from the same animation_group_id and charge only for the new directions. Generating four now buys three faces for a pose that may still change.",
+    "One continuous v3 clip rather than a chain, matching hero-card-slam: a chained generated start frame is where identity drift enters.",
+    "The unique display name prevents collision with any prior animation stored on the character.",
+    "READS BY SILHOUETTE, NOT BY FACE. He ships 71 world pixels tall, so his face is a handful of pixels. Splayed arms and raised legs are what must carry the read at that size — judge the packed sheet at 1:1, never zoomed in.",
+    "DO NOT BODY-HEIGHT-NORMALIZE. A sprawled figure is wider than it is tall and extends well outside the standing footprint. The frame is square and generous for exactly that reason; trimming the sprawl to the walking sheet's 36x71 box is how the fall stops reading as a fall.",
+    "ANCHOR IS THE GROUND CONTACT, not the sprite centre. Packing must place his hips over the feet position he occupied when he was hit, or he teleports sideways on the frame the clip starts.",
+    "TIMING TARGET: the runtime holds knockdown for 900ms and standing up for 320ms (ACTION_TIMING in combat/actionState.ts). Per-frame durations get authored after generation the way hero-card-slam's were — a short fast tumble, then a long hold on the sprawled pose. If the clip wants a different rhythm, change the code to match the art rather than speeding the art up.",
+    "GETTING UP IS NOT IN THIS CLIP. The first pass can play this reversed to stand him back up, which costs nothing and is honest for a prototype. A purpose-made stand-up clip is a separate decision after the loop has been played.",
+    "NO AUTOMATIC PAID RETRY. Validate and present this result before another generation is fired."
+  ]
+}

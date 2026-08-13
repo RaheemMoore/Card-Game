@@ -65,6 +65,8 @@ function pngSize(path) {
 const SHEETS = [
   { key: 'hero-chibi', dir: 'hero', manifest: 'chibi.json' },
   { key: 'hero-cardwright', dir: 'hero', manifest: 'cardwright.json' },
+  { key: 'hero-card-slam', dir: 'hero/card-slam', manifest: 'card-slam-sheet.json' },
+  { key: 'hero-knockdown', dir: 'hero/knockdown', manifest: 'knockdown-sheet.json' },
   { key: 'keeper-dwarf', dir: 'keepers', manifest: 'dwarf-breathe.json' },
   { key: 'keeper-archivist', dir: 'keepers', manifest: 'archivist-breathe.json' },
   { key: 'prop-horse', dir: 'keepers', manifest: 'horse-eating.json' },
@@ -185,6 +187,41 @@ function buildPack() {
     }
   }
 
+  /**
+   * COMBAT EFFECTS, packed by scripts/effects/pack_effects.py.
+   *
+   * The elemental blasts and impacts were generated in PixelLab for the boss
+   * battle and stored one PNG per frame, because the React battle layer swaps an
+   * <img> src on a timer. Phaser needs a strip, so the packer writes one plus the
+   * usual twin and this scans the result — the same shape as the animated block
+   * above, and for the same reason: hand-listing 54 clips is how a new one gets
+   * forgotten.
+   *
+   * Scanned rather than enumerated so new effect art appears by re-running the
+   * packer, with no second place to remember.
+   */
+  const effectsDir = join(PUBLIC, 'assets/combat/effects/packed');
+  const effects = { files: [] };
+  if (existsSync(effectsDir)) {
+    for (const f of readdirSync(effectsDir).sort()) {
+      if (!f.endsWith('.json')) continue;
+      const meta = readJson(join(effectsDir, f));
+      const png = join(effectsDir, meta.image ?? f.replace(/\.json$/, '.png'));
+      if (!existsSync(png) || !meta.frameWidth || !meta.frameHeight) continue;
+      const size = pngSize(png);
+      if (size.width % meta.frameWidth !== 0 || size.height % meta.frameHeight !== 0) {
+        console.warn(`! ${f}: frame grid does not tile the image — skipped`);
+        continue;
+      }
+      effects.files.push({
+        type: 'spritesheet',
+        key: f.replace(/\.json$/, ''),
+        url: `assets/combat/effects/packed/${meta.image ?? f.replace(/\.json$/, '.png')}`,
+        frameConfig: { frameWidth: meta.frameWidth, frameHeight: meta.frameHeight },
+      });
+    }
+  }
+
   return {
     /**
      * Phaser skips this block (no `files` array). Phaser Editor reads it to
@@ -195,6 +232,7 @@ function buildPack() {
     'castle-occluders': occluderSection,
     'castle-characters': characters,
     'castle-animated': animated,
+    'combat-effects': effects,
   };
 }
 

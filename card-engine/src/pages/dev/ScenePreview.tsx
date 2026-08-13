@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ALWAYS_LOADED,
   DEFAULT_SCENE,
   entriesUsedBy,
   fetchSceneSource,
@@ -9,6 +8,7 @@ import {
   type PackEntry,
   type Status,
 } from '../castle/v2/courtyardRuntime';
+import { ALWAYS_LOADED } from '../castle/v2/sceneManifest';
 import { SCENE_BEHAVIORS } from './sceneBehaviors';
 import { HERO_SHEET } from '../../data/castle/heroSprite';
 

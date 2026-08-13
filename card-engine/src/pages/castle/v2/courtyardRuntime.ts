@@ -52,8 +52,89 @@ import {
   type ElevationMap,
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
+import {
+  CARD_SLAM_ANCHOR,
+  CARD_SLAM_ANIM,
+  CARD_SLAM_DURATIONS_MS,
+  CARD_SLAM_SHEET,
+} from '../../../data/castle/cardSlamSprite';
+import { KEEPERS } from '../../../data/castle/keepers';
+import {
+  KNOCKDOWN_ANCHOR,
+  KNOCKDOWN_ANIM,
+  KNOCKDOWN_DURATIONS_MS,
+  KNOCKDOWN_SHEET,
+} from '../../../data/castle/knockdownSprite';
+import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
+import { quantiseFacing, resolveAim, initialAim, type AimState, type Vec2 } from '../combat/aim';
+import { ELEMENT_NAMES, type ElementName } from '../../../types/bible';
+import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIntent';
+import {
+  ACTION_TIMING,
+  initialAction,
+  stepAction,
+  walkScale,
+  type ActionState,
+} from '../combat/actionState';
+import {
+  canFire,
+  commitSelected,
+  recoverCard,
+  scatterHand,
+  type DroppedCard,
+  cycleSelection,
+  emptyHand,
+  handFromCards,
+  releaseCommitted,
+  selectSlot,
+  summonSelected,
+  type Hand,
+} from '../combat/hand';
+import { effectKitFor, type EffectKit } from '../combat/effectKit';
+import {
+  colourOf,
+  createBlastSprite,
+  createChargeEmitter,
+  playImpact,
+  updateChargeEmitter,
+} from '../combat/blastVfx';
+import {
+  PICKUP_RADIUS,
+  SCATTER_FLIGHT_MS,
+  scatterArc,
+  scatterPoints,
+} from '../combat/scatter';
+import {
+  CARD_HEIGHT_PX,
+  DEFAULT_BLAST,
+  cardOrigin,
+  scaleBlast,
+  spawnProjectile,
+  stepProjectile,
+  type BlastTarget,
+  type Projectile,
+} from '../combat/blast';
 
 export const DEFAULT_SCENE = 'CourtyardV2';
+
+/**
+ * The courtyard `/castle` actually loads.
+ *
+ * V3 took over on 2026-08-12. It is the scene built on the Halo Stone kit, the one
+ * in the recording, and the one combat is being built into; V2 was the forge
+ * quadrant and three unfinished ones. The switch waited on a readiness gate rather
+ * than on the scene merely existing — see castleReadiness.test.ts, which is that
+ * gate written down.
+ *
+ * It is a constant and not a literal because the name was written three times in
+ * CastleV2.tsx — the source, the always-loaded lookup, and the scene itself — and
+ * two out of three is a courtyard that loads V3's art with V2's animation sheets.
+ *
+ * There is no fallback to V2, deliberately. Raheem, 2026-08-12: "I don't have any
+ * plans to go back to v two. We're moving on past that." V2 stays loadable from
+ * `/dev/scene` for comparison, but nothing a player touches reaches it.
+ */
+export const PRODUCTION_SCENE = 'CourtyardV3';
 
 /**
  * Every pack that might supply textures. The Editor's scenes reference keys from
@@ -156,7 +237,80 @@ function resolveZoom(): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_ZOOM;
 }
 
+/**
+ * Hero size, overridable at run time so scale can be judged in play.
+ *
+ * Two independent knobs, and conflating them is why "is he too big?" has been
+ * hard to answer:
+ *
+ *   HOW BIG HE READS  — `?heroHeight=` in world units against 32px tiles.
+ *   HOW SHARP HE IS   — `?hero=` picks which pre-resampled sheet supplies the
+ *                       pixels. 36x71 is the shipped one; 56/48/40 were area-
+ *                       averaged offline for exactly this comparison.
+ *
+ * Both are FREE. The camera and the display size cost nothing to change, where
+ * regenerating the character costs money and throws away an approved identity —
+ * so this question gets settled with flags before anything is generated.
+ *
+ * Nothing here rescales the castle. Its pieces are placed by hand in the Editor
+ * at scales Raheem chose, and they are approved art; making the world bigger to
+ * suit the hero is the expensive way round.
+ */
+const HERO_SHEETS: Record<string, { key: string; frameHeight: number }> = {
+  chibi: { key: HERO_SHEET.key, frameHeight: HERO_SHEET.frameHeight },
+  '56': { key: 'hero-chibi-56', frameHeight: 56 },
+  '48': { key: 'hero-chibi-48', frameHeight: 48 },
+  '40': { key: 'hero-chibi-40', frameHeight: 40 },
+};
+
+function resolveHeroSheet(): { key: string; frameHeight: number } {
+  const asked = new URLSearchParams(window.location.search).get('hero');
+  return (asked && HERO_SHEETS[asked]) || HERO_SHEETS.chibi;
+}
+
+/**
+ * `?element=` overrides what the hand fires.
+ *
+ * Without it the blast art is unreachable on a fresh profile: practice cards
+ * carry no element, so every shot falls back to the placeholder circle and the
+ * 27 elements of PixelLab art might as well not be there. Reviewing art you
+ * cannot make appear is not reviewing it.
+ *
+ * One element fills every slot (`?element=fire`); a comma-separated list deals
+ * them out per slot (`?element=fire,void,storm,ice`), which is the form worth
+ * having — comparing elements means switching between them with 1-4 in the same
+ * courtyard under the same light, not reloading the page four times.
+ *
+ * Case-insensitive and validated against the Bible's own list, so a typo shows
+ * as the placeholder rather than as a missing texture.
+ */
+function resolveForcedElements(): ElementName[] {
+  const raw = new URLSearchParams(window.location.search).get('element');
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((part) => ELEMENT_NAMES.find((e) => e.toLowerCase() === part.trim().toLowerCase()))
+    .filter((e): e is ElementName => e !== undefined);
+}
+
+function resolveHeroHeight(): number {
+  const raw = new URLSearchParams(window.location.search).get('heroHeight');
+  const parsed = raw === null ? NaN : Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : HERO_WORLD_HEIGHT;
+}
+
 const WALK_SPEED = 190;
+
+/**
+ * The hand a profile with no cards gets.
+ *
+ * Combat has to be testable before the forge has been used — on a fresh account,
+ * in the harness, and in a scene loaded straight from the Editor. These are ids
+ * that deliberately match no real card, so anything that resolves one and finds
+ * nothing is looking at a placeholder rather than at corrupt data.
+ */
+const PLACEHOLDER_CARD_IDS = ['practice_1', 'practice_2', 'practice_3', 'practice_4'] as const;
+
 
 /**
  * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
@@ -179,6 +333,127 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
     string,
     unknown
   >;
+  /**
+   * Who owns aim, and where it points, on `__cardEngineDev.castleAim()`.
+   *
+   * Aim ownership is invisible until something is fired, and by then a wrong
+   * owner looks like a projectile bug. This makes the arbitration observable
+   * while walking: hold a stick, waggle the mouse, watch `owner` change and
+   * confirm that a resting hand does not.
+   */
+  dev.castleAim = () => {
+    const s = scene as unknown as { aim?: { owner: string; aim: { x: number; y: number }; facing: string; ownerActiveAt: number } };
+    if (!s.aim) return null;
+    return {
+      owner: s.aim.owner,
+      facing: s.aim.facing,
+      aim: { x: +s.aim.aim.x.toFixed(3), y: +s.aim.aim.y.toFixed(3) },
+      degrees: +((Math.atan2(s.aim.aim.y, s.aim.aim.x) * 180) / Math.PI).toFixed(1),
+      ownerIdleMs: Math.round(scene.time.now - s.aim.ownerActiveAt),
+    };
+  };
+
+  /**
+   * The attack, on `__cardEngineDev.castleCombat()`.
+   *
+   * The phase and the live projectiles are the two things a screenshot cannot
+   * show — a still frame cannot distinguish "recovering" from "stuck", which is
+   * precisely the failure an animation-driven state machine would produce.
+   */
+  dev.castleCombat = () => {
+    const s = scene as unknown as {
+      action?: {
+        phase: string;
+        elapsedMs: number;
+        chargeLevel: number;
+        committedAim: { x: number; y: number } | null;
+      };
+      projectiles?: { sim: { id: number; pos: { x: number; y: number }; outcome: string } }[];
+      targets?: { pos: { x: number; y: number }; alive: boolean }[];
+    };
+    if (!s.action) return null;
+    const scn = scene as unknown as {
+      hand?: { slots: { cardId: string | null; state: string }[]; selected: number | null };
+      player?: Phaser.GameObjects.Sprite;
+      fireStats?: Record<string, number | string>;
+    };
+    const hand = scn.hand;
+    const ids = (hand?.slots ?? []).map((x) => x.cardId).filter(Boolean);
+    const p = scn.player;
+    return {
+      /**
+       * What the hero sprite ACTUALLY is right now.
+       *
+       * "He just turns into a dark spot" is one symptom covering four different
+       * causes — wrong texture, wrong frame, wrong origin, wrong scale — and a
+       * screenshot cannot separate them. This can, in one paste.
+       */
+      hero: p
+        ? {
+            texture: p.texture?.key,
+            frame: String(p.frame?.name),
+            anim: p.anims?.currentAnim?.key ?? null,
+            playing: p.anims?.isPlaying ?? false,
+            origin: { x: p.originX, y: +p.originY.toFixed(3) },
+            scale: { x: +p.scaleX.toFixed(3), y: +p.scaleY.toFixed(3) },
+            display: { w: Math.round(p.displayWidth), h: Math.round(p.displayHeight) },
+            visible: p.visible,
+            alpha: p.alpha,
+          }
+        : null,
+      /**
+       * Whether the textures the CODE plays are actually in memory.
+       *
+       * Nothing in the scene source names these, so they load only by being in
+       * alwaysLoaded — the trap that has now silently disabled three assets.
+       */
+      textures: {
+        knockdown: scene.textures.exists('hero-knockdown'),
+        walk: scene.textures.exists('hero-chibi'),
+        fireStream: scene.textures.exists('fx-lash-fire-stream'),
+      },
+      /**
+       * Where the fire chain breaks, rather than merely that it did.
+       *
+       * input -> charging -> release -> windup -> fireThisStep -> projectile.
+       * Each counter is the last stage that was reached.
+       */
+      fire: scn.fireStats ?? null,
+      // Cards lying in the world. A scatter that strands one is the failure this
+      // whole milestone is about, so it is reported rather than eyeballed.
+      onGround: (
+        scene as unknown as { pickups?: { card: { cardId: string }; to: { x: number; y: number } }[] }
+      ).pickups?.map((p) => ({
+        cardId: p.card.cardId,
+        x: Math.round(p.to.x),
+        y: Math.round(p.to.y),
+      })) ?? [],
+      hand: hand
+        ? {
+            selected: hand.selected,
+            slots: hand.slots.map((x) => `${x.cardId ?? '-'}:${x.state}`),
+            // The §7.4 invariant, checkable from outside rather than believed.
+            noDuplicates: ids.length === new Set(ids).size,
+          }
+        : null,
+      phase: s.action.phase,
+      elapsedMs: Math.round(s.action.elapsedMs),
+      // The one number the player is acting on and the screen only hints at.
+      chargeLevel: +s.action.chargeLevel.toFixed(2),
+      element:
+        (scene as unknown as { selectedKit?: () => { exact: boolean; stream: { key: string } | null } })
+          .selectedKit?.()?.stream?.key ?? 'placeholder',
+      committedAim: s.action.committedAim,
+      projectiles: (s.projectiles ?? []).map((p) => ({
+        id: p.sim.id,
+        x: Math.round(p.sim.pos.x),
+        y: Math.round(p.sim.pos.y),
+        outcome: p.sim.outcome,
+      })),
+      targets: s.targets ?? [],
+    };
+  };
+
   dev.castleFraming = () => {
     const hero = (scene as unknown as { player?: Phaser.GameObjects.Sprite }).player;
     const tile = 32;
@@ -204,55 +479,16 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
 }
 
 /**
- * Scenes that get the walkable hero.
- *
- * WildlifeLab is here because its subject IS the reaction to a player — the
- * animals' flee and observe radii cannot be reviewed without something to walk
- * at them — so it needs the hero for the same reason the courtyard does.
+ * Which scenes are walkable, y-sorted, animated and force-loaded now lives in one
+ * record — see sceneManifest.ts for why these were four hand-kept lists and what
+ * it cost. Re-exported here because this module is what the shell and the preview
+ * import; the manifest is the declaration, this is the door to it.
  */
-export const EXPLORABLE_SCENES = new Set(['CourtyardV2', 'CourtyardV3', 'WildlifeLab']);
-
-/**
- * Scenes whose objects are collapsed into one y-sorted band (see sceneDepth.ts).
- *
- * Opt-in rather than universal: y-sorting reparents every object, which is right
- * for a world you walk around in and wrong for a lab whose whole job is to show
- * clips in a fixed arrangement.
- */
-const YSORT_SCENES = new Set(['CourtyardV2', 'CourtyardV3']);
-
-/**
- * Texture keys a scene needs that never appear in its compiled source.
- *
- * `entriesUsedBy` finds keys by looking for them quoted in the code, which works
- * only for textures sitting on a placed object. Both wildlife scenes place an
- * animal on its MOVE sheet; sniff, sit-and-listen and nibble are reached solely
- * through animations created at run time, so nothing would name them and they
- * would silently fail to load — no error, just an animal missing two thirds of
- * its behaviour.
- */
-const WILDLIFE_SHEETS = [
-  'wildlife-fox-trot',
-  'wildlife-fox-sniff',
-  'wildlife-fox-sit-alert',
-  // Drinking is reached only through the brain, so nothing names this sheet
-  // either — and it caught exactly the failure this comment warns about the very
-  // first time a clip was added after the list was written. Add the key here
-  // whenever a new clip lands, or it loads in the review lab and nowhere else.
-  'wildlife-fox-drink',
-  'wildlife-rabbit-hop',
-  'wildlife-rabbit-nibble-groom',
-  'wildlife-rabbit-drink',
-  'wildlife-tortoise-toddle',
-  'wildlife-fish-swim',
-  'wildlife-tortoise-float',
-] as const;
-
-export const ALWAYS_LOADED: Record<string, readonly string[]> = {
-  WildlifeLab: WILDLIFE_SHEETS,
-  CourtyardV2: WILDLIFE_SHEETS,
-  CourtyardV3: WILDLIFE_SHEETS,
-};
+// NOT re-exported from here. Tunnelling the manifest's bindings back out through
+// this module broke the Vite dev server outright ("Export 'ALWAYS_LOADED' is not
+// defined in module") while tsc and the production build both stayed happy — and
+// a runtime that only fails in dev is the worst place to hide a barrel. Import
+// them from './sceneManifest', which is where they are declared anyway.
 
 export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
 
@@ -264,6 +500,21 @@ export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
  * That is what lets `/dev/scene` ignore doors entirely while `/castle` turns the
  * same event into the Forge.
  */
+/** What the shell needs to draw the hand. A snapshot, not the live object. */
+export interface HandView {
+  selected: number | null;
+  slots: { cardId: string | null; state: string }[];
+  /**
+   * Increments each time he tries to fire with nothing to fire.
+   *
+   * Without it, being disarmed is indistinguishable from the game being broken:
+   * Raheem played 52 seconds with all four cards on the ground, pressing fire,
+   * and reported the attack as broken — which it was not. The shell pulses the
+   * row so the answer is on screen at the moment the question is asked.
+   */
+  blockedCount: number;
+}
+
 export interface RuntimeHooks {
   /** Fires when the hero steps into or out of a doorway. `null` on leaving. */
   onDoorChange?: (destination: DoorDestination | null) => void;
@@ -271,6 +522,25 @@ export interface RuntimeHooks {
   onDoorEnter?: (destination: DoorDestination) => void;
   /** Fires on Escape. The pause menu is the shell's, not the world's. */
   onPause?: () => void;
+  /**
+   * Fires whenever the hand changes — selection, commit, drop or recovery.
+   *
+   * The row of card slots is the shell's, drawn in the DOM alongside the doorway
+   * prompt and the pause menu. The world reports what it holds; it does not draw
+   * a HUD.
+   */
+  onHandChange?: (hand: HandView) => void;
+  /**
+   * The cards to fill the hand with, most-recent first.
+   *
+   * Passed in rather than read from storage here so the world stays independent
+   * of persistence — `/dev/scene` can hand it fixtures, and the castle hands it
+   * the player's real collection, without the scene knowing which is which.
+   *
+   * The element rides along because it decides which blast art the card fires;
+   * looking it up later would mean the world reaching back into the collection.
+   */
+  cards?: readonly { cardId: string; element?: ElementName }[];
 }
 
 export function makeScene(
@@ -299,6 +569,108 @@ export function makeScene(
     };
     private depthBand?: Phaser.GameObjects.Layer;
     private sortedCount = 0;
+    /**
+     * Aim is resolved every frame even with no combat in the scene yet.
+     *
+     * It costs nothing, and it means the seam is exercised by ordinary walking
+     * from the day it lands rather than first being run on the day a projectile
+     * needs it — which is when an input bug would be hardest to tell apart from a
+     * projectile bug.
+     */
+    private aim: AimState = initialAim();
+    private pointerTracker = newPointerTracker();
+    private action: ActionState = initialAction();
+    private projectiles: {
+      sim: Projectile;
+      gfx: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
+      kit: EffectKit;
+      charge: number;
+    }[] = [];
+    /** Element per card id, so a shot knows which art it wears. */
+    private cardElements = new Map<string, ElementName | undefined>();
+    private chargeEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
+    private targets: BlastTarget[] = [];
+    private targetGfx: Phaser.GameObjects.Rectangle[] = [];
+    /** The card he holds up. Visible only while a shot is being thrown. */
+    private heldCard?: Phaser.GameObjects.Rectangle;
+    /**
+     * Whether a card is selected and ready to fire.
+     *
+     * One card, hardcoded, for this milestone. The four-slot hand keyed to real
+     * card IDs is the next one — wiring the collection in before a single blast
+     * feels right would mean tuning the verb through a menu.
+     */
+    /**
+     * The four cards he carries.
+     *
+     * Seeded from the player's real collection where there is one, and from
+     * placeholder ids otherwise so the courtyard is testable on a fresh profile.
+     * The hand owns which card is where; nothing here writes a slot directly.
+     */
+    private hand: Hand = emptyHand();
+    private slotKeys: Phaser.Input.Keyboard.Key[] = [];
+    private shoulderHeld = false;
+    /** Slot index of the shot in flight, so its card is released when it lands. */
+    private committedSlot: number | null = null;
+    /** Cards lying in the world, waiting to be walked over. */
+    private pickups: {
+      card: DroppedCard;
+      from: Vec2;
+      to: Vec2;
+      /** Milliseconds since it was thrown; drives the hop and then the bob. */
+      ageMs: number;
+      gfx: Phaser.GameObjects.Rectangle;
+    }[] = [];
+    private knockdownKey?: Phaser.Input.Keyboard.Key;
+    private summonKey?: Phaser.Input.Keyboard.Key;
+    /** Characters standing in the world, and which slot each came out of. */
+    private summons: { slotIndex: number; sprite: Phaser.GameObjects.Sprite }[] = [];
+    /** The card lying on the ground mid-ritual, before the character rises. */
+    private ritualCard?: Phaser.GameObjects.Rectangle;
+    private summonTimers: Phaser.Time.TimerEvent[] = [];
+    /** Edge-detects the fall, so the scatter fires once rather than every frame. */
+    private wasDown = false;
+    /** Which sheet the hero is actually drawn from this run. */
+    private heroSheetKey: string = HERO_SHEET.key;
+    /** Scale the walking sheet renders at, restored after the fall's sheet swap. */
+    private heroScale = 1;
+    private standUpTimer?: Phaser.Time.TimerEvent;
+
+    /** Walk animation key, namespaced so two sheets cannot share a cycle. */
+    private heroWalkKey(facing: HeroFacing) {
+      return `${this.heroSheetKey}:${walkKey(facing)}`;
+    }
+    /**
+     * Fire is held rather than tapped, which gives repeat fire at the cadence of
+     * windup + active + recovery. The state machine only leaves `explore` on a
+     * press, so holding cannot outrun the recovery it is gated behind.
+     */
+    private fireHeld = false;
+    /**
+     * Set by a keydown/pointerdown event, cleared once the frame has seen it.
+     *
+     * Events cannot be missed the way polled state can, so this guarantees a tap
+     * is always worth at least one frame of charge and therefore always fires.
+     */
+    private firePressedLatch = false;
+    /** How many times he has pressed fire with no card able to answer. */
+    private blockedCount = 0;
+    /**
+     * DEV counters for the fire chain, read by __cardEngineDev.castleCombat().
+     *
+     * Every stage the press has to survive gets its own tally, so a report of
+     * "shooting is broken" resolves to a stage instead of a guess. They only
+     * ever increment, so a stuck stage is the last one with a number.
+     */
+    private fireStats: Record<string, number | string> = {
+      latchHits: 0,
+      framesHeld: 0,
+      enteredCharging: 0,
+      enteredWindup: 0,
+      fireSteps: 0,
+      projectilesSpawned: 0,
+      lastPhase: 'explore',
+    };
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
      * Truth for collision, level and depth. The SPRITE's y is this minus the
@@ -315,6 +687,7 @@ export function makeScene(
     /** Which doorway the feet are in right now. Reported on change only. */
     private atDoor: DoorDestination | null = null;
     private interactKey?: Phaser.Input.Keyboard.Key;
+    private fireKey?: Phaser.Input.Keyboard.Key;
     private pauseKey?: Phaser.Input.Keyboard.Key;
     /** Which zones the feet were inside last frame, so enter/leave fire once. */
     private insideZones = new Set<number>();
@@ -463,7 +836,13 @@ export function makeScene(
       // on the grounds that a hero hides the subject — true of a lab that only
       // plays clips, but WildlifeLab's subject is how the animals REACT to a
       // player, so there it is the hero's absence that hides the subject.
-      if (EXPLORABLE_SCENES.has(sceneName)) this.spawnPlayer(bounds);
+      if (EXPLORABLE_SCENES.has(sceneName)) {
+        this.spawnPlayer(bounds);
+        // After spawnPlayer, so the dummy can be placed relative to a world that
+        // already knows where the hero stands, and after the depth band so both
+        // it and the held card join the same sorted layer as everything else.
+        this.setupCombat(bounds, hooks.cards ?? []);
+      }
 
       if (this.player) {
         // Follow wherever there IS a hero, rather than naming one scene. This was
@@ -534,7 +913,11 @@ export function makeScene(
       const x = Number(url.get('x') ?? bounds.centerX);
       const y = Number(url.get('y') ?? bounds.centerY);
 
-      const scale = HERO_WORLD_HEIGHT / HERO_SHEET.frameHeight;
+      const sheet = resolveHeroSheet();
+      const scale = resolveHeroHeight() / sheet.frameHeight;
+      // Remembered because the knockdown swaps to its own sheet and has to put
+      // this back afterwards.
+      this.heroScale = scale;
 
       this.feetY = y;
       this.level = levelAt(x, y - HERO_FEET.height / 2, this.elevation) ?? 0;
@@ -549,7 +932,7 @@ export function makeScene(
         .setAlpha(HERO_SHADOW.alpha);
 
       this.player = this.add
-        .sprite(x, y, HERO_SHEET.key, idleFrame('down'))
+        .sprite(x, y, sheet.key, idleFrame('down'))
         .setOrigin(0.5, 1)
         .setScale(scale)
         // Fallback for a scene with no depth band: above every Editor layer,
@@ -567,13 +950,52 @@ export function makeScene(
       }
       this.applyHeroTransform();
 
+      // Animation keys are namespaced BY SHEET. Phaser's animation manager is
+      // global, so a plain `hero-walk-down` created from the 36x71 sheet would be
+      // reused when a smaller sheet is selected — idle from one sheet and the
+      // walk cycle from another, which is the "hero shrank 25% walking left"
+      // failure the sprite playbook was written about.
+      this.heroSheetKey = sheet.key;
       for (const f of HERO_FACINGS) {
-        if (this.anims.exists(walkKey(f))) continue;
+        const key = this.heroWalkKey(f);
+        if (this.anims.exists(key)) continue;
         this.anims.create({
-          key: walkKey(f),
-          frames: walkFrames(f).map((frame) => ({ key: HERO_SHEET.key, frame })),
+          key,
+          frames: walkFrames(f).map((frame) => ({ key: sheet.key, frame })),
           frameRate: HERO_WALK_FPS,
           repeat: -1,
+        });
+      }
+
+      // The fall. Per-frame durations rather than a frame rate, so the trip stays
+      // fast and the sprawl holds — and they sum to the knockdown phase exactly,
+      // because the art was timed to the state machine rather than the reverse.
+      if (this.textures.exists(KNOCKDOWN_SHEET.key) && !this.anims.exists(KNOCKDOWN_ANIM)) {
+        this.anims.create({
+          key: KNOCKDOWN_ANIM,
+          frames: KNOCKDOWN_DURATIONS_MS.map((duration, i) => ({
+            key: KNOCKDOWN_SHEET.key,
+            frame: i,
+            duration,
+          })),
+          repeat: 0,
+        });
+      }
+
+      // The approved 17-frame summoning performance. Per-frame durations again,
+      // and for a stronger reason than the fall: the 280ms opening hold is the
+      // presentation and the 700ms final hold is the palm on the ground, which is
+      // the moment the character is allowed to appear. A uniform frame rate
+      // destroys both and the ritual stops reading as a ritual.
+      if (this.textures.exists(CARD_SLAM_SHEET.key) && !this.anims.exists(CARD_SLAM_ANIM)) {
+        this.anims.create({
+          key: CARD_SLAM_ANIM,
+          frames: CARD_SLAM_DURATIONS_MS.map((duration, i) => ({
+            key: CARD_SLAM_SHEET.key,
+            frame: i,
+            duration,
+          })),
+          repeat: 0,
         });
       }
 
@@ -582,6 +1004,29 @@ export function makeScene(
       this.wasd = keyboard.addKeys('W,A,S,D') as typeof this.wasd;
       this.jumpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
       this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+      this.fireKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+      // Latch the press from the EVENT as well as polling the key, so a tap that
+      // starts and ends between two frames still counts.
+      keyboard.on('keydown-F', () => {
+        this.firePressedLatch = true;
+      });
+      this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+        if (p.leftButtonDown()) this.firePressedLatch = true;
+      });
+      // A controlled source of knockdown until real enemies exist. K is a
+      // deliberate stand-in for being hit hard, so the scatter-and-recover loop
+      // can be played and tuned before anything in the world can hit him.
+      this.knockdownKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
+      // G for the summon. Not F (fire), E (door), SPACE (hop) or K (fall).
+      this.summonKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G);
+      // 1-4 pick a card. ONE/TWO/THREE/FOUR are the number row, not the numpad;
+      // a laptop without a numpad is the common case, not the exception.
+      this.slotKeys = [
+        Phaser.Input.Keyboard.KeyCodes.ONE,
+        Phaser.Input.Keyboard.KeyCodes.TWO,
+        Phaser.Input.Keyboard.KeyCodes.THREE,
+        Phaser.Input.Keyboard.KeyCodes.FOUR,
+      ].map((code) => keyboard.addKey(code));
       this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     }
 
@@ -611,7 +1056,15 @@ export function makeScene(
 
     update(time: number, delta: number) {
       this.compiledUpdate?.call(this, time, delta);
+
+      // Before movePlayer, and outside it, so aim keeps resolving through a jump.
+      // Sampled only on the frames movePlayer would skip and the pointer tracker
+      // would carry a stale screen position across the hop, then report the whole
+      // gap as travel on landing and hand aim to a mouse nobody touched.
+      if (this.player && this.cursors) this.sampleAim(this.readMove());
+
       this.movePlayer(delta);
+      this.updateCombat(delta);
 
       // Last, so anything reacting to the player reads where the player is NOW
       // rather than where they were a frame ago.
@@ -622,22 +1075,655 @@ export function makeScene(
       );
     }
 
+    /**
+     * Stand up a training dummy and the held card.
+     *
+     * Both are flat coloured shapes on purpose. This milestone is proving that a
+     * blast leaves the card, crosses the world, respects walls and lands — and a
+     * placeholder that is obviously a placeholder cannot be mistaken for approved
+     * art or quietly ship. The pixel art for them is a later, cheaper decision
+     * once the sizes and distances are known from play.
+     *
+     * The dummy is spawned in CODE rather than authored in the Editor because it
+     * is scaffolding: putting it in the .scene file would mean Raheem has to
+     * delete it later, and would collide with his own editing of that file.
+     */
+    private setupCombat(
+      bounds: Phaser.Geom.Rectangle,
+      cards: readonly { cardId: string; element?: ElementName }[],
+    ) {
+      const dummyX = Phaser.Math.Clamp(bounds.centerX + 260, bounds.x + 80, bounds.right - 80);
+      const dummyY = Phaser.Math.Clamp(bounds.centerY + 40, bounds.y + 80, bounds.bottom - 80);
+
+      this.targets = [{ pos: { x: dummyX, y: dummyY }, radiusPx: 26, alive: true }];
+      this.targetGfx = this.targets.map((t) => {
+        const r = this.add.rectangle(t.pos.x, t.pos.y - 34, 44, 68, 0xb45c2a);
+        r.setStrokeStyle(3, 0x2a1608);
+        // Feet origin and ground-contact depth, the same contract every actor in
+        // the world obeys — a target that ignored it would sort through walls.
+        r.setOrigin(0.5, 1);
+        r.setDepth(this.level * LEVEL_STRIDE + t.pos.y);
+        this.depthBand?.add(r);
+        return r;
+      });
+
+      this.heldCard = this.add.rectangle(0, 0, 16, 24, 0xf2e2b6);
+      this.heldCard.setStrokeStyle(2, 0x6b4a1f);
+      this.heldCard.setVisible(false);
+      this.depthBand?.add(this.heldCard);
+
+      const forced = resolveForcedElements();
+      // A single element fills the hand; a list is dealt out slot by slot and
+      // repeats if it is shorter than the hand.
+      const forcedFor = (i: number) => (forced.length ? forced[i % forced.length] : undefined);
+
+      cards.forEach((c, i) => this.cardElements.set(c.cardId, forcedFor(i) ?? c.element));
+      // Practice cards have no element of their own, so the override has to reach
+      // them too or the flag does nothing on exactly the profile that needs it.
+      PLACEHOLDER_CARD_IDS.forEach((id, i) => {
+        const e = forcedFor(i);
+        if (e) this.cardElements.set(id, e);
+      });
+      this.hand = handFromCards(
+        cards.length > 0 ? cards.map((c) => c.cardId) : PLACEHOLDER_CARD_IDS,
+      );
+      this.emitHand();
+    }
+
+    /**
+     * The hand, drawn in screen space.
+     *
+     * `setScrollFactor(0)` pins it to the camera and `DEPTH.markers` puts it above
+     * every elevation level — a HUD that sorted with the world would slide under a
+     * terrace the moment the player climbed one.
+     *
+     * Subordinate to the world on purpose: small, low-contrast, bottom-centred.
+     * The card art belongs on the card, and a HUD that competes with the courtyard
+     * is the failure the UI direction warns about. Real card faces replace these
+     * pips once the shape is proven in play.
+     */
+    /**
+     * Tell the shell what the hand looks like now.
+     *
+     * The row of slots is DOM, rendered by CastleV2 beside the doorway prompt and
+     * the pause menu, which were already React. It lived in Phaser first and was
+     * built correctly and drawn off the bottom of the window, because anything
+     * positioned from camera dimensions has to be re-placed every time the canvas
+     * resizes and one missed listener makes it vanish with no error.
+     *
+     * Screen-space UI has no business being in camera space to begin with: the
+     * world is what Phaser is for. In the DOM the row cannot be lost, cannot sort
+     * underneath a terrace, and scales with the page like the rest of the shell.
+     */
+    private emitHand() {
+      hooks.onHandChange?.({
+        selected: this.hand.selected,
+        slots: this.hand.slots.map((slot) => ({ cardId: slot.cardId, state: slot.state })),
+        blockedCount: this.blockedCount,
+      });
+    }
+
+    /** Number keys pick a slot; shoulder buttons cycle for a pad. */
+    private readSelection() {
+      for (let i = 0; i < this.slotKeys.length; i++) {
+        if (Phaser.Input.Keyboard.JustDown(this.slotKeys[i])) {
+          this.hand = selectSlot(this.hand, i);
+          this.emitHand();
+        }
+      }
+
+      const pad = this.input.gamepad?.getPad(0);
+      const shoulder = pad?.L1 ? -1 : pad?.R1 ? 1 : 0;
+      if (shoulder !== 0 && !this.shoulderHeld) {
+        this.hand = cycleSelection(this.hand, shoulder as 1 | -1);
+        this.emitHand();
+      }
+      // Edge-detected by hand: a held shoulder button would otherwise cycle the
+      // whole hand every frame and settle on whatever the release landed on.
+      this.shoulderHeld = shoulder !== 0;
+    }
+
+    /**
+     * Advance the attack: state, then spawning, then flight.
+     *
+     * Order matters. The state machine decides on this frame whether a shot is
+     * born, and the shot must then be stepped in the same frame it is created, or
+     * every projectile spends its first frame sitting on the hero.
+     */
+    private updateCombat(delta: number) {
+      if (!this.player) return;
+
+      this.readSelection();
+
+      const feet = { x: this.player.x, y: this.feetY };
+      const previousPhase = this.action.phase;
+      this.action = stepAction(
+        this.action,
+        {
+          firePressed: this.fireHeld,
+          summonPressed: this.summonKey
+            ? Phaser.Input.Keyboard.JustDown(this.summonKey)
+            : false,
+          hasReadyCard: canFire(this.hand),
+          heavyHit: this.knockdownKey
+            ? Phaser.Input.Keyboard.JustDown(this.knockdownKey)
+            : false,
+          aim: this.aim.aim,
+        },
+        delta,
+      );
+
+      // Pressing fire while disarmed must SAY so. The rule that the cards are his
+      // only weapon is correct and invisible, and invisible correctness reads
+      // exactly like a bug.
+      if (this.fireHeld && this.action.phase === 'explore' && !canFire(this.hand)) {
+        this.blockedCount++;
+        this.emitHand();
+      }
+
+      if (previousPhase !== 'summoning' && this.action.phase === 'summoning') {
+        this.startSummon();
+      }
+
+      if (this.action.phase !== previousPhase) {
+        this.fireStats.lastPhase = `${previousPhase}->${this.action.phase}`;
+        if (this.action.phase === 'charging') (this.fireStats.enteredCharging as number)++;
+        if (this.action.phase === 'windup') (this.fireStats.enteredWindup as number)++;
+      }
+      if (this.action.fireThisStep) (this.fireStats.fireSteps as number)++;
+
+      // He just went down. Scatter once, on the transition — not every frame he
+      // spends on the floor.
+      if (this.action.phase === 'knockdown' && !this.wasDown) {
+        // Interrupted mid-ritual, the pending summon steps must not still fire —
+        // they would restore the walking sheet on top of the fall and reveal a
+        // character out of a card that was never planted.
+        this.cancelSummonTimers();
+        this.scatterCards();
+        this.playKnockdown();
+      }
+      // Standing up runs the same clip backwards. It costs nothing, it is honest
+      // about being a prototype, and it is far better than snapping upright — a
+      // purpose-made stand-up clip is a separate decision once this has been
+      // played.
+      if (this.action.phase === 'standUp' && this.wasDown) this.playStandUp();
+      this.wasDown = this.action.phase === 'knockdown';
+
+      this.updatePickups(delta);
+
+      // The throw starts: the card leaves the hand's control until it resolves, so
+      // it cannot be fired twice or scattered out from under its own shot.
+      // Entering the windup is the moment the throw commits — and since charging
+      // was added, the phase before it is 'charging', never 'explore'. Testing for
+      // the old transition meant the card was never marked committed at all, so a
+      // slot never went purple and nothing stopped it being fired twice.
+      if (previousPhase !== 'windup' && this.action.phase === 'windup') {
+        this.committedSlot = this.hand.selected;
+        this.hand = commitSelected(this.hand);
+        this.emitHand();
+      }
+
+      // And comes back when control does. Tied to the state machine rather than to
+      // the projectile, because a shot that flies off the map never resolves and
+      // its card would never return.
+      if (this.action.phase === 'explore' && this.committedSlot !== null) {
+        this.hand = releaseCommitted(this.hand, this.committedSlot);
+        this.committedSlot = null;
+        this.emitHand();
+      }
+
+      if (this.action.fireThisStep && this.action.committedAim) {
+        const kit = this.selectedKit();
+        const charge = this.action.chargeLevel;
+        const origin = cardOrigin(feet, this.action.committedAim);
+        // Charge changes the shot itself, not just how it looks — see scaleBlast.
+        const sim = spawnProjectile(origin, this.action.committedAim, scaleBlast(DEFAULT_BLAST, charge));
+
+        // The element's own art where it exists; the placeholder circle only when
+        // nothing has been drawn for it, so a missing sheet is visible rather
+        // than silently absent.
+        const art = createBlastSprite(
+          this,
+          kit,
+          origin.x,
+          origin.y - CARD_HEIGHT_PX,
+          this.action.committedAim,
+          charge,
+        );
+        const gfx =
+          art ??
+          this.add
+            .circle(origin.x, origin.y - CARD_HEIGHT_PX, 5 + 4 * charge, 0x8fd6ff)
+            .setStrokeStyle(2, 0xffffff);
+        this.depthBand?.add(gfx);
+        this.projectiles.push({ sim, gfx, kit, charge });
+        (this.fireStats.projectilesSpawned as number)++;
+      }
+
+      for (const shot of this.projectiles) {
+        shot.sim = stepProjectile(shot.sim, delta, this.colliders.blockers, this.targets);
+        shot.gfx.setPosition(shot.sim.pos.x, shot.sim.pos.y - CARD_HEIGHT_PX);
+        // Depth from the GROUND point, not from where it is drawn. See §7.6 and
+        // CARD_HEIGHT_PX — sorting on the drawn height makes a blast pass in
+        // front of walls it flew behind.
+        shot.gfx.setDepth(this.level * LEVEL_STRIDE + shot.sim.pos.y);
+
+        if (shot.sim.outcome === 'hitTarget' && shot.sim.hitTargetIndex !== null) {
+          this.reactToHit(shot.sim.hitTargetIndex);
+        }
+
+        // The burst plays wherever the shot stopped, walls included — a blast
+        // that vanishes against stone reads as the collision being broken.
+        if (shot.sim.outcome === 'hitTarget' || shot.sim.outcome === 'hitBlocker') {
+          playImpact(
+            this,
+            shot.kit,
+            shot.sim.pos.x,
+            shot.sim.pos.y - CARD_HEIGHT_PX,
+            this.level * LEVEL_STRIDE + shot.sim.pos.y + 1,
+            shot.charge,
+          );
+        }
+      }
+
+      this.projectiles = this.projectiles.filter((shot) => {
+        if (shot.sim.outcome === 'flying') return true;
+        shot.gfx.destroy();
+        return false;
+      });
+
+      // The gather, while he is winding one up. Position follows the card so the
+      // power visibly collects INTO the thing that will throw it.
+      const charging = this.action.phase === 'charging';
+      if (charging) {
+        const lead = cardOrigin(feet, this.aim.aim);
+        if (!this.chargeEmitter) {
+          this.chargeEmitter = createChargeEmitter(this, this.selectedKit().palette);
+          this.chargeEmitter.setDepth(this.level * LEVEL_STRIDE + this.feetY + 2);
+          this.depthBand?.add(this.chargeEmitter);
+        }
+        this.chargeEmitter.emitting = true;
+        updateChargeEmitter(
+          this.chargeEmitter,
+          this.action.chargeLevel,
+          lead.x,
+          lead.y - CARD_HEIGHT_PX,
+        );
+      } else if (this.chargeEmitter) {
+        this.chargeEmitter.emitting = false;
+      }
+
+      // The held card rides the hero while a shot is being thrown, so the shot
+      // visibly comes FROM it.
+      if (this.heldCard) {
+        const throwing =
+          charging || this.action.phase === 'windup' || this.action.phase === 'active';
+        this.heldCard.setVisible(throwing);
+        if (throwing) {
+          const lead = cardOrigin(feet, this.action.committedAim ?? this.aim.aim);
+          this.heldCard.setPosition(lead.x, lead.y - CARD_HEIGHT_PX);
+          this.heldCard.setDepth(this.level * LEVEL_STRIDE + this.feetY + 1);
+        }
+      }
+    }
+
+    /**
+     * He goes down; the cards go everywhere.
+     *
+     * Only cards actually in hand scatter — one mid-throw belongs to its action
+     * and one already lying in the grass cannot fall twice, and either of those
+     * dropping here is how a card comes to exist in two places at once.
+     */
+    private scatterCards() {
+      const { hand, dropped } = scatterHand(this.hand);
+      if (dropped.length === 0) return;
+      this.hand = hand;
+
+      const from = { x: this.player!.x, y: this.feetY };
+      const points = scatterPoints({
+        origin: from,
+        count: dropped.length,
+        random: Math.random,
+        // Standable is the runtime's existing answer, not a second opinion:
+        // inside the world, off the blockers, and on the plate he is on. A card
+        // on another elevation would be visible and unreachable, which is the
+        // worst of both.
+        isValid: (p) => {
+          const b = this.cameras.main.getBounds();
+          if (!Phaser.Geom.Rectangle.Contains(b, p.x, p.y)) return false;
+          const feet = { x: p.x, y: p.y, width: HERO_FEET.width, height: HERO_FEET.height };
+          if (feetBlocked(feet, this.colliders.blockers)) return false;
+          // levelAt returns null off any plate; ground level is 0 there, which is
+          // what walking on plain terrain already means.
+          return (levelAt(p.x, p.y, this.elevation) ?? 0) === this.level;
+        },
+      });
+
+      dropped.forEach((card, i) => {
+        const gfx = this.add.rectangle(from.x, from.y, 16, 24, 0xf2e2b6);
+        gfx.setStrokeStyle(2, 0x6b4a1f);
+        gfx.setOrigin(0.5, 1);
+        this.depthBand?.add(gfx);
+        this.pickups.push({ card, from, to: points[i], ageMs: 0, gfx });
+      });
+
+      this.emitHand();
+    }
+
+    /**
+     * Fly the dropped cards out, then let him sweep them up by walking over them.
+     *
+     * Recovery is deliberately physical and deliberately forgiving: he has to run
+     * to each card, but he does not have to stand on it precisely. The tension is
+     * meant to be "my cards are over there", not "my pickup missed".
+     */
+    private updatePickups(delta: number) {
+      if (this.pickups.length === 0 || !this.player) return;
+      const feet = { x: this.player.x, y: this.feetY };
+
+      const survivors: typeof this.pickups = [];
+      for (const p of this.pickups) {
+        p.ageMs += delta;
+        const t = p.ageMs / SCATTER_FLIGHT_MS;
+        const arc = scatterArc(p.from, p.to, t);
+
+        // Settled cards bob gently so they read as collectable rather than as
+        // scenery someone dropped.
+        const bob = t >= 1 ? Math.sin(p.ageMs / 260) * 3 : 0;
+        p.gfx.setPosition(arc.x, arc.y - arc.heightPx - bob);
+        // Depth from the ground point, never from the drawn height.
+        p.gfx.setDepth(this.level * LEVEL_STRIDE + arc.y);
+
+        // Only collectable once it has landed — otherwise a card can be caught
+        // out of the air at the moment it is thrown and never really drops.
+        const landed = t >= 1;
+        const near = Math.hypot(feet.x - p.to.x, feet.y - p.to.y) <= PICKUP_RADIUS;
+        if (landed && near) {
+          this.hand = recoverCard(this.hand, p.card);
+          this.emitHand();
+          p.gfx.destroy();
+          continue;
+        }
+        survivors.push(p);
+      }
+      this.pickups = survivors;
+    }
+
+    /** The effect kit of whatever card is selected right now. */
+    private selectedKit(): EffectKit {
+      const slot = this.hand.selected === null ? null : this.hand.slots[this.hand.selected];
+      return effectKitFor(slot?.cardId ? this.cardElements.get(slot.cardId) : undefined);
+    }
+
+    /**
+     * The grounded summoning ritual.
+     *
+     * The card is PLACED, and the character comes out of where it was placed.
+     * That is the whole point of the performance — a character that appeared
+     * beside him instead would make the slam decorative, and the handoff is
+     * explicit that the summon emerges from the grounded card.
+     *
+     * The 17 frames are the body only. Everything around them — the real card,
+     * the dust, the flash, the character rising — is assembled here, so the same
+     * clip serves every card in the game rather than one per character.
+     */
+    private startSummon() {
+      if (!this.player || this.hand.selected === null) return;
+      const slotIndex = this.hand.selected;
+
+      // Where the card lands: a step ahead of him, and only somewhere he could
+      // stand. The same predicate the scatter uses, so a summon can never appear
+      // inside a wall or out over the pond.
+      const feet = { x: this.player.x, y: this.feetY };
+      const ahead = this.groundAhead(feet, this.aim.aim);
+
+      this.hand = summonSelected(this.hand);
+      this.emitHand();
+
+      // He has to face the camera: the performance exists in one direction, and
+      // turning him is honest where mirroring an asymmetric action is not.
+      this.facing = 'down';
+
+      if (this.anims.exists(CARD_SLAM_ANIM) && this.player) {
+        this.player.anims.stop();
+        this.player.setTexture(CARD_SLAM_SHEET.key, 0);
+        this.player.setScale(1);
+        this.player.setOrigin(CARD_SLAM_ANCHOR.x, CARD_SLAM_ANCHOR.y);
+        this.player.play(CARD_SLAM_ANIM);
+      }
+
+      // The player's ACTUAL card, laid on the ground at the palm contact. The
+      // generated one in the frames is a blocking prop; this is the real one.
+      const kit = this.selectedKit();
+      this.ritualCard = this.add.rectangle(ahead.x, ahead.y, 18, 26, 0xf2e2b6);
+      this.ritualCard.setStrokeStyle(2, colourOf(kit.palette[0]));
+      this.ritualCard.setOrigin(0.5, 0.5);
+      this.ritualCard.setDepth(this.level * LEVEL_STRIDE + ahead.y);
+      this.ritualCard.setAlpha(0);
+      this.depthBand?.add(this.ritualCard);
+
+      // The card becomes visible as the palm comes down, not before.
+      const plantAt = ACTION_TIMING.summonMs - 700;
+      this.summonTimers.push(
+        this.time.delayedCall(plantAt, () => this.ritualCard?.setAlpha(1)),
+        this.time.delayedCall(plantAt + 120, () => this.revealSummon(ahead, slotIndex, kit)),
+        // Control comes back on the clock, never on the animation event — a clip
+        // that is skipped or interrupted must not strand him mid-ritual.
+        this.time.delayedCall(ACTION_TIMING.summonMs, () => this.restoreWalkSprite()),
+      );
+    }
+
+    /** Drop every pending step of a ritual that is no longer happening. */
+    private cancelSummonTimers() {
+      for (const t of this.summonTimers) t.remove();
+      this.summonTimers = [];
+      this.ritualCard?.destroy();
+      this.ritualCard = undefined;
+    }
+
+    /** A standable point one step along the aim, for the card to be planted on. */
+    private groundAhead(feet: Vec2, aim: Vec2) {
+      const len = Math.hypot(aim.x, aim.y) || 1;
+      const step = 46;
+      const candidate = { x: feet.x + (aim.x / len) * step, y: feet.y + (aim.y / len) * step };
+      const b = this.cameras.main.getBounds();
+      const rect = { x: candidate.x, y: candidate.y, width: HERO_FEET.width, height: HERO_FEET.height };
+      const standable =
+        Phaser.Geom.Rectangle.Contains(b, candidate.x, candidate.y) &&
+        !feetBlocked(rect, this.colliders.blockers) &&
+        (levelAt(candidate.x, candidate.y, this.elevation) ?? 0) === this.level;
+      // Backing off to his own feet is ugly and always reachable, which beats a
+      // character materialising inside a wall.
+      return standable ? candidate : { ...feet };
+    }
+
+    /** The character rises out of the planted card. */
+    private revealSummon(at: Vec2, slotIndex: number, kit: EffectKit) {
+      const keeper = KEEPERS.find((k) => k.id === 'keeper-dwarf');
+      if (!keeper || !this.textures.exists(keeper.sheet.key)) return;
+
+      // Dust and a flash at the contact point, in the card's own colours — the
+      // effects belong to Phaser so one performance serves every element.
+      const flash = this.add.circle(at.x, at.y, 6, colourOf(kit.palette[1]));
+      flash.setDepth(this.level * LEVEL_STRIDE + at.y + 1);
+      this.tweens.add({
+        targets: flash,
+        radius: 34,
+        alpha: 0,
+        duration: 340,
+        onComplete: () => flash.destroy(),
+      });
+
+      const sprite = this.add.sprite(at.x, at.y, keeper.sheet.key, 0);
+      sprite.setOrigin(0.5, 1);
+      sprite.setScale(keeper.worldHeight / keeper.sheet.frameHeight);
+      // Feet on the ground, sorted by the ground he stands on — the same contract
+      // as every other actor, so he passes behind walls like anything else.
+      sprite.setDepth(this.level * LEVEL_STRIDE + at.y);
+      this.depthBand?.add(sprite);
+
+      // Rise out of the card rather than blinking into existence.
+      sprite.setAlpha(0);
+      const settled = sprite.scaleY;
+      sprite.setScale(sprite.scaleX, settled * 0.2);
+      this.tweens.add({
+        targets: sprite,
+        alpha: 1,
+        scaleY: settled,
+        duration: 260,
+        ease: 'Back.easeOut',
+      });
+
+      this.summons.push({ slotIndex, sprite });
+      this.ritualCard?.destroy();
+      this.ritualCard = undefined;
+    }
+
+    /**
+     * Put him on the floor.
+     *
+     * The fall lives on its OWN sheet at its own frame size, because a sprawled
+     * body does not fit the walk sheet's 36x71 box — so this swaps the texture
+     * and swaps it back, rather than playing a row of the walking sheet.
+     */
+    private playKnockdown() {
+      if (!this.player) return;
+      if (!this.anims.exists(KNOCKDOWN_ANIM)) {
+        // Silence here is what let the fall ship unplayable: the texture was
+        // registered and packed but never force-loaded, so this returned early
+        // every time and looked exactly like "the animation was not made yet".
+        console.warn(
+          `[combat] ${KNOCKDOWN_SHEET.key} is not loaded, so the fall cannot play. ` +
+            'It has to be listed in alwaysLoaded — nothing names it in the scene source.',
+        );
+        return;
+      }
+      this.player.anims.stop();
+      this.player.setTexture(KNOCKDOWN_SHEET.key, 0);
+      // Both sheets are authored so he stands 71px tall, so this is 1:1 and the
+      // swap does not change his size.
+      this.player.setScale(1);
+      // The fall's frames carry empty space below the feet where the walk sheet
+      // has almost none, so the walk's origin of 1.0 would lift him ~24px off the
+      // ground exactly as he is supposed to be hitting it.
+      this.player.setOrigin(KNOCKDOWN_ANCHOR.x, KNOCKDOWN_ANCHOR.y);
+      this.player.play(KNOCKDOWN_ANIM);
+    }
+
+    /** Get up: the fall, reversed, inside the stand-up window. */
+    private playStandUp() {
+      if (!this.player || !this.anims.exists(KNOCKDOWN_ANIM)) return;
+      this.player.playReverse(KNOCKDOWN_ANIM);
+      // Restore the walking sheet on time rather than on the animation event —
+      // a clip that never completes would otherwise leave him lying down with
+      // full control, which looks like the sprite broke.
+      //
+      // One timer at a time: knocked down again mid-stand-up, a second call would
+      // fire later and swap the walk sheet back in on top of a fresh fall.
+      this.standUpTimer?.remove();
+      this.standUpTimer = this.time.delayedCall(ACTION_TIMING.standUpMs, () =>
+        this.restoreWalkSprite(),
+      );
+    }
+
+    /** Back to the walking sheet and its scale. */
+    private restoreWalkSprite() {
+      if (!this.player) return;
+      this.standUpTimer?.remove();
+      this.standUpTimer = undefined;
+      this.player.anims.stop();
+      this.player.setTexture(this.heroSheetKey, idleFrame(this.facing));
+      this.player.setScale(this.heroScale);
+      // Back to feet-at-the-bottom, or he would walk around sunk into the floor.
+      this.player.setOrigin(0.5, 1);
+    }
+
+    /** A readable reaction, so a hit cannot be mistaken for a miss. */
+    private reactToHit(index: number) {
+      const gfx = this.targetGfx[index];
+      if (!gfx) return;
+      this.tweens.killTweensOf(gfx);
+      gfx.setFillStyle(0xffe9a8);
+      this.tweens.add({
+        targets: gfx,
+        x: gfx.x + 6,
+        duration: 55,
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => gfx.setFillStyle(0xb45c2a),
+      });
+    }
+
+    /** Walk intent from the keys. Arrows and WASD are the same axis, not two. */
+    private readMove() {
+      return moveVector(
+        this.cursors!.left.isDown || this.wasd!.A.isDown,
+        this.cursors!.right.isDown || this.wasd!.D.isDown,
+        this.cursors!.up.isDown || this.wasd!.W.isDown,
+        this.cursors!.down.isDown || this.wasd!.S.isDown,
+      );
+    }
+
+    /**
+     * Read the three devices and resolve who is aiming.
+     *
+     * The Phaser-specific half of the input seam; the rules live in combat/aim.ts.
+     * Gamepad support is optional at run time — `this.input.gamepad` is undefined
+     * unless the plugin is enabled, and a courtyard that throws because nobody
+     * plugged in a controller would be a poor trade for a feature nobody is using
+     * yet.
+     */
+    private sampleAim(move: { x: number; y: number }) {
+      if (!this.player) return;
+
+      const pad = this.input.gamepad?.getPad(0);
+      const stick = pad?.rightStick ? { x: pad.rightStick.x, y: pad.rightStick.y } : { x: 0, y: 0 };
+
+      // A pointer that has never been over the canvas reports 0,0, which aims at
+      // the top-left corner of the world. `active` is what tells them apart.
+      const p = this.input.activePointer;
+      const hasPointer = p !== undefined && p.active;
+      const pointerScreen = hasPointer ? { x: p.x, y: p.y } : null;
+      const pointerWorld = hasPointer ? { x: p.worldX, y: p.worldY } : null;
+
+      // Fire is the left mouse button, F, or the pad's right trigger. Deliberately
+      // NOT E, SPACE or ESC — those are the door, the ledge hop and the pause
+      // menu, and a combat verb that also opens a door is a bug waiting for the
+      // first fight next to the Archive.
+      //
+      // F exists because the mouse should not be mandatory: aiming with the keys
+      // alone has to be a complete way to play, and a verb reachable only by
+      // holding a mouse button is one a keyboard player cannot use at all.
+      const firePressed =
+        (hasPointer && p.leftButtonDown()) ||
+        (this.fireKey?.isDown ?? false) ||
+        (pad?.R2 ?? 0) > 0.5 ||
+        (pad?.A ?? false);
+      // HELD state, plus anything latched by the events below. Polling alone
+      // dropped a tap that began and ended between two samples: firing used to
+      // need one frame with the key down, and charge-and-release needs a press
+      // AND a release, so a quick tap could vanish without a trace.
+      this.fireHeld = firePressed || this.firePressedLatch;
+      if (this.firePressedLatch) (this.fireStats.latchHits as number)++;
+      if (this.fireHeld) (this.fireStats.framesHeld as number)++;
+      this.firePressedLatch = false;
+
+      const inputs = buildAimInputs(
+        { move, pointerScreen, pointerWorld, stick, firePressed },
+        { x: this.player.x, y: this.feetY },
+        this.pointerTracker,
+        this.time.now,
+      );
+      this.aim = resolveAim(this.aim, inputs);
+    }
+
     private movePlayer(delta: number) {
       if (!this.player) return;
       if (this.jump) return this.advanceJump(delta);
 
-      const left = this.cursors!.left.isDown || this.wasd!.A.isDown;
-      const right = this.cursors!.right.isDown || this.wasd!.D.isDown;
-      const up = this.cursors!.up.isDown || this.wasd!.W.isDown;
-      const down = this.cursors!.down.isDown || this.wasd!.S.isDown;
-
-      let dx = (right ? 1 : 0) - (left ? 1 : 0);
-      let dy = (down ? 1 : 0) - (up ? 1 : 0);
-      if (dx !== 0 && dy !== 0) {
-        const inv = Math.SQRT1_2;
-        dx *= inv;
-        dy *= inv;
-      }
+      const intent = this.readMove();
+      const dx = intent.x;
+      const dy = intent.y;
 
       if (this.pauseKey && Phaser.Input.Keyboard.JustDown(this.pauseKey)) {
         hooks.onPause?.();
@@ -660,11 +1746,16 @@ export function makeScene(
       }
 
       // Vertical wins ties so a diagonal reads as up/down, which is the convention
-      // the sheet's four rows were drawn for.
-      this.facing = Math.abs(dy) >= Math.abs(dx) ? (dy > 0 ? 'down' : 'up') : dx > 0 ? 'right' : 'left';
-      this.player.anims.play(walkKey(this.facing), true);
+      // the sheet's four rows were drawn for. Shared with combat aim rather than
+      // written twice — two quantisers agree everywhere except the diagonal, and
+      // disagreeing only there is a defect nobody finds by looking at the code.
+      this.facing = quantiseFacing({ x: dx, y: dy });
+      this.player.anims.play(this.heroWalkKey(this.facing), true);
 
-      const step = (WALK_SPEED * delta) / 1000;
+      // Firing slows the walk rather than rooting it — he is meant to be fragile,
+      // not helpless (§12.8). walkScale is 1 outside combat, so exploration is
+      // untouched by this line.
+      const step = (WALK_SPEED * walkScale(this.action.phase) * delta) / 1000;
       const b = this.cameras.main.getBounds();
 
       // Collision is tested against the FEET, not the sprite. A top-down hero is

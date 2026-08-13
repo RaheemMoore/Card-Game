@@ -4,6 +4,21 @@ import { describe, expect, it } from 'vitest';
 import pack from '../../../public/asset-pack.json';
 import { OCCLUDERS, occluderKey, occluderPath } from '../../data/castle/occluders';
 import { HERO_SHEET } from '../../data/castle/heroSprite';
+import {
+  CARD_SLAM_SHEET,
+  CARD_SLAM_ANCHOR,
+  CARD_SLAM_DURATIONS_MS,
+  CARD_SLAM_TOTAL_MS,
+} from '../../data/castle/cardSlamSprite';
+import slamTwin from '../../../public/assets/castle/hero/card-slam/card-slam-sheet.json';
+import {
+  KNOCKDOWN_SHEET,
+  KNOCKDOWN_ANCHOR,
+  KNOCKDOWN_DURATIONS_MS,
+  KNOCKDOWN_TOTAL_MS,
+} from '../../data/castle/knockdownSprite';
+import knockdownTwin from '../../../public/assets/castle/hero/knockdown/knockdown-sheet.json';
+import { ACTION_TIMING } from './combat/actionState';
 import { KEEPERS } from '../../data/castle/keepers';
 import { WATER_LAYER } from '../../data/castle/courtyardLayers';
 
@@ -75,6 +90,71 @@ describe('asset pack ↔ runtime parity', () => {
       frameWidth: HERO_SHEET.frameWidth,
       frameHeight: HERO_SHEET.frameHeight,
     });
+  });
+
+  it('carries the card-slam performance at its own frame size', () => {
+    // The slam is 84x84 where the walk sheet is 36x71. Registering it against the
+    // hero's grid would slice a different animation out of the same pixels and
+    // still render something, which is why this asserts the sizes independently.
+    const slam = entries.get(CARD_SLAM_SHEET.key);
+    expect(slam, 'card-slam sheet missing — re-run build-asset-pack.mjs').toBeDefined();
+    expect(slam!.url).toBe(CARD_SLAM_SHEET.path);
+    expect(slam!.raw.type).toBe('spritesheet');
+    expect(slam!.raw.frameConfig).toEqual({
+      frameWidth: CARD_SLAM_SHEET.frameWidth,
+      frameHeight: CARD_SLAM_SHEET.frameHeight,
+    });
+  });
+
+  it('keeps the slam timing one duration per frame, with its two holds intact', () => {
+    // A uniform frameRate would drop the 280ms opening presentation and the 700ms
+    // palm-down pose the summon resolves from, and the ritual stops reading.
+    expect(CARD_SLAM_DURATIONS_MS).toHaveLength(CARD_SLAM_SHEET.frameCount);
+    expect(CARD_SLAM_DURATIONS_MS[0]).toBe(280);
+    expect(CARD_SLAM_DURATIONS_MS.at(-1)).toBe(700);
+    // 280 opening + 15 x 90 transition + 700 palm-down hold.
+    expect(CARD_SLAM_TOTAL_MS).toBe(2330);
+
+    // And that the module still agrees with the sheet PixelLab actually wrote. A
+    // regeneration rewrites the twin; without this the code would keep animating
+    // to the old timing against new art.
+    expect(slamTwin.animation.durationsMs).toEqual([...CARD_SLAM_DURATIONS_MS]);
+    expect(slamTwin.anchor.x).toBe(CARD_SLAM_ANCHOR.x);
+    expect(slamTwin.anchor.y).toBe(CARD_SLAM_ANCHOR.y);
+    expect(slamTwin.frameCount).toBe(CARD_SLAM_SHEET.frameCount);
+  });
+
+  it('carries the fall at its own frame size, not the walk grid', () => {
+    // A sprawled body is wider than it is tall; forcing it into the walk's
+    // 36x71 box would clip his own arms off and still render something.
+    const fall = entries.get(KNOCKDOWN_SHEET.key);
+    expect(fall, 'knockdown sheet missing — re-run build-asset-pack.mjs').toBeDefined();
+    expect(fall!.url).toBe(KNOCKDOWN_SHEET.path);
+    expect(fall!.raw.frameConfig).toEqual({
+      frameWidth: KNOCKDOWN_SHEET.frameWidth,
+      frameHeight: KNOCKDOWN_SHEET.frameHeight,
+    });
+  });
+
+  it('times the fall to the knockdown phase exactly', () => {
+    // The art was timed to the state machine rather than the reverse, so if
+    // either moves without the other he either stands up mid-air or lies on the
+    // floor with full control.
+    expect(KNOCKDOWN_DURATIONS_MS).toHaveLength(KNOCKDOWN_SHEET.frameCount);
+    expect(KNOCKDOWN_TOTAL_MS).toBe(ACTION_TIMING.knockdownMs);
+    expect(knockdownTwin.animation.durationsMs).toEqual([...KNOCKDOWN_DURATIONS_MS]);
+    expect(knockdownTwin.frameCount).toBe(KNOCKDOWN_SHEET.frameCount);
+  });
+
+  it('anchors the fall where its feet actually are', () => {
+    // 0.95 was copied from the card slam and lifted him ~24px off the ground at
+    // the sprite swap — he left the floor on the frame he was meant to hit it.
+    // The number belongs to THIS art, so the module and the twin must agree.
+    expect(KNOCKDOWN_ANCHOR.y).toBeCloseTo(knockdownTwin.anchor.y, 3);
+    expect(KNOCKDOWN_ANCHOR.x).toBeCloseTo(knockdownTwin.anchor.x, 3);
+    // Well clear of the walk sheet's near-1.0: if these ever converge, someone
+    // has copied a number again instead of measuring one.
+    expect(KNOCKDOWN_ANCHOR.y).toBeLessThan(0.9);
   });
 
   it('carries every keeper sheet whose art has landed, at matching frame sizes', () => {

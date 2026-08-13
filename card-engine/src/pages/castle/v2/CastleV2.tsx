@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ALWAYS_LOADED,
   entriesUsedBy,
   fetchSceneSource,
   loadPackEntries,
   makeScene,
+  PRODUCTION_SCENE,
+  type HandView,
   type PackEntry,
   type Status,
 } from './courtyardRuntime';
+import { ALWAYS_LOADED } from './sceneManifest';
 import { HERO_SHEET } from '../../../data/castle/heroSprite';
+import { getAllCards } from '../../../services/storage';
 import { DOOR_LABELS, type DoorDestination } from '../../dev/sceneColliders';
 import { PauseMenu } from '../PauseMenu';
 import { CollectionStall } from '../stalls/CollectionStall';
@@ -51,6 +54,7 @@ export function CastleV2() {
   const [atDoor, setAtDoor] = useState<DoorDestination | null>(null);
   const [openStall, setOpenStall] = useState<DoorDestination | null>(null);
   const [paused, setPaused] = useState(false);
+  const [hand, setHand] = useState<HandView | null>(null);
 
   // Only decides whether the pause menu lists Admin. Defaults to 'user', so a
   // failed lookup hides a menu item rather than locking anyone out.
@@ -91,7 +95,7 @@ export function CastleV2() {
         [Phaser, allEntries, source] = await Promise.all([
           import('phaser').then((m) => m.default),
           loadPackEntries(),
-          fetchSceneSource('CourtyardV2'),
+          fetchSceneSource(PRODUCTION_SCENE),
         ]);
       } catch (err) {
         if (!cancelled) setStatus({ phase: 'error', message: String(err) });
@@ -101,12 +105,12 @@ export function CastleV2() {
 
       const entries = entriesUsedBy(source, allEntries, [
         HERO_SHEET.key,
-        ...(ALWAYS_LOADED.CourtyardV2 ?? []),
+        ...(ALWAYS_LOADED[PRODUCTION_SCENE] ?? []),
       ]);
 
       const Scene = makeScene(
         Phaser,
-        'CourtyardV2',
+        PRODUCTION_SCENE,
         source,
         entries,
         (s) => {
@@ -120,6 +124,22 @@ export function CastleV2() {
           onPause: () => {
             if (!cancelled) setPaused((p) => !p);
           },
+          onHandChange: (h) => {
+            if (!cancelled) setHand(h);
+          },
+          // His actual characters, newest first. The world takes ids and never
+          // touches storage itself, so the harness can hand it fixtures instead.
+          // An empty collection falls back to practice cards rather than to a
+          // courtyard where the attack silently does nothing.
+          //
+          // The element comes along because it chooses the blast's art. A card
+          // forged before elements existed simply has none, and fires the
+          // placeholder rather than refusing to fire.
+          cards: getAllCards()
+            .slice()
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            .slice(0, 4)
+            .map((c) => ({ cardId: c.cardId, element: c.elementSelection?.element })),
         },
       );
 
@@ -175,6 +195,87 @@ export function CastleV2() {
           <span className="font-fantasy text-sm font-bold">
             {DOOR_LABELS[atDoor]} · ⌨ E
           </span>
+        </div>
+      )}
+
+      {/* Says out loud why nothing happened when he pressed fire. Being disarmed
+          is the CORRECT reason the attack refuses, and it is invisible — which
+          reads exactly like the game being broken. */}
+      {hand && hand.blockedCount > 0 && !paused && !openStall && (
+        <div
+          key={hand.blockedCount}
+          role="status"
+          className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 animate-[fadeIn_120ms_ease-out] rounded-md px-3 py-1.5 text-xs font-bold"
+          style={{ background: 'rgba(60,20,20,0.82)', color: '#ffd0d0' }}
+        >
+          Your cards are on the ground — go and get them
+        </div>
+      )}
+
+      {/* The hand. DOM rather than Phaser: it is screen-space chrome like the
+          doorway prompt above, and the Phaser version was built correctly and
+          drawn off the bottom edge because camera-space UI has to be re-placed
+          on every resize. Small and low-contrast on purpose — the courtyard is
+          the thing worth looking at. Card faces replace the pips later. */}
+      {hand && !paused && (
+        <div
+          className="pointer-events-none absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2"
+          role="status"
+          aria-label="Cards carried"
+        >
+          {hand.slots.map((slot, i) => {
+            const selected = hand.selected === i;
+            const fill =
+              slot.state === 'ready'
+                ? '#f2e2b6'
+                : slot.state === 'committed'
+                  ? '#9a8ac0'
+                  : 'transparent';
+            return (
+              <div
+                key={i}
+                className="grid h-14 w-10 place-items-center rounded-sm border-2 transition-colors"
+                style={{
+                  borderColor: selected ? '#ffd479' : '#8a7a55',
+                  background: selected ? 'rgba(13,11,8,0.78)' : 'rgba(13,11,8,0.55)',
+                }}
+              >
+                <div
+                  className="h-9 w-6 rounded-[2px]"
+                  style={{ background: fill, opacity: slot.state === 'empty' ? 0.2 : 1 }}
+                />
+                <span className="text-[10px] leading-none text-amber-200/70">{i + 1}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* What the keys do.
+          Raheem, testing the knockdown: "I don't know which one it is now because
+          f shoots, space jumps, WSD walks." A verb nobody can find is a verb that
+          does not exist, and reading it back out of a chat log is not a control
+          scheme. Small, dim, bottom-left, out of the way of the world. */}
+      {!paused && !openStall && (
+        <div
+          className="pointer-events-none absolute bottom-5 left-5 select-none rounded-md px-3 py-2 text-[11px] leading-relaxed"
+          style={{ background: 'rgba(13,11,8,0.55)', color: 'rgba(242,226,182,0.72)' }}
+          aria-label="Controls"
+        >
+          {[
+            ['WASD', 'walk'],
+            ['1-4', 'pick card'],
+            ['hold F', 'charge · release to fire'],
+            ['G', 'summon (plant the card)'],
+            ['K', 'knock down'],
+            ['SPACE', 'hop a ledge'],
+            ['E', 'enter a door'],
+          ].map(([key, what]) => (
+            <div key={key} className="flex gap-2">
+              <span className="w-16 shrink-0 font-bold text-amber-200/90">{key}</span>
+              <span>{what}</span>
+            </div>
+          ))}
         </div>
       )}
 

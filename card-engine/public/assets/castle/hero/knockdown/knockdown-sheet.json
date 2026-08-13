@@ -1,0 +1,64 @@
+{
+  "image": "knockdown-sheet.png",
+  "frameWidth": 99,
+  "frameHeight": 112,
+  "frameCount": 13,
+  "columns": 13,
+  "rows": 1,
+  "note": "Area-averaged down ONCE, offline, from the 208x236 source so his standing height is exactly 71px \u2014 the same as the walking sheet. Render at ~1:1 or upscaled; never downscale pixel art at runtime.",
+  "resampledFrom": {
+    "frameWidth": 208,
+    "frameHeight": 236,
+    "colours": 100
+  },
+  "animation": {
+    "key": "hero-knockdown",
+    "frames": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "durationsMs": [
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      45,
+      360
+    ],
+    "repeat": 0
+  },
+  "anchor": {
+    "x": 0.5,
+    "y": 0.786,
+    "note": "Measured: his feet are row 88 of 112 in frame 0. Not 0.95 \u2014 that was the card slam\u2019s number and lifts him ~24px off the ground at the sprite swap. A sprawled figure extends sideways well past a standing footprint; do not trim to the walk sheet\u2019s box."
+  },
+  "provenance": {
+    "provider": "PixelLab",
+    "operation": "existing-character v3 custom animation",
+    "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+    "config": "card-engine/scripts/sprite-lab/configs/hero-knockdown.json",
+    "direction": "south",
+    "requestedFrames": 12,
+    "returnedFrames": 13,
+    "actualGenerations": 8,
+    "generatedOn": "2026-08-12"
+  }
+}

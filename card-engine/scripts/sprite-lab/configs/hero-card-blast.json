@@ -1,0 +1,57 @@
+{
+  "subject": "hero-card-blast",
+  "label": "The Card-wright (chibi) — draw, present, and fire from the card, south-facing proof",
+  "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+
+  "identity": {
+    "description": "Athletic middle-aged Black man, a card-wright artisan, drawn as a big-headed chibi game character. Close-cropped black hair greying at the temples, short trimmed beard, warm dark brown skin, friendly readable face. Wears a slate-grey canvas work apron with brass tool loops over a deep teal rolled-sleeve tunic, dark work trousers, and a hard brass-cornered card case on his hip.",
+    "avoid": "no sword, no weapons, no shield, no brown leather adventurer gear, no armour, no wizard robe, no cape, no chosen-one insignia, no background, no floor, no fire, no flame, no fireball, no projectile, no glow, no magic effects, no extra cards, no camera movement"
+  },
+
+  "bibleNotes": [
+    "Derived from the exact approved Card-wright character record; identity and costume must not change.",
+    "THE CARD IS THE WEAPON AND HE IS NOT. He never punches, swings, or takes a fighting stance. The power leaves the card; his body only presents it. A combat pose would contradict the premise the whole game rests on.",
+    "The card is a temporary rigid prop for the body performance. Phaser renders the player's actual selected card over it.",
+    "NO FIRE IN THE SPRITE. The blast itself is a Phaser projectile spawned at the card. That is what lets one body performance serve every element in the game — fire, ice, void and the other 25 — instead of buying a clip per element."
+  ],
+
+  "style": {
+    "view": "low top-down",
+    "proportions": { "type": "preset", "name": "chibi" },
+    "outline": "single color black outline",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "size": { "width": 128, "height": 128 }
+  },
+
+  "palette": {
+    "reference": null,
+    "note": "No scene palette reference. Player readability and identity continuity take priority, matching hero-card-slam."
+  },
+
+  "seed": 902551,
+  "directions": ["south"],
+
+  "animations": [
+    {
+      "id": "hero-card-blast-south-v1",
+      "name": "hero-card-blast-south-v1",
+      "mode": "v3",
+      "action": "Begin standing upright in the exact front-facing start pose. In one flowing dramatic sequence: sweep one hand down to the card case at his hip and snap out a single small rigid rectangular trading card; sweep that card upward and outward in a wide showman's arc; then set his feet, lean his weight forward, and thrust the card straight out ahead of him at arm's length, held flat and face-forward like a lantern, with his other arm braced back for balance. Hold that final presenting pose with the card pushed out in front of him and his face still visible and determined. The card stays one rigid rectangle in his hand at all times and never becomes a weapon he swings. The same person, face, beard, teal tunic, slate apron, brass loops, trousers, boots, body size, and camera angle remain consistent in every frame. Full body always visible. No fire, no flame, no projectile, no glow, no magic, no dust, no background, no camera movement, no extra cards.",
+      "frameCount": 14,
+      "directions": ["south"],
+      "startFromRotation": "south"
+    }
+  ],
+
+  "animationNotes": [
+    "SOUTH ONLY, ON PURPOSE. Animation is per-direction, so a clip exists only on the faces we pay for. This is the proof; approved, the other three extend from the same animation_group_id and charge only for the new directions.",
+    "ONE SHEET, TWO ENTRY POINTS. The draw and the present are one continuous clip so the frames connect, but the runtime can start partway in: the full sequence for the first shot from a card, and the presenting half for shots that follow while the same card is already in hand. That keeps the drama Raheem asked for without making repeat fire feel sluggish, and it costs no extra art. Record the frame index where the draw ends and the raise begins when the sheet is packed.",
+    "THE PROJECTILE MUST LEAVE THE CARD. The final presenting pose exists so Phaser has an unambiguous muzzle: the card's outer edge at arm's length. Record that offset from the feet anchor when packing — it replaces the estimated cardOrigin() forward offset in combat/blast.ts, which is currently a guess of 14 world units.",
+    "NO FIRE IN THE SPRITE, deliberately. Baking a fireball in would force one clip per element and lock the art to fire; as a Phaser projectile the same performance serves all 28 elements, and recolour handles their palettes for zero generations.",
+    "One continuous v3 clip rather than a chain, matching hero-card-slam: a chained generated start frame is where identity drift enters.",
+    "READS BY SILHOUETTE. He ships 71 world pixels tall. The card held out at arm's length against his body is the shape that has to carry it; judge the packed sheet at 1:1, never zoomed in.",
+    "TIMING TARGET: the runtime currently runs 140ms windup, 60ms active, 220ms recovery (ACTION_TIMING in combat/actionState.ts) — 420ms in total, which is too fast for a 14-frame performance. Expect to lengthen the windup to fit the draw and raise, and to fire the projectile on the frame the card reaches full extension. Change the code to match the art, not the art to match the code.",
+    "NO AUTOMATIC PAID RETRY. Validate and present this result before another generation is fired."
+  ]
+}
