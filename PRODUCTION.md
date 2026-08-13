@@ -383,7 +383,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
 | IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
-| SHIPPED | Castle courtyard + overworld combat | **`/castle` is CourtyardV3 and it is a game you can play** (merged to main 2026-08-12). Hold F to charge, release to throw a real elemental blast — the 27-element PixelLab library from the boss battle, reused for zero new generations. Four cards carried, exactly one place each. K knocks him down and scatters them onto validated reachable ground to be physically collected. G plants a card and a keeper rises out of where it landed, using the slam performance approved 2026-08-07. Hero draws at his native 71px. The 4 stalls are still unwired, and the training dummy, the K key and the controls list are deliberate placeholders Raheem has chosen to keep for now. |
+| SHIPPED | Castle courtyard + overworld combat | **`/castle` is CourtyardV3 and it is a game you can play** (merged to main 2026-08-12). Hold F to charge, release to throw a real elemental blast — the 27-element PixelLab library from the boss battle, reused for zero new generations. Four cards carried, exactly one place each. K knocks him down and scatters them onto validated reachable ground to be physically collected. G plants a card and a keeper rises out of where it landed, using the slam performance approved 2026-08-07. Hero draws at his native 71px. The 4 stalls are still unwired, and the controls list is a deliberate placeholder Raheem has chosen to keep for now. **The Combat Truth Slice landed 2026-08-13** and replaced the two biggest placeholders: the inert dummy is now a training construct that notices you, turns, closes, telegraphs, commits, strikes, recovers, dies and revives — and a strong strike, not the K key, is what knocks him down. Tap is a quick action and hold-past-220ms is a heavy one, dispatched through a per-card seam. Getting up buys a 1.5s grace so nothing can chain-knock him. Water is a category the collider layer understands, **awaiting one shape drawn in the Editor** (see §4). |
 | IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
@@ -471,8 +471,17 @@ shape.**
 
 ### Overworld combat — what the next session should pick up
 
-Phases 0–8 of the combat handoff are merged. Three things were deliberately left, and none of them
-blocks anything else.
+**Updated 2026-08-13, after the Combat Truth Slice.** What that slice left open, in the order it
+matters:
+
+| What | Why it stopped | Where |
+|---|---|---|
+| **Draw the WATER shape in the Editor.** The collider layer now understands a water colour and everything that places things routes through `walkBlockers`, but no shape exists yet, so it is inert and the pond is still walkable. Measured from the art so it is not a guess: `castle-pond-basin.png` is 303×221 at (2000,1200) scale 1.8, and the largest **entirely-water** rectangle is world **x=1859 y=1082 w=275 h=248** — it under-covers the rim, which is the safe direction | The Editor is Raheem's surface, and hand-editing `CourtyardV3.scene` risks being clobbered by an open Editor. 20 seconds for him, and the mechanism is already tested | `CourtyardV3.scene` → `L14_COLLIDERS`, colour `#2f6fdc` |
+| **Feel review of the construct.** Every number in `CONSTRUCT_TUNING` is a first guess held to one invariant (the tell must be walkable-out-of). Whether 650ms *feels* like a fair warning, whether the 900ms recovery is a satisfying punish window, and whether it should close faster are all questions only playing answers | Needs Raheem's hands, and the preview pane cannot play | `combat/construct.ts` — one exported object |
+| **The five named Studio scenarios** (§15) and the V3 studio bridge. `studioBridge.ts` still binds only the legacy `/castle/classic` scene; V3 has read-only readouts plus the new mutating commands, which is what the scenarios would drive | Deliberately after the behaviour, so the scenarios assert something that exists | new `v2/studioBridgeV3.ts`, `v2/combatScenarios.ts` |
+| **Reduced motion in V3.** The presenter already honours a `motionOff` flag and the telegraph is a growing *ring* rather than only a flash, so the tell survives — but nothing yet reads `prefers-reduced-motion` and threads it in. The legacy scene's `COURTYARD_EVENTS.motionOff` is the pattern | Scoped out of the slice; the shape-based tell was the load-bearing half | `v2/constructPresenter.ts` `setMotionOff`, `courtyardRuntime.ts` `motionOff` |
+
+Three things from the previous session are still open and unchanged:
 
 | What | Why it stopped | Where |
 |---|---|---|
@@ -488,6 +497,24 @@ script. And **`__cardEngineDev.castleCombat()` now reports the fire chain stage 
 so "shooting is broken" resolves to a stage instead of a guess — it was built after exactly that
 report turned out to mean "all four cards were on the ground and pickup was too precise to collect
 them."
+
+**Both notes are now partly out of date, in useful directions (2026-08-13).**
+
+The **Browser pane DOES composite** in this session — screenshots of `/castle` come back with the
+courtyard, the hero, the scattered cards and the HUD all drawn. That is a change from the session
+that wrote the note above, and it means visual evidence is available again without asking Raheem.
+Do not assume it is broken before trying it.
+
+What it still cannot do is *play*: the pane holds the left mouse button down permanently, so the
+hero charges a card forever and every attempt to drive a clean encounter through synthesised input
+failed. That is what `__cardEngineDev.combat.*` exists for (DEV **and** `?combatDev=1`) — semantic
+commands that mutate the encounter directly. `/castle?combatDev=1` then
+`__cardEngineDev.combat.knockdownHero()` is a one-line scatter; `placeHero(x, y)` walks him onto a
+card. Handoff §9.7 asked for exactly this and it is the only thing that made the slice verifiable.
+
+`castleCombat()` also now reports `releaseKind`, `graceMs`, and a whole `construct` block — phase,
+facing, hp, distance, committed target, and a strike tally. "The telegraph never fired" and "it
+fired and I walked out of it" look identical on screen and need opposite fixes.
 
 ### Courtyard V3 composition — measured 2026-08-12
 
@@ -1000,6 +1027,50 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-13 — The Combat Truth Slice: an enemy that talks back, and four rulings
+
+Raheem and ChatGPT produced a handoff after watching 52 seconds of CourtyardV3 combat. The
+diagnosis was right and worth keeping: *the project does not need more environment art or more
+card content next; it needs one complete combat conversation.*
+
+**The handoff's P0 was already solved.** It reported that the attack code could not be found in
+the snapshot and asked for a repository hunt. It was on `main` the whole time, merged 2026-08-12
+in `5849718`; the snapshot simply predated it. More usefully, roughly **70% of what the handoff
+proposed to build already existed and was unit-tested** — the action state machine, the four-slot
+hand, the substepped projectile, mouse-aim arbitration, scatter with reachability, proximity
+pickup. Building it again would have thrown away working, tested code. The plan was rewritten
+around the five things that genuinely did not exist.
+
+**Four rulings from Raheem, all recorded because they close questions the handoff left open:**
+
+1. **Water blocks.** The pond had *no collider at all* — the hero could wade in and a knockdown
+   could scatter a card into the middle of it, which `scatter.ts` calls "a character deleted from
+   the player's collection by a physics accident." WATER is its own collider colour rather than
+   another BLOCK, so a later "wadeable, but cards still never land in it" is one predicate
+   changing its mind rather than an authored shape being re-coloured.
+2. **The heavy action is instrumentation-only.** Tap versus hold is real, dispatches through a
+   per-card seam, and is counted — but both slots still fire the same blast. No throwaway effect
+   to un-teach later, and no risk of a test effect hardening into canon, which §6.3 warns about.
+3. **The construct is procedural.** Shapes, not sprites: body, shadow, ground facing-notch,
+   colour ramp, growing telegraph ring. Zero generations, so behaviour gets tuned before art is
+   paid for. A real sprite is a later `create-prop` run.
+4. **No paid generations.** The drafted `hero-card-blast` clip stays unfired and `cardOrigin`'s
+   14-unit muzzle offset stays a tunable.
+
+**The one rule that is not a tuning knob:** the construct's ordinary attack must be avoidable by
+*walking*. The Card-wright has no dodge, roll or shield by design, so a telegraph shorter than the
+walk out of the strike is unfair in a way no skill fixes. That is now arithmetic
+(`telegraphIsAvoidable`) with two tests — one asserting the shipped numbers pass at the real
+190 units/sec, one asserting a *shortened* tell fails. Tightening a fight by cutting its telegraph
+is the obvious change to make and it now breaks loudly.
+
+**A verification lesson worth more than the feature.** The first attempt to check this in a
+browser could not: the preview pane holds the left mouse button down permanently, so the hero
+charged forever and shot the construct dead before it finished a telegraph. Handoff §9.7 had
+already said automation must call commands rather than synthesise input, and it was right —
+`__cardEngineDev.combat.*` is what made the slice verifiable. Also: **the Browser pane composites
+again**, contrary to the note left on 2026-08-12. Screenshots work; don't assume otherwise.
 
 ### 2026-08-12 — The game, the studio and the wiki become three separate deployments
 
