@@ -639,10 +639,17 @@ export interface RuntimeHooks {
   /**
    * Fires when the encounter changes, for the on-screen combat readout.
    *
-   * DEV only. It exists because "open the console and paste this" is not a
-   * usable instruction — Raheem's words, and he was right: the whole point of a
+   * It exists because "open the console and paste this" is not a usable
+   * instruction — Raheem's words, and he was right: the whole point of a
    * training instrument is that a human can watch it work without being a
    * programmer. What was a `__cardEngineDev` call is now a panel on the screen.
+   *
+   * Deliberately NOT gated behind a dev flag, and that is a temporary state of
+   * affairs rather than a decision: it sits in the same category as the R/T/Y
+   * keys and the controls list, which are all visible because the courtyard is
+   * still a test surface with four unwired stalls. All of it comes out together
+   * when this stops being somewhere Raheem tests and starts being somewhere a
+   * player lives.
    */
   onCombatState?: (state: CombatStateView) => void;
   /**
