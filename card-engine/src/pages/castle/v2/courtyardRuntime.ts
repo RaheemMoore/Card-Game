@@ -78,6 +78,16 @@ import {
 } from '../combat/actionState';
 import { resolveAction } from '../combat/cardActions';
 import {
+  initialConstruct,
+  isHittable,
+  resetConstruct,
+  stepConstruct,
+  strikeHits,
+  type ConstructHit,
+  type ConstructState,
+} from '../combat/construct';
+import { createConstructView, type ConstructView } from './constructPresenter';
+import {
   canFire,
   commitSelected,
   recoverCard,
@@ -369,6 +379,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
         chargeLevel: number;
         committedAim: { x: number; y: number } | null;
         releaseKind: string | null;
+        graceRemainingMs: number;
       };
       projectiles?: { sim: { id: number; pos: { x: number; y: number }; outcome: string } }[];
       targets?: { pos: { x: number; y: number }; alive: boolean }[];
@@ -449,6 +460,40 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
         (scene as unknown as { selectedKit?: () => { exact: boolean; stream: { key: string } | null } })
           .selectedKit?.()?.stream?.key ?? 'placeholder',
       committedAim: s.action.committedAim,
+      // How long he still cannot be knocked down for. A knockdown that "did not
+      // happen" is either a missed strike or an active grace, and those need
+      // opposite fixes.
+      graceMs: Math.round(s.action.graceRemainingMs),
+      /**
+       * The encounter, from the construct's side.
+       *
+       * The whole conversation is here in one paste: what it is doing, which way
+       * it is pointing, how close he is, and whether its strikes are landing.
+       * "The telegraph never fired" and "it fired and I walked out of it" are
+       * indistinguishable on screen and are the two things most likely to be
+       * reported as the same bug.
+       */
+      construct: (() => {
+        const c = (scene as unknown as { construct?: ConstructState }).construct;
+        if (!c) return null;
+        const p = scn.player;
+        return {
+          phase: c.phase,
+          elapsedMs: Math.round(c.elapsedMs),
+          hp: c.hp,
+          facing: { x: +c.facing.x.toFixed(2), y: +c.facing.y.toFixed(2) },
+          pos: { x: Math.round(c.pos.x), y: Math.round(c.pos.y) },
+          distance: p ? Math.round(Math.hypot(p.x - c.pos.x, p.y - c.pos.y)) : null,
+          committedTarget: c.committedTarget && {
+            x: Math.round(c.committedTarget.x),
+            y: Math.round(c.committedTarget.y),
+          },
+          aiEnabled: c.aiEnabled,
+          strongHits: c.strongHits,
+          stats: (scene as unknown as { constructStats?: Record<string, number | string> })
+            .constructStats,
+        };
+      })(),
       projectiles: (s.projectiles ?? []).map((p) => ({
         id: p.sim.id,
         x: Math.round(p.sim.pos.x),
@@ -595,7 +640,40 @@ export function makeScene(
     private cardElements = new Map<string, ElementName | undefined>();
     private chargeEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
     private targets: BlastTarget[] = [];
-    private targetGfx: Phaser.GameObjects.Rectangle[] = [];
+    /**
+     * The training construct. One, for now, and deliberately not a list — the
+     * slice is proving one complete conversation, and a crowd is a different
+     * problem (spacing, aggro, who telegraphs when) that would hide whether the
+     * single one reads.
+     */
+    private construct?: ConstructState;
+    private constructView?: ConstructView;
+    /** Where it resets to, so repeated test loops all start from one place. */
+    private constructHome = { x: 0, y: 0 };
+    /** Damage waiting to be applied on the construct's next step. */
+    private pendingHits: ConstructHit[] = [];
+    /** Set when its strike lands on him; consumed by the action machine. */
+    private constructStruckHero: 'light' | 'strong' | null = null;
+    /**
+     * DEV counters for the encounter, alongside the fire chain's.
+     *
+     * Same reasoning: "the telegraph never fired" and "it fired and missed" look
+     * identical from the outside and need very different fixes.
+     */
+    private constructStats: Record<string, number | string> = {
+      telegraphs: 0,
+      strikes: 0,
+      strikesLanded: 0,
+      defeats: 0,
+      lastPhase: 'disabled',
+    };
+    /**
+     * Reduced motion, as the scene's own flag.
+     *
+     * Read by the shake, the bob and the telegraph pulse. The tell itself is a
+     * SHAPE and survives this being on — see the presenter.
+     */
+    private motionOff = false;
     /** The card he holds up. Visible only while a shot is being thrown. */
     private heldCard?: Phaser.GameObjects.Rectangle;
     /**
@@ -1156,17 +1234,15 @@ export function makeScene(
       const dummyX = Phaser.Math.Clamp(bounds.centerX + 260, bounds.x + 80, bounds.right - 80);
       const dummyY = Phaser.Math.Clamp(bounds.centerY + 40, bounds.y + 80, bounds.bottom - 80);
 
-      this.targets = [{ pos: { x: dummyX, y: dummyY }, radiusPx: 26, alive: true }];
-      this.targetGfx = this.targets.map((t) => {
-        const r = this.add.rectangle(t.pos.x, t.pos.y - 34, 44, 68, 0xb45c2a);
-        r.setStrokeStyle(3, 0x2a1608);
-        // Feet origin and ground-contact depth, the same contract every actor in
-        // the world obeys — a target that ignored it would sort through walls.
-        r.setOrigin(0.5, 1);
-        r.setDepth(this.level * LEVEL_STRIDE + t.pos.y);
-        this.depthBand?.add(r);
-        return r;
-      });
+      // Where it goes back to on reset, so a hundred test loops all start from
+      // the same spot rather than wherever the last knockback left it.
+      this.constructHome = { x: dummyX, y: dummyY };
+      this.construct = resetConstruct(initialConstruct(this.constructHome), this.constructHome);
+      this.constructView = createConstructView(this, this.depthBand, this.construct);
+
+      // The blast's view of it. Kept in step with the construct's own position
+      // every frame — one of them is the truth and it is not this one.
+      this.targets = [{ pos: { ...this.construct.pos }, radiusPx: 26, alive: true }];
 
       this.heldCard = this.add.rectangle(0, 0, 16, 24, 0xf2e2b6);
       this.heldCard.setStrokeStyle(2, 0x6b4a1f);
@@ -1257,6 +1333,15 @@ export function makeScene(
       this.readSelection();
 
       const feet = { x: this.player.x, y: this.feetY };
+
+      // The construct moves FIRST, so a strike it lands this frame reaches the
+      // action machine in the same frame rather than a frame late. A one-frame
+      // lag here is invisible on a shove and very visible on a knockdown that
+      // arrives after the player has already walked clear.
+      this.updateConstruct(delta, feet);
+      const struckBy = this.constructStruckHero;
+      this.constructStruckHero = null;
+
       const previousPhase = this.action.phase;
       // Read and clear in one place. A latch left set would cancel the NEXT shot
       // too, which is a far more confusing bug than the one it exists to fix.
@@ -1276,14 +1361,22 @@ export function makeScene(
             ? Phaser.Input.Keyboard.JustDown(this.summonKey)
             : false,
           hasReadyCard: canFire(this.hand),
-          heavyHit: this.knockdownKey
-            ? Phaser.Input.Keyboard.JustDown(this.knockdownKey)
-            : false,
+          // Two sources now. The construct's strong strike is the REAL one; K
+          // stays as the dev shortcut that made the loop testable before there
+          // was anything in the world able to land a hit.
+          heavyHit:
+            struckBy === 'strong' ||
+            (this.knockdownKey ? Phaser.Input.Keyboard.JustDown(this.knockdownKey) : false),
           aim: this.aim.aim,
           cancelRequested,
         },
         delta,
       );
+
+      // An ordinary strike hurts and does not cost him his hand. §6.7: only a
+      // clearly telegraphed STRONG hit scatters, or the cards are gone so often
+      // that losing them stops meaning anything.
+      if (struckBy === 'light') this.flashHeroHurt();
 
       // Pressing fire while disarmed must SAY so. The rule that the cards are his
       // only weapon is correct and invisible, and invisible correctness reads
@@ -1386,7 +1479,18 @@ export function makeScene(
         shot.gfx.setDepth(this.level * LEVEL_STRIDE + shot.sim.pos.y);
 
         if (shot.sim.outcome === 'hitTarget' && shot.sim.hitTargetIndex !== null) {
-          this.reactToHit(shot.sim.hitTargetIndex);
+          // The shot's own direction is the knockback, so a construct is shoved
+          // the way it was hit rather than always away from where the hero
+          // happens to be standing now.
+          this.reactToHit(
+            shot.sim.hitTargetIndex,
+            shot.sim.def.damage,
+            shot.sim.dir,
+            // A charged shot staggers; a tap flinches. Read from the shot rather
+            // than the release so a heavy that was interrupted early still lands
+            // as the shot it actually became.
+            shot.charge >= 0.6,
+          );
         }
 
         // The burst plays wherever the shot stopped, walls included — a blast
@@ -1741,20 +1845,100 @@ export function makeScene(
       this.player.setOrigin(0.5, 1);
     }
 
+    /**
+     * A blast landed on the construct.
+     *
+     * Queued rather than applied: the construct is stepped once per frame from
+     * one place, and damage arriving mid-projectile-loop would mean two shots in
+     * the same frame each seeing a different construct.
+     */
+    private reactToHit(index: number, damage: number, dir: { x: number; y: number }, heavy: boolean) {
+      if (index !== 0 || !this.construct) return;
+      this.pendingHits.push({ amount: damage, knockback: dir, heavy });
+    }
+
+    /**
+     * Advance the construct, then push the result out to everything that reads it.
+     *
+     * The construct's own state is the only truth here. The blast target and the
+     * view are both DERIVED from it every frame rather than kept in step by
+     * hand, because two things that must agree and are updated separately
+     * eventually disagree.
+     */
+    private updateConstruct(delta: number, heroFeet: { x: number; y: number }) {
+      if (!this.construct) return;
+
+      const hits = this.pendingHits;
+      this.pendingHits = [];
+
+      const before = this.construct.phase;
+      const out = stepConstruct(
+        this.construct,
+        {
+          heroFeet,
+          // The grace is what stops it swinging at a man who is getting up. See
+          // §11.3 — without it the knockdown chains and the loop is unplayable.
+          heroDownedOrGraced:
+            this.action.phase === 'knockdown' ||
+            this.action.phase === 'standUp' ||
+            this.action.graceRemainingMs > 0,
+          hits,
+        },
+        delta,
+      );
+      this.construct = out.state;
+
+      if (hits.length > 0) this.flashConstruct();
+      if (before !== this.construct.phase) {
+        this.constructStats.lastPhase = `${before}->${this.construct.phase}`;
+        if (this.construct.phase === 'telegraph') (this.constructStats.telegraphs as number)++;
+        if (this.construct.phase === 'defeated') (this.constructStats.defeats as number)++;
+      }
+
+      // Does the committed strike reach him? Resolved against the SHAPE of the
+      // lunge rather than a circle round the target, so walking sideways out of
+      // its path works as well as walking backwards.
+      if (out.strike) {
+        (this.constructStats.strikes as number)++;
+        if (strikeHits(out.strike, heroFeet)) {
+          this.constructStruckHero = out.strike.kind;
+          (this.constructStats.strikesLanded as number)++;
+        }
+      }
+
+      // Everything downstream, derived.
+      this.targets = [
+        {
+          pos: { ...this.construct.pos },
+          radiusPx: 26,
+          alive: isHittable(this.construct.phase),
+        },
+      ];
+      this.constructView?.update(this.construct, heroFeet, (groundY) =>
+        this.depthBand ? this.level * LEVEL_STRIDE + groundY : 100000,
+      );
+    }
+
+    /**
+     * He was hit, but not hard enough to go down.
+     *
+     * §6.7: ordinary damage must NOT scatter the hand. If every hit cost him his
+     * cards the loss would stop meaning anything, and the knockdown — the moment
+     * the whole milestone is built around — would be just another hit.
+     */
+    private flashHeroHurt() {
+      if (!this.player) return;
+      this.player.setTintFill(0xffdada);
+      this.time.delayedCall(90, () => this.player?.clearTint());
+      if (!this.motionOff) this.cameras.main.shake(120, 0.003);
+    }
+
     /** A readable reaction, so a hit cannot be mistaken for a miss. */
-    private reactToHit(index: number) {
-      const gfx = this.targetGfx[index];
-      if (!gfx) return;
-      this.tweens.killTweensOf(gfx);
-      gfx.setFillStyle(0xffe9a8);
-      this.tweens.add({
-        targets: gfx,
-        x: gfx.x + 6,
-        duration: 55,
-        yoyo: true,
-        repeat: 1,
-        onComplete: () => gfx.setFillStyle(0xb45c2a),
-      });
+    private flashConstruct() {
+      // The phase colour already changes on a hit; this is the extra beat of
+      // contact on top of it, and it is a tween on the view's own body so the
+      // state machine stays unaware that animation exists.
+      this.cameras.main.shake(90, this.motionOff ? 0 : 0.002);
     }
 
     /** Walk intent from the keys. Arrows and WASD are the same axis, not two. */

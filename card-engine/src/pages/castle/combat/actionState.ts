@@ -67,6 +67,16 @@ export const ACTION_TIMING = {
    * Tuning knob, not canon.
    */
   holdThresholdMs: 220,
+  /**
+   * How long he cannot be knocked down again after getting up.
+   *
+   * Handoff §11.1 step 8 and §16.15: without it, a construct standing over him
+   * puts him straight back on the floor and the player watches four cards
+   * scatter twice with no move available in between — the "repeated unavoidable
+   * knockdown" the slice is required not to have. Long enough to walk clear at
+   * 190 units/sec, which is about 280 units of ground.
+   */
+  knockdownGraceMs: 1500,
 } as const;
 
 /**
@@ -123,6 +133,14 @@ export interface ActionState {
    * later. Read on the `fireThisStep` frame to dispatch the card's action.
    */
   releaseKind: ReleaseKind | null;
+  /**
+   * How long he still cannot be knocked down for, counting down.
+   *
+   * Starts when he finishes getting up, NOT when he goes down — the point is to
+   * protect the moment he is back on his feet and has to walk to his cards,
+   * which is precisely when he is standing next to whatever put him there.
+   */
+  graceRemainingMs: number;
 }
 
 export interface ActionInput {
@@ -155,6 +173,7 @@ export function initialAction(): ActionState {
     fireThisStep: false,
     chargeLevel: 0,
     releaseKind: null,
+    graceRemainingMs: 0,
   };
 }
 
@@ -203,6 +222,9 @@ const enter = (
   fireThisStep,
   chargeLevel,
   releaseKind,
+  // Overwritten by the stepAction wrapper, which is where grace actually lives.
+  // Zero here so a phase transition can never accidentally GRANT protection.
+  graceRemainingMs: 0,
 });
 
 /** Charge held so far, as a fraction of a full one, floored at a tap's worth. */
@@ -224,6 +246,33 @@ export const releaseKindFrom = (heldMs: number): ReleaseKind =>
  * and being hit while casting costs the cast.
  */
 export function stepAction(state: ActionState, input: ActionInput, dtMs: number): ActionState {
+  // Grace is handled OUTSIDE the phase machine, in a wrapper, because it has to
+  // survive phase changes and `enter()` resets everything it touches. Threading
+  // it through every call site instead would mean a dozen chances to forget it,
+  // and forgetting it silently restores the chain-knockdown this exists to stop.
+  const graceRemainingMs = Math.max(0, state.graceRemainingMs - dtMs);
+  const graced = graceRemainingMs > 0;
+
+  const next = stepPhase(
+    state,
+    // A heavy hit during the grace window is simply not a hit. Swallowing it
+    // here rather than in the runtime means every source of knockdown — the
+    // construct, the K key, a scenario — gets the protection for free.
+    graced && input.heavyHit ? { ...input, heavyHit: false } : input,
+    dtMs,
+  );
+
+  // The window opens when he is BACK ON HIS FEET, not when he goes down: the
+  // moment that needs protecting is the walk to his scattered cards, which
+  // starts next to whatever knocked him over.
+  const standingUp = state.phase === 'standUp' && next.phase === 'explore';
+  return {
+    ...next,
+    graceRemainingMs: standingUp ? ACTION_TIMING.knockdownGraceMs : graceRemainingMs,
+  };
+}
+
+function stepPhase(state: ActionState, input: ActionInput, dtMs: number): ActionState {
   if (input.heavyHit && state.phase !== 'knockdown' && state.phase !== 'standUp') {
     return enter('knockdown', null);
   }

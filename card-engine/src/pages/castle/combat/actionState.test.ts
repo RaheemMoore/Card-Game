@@ -343,6 +343,58 @@ describe('action state', () => {
     expect(s.phase).toBe('knockdown');
   });
 
+  it('cannot be knocked down again the instant he stands up', () => {
+    // §16.15: ten loops with no repeated unavoidable knockdown. Whatever put him
+    // down is standing right there when he gets up, and without a grace window
+    // he watches four cards scatter twice with no move in between.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    const upright = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4);
+    expect(upright.state.phase).toBe('explore');
+    expect(upright.state.graceRemainingMs).toBeGreaterThan(0);
+
+    const hitAgain = stepAction(upright.state, input({ heavyHit: true }), 16);
+    expect(hitAgain.phase).toBe('explore');
+  });
+
+  it('is put down once by something swinging at him throughout the recovery', () => {
+    // A construct standing over him keeps attacking. From the hit that fells him
+    // to the end of the grace he must go down exactly once — that whole span is
+    // knockdown, stand-up, and the walk to his cards.
+    const protectedMs =
+      ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs + ACTION_TIMING.knockdownGraceMs;
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    let knockdowns = 1;
+    for (let i = 0; i < Math.floor(protectedMs / 16) - 2; i++) {
+      const before = s.phase;
+      // Swinging every half second.
+      s = stepAction(s, input({ heavyHit: i % 31 === 30 }), 16);
+      if (s.phase === 'knockdown' && before !== 'knockdown') knockdowns++;
+    }
+    expect(knockdowns).toBe(1);
+  });
+
+  it('lets the grace run out, so he is not permanently safe', () => {
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    s = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4).state;
+    s = run(s, Math.ceil(ACTION_TIMING.knockdownGraceMs / 16) + 4).state;
+    expect(s.graceRemainingMs).toBe(0);
+
+    const down = stepAction(s, input({ heavyHit: true }), 16);
+    expect(down.phase).toBe('knockdown');
+  });
+
+  it('starts with no grace, so the first hit always lands', () => {
+    expect(initialAction().graceRemainingMs).toBe(0);
+    expect(stepAction(initialAction(), input({ heavyHit: true }), 16).phase).toBe('knockdown');
+  });
+
+  it('does not hand out grace for firing or being interrupted', () => {
+    // Only standing up grants it. A charge cancelled by a hit must not leave him
+    // briefly invincible.
+    const fired = run(fireAfterHolding(0), 60).state;
+    expect(fired.graceRemainingMs).toBe(0);
+  });
+
   it('slows the walk while firing instead of rooting him', () => {
     // §12.8: a deliberately weak character who cannot move while attacking reads
     // as helpless rather than fragile.
