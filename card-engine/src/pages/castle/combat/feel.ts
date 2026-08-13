@@ -215,12 +215,50 @@ export interface AttackFeel {
   lungePx: number;
   /** Vertical squash at full commitment, as a scale multiplier on 1. */
   squash: number;
+  /**
+   * How far the body TILTS at the moment of the strike, radians.
+   *
+   * The single biggest readability win at this camera. The hero is 71 world
+   * pixels tall and the courtyard is zoomed out; a lean expressed only as a
+   * horizontal slide moves his feet a few pixels and is invisible, while the
+   * same commitment expressed as rotation swings his HEAD through several
+   * times that distance. The sprite's origin is already at his feet, so this
+   * pivots where a person pivots.
+   */
+  tiltRad: number;
+  /** How far the card is drawn back past the hand before the throw, px. */
+  cardDrawPx: number;
+  /** How far past the hand it ends up at full extension, px. */
+  cardThrowPx: number;
 }
 
+/**
+ * Full-intensity attacker motion.
+ *
+ * These numbers were DOUBLED on 2026-08-13 after Raheem watched a recording
+ * and reported, correctly, that the hero does nothing when he attacks. Part of
+ * that was a bug (the pose was computed and never applied — see
+ * `applyHeroTransform`'s call site), but the rest was that the original values
+ * were chosen by reading them rather than by watching them: a 5px lunge on a
+ * 71px character at courtyard zoom is roughly one pixel on screen.
+ *
+ * Tuning knobs, not canon. If they read as too much in play, come down — but
+ * come down from something that was visible, not up from something that was
+ * not.
+ */
 const ATTACK_FULL: Record<HitSeverity, AttackFeel> = {
-  light: { windupLeanPx: 2, lungePx: 5, squash: 0.04 },
-  normal: { windupLeanPx: 4, lungePx: 9, squash: 0.07 },
-  heavy: { windupLeanPx: 7, lungePx: 14, squash: 0.11 },
+  light: { windupLeanPx: 4, lungePx: 10, squash: 0.08, tiltRad: 0.1, cardDrawPx: 10, cardThrowPx: 16 },
+  normal: { windupLeanPx: 8, lungePx: 18, squash: 0.13, tiltRad: 0.16, cardDrawPx: 14, cardThrowPx: 24 },
+  heavy: { windupLeanPx: 14, lungePx: 26, squash: 0.18, tiltRad: 0.24, cardDrawPx: 20, cardThrowPx: 32 },
+};
+
+const ATTACK_NONE: AttackFeel = {
+  windupLeanPx: 0,
+  lungePx: 0,
+  squash: 0,
+  tiltRad: 0,
+  cardDrawPx: 0,
+  cardThrowPx: 0,
 };
 
 /**
@@ -230,6 +268,6 @@ const ATTACK_FULL: Record<HitSeverity, AttackFeel> = {
  * information the player cannot get from the card leaving his hand.
  */
 export function getAttackFeel(severity: HitSeverity, motion: MotionLevel = 'full'): AttackFeel {
-  if (motion === 'off') return { windupLeanPx: 0, lungePx: 0, squash: 0 };
+  if (motion === 'off') return ATTACK_NONE;
   return ATTACK_FULL[severity];
 }

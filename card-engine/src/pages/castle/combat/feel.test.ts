@@ -99,6 +99,14 @@ describe('attack feel', () => {
   it('is silent with motion off', () => {
     // Unlike the flash, a lunge carries nothing the player cannot read from the
     // card leaving his hand, so it is safe to drop entirely.
-    expect(getAttackFeel('heavy', 'off')).toEqual({ windupLeanPx: 0, lungePx: 0, squash: 0 });
+    //
+    // Asserted over EVERY field rather than against a literal, so that adding a
+    // new axis of motion (tilt and the card's throw were added on 2026-08-13)
+    // is automatically covered. A literal here would have gone on passing while
+    // the new motion leaked straight through the setting meant to suppress it.
+    const off = getAttackFeel('heavy', 'off');
+    for (const [key, value] of Object.entries(off)) {
+      expect(value, `${key} should be zero with motion off`).toBe(0);
+    }
   });
 });

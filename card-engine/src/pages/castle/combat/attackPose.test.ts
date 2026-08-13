@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACTION_TIMING, MIN_CHARGE_LEVEL, type ActionPhase } from './actionState';
-import { NEUTRAL_POSE, attackPose, type AttackPoseInput } from './attackPose';
+import { NEUTRAL_POSE, attackPose, cardPose, type AttackPoseInput } from './attackPose';
 import { getAttackFeel } from './feel';
 
 const AIM = { x: 1, y: 0 };
@@ -107,6 +107,30 @@ describe('attack pose', () => {
     expect(off).toEqual(NEUTRAL_POSE);
   });
 
+  it('tilts BACKWARD winding up and FORWARD at the strike', () => {
+    // The wind-up and the throw have to be visibly opposite, not merely
+    // different sizes — opposition is what makes an anticipation read as an
+    // anticipation rather than as a smaller version of the same move.
+    const wind = pose({ phase: 'charging', chargeLevel: 1 });
+    const strike = pose({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
+    expect(wind.rotation).toBeLessThan(0);
+    expect(strike.rotation).toBeGreaterThan(0);
+  });
+
+  it('mirrors the tilt when he throws the other way', () => {
+    // Leaning right while throwing left would read as falling over.
+    const right = pose({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs, aim: { x: 1, y: 0 } });
+    const left = pose({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs, aim: { x: -1, y: 0 } });
+    expect(right.rotation).toBeCloseTo(-left.rotation, 5);
+  });
+
+  it('does not tilt at all for a throw into or out of the screen', () => {
+    // A lean toward the camera has no on-screen direction, so expressing it as
+    // a roll would be inventing information the viewer cannot interpret.
+    const up = pose({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs, aim: { x: 0, y: -1 } });
+    expect(up.rotation).toBeCloseTo(0, 5);
+  });
+
   it('never exceeds the lunge it was given', () => {
     // The offset is applied to a sprite whose collider does not follow it, so
     // an unbounded pose would be a hero drawn somewhere he cannot be hit.
@@ -119,5 +143,84 @@ describe('attack pose', () => {
         );
       }
     }
+  });
+});
+
+describe('the card throws itself', () => {
+  const card = (over: Partial<AttackPoseInput> = {}) =>
+    cardPose({
+      phase: 'windup',
+      elapsedMs: 0,
+      chargeLevel: 1,
+      aim: AIM,
+      feel: FEEL,
+      ...over,
+    });
+
+  it('is only in his hand while he is winding one up', () => {
+    // From `active` onward it IS the projectile. Drawing both would show the
+    // player two cards for the length of the strike.
+    expect(card({ phase: 'charging' }).visible).toBe(true);
+    expect(card({ phase: 'windup' }).visible).toBe(true);
+    expect(card({ phase: 'active' }).visible).toBe(false);
+    expect(card({ phase: 'recovery' }).visible).toBe(false);
+    expect(card({ phase: 'explore' }).visible).toBe(false);
+  });
+
+  it('draws BACK as the charge fills, and grows', () => {
+    const tap = card({ phase: 'charging', chargeLevel: MIN_CHARGE_LEVEL });
+    const full = card({ phase: 'charging', chargeLevel: 1 });
+    expect(tap.offsetX).toBeLessThan(0);
+    expect(full.offsetX).toBeLessThan(tap.offsetX);
+    // Growth is the plainest possible statement of "this is getting stronger",
+    // made on the object the player is already looking at.
+    expect(full.scale).toBeGreaterThan(tap.scale);
+  });
+
+  it('travels from behind the hand to past it across the wind-up', () => {
+    const start = card({ elapsedMs: 0 });
+    const end = card({ elapsedMs: ACTION_TIMING.windupMs });
+    expect(start.offsetX).toBeLessThan(0);
+    expect(end.offsetX).toBeGreaterThan(0);
+    expect(end.offsetX).toBeCloseTo(FEEL.cardThrowPx, 5);
+  });
+
+  it('reaches full extension exactly as the shot is born', () => {
+    // The projectile spawns on entry to `active`, so the throw has to be
+    // COMPLETE at the end of the wind-up. A card still travelling when its own
+    // blast appears reads as two separate objects.
+    const atRelease = card({ elapsedMs: ACTION_TIMING.windupMs });
+    const past = card({ elapsedMs: ACTION_TIMING.windupMs * 2 });
+    expect(past.offsetX).toBeCloseTo(atRelease.offsetX, 5);
+  });
+
+  it('spins on the way out', () => {
+    // A card that translates without rotating reads as being carried.
+    const start = card({ elapsedMs: 0 });
+    const end = card({ elapsedMs: ACTION_TIMING.windupMs });
+    expect(Math.abs(end.rotation - start.rotation)).toBeGreaterThan(1);
+  });
+
+  it('goes where the throw goes', () => {
+    const left = card({ elapsedMs: ACTION_TIMING.windupMs, aim: { x: -1, y: 0 } });
+    expect(left.offsetX).toBeLessThan(0);
+  });
+
+  it('stays in hand, still, when motion is off', () => {
+    const off = cardPose({
+      phase: 'windup',
+      elapsedMs: ACTION_TIMING.windupMs,
+      chargeLevel: 1,
+      aim: AIM,
+      feel: getAttackFeel('heavy', 'off'),
+    });
+    // Still VISIBLE — the card is information, not decoration, and a player
+    // with motion off must still see what he is holding.
+    expect(off.visible).toBe(true);
+    expect(off.offsetX).toBeCloseTo(0, 5);
+  });
+
+  it('has no opinion without an aim', () => {
+    expect(card({ aim: null }).visible).toBe(false);
   });
 });

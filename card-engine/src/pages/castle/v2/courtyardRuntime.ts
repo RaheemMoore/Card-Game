@@ -138,8 +138,7 @@ import {
   severityForCharge,
   type HitSeverity,
 } from '../combat/feel';
-import { attackPose } from '../combat/attackPose';
-import { MIN_CHARGE_LEVEL } from '../combat/actionState';
+import { attackPose, cardPose } from '../combat/attackPose';
 import { createHitstop, type Hitstop } from './hitstop';
 import { resolveMotionLevel } from './motionLevel';
 import type { MotionLevel } from '../../../vfx/types';
@@ -555,7 +554,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       forceKnockdown(): void;
       placeHeroAt(x: number, y: number): void;
       previewImpact(severity: HitSeverity): void;
-      fireBlast(charge: number): void;
+      scriptShot(holdMs: number): void;
       feetX: number;
     };
     dev.combat = createCombatDevCommands({
@@ -568,7 +567,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       knockdownHero: () => s.forceKnockdown(),
       placeHero: (x, y) => s.placeHeroAt(x, y),
       triggerImpact: (severity) => s.previewImpact(severity),
-      fireBlast: (charge) => s.fireBlast(charge),
+      fireBlast: (holdMs) => s.scriptShot(holdMs),
       snapshot: () => (dev.castleCombat as () => unknown)(),
     });
   }
@@ -789,6 +788,16 @@ export function makeScene(
     private pendingHitDir: { x: number; y: number } = { x: 1, y: 0 };
     /** The directional camera lurch, so a second hit can replace rather than fight it. */
     private cameraKick?: Phaser.Tweens.Tween;
+    /**
+     * Milliseconds left on a scripted trigger hold. See `scriptShot`.
+     *
+     * A number rather than a boolean because the whole point is the LENGTH of
+     * the hold: that is what the action machine turns into a charge, and the
+     * charge is what every part of the attack's weight scales on.
+     */
+    private scriptedHoldMs = 0;
+    /** Aim locked for the duration of a scripted hold, so the shot lands where asked. */
+    private scriptedAim: { x: number; y: number } | null = null;
     /**
      * DEV counters for the encounter, alongside the fire chain's.
      *
@@ -1349,8 +1358,8 @@ export function makeScene(
        * each other on the keyboard, which is the point: the comparison is the
        * review.
        */
-      keyboard.on('keydown-COMMA', () => this.fireBlast(MIN_CHARGE_LEVEL));
-      keyboard.on('keydown-PERIOD', () => this.fireBlast(1));
+      keyboard.on('keydown-COMMA', () => this.scriptShot(0));
+      keyboard.on('keydown-PERIOD', () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 60));
     }
 
     /**
@@ -1422,6 +1431,9 @@ export function makeScene(
       this.player.x = this.feetX + pose.offsetX;
       this.player.y = this.feetY - this.air + pose.offsetY;
       this.player.setScale(this.heroBaseScale * pose.scaleX, this.heroBaseScale * pose.scaleY);
+      // The sprite's origin is already at his feet, so this pivots him where a
+      // person pivots rather than around his navel.
+      this.player.setRotation(pose.rotation);
       // Depth from the TRUE feet, not the drawn ones. A lunge must not let him
       // sort in front of a wall he is still standing behind.
       this.player.setDepth(
@@ -1457,6 +1469,26 @@ export function makeScene(
 
       this.movePlayer(delta);
       this.updateCombat(delta);
+
+      /**
+       * Draw the hero, every frame, whatever he is doing.
+       *
+       * THIS LINE IS THE FIX for "the hero doesn't do absolutely anything
+       * while attacking" (Raheem, 2026-08-13, from a recording). The attack
+       * pose was being computed correctly on every frame and applied on almost
+       * none of them: `applyHeroTransform` was only reached at the BOTTOM of
+       * movePlayer's walking branch, and movePlayer returns early when the
+       * player is not pressing a direction — which is exactly the situation you
+       * are in while standing still to charge and fire. The pose existed, was
+       * unit-tested, and never touched a pixel.
+       *
+       * Drawing is not something to do as a side effect of having walked. It is
+       * its own step, it happens after everything that could have changed what
+       * he looks like, and it happens unconditionally. The call inside
+       * movePlayer stays — it keeps walking pixel-exact within its own frame —
+       * but this one is the guarantee.
+       */
+      this.applyHeroTransform();
 
       // Last, so anything reacting to the player reads where the player is NOW
       // rather than where they were a frame ago.
@@ -1650,10 +1682,27 @@ export function makeScene(
         this.fireHeld = false;
       }
 
+      /**
+       * A scripted hold presses the same trigger a mouse does.
+       *
+       * Read HERE, at the single place the real held-flag is read, rather than
+       * anywhere earlier — so a scripted shot and a human's shot are literally
+       * the same input to the same machine, and the review cannot be looking at
+       * a path the game does not use.
+       */
+      const scripted = this.scriptedHoldMs > 0;
+      if (scripted) this.scriptedHoldMs -= delta;
+      const firePressed = this.fireHeld || scripted;
+      // The hold ends the frame it runs out. `scriptShot(0)` therefore charges
+      // for exactly one frame and releases, which is what a tap is.
+      if (!scripted && this.scriptedAim && this.action.phase === 'explore') {
+        this.scriptedAim = null;
+      }
+
       this.action = stepAction(
         this.action,
         {
-          firePressed: this.fireHeld,
+          firePressed,
           summonPressed: this.summonKey
             ? Phaser.Input.Keyboard.JustDown(this.summonKey)
             : false,
@@ -1664,7 +1713,7 @@ export function makeScene(
           heavyHit:
             struckBy === 'strong' ||
             (this.knockdownKey ? Phaser.Input.Keyboard.JustDown(this.knockdownKey) : false),
-          aim: this.aim.aim,
+          aim: this.scriptedAim ?? this.aim.aim,
           cancelRequested,
           // Any direction gets him up. Read as HELD, so a player leaning on the
           // stick through the fall stands the moment he is allowed to.
@@ -1858,12 +1907,29 @@ export function makeScene(
       // The held card rides the hero while a shot is being thrown, so the shot
       // visibly comes FROM it.
       if (this.heldCard) {
-        const throwing =
-          charging || this.action.phase === 'windup' || this.action.phase === 'active';
-        this.heldCard.setVisible(throwing);
-        if (throwing) {
-          const lead = cardOrigin(feet, this.action.committedAim ?? this.aim.aim);
-          this.heldCard.setPosition(lead.x, lead.y - CARD_HEIGHT_PX);
+        const aim = this.action.committedAim ?? this.aim.aim;
+        /**
+         * The card throws itself.
+         *
+         * It used to sit at a fixed point beside him for the whole wind-up and
+         * then vanish, which is what Raheem saw as "the card just floats there
+         * above his head". It now draws back as the charge fills, whips forward
+         * through the wind-up, and is gone on the frame the projectile is born
+         * — because on that frame it IS the projectile.
+         */
+        const cp = cardPose({
+          phase: this.action.phase,
+          elapsedMs: this.action.elapsedMs,
+          chargeLevel: this.action.chargeLevel,
+          aim,
+          feel: getAttackFeel(severityForCharge(this.action.chargeLevel), this.motion),
+        });
+        this.heldCard.setVisible(cp.visible);
+        if (cp.visible) {
+          const lead = cardOrigin(feet, aim);
+          this.heldCard.setPosition(lead.x + cp.offsetX, lead.y - CARD_HEIGHT_PX + cp.offsetY);
+          this.heldCard.setRotation(cp.rotation);
+          this.heldCard.setScale(cp.scale);
           this.heldCard.setDepth(this.level * LEVEL_STRIDE + this.feetY + 1);
         }
       }
@@ -2307,25 +2373,32 @@ export function makeScene(
     }
 
     /**
-     * Throw one shot at a chosen charge, aimed at the construct.
+     * Hold the trigger for a measured time, aimed at the construct.
      *
-     * Goes through `launchBlast` — the same call the fire chain makes — so what
-     * is being reviewed is the real projectile with the real collision and the
-     * real impact path. A preview that built its own shot could look right
-     * while the game's was broken.
+     * WHAT THIS REPLACED, and why the replacement matters. The first version
+     * called `launchBlast` directly with a charge number. It produced the right
+     * projectile and the right impact — and NO THROW AT ALL, because the action
+     * machine never ran, so there was no charging phase, no wind-up, no release,
+     * and therefore no pose. The one command built to make the attack reviewable
+     * was the one command that could not show the half of the attack under
+     * review. Whatever a benchmark bypasses is the part it cannot vouch for.
      *
-     * The BODY does not pose for this one: the pose is read from the action
-     * machine, and driving that from here would mean faking a charge, a release
-     * and a windup. Use it to review the contact half of the sequence; play the
-     * game with a mouse to review the throw.
+     * So it now presses the trigger instead of firing the gun: `scriptedHoldMs`
+     * is read exactly where the real `fireHeld` is read, and everything
+     * downstream — charge accumulation, release classification, wind-up, the
+     * body pose, the card's throw, the projectile — happens through the paths a
+     * human's mouse would use. A hold of 0 releases on the next frame and comes
+     * out as a tap; a hold past `chargeMaxMs` comes out fully charged.
      */
-    fireBlast(charge: number) {
+    scriptShot(holdMs: number) {
       if (!this.player || !this.construct) return;
-      const feet = { x: this.feetX, y: this.feetY };
-      const dx = this.construct.pos.x - feet.x;
-      const dy = this.construct.pos.y - feet.y;
+      const dx = this.construct.pos.x - this.feetX;
+      const dy = this.construct.pos.y - this.feetY;
       const len = Math.hypot(dx, dy) || 1;
-      this.launchBlast(feet, { x: dx / len, y: dy / len }, charge);
+      // Aim is locked for the duration so the shot goes where the review needs
+      // it regardless of where the mouse happens to be sitting.
+      this.scriptedAim = { x: dx / len, y: dy / len };
+      this.scriptedHoldMs = Math.max(0, holdMs);
     }
 
     placeHeroAt(x: number, y: number) {

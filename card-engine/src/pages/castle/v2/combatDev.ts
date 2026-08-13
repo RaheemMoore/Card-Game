@@ -48,8 +48,8 @@ export interface CombatDevPort {
   placeHero(x: number, y: number): void;
   /** Fire one hit's worth of feedback with no shot behind it. */
   triggerImpact(severity: HitSeverity): void;
-  /** Throw a real shot at a given charge, aimed at the construct. */
-  fireBlast(charge: number): void;
+  /** Hold the trigger for `holdMs`, aimed at the construct. */
+  fireBlast(holdMs: number): void;
   snapshot(): unknown;
 }
 
@@ -75,17 +75,21 @@ export interface CombatDevCommands {
    */
   triggerImpact(severity?: HitSeverity): unknown;
   /**
-   * Throw one shot at a chosen charge, aimed at the construct.
+   * Hold the trigger for a measured number of MILLISECONDS, aimed at the
+   * construct.
    *
-   * THE benchmark command. Charge is the axis everything about the throw scales
-   * on — lean, lunge, squash, hitstop, flash, spray, camera — and the only way
-   * to hold it in the real game is to hold the mouse button for a measured
-   * number of milliseconds, which is precisely what the preview pane makes
-   * impossible (it pins the button down permanently). `fireBlast(0.25)` and
-   * `fireBlast(1)` back to back is how the light and heavy tiers get compared
-   * on the same shot, from the same place, twice in a row.
+   * THE benchmark command. It takes a hold rather than a charge because the
+   * first version took a charge and skipped the action machine to apply it —
+   * which meant it produced a shot with no throw, and the one command built to
+   * make the attack reviewable could not show the attack. Pressing the trigger
+   * for a measured time drives charging, release, wind-up, the pose, the card's
+   * throw and the projectile through the paths a mouse uses.
+   *
+   * `fireBlast(0)` is a tap; `fireBlast(1000)` is a full charge. Back to back,
+   * they are how the light and heavy tiers get compared on the same shot from
+   * the same place.
    */
-  fireBlast(charge?: number): unknown;
+  fireBlast(holdMs?: number): unknown;
   snapshot(): unknown;
 }
 
@@ -127,8 +131,8 @@ export function createCombatDevCommands(port: CombatDevPort): CombatDevCommands 
       port.triggerImpact(severity);
       return port.snapshot();
     },
-    fireBlast: (charge = 1) => {
-      port.fireBlast(Math.max(0, Math.min(1, charge)));
+    fireBlast: (holdMs = 1000) => {
+      port.fireBlast(Math.max(0, holdMs));
       return port.snapshot();
     },
     snapshot: () => port.snapshot(),
