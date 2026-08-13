@@ -264,10 +264,11 @@ export function CastleV2() {
         >
           {[
             ['WASD', 'walk'],
+            ['mouse', 'aim'],
             ['1-4', 'pick card'],
-            ['hold F', 'charge · release to fire'],
+            ['click / F', 'tap = quick · hold = heavy'],
             ['G', 'summon (plant the card)'],
-            ['K', 'knock down'],
+            ['K', 'knock down (test)'],
             ['SPACE', 'hop a ledge'],
             ['E', 'enter a door'],
           ].map(([key, what]) => (

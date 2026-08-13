@@ -367,6 +367,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
         elapsedMs: number;
         chargeLevel: number;
         committedAim: { x: number; y: number } | null;
+        releaseKind: string | null;
       };
       projectiles?: { sim: { id: number; pos: { x: number; y: number }; outcome: string } }[];
       targets?: { pos: { x: number; y: number }; alive: boolean }[];
@@ -440,6 +441,9 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       elapsedMs: Math.round(s.action.elapsedMs),
       // The one number the player is acting on and the screen only hints at.
       chargeLevel: +s.action.chargeLevel.toFixed(2),
+      // Which of the card's two slots the in-flight shot came from. A tap and a
+      // hold look identical in a screenshot and dispatch differently.
+      releaseKind: s.action.releaseKind,
       element:
         (scene as unknown as { selectedKit?: () => { exact: boolean; stream: { key: string } | null } })
           .selectedKit?.()?.stream?.key ?? 'placeholder',
@@ -653,6 +657,16 @@ export function makeScene(
      * is always worth at least one frame of charge and therefore always fires.
      */
     private firePressedLatch = false;
+    /**
+     * Set when the shot must be abandoned rather than finished.
+     *
+     * The cases are all the same shape: the key-up that would have ended the
+     * charge is never going to arrive. Losing window focus, hiding the tab and
+     * opening a stall over the canvas all stop the keyboard reaching us mid-hold,
+     * and without this he stands there holding a card until the page is reloaded.
+     * Latched like the fire press so the frame cannot miss it.
+     */
+    private cancelLatch = false;
     /** How many times he has pressed fire with no card able to answer. */
     private blockedCount = 0;
     /**
@@ -669,7 +683,11 @@ export function makeScene(
       enteredWindup: 0,
       fireSteps: 0,
       projectilesSpawned: 0,
+      quickReleases: 0,
+      heavyReleases: 0,
+      cancels: 0,
       lastPhase: 'explore',
+      lastReleaseKind: 'none',
     };
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
@@ -1013,6 +1031,7 @@ export function makeScene(
       this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
         if (p.leftButtonDown()) this.firePressedLatch = true;
       });
+      this.bindCancelSources(keyboard);
       // A controlled source of knockdown until real enemies exist. K is a
       // deliberate stand-in for being hit hard, so the scatter-and-recover loop
       // can be played and tuned before anything in the world can hit him.
@@ -1028,6 +1047,45 @@ export function makeScene(
         Phaser.Input.Keyboard.KeyCodes.FOUR,
       ].map((code) => keyboard.addKey(code));
       this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    }
+
+    /**
+     * Listen for every way a hold can end without a key-up.
+     *
+     * Charging waits for a release. If the browser stops delivering keyboard
+     * events mid-hold — the window loses focus, the tab is hidden, a stall opens
+     * over the canvas — that release never comes, and he charges a card forever
+     * with no error anywhere. These are DOM listeners rather than Phaser ones
+     * because the events are the browser's, not the game's, and they must arrive
+     * precisely when the game has stopped being the thing with focus.
+     *
+     * `resetKeys` matters as much as the latch: Phaser caches `isDown`, so a key
+     * held at the moment focus was lost stays down in the poll after focus
+     * returns, and the state machine would go straight back to charging.
+     */
+    private bindCancelSources(keyboard: Phaser.Input.Keyboard.KeyboardPlugin) {
+      const cancel = () => {
+        this.cancelLatch = true;
+        this.firePressedLatch = false;
+        keyboard.resetKeys();
+      };
+      const onBlur = () => cancel();
+      const onVisibility = () => {
+        if (document.visibilityState === 'hidden') cancel();
+      };
+      window.addEventListener('blur', onBlur);
+      document.addEventListener('visibilitychange', onVisibility);
+      // Phaser raises this when the canvas loses focus or the game is paused,
+      // which covers the cases the two DOM events do not.
+      this.game.events.on(Phaser.Core.Events.BLUR, onBlur);
+      this.game.events.on(Phaser.Core.Events.PAUSE, onBlur);
+
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        window.removeEventListener('blur', onBlur);
+        document.removeEventListener('visibilitychange', onVisibility);
+        this.game.events.off(Phaser.Core.Events.BLUR, onBlur);
+        this.game.events.off(Phaser.Core.Events.PAUSE, onBlur);
+      });
     }
 
     /**
@@ -1197,6 +1255,16 @@ export function makeScene(
 
       const feet = { x: this.player.x, y: this.feetY };
       const previousPhase = this.action.phase;
+      // Read and clear in one place. A latch left set would cancel the NEXT shot
+      // too, which is a far more confusing bug than the one it exists to fix.
+      const cancelRequested = this.cancelLatch;
+      this.cancelLatch = false;
+      if (cancelRequested) {
+        // The held flag is sampled before this runs, so a cancel has to clear it
+        // as well or the same frame that abandons the charge starts a new one.
+        this.fireHeld = false;
+      }
+
       this.action = stepAction(
         this.action,
         {
@@ -1209,6 +1277,7 @@ export function makeScene(
             ? Phaser.Input.Keyboard.JustDown(this.knockdownKey)
             : false,
           aim: this.aim.aim,
+          cancelRequested,
         },
         delta,
       );
@@ -1228,7 +1297,17 @@ export function makeScene(
       if (this.action.phase !== previousPhase) {
         this.fireStats.lastPhase = `${previousPhase}->${this.action.phase}`;
         if (this.action.phase === 'charging') (this.fireStats.enteredCharging as number)++;
-        if (this.action.phase === 'windup') (this.fireStats.enteredWindup as number)++;
+        if (this.action.phase === 'windup') {
+          (this.fireStats.enteredWindup as number)++;
+          // The slot is decided exactly once, on the charging->windup edge, so
+          // counting it here counts releases rather than frames.
+          this.fireStats.lastReleaseKind = this.action.releaseKind ?? 'none';
+          if (this.action.releaseKind === 'quick') (this.fireStats.quickReleases as number)++;
+          if (this.action.releaseKind === 'heavy') (this.fireStats.heavyReleases as number)++;
+        }
+        if (cancelRequested && this.action.phase === 'explore') {
+          (this.fireStats.cancels as number)++;
+        }
       }
       if (this.action.fireThisStep) (this.fireStats.fireSteps as number)++;
 
@@ -1725,10 +1804,16 @@ export function makeScene(
       const dx = intent.x;
       const dy = intent.y;
 
+      // Pausing and walking through a door both put a React surface in front of
+      // the canvas, which is the same "the key-up is never coming" situation as
+      // losing focus — so both abandon the shot rather than leaving it charging
+      // behind a menu.
       if (this.pauseKey && Phaser.Input.Keyboard.JustDown(this.pauseKey)) {
+        this.cancelLatch = true;
         hooks.onPause?.();
       }
       if (this.interactKey && Phaser.Input.Keyboard.JustDown(this.interactKey) && this.atDoor) {
+        this.cancelLatch = true;
         hooks.onDoorEnter?.(this.atDoor);
         return;
       }

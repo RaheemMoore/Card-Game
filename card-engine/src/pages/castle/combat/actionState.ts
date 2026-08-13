@@ -55,6 +55,18 @@ export const ACTION_TIMING = {
    * had not finished.
    */
   summonMs: 2330,
+  /**
+   * The line between a tap and a hold, measured from the moment fire went down.
+   *
+   * Releasing before this is a QUICK action; releasing after it is a HEAVY one.
+   * Handoff §6.3 wants both to exist per card, and the threshold is the only
+   * thing that tells them apart — there is no second button. 220ms is above a
+   * deliberate click (~80-120ms) and below the point where a player who meant to
+   * tap has started to feel they are holding.
+   *
+   * Tuning knob, not canon.
+   */
+  holdThresholdMs: 220,
 } as const;
 
 /**
@@ -65,6 +77,15 @@ export const ACTION_TIMING = {
  * than waiting. Consumed by scaleBlast() in blast.ts.
  */
 export const MIN_CHARGE_LEVEL = 0.25;
+
+/**
+ * Which of a card's two action slots this shot came from.
+ *
+ * The player never picks this directly — it is inferred from how long they held
+ * fire, which is why it is decided at release and then frozen alongside the aim
+ * and the charge. `null` outside a shot.
+ */
+export type ReleaseKind = 'quick' | 'heavy';
 
 export interface ActionState {
   phase: ActionPhase;
@@ -94,10 +115,18 @@ export interface ActionState {
    * happens over the following frames.
    */
   chargeLevel: number;
+  /**
+   * Which action slot the in-flight shot came from, decided at release.
+   *
+   * Frozen with the aim and the charge, and for the same reason: the slot is a
+   * property of the press the player finished, not of the inputs two frames
+   * later. Read on the `fireThisStep` frame to dispatch the card's action.
+   */
+  releaseKind: ReleaseKind | null;
 }
 
 export interface ActionInput {
-  /** Fire was pressed this frame. */
+  /** Fire is being held down. */
   firePressed: boolean;
   /** The summon key was pressed this frame. */
   summonPressed: boolean;
@@ -107,10 +136,26 @@ export interface ActionInput {
   heavyHit: boolean;
   /** Current aim, committed if this frame starts a windup. */
   aim: Vec2;
+  /**
+   * Abandon the shot without firing it.
+   *
+   * Raised when the window loses focus, the tab is hidden, the game pauses, or a
+   * stall opens — every case where the key-up that would have ended the charge
+   * will never arrive. Without it a player who alt-tabs mid-charge comes back to
+   * a character holding a card forever, which reads as a hung game.
+   */
+  cancelRequested: boolean;
 }
 
 export function initialAction(): ActionState {
-  return { phase: 'explore', elapsedMs: 0, committedAim: null, fireThisStep: false, chargeLevel: 0 };
+  return {
+    phase: 'explore',
+    elapsedMs: 0,
+    committedAim: null,
+    fireThisStep: false,
+    chargeLevel: 0,
+    releaseKind: null,
+  };
 }
 
 /** Phases during which the player cannot start another attack. */
@@ -150,12 +195,14 @@ const enter = (
   committedAim: Vec2 | null,
   chargeLevel = 0,
   fireThisStep = false,
+  releaseKind: ReleaseKind | null = null,
 ): ActionState => ({
   phase,
   elapsedMs: 0,
   committedAim,
   fireThisStep,
   chargeLevel,
+  releaseKind,
 });
 
 /** Charge held so far, as a fraction of a full one, floored at a tap's worth. */
@@ -163,6 +210,10 @@ export function chargeFrom(heldMs: number): number {
   const t = Math.min(1, heldMs / ACTION_TIMING.chargeMaxMs);
   return MIN_CHARGE_LEVEL + (1 - MIN_CHARGE_LEVEL) * t;
 }
+
+/** Which slot a hold of `heldMs` released into. */
+export const releaseKindFrom = (heldMs: number): ReleaseKind =>
+  heldMs < ACTION_TIMING.holdThresholdMs ? 'quick' : 'heavy';
 
 /**
  * Advance one frame.
@@ -175,6 +226,13 @@ export function chargeFrom(heldMs: number): number {
 export function stepAction(state: ActionState, input: ActionInput, dtMs: number): ActionState {
   if (input.heavyHit && state.phase !== 'knockdown' && state.phase !== 'standUp') {
     return enter('knockdown', null);
+  }
+
+  // A cancel outranks everything except being hit. It exists for the cases where
+  // the key-up is never coming — focus lost, tab hidden, a stall opened over the
+  // canvas — so it must be able to reach the phases that are waiting for one.
+  if (input.cancelRequested && (state.phase === 'charging' || state.phase === 'windup')) {
+    return enter('explore', null);
   }
 
   const elapsedMs = state.elapsedMs + dtMs;
@@ -199,11 +257,17 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
       // something he is no longer holding.
       if (!input.hasReadyCard) return enter('explore', null);
 
-      // RELEASE IS THE COMMIT. Both the charge and the aim are frozen here, and
-      // for the same reason: the shot should be the one the player let go of, not
-      // whatever the inputs happen to say two frames later.
+      // RELEASE IS THE COMMIT. The charge, the aim and the action slot are all
+      // frozen here, and for the same reason: the shot should be the one the
+      // player let go of, not whatever the inputs happen to say two frames later.
       if (!input.firePressed) {
-        return enter('windup', { ...input.aim }, state.chargeLevel);
+        // `state.elapsedMs` is the hold that produced `state.chargeLevel`, so
+        // classifying from it keeps the slot and the power telling one story.
+        const kind = releaseKindFrom(state.elapsedMs);
+        // A tap is fast but weak: it fires at a tap's worth of charge no matter
+        // how far the meter had crept, which is what makes holding worth doing.
+        const charge = kind === 'quick' ? MIN_CHARGE_LEVEL : state.chargeLevel;
+        return enter('windup', { ...input.aim }, charge, false, kind);
       }
 
       // Holding past full does not overcharge. It holds, so a player can charge
@@ -213,14 +277,16 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
 
     case 'windup':
       if (elapsedMs >= t.windupMs) {
-        // The projectile is born on entry to `active`, carrying the aim and the
-        // charge captured at release rather than anything current.
-        return enter('active', state.committedAim, state.chargeLevel, true);
+        // The projectile is born on entry to `active`, carrying the aim, the
+        // charge and the slot captured at release rather than anything current.
+        return enter('active', state.committedAim, state.chargeLevel, true, state.releaseKind);
       }
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'active':
-      if (elapsedMs >= t.activeMs) return enter('recovery', state.committedAim, state.chargeLevel);
+      if (elapsedMs >= t.activeMs) {
+        return enter('recovery', state.committedAim, state.chargeLevel, false, state.releaseKind);
+      }
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'recovery':

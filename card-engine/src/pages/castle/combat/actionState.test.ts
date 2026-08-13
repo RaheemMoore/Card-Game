@@ -3,6 +3,7 @@ import {
   chargeFrom,
   MIN_CHARGE_LEVEL,
   initialAction,
+  releaseKindFrom,
   stepAction,
   walkScale,
   canWalk,
@@ -18,8 +19,22 @@ const input = (over: Partial<ActionInput> = {}): ActionInput => ({
   hasReadyCard: true,
   heavyHit: false,
   aim: { x: 1, y: 0 },
+  cancelRequested: false,
   ...over,
 });
+
+/** Hold fire for `heldMs`, release, then run to the shot. Returns the fired state. */
+function fireAfterHolding(heldMs: number): ActionState {
+  let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+  const frames = Math.round(heldMs / 16);
+  for (let i = 0; i < frames; i++) s = stepAction(s, input({ firePressed: true }), 16);
+  s = stepAction(s, input({ firePressed: false }), 16);
+  for (let i = 0; i < 40; i++) {
+    s = stepAction(s, input(), 16);
+    if (s.fireThisStep) return s;
+  }
+  throw new Error('never fired');
+}
 
 /** Run the machine forward in 16ms frames until `predicate`, or give up. */
 function run(
@@ -240,6 +255,92 @@ describe('action state', () => {
     // Planting a card is a commitment. Firing is not.
     expect(walkScale('summoning')).toBe(0);
     expect(walkScale('windup')).toBeGreaterThan(0);
+  });
+
+  it('reads a tap as the quick slot and a hold as the heavy one', () => {
+    // Handoff §6.3: one input, two slots. The threshold is the only thing that
+    // tells them apart — there is no second button.
+    expect(fireAfterHolding(0).releaseKind).toBe('quick');
+    expect(fireAfterHolding(ACTION_TIMING.holdThresholdMs + 100).releaseKind).toBe('heavy');
+  });
+
+  it('puts the threshold boundary itself on the heavy side', () => {
+    // Stated so the edge is a decision rather than an accident of rounding.
+    expect(releaseKindFrom(ACTION_TIMING.holdThresholdMs - 1)).toBe('quick');
+    expect(releaseKindFrom(ACTION_TIMING.holdThresholdMs)).toBe('heavy');
+  });
+
+  it('fires a tap at a tap\'s worth of charge, however far the meter had crept', () => {
+    // Otherwise a quick action is just a slightly weaker heavy one, and there is
+    // no reason to ever tap deliberately.
+    const quick = fireAfterHolding(ACTION_TIMING.holdThresholdMs - 32);
+    expect(quick.chargeLevel).toBe(MIN_CHARGE_LEVEL);
+
+    const heavy = fireAfterHolding(ACTION_TIMING.holdThresholdMs + 100);
+    expect(heavy.chargeLevel).toBeGreaterThan(MIN_CHARGE_LEVEL);
+  });
+
+  it('carries the slot from release all the way to the shot', () => {
+    // Frozen with the aim and the charge: the slot belongs to the press the
+    // player finished, not to the inputs two frames later.
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = run(s, 40, { firePressed: true }).state;
+    s = stepAction(s, input({ firePressed: false }), 16);
+    expect(s.phase).toBe('windup');
+    expect(s.releaseKind).toBe('heavy');
+
+    for (let i = 0; i < 40; i++) {
+      s = stepAction(s, input(), 16);
+      if (s.fireThisStep) break;
+    }
+    expect(s.fireThisStep).toBe(true);
+    expect(s.releaseKind).toBe('heavy');
+  });
+
+  it('clears the slot once control comes back', () => {
+    const s = run(fireAfterHolding(0), 60).state;
+    expect(s.phase).toBe('explore');
+    expect(s.releaseKind).toBeNull();
+  });
+
+  it('abandons a charge on cancel without firing anything', () => {
+    // The alt-tab case: the key-up is never coming, so without this he holds the
+    // card forever and it reads as a hung game.
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = run(s, 20, { firePressed: true }).state;
+    expect(s.phase).toBe('charging');
+
+    s = stepAction(s, input({ firePressed: true, cancelRequested: true }), 16);
+    expect(s.phase).toBe('explore');
+    expect(s.chargeLevel).toBe(0);
+
+    // And the abandoned charge must not turn into a shot a few frames later.
+    const after = run(s, 60, { firePressed: true });
+    expect(after.fired).toBe(0);
+  });
+
+  it('cancels a windup too, losing the shot rather than firing it blind', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ firePressed: false }), 16);
+    expect(s.phase).toBe('windup');
+
+    s = stepAction(s, input({ cancelRequested: true }), 16);
+    expect(s.phase).toBe('explore');
+    const after = run(s, 60);
+    expect(after.fired).toBe(0);
+  });
+
+  it('does not let a cancel rescue him from a knockdown', () => {
+    // Losing focus while down must not skip the recovery he owes.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    s = stepAction(s, input({ cancelRequested: true }), 16);
+    expect(s.phase).toBe('knockdown');
+  });
+
+  it('lets a heavy hit win over a cancel raised on the same frame', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ heavyHit: true, cancelRequested: true }), 16);
+    expect(s.phase).toBe('knockdown');
   });
 
   it('slows the walk while firing instead of rooting him', () => {
