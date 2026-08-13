@@ -5,13 +5,85 @@
 
   "editor.formatOnSave": false,
   "editor.tabSize": 2,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.stickyScroll.enabled": true,
+  "editor.linkedEditing": true,
 
   "typescript.tsdk": "card-engine/node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.importModuleSpecifier": "relative",
 
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
   "tailwindCSS.experimental.configFile": "card-engine/src/index.css",
+
+  "//errorLens": "Errors and warnings render inline on the line itself, instead of only as a squiggle you have to hover.",
+  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+  "errorLens.excludeBySource": ["cSpell"],
+  "errorLens.followCursor": "allLines",
+  "errorLens.gutterIconsEnabled": true,
+
+  "//todoTree": "Surfaces the repo's open threads as a tree in the sidebar. DEFERRED and HANDOFF are used by this project's docs.",
+  "todo-tree.general.tags": [
+    "TODO",
+    "FIXME",
+    "HACK",
+    "BUG",
+    "NOTE",
+    "DEFERRED",
+    "HANDOFF",
+    "@deprecated"
+  ],
+  "todo-tree.highlights.customHighlight": {
+    "BUG": { "icon": "bug", "foreground": "#ff5555" },
+    "FIXME": { "icon": "alert", "foreground": "#ff9955" },
+    "DEFERRED": { "icon": "clock", "foreground": "#c9a227" },
+    "@deprecated": { "icon": "trash", "foreground": "#888888" }
+  },
+  "todo-tree.filtering.excludeGlobs": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/docs/archive/**"
+  ],
+
+  "//spellChecker": "This repo is doc-heavy fantasy prose. These are real project words, not typos.",
+  "cSpell.words": [
+    "archetype",
+    "archetypes",
+    "Aseprite",
+    "chibi",
+    "Cinzel",
+    "dehalo",
+    "Lycan",
+    "Lycanthrope",
+    "Leonardo",
+    "oxlint",
+    "Phaser",
+    "Pixelorama",
+    "PixelLab",
+    "Seraph",
+    "Seraphs",
+    "sprite",
+    "spritesheet",
+    "Supabase",
+    "tailwindcss",
+    "tilemap",
+    "tileset",
+    "Vercel",
+    "Vite",
+    "vitest"
+  ],
+  "cSpell.enabledFileTypes": {
+    "markdown": true,
+    "typescript": true,
+    "typescriptreact": true,
+    "json": false
+  },
+
+  "//gutterPreview": "Shows a thumbnail beside any image path in code — useful in an asset-heavy pixel-art project.",
+  "gutterpreview.showImagePreviewOnGutter": true,
 
   "search.exclude": {
     "**/node_modules": true,
@@ -30,7 +102,9 @@
 
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "*.scene": "${capture}.js, ${capture}.scene.bak-*"
+    "*.scene": "${capture}.js, ${capture}.scene.bak-*",
+    "*.ts": "${capture}.test.ts",
+    "package.json": "package-lock.json, .npmrc, vite.config.*, tsconfig*.json"
   },
 
   "git.openRepositoryInParentFolders": "always"

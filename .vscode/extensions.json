@@ -1,11 +1,27 @@
 {
   "recommendations": [
     "anthropic.claude-code",
-    "bradlc.vscode-tailwindcss",
+
+    "usernamehw.errorlens",
+    "yoavbls.pretty-ts-errors",
     "oxc.oxc-vscode",
     "vitest.explorer",
-    "ms-python.python",
-    "eamodio.gitlens"
+
+    "Gruntfuggly.todo-tree",
+    "AykutSarac.jsoncrack-vscode",
+    "yzhang.markdown-all-in-one",
+    "eamodio.gitlens",
+
+    "kisstkondoros.vscode-gutter-preview",
+    "Tyriar.luna-paint",
+    "naumovs.color-highlight",
+    "bradlc.vscode-tailwindcss",
+
+    "christian-kohler.path-intellisense",
+    "streetsidesoftware.code-spell-checker",
+    "aaron-bond.better-comments",
+    "oderwat.indent-rainbow",
+    "ms-python.python"
   ],
   "unwantedRecommendations": [
     "dbaeumer.vscode-eslint"
