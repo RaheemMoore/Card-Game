@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "anthropic.claude-code",
+    "bradlc.vscode-tailwindcss",
+    "oxc.oxc-vscode",
+    "vitest.explorer",
+    "ms-python.python",
+    "eamodio.gitlens"
+  ],
+  "unwantedRecommendations": [
+    "dbaeumer.vscode-eslint"
+  ]
+}

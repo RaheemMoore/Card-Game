@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev: card-engine (:5173)",
+      "type": "shell",
+      "command": "npm run dev --prefix card-engine",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "runOptions": { "instanceLimit": 1 },
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "dev: studio-wiki (:5174)",
+      "type": "shell",
+      "command": "npm run dev --prefix studio-wiki",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "typecheck + build",
+      "type": "shell",
+      "command": "npm run build --prefix card-engine",
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "test (vitest run)",
+      "type": "shell",
+      "command": "npm test --prefix card-engine",
+      "problemMatcher": [],
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      "label": "lint (oxlint)",
+      "type": "shell",
+      "command": "npm run lint --prefix card-engine",
+      "problemMatcher": []
+    },
+    {
+      "label": "phaser: rebuild asset pack",
+      "detail": "Regenerates public/asset-pack.json. Never hand-edit that file.",
+      "type": "shell",
+      "command": "npm run assets:pack --prefix card-engine",
+      "problemMatcher": []
+    },
+    {
+      "label": "phaser: check asset pack is current",
+      "type": "shell",
+      "command": "npm run assets:pack:check --prefix card-engine",
+      "problemMatcher": []
+    }
+  ]
+}

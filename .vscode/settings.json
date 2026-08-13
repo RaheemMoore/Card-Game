@@ -1,0 +1,37 @@
+{
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  "editor.formatOnSave": false,
+  "editor.tabSize": 2,
+
+  "typescript.tsdk": "card-engine/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "tailwindCSS.experimental.configFile": "card-engine/src/index.css",
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.vercel": true,
+    "**/ai-snapshot-output": true,
+    "card-engine/public/assets/**": true,
+    "card-engine/scripts/sprite-lab/out/**": true
+  },
+
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.git/objects/**": true
+  },
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.scene": "${capture}.js, ${capture}.scene.bak-*"
+  },
+
+  "git.openRepositoryInParentFolders": "always"
+}
