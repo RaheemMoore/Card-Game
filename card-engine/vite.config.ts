@@ -185,7 +185,14 @@ export default defineConfig(({ mode }) => ({
           'import.meta.env.VITE_ADMIN_ROUTES': '"false"',
           'import.meta.env.VITE_DEV_ROUTES': '"false"',
         }
-      : {},
+      : mode === 'studio'
+        ? {
+            // `/` opens the studio rather than the courtyard. Only the landing
+            // target changes — the studio build still contains the game, so
+            // /castle, /forge and /battle stay reachable for checking work.
+            'import.meta.env.VITE_HOME_SURFACE': '"admin"',
+          }
+        : {},
   server: {
     proxy: {
       '/api/leonardo': {
