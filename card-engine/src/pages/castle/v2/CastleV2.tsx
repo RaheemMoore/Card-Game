@@ -320,6 +320,8 @@ export function CastleV2() {
             // timing a mouse press to the millisecond — so the comparison the
             // review actually needs is impossible without these.
             [', / .', 'fire the lightest / heaviest shot'],
+            // One key for the whole exchange, so two playtests are comparable.
+            ['P', 'play the scripted duel'],
           ].map(([key, what]) => (
             <div key={key} className="flex gap-2">
               <span className="w-16 shrink-0 font-bold text-amber-200/90">{key}</span>

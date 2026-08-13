@@ -48,6 +48,8 @@ export interface CombatDevPort {
   placeHero(x: number, y: number): void;
   /** Fire one hit's worth of feedback with no shot behind it. */
   triggerImpact(severity: HitSeverity): void;
+  /** Run the named duel scenario from a fixed starting position. */
+  runScenario(): void;
   /** Hold the trigger for `holdMs`, aimed at the construct. */
   fireBlast(holdMs: number): void;
   snapshot(): unknown;
@@ -90,6 +92,15 @@ export interface CombatDevCommands {
    * the same place.
    */
   fireBlast(holdMs?: number): unknown;
+  /**
+   * Play one complete exchange, identically every time.
+   *
+   * Tap, charged shot, its telegraph and strike, the strong version with the
+   * knockdown and scatter, then the kill — all from one starting distance on
+   * one timeline. Played by hand no two runs are comparable; this makes the
+   * feel the only thing that can differ between two recordings.
+   */
+  runScenario(): unknown;
   snapshot(): unknown;
 }
 
@@ -129,6 +140,10 @@ export function createCombatDevCommands(port: CombatDevPort): CombatDevCommands 
     },
     triggerImpact: (severity = 'normal') => {
       port.triggerImpact(severity);
+      return port.snapshot();
+    },
+    runScenario: () => {
+      port.runScenario();
       return port.snapshot();
     },
     fireBlast: (holdMs = 1000) => {

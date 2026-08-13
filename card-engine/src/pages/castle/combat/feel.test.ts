@@ -4,6 +4,7 @@ import {
   HEAVY_CHARGE,
   HITSTOP_CAP_MS,
   getAttackFeel,
+  louder,
   getHitFeel,
   severityForCharge,
   type HitSeverity,
@@ -107,6 +108,58 @@ describe('attack feel', () => {
     const off = getAttackFeel('heavy', 'off');
     for (const [key, value] of Object.entries(off)) {
       expect(value, `${key} should be zero with motion off`).toBe(0);
+    }
+  });
+});
+
+/**
+ * What happens when more than one thing lands at once.
+ *
+ * The courtyard is an idle game and will eventually have several attackers, so
+ * "two hits in one frame" is the normal case rather than the edge case. Every
+ * rule here exists to stop simultaneous feedback compounding into either a
+ * frozen game or a wall of noise.
+ */
+describe('concurrency', () => {
+  it('takes the LOUDER of two hits, never the sum', () => {
+    // Summing would make a pair of taps outrank a charged shot, which inverts
+    // the whole severity ladder exactly when the screen is busiest.
+    expect(louder('light', 'heavy')).toBe('heavy');
+    expect(louder('heavy', 'light')).toBe('heavy');
+    expect(louder('normal', 'light')).toBe('normal');
+    expect(louder('light', 'normal')).toBe('normal');
+  });
+
+  it('is order-independent', () => {
+    // The feel must not depend on which order the projectile list happened to
+    // be iterated in — that is a difference no player could explain and no
+    // developer could reproduce.
+    const tiers: HitSeverity[] = ['light', 'normal', 'heavy'];
+    for (const a of tiers) {
+      for (const b of tiers) {
+        expect(louder(a, b)).toBe(louder(b, a));
+      }
+    }
+  });
+
+  it('adopts the first hit when there is nothing to compare against', () => {
+    expect(louder(null, 'light')).toBe('light');
+  });
+
+  it('never lets a single burst exceed its tier budget', () => {
+    // Particle counts come from the tier and nowhere else, so a frame with four
+    // impacts costs four bounded bursts rather than one unbounded one.
+    for (const tier of TIERS) {
+      expect(getHitFeel(tier, 'full').particleCount).toBeLessThanOrEqual(16);
+    }
+  });
+
+  it('never asks the world to shake harder than a heavy hit', () => {
+    // Phaser's shake replaces rather than accumulates, so the ceiling is simply
+    // the loudest tier — but only as long as nothing invents its own number.
+    const heaviest = getHitFeel('heavy', 'full').shakeIntensity;
+    for (const tier of TIERS) {
+      expect(getHitFeel(tier, 'full').shakeIntensity).toBeLessThanOrEqual(heaviest);
     }
   });
 });

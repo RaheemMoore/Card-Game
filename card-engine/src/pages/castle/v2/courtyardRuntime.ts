@@ -79,9 +79,11 @@ import {
 import { attackStyleFor, resolveAction, type AttackStyle } from '../combat/cardActions';
 import {
   CONSTRUCT_TUNING,
+  forcePhase,
   initialConstruct,
   isHittable,
   resetConstruct,
+  reviveConstruct,
   setAiEnabled,
   setStrongHits,
   stepConstruct,
@@ -581,6 +583,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       placeHeroAt(x: number, y: number): void;
       previewImpact(severity: HitSeverity): void;
       scriptShot(holdMs: number): void;
+      runScenario(): void;
       feetX: number;
     };
     dev.combat = createCombatDevCommands({
@@ -594,6 +597,7 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       placeHero: (x, y) => s.placeHeroAt(x, y),
       triggerImpact: (severity) => s.previewImpact(severity),
       fireBlast: (holdMs) => s.scriptShot(holdMs),
+      runScenario: () => s.runScenario(),
       snapshot: () => (dev.castleCombat as () => unknown)(),
     });
   }
@@ -875,6 +879,16 @@ export function makeScene(
     private heroHurtSpanMs = 1;
     /** Which way the blow came from, so he folds away from it rather than at random. */
     private heroHurtDir: { x: number; y: number } = { x: 0, y: 1 };
+    /** The one hurt-flash timer, so a second hit replaces it instead of racing it. */
+    private heroFlashTimer?: Phaser.Time.TimerEvent;
+    /**
+     * Pending steps of the named scenario.
+     *
+     * Held so a second run cancels the first rather than interleaving with it —
+     * two overlapping scripts would produce a sequence that matches neither and
+     * is reproducible as nothing.
+     */
+    private scenarioTimers: Phaser.Time.TimerEvent[] = [];
     /**
      * Elapsed time for PRESENTERS, which is zero while a hit is being held.
      *
@@ -1405,6 +1419,9 @@ export function makeScene(
        */
       keyboard.on('keydown-COMMA', () => this.scriptShot(0));
       keyboard.on('keydown-PERIOD', () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 60));
+      // The whole exchange, on one key. Pressing it again restarts rather than
+      // layering a second script on top of the first.
+      keyboard.on('keydown-P', () => this.runScenario());
     }
 
     /**
@@ -1603,6 +1620,10 @@ export function makeScene(
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
         this.hitstop?.destroy();
         this.hitstop = undefined;
+        // A scenario mid-run must not keep firing into a scene that is gone.
+        this.cancelScenario();
+        this.heroFlashTimer?.remove();
+        this.heroFlashTimer = undefined;
       });
 
       // The blast's view of it. Kept in step with the construct's own position
@@ -2518,6 +2539,100 @@ export function makeScene(
      * human's mouse would use. A hold of 0 releases on the next frame and comes
      * out as a tap; a hold past `chargeMaxMs` comes out fully charged.
      */
+    /**
+     * The named scenario: one complete exchange, the same way every time.
+     *
+     * WHY A SCRIPT AND NOT A CHECKLIST. Everything in this initiative is judged
+     * by watching it, and watching only means something if two runs are
+     * comparable. Played by hand, no two are: the charge is a different length,
+     * the distance is different, the construct is in a different mood. This
+     * puts the whole conversation — tap, charged shot, its telegraph, its
+     * strike, the kill — on one timeline from one starting position, so a
+     * change to the feel is the only thing that can differ between two
+     * recordings of it.
+     *
+     * Built from the same commands a human uses; it does not reach past them.
+     * A scenario with private access would be testing a path the game does not
+     * have, which is the failure `combatDev.ts`'s header was written about.
+     */
+    runScenario() {
+      if (!this.player || !this.construct) return;
+      this.cancelScenario();
+
+      const home = this.constructHome;
+      // A known distance, just outside its preferred range, so the approach and
+      // the telegraph both happen rather than starting mid-fight.
+      this.placeHeroAt(home.x - 200, home.y);
+      this.construct = resetConstruct(this.construct, home);
+      this.construct = setAiEnabled(this.construct, false);
+      this.construct = setStrongHits(this.construct, false);
+      this.emitCombatState();
+
+      const at = (ms: number, what: () => void) => {
+        this.scenarioTimers.push(this.time.delayedCall(ms, what));
+      };
+
+      /**
+       * TWO THINGS THIS SCRIPT LEARNED BY BEING RUN.
+       *
+       * `aiEnabled: false` freezes EVERY phase, not just the decision to start
+       * one — so the first version froze the construct for determinism and then
+       * forced a telegraph that could never resolve into a strike. The tell just
+       * sat there. The brain goes back on before anything is asked of it.
+       *
+       * And a strike only lands inside `lungeReachPx` (132). The hero starts at
+       * 200 so the shots have a flight to be seen, and is moved into reach
+       * before the construct is asked to swing — otherwise the strike resolves
+       * as a clean miss and the flinch, the knockdown and the scatter are all
+       * silently skipped while the log still looks busy.
+       */
+
+      // A tap, so the quiet tier is seen first and the heavy has something to
+      // be heavier THAN.
+      at(500, () => this.scriptShot(0));
+      // A full charge. Long enough after the tap that the two do not overlap.
+      at(1600, () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 100));
+
+      // Into its reach, and wake it up.
+      at(3000, () => {
+        this.placeHeroAt(home.x - 110, home.y);
+        if (!this.construct) return;
+        this.construct = setAiEnabled(this.construct, true);
+        this.emitCombatState();
+      });
+      // Its answer: a telegraph and a strike, with the hero standing still and
+      // taking it — the fold and the flash are the point here, not the dodge.
+      at(3300, () => {
+        if (!this.construct) return;
+        this.construct = forcePhase(this.construct, 'telegraph', { x: this.feetX, y: this.feetY });
+        this.emitCombatState();
+      });
+
+      // The kill, and with it the defeat feedback.
+      at(5400, () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 100));
+
+      // Finale: back up, and the strong version — the knockdown and the
+      // scatter. Last on purpose, because it costs him his hand and nothing
+      // after it could fire.
+      at(7000, () => {
+        if (!this.construct) return;
+        this.construct = reviveConstruct(this.construct);
+        this.construct = setStrongHits(this.construct, true);
+        this.emitCombatState();
+      });
+      at(7800, () => {
+        if (!this.construct) return;
+        this.construct = forcePhase(this.construct, 'telegraph', { x: this.feetX, y: this.feetY });
+        this.emitCombatState();
+      });
+    }
+
+    /** Drop every pending step of a scenario that is no longer wanted. */
+    cancelScenario() {
+      for (const t of this.scenarioTimers) t.remove();
+      this.scenarioTimers = [];
+    }
+
     scriptShot(holdMs: number) {
       if (!this.player || !this.construct) return;
       const dx = this.construct.pos.x - this.feetX;
@@ -2547,9 +2662,23 @@ export function makeScene(
       if (!this.player) return;
       const feel = getHitFeel(severity, this.motion);
       this.player.setTintFill(0xffdada);
-      // Time, not an animation event — the same backstop rule every timed
-      // effect in this scene follows.
-      this.time.delayedCall(feel.flashMs, () => this.player?.clearTint());
+      /**
+       * One timer, replaced — never a second one racing the first.
+       *
+       * Each flash used to schedule its own `delayedCall`, so two hits inside a
+       * flash's length meant the FIRST timer cleared the tint while the second
+       * flash was still meant to be showing. The second hit was the one that
+       * lost its feedback, which is exactly backwards: under pressure is when
+       * the player most needs to see that they were hit.
+       *
+       * Still time rather than an animation event — the same backstop rule
+       * every timed effect in this scene follows.
+       */
+      this.heroFlashTimer?.remove();
+      this.heroFlashTimer = this.time.delayedCall(feel.flashMs, () => {
+        this.player?.clearTint();
+        this.heroFlashTimer = undefined;
+      });
 
       /**
        * He folds, away from whatever hit him.
