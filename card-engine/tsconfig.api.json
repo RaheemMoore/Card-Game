@@ -15,5 +15,9 @@
     "esModuleInterop": true,
     "types": ["node"]
   },
-  "include": ["api/**/*.ts"]
+  // ../game/api holds the Game deployment's three re-export shims. They are
+  // checked here rather than nowhere: a bad path in a shim is invisible until a
+  // deploy fails, and this project has already lost an afternoon to a failure
+  // that only appeared after a successful build.
+  "include": ["api/**/*.ts", "../game/api/**/*.ts"]
 }

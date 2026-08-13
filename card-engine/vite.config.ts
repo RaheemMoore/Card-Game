@@ -156,8 +156,36 @@ function editorScenes(): Plugin {
   };
 }
 
-export default defineConfig({
+/**
+ * `--mode game` is the GAME build (npm run build:game), as opposed to the
+ * default build, which is the STUDIO.
+ *
+ * One codebase ships three products from three Vercel projects: the Game, the
+ * Studio (/admin — Workshop, Lore Desk, Abilities), and the Wiki. The flags
+ * that separate them live HERE, in committed config keyed on the build mode,
+ * rather than in each Vercel project's dashboard environment. That is
+ * deliberate: dashboard configuration is invisible from the repository and
+ * cannot be reviewed, and a game deploy whose environment was never configured
+ * would silently ship the entire studio inside the player's download.
+ *
+ * `.env.game` would have been the more idiomatic Vite answer, but every `.env*`
+ * path in this repo is (correctly) blocked from being committed by the
+ * secret-protection hook.
+ *
+ * Only the game mode defines anything. Every other mode is left exactly as it
+ * was, so VITE_DEV_ROUTES keeps being controlled by the Vercel environment on
+ * the studio deployment — which is what turns the /dev harnesses off in
+ * production today.
+ */
+export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss(), s3UploadProxy(), editorScenes()],
+  define:
+    mode === 'game'
+      ? {
+          'import.meta.env.VITE_ADMIN_ROUTES': '"false"',
+          'import.meta.env.VITE_DEV_ROUTES': '"false"',
+        }
+      : {},
   server: {
     proxy: {
       '/api/leonardo': {
@@ -167,4 +195,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm install --prefix ../card-engine",
+  "buildCommand": "npm run build:game --prefix ../card-engine",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/leonardo/(.*)", "destination": "/api/leonardo?leonardoPath=$1" },
+    { "source": "/((?!api/|src/|node_modules/|@).*)", "destination": "/index.html" }
+  ]
+}

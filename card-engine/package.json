@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && tsc -p tsconfig.api.json && vite build",
+    "build:game": "tsc -b && tsc -p tsconfig.api.json && vite build --mode game --outDir ../game/dist --emptyOutDir",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",

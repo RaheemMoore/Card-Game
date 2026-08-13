@@ -1,17 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CardForge } from './pages/CardForge';
 import { Landing } from './pages/Landing';
 import { CardDetail } from './pages/CardDetail';
-import { AdminShell } from './components/admin/AdminShell';
-import { AdminOverview } from './pages/admin/AdminOverview';
-import { AdminUsers } from './pages/admin/AdminUsers';
-import { AdminCards } from './pages/admin/AdminCards';
-import { AdminCosts } from './pages/admin/AdminCosts';
-import { AdminAbilities } from './pages/admin/AdminAbilities';
-import { AdminDiagnostics } from './pages/admin/AdminDiagnostics';
-import { Workshop } from './pages/admin/workshop/Workshop';
-import { LoreDeskPage } from './pages/admin/loredesk/LoreDeskPage';
 import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
@@ -46,6 +37,58 @@ import { Login } from './pages/Login';
  * what keeps ~290 KB of dev tooling out of the player download.
  */
 const DEV_ROUTES = import.meta.env.VITE_DEV_ROUTES !== 'false';
+
+/**
+ * Whether the /admin/* studio surfaces are built into this bundle.
+ *
+ * The repository ships THREE products from one codebase: the Game, the Studio
+ * (this admin tree — Workshop, Lore Desk, Abilities, Costs), and the Wiki.
+ * They deploy as three separate Vercel projects so one cannot break the other,
+ * and so the Studio's serverless functions stop counting against the Game.
+ *
+ * Same shape and same reasoning as DEV_ROUTES above, including the DEFAULT-ON:
+ * an unset variable KEEPS the admin tree. The Studio deploy is the thing Raheem
+ * cannot afford to lose, so forgetting to configure an environment must never
+ * be what deletes it. Only the game build turns this off, and it does so
+ * through a committed `.env.game` (loaded by `--mode game`) rather than
+ * dashboard configuration — so the flag travels with the build script and
+ * cannot be forgotten there either.
+ *
+ * The inline-`import()`-per-ternary rule from DEV_ROUTES applies here too: a
+ * shared helper hides the loader from static analysis and every chunk gets
+ * emitted anyway. This is what keeps the whole admin tree — and the Supabase
+ * admin RPCs, moderation queue and bench tooling it drags in — out of the
+ * player's download.
+ */
+const ADMIN_ROUTES = import.meta.env.VITE_ADMIN_ROUTES !== 'false';
+
+const AdminShell = ADMIN_ROUTES
+  ? lazy(() => import('./components/admin/AdminShell').then((m) => ({ default: m.AdminShell })))
+  : null;
+const AdminOverview = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/AdminOverview').then((m) => ({ default: m.AdminOverview })))
+  : null;
+const AdminUsers = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/AdminUsers').then((m) => ({ default: m.AdminUsers })))
+  : null;
+const AdminCards = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/AdminCards').then((m) => ({ default: m.AdminCards })))
+  : null;
+const AdminCosts = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/AdminCosts').then((m) => ({ default: m.AdminCosts })))
+  : null;
+const AdminAbilities = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/AdminAbilities').then((m) => ({ default: m.AdminAbilities })))
+  : null;
+const AdminDiagnostics = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/AdminDiagnostics').then((m) => ({ default: m.AdminDiagnostics })))
+  : null;
+const Workshop = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/workshop/Workshop').then((m) => ({ default: m.Workshop })))
+  : null;
+const LoreDeskPage = ADMIN_ROUTES
+  ? lazy(() => import('./pages/admin/loredesk/LoreDeskPage').then((m) => ({ default: m.LoreDeskPage })))
+  : null;
 
 /**
  * Each ternary wraps its own `import()` INLINE rather than going through a helper.
@@ -138,6 +181,15 @@ const CourtyardV2Preview = import.meta.env.DEV
 function WorkshopRedirect() {
   const { search } = useLocation();
   return <Navigate to={{ pathname: '/admin/workshop', search }} replace />;
+}
+
+/**
+ * Suspense boundary for one admin page, so a page's chunk loads UNDER the
+ * shell instead of replacing it. Wrapping the element is safe — unlike the
+ * `import()` calls above, this is not what the bundler folds away.
+ */
+function AdminPage({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>{children}</Suspense>;
 }
 
 export default function App() {
@@ -382,28 +434,43 @@ export default function App() {
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
               no content offset. AdminShell owns the guard + its own chrome. */}
-          <Route path="/admin" element={<AdminShell />}>
-            <Route index element={<AdminOverview />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="cards" element={<AdminCards />} />
-            <Route path="costs" element={<AdminCosts />} />
-            <Route path="abilities" element={<AdminAbilities />} />
-            <Route path="diagnostics" element={<AdminDiagnostics />} />
-            <Route path="workshop" element={<Workshop />} />
-            <Route path="lore-desk" element={<LoreDeskPage />} />
-            {/* Retired 2026-08-10. The proposal desk was built for a review
-                process that never took, and the Workshop replaced it. Both the
-                old path and its bookmarks redirect rather than 404. */}
-            <Route path="proposals" element={<WorkshopRedirect />} />
-            {/* Retired 2026-08-12. The Prompt Lab answered a question we
-                stopped asking — it chained Foundation → Forged → Ascendant in
-                app, and rank art is now made outside it from one good
-                Foundation seed. The bench is where a starting point gets
-                generated, so that is where its bookmarks land. Its tables,
-                bucket, endpoints and retention cron all stay: the bench
-                records through them. */}
-            <Route path="prompt-lab" element={<Navigate to="/admin/workshop?stage=bench" replace />} />
-          </Route>
+          {AdminShell && AdminOverview && AdminUsers && AdminCards && AdminCosts &&
+            AdminAbilities && AdminDiagnostics && Workshop && LoreDeskPage && (
+            <Route
+              path="/admin"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading studio…</p>}>
+                  <AdminShell />
+                </Suspense>
+              }
+            >
+              {/* Each child gets its OWN boundary rather than leaning on the
+                  shell's. A single boundary around AdminShell would unmount the
+                  sidebar and swap the whole surface for the fallback on every
+                  first visit to a page — the chrome would flash away underneath
+                  Tori mid-navigation. */}
+              <Route index element={<AdminPage><AdminOverview /></AdminPage>} />
+              <Route path="users" element={<AdminPage><AdminUsers /></AdminPage>} />
+              <Route path="cards" element={<AdminPage><AdminCards /></AdminPage>} />
+              <Route path="costs" element={<AdminPage><AdminCosts /></AdminPage>} />
+              <Route path="abilities" element={<AdminPage><AdminAbilities /></AdminPage>} />
+              <Route path="diagnostics" element={<AdminPage><AdminDiagnostics /></AdminPage>} />
+              <Route path="workshop" element={<AdminPage><Workshop /></AdminPage>} />
+              <Route path="lore-desk" element={<AdminPage><LoreDeskPage /></AdminPage>} />
+              {/* Retired 2026-08-10. The proposal desk was built for a review
+                  process that never took, and the Workshop replaced it. Both the
+                  old path and its bookmarks redirect rather than 404. */}
+              <Route path="proposals" element={<WorkshopRedirect />} />
+              {/* Retired 2026-08-12. The Prompt Lab answered a question we
+                  stopped asking — it chained Foundation → Forged → Ascendant in
+                  app, and rank art is now made outside it from one good
+                  Foundation seed. The bench is where a starting point gets
+                  generated, so that is where its bookmarks land. Its tables,
+                  bucket, endpoints and retention cron all stay: the bench
+                  records through them. */}
+              <Route path="prompt-lab" element={<Navigate to="/admin/workshop?stage=bench" replace />} />
+            </Route>
+          )}
 
           {/* Player: fantasy-themed shell (background + NavBar + offset). */}
           <Route element={<PlayerShell />}>

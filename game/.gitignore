@@ -1,0 +1,5 @@
+# The built game. `npm run build:game --prefix ../card-engine` writes here
+# rather than into card-engine/, because Vercel serves a project's output from
+# inside that project's own root directory — and this directory is the game
+# deployment's root.
+dist
