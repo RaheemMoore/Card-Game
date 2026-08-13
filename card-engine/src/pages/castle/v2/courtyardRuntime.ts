@@ -76,6 +76,7 @@ import {
   walkScale,
   type ActionState,
 } from '../combat/actionState';
+import { resolveAction } from '../combat/cardActions';
 import {
   canFire,
   commitSelected,
@@ -686,8 +687,10 @@ export function makeScene(
       quickReleases: 0,
       heavyReleases: 0,
       cancels: 0,
+      scaffoldDispatches: 0,
       lastPhase: 'explore',
       lastReleaseKind: 'none',
+      lastScaffold: 'none',
     };
     private elevation: ElevationMap = EMPTY_ELEVATION;
     /**
@@ -1352,31 +1355,26 @@ export function makeScene(
       }
 
       if (this.action.fireThisStep && this.action.committedAim) {
-        const kit = this.selectedKit();
-        const charge = this.action.chargeLevel;
-        const origin = cardOrigin(feet, this.action.committedAim);
-        // Charge changes the shot itself, not just how it looks — see scaleBlast.
-        const sim = spawnProjectile(origin, this.action.committedAim, scaleBlast(DEFAULT_BLAST, charge));
+        // WHICH of the card's two actions this is. The card has already been
+        // committed above, so read its id from the slot that was committed
+        // rather than from `selected` — the player can press 1-4 during a windup
+        // and the shot must still belong to the card that was thrown.
+        const firingCard =
+          this.committedSlot !== null ? this.hand.slots[this.committedSlot].cardId : null;
+        const spec = resolveAction(firingCard, this.action.releaseKind);
 
-        // The element's own art where it exists; the placeholder circle only when
-        // nothing has been drawn for it, so a missing sheet is visible rather
-        // than silently absent.
-        const art = createBlastSprite(
-          this,
-          kit,
-          origin.x,
-          origin.y - CARD_HEIGHT_PX,
-          this.action.committedAim,
-          charge,
-        );
-        const gfx =
-          art ??
-          this.add
-            .circle(origin.x, origin.y - CARD_HEIGHT_PX, 5 + 4 * charge, 0x8fd6ff)
-            .setStrokeStyle(2, 0xffffff);
-        this.depthBand?.add(gfx);
-        this.projectiles.push({ sim, gfx, kit, charge });
-        (this.fireStats.projectilesSpawned as number)++;
+        // A `scaffold` slot dispatches and produces nothing. It exists so a card
+        // can hold something other than a blast before any such thing is
+        // designed; no card ships with one, and it must never be visible in
+        // play. Note this is a branch and NOT an early return: the projectiles
+        // already in the air are stepped further down this same method, and
+        // returning here would freeze every one of them mid-flight.
+        if (spec.kind === 'scaffold') {
+          this.fireStats.lastScaffold = spec.label;
+          (this.fireStats.scaffoldDispatches as number)++;
+        } else {
+          this.launchBlast(feet, this.action.committedAim, this.action.chargeLevel);
+        }
       }
 
       for (const shot of this.projectiles) {
@@ -1444,6 +1442,32 @@ export function makeScene(
           this.heldCard.setDepth(this.level * LEVEL_STRIDE + this.feetY + 1);
         }
       }
+    }
+
+    /**
+     * Put a projectile in the world, from the card, along the committed aim.
+     *
+     * Its own method because it is now one arm of the card-action dispatch
+     * rather than the only thing firing can mean.
+     */
+    private launchBlast(feet: { x: number; y: number }, aim: { x: number; y: number }, charge: number) {
+      const kit = this.selectedKit();
+      const origin = cardOrigin(feet, aim);
+      // Charge changes the shot itself, not just how it looks — see scaleBlast.
+      const sim = spawnProjectile(origin, aim, scaleBlast(DEFAULT_BLAST, charge));
+
+      // The element's own art where it exists; the placeholder circle only when
+      // nothing has been drawn for it, so a missing sheet is visible rather
+      // than silently absent.
+      const art = createBlastSprite(this, kit, origin.x, origin.y - CARD_HEIGHT_PX, aim, charge);
+      const gfx =
+        art ??
+        this.add
+          .circle(origin.x, origin.y - CARD_HEIGHT_PX, 5 + 4 * charge, 0x8fd6ff)
+          .setStrokeStyle(2, 0xffffff);
+      this.depthBand?.add(gfx);
+      this.projectiles.push({ sim, gfx, kit, charge });
+      (this.fireStats.projectilesSpawned as number)++;
     }
 
     /**
