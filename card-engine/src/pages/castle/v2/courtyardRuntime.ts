@@ -87,6 +87,7 @@ import {
   type ConstructState,
 } from '../combat/construct';
 import { createConstructView, type ConstructView } from './constructPresenter';
+import { combatDevEnabled, createCombatDevCommands } from './combatDev';
 import {
   canFire,
   commitSelected,
@@ -503,6 +504,35 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       targets: s.targets ?? [],
     };
   };
+
+  /**
+   * Commands that CHANGE the encounter, on `__cardEngineDev.combat`.
+   *
+   * Everything else on this bridge only reads. These write, so they are behind
+   * `?combatDev=1` as well as the DEV build — see combatDev.ts for why they have
+   * to exist at all rather than being driven through the keyboard.
+   */
+  if (combatDevEnabled()) {
+    const s = scene as unknown as {
+      construct?: ConstructState;
+      constructHome: { x: number; y: number };
+      player?: Phaser.GameObjects.Sprite;
+      feetY: number;
+      forceKnockdown(): void;
+      placeHeroAt(x: number, y: number): void;
+    };
+    dev.combat = createCombatDevCommands({
+      getConstruct: () => s.construct,
+      setConstruct: (next) => {
+        s.construct = next;
+      },
+      home: () => s.constructHome,
+      heroFeet: () => ({ x: s.player?.x ?? 0, y: s.feetY }),
+      knockdownHero: () => s.forceKnockdown(),
+      placeHero: (x, y) => s.placeHeroAt(x, y),
+      snapshot: () => (dev.castleCombat as () => unknown)(),
+    });
+  }
 
   dev.castleFraming = () => {
     const hero = (scene as unknown as { player?: Phaser.GameObjects.Sprite }).player;
@@ -1917,6 +1947,35 @@ export function makeScene(
       this.constructView?.update(this.construct, heroFeet, (groundY) =>
         this.depthBand ? this.level * LEVEL_STRIDE + groundY : 100000,
       );
+    }
+
+    /**
+     * Put him on the floor, through the real path.
+     *
+     * Deliberately routed into the same latch a construct's strong strike uses
+     * rather than setting the phase directly: a test that reaches the knockdown
+     * by a private door proves the knockdown works and nothing about whether
+     * anything can actually cause one.
+     */
+    // Public because the dev bridge reaches it from outside the class. Only
+    // published when `?combatDev=1` is set on a DEV build; see combatDev.ts.
+    forceKnockdown() {
+      this.constructStruckHero = 'strong';
+    }
+
+    /**
+     * Drop the hero at a spot.
+     *
+     * Placement, not walking — no collision, no blockers, no elevation lookup.
+     * It exists so a scenario can set up a known distance in one call instead of
+     * simulating a walk there, and it is a dev command precisely because it can
+     * put him somewhere the game never would.
+     */
+    placeHeroAt(x: number, y: number) {
+      if (!this.player) return;
+      this.player.x = x;
+      this.feetY = y;
+      this.applyHeroTransform();
     }
 
     /**
