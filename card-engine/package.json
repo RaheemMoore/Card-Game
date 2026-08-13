@@ -16,6 +16,7 @@
     "assets:lint": "node scripts/phaser-editor/lint-assets.mjs",
     "effects:pack": "python scripts/effects/pack_effects.py",
     "effects:pack:check": "python scripts/effects/pack_effects.py --check",
+    "castle:composition": "node scripts/castle/composition.mjs",
     "snapshot:ai": "node ../scripts/create-ai-snapshot.mjs",
     "production:page": "node scripts/production-page/build.mjs",
     "castle:sheet": "python scripts/bg-harness/build-castle-sheet.py",

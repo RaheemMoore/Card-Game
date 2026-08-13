@@ -422,9 +422,35 @@ shape.**
 
 | What | Where |
 |---|---|
-| Audit the rest of V3 for north–south runs that still need cutting — anything long whose footprint points away from the camera | `CourtyardV3.scene`, layers `L2_TERRAIN` / `L3_CASTLE` |
-| Remove the 60px corner-tower bias by aligning the tower and north-wall bases. The bias exists only because `towerCornerNW` contacts ground 58px north of `wallNorthRun`, and a true horizontal base cannot be segmented away | `card-engine/src/pages/dev/sceneDepth.ts:171` |
+| ~~Audit the rest of V3 for north–south runs that still need cutting~~ **Done differently, 2026-08-12.** An automatic shape rule cannot find these: in a three-quarter view an image's height mixes real height with north–south depth, so a ratio test flags every tower and pillar and means nothing. Instead the existing segmentation is now GUARDED (`courtyardDepthAudit.test.ts`) and candidates are RANKED for a human by `npm run castle:composition`. Deepest footprints today are the four wall pillars (64×288, ratio 4.5) and `battleTower` (180×446) — all legitimately tall rather than deep, so nothing new needs cutting | `card-engine/src/pages/castle/courtyardDepthAudit.test.ts` |
+| Remove the 60px corner-tower bias by aligning the tower and north-wall bases. **Blocked on placement, not forgotten** — measured gap is 57.7px and a test now pins the bias to it, so nudging either piece in the Editor fails loudly instead of drifting | `card-engine/src/pages/dev/sceneDepth.ts:175` |
 | A rock at the NE corner now draws in front of the upper wall segments where the un-segmented wall used to hide it. Correct by the sorting rule, but it is a visible change Raheem has not ruled on | `CourtyardV3.scene`, `L8_NATURE` |
+
+### Courtyard V3 composition — measured 2026-08-12
+
+`npm run castle:composition` prints this and re-runs after any Editor save.
+
+77 scenery objects on a 2560×1920 map, by region (west→east across, north→south down):
+
+```
+   8   6   6   7
+   3   1   3   6      <- the middle band, y 640-1280
+  11   9   9   8
+```
+
+**The middle band is thin, and should not simply be filled.** It is where the fighting happens,
+and the handoff warns against uniform density. Two numbers bound the decision: the blast travels
+**640** units and the largest open square in the courtyard is **544px** — so a fully-charged shot
+already outranges the biggest clearing. Props placed in the middle make that worse.
+
+The placement work this points at, all Raheem's Editor surface:
+
+| What | Why |
+|---|---|
+| Edge treatment and landmarking at the map perimeter | The recording reads as thin at the edges, not in the centre |
+| Path hierarchy through the middle band rather than props in it | Gives the bare ground a reason to be bare, and keeps the fight space |
+| Prop clusters at the region boundaries (x≈640 and x≈1920) | Breaks up the transition without closing the clearing |
+| Rule on the NE rock (above) | It is a visible sorting change nobody has approved |
 
 ### Studio Wiki release — 2 items
 
