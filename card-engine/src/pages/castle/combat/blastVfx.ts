@@ -139,6 +139,77 @@ export function colourOf(hex: string): number {
   return Number.parseInt(hex.replace('#', ''), 16) || 0xffffff;
 }
 
+/**
+ * The spray thrown off a contact, along the line the shot was travelling.
+ *
+ * WHY DIRECTIONAL, and why this is not just the impact clip with more frames.
+ * The burst art is radial: it says "something happened here" and nothing about
+ * WHERE THE FORCE CAME FROM. A symmetrical flash at the contact point is the
+ * same picture whether the hero shot from the left, the right, or the target
+ * spontaneously combusted. Biasing the particles down the travel vector is what
+ * turns the moment into a sentence with a subject — attacker, then target, then
+ * everything that leaves the target continuing the way the shot was already
+ * going.
+ *
+ * Lives beside the rest of the element art rather than in its own presenter
+ * because it needs the dot texture above, which is private to this file and has
+ * no business being exported to make room for a second, thinner module.
+ *
+ * ONE-SHOT and self-cleaning. It explodes once and removes itself on a timer;
+ * nothing tracks it, so a hit resolving during a scene teardown cannot leak an
+ * emitter. Count comes from the caller's severity — this decides the SHAPE of
+ * the spray, never how much of it a given hit deserves.
+ */
+export function playDirectionalBurst(
+  scene: Phaser.Scene,
+  opts: {
+    x: number;
+    y: number;
+    depth: number;
+    /** Unit vector the shot was travelling along. */
+    dir: { x: number; y: number };
+    palette: readonly [string, string, string];
+    count: number;
+    /** Scales speed and size with the weight of the hit. */
+    power: number;
+  },
+): void {
+  if (opts.count <= 0) return;
+  ensureDotTexture(scene);
+
+  // Converted by hand rather than with `Phaser.Math.RadToDeg`: the Phaser
+  // import at the top of this file is TYPE-ONLY, and reaching for a static
+  // would turn it into a value import and drag device detection into every
+  // module that transitively touches this one. Three test suites stopped
+  // loading the last time that happened.
+  const heading = (Math.atan2(opts.dir.y, opts.dir.x) * 180) / Math.PI;
+  // A cone, not a line. Real debris fans; a perfectly collimated spray reads as
+  // a second projectile rather than as fragments.
+  const spread = 52;
+  const speed = 90 + 150 * opts.power;
+
+  const emitter = scene.add.particles(opts.x, opts.y, CHARGE_DOT, {
+    angle: { min: heading - spread, max: heading + spread },
+    speed: { min: speed * 0.45, max: speed },
+    lifespan: { min: 180, max: 340 },
+    scale: { start: 0.5 + 0.35 * opts.power, end: 0 },
+    alpha: { start: 1, end: 0 },
+    tint: [
+      colourOf(opts.palette[0]),
+      colourOf(opts.palette[1]),
+      colourOf(opts.palette[2]),
+    ],
+    blendMode: 'ADD',
+    emitting: false,
+  });
+  emitter.setDepth(opts.depth);
+  emitter.explode(opts.count);
+
+  // Outlives the longest particle, then goes. Time rather than an event, the
+  // same backstop rule everything else here follows.
+  scene.time.delayedCall(420, () => emitter.destroy());
+}
+
 const CHARGE_DOT = 'fx-charge-dot';
 
 /**

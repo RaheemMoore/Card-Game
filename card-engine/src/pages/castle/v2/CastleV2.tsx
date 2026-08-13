@@ -302,6 +302,11 @@ export function CastleV2() {
             ['T', 'freeze its brain'],
             ['Y', 'arm its knockdown'],
             ['K', 'knock yourself down'],
+            // The two feel keys. Charge is what every part of an attack's
+            // weight scales on, and holding a chosen charge by hand means
+            // timing a mouse press to the millisecond — so the comparison the
+            // review actually needs is impossible without these.
+            [', / .', 'fire the lightest / heaviest shot'],
           ].map(([key, what]) => (
             <div key={key} className="flex gap-2">
               <span className="w-16 shrink-0 font-bold text-amber-200/90">{key}</span>

@@ -8,6 +8,7 @@ import {
   type ConstructPhase,
   type ConstructState,
 } from '../combat/construct';
+import type { HitSeverity } from '../combat/feel';
 
 /**
  * Semantic commands for driving the encounter, for humans AND automation.
@@ -45,6 +46,10 @@ export interface CombatDevPort {
   knockdownHero(): void;
   /** Move the hero outright. Placement, not walking — no collision is consulted. */
   placeHero(x: number, y: number): void;
+  /** Fire one hit's worth of feedback with no shot behind it. */
+  triggerImpact(severity: HitSeverity): void;
+  /** Throw a real shot at a given charge, aimed at the construct. */
+  fireBlast(charge: number): void;
   snapshot(): unknown;
 }
 
@@ -60,6 +65,27 @@ export interface CombatDevCommands {
   setStrongHits(on: boolean): unknown;
   knockdownHero(): unknown;
   placeHero(x: number, y: number): unknown;
+  /**
+   * Play one tier's contact feedback on demand.
+   *
+   * The feel work's equivalent of `forceAttack`: it exists so the three tiers
+   * can be compared back to back without having to land three real shots of
+   * exactly the right charge — which, given the preview pane holds the mouse
+   * button down, is not something a scenario can arrange.
+   */
+  triggerImpact(severity?: HitSeverity): unknown;
+  /**
+   * Throw one shot at a chosen charge, aimed at the construct.
+   *
+   * THE benchmark command. Charge is the axis everything about the throw scales
+   * on — lean, lunge, squash, hitstop, flash, spray, camera — and the only way
+   * to hold it in the real game is to hold the mouse button for a measured
+   * number of milliseconds, which is precisely what the preview pane makes
+   * impossible (it pins the button down permanently). `fireBlast(0.25)` and
+   * `fireBlast(1)` back to back is how the light and heavy tiers get compared
+   * on the same shot, from the same place, twice in a row.
+   */
+  fireBlast(charge?: number): unknown;
   snapshot(): unknown;
 }
 
@@ -95,6 +121,14 @@ export function createCombatDevCommands(port: CombatDevPort): CombatDevCommands 
     },
     placeHero: (x, y) => {
       port.placeHero(x, y);
+      return port.snapshot();
+    },
+    triggerImpact: (severity = 'normal') => {
+      port.triggerImpact(severity);
+      return port.snapshot();
+    },
+    fireBlast: (charge = 1) => {
+      port.fireBlast(Math.max(0, Math.min(1, charge)));
       return port.snapshot();
     },
     snapshot: () => port.snapshot(),
