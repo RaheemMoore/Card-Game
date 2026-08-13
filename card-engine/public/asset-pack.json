@@ -224,6 +224,15 @@
       },
       {
         "type": "spritesheet",
+        "key": "hero-knockdown",
+        "url": "assets/castle/hero/knockdown/knockdown-sheet.png",
+        "frameConfig": {
+          "frameWidth": 99,
+          "frameHeight": 112
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "keeper-dwarf",
         "url": "assets/castle/keepers/dwarf-breathe.png",
         "frameConfig": {
