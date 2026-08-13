@@ -666,6 +666,27 @@ export interface HandView {
    * row so the answer is on screen at the moment the question is asked.
    */
   blockedCount: number;
+  /**
+   * What the Card-wright is doing, so the row can answer for the attack.
+   *
+   * Duplicated from `CombatStateView.heroPhase` on purpose: that view is the
+   * TEST readout and comes out with the R/T/Y keys when the courtyard stops
+   * being a test surface. The hand is player-facing chrome and has to keep
+   * working after that, so it carries what it needs itself rather than
+   * depending on a panel that is scheduled for deletion.
+   */
+  phase: string;
+  /**
+   * How far the charge has built, 0–1, QUANTIZED.
+   *
+   * Rounded to twelfths before it is sent, and the shell transitions between
+   * the steps in CSS. A continuous value would re-render React on every frame
+   * of every charge to move a bar a fraction of a pixel — the same cost
+   * `emitCombatState` refuses to pay for the distance readout, for the same
+   * reason. Twelve steps over 900ms is about one render every 75ms and the
+   * transition makes it look continuous anyway.
+   */
+  charge: number;
 }
 
 /**
@@ -1571,6 +1592,12 @@ export function makeScene(
        */
       this.applyHeroTransform();
 
+      // The hand row answers for the attack now — the charge climbing, the
+      // release, the recovery — so it has to be offered every frame like the
+      // pose is. It is keyed and early-returns unless something the shell
+      // actually draws changed, which is what keeps it off React's back.
+      this.emitHand();
+
       // Last, so anything reacting to the player reads where the player is NOW
       // rather than where they were a frame ago.
       this.behavior?.update(
@@ -1710,8 +1737,34 @@ export function makeScene(
     }
     private lastCombatKey = '';
 
+    /**
+     * Push the hand to the shell, when it has actually changed.
+     *
+     * Guarded the same way `emitCombatState` is, and for the same reason — but
+     * the guard arrived later here, because this used to be called only at the
+     * handful of moments the hand's CONTENTS changed. It now also carries the
+     * attack's phase and charge, which change constantly, so it is called every
+     * frame and the key is what stops that becoming sixty React renders a
+     * second. Everything the shell draws is in the key; nothing else is.
+     */
     private emitHand() {
+      // Twelfths. See HandView.charge — the shell's CSS transition covers the
+      // gaps, so the bar looks continuous while React does an order of
+      // magnitude less work than a raw value would cost.
+      const charge = Math.round(this.action.chargeLevel * 12) / 12;
+      const key = [
+        this.hand.selected,
+        this.blockedCount,
+        this.action.phase,
+        charge,
+        this.hand.slots.map((s) => `${s.cardId ?? ''}:${s.state}`).join(','),
+      ].join('|');
+      if (key === this.lastHandKey) return;
+      this.lastHandKey = key;
+
       hooks.onHandChange?.({
+        phase: this.action.phase,
+        charge,
         selected: this.hand.selected,
         slots: this.hand.slots.map((slot) => ({
           cardId: slot.cardId,
@@ -1725,6 +1778,7 @@ export function makeScene(
         blockedCount: this.blockedCount,
       });
     }
+    private lastHandKey = '';
 
     /** Number keys pick a slot; shoulder buttons cycle for a pad. */
     private readSelection() {
