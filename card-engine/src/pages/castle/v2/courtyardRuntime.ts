@@ -53,6 +53,13 @@ import {
 } from '../v2-preview/elevation';
 import { HERO_FEET } from '../../../data/castle/heroSprite';
 import {
+  CARD_SLAM_ANCHOR,
+  CARD_SLAM_ANIM,
+  CARD_SLAM_DURATIONS_MS,
+  CARD_SLAM_SHEET,
+} from '../../../data/castle/cardSlamSprite';
+import { KEEPERS } from '../../../data/castle/keepers';
+import {
   KNOCKDOWN_ANCHOR,
   KNOCKDOWN_ANIM,
   KNOCKDOWN_DURATIONS_MS,
@@ -80,10 +87,12 @@ import {
   handFromCards,
   releaseCommitted,
   selectSlot,
+  summonSelected,
   type Hand,
 } from '../combat/hand';
 import { effectKitFor, type EffectKit } from '../combat/effectKit';
 import {
+  colourOf,
   createBlastSprite,
   createChargeEmitter,
   playImpact,
@@ -613,6 +622,12 @@ export function makeScene(
       gfx: Phaser.GameObjects.Rectangle;
     }[] = [];
     private knockdownKey?: Phaser.Input.Keyboard.Key;
+    private summonKey?: Phaser.Input.Keyboard.Key;
+    /** Characters standing in the world, and which slot each came out of. */
+    private summons: { slotIndex: number; sprite: Phaser.GameObjects.Sprite }[] = [];
+    /** The card lying on the ground mid-ritual, before the character rises. */
+    private ritualCard?: Phaser.GameObjects.Rectangle;
+    private summonTimers: Phaser.Time.TimerEvent[] = [];
     /** Edge-detects the fall, so the scatter fires once rather than every frame. */
     private wasDown = false;
     /** Which sheet the hero is actually drawn from this run. */
@@ -967,6 +982,23 @@ export function makeScene(
         });
       }
 
+      // The approved 17-frame summoning performance. Per-frame durations again,
+      // and for a stronger reason than the fall: the 280ms opening hold is the
+      // presentation and the 700ms final hold is the palm on the ground, which is
+      // the moment the character is allowed to appear. A uniform frame rate
+      // destroys both and the ritual stops reading as a ritual.
+      if (this.textures.exists(CARD_SLAM_SHEET.key) && !this.anims.exists(CARD_SLAM_ANIM)) {
+        this.anims.create({
+          key: CARD_SLAM_ANIM,
+          frames: CARD_SLAM_DURATIONS_MS.map((duration, i) => ({
+            key: CARD_SLAM_SHEET.key,
+            frame: i,
+            duration,
+          })),
+          repeat: 0,
+        });
+      }
+
       const keyboard = this.input.keyboard!;
       this.cursors = keyboard.createCursorKeys();
       this.wasd = keyboard.addKeys('W,A,S,D') as typeof this.wasd;
@@ -985,6 +1017,8 @@ export function makeScene(
       // deliberate stand-in for being hit hard, so the scatter-and-recover loop
       // can be played and tuned before anything in the world can hit him.
       this.knockdownKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
+      // G for the summon. Not F (fire), E (door), SPACE (hop) or K (fall).
+      this.summonKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.G);
       // 1-4 pick a card. ONE/TWO/THREE/FOUR are the number row, not the numpad;
       // a laptop without a numpad is the common case, not the exception.
       this.slotKeys = [
@@ -1167,6 +1201,9 @@ export function makeScene(
         this.action,
         {
           firePressed: this.fireHeld,
+          summonPressed: this.summonKey
+            ? Phaser.Input.Keyboard.JustDown(this.summonKey)
+            : false,
           hasReadyCard: canFire(this.hand),
           heavyHit: this.knockdownKey
             ? Phaser.Input.Keyboard.JustDown(this.knockdownKey)
@@ -1184,6 +1221,10 @@ export function makeScene(
         this.emitHand();
       }
 
+      if (previousPhase !== 'summoning' && this.action.phase === 'summoning') {
+        this.startSummon();
+      }
+
       if (this.action.phase !== previousPhase) {
         this.fireStats.lastPhase = `${previousPhase}->${this.action.phase}`;
         if (this.action.phase === 'charging') (this.fireStats.enteredCharging as number)++;
@@ -1194,6 +1235,10 @@ export function makeScene(
       // He just went down. Scatter once, on the transition — not every frame he
       // spends on the floor.
       if (this.action.phase === 'knockdown' && !this.wasDown) {
+        // Interrupted mid-ritual, the pending summon steps must not still fire —
+        // they would restore the walking sheet on top of the fall and reveal a
+        // character out of a card that was never planted.
+        this.cancelSummonTimers();
         this.scatterCards();
         this.playKnockdown();
       }
@@ -1408,6 +1453,130 @@ export function makeScene(
     private selectedKit(): EffectKit {
       const slot = this.hand.selected === null ? null : this.hand.slots[this.hand.selected];
       return effectKitFor(slot?.cardId ? this.cardElements.get(slot.cardId) : undefined);
+    }
+
+    /**
+     * The grounded summoning ritual.
+     *
+     * The card is PLACED, and the character comes out of where it was placed.
+     * That is the whole point of the performance — a character that appeared
+     * beside him instead would make the slam decorative, and the handoff is
+     * explicit that the summon emerges from the grounded card.
+     *
+     * The 17 frames are the body only. Everything around them — the real card,
+     * the dust, the flash, the character rising — is assembled here, so the same
+     * clip serves every card in the game rather than one per character.
+     */
+    private startSummon() {
+      if (!this.player || this.hand.selected === null) return;
+      const slotIndex = this.hand.selected;
+
+      // Where the card lands: a step ahead of him, and only somewhere he could
+      // stand. The same predicate the scatter uses, so a summon can never appear
+      // inside a wall or out over the pond.
+      const feet = { x: this.player.x, y: this.feetY };
+      const ahead = this.groundAhead(feet, this.aim.aim);
+
+      this.hand = summonSelected(this.hand);
+      this.emitHand();
+
+      // He has to face the camera: the performance exists in one direction, and
+      // turning him is honest where mirroring an asymmetric action is not.
+      this.facing = 'down';
+
+      if (this.anims.exists(CARD_SLAM_ANIM) && this.player) {
+        this.player.anims.stop();
+        this.player.setTexture(CARD_SLAM_SHEET.key, 0);
+        this.player.setScale(1);
+        this.player.setOrigin(CARD_SLAM_ANCHOR.x, CARD_SLAM_ANCHOR.y);
+        this.player.play(CARD_SLAM_ANIM);
+      }
+
+      // The player's ACTUAL card, laid on the ground at the palm contact. The
+      // generated one in the frames is a blocking prop; this is the real one.
+      const kit = this.selectedKit();
+      this.ritualCard = this.add.rectangle(ahead.x, ahead.y, 18, 26, 0xf2e2b6);
+      this.ritualCard.setStrokeStyle(2, colourOf(kit.palette[0]));
+      this.ritualCard.setOrigin(0.5, 0.5);
+      this.ritualCard.setDepth(this.level * LEVEL_STRIDE + ahead.y);
+      this.ritualCard.setAlpha(0);
+      this.depthBand?.add(this.ritualCard);
+
+      // The card becomes visible as the palm comes down, not before.
+      const plantAt = ACTION_TIMING.summonMs - 700;
+      this.summonTimers.push(
+        this.time.delayedCall(plantAt, () => this.ritualCard?.setAlpha(1)),
+        this.time.delayedCall(plantAt + 120, () => this.revealSummon(ahead, slotIndex, kit)),
+        // Control comes back on the clock, never on the animation event — a clip
+        // that is skipped or interrupted must not strand him mid-ritual.
+        this.time.delayedCall(ACTION_TIMING.summonMs, () => this.restoreWalkSprite()),
+      );
+    }
+
+    /** Drop every pending step of a ritual that is no longer happening. */
+    private cancelSummonTimers() {
+      for (const t of this.summonTimers) t.remove();
+      this.summonTimers = [];
+      this.ritualCard?.destroy();
+      this.ritualCard = undefined;
+    }
+
+    /** A standable point one step along the aim, for the card to be planted on. */
+    private groundAhead(feet: Vec2, aim: Vec2) {
+      const len = Math.hypot(aim.x, aim.y) || 1;
+      const step = 46;
+      const candidate = { x: feet.x + (aim.x / len) * step, y: feet.y + (aim.y / len) * step };
+      const b = this.cameras.main.getBounds();
+      const rect = { x: candidate.x, y: candidate.y, width: HERO_FEET.width, height: HERO_FEET.height };
+      const standable =
+        Phaser.Geom.Rectangle.Contains(b, candidate.x, candidate.y) &&
+        !feetBlocked(rect, this.colliders.blockers) &&
+        (levelAt(candidate.x, candidate.y, this.elevation) ?? 0) === this.level;
+      // Backing off to his own feet is ugly and always reachable, which beats a
+      // character materialising inside a wall.
+      return standable ? candidate : { ...feet };
+    }
+
+    /** The character rises out of the planted card. */
+    private revealSummon(at: Vec2, slotIndex: number, kit: EffectKit) {
+      const keeper = KEEPERS.find((k) => k.id === 'keeper-dwarf');
+      if (!keeper || !this.textures.exists(keeper.sheet.key)) return;
+
+      // Dust and a flash at the contact point, in the card's own colours — the
+      // effects belong to Phaser so one performance serves every element.
+      const flash = this.add.circle(at.x, at.y, 6, colourOf(kit.palette[1]));
+      flash.setDepth(this.level * LEVEL_STRIDE + at.y + 1);
+      this.tweens.add({
+        targets: flash,
+        radius: 34,
+        alpha: 0,
+        duration: 340,
+        onComplete: () => flash.destroy(),
+      });
+
+      const sprite = this.add.sprite(at.x, at.y, keeper.sheet.key, 0);
+      sprite.setOrigin(0.5, 1);
+      sprite.setScale(keeper.worldHeight / keeper.sheet.frameHeight);
+      // Feet on the ground, sorted by the ground he stands on — the same contract
+      // as every other actor, so he passes behind walls like anything else.
+      sprite.setDepth(this.level * LEVEL_STRIDE + at.y);
+      this.depthBand?.add(sprite);
+
+      // Rise out of the card rather than blinking into existence.
+      sprite.setAlpha(0);
+      const settled = sprite.scaleY;
+      sprite.setScale(sprite.scaleX, settled * 0.2);
+      this.tweens.add({
+        targets: sprite,
+        alpha: 1,
+        scaleY: settled,
+        duration: 260,
+        ease: 'Back.easeOut',
+      });
+
+      this.summons.push({ slotIndex, sprite });
+      this.ritualCard?.destroy();
+      this.ritualCard = undefined;
     }
 
     /**

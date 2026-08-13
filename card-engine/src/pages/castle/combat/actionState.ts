@@ -23,6 +23,7 @@ export type ActionPhase =
   | 'windup'
   | 'active'
   | 'recovery'
+  | 'summoning'
   | 'knockdown'
   | 'standUp';
 
@@ -46,6 +47,14 @@ export const ACTION_TIMING = {
   recoveryMs: 320,
   knockdownMs: 900,
   standUpMs: 320,
+  /**
+   * The grounded summoning ritual, matching the approved 17-frame card slam
+   * exactly (CARD_SLAM_TOTAL_MS). The art is the clock here: he draws, raises,
+   * steps in, crouches and plants the card, and the phase cannot end before the
+   * palm reaches the ground or the character would appear out of a gesture that
+   * had not finished.
+   */
+  summonMs: 2330,
 } as const;
 
 /**
@@ -90,6 +99,8 @@ export interface ActionState {
 export interface ActionInput {
   /** Fire was pressed this frame. */
   firePressed: boolean;
+  /** The summon key was pressed this frame. */
+  summonPressed: boolean;
   /** A card is selected and available to fire. */
   hasReadyCard: boolean;
   /** A hit landed hard enough to put him down. */
@@ -171,6 +182,11 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
 
   switch (state.phase) {
     case 'explore':
+      // The ritual outranks the shot: pressing both should plant the card, not
+      // fire it, because summoning is the deliberate act and firing is the reflex.
+      if (input.summonPressed && input.hasReadyCard) {
+        return enter('summoning', { ...input.aim });
+      }
       // No card, no attack — the cards ARE the offense, so an empty hand is a
       // character with nothing to do but run.
       if (input.firePressed && input.hasReadyCard) {
@@ -209,6 +225,10 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
 
     case 'recovery':
       if (elapsedMs >= t.recoveryMs) return enter('explore', null);
+      return { ...state, elapsedMs, fireThisStep: false };
+
+    case 'summoning':
+      if (elapsedMs >= t.summonMs) return enter('explore', null);
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'knockdown':

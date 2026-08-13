@@ -14,6 +14,7 @@ import {
 
 const input = (over: Partial<ActionInput> = {}): ActionInput => ({
   firePressed: false,
+  summonPressed: false,
   hasReadyCard: true,
   heavyHit: false,
   aim: { x: 1, y: 0 },
@@ -199,6 +200,46 @@ describe('action state', () => {
     expect(walkScale('charging')).toBeGreaterThan(0);
     expect(walkScale('charging')).toBeLessThan(walkScale('explore'));
     expect(canWalk('charging')).toBe(true);
+  });
+
+  it('runs the whole summoning ritual, then hands control back', () => {
+    // The art is the clock: the phase cannot end before the palm reaches the
+    // ground, or the character appears out of a gesture that never finished.
+    let s = stepAction(initialAction(), input({ summonPressed: true }), 16);
+    expect(s.phase).toBe('summoning');
+
+    const nearlyDone = run(s, Math.floor(ACTION_TIMING.summonMs / 16) - 2, {});
+    expect(nearlyDone.state.phase).toBe('summoning');
+
+    const done = run(nearlyDone.state, 6, {});
+    expect(done.state.phase).toBe('explore');
+  });
+
+  it('plants the card rather than firing it when both are pressed', () => {
+    // Summoning is the deliberate act; firing is the reflex.
+    const s = stepAction(
+      initialAction(),
+      input({ summonPressed: true, firePressed: true }),
+      16,
+    );
+    expect(s.phase).toBe('summoning');
+  });
+
+  it('will not start a ritual with no card to plant', () => {
+    const s = stepAction(initialAction(), input({ summonPressed: true, hasReadyCard: false }), 16);
+    expect(s.phase).toBe('explore');
+  });
+
+  it('lets a heavy hit interrupt the ritual', () => {
+    let s = stepAction(initialAction(), input({ summonPressed: true }), 16);
+    s = stepAction(s, input({ heavyHit: true }), 16);
+    expect(s.phase).toBe('knockdown');
+  });
+
+  it('roots him for the ritual, unlike firing', () => {
+    // Planting a card is a commitment. Firing is not.
+    expect(walkScale('summoning')).toBe(0);
+    expect(walkScale('windup')).toBeGreaterThan(0);
   });
 
   it('slows the walk while firing instead of rooting him', () => {

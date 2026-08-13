@@ -266,6 +266,7 @@ export function CastleV2() {
             ['WASD', 'walk'],
             ['1-4', 'pick card'],
             ['hold F', 'charge · release to fire'],
+            ['G', 'summon (plant the card)'],
             ['K', 'knock down'],
             ['SPACE', 'hop a ledge'],
             ['E', 'enter a door'],

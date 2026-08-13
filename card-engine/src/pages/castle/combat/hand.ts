@@ -167,6 +167,32 @@ export function commitSelected(hand: Hand): Hand {
   return { ...hand, slots };
 }
 
+/**
+ * Send the selected card into the world as a summon.
+ *
+ * A summoned card is NOT in his hand — the character it contains is standing in
+ * the courtyard, so the card cannot also be fired or dropped. That is the whole
+ * §7.4 invariant applied to the one case where the card leaves for a long time
+ * rather than for a few hundred milliseconds.
+ */
+export function summonSelected(hand: Hand): Hand {
+  if (!canFire(hand)) return hand;
+  const slots = hand.slots.map((slot, i) =>
+    i === hand.selected ? { ...slot, state: 'summoned' as const } : slot,
+  );
+  return { ...hand, slots };
+}
+
+/** Recall a summon, returning its card to the hand. */
+export function recallSummon(hand: Hand, slotIndex: number): Hand {
+  const slot = hand.slots[slotIndex];
+  if (!slot || slot.state !== 'summoned') return hand;
+  const slots = hand.slots.map((s, i) =>
+    i === slotIndex ? { ...s, state: 'ready' as const } : s,
+  );
+  return { ...hand, slots };
+}
+
 /** Release a committed card back to the hand once its action has resolved. */
 export function releaseCommitted(hand: Hand, slotIndex: number): Hand {
   const slot = hand.slots[slotIndex];

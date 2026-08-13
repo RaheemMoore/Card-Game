@@ -12,6 +12,8 @@ import {
   releaseCommitted,
   scatterHand,
   selectSlot,
+  summonSelected,
+  recallSummon,
   selectedSlot,
 } from './hand';
 
@@ -133,6 +135,36 @@ describe('recovery', () => {
     const full = handFromCards(four);
     const stray = { cardId: 'card_z', slotIndex: 0 };
     expect(recoverCard(full, stray)).toBe(full);
+  });
+});
+
+describe('summoning', () => {
+  it('takes the card out of the hand entirely', () => {
+    // The character it contains is standing in the courtyard, so the card cannot
+    // also be fired or dropped. §7.4 applied to the long-lived case.
+    const h = summonSelected(handFromCards(four));
+    expect(canFire(h)).toBe(false);
+    expect(cardLocations(h).get('card_a')).toBe('summoned');
+    expect(hasNoDuplicates(h)).toBe(true);
+  });
+
+  it('does not scatter a summoned card when he is knocked down', () => {
+    // Otherwise the card is on the ground AND its character is walking around.
+    const h = summonSelected(handFromCards(four));
+    const { dropped } = scatterHand(h);
+    expect(dropped.map((d) => d.cardId)).not.toContain('card_a');
+  });
+
+  it('returns the card when the summon is recalled', () => {
+    let h = summonSelected(handFromCards(four));
+    h = recallSummon(h, 0);
+    expect(canFire(h)).toBe(true);
+    expect(hasNoDuplicates(h)).toBe(true);
+  });
+
+  it('refuses to summon from a slot with nothing ready in it', () => {
+    const { hand } = scatterHand(handFromCards(four));
+    expect(summonSelected(hand)).toBe(hand);
   });
 });
 
