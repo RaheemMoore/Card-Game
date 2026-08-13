@@ -10,6 +10,14 @@
       "autoPort": false
     },
     {
+      "//": "The GAME, as a player gets it. `--mode game` is what card-engine/vite.config.ts keys the product split on: it defines VITE_ADMIN_ROUTES=false and VITE_DEV_ROUTES=false, so the whole /admin tree and the /dev harnesses leave the bundle. Without --mode this serves the Studio instead, which is the same URL showing a different product. Port 5191 so it can run beside card-engine-dev (5190) and the other session's 5173. /api/* has no server here and will 404 — that is correct: the game deployment runs zero functions and holds zero provider secrets.",
+      "name": "card-engine-game",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "card-engine", "--", "--mode", "game", "--port", "5191", "--strictPort"],
+      "port": 5191,
+      "autoPort": false
+    },
+    {
       "//": "The Studio Wiki is its own Vite app and its own Vercel project. It reads PRODUCTION.md at build time and serves card-engine/public as its publicDir, so it must run from the repo root context, not standalone.",
       "name": "studio-wiki-dev",
       "runtimeExecutable": "npm",
