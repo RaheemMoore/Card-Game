@@ -862,6 +862,20 @@ export function makeScene(
     /** The contact freeze. Presentation only; see hitstop.ts for why. */
     private hitstop?: Hitstop;
     /**
+     * How long the hero is still visibly flinching, ms.
+     *
+     * A decaying counter rather than a tween because it has to COMPOSE with the
+     * attack pose: he can be shot while braced to cast, and a tween writing the
+     * sprite's scale directly would be overwritten by `applyHeroTransform` on
+     * the very next frame. As a number, the flinch is just another term in the
+     * one place that decides what he looks like.
+     */
+    private heroHurtMs = 0;
+    /** Total length of the flinch in progress, so it can decay proportionally. */
+    private heroHurtSpanMs = 1;
+    /** Which way the blow came from, so he folds away from it rather than at random. */
+    private heroHurtDir: { x: number; y: number } = { x: 0, y: 1 };
+    /**
      * Elapsed time for PRESENTERS, which is zero while a hit is being held.
      *
      * Deliberately a separate number from the `delta` the state machines get.
@@ -1460,9 +1474,22 @@ export function makeScene(
         feel: getAttackFeel(severityForCharge(this.action.chargeLevel), this.motion),
       });
 
-      this.player.x = this.feetX + pose.offsetX;
-      this.player.y = this.feetY - this.air + pose.offsetY;
-      this.player.setScale(this.heroBaseScale * pose.scaleX, this.heroBaseScale * pose.scaleY);
+      /**
+       * The flinch, folded in on top of whatever he was doing.
+       *
+       * He can be hit while braced to cast, so this ADDS to the pose rather than
+       * replacing it — one body, two things happening to it. Decays to nothing,
+       * so it can never strand him bent over.
+       */
+      const hurt = this.heroHurtMs > 0 ? this.heroHurtMs / this.heroHurtSpanMs : 0;
+      const hurtSquash = hurt * 0.16;
+
+      this.player.x = this.feetX + pose.offsetX + this.heroHurtDir.x * hurt * 5;
+      this.player.y = this.feetY - this.air + pose.offsetY + this.heroHurtDir.y * hurt * 3;
+      this.player.setScale(
+        this.heroBaseScale * pose.scaleX * (1 + hurtSquash * 0.5),
+        this.heroBaseScale * pose.scaleY * (1 - hurtSquash),
+      );
       // The sprite's origin is already at his feet, so this pivots him where a
       // person pivots rather than around his navel.
       this.player.setRotation(pose.rotation);
@@ -1492,6 +1519,11 @@ export function makeScene(
       // while a hit is being held. See hitstop.ts for why the split has to be
       // this way round and not the other.
       this.presentDelta = this.hitstop ? this.hitstop.step(delta) : delta;
+
+      // The flinch runs on the PICTURE's clock, so a hit that freezes the frame
+      // holds the flinch at its deepest rather than spending it behind the
+      // freeze — which is the whole reason the freeze is there.
+      if (this.heroHurtMs > 0) this.heroHurtMs = Math.max(0, this.heroHurtMs - this.presentDelta);
 
       // Before movePlayer, and outside it, so aim keeps resolving through a jump.
       // Sampled only on the frames movePlayer would skip and the pointer tracker
@@ -1779,7 +1811,13 @@ export function makeScene(
       // An ordinary strike hurts and does not cost him his hand. §6.7: only a
       // clearly telegraphed STRONG hit scatters, or the cards are gone so often
       // that losing them stops meaning anything.
-      if (struckBy === 'light') this.flashHeroHurt();
+      //
+      // BOTH now flash. The strong hit used to fall straight through to the
+      // knockdown with no contact beat at all, so the single most violent thing
+      // in the fight was the one hit with no impact on it — the fall did all
+      // the talking, and the moment of being struck did none.
+      if (struckBy === 'light') this.flashHeroHurt('normal');
+      if (struckBy === 'strong') this.flashHeroHurt('heavy');
 
       // Pressing fire while disarmed must SAY so. The rule that the cards are his
       // only weapon is correct and invisible, and invisible correctness reads
@@ -2512,7 +2550,30 @@ export function makeScene(
       // Time, not an animation event — the same backstop rule every timed
       // effect in this scene follows.
       this.time.delayedCall(feel.flashMs, () => this.player?.clearTint());
-      this.shakeCamera(feel);
+
+      /**
+       * He folds, away from whatever hit him.
+       *
+       * The construct is the only thing that can hit him, so its position is
+       * the direction — and using it rather than a fixed axis is what makes
+       * being hit from the left look different from being hit from the right.
+       * A flinch with no direction says a hit happened; one with a direction
+       * says where to walk.
+       */
+      if (this.construct) {
+        const dx = this.feetX - this.construct.pos.x;
+        const dy = this.feetY - this.construct.pos.y;
+        const len = Math.hypot(dx, dy) || 1;
+        this.heroHurtDir = { x: dx / len, y: (dy / len) * 0.55 };
+      }
+      // Motion off zeroes the fold and leaves the flash, which is the rule the
+      // whole ladder exists to protect: losing motion costs movement, never the
+      // information that something hit him.
+      this.heroHurtSpanMs = Math.max(1, feel.flashMs * 1.6);
+      this.heroHurtMs = feel.staticFallback ? 0 : this.heroHurtSpanMs;
+
+      this.hitstop?.trigger(feel.hitstopMs);
+      this.kickCamera(feel, { x: -this.heroHurtDir.x, y: -this.heroHurtDir.y });
     }
 
     /**

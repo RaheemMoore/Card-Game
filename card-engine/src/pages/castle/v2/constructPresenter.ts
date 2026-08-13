@@ -6,6 +6,7 @@
 import type Phaser from 'phaser';
 import { CONSTRUCT_TUNING, type ConstructPhase, type ConstructState } from '../combat/construct';
 import { HITSTOP_CAP_MS } from '../combat/feel';
+import { constructPose } from '../combat/constructPose';
 
 /**
  * How the training construct looks, and nothing else.
@@ -60,6 +61,23 @@ const PHASE_FILL: Record<ConstructPhase, number> = {
 
 const BODY_W = 44;
 const BODY_H = 68;
+
+/**
+ * Blend two packed 0xRRGGBB colours.
+ *
+ * Per channel and by hand rather than through `Phaser.Display.Color`: the
+ * Phaser import at the top of this file is TYPE-ONLY, and reaching for a static
+ * would make it a value import and drag device detection into every module that
+ * transitively touches this one — the failure that stopped three unrelated test
+ * suites loading once already.
+ */
+function mixColour(from: number, to: number, t: number): number {
+  const k = t < 0 ? 0 : t > 1 ? 1 : t;
+  const r = Math.round(((from >> 16) & 0xff) + (((to >> 16) & 0xff) - ((from >> 16) & 0xff)) * k);
+  const g = Math.round(((from >> 8) & 0xff) + (((to >> 8) & 0xff) - ((from >> 8) & 0xff)) * k);
+  const b = Math.round((from & 0xff) + ((to & 0xff) - (from & 0xff)) * k);
+  return (r << 16) | (g << 8) | b;
+}
 
 export interface ConstructView {
   /**
@@ -215,8 +233,24 @@ export function createConstructView(
         }
       }
 
-      const groundY = next.pos.y + lagY;
-      const drawX = next.pos.x + lagX;
+      /**
+       * The strike, drawn.
+       *
+       * Composes with the knockback lag rather than replacing it: being shoved
+       * and swinging are different things that can be true within a few frames
+       * of each other, and each is a separate offset from the one position the
+       * state considers real.
+       */
+      const strike = constructPose({
+        phase: next.phase,
+        elapsedMs: next.elapsedMs,
+        pos: next.pos,
+        committedTarget: next.committedTarget,
+        motionOff,
+      });
+
+      const groundY = next.pos.y + lagY + strike.offsetY;
+      const drawX = next.pos.x + lagX + strike.offsetX;
       // Depth from the TRUE ground row, never the lagged one, so a shoved
       // construct cannot sort in front of something it is really behind.
       const depth = depthFor(next.pos.y);
@@ -240,16 +274,43 @@ export function createConstructView(
 
       body.setPosition(drawX, groundY + bob);
       body.setDepth(depth);
+      // Set absolutely, never multiplied into whatever was there last frame:
+      // the pose is applied every frame, so compounding would shrink the body
+      // to nothing over a few swings.
+      body.setDisplaySize(BODY_W * strike.scaleX, BODY_H * strike.scaleY);
       shadow.setPosition(drawX, groundY);
       shadow.setDepth(depth - 1);
 
-      body.setFillStyle(PHASE_FILL[next.phase]);
+      /**
+       * Colour, and the tell's last quarter.
+       *
+       * The phase ramp already warms as it commits. What it could not say is
+       * WHEN — `telegraph` is 650ms of one colour, so the final moments before
+       * a strike looked exactly like the first. The body now runs from the
+       * telegraph's amber to the attack's hot red across the tell, arriving at
+       * the strike colour on the frame it strikes. That is a second, redundant
+       * channel for the one piece of information a player has to act on, and
+       * redundancy is the point: the ring says where, the colour says now.
+       *
+       * Under reduced motion it holds the hot end from the halfway mark instead
+       * of ramping — still a change of state, with nothing moving.
+       */
+      if (next.phase === 'telegraph') {
+        const t = Math.min(1, next.elapsedMs / CONSTRUCT_TUNING.telegraphMs);
+        const heat = motionOff ? (t > 0.5 ? 1 : 0) : t * t;
+        body.setFillStyle(mixColour(PHASE_FILL.telegraph, PHASE_FILL.attack, heat));
+      } else {
+        body.setFillStyle(PHASE_FILL[next.phase]);
+      }
       body.setAlpha(next.phase === 'defeated' ? 0.45 : 1);
 
       // The flash rides the body exactly, bob included, or a hit on a moving
       // construct would light up the patch of ground it just left.
       hitFlash.setPosition(drawX, groundY + bob);
       hitFlash.setDepth(depth + 0.5);
+      // Matches the body's squash too, or a construct struck mid-swing would
+      // wear a flash the wrong shape for the body under it.
+      hitFlash.setDisplaySize(BODY_W * strike.scaleX, BODY_H * strike.scaleY);
 
       // Facing lives on the ground in front of the feet.
       notch.setPosition(drawX + next.facing.x * 26, groundY + next.facing.y * 14);
