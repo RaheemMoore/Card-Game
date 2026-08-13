@@ -225,6 +225,7 @@ export function CastleV2() {
         >
           {hand.slots.map((slot, i) => {
             const selected = hand.selected === i;
+            const dropped = slot.state === 'dropped';
             const fill =
               slot.state === 'ready'
                 ? '#f2e2b6'
@@ -236,15 +237,33 @@ export function CastleV2() {
                 key={i}
                 className="grid h-14 w-10 place-items-center rounded-sm border-2 transition-colors"
                 style={{
-                  borderColor: selected ? '#ffd479' : '#8a7a55',
+                  /* A dropped slot has to look LOST, not empty. It read as
+                     near-identical to an empty one — transparent fill, same
+                     border — which quietly undid the point of the whole
+                     scatter: §12 wants the player to understand what they lost
+                     and go and get it. Amber and dashed says "yours, and not
+                     here" in a way an absence cannot. */
+                  borderColor: dropped ? '#d98a3a' : selected ? '#ffd479' : '#8a7a55',
+                  borderStyle: dropped ? 'dashed' : 'solid',
                   background: selected ? 'rgba(13,11,8,0.78)' : 'rgba(13,11,8,0.55)',
                 }}
               >
                 <div
                   className="h-9 w-6 rounded-[2px]"
-                  style={{ background: fill, opacity: slot.state === 'empty' ? 0.2 : 1 }}
+                  style={{
+                    background: fill,
+                    opacity: slot.state === 'empty' ? 0.2 : 1,
+                    /* The outline stands in for the card that is not in his
+                       hand — the slot still belongs to something. */
+                    boxShadow: dropped ? 'inset 0 0 0 2px rgba(217,138,58,0.55)' : undefined,
+                  }}
                 />
-                <span className="text-[10px] leading-none text-amber-200/70">{i + 1}</span>
+                <span
+                  className="text-[10px] leading-none"
+                  style={{ color: dropped ? 'rgba(217,138,58,0.95)' : 'rgba(253,230,138,0.7)' }}
+                >
+                  {dropped ? '▼' : i + 1}
+                </span>
               </div>
             );
           })}
