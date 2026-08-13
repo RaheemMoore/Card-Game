@@ -3,6 +3,7 @@ import {
   chargeFrom,
   MIN_CHARGE_LEVEL,
   initialAction,
+  releaseKindFrom,
   stepAction,
   walkScale,
   canWalk,
@@ -18,8 +19,23 @@ const input = (over: Partial<ActionInput> = {}): ActionInput => ({
   hasReadyCard: true,
   heavyHit: false,
   aim: { x: 1, y: 0 },
+  cancelRequested: false,
+  getUpRequested: false,
   ...over,
 });
+
+/** Hold fire for `heldMs`, release, then run to the shot. Returns the fired state. */
+function fireAfterHolding(heldMs: number): ActionState {
+  let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+  const frames = Math.round(heldMs / 16);
+  for (let i = 0; i < frames; i++) s = stepAction(s, input({ firePressed: true }), 16);
+  s = stepAction(s, input({ firePressed: false }), 16);
+  for (let i = 0; i < 40; i++) {
+    s = stepAction(s, input(), 16);
+    if (s.fireThisStep) return s;
+  }
+  throw new Error('never fired');
+}
 
 /** Run the machine forward in 16ms frames until `predicate`, or give up. */
 function run(
@@ -111,15 +127,33 @@ describe('action state', () => {
     expect(s.fireThisStep).toBe(false);
   });
 
-  it('always stands back up, and cannot be stun-locked into a frozen pose', () => {
-    // Repeated hits should keep him down but never leave him in a phase with no
-    // exit — the failure mode is indistinguishable from a hung game.
+  it('stays on the ground until the player asks to get up', () => {
+    // Raheem: "he should stay on the ground until you hit an arrow to make him
+    // get up." Getting up is the first thing he does after losing everything,
+    // and taking that beat away made a defeat read as a stumble.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    const waited = run(s, 400); // ~6.4 seconds of doing nothing
+    expect(waited.state.phase).toBe('knockdown');
+  });
+
+  it('gets up when asked, and can always do so — no frozen pose', () => {
+    // The invariant did not disappear when the exit became player-driven; it
+    // moved. He must always be ABLE to get up, or the phase has no exit and the
+    // failure is indistinguishable from a hung game.
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
     for (let i = 0; i < 5; i++) s = stepAction(s, input({ heavyHit: true }), 16);
     expect(s.phase).toBe('knockdown');
 
-    const recovered = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4);
+    const frames = Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4;
+    const recovered = run(s, frames, { getUpRequested: true });
     expect(recovered.state.phase).toBe('explore');
+  });
+
+  it('will not stand out of a fall that has not finished playing', () => {
+    // Mashing forward during the fall must not snap him upright mid-topple.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    const early = run(s, Math.floor(ACTION_TIMING.knockdownMs / 16) - 4, { getUpRequested: true });
+    expect(early.state.phase).toBe('knockdown');
   });
 
   it('ignores a further hit once he is already down', () => {
@@ -240,6 +274,144 @@ describe('action state', () => {
     // Planting a card is a commitment. Firing is not.
     expect(walkScale('summoning')).toBe(0);
     expect(walkScale('windup')).toBeGreaterThan(0);
+  });
+
+  it('reads a tap as the quick slot and a hold as the heavy one', () => {
+    // Handoff §6.3: one input, two slots. The threshold is the only thing that
+    // tells them apart — there is no second button.
+    expect(fireAfterHolding(0).releaseKind).toBe('quick');
+    expect(fireAfterHolding(ACTION_TIMING.holdThresholdMs + 100).releaseKind).toBe('heavy');
+  });
+
+  it('puts the threshold boundary itself on the heavy side', () => {
+    // Stated so the edge is a decision rather than an accident of rounding.
+    expect(releaseKindFrom(ACTION_TIMING.holdThresholdMs - 1)).toBe('quick');
+    expect(releaseKindFrom(ACTION_TIMING.holdThresholdMs)).toBe('heavy');
+  });
+
+  it('fires a tap at a tap\'s worth of charge, however far the meter had crept', () => {
+    // Otherwise a quick action is just a slightly weaker heavy one, and there is
+    // no reason to ever tap deliberately.
+    const quick = fireAfterHolding(ACTION_TIMING.holdThresholdMs - 32);
+    expect(quick.chargeLevel).toBe(MIN_CHARGE_LEVEL);
+
+    const heavy = fireAfterHolding(ACTION_TIMING.holdThresholdMs + 100);
+    expect(heavy.chargeLevel).toBeGreaterThan(MIN_CHARGE_LEVEL);
+  });
+
+  it('carries the slot from release all the way to the shot', () => {
+    // Frozen with the aim and the charge: the slot belongs to the press the
+    // player finished, not to the inputs two frames later.
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = run(s, 40, { firePressed: true }).state;
+    s = stepAction(s, input({ firePressed: false }), 16);
+    expect(s.phase).toBe('windup');
+    expect(s.releaseKind).toBe('heavy');
+
+    for (let i = 0; i < 40; i++) {
+      s = stepAction(s, input(), 16);
+      if (s.fireThisStep) break;
+    }
+    expect(s.fireThisStep).toBe(true);
+    expect(s.releaseKind).toBe('heavy');
+  });
+
+  it('clears the slot once control comes back', () => {
+    const s = run(fireAfterHolding(0), 60).state;
+    expect(s.phase).toBe('explore');
+    expect(s.releaseKind).toBeNull();
+  });
+
+  it('abandons a charge on cancel without firing anything', () => {
+    // The alt-tab case: the key-up is never coming, so without this he holds the
+    // card forever and it reads as a hung game.
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = run(s, 20, { firePressed: true }).state;
+    expect(s.phase).toBe('charging');
+
+    s = stepAction(s, input({ firePressed: true, cancelRequested: true }), 16);
+    expect(s.phase).toBe('explore');
+    expect(s.chargeLevel).toBe(0);
+
+    // And the abandoned charge must not turn into a shot a few frames later.
+    const after = run(s, 60, { firePressed: true });
+    expect(after.fired).toBe(0);
+  });
+
+  it('cancels a windup too, losing the shot rather than firing it blind', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ firePressed: false }), 16);
+    expect(s.phase).toBe('windup');
+
+    s = stepAction(s, input({ cancelRequested: true }), 16);
+    expect(s.phase).toBe('explore');
+    const after = run(s, 60);
+    expect(after.fired).toBe(0);
+  });
+
+  it('does not let a cancel rescue him from a knockdown', () => {
+    // Losing focus while down must not skip the recovery he owes.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    s = stepAction(s, input({ cancelRequested: true }), 16);
+    expect(s.phase).toBe('knockdown');
+  });
+
+  it('lets a heavy hit win over a cancel raised on the same frame', () => {
+    let s = stepAction(initialAction(), input({ firePressed: true }), 16);
+    s = stepAction(s, input({ heavyHit: true, cancelRequested: true }), 16);
+    expect(s.phase).toBe('knockdown');
+  });
+
+  it('cannot be knocked down again the instant he stands up', () => {
+    // §16.15: ten loops with no repeated unavoidable knockdown. Whatever put him
+    // down is standing right there when he gets up, and without a grace window
+    // he watches four cards scatter twice with no move in between.
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    const upright = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4, { getUpRequested: true });
+    expect(upright.state.phase).toBe('explore');
+    expect(upright.state.graceRemainingMs).toBeGreaterThan(0);
+
+    const hitAgain = stepAction(upright.state, input({ heavyHit: true }), 16);
+    expect(hitAgain.phase).toBe('explore');
+  });
+
+  it('is put down once by something swinging at him throughout the recovery', () => {
+    // A construct standing over him keeps attacking. From the hit that fells him
+    // to the end of the grace he must go down exactly once — that whole span is
+    // knockdown, stand-up, and the walk to his cards.
+    const protectedMs =
+      ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs + ACTION_TIMING.knockdownGraceMs;
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    let knockdowns = 1;
+    for (let i = 0; i < Math.floor(protectedMs / 16) - 2; i++) {
+      const before = s.phase;
+      // Swinging every half second.
+      s = stepAction(s, input({ heavyHit: i % 31 === 30, getUpRequested: true }), 16);
+      if (s.phase === 'knockdown' && before !== 'knockdown') knockdowns++;
+    }
+    expect(knockdowns).toBe(1);
+  });
+
+  it('lets the grace run out, so he is not permanently safe', () => {
+    let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
+    s = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4, { getUpRequested: true }).state;
+    s = run(s, Math.ceil(ACTION_TIMING.knockdownGraceMs / 16) + 4).state;
+    expect(s.graceRemainingMs).toBe(0);
+
+    const down = stepAction(s, input({ heavyHit: true }), 16);
+    expect(down.phase).toBe('knockdown');
+  });
+
+  it('starts with no grace, so the first hit always lands', () => {
+    expect(initialAction().graceRemainingMs).toBe(0);
+    expect(stepAction(initialAction(), input({ heavyHit: true }), 16).phase).toBe('knockdown');
+  });
+
+  it('does not hand out grace for firing or being interrupted', () => {
+    // Only standing up grants it. A charge cancelled by a hit must not leave him
+    // briefly invincible.
+    const fired = run(fireAfterHolding(0), 60).state;
+    expect(fired.graceRemainingMs).toBe(0);
   });
 
   it('slows the walk while firing instead of rooting him', () => {

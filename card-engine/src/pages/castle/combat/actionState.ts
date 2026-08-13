@@ -45,7 +45,15 @@ export const ACTION_TIMING = {
   windupMs: 180,
   activeMs: 60,
   recoveryMs: 320,
-  knockdownMs: 900,
+  /**
+   * The fall itself — and the MINIMUM time on the ground, not the total.
+   *
+   * He now lies there until the player asks to get up (see `getUpRequested`),
+   * so this is the floor rather than the duration: long enough for the fall to
+   * finish playing, after which standing is his to choose. Matches
+   * KNOCKDOWN_TOTAL_MS by construction.
+   */
+  knockdownMs: 1200,
   standUpMs: 320,
   /**
    * The grounded summoning ritual, matching the approved 17-frame card slam
@@ -55,6 +63,28 @@ export const ACTION_TIMING = {
    * had not finished.
    */
   summonMs: 2330,
+  /**
+   * The line between a tap and a hold, measured from the moment fire went down.
+   *
+   * Releasing before this is a QUICK action; releasing after it is a HEAVY one.
+   * Handoff §6.3 wants both to exist per card, and the threshold is the only
+   * thing that tells them apart — there is no second button. 220ms is above a
+   * deliberate click (~80-120ms) and below the point where a player who meant to
+   * tap has started to feel they are holding.
+   *
+   * Tuning knob, not canon.
+   */
+  holdThresholdMs: 220,
+  /**
+   * How long he cannot be knocked down again after getting up.
+   *
+   * Handoff §11.1 step 8 and §16.15: without it, a construct standing over him
+   * puts him straight back on the floor and the player watches four cards
+   * scatter twice with no move available in between — the "repeated unavoidable
+   * knockdown" the slice is required not to have. Long enough to walk clear at
+   * 190 units/sec, which is about 280 units of ground.
+   */
+  knockdownGraceMs: 1500,
 } as const;
 
 /**
@@ -65,6 +95,15 @@ export const ACTION_TIMING = {
  * than waiting. Consumed by scaleBlast() in blast.ts.
  */
 export const MIN_CHARGE_LEVEL = 0.25;
+
+/**
+ * Which of a card's two action slots this shot came from.
+ *
+ * The player never picks this directly — it is inferred from how long they held
+ * fire, which is why it is decided at release and then frozen alongside the aim
+ * and the charge. `null` outside a shot.
+ */
+export type ReleaseKind = 'quick' | 'heavy';
 
 export interface ActionState {
   phase: ActionPhase;
@@ -94,10 +133,26 @@ export interface ActionState {
    * happens over the following frames.
    */
   chargeLevel: number;
+  /**
+   * Which action slot the in-flight shot came from, decided at release.
+   *
+   * Frozen with the aim and the charge, and for the same reason: the slot is a
+   * property of the press the player finished, not of the inputs two frames
+   * later. Read on the `fireThisStep` frame to dispatch the card's action.
+   */
+  releaseKind: ReleaseKind | null;
+  /**
+   * How long he still cannot be knocked down for, counting down.
+   *
+   * Starts when he finishes getting up, NOT when he goes down — the point is to
+   * protect the moment he is back on his feet and has to walk to his cards,
+   * which is precisely when he is standing next to whatever put him there.
+   */
+  graceRemainingMs: number;
 }
 
 export interface ActionInput {
-  /** Fire was pressed this frame. */
+  /** Fire is being held down. */
   firePressed: boolean;
   /** The summon key was pressed this frame. */
   summonPressed: boolean;
@@ -107,10 +162,41 @@ export interface ActionInput {
   heavyHit: boolean;
   /** Current aim, committed if this frame starts a windup. */
   aim: Vec2;
+  /**
+   * Abandon the shot without firing it.
+   *
+   * Raised when the window loses focus, the tab is hidden, the game pauses, or a
+   * stall opens — every case where the key-up that would have ended the charge
+   * will never arrive. Without it a player who alt-tabs mid-charge comes back to
+   * a character holding a card forever, which reads as a hung game.
+   */
+  cancelRequested: boolean;
+  /**
+   * The player is asking to get up — any movement key, held or tapped.
+   *
+   * Knockdown does NOT expire on its own. Raheem, watching himself bounce
+   * straight back up: "he should stay on the ground until you hit an arrow to
+   * make him get up." Getting up is the first thing he does after losing
+   * everything, and taking that beat away made the knockdown feel like a
+   * stumble rather than a defeat.
+   *
+   * It reads as HELD rather than pressed, so leaning on the stick through the
+   * fall stands him the moment he is allowed to move — which is what a player
+   * mashing forward expects, and it costs nothing to honour.
+   */
+  getUpRequested: boolean;
 }
 
 export function initialAction(): ActionState {
-  return { phase: 'explore', elapsedMs: 0, committedAim: null, fireThisStep: false, chargeLevel: 0 };
+  return {
+    phase: 'explore',
+    elapsedMs: 0,
+    committedAim: null,
+    fireThisStep: false,
+    chargeLevel: 0,
+    releaseKind: null,
+    graceRemainingMs: 0,
+  };
 }
 
 /** Phases during which the player cannot start another attack. */
@@ -150,12 +236,17 @@ const enter = (
   committedAim: Vec2 | null,
   chargeLevel = 0,
   fireThisStep = false,
+  releaseKind: ReleaseKind | null = null,
 ): ActionState => ({
   phase,
   elapsedMs: 0,
   committedAim,
   fireThisStep,
   chargeLevel,
+  releaseKind,
+  // Overwritten by the stepAction wrapper, which is where grace actually lives.
+  // Zero here so a phase transition can never accidentally GRANT protection.
+  graceRemainingMs: 0,
 });
 
 /** Charge held so far, as a fraction of a full one, floored at a tap's worth. */
@@ -163,6 +254,10 @@ export function chargeFrom(heldMs: number): number {
   const t = Math.min(1, heldMs / ACTION_TIMING.chargeMaxMs);
   return MIN_CHARGE_LEVEL + (1 - MIN_CHARGE_LEVEL) * t;
 }
+
+/** Which slot a hold of `heldMs` released into. */
+export const releaseKindFrom = (heldMs: number): ReleaseKind =>
+  heldMs < ACTION_TIMING.holdThresholdMs ? 'quick' : 'heavy';
 
 /**
  * Advance one frame.
@@ -173,8 +268,42 @@ export function chargeFrom(heldMs: number): number {
  * and being hit while casting costs the cast.
  */
 export function stepAction(state: ActionState, input: ActionInput, dtMs: number): ActionState {
+  // Grace is handled OUTSIDE the phase machine, in a wrapper, because it has to
+  // survive phase changes and `enter()` resets everything it touches. Threading
+  // it through every call site instead would mean a dozen chances to forget it,
+  // and forgetting it silently restores the chain-knockdown this exists to stop.
+  const graceRemainingMs = Math.max(0, state.graceRemainingMs - dtMs);
+  const graced = graceRemainingMs > 0;
+
+  const next = stepPhase(
+    state,
+    // A heavy hit during the grace window is simply not a hit. Swallowing it
+    // here rather than in the runtime means every source of knockdown — the
+    // construct, the K key, a scenario — gets the protection for free.
+    graced && input.heavyHit ? { ...input, heavyHit: false } : input,
+    dtMs,
+  );
+
+  // The window opens when he is BACK ON HIS FEET, not when he goes down: the
+  // moment that needs protecting is the walk to his scattered cards, which
+  // starts next to whatever knocked him over.
+  const standingUp = state.phase === 'standUp' && next.phase === 'explore';
+  return {
+    ...next,
+    graceRemainingMs: standingUp ? ACTION_TIMING.knockdownGraceMs : graceRemainingMs,
+  };
+}
+
+function stepPhase(state: ActionState, input: ActionInput, dtMs: number): ActionState {
   if (input.heavyHit && state.phase !== 'knockdown' && state.phase !== 'standUp') {
     return enter('knockdown', null);
+  }
+
+  // A cancel outranks everything except being hit. It exists for the cases where
+  // the key-up is never coming — focus lost, tab hidden, a stall opened over the
+  // canvas — so it must be able to reach the phases that are waiting for one.
+  if (input.cancelRequested && (state.phase === 'charging' || state.phase === 'windup')) {
+    return enter('explore', null);
   }
 
   const elapsedMs = state.elapsedMs + dtMs;
@@ -199,11 +328,17 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
       // something he is no longer holding.
       if (!input.hasReadyCard) return enter('explore', null);
 
-      // RELEASE IS THE COMMIT. Both the charge and the aim are frozen here, and
-      // for the same reason: the shot should be the one the player let go of, not
-      // whatever the inputs happen to say two frames later.
+      // RELEASE IS THE COMMIT. The charge, the aim and the action slot are all
+      // frozen here, and for the same reason: the shot should be the one the
+      // player let go of, not whatever the inputs happen to say two frames later.
       if (!input.firePressed) {
-        return enter('windup', { ...input.aim }, state.chargeLevel);
+        // `state.elapsedMs` is the hold that produced `state.chargeLevel`, so
+        // classifying from it keeps the slot and the power telling one story.
+        const kind = releaseKindFrom(state.elapsedMs);
+        // A tap is fast but weak: it fires at a tap's worth of charge no matter
+        // how far the meter had crept, which is what makes holding worth doing.
+        const charge = kind === 'quick' ? MIN_CHARGE_LEVEL : state.chargeLevel;
+        return enter('windup', { ...input.aim }, charge, false, kind);
       }
 
       // Holding past full does not overcharge. It holds, so a player can charge
@@ -213,14 +348,16 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
 
     case 'windup':
       if (elapsedMs >= t.windupMs) {
-        // The projectile is born on entry to `active`, carrying the aim and the
-        // charge captured at release rather than anything current.
-        return enter('active', state.committedAim, state.chargeLevel, true);
+        // The projectile is born on entry to `active`, carrying the aim, the
+        // charge and the slot captured at release rather than anything current.
+        return enter('active', state.committedAim, state.chargeLevel, true, state.releaseKind);
       }
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'active':
-      if (elapsedMs >= t.activeMs) return enter('recovery', state.committedAim, state.chargeLevel);
+      if (elapsedMs >= t.activeMs) {
+        return enter('recovery', state.committedAim, state.chargeLevel, false, state.releaseKind);
+      }
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'recovery':
@@ -232,7 +369,10 @@ export function stepAction(state: ActionState, input: ActionInput, dtMs: number)
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'knockdown':
-      if (elapsedMs >= t.knockdownMs) return enter('standUp', null);
+      // He does NOT get up on his own. The fall has to finish first — standing
+      // out of a half-played fall looks like a glitch — and after that it is
+      // the player's move to make.
+      if (elapsedMs >= t.knockdownMs && input.getUpRequested) return enter('standUp', null);
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'standUp':

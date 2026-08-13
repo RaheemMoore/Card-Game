@@ -29,21 +29,22 @@
       12
     ],
     "durationsMs": [
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      45,
-      360
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      85,
+      180
     ],
-    "repeat": 0
+    "repeat": 0,
+    "note": "Retimed 2026-08-13 from 45ms/frame. At 45ms the whole fall played in 540ms and Raheem could not see it: \"way too fast for a human to see.\" 85ms is ~12fps, slow enough to read the stagger and the tip. The last frame is short because he now HOLDS on the ground until the player presses a direction, so the lying-down time belongs to the state machine, not here."
   },
   "anchor": {
     "x": 0.5,

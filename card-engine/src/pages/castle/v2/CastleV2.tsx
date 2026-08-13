@@ -6,6 +6,7 @@ import {
   loadPackEntries,
   makeScene,
   PRODUCTION_SCENE,
+  type CombatStateView,
   type HandView,
   type PackEntry,
   type Status,
@@ -55,6 +56,8 @@ export function CastleV2() {
   const [openStall, setOpenStall] = useState<DoorDestination | null>(null);
   const [paused, setPaused] = useState(false);
   const [hand, setHand] = useState<HandView | null>(null);
+  /** The training construct's state, for the on-screen combat readout. */
+  const [combat, setCombat] = useState<CombatStateView | null>(null);
 
   // Only decides whether the pause menu lists Admin. Defaults to 'user', so a
   // failed lookup hides a menu item rather than locking anyone out.
@@ -126,6 +129,9 @@ export function CastleV2() {
           },
           onHandChange: (h) => {
             if (!cancelled) setHand(h);
+          },
+          onCombatState: (s) => {
+            if (!cancelled) setCombat(s);
           },
           // His actual characters, newest first. The world takes ids and never
           // touches storage itself, so the harness can hand it fixtures instead.
@@ -225,6 +231,7 @@ export function CastleV2() {
         >
           {hand.slots.map((slot, i) => {
             const selected = hand.selected === i;
+            const dropped = slot.state === 'dropped';
             const fill =
               slot.state === 'ready'
                 ? '#f2e2b6'
@@ -236,15 +243,33 @@ export function CastleV2() {
                 key={i}
                 className="grid h-14 w-10 place-items-center rounded-sm border-2 transition-colors"
                 style={{
-                  borderColor: selected ? '#ffd479' : '#8a7a55',
+                  /* A dropped slot has to look LOST, not empty. It read as
+                     near-identical to an empty one — transparent fill, same
+                     border — which quietly undid the point of the whole
+                     scatter: §12 wants the player to understand what they lost
+                     and go and get it. Amber and dashed says "yours, and not
+                     here" in a way an absence cannot. */
+                  borderColor: dropped ? '#d98a3a' : selected ? '#ffd479' : '#8a7a55',
+                  borderStyle: dropped ? 'dashed' : 'solid',
                   background: selected ? 'rgba(13,11,8,0.78)' : 'rgba(13,11,8,0.55)',
                 }}
               >
                 <div
                   className="h-9 w-6 rounded-[2px]"
-                  style={{ background: fill, opacity: slot.state === 'empty' ? 0.2 : 1 }}
+                  style={{
+                    background: fill,
+                    opacity: slot.state === 'empty' ? 0.2 : 1,
+                    /* The outline stands in for the card that is not in his
+                       hand — the slot still belongs to something. */
+                    boxShadow: dropped ? 'inset 0 0 0 2px rgba(217,138,58,0.55)' : undefined,
+                  }}
                 />
-                <span className="text-[10px] leading-none text-amber-200/70">{i + 1}</span>
+                <span
+                  className="text-[10px] leading-none"
+                  style={{ color: dropped ? 'rgba(217,138,58,0.95)' : 'rgba(253,230,138,0.7)' }}
+                >
+                  {dropped ? '▼' : i + 1}
+                </span>
               </div>
             );
           })}
@@ -264,16 +289,91 @@ export function CastleV2() {
         >
           {[
             ['WASD', 'walk'],
+            ['mouse', 'aim'],
             ['1-4', 'pick card'],
-            ['hold F', 'charge · release to fire'],
+            ['click / F', 'tap = quick · hold = heavy'],
             ['G', 'summon (plant the card)'],
-            ['K', 'knock down'],
             ['SPACE', 'hop a ledge'],
             ['E', 'enter a door'],
+            // The combat test keys. They were console commands, which assumed
+            // the person testing the game writes JavaScript.
+            ['—', ''],
+            ['R', 'reset / revive the construct'],
+            ['T', 'freeze its brain'],
+            ['Y', 'arm its knockdown'],
+            ['K', 'knock yourself down'],
           ].map(([key, what]) => (
             <div key={key} className="flex gap-2">
               <span className="w-16 shrink-0 font-bold text-amber-200/90">{key}</span>
               <span>{what}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* The encounter, in words, top-right.
+          Everything here used to require typing a function call into the
+          browser's developer console — which assumed the person testing the
+          game is a programmer. Raheem, playing the script: "what the fuck is
+          the console?" Fair. The information was never the problem; the door
+          to it was. */}
+      {combat && !paused && !openStall && (
+        <div
+          className="pointer-events-none absolute right-5 top-5 select-none rounded-md px-3 py-2 text-[11px] leading-relaxed"
+          style={{ background: 'rgba(13,11,8,0.62)', color: 'rgba(242,226,182,0.85)', minWidth: 190 }}
+          role="status"
+          aria-label="Combat state"
+        >
+          <div className="mb-1 font-bold text-amber-200/90">The construct</div>
+          {[
+            // Plain words, not state-machine names. "telegraph" means nothing
+            // to someone who did not write the state machine.
+            ['doing', ({
+              disabled: 'switched off',
+              idle: 'unaware of you',
+              alert: 'noticed you',
+              face: 'turning to face you',
+              approach: 'coming for you',
+              telegraph: 'WINDING UP — move!',
+              attack: 'striking',
+              recovery: 'open — hit it now',
+              hitReact: 'flinching',
+              knockbackReact: 'staggered',
+              defeated: 'defeated',
+              reviving: 'reviving',
+            } as Record<string, string>)[combat.phase] ?? combat.phase],
+            ['health', `${combat.hp} / ${combat.maxHp}`],
+            ['distance', `${combat.distance}`],
+            ['its knockdown', combat.strongHits ? 'ARMED (Y)' : 'off (press Y)'],
+            ['its brain', combat.aiEnabled ? 'running' : 'FROZEN (T)'],
+            [
+              'you',
+              // Down is the one state with an instruction attached, because it
+              // is the one state the player has to DO something to leave.
+              combat.heroPhase === 'knockdown'
+                ? 'DOWN — press a direction'
+                : combat.graceMs > 0
+                  ? `protected ${(combat.graceMs / 1000).toFixed(1)}s`
+                  : combat.heroPhase,
+            ],
+          ].map(([label, value]) => (
+            <div key={label} className="flex justify-between gap-3">
+              <span className="opacity-60">{label}</span>
+              <span
+                className="font-bold"
+                style={{
+                  color:
+                    value === 'WINDING UP — move!'
+                      ? '#ffb02e'
+                      : value === 'open — hit it now'
+                        ? '#8fe08f'
+                        : value === 'DOWN — press a direction'
+                          ? '#ff9b6a'
+                          : undefined,
+                }}
+              >
+                {value}
+              </span>
             </div>
           ))}
         </div>
