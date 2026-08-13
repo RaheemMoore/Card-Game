@@ -638,7 +638,14 @@ export function makeScene(
     private compiledUpdate?: (time: number, delta: number) => void;
     private behavior?: SceneBehavior;
     private facing: HeroFacing = 'down';
-    private colliders: SceneColliders = { blockers: [], zones: [], shapes: [], missing: true };
+    private colliders: SceneColliders = {
+      blockers: [],
+      zones: [],
+      water: [],
+      walkBlockers: [],
+      shapes: [],
+      missing: true,
+    };
     private wildlife: SceneWildlife = {
       animals: [],
       areas: [],
@@ -1629,7 +1636,10 @@ export function makeScene(
           const b = this.cameras.main.getBounds();
           if (!Phaser.Geom.Rectangle.Contains(b, p.x, p.y)) return false;
           const feet = { x: p.x, y: p.y, width: HERO_FEET.width, height: HERO_FEET.height };
-          if (feetBlocked(feet, this.colliders.blockers)) return false;
+          // walkBlockers, not blockers: a card in the pond is a card he can see
+          // and cannot reach, which scatter.ts calls a character deleted by a
+          // physics accident.
+          if (feetBlocked(feet, this.colliders.walkBlockers)) return false;
           // levelAt returns null off any plate; ground level is 0 there, which is
           // what walking on plain terrain already means.
           return (levelAt(p.x, p.y, this.elevation) ?? 0) === this.level;
@@ -1767,7 +1777,7 @@ export function makeScene(
       const rect = { x: candidate.x, y: candidate.y, width: HERO_FEET.width, height: HERO_FEET.height };
       const standable =
         Phaser.Geom.Rectangle.Contains(b, candidate.x, candidate.y) &&
-        !feetBlocked(rect, this.colliders.blockers) &&
+        !feetBlocked(rect, this.colliders.walkBlockers) &&
         (levelAt(candidate.x, candidate.y, this.elevation) ?? 0) === this.level;
       // Backing off to his own feet is ugly and always reachable, which beats a
       // character materialising inside a wall.
@@ -2122,7 +2132,7 @@ export function makeScene(
         feet,
         dx * step,
         dy * step,
-        this.colliders.blockers,
+        this.colliders.walkBlockers,
         this.elevation,
         this.level,
       );
@@ -2180,7 +2190,7 @@ export function makeScene(
         this.feetRect(),
         fx,
         fy,
-        this.colliders.blockers,
+        this.colliders.walkBlockers,
         this.elevation,
         this.level,
       );

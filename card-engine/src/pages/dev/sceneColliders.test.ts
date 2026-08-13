@@ -41,6 +41,33 @@ describe('readSceneColliders', () => {
     expect(found.shapes).toHaveLength(2);
   });
 
+  it('keeps water as its own category, and still stops a walk', () => {
+    // The pond had no shape at all until 2026-08-13: the hero could wade in and
+    // a knockdown could scatter a card into the middle of it. Water is its own
+    // colour rather than another BLOCK so that a later "wadeable, but cards
+    // still never land in it" ruling is one predicate changing its mind.
+    const found = readSceneColliders(
+      sceneWith([
+        rect({ fillColor: COLLIDER_COLORS.block }),
+        rect({ fillColor: COLLIDER_COLORS.water, x: 400 }),
+      ]),
+    );
+    expect(found.blockers).toHaveLength(1);
+    expect(found.water).toHaveLength(1);
+    // …but walking must see both, which is the whole point of the third list.
+    expect(found.walkBlockers).toHaveLength(2);
+  });
+
+  it('blocks feet standing in water', () => {
+    // Guards the wiring rather than the parsing: a `walkBlockers` that parsed
+    // correctly and was never consulted is exactly the bug being fixed.
+    const found = readSceneColliders(sceneWith([rect({ fillColor: COLLIDER_COLORS.water })]));
+    const feet = { x: 40, y: 40, width: 20, height: 10 };
+    expect(feetBlocked(feet, found.walkBlockers)).toBe(true);
+    // And `blockers` alone would have let him wade straight in.
+    expect(feetBlocked(feet, found.blockers)).toBe(false);
+  });
+
   it('tolerates a colour nudged in the picker', () => {
     const found = readSceneColliders(sceneWith([rect({ fillColor: 0xff3457 })]));
     expect(found.blockers).toHaveLength(1);

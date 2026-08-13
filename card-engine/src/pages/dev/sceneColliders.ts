@@ -46,6 +46,21 @@ export const COLLIDER_LAYER_VAR = 'l14_COLLIDERS';
 export const COLLIDER_COLORS = {
   block: 0xff3355,
   zone: 0x33ccff,
+  /**
+   * Water. Blocks walking today, and is a category of its own rather than
+   * another BLOCK on purpose.
+   *
+   * The pond had no shape at all until 2026-08-13, so the hero could wade into
+   * it and — worse — a knockdown could scatter a card into the middle of it,
+   * where the only way to get it back was to walk somewhere the collision said
+   * he could not. Raheem's ruling was that water blocks.
+   *
+   * Recording it as WATER rather than folding it into BLOCK keeps the later
+   * ruling cheap: "wadeable, but cards still never land in it" becomes one
+   * predicate changing its mind, instead of an authored shape having to be
+   * found and re-coloured.
+   */
+  water: 0x2f6fdc,
 } as const;
 
 export type ColliderKind = keyof typeof COLLIDER_COLORS;
@@ -59,6 +74,22 @@ export interface SceneZone {
 export interface SceneColliders {
   blockers: Polygon[];
   zones: SceneZone[];
+  /**
+   * Water, kept separate from `blockers`.
+   *
+   * Callers that only care whether a point is standable should use
+   * `walkBlockers` and never look at this; the split exists so that the systems
+   * which place THINGS rather than move the hero — card scatter, summoning —
+   * can keep asking a question water might one day answer differently.
+   */
+  water: Polygon[];
+  /**
+   * Everything that stops a walk today: blockers plus water.
+   *
+   * Provided so the movement code cannot forget the water by using `blockers`
+   * out of habit, which is exactly how the pond came to be walkable.
+   */
+  walkBlockers: Polygon[];
   /** Every shape found, so the preview can show/hide them as one. */
   shapes: Phaser.GameObjects.Rectangle[];
   /** True when the scene has no `L14_COLLIDERS` layer at all. */
@@ -115,11 +146,12 @@ export function readSceneColliders(scene: Phaser.Scene): SceneColliders {
   ];
 
   if (!layer || typeof layer.getAll !== 'function') {
-    return { blockers: [], zones: [], shapes: [], missing: true };
+    return { blockers: [], zones: [], water: [], walkBlockers: [], shapes: [], missing: true };
   }
 
   const blockers: Polygon[] = [];
   const zones: SceneZone[] = [];
+  const water: Polygon[] = [];
   const shapes: Phaser.GameObjects.Rectangle[] = [];
 
   for (const child of layer.list) {
@@ -132,6 +164,8 @@ export function readSceneColliders(scene: Phaser.Scene): SceneColliders {
 
     if (kind === 'block') {
       blockers.push(polygon);
+    } else if (kind === 'water') {
+      water.push(polygon);
     } else {
       const xs = polygon.map((p) => p[0]);
       const ys = polygon.map((p) => p[1]);
@@ -147,7 +181,14 @@ export function readSceneColliders(scene: Phaser.Scene): SceneColliders {
     }
   }
 
-  return { blockers, zones, shapes, missing: false };
+  return {
+    blockers,
+    zones,
+    water,
+    walkBlockers: [...blockers, ...water],
+    shapes,
+    missing: false,
+  };
 }
 
 /**
