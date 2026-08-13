@@ -20,6 +20,21 @@ import { Navigate } from 'react-router-dom';
  * gets its own treatment as a single piece of work later.
  */
 export function landingRoute(): string {
+  // THE STUDIO'S FRONT DOOR IS THE STUDIO. The same codebase deploys as three
+  // products, and on the Studio deployment `/` landing in the courtyard meant
+  // the operator link and the player link opened the identical page — Raheem,
+  // 2026-08-12: "the studio link and the game link both take you to the castle."
+  //
+  // Set by `vite build --mode studio` (see vite.config.ts), so it travels with
+  // the build rather than with dashboard configuration. Unset — local `npm run
+  // dev`, and any build that is not the studio — keeps the courtyard, because
+  // that is what you want open while working on the game.
+  //
+  // Width is not consulted here: the admin shell has its own responsive
+  // treatment (compact rail, tablet drawer), so there is no narrow fallback to
+  // make.
+  if (import.meta.env.VITE_HOME_SURFACE === 'admin') return '/admin';
+
   const narrow = window.matchMedia(
     '(max-width: 767px), (orientation: portrait) and (max-width: 900px)',
   ).matches;

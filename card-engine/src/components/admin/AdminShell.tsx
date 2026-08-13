@@ -61,7 +61,12 @@ export function AdminShell() {
       </div>
     );
   }
-  if (guard === 'denied') return <Navigate to="/" replace />;
+  // `/login`, NOT `/`. On the Studio deployment `/` resolves to `/admin`
+  // (landingRoute), so bouncing a denied visitor to `/` would put them in an
+  // infinite redirect: / → /admin → / → /admin. The login page is terminal, and
+  // it is also the right answer — someone who lacks access almost always needs
+  // to sign in, and signing in from there returns them here.
+  if (guard === 'denied') return <Navigate to="/login" replace />;
   // Both admins and lore directors reach every admin page + menu. The two
   // admin-only capabilities (changing roles, approving/merging proposals) are
   // gated inside their own surfaces (AdminUsers role tab, Workshop approve/
