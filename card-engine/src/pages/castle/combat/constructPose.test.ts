@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CONSTRUCT_TUNING, telegraphIsAvoidable, type ConstructPhase } from './construct';
-import { CONSTRUCT_NEUTRAL, constructPose, type ConstructPoseInput } from './constructPose';
+import { COLLAPSE_MS, CONSTRUCT_NEUTRAL, constructPose, type ConstructPoseInput } from './constructPose';
 
 const POS = { x: 100, y: 100 };
 /** Directly to the right, so a forward lunge is a positive x. */
 const TARGET = { x: 200, y: 100 };
+/** Shot from the left, so it goes down to the right. */
+const FALL = { x: 1, y: 0 };
 
 const pose = (over: Partial<ConstructPoseInput> = {}) =>
   constructPose({
@@ -12,6 +14,7 @@ const pose = (over: Partial<ConstructPoseInput> = {}) =>
     elapsedMs: 0,
     pos: POS,
     committedTarget: TARGET,
+    fallDir: FALL,
     motionOff: false,
     ...over,
   });
@@ -22,7 +25,7 @@ describe('construct strike motion', () => {
     // colour; a pose stacked on top would fight feedback that reads correctly.
     const quiet: ConstructPhase[] = [
       'disabled', 'idle', 'alert', 'face', 'approach',
-      'hitReact', 'knockbackReact', 'defeated', 'reviving',
+      'hitReact', 'knockbackReact', 'reviving',
     ];
     for (const phase of quiet) {
       expect(pose({ phase }), phase).toEqual(CONSTRUCT_NEUTRAL);
@@ -83,7 +86,9 @@ describe('construct strike motion', () => {
     const phases: ConstructPhase[] = ['telegraph', 'attack', 'recovery'];
     for (const phase of phases) {
       for (let ms = 0; ms <= 1200; ms += 10) {
-        const p = constructPose({ phase, elapsedMs: ms, pos: POS, committedTarget: TARGET, motionOff: false });
+        const p = constructPose({
+          phase, elapsedMs: ms, pos: POS, committedTarget: TARGET, fallDir: FALL, motionOff: false,
+        });
         expect(Math.hypot(p.offsetX, p.offsetY)).toBeLessThan(CONSTRUCT_TUNING.lungeReachPx);
       }
     }
@@ -99,6 +104,61 @@ describe('construct strike motion', () => {
   it('is completely still with motion off', () => {
     expect(pose({ motionOff: true })).toEqual(CONSTRUCT_NEUTRAL);
     expect(pose({ phase: 'telegraph', elapsedMs: 300, motionOff: true })).toEqual(CONSTRUCT_NEUTRAL);
+  });
+
+  it('collapses even though death clears the committed target', () => {
+    // The trap this is here to catch: `defeatConstruct` sets committedTarget to
+    // null, so a collapse resolved after the no-target guard would be dead code
+    // that only a test remembering to pass a target could ever reach.
+    const down = pose({ phase: 'defeated', elapsedMs: COLLAPSE_MS, committedTarget: null });
+    expect(down).not.toEqual(CONSTRUCT_NEUTRAL);
+    expect(down.scaleY).toBeLessThan(1);
+  });
+
+  it('topples AWAY from the blow, and only ever one way per blow', () => {
+    const right = pose({ phase: 'defeated', elapsedMs: COLLAPSE_MS, fallDir: { x: 1, y: 0 } });
+    const left = pose({ phase: 'defeated', elapsedMs: COLLAPSE_MS, fallDir: { x: -1, y: 0 } });
+    expect(right.offsetX).toBeGreaterThan(0);
+    expect(right.rotation).toBeGreaterThan(0);
+    // Mirrored, so a construct shot from either side goes down believably and
+    // the death is not one canned direction wearing a variable name.
+    expect(left.offsetX).toBeCloseTo(-right.offsetX, 5);
+    expect(left.rotation).toBeCloseTo(-right.rotation, 5);
+  });
+
+  it('starts the fall from standing and finishes flat, then holds', () => {
+    const start = pose({ phase: 'defeated', elapsedMs: 0 });
+    expect(start).toEqual(CONSTRUCT_NEUTRAL);
+
+    const end = pose({ phase: 'defeated', elapsedMs: COLLAPSE_MS });
+    // Long past the end it must not keep sinking — the body waits on the ground
+    // for the revive rather than continuing through the floor.
+    const later = pose({ phase: 'defeated', elapsedMs: COLLAPSE_MS * 10 });
+    expect(later).toEqual(end);
+  });
+
+  it('stays visible as a corpse rather than fading out', () => {
+    // The revive grows back out of this exact body. Fading to nothing would
+    // make the thing that gets up a different object from the thing that died.
+    for (let ms = 0; ms <= COLLAPSE_MS * 3; ms += 20) {
+      expect(pose({ phase: 'defeated', elapsedMs: ms }).alpha).toBeGreaterThan(0.3);
+    }
+  });
+
+  it('with motion off, still reads as dead — it just does not fall', () => {
+    const down = pose({ phase: 'defeated', elapsedMs: COLLAPSE_MS, motionOff: true });
+    expect(down.offsetX).toBe(0);
+    expect(down.rotation).toBe(0);
+    expect(down.scaleY).toBe(1);
+    // The state survives the motion cut. Dropping the alpha too would leave a
+    // reduced-motion player with no way to tell a live construct from a dead one.
+    expect(down.alpha).toBeLessThan(1);
+  });
+
+  it('finishes falling before the revive starts', () => {
+    // Otherwise the fall and the getting-up overlap into one confused motion,
+    // and the moment the player earned is spent underneath the one they did not.
+    expect(COLLAPSE_MS).toBeLessThan(CONSTRUCT_TUNING.reviveMs);
   });
 
   it('leaves the fairness invariant alone', () => {

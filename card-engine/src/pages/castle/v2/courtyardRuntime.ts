@@ -2454,7 +2454,10 @@ export function makeScene(
       if (before !== this.construct.phase) {
         this.constructStats.lastPhase = `${before}->${this.construct.phase}`;
         if (this.construct.phase === 'telegraph') (this.constructStats.telegraphs as number)++;
-        if (this.construct.phase === 'defeated') (this.constructStats.defeats as number)++;
+        if (this.construct.phase === 'defeated') {
+          (this.constructStats.defeats as number)++;
+          this.killConstruct(hitDir);
+        }
       }
 
       // Does the committed strike reach him? Resolved against the SHAPE of the
@@ -2717,6 +2720,56 @@ export function makeScene(
       this.constructView?.flash(feel);
       this.hitstop?.trigger(feel.hitstopMs);
       this.kickCamera(feel, dir);
+    }
+
+    /**
+     * It died. Make that the loudest thing that has happened.
+     *
+     * WHAT THIS IS FOR. Death was the quietest event in the fight: the body
+     * went to 45% alpha and a dark brown, and stood there. A hit — any hit —
+     * had a flash, a freeze and a camera shove; the kill, which is the thing
+     * the whole exchange was for, had less feedback than the tap that preceded
+     * it. The escalation is the point, not the effects.
+     *
+     * It is deliberately built from the SAME parts as an ordinary heavy hit,
+     * fired together: heavy freeze, heavy flash, heavy camera, and a spray of
+     * the construct's own colours along the direction it is going down. A death
+     * that used a bespoke vocabulary would read as a cutscene rather than as
+     * the end of the fight the player was in.
+     *
+     * NOTHING HERE IS LOAD-BEARING. The revive is driven by `construct.ts`'s
+     * `reviveMs` off the phase clock, which never consults a tween — so if
+     * every effect below silently failed, the construct would still get back up
+     * exactly on time. That is the standing rule about state never waiting on
+     * animation, and here it means the backstop is the architecture rather than
+     * a timer someone has to remember to add.
+     */
+    private killConstruct(dir: { x: number; y: number }) {
+      if (!this.construct) return;
+      const feel = getHitFeel('heavy', this.motion);
+
+      this.constructView?.flash(feel);
+      this.hitstop?.trigger(feel.hitstopMs);
+      this.kickCamera(feel, dir);
+
+      // The construct coming apart, in the construct's OWN colours — scorched
+      // timber and ember. Not the element's: the elemental burst already played
+      // on the killing hit a frame ago, and repeating it would say the fire hit
+      // twice rather than that the thing it hit broke.
+      playDirectionalBurst(this, {
+        x: this.construct.pos.x,
+        y: this.construct.pos.y - 34,
+        depth: this.level * LEVEL_STRIDE + this.construct.pos.y + 2,
+        dir,
+        // Three, because every element kit's palette is three — the burst reads
+        // a fixed tuple and a fourth colour here would be a different shape of
+        // thing pretending to be a palette.
+        palette: ['#c98b4a', '#7a4a22', '#ffb02e'],
+        // From the tier, like every other burst in this file. A death is not
+        // licence to exceed the budget M3 pinned.
+        count: feel.particleCount,
+        power: 1,
+      });
     }
 
     /**

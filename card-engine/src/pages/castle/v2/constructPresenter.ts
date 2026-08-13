@@ -202,6 +202,18 @@ export function createConstructView(
   let lagDecayMs = 1;
   let lastPos = { x: state.pos.x, y: state.pos.y };
 
+  /**
+   * Which way the last blow pushed, for the collapse to fall along.
+   *
+   * Read off the knockback the state already applied rather than passed in, so
+   * the fall and the shove can never disagree about which way the hit came
+   * from. A killing blow that was NOT heavy moves nothing, so this keeps
+   * whatever the previous hit said and the transition below falls back to the
+   * facing — it stands looking at the hero, so away from the hero is backward.
+   */
+  let fallDir = { x: -1, y: 0 };
+  let wasDefeated = state.phase === 'defeated';
+
   return {
     update(next, _heroFeet, depthFor, presentDeltaMs) {
       /**
@@ -218,8 +230,17 @@ export function createConstructView(
       if (jumped > 12) {
         lagX = lastPos.x - next.pos.x;
         lagY = lastPos.y - next.pos.y;
+        // The shove's own direction, kept for the fall. Same frame, same numbers.
+        fallDir = { x: (next.pos.x - lastPos.x) / jumped, y: (next.pos.y - lastPos.y) / jumped };
       }
       lastPos = { x: next.pos.x, y: next.pos.y };
+
+      // A light killing blow displaces nothing, so there is no shove to read a
+      // direction off. Fall away from what it was looking at.
+      if (next.phase === 'defeated' && !wasDefeated && jumped <= 12) {
+        fallDir = { x: -next.facing.x, y: -next.facing.y };
+      }
+      wasDefeated = next.phase === 'defeated';
 
       // Decays on the PICTURE's clock, so the shove holds still through a
       // hitstop instead of quietly completing behind the freeze.
@@ -246,6 +267,7 @@ export function createConstructView(
         elapsedMs: next.elapsedMs,
         pos: next.pos,
         committedTarget: next.committedTarget,
+        fallDir,
         motionOff,
       });
 
@@ -278,8 +300,15 @@ export function createConstructView(
       // the pose is applied every frame, so compounding would shrink the body
       // to nothing over a few swings.
       body.setDisplaySize(BODY_W * strike.scaleX, BODY_H * strike.scaleY);
+      // Pivots at the feet, because the origin is (0.5, 1) — so a rotation is a
+      // topple rather than a spin about the middle. Zero for every pose but the
+      // collapse, and written every frame so a revive cannot inherit the fall.
+      body.setRotation(strike.rotation);
       shadow.setPosition(drawX, groundY);
       shadow.setDepth(depth - 1);
+      // The shadow spreads and thins as the body goes over: something lying
+      // down does not cast the shadow of something standing up.
+      shadow.setDisplaySize(BODY_W * 0.9 * strike.scaleX, 14 * (0.6 + 0.4 * strike.scaleY));
 
       /**
        * Colour, and the tell's last quarter.
@@ -302,11 +331,15 @@ export function createConstructView(
       } else {
         body.setFillStyle(PHASE_FILL[next.phase]);
       }
-      body.setAlpha(next.phase === 'defeated' ? 0.45 : 1);
+      // Was a flat 0.45 the instant it died. Now the collapse fades it as it
+      // goes over and holds it at a legible third — a corpse, not a ghost, and
+      // it has to still be there for the revive to grow back out of.
+      body.setAlpha(strike.alpha);
 
       // The flash rides the body exactly, bob included, or a hit on a moving
       // construct would light up the patch of ground it just left.
       hitFlash.setPosition(drawX, groundY + bob);
+      hitFlash.setRotation(strike.rotation);
       hitFlash.setDepth(depth + 0.5);
       // Matches the body's squash too, or a construct struck mid-swing would
       // wear a flash the wrong shape for the body under it.

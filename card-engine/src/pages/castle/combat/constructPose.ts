@@ -31,6 +31,10 @@ export interface ConstructPose {
   /** Multipliers on the body's size. 1 = untouched. */
   scaleX: number;
   scaleY: number;
+  /** Radians about the feet. Only the collapse uses it. */
+  rotation: number;
+  /** Multiplier on the body's alpha, so the collapse can fade as it lands. */
+  alpha: number;
 }
 
 export const CONSTRUCT_NEUTRAL: ConstructPose = {
@@ -38,7 +42,18 @@ export const CONSTRUCT_NEUTRAL: ConstructPose = {
   offsetY: 0,
   scaleX: 1,
   scaleY: 1,
+  rotation: 0,
+  alpha: 1,
 };
+
+/**
+ * How long the body takes to go down, ms.
+ *
+ * Shorter than `reviveMs` (600) so the fall has finished before it starts
+ * getting up — otherwise the two read as one confused motion, and the moment
+ * the player earned is spent underneath the moment they did not.
+ */
+export const COLLAPSE_MS = 420;
 
 /**
  * How far the body visibly travels on a strike, px.
@@ -74,6 +89,48 @@ const clamp01 = (t: number) => (t < 0 ? 0 : t > 1 ? 1 : t);
  */
 const VERTICAL_BIAS = 0.55;
 
+/**
+ * Going down.
+ *
+ * WHAT IT REPLACED. Defeat was `alpha 0.45` and a dark fill — the construct
+ * simply became a dimmer version of itself and stood there. Nothing fell,
+ * nothing stopped, and the moment the player had worked the whole exchange for
+ * was the least eventful thing on screen.
+ *
+ * The shape is: pitch over hard and early, drop, and fade as it lands. It
+ * TOPPLES rather than sinking straight down because a body that shrinks in
+ * place reads as being deleted; one that rotates about its feet reads as losing
+ * a fight. It never fades to nothing — the corpse stays legible at a third
+ * alpha, because it is about to revive from exactly there and a construct that
+ * vanished and reappeared would be two different objects.
+ */
+function collapse(elapsedMs: number, fallDir: Vec2, motionOff: boolean): ConstructPose {
+  // Motion off keeps the STATE — it is clearly dead — and drops the fall.
+  if (motionOff) return { ...CONSTRUCT_NEUTRAL, alpha: 0.35 };
+
+  const t = clamp01(elapsedMs / COLLAPSE_MS);
+  // Eased out, so most of the topple happens in the first moments: a body
+  // falling at a constant rate reads as being lowered.
+  const e = easeOut(t);
+
+  const len = Math.hypot(fallDir.x, fallDir.y);
+  // Nothing to fall away from — pitch left, which is at least a direction.
+  const ux = len === 0 ? -1 : fallDir.x / len;
+  const uy = len === 0 ? 0 : fallDir.y / len;
+
+  return {
+    // Slides a little as it goes over, the way a toppling thing does.
+    offsetX: ux * 14 * e,
+    offsetY: uy * 14 * e * VERTICAL_BIAS,
+    // Splays as it flattens.
+    scaleX: 1 + 0.18 * e,
+    scaleY: 1 - 0.55 * e,
+    // Most of a right angle: flat on the ground, not face-planted through it.
+    rotation: ux * 1.15 * e,
+    alpha: 1 - 0.65 * e,
+  };
+}
+
 export interface ConstructPoseInput {
   phase: ConstructPhase;
   /** Time spent in THIS phase, ms. */
@@ -87,6 +144,15 @@ export interface ConstructPoseInput {
    * because there is no direction to lunge in that would mean anything.
    */
   committedTarget: Vec2 | null;
+  /**
+   * Which way it topples when it dies.
+   *
+   * The direction of the blow that killed it, so a construct shot from the left
+   * falls to the right. A fixed fall direction would make every death identical
+   * regardless of how it was earned, which is the difference between a death
+   * that happened TO something and a death animation being played back.
+   */
+  fallDir: Vec2;
   /** Held still when the player has asked for no motion. */
   motionOff: boolean;
 }
@@ -100,13 +166,25 @@ export interface ConstructPoseInput {
  *   attack    — drives forward to `LUNGE_TRAVEL_PX` in the first third, then
  *               withdraws. Squashes as it commits.
  *   recovery  — settles back from wherever the withdrawal left it.
+ *   defeated  — topples away from the blow, sinks, and fades.
  *
  * Everything else is neutral. `hitReact` and `knockbackReact` already have the
  * view's own knockback lag and a colour, and stacking a pose on top of those
  * would fight feedback that is already reading correctly.
  */
 export function constructPose(input: ConstructPoseInput): ConstructPose {
-  const { phase, elapsedMs, pos, committedTarget, motionOff } = input;
+  const { phase, elapsedMs, pos, committedTarget, fallDir, motionOff } = input;
+
+  /**
+   * Death is resolved FIRST, before the committed-target guard below.
+   *
+   * `defeatConstruct` clears `committedTarget`, so a collapse that came after
+   * that guard would be unreachable in every real death and reachable only in a
+   * test that forgot to clear it — the worst possible arrangement, because it
+   * would look covered.
+   */
+  if (phase === 'defeated') return collapse(elapsedMs, fallDir, motionOff);
+
   if (motionOff || !committedTarget) return CONSTRUCT_NEUTRAL;
 
   const dx = committedTarget.x - pos.x;
@@ -123,6 +201,8 @@ export function constructPose(input: ConstructPoseInput): ConstructPose {
     offsetY: uy * distancePx * VERTICAL_BIAS,
     scaleX: 1 + squash * 0.5,
     scaleY: 1 - squash,
+    rotation: 0,
+    alpha: 1,
   });
 
   switch (phase) {
