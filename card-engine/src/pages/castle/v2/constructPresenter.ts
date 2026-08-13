@@ -28,12 +28,25 @@ import { CONSTRUCT_TUNING, type ConstructPhase, type ConstructState } from '../c
  */
 
 /** Body colour per phase. The telegraph is the one that has to carry meaning. */
+/**
+ * Body colour per phase.
+ *
+ * IDLE IS DELIBERATELY NOT THE OLD DUMMY'S BROWN. The first version of this
+ * shipped `0xb45c2a` — byte-identical to the training dummy it replaced, at the
+ * same 44x68 — so a construct standing still was indistinguishable from the
+ * furniture, and the whole feature read as "nothing changed". Slate reads as
+ * built-thing rather than post, and sits clearly against the courtyard's greens
+ * and dirt browns.
+ *
+ * The ramp from here is the tell: it warms as the construct commits, so colour
+ * alone carries the beat even before the ring appears.
+ */
 const PHASE_FILL: Record<ConstructPhase, number> = {
   disabled: 0x4a4a4a,
-  idle: 0xb45c2a,
-  alert: 0xc9762f,
-  face: 0xc9762f,
-  approach: 0xd08236,
+  idle: 0x6b7f96,
+  alert: 0x8f8f8a,
+  face: 0x9c9078,
+  approach: 0xb08a4e,
   // The tell. Hot, and it is the only phase that also grows and pulses.
   telegraph: 0xffb02e,
   attack: 0xff5b3a,

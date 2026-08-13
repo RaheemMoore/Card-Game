@@ -58,10 +58,19 @@ export type ConstructPhase =
  * document do not become permanent by having been written down.
  */
 export const CONSTRUCT_TUNING = {
-  /** How close he must come before it wakes up. */
-  alertRadiusPx: 260,
+  /**
+   * How close he must come before it wakes up.
+   *
+   * 340, not 260. At 260 it spawned 263 units from the hero — THREE units
+   * outside its own wake radius — so on a fresh load it sat there inert and
+   * looked exactly like the dummy it replaced. Raheem played the whole script
+   * and reported, correctly, that nothing had changed. An enemy that has to be
+   * walked into before it admits to being an enemy is not a training
+   * instrument, it is furniture.
+   */
+  alertRadiusPx: 340,
   /** And how far he must get for it to lose interest. Wider, so it does not flicker. */
-  forgetRadiusPx: 340,
+  forgetRadiusPx: 430,
   /** Units per second while closing. Slower than his 190 — he can always outwalk it. */
   approachSpeed: 70,
   /** The distance it wants before it commits to a strike. */

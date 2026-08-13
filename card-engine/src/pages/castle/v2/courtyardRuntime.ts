@@ -78,9 +78,12 @@ import {
 } from '../combat/actionState';
 import { resolveAction } from '../combat/cardActions';
 import {
+  CONSTRUCT_TUNING,
   initialConstruct,
   isHittable,
   resetConstruct,
+  setAiEnabled,
+  setStrongHits,
   stepConstruct,
   strikeHits,
   type ConstructHit,
@@ -595,6 +598,29 @@ export interface HandView {
   blockedCount: number;
 }
 
+/**
+ * The encounter, in words, for the on-screen readout.
+ *
+ * Everything here was previously only reachable by typing a function call into
+ * the browser's developer console — which assumed the person testing the game
+ * knows what a developer console is. Raheem, reasonably: "what the fuck is the
+ * console?" The information was never the problem; the door to it was.
+ */
+export interface CombatStateView {
+  phase: string;
+  hp: number;
+  maxHp: number;
+  distance: number;
+  /** Whether its strike knocks him down, toggled with Y. */
+  strongHits: boolean;
+  /** Whether it is allowed to act at all, toggled with T. */
+  aiEnabled: boolean;
+  /** What the Card-wright is doing. */
+  heroPhase: string;
+  /** Milliseconds of knockdown protection left, so the grace is visible. */
+  graceMs: number;
+}
+
 export interface RuntimeHooks {
   /** Fires when the hero steps into or out of a doorway. `null` on leaving. */
   onDoorChange?: (destination: DoorDestination | null) => void;
@@ -610,6 +636,15 @@ export interface RuntimeHooks {
    * a HUD.
    */
   onHandChange?: (hand: HandView) => void;
+  /**
+   * Fires when the encounter changes, for the on-screen combat readout.
+   *
+   * DEV only. It exists because "open the console and paste this" is not a
+   * usable instruction — Raheem's words, and he was right: the whole point of a
+   * training instrument is that a human can watch it work without being a
+   * programmer. What was a `__cardEngineDev` call is now a panel on the screen.
+   */
+  onCombatState?: (state: CombatStateView) => void;
   /**
    * The cards to fill the hand with, most-recent first.
    *
@@ -1165,6 +1200,33 @@ export function makeScene(
         Phaser.Input.Keyboard.KeyCodes.FOUR,
       ].map((code) => keyboard.addKey(code));
       this.pauseKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+
+      /**
+       * Combat test keys, on the keyboard rather than in a console.
+       *
+       * R revive/reset, T freeze its brain, Y arm the knockdown. Audited clear
+       * of everything above (WASD, SPACE, E, F, G, K, 1-4, ESC) and of the
+       * wildlife lab's F/T, which only bind in the WildlifeLab scene.
+       *
+       * These are the three commands the playtest script needed, and asking a
+       * human to type `__cardEngineDev.combat.setStrongHits(true)` to reach one
+       * of them was a design failure, not a documentation gap.
+       */
+      keyboard.on('keydown-Y', () => {
+        if (!this.construct) return;
+        this.construct = setStrongHits(this.construct, !this.construct.strongHits);
+        this.emitCombatState();
+      });
+      keyboard.on('keydown-T', () => {
+        if (!this.construct) return;
+        this.construct = setAiEnabled(this.construct, !this.construct.aiEnabled);
+        this.emitCombatState();
+      });
+      keyboard.on('keydown-R', () => {
+        if (!this.construct) return;
+        this.construct = resetConstruct(this.construct, this.constructHome);
+        this.emitCombatState();
+      });
     }
 
     /**
@@ -1329,6 +1391,34 @@ export function makeScene(
      * world is what Phaser is for. In the DOM the row cannot be lost, cannot sort
      * underneath a terrace, and scales with the page like the rest of the shell.
      */
+    /**
+     * Push the encounter to the shell, when it has actually changed.
+     *
+     * Phase, hp and the two toggles only, deliberately — distance changes every
+     * frame and re-rendering React sixty times a second to move one number is a
+     * cost with no benefit. Distance is rounded to a band for the same reason.
+     */
+    private emitCombatState() {
+      if (!this.construct || !hooks.onCombatState) return;
+      const c = this.construct;
+      const p = this.player;
+      const distance = p ? Math.round(Math.hypot(p.x - c.pos.x, this.feetY - c.pos.y) / 10) * 10 : 0;
+      const key = `${c.phase}|${c.hp}|${c.strongHits}|${c.aiEnabled}|${this.action.phase}|${distance}|${this.action.graceRemainingMs > 0}`;
+      if (key === this.lastCombatKey) return;
+      this.lastCombatKey = key;
+      hooks.onCombatState({
+        phase: c.phase,
+        hp: c.hp,
+        maxHp: CONSTRUCT_TUNING.maxHp,
+        distance,
+        strongHits: c.strongHits,
+        aiEnabled: c.aiEnabled,
+        heroPhase: this.action.phase,
+        graceMs: Math.round(this.action.graceRemainingMs),
+      });
+    }
+    private lastCombatKey = '';
+
     private emitHand() {
       hooks.onHandChange?.({
         selected: this.hand.selected,
@@ -1957,6 +2047,8 @@ export function makeScene(
       this.constructView?.update(this.construct, heroFeet, (groundY) =>
         this.depthBand ? this.level * LEVEL_STRIDE + groundY : 100000,
       );
+      // Cheap: it early-returns unless something a human would notice changed.
+      this.emitCombatState();
     }
 
     /**
