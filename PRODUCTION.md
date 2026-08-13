@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-09 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-12 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -93,13 +93,34 @@ costs nothing to decide and unblocks all planning behind it.
 
 *Needs:* a ruling from you, ideally with `game-systems-designer` consulted on pacing.
 
-### ○ Cheap win — delete 25 dead branches
+### ◆ Decide, don't build — the game can't make a character right now
 
-All 25 are fully merged into `main`. Git keeps every commit; the branch labels carry no
-information and actively mislead — your branch list suggests dozens of things in flight when
-the real number is two.
+The game deployment runs no serverless functions, so the Forge, tier-up and portrait
+regeneration return a 404 there. That was your call and it matches where this is going — the
+released game ships a curated roster and spends no money — but it means **the thing a player
+downloads currently cannot do the ritual the game is named for.**
 
-*Five minutes. Safe. See [§4 stranded branches](#stranded-branches).*
+Two ways to close it, and the choice is yours: land the curated roster (the real answer, and
+larger), or accept that character creation is a studio activity until then. Either is fine;
+drifting without deciding is not, because the gap is invisible from the studio where you work.
+
+This also gives Q10 teeth — Forge Crystals are purchase-only *because* each generation costs
+real money. On a curated roster, that reasoning weakens.
+
+*Where:* §4 "The three deployments" · *Related:* Q10
+
+### ○ Cheap win — confirm the two front doors, then delete six dead branches
+
+**First, sign in on each link and look.** Signed out, both the game and the studio show the
+login page, so the landing difference is proven in the bundles but not on the live sites. The
+studio should open the admin studio; the game should open the castle. Two minutes, and it is
+the last unverified piece of today's work.
+
+**Then the branches.** Six of the eight in §3 are more than 280 commits behind and are
+finished experiments — `seraph-corruption-arc` (the arc shipped from elsewhere),
+`agent-tuning-1`, `dash-structure`, `feat/lore-director-role`,
+`claude/vigilant-kowalevski-e30267`. Ruling them `WON'T DO` costs a sentence each and makes
+the branch list mean something again.
 
 ### ⚠ Risk worth naming — two big pieces of work exist on one machine each
 
@@ -356,6 +377,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | Ability system | Typed catalogs, power budget validator, discovery rewards, codex |
 | SHIPPED | Persistence + auth + admin | Supabase, RLS, anonymous→email upgrade, admin RBAC |
 | SHIPPED | Admin dashboard | 8 routes; all provider secrets server-side. The Studio Wiki branch now keeps the sidebar operational: Ability Review remains, Live Card Audit moves behind Overview, and duplicate reference browsing is removed. |
+| SHIPPED | Three deployments, three links | The game, the studio and the wiki are now three separate Vercel projects instead of two sharing one (2026-08-12, PRs [#41](https://github.com/RaheemMoore/Card-Game/pull/41)/[#42](https://github.com/RaheemMoore/Card-Game/pull/42)/[#43](https://github.com/RaheemMoore/Card-Game/pull/43)). **Game** — `card-game-game.vercel.app`, the admin pages are not in the download at all and it runs **zero** serverless functions and holds no provider keys. **Studio** — `card-engine-sigma.vercel.app`, unchanged, keeps all 9 functions and the secrets, and its front door is now the studio rather than the courtyard. **Wiki** — untouched. Studio work can no longer break the game's deploy, and the function cap is now a per-project budget (9 / 0 / 1) instead of one shared ceiling. **Unverified:** the signed-in landing on each link — see §4. |
 | SHIPPED | Economy (prototype) | Two currencies, catalog-driven, Supabase-backed |
 | SHIPPED | Seraph corruption arc | Alignment axis, Infernal transmutation, Resist the Fall |
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
@@ -381,34 +403,55 @@ Every paid provider call routes through a server-side Vercel function under
 
 The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
 Courtyard V2 forge checkpoint both live on `main` now. `castle-grand-redesign` merged on
-2026-08-11 (PR #37) and is gone from this list.
+2026-08-11 (PR #37). `prompt-lab-replay` (the Lore Desk and the Prompt Lab retirement, PRs
+#39/#40) and `overworld-card-combat` both merged on 2026-08-12 and are gone from this list.
+
+Counted against `origin/main` on 2026-08-12.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
-| `prompt-lab-replay` | 14 | 0 | Lore Desk in the admin app, Prompt Lab retirement, bench replay. **Actively worked** |
-| `overworld-card-combat` | 3 | 0 | Card-slam registration, pack-check LF fix, courtyard collider resegmentation. The combat vertical slice builds here |
-| `combat-cards-and-resource` | 3 | 71 | Boss readout + Debt-Bearer fix |
+| `worktree-studio-desks-open` | 3 | 106 | Opening both studio desks to both people behind one shared passphrase. **Open as [PR #38](https://github.com/RaheemMoore/Card-Game/pull/38)** |
+| `combat-cards-and-resource` | 3 | 289 | Boss readout + Debt-Bearer fix |
+| `seraph-corruption-arc` | 6 | 503 | Superseded — the arc shipped from elsewhere. Almost certainly a `WON'T DO` |
+| `agent-tuning-1` | 6 | 515 | Old studio-config experiment |
+| `dash-structure` | 2 | 506 | Old admin-shell experiment |
+| `feat/lore-director-role` | 2 | 504 | Predates the shipped lore-director role |
 | `feat/warband-battle-mvp` | 1 | 186 | Tested warband combat core. **Local only — never pushed** |
-| `claude/vigilant-kowalevski-e30267` | 1 | 205 | One Workshop fix. Will conflict if revived |
+| `claude/vigilant-kowalevski-e30267` | 1 | 423 | One Workshop fix. Will conflict if revived |
 
 **One of these has still never been pushed:** `feat/warband-battle-mvp`, a tested combat core
 186 commits back. Like the Still Season it exists on one machine and will be silently absent
 from every other device you open. If it is worth keeping (Q2) push it; if it is not, say so and
 it becomes a `WON'T DO`.
 
-**Two sessions are working this repo at once** (2026-08-12): the admin/Lore-Desk session on
-`prompt-lab-replay` in the main checkout, and the game/combat session on
-`overworld-card-combat` in its own worktree. They are deliberately disjoint — admin surface
-versus Phaser world — and neither should touch the other's files.
+**Both of the 2026-08-12 parallel sessions have landed.** The admin/Lore-Desk work
+(`prompt-lab-replay`) and the game/combat work (`overworld-card-combat`) are both on `main`,
+and the deployment split went in on top of them. `worktree-studio-desks-open` is the one
+piece of someone else's work still open.
+
+**Six of the eight branches above are stale experiments**, all more than 280 commits behind.
+They are not work in flight; they are the branch list making the project look busier than it
+is. Ruling on `seraph-corruption-arc`, `agent-tuning-1`, `dash-structure` and
+`feat/lore-director-role` as `WON'T DO` would cost one sentence each.
 
 ---
 
 <!-- updated: 2026-08-09 -->
 ## 4. Open threads
 
-**83 things started and not finished.** This is the list that didn't exist before. It will
+**86 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
+
+### The three deployments — 3 items
+
+The split shipped on 2026-08-12 and left three loose ends, one of which a player would notice.
+
+| What | Where |
+|---|---|
+| **The game deployment cannot forge a character.** The Forge, tier-up and portrait regeneration all call Claude and Leonardo live, and the game now runs no serverless functions, so `/api/*` returns 404 there. Character creation happens on the Studio. This closes by itself when the curated roster lands — the game will read a shipped roster instead of generating — but until then it is a real hole in the thing a player downloads | `card-engine/src/services/forge/forgeController.ts`, `game/vercel.json` |
+| **Nobody has confirmed the signed-in landing on either link.** Signed out, both deployments show the login gate at `/`, which sits in front of the landing logic — so the difference is proven in the bundles and locally, but not on the live sites. Sign in on each and check: the studio should open `/admin`, the game should open `/castle` | `card-engine/src/pages/Landing.tsx:36` |
+| The player nav still offers an admin-only "Admin" link pointing at `/admin`. On the game build that route does not exist, so an admin clicking it lands on the castle. Invisible to players; untidy | `card-engine/src/components/nav/navConfig.ts:15` |
 
 ### Courtyard V3 depth — 3 items
 
@@ -957,6 +1000,70 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-12 — The game, the studio and the wiki become three separate deployments
+
+Raheem opened the session by questioning the whole setup: the game is now something you buy
+on Steam for about fifteen dollars and download, not a website, and he suspected the
+Vercel-shaped build was accidental complexity left over from when it *was* a website. *"Are
+we accidentally overcomplicating our development process because we started with the
+intention of creating an online game?"*
+
+**The finding: Vercel was not the problem, but the one-deployment-for-two-products shape
+was.** Day-to-day work has always been `npm run dev`; deploying was never in that loop. What
+actually cost time was that the game and the studio shipped as one Vercel project. Vercel's
+Hobby plan caps a deployment at 12 serverless functions and going over fails the deploy
+*after* a completely successful build — which reads as an infrastructure fault rather than a
+quota, and cost an afternoon on 2026-08-10. All nine of those functions are studio tooling.
+The game also could not deploy without the studio's provider secrets, and either half's
+build error blocked the other.
+
+Raheem's own framing sharpened it: there are **three** products, not two — the game, the
+studio (the admin pages), and the wiki. The wiki had already been split. The game and the
+studio had not.
+
+**What shipped.** Three Vercel projects, three links. The studio did not move — same
+directory, same nine functions, same cron, same secrets — because the Workshop and the Lore
+Desk had just landed and his stated constraint was not to break them. The game got a new
+deployment whose build leaves the entire admin tree out of the bundle.
+
+**The mistake worth recording.** The game's first version carried three small functions that
+re-exported the studio's, so the auth check and the spend gate would never exist in two
+copies. They crashed on every call. Vercel's "include files outside the root directory"
+setting covers the *build* step only; the serverless function bundler does not carry files
+from outside a project's root. The build went green, the site deployed, and the functions
+died on invocation — a green build hiding a broken deploy, which is the exact failure the
+split was meant to end. I had claimed in the pull request that these followed the wiki's
+existing pattern; they did not, and the difference (reaching *down* into a folder inside the
+project root versus *up* out of it) is the whole reason it failed.
+
+**Raheem's ruling on the fix.** Offered three options — duplicate the security code with a
+drift check, wire a package dependency, or drop the functions entirely — he chose to drop
+them, which is where the project was already going: the released game ships a curated roster
+and nothing that spends money. **The game now runs zero serverless functions and holds no
+provider keys at all.**
+
+*What it cost:* forging, tier-up and portrait regeneration do not work on the game
+deployment until the curated roster lands. Character creation happens on the studio, which
+is where content is made anyway. That is now an open thread in §4 rather than a surprise.
+
+*What it closed:* studio work can no longer break the game's deploy. The function cap is a
+per-project budget (studio 9, game 0, wiki 1) instead of one shared ceiling. And the game is
+now a plain static bundle — which is the thing that eventually gets wrapped for Steam, so
+the Steam step gets easier rather than harder from here.
+
+**A late addition the same day.** With three links live, two of them opened the same page:
+*"the studio link and the game link both take you to the castle page where you can run
+around and shoot."* The studio's front door is now the studio. The fix went into the one
+helper that already answers "where does a person end up" — it serves the bare domain, the
+Google sign-in redirect, and the post-login jump — so every door in was covered rather than
+the one that happened to get tested. It also forced a real fix: the admin guard used to
+bounce refused visitors to `/`, which would now have ricocheted them between `/` and
+`/admin` forever, so it sends them to the login page instead.
+
+*Also confirmed while checking:* the live studio bundle was scanned for a leaked Anthropic
+key, a leaked Supabase secret, and the old browser-bundled `VITE_ANTHROPIC_API_KEY` from the
+pre-proxy era. **Zero hits.** Nothing needs rotating.
 
 ### 2026-08-11 — The lore desk is its own admin page, and questions come out of the lore
 
