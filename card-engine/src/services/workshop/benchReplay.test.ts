@@ -17,6 +17,33 @@ import type { BenchCandidate, BenchState } from './benchController';
 
 const STORAGE_KEY = 'card-engine-workshop-bench';
 
+// jsdom v29 dropped the built-in Storage implementation, so tests that
+// touch localStorage need their own polyfill. Minimal, per-test in-memory.
+function installFakeLocalStorage() {
+  const bag = new Map<string, string>();
+  const storage: Storage = {
+    get length() {
+      return bag.size;
+    },
+    clear() {
+      bag.clear();
+    },
+    getItem(key) {
+      return bag.has(key) ? bag.get(key)! : null;
+    },
+    key(index) {
+      return Array.from(bag.keys())[index] ?? null;
+    },
+    removeItem(key) {
+      bag.delete(key);
+    },
+    setItem(key, value) {
+      bag.set(key, String(value));
+    },
+  };
+  Object.defineProperty(globalThis, 'localStorage', { value: storage, configurable: true });
+}
+
 vi.mock('../claudeApi', () => ({ generateCardTextWithRetry: vi.fn() }));
 vi.mock('../leonardoApi', () => ({ generatePortraitStrict: vi.fn() }));
 vi.mock('../persistence/supabaseClient', () => ({
@@ -64,7 +91,8 @@ function seedStorage(candidates: BenchCandidate[]): void {
 
 describe('bench free replay', () => {
   beforeEach(() => {
-    globalThis.localStorage?.clear();
+    installFakeLocalStorage();
+    globalThis.localStorage.clear();
     vi.resetModules();
   });
 
