@@ -7,7 +7,7 @@
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
 
-**Last updated:** 2026-08-12 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-13 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -58,11 +58,36 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
 why in the decision log.*
+
+### ○ Ten minutes of yours — finish what shipped today
+
+Overworld combat went to production on 2026-08-13. Three small things need your hands, not
+more building, and all three are quick.
+
+**Draw the water shape.** The pond has never had a collider — you can wade into the middle
+of it, and a knockdown can scatter a card out there where the only way to reach it is to
+walk somewhere the game says you cannot. The code side is done and tested; it does nothing
+until one rectangle exists. Measured from the art so it is not a guess: in the Editor's
+`L14_COLLIDERS`, colour `#2f6fdc`, at **x=1859 y=1082 w=275 h=248**. That rectangle is
+entirely inside the water, so it cannot accidentally block the bank.
+
+**Play the fight and rule on the feel.** Every timing in the construct is a first guess held
+to exactly one guarantee — that its attack can be walked out of without a dodge. Whether the
+650ms warning *feels* fair, whether the recovery is a satisfying window to punish, and
+whether the fall now reads as a fall are all questions only playing answers. The numbers are
+one object in `combat/construct.ts`; changing any of them is a one-line edit.
+
+**Sign in on each link and look.** Still the last unverified piece of the deployment split
+from 2026-08-12: signed out, both the game and the studio show the login page, so the
+landing difference is proven in the bundles and not on the live sites. The studio should
+open the admin studio; the game should open the castle.
+
+*Where:* `COMBAT_SLICE_PLAYTEST.md` is the ten-minute script.
 
 ### ▲ Highest value — build the Forge menu next
 
@@ -109,18 +134,12 @@ real money. On a curated roster, that reasoning weakens.
 
 *Where:* §4 "The three deployments" · *Related:* Q10
 
-### ○ Cheap win — confirm the two front doors, then delete six dead branches
+### ○ Cheap win — rule six dead branches out
 
-**First, sign in on each link and look.** Signed out, both the game and the studio show the
-login page, so the landing difference is proven in the bundles but not on the live sites. The
-studio should open the admin studio; the game should open the castle. Two minutes, and it is
-the last unverified piece of today's work.
-
-**Then the branches.** Six of the eight in §3 are more than 280 commits behind and are
-finished experiments — `seraph-corruption-arc` (the arc shipped from elsewhere),
-`agent-tuning-1`, `dash-structure`, `feat/lore-director-role`,
-`claude/vigilant-kowalevski-e30267`. Ruling them `WON'T DO` costs a sentence each and makes
-the branch list mean something again.
+Six of the eight in §3 are more than 280 commits behind and are finished experiments —
+`seraph-corruption-arc` (the arc shipped from elsewhere), `agent-tuning-1`, `dash-structure`,
+`feat/lore-director-role`, `claude/vigilant-kowalevski-e30267`. Ruling them `WON'T DO` costs
+a sentence each and makes the branch list mean something again.
 
 ### ⚠ Risk worth naming — two big pieces of work exist on one machine each
 
@@ -364,7 +383,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -383,7 +402,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | AI Studio V2 | Control plane, Codex adapters, shared fullscreen shell, and courtyard scenarios are on `main`; local secret files remain ignored and untracked. |
 | IN FLIGHT | Studio Wiki | On `main` and deployed as its own Vercel project at `https://card-engine-studio-wiki.vercel.app`. It **replaced** the old Production Guide link in the admin sidebar — there is one door to the record now, not two. Cards uses one shared alpha pool with append-only Keep / X-out / Needs Review decisions; admin and lore-director partners share Ideas visibility while keeping author-only edits, and the database behind both is confirmed live. A deploy carries 22 MB instead of 93 MB and shows the commit it was built from. Its element and archetype pages can no longer drift from the game — the build fails if they do. **Open:** the first Raheem/Tori signed-in walkthrough, and the forward-looking "where this is going" surface Raheem is writing himself. |
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
-| SHIPPED | Castle courtyard + overworld combat | **`/castle` is CourtyardV3 and it is a game you can play** (merged to main 2026-08-12). Hold F to charge, release to throw a real elemental blast — the 27-element PixelLab library from the boss battle, reused for zero new generations. Four cards carried, exactly one place each. K knocks him down and scatters them onto validated reachable ground to be physically collected. G plants a card and a keeper rises out of where it landed, using the slam performance approved 2026-08-07. Hero draws at his native 71px. The 4 stalls are still unwired, and the controls list is a deliberate placeholder Raheem has chosen to keep for now. **The Combat Truth Slice landed 2026-08-13** and replaced the two biggest placeholders: the inert dummy is now a training construct that notices you, turns, closes, telegraphs, commits, strikes, recovers, dies and revives — and a strong strike, not the K key, is what knocks him down. Tap is a quick action and hold-past-220ms is a heavy one, dispatched through a per-card seam. Getting up buys a 1.5s grace so nothing can chain-knock him. Water is a category the collider layer understands, **awaiting one shape drawn in the Editor** (see §4). |
+| SHIPPED | Castle courtyard + overworld combat | **`/castle` is CourtyardV3 and it is a game you can play** (merged to main 2026-08-12). Hold F to charge, release to throw a real elemental blast — the 27-element PixelLab library from the boss battle, reused for zero new generations. Four cards carried, exactly one place each. K knocks him down and scatters them onto validated reachable ground to be physically collected. G plants a card and a keeper rises out of where it landed, using the slam performance approved 2026-08-07. Hero draws at his native 71px. The 4 stalls are still unwired, and the controls list is a deliberate placeholder Raheem has chosen to keep for now. **The Combat Truth Slice shipped to production 2026-08-13** ([PR #45](https://github.com/RaheemMoore/Card-Game/pull/45)) and replaced the two biggest placeholders. The inert dummy is now a training construct that notices you from 340 units, turns, closes — always slower than you — telegraphs with a growing ring on the ground, commits its strike to the spot you were standing on, lunges, recovers so you can punish it, flinches, dies and revives. **A strong strike, not the K key, is what knocks the Card-wright down.** Tap fires a quick action and holding past 220ms fires a heavy one, dispatched through a per-card seam so different cards can carry different heavies later. Getting up buys 1.5s of protection so nothing can chain-knock him. The fall now plays at 12fps instead of 22 — at the old speed the whole topple was over in 540ms, which is why it kept being reported as "a dark spot" — **and he stays on the ground until you press a direction.** A readout in the top-right says what the construct is doing in plain words, and R/T/Y reset it, freeze it and arm its knockdown, so none of this needs a browser console. Water is a category the collider layer now understands, **awaiting one shape drawn in the Editor** (see §0). |
 | IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
@@ -401,42 +420,40 @@ Every paid provider call routes through a server-side Vercel function under
 
 ### Branches with live work
 
-The two `codex/*` branches merged into `main` on 2026-08-04 — the Studio Wiki and the
-Courtyard V2 forge checkpoint both live on `main` now. `castle-grand-redesign` merged on
-2026-08-11 (PR #37). `prompt-lab-replay` (the Lore Desk and the Prompt Lab retirement, PRs
-#39/#40) and `overworld-card-combat` both merged on 2026-08-12 and are gone from this list.
+Three more merged on 2026-08-13 and are gone from this list: the Combat Truth Slice
+([PR #45](https://github.com/RaheemMoore/Card-Game/pull/45)), a bench-replay test fix
+([#46](https://github.com/RaheemMoore/Card-Game/pull/46)) and a launch config that lets the
+game be run on its own port ([#47](https://github.com/RaheemMoore/Card-Game/pull/47)).
+Earlier merges — the two `codex/*` branches, `castle-grand-redesign`, `prompt-lab-replay`,
+`overworld-card-combat` — are likewise off the list; git keeps every commit, so a merged
+branch name carries no information and only makes the project look busier than it is.
 
-Counted against `origin/main` on 2026-08-12.
+Counted against `origin/main` on 2026-08-13.
 
 | Branch | Ahead | Behind | What's on it |
 |---|---|---|---|
-| `worktree-studio-desks-open` | 3 | 106 | Opening both studio desks to both people behind one shared passphrase. **Open as [PR #38](https://github.com/RaheemMoore/Card-Game/pull/38)** |
-| `combat-cards-and-resource` | 3 | 289 | Boss readout + Debt-Bearer fix |
-| `seraph-corruption-arc` | 6 | 503 | Superseded — the arc shipped from elsewhere. Almost certainly a `WON'T DO` |
-| `agent-tuning-1` | 6 | 515 | Old studio-config experiment |
-| `dash-structure` | 2 | 506 | Old admin-shell experiment |
-| `feat/lore-director-role` | 2 | 504 | Predates the shipped lore-director role |
-| `feat/warband-battle-mvp` | 1 | 186 | Tested warband combat core. **Local only — never pushed** |
-| `claude/vigilant-kowalevski-e30267` | 1 | 423 | One Workshop fix. Will conflict if revived |
+| `worktree-studio-desks-open` | 3 | 125 | Opening both studio desks to both people behind one shared passphrase. **Open as [PR #38](https://github.com/RaheemMoore/Card-Game/pull/38)** |
+| `combat-cards-and-resource` | 3 | 308 | Boss readout + Debt-Bearer fix |
+| `seraph-corruption-arc` | 6 | 522 | Superseded — the arc shipped from elsewhere. Almost certainly a `WON'T DO` |
+| `agent-tuning-1` | 6 | 534 | Old studio-config experiment |
+| `dash-structure` | 2 | 525 | Old admin-shell experiment |
+| `feat/lore-director-role` | 2 | 523 | Predates the shipped lore-director role |
+| `feat/warband-battle-mvp` | 1 | ~200 | Tested warband combat core. **Local only — never pushed** |
+| `claude/vigilant-kowalevski-e30267` | 1 | 442 | One Workshop fix. Will conflict if revived |
 
 **One of these has still never been pushed:** `feat/warband-battle-mvp`, a tested combat core
-186 commits back. Like the Still Season it exists on one machine and will be silently absent
-from every other device you open. If it is worth keeping (Q2) push it; if it is not, say so and
-it becomes a `WON'T DO`.
+about two hundred commits back. Like the Still Season it exists on one machine and will be
+silently absent from every other device you open. If it is worth keeping (Q2) push it; if it
+is not, say so and it becomes a `WON'T DO`.
 
-**Both of the 2026-08-12 parallel sessions have landed.** The admin/Lore-Desk work
-(`prompt-lab-replay`) and the game/combat work (`overworld-card-combat`) are both on `main`,
-and the deployment split went in on top of them. `worktree-studio-desks-open` is the one
-piece of someone else's work still open.
-
-**Six of the eight branches above are stale experiments**, all more than 280 commits behind.
-They are not work in flight; they are the branch list making the project look busier than it
-is. Ruling on `seraph-corruption-arc`, `agent-tuning-1`, `dash-structure` and
-`feat/lore-director-role` as `WON'T DO` would cost one sentence each.
+**Six of the eight branches above are stale experiments**, all more than 300 commits behind.
+They are not work in flight. Ruling on `seraph-corruption-arc`, `agent-tuning-1`,
+`dash-structure` and `feat/lore-director-role` as `WON'T DO` would cost one sentence each.
+`worktree-studio-desks-open` is the one piece of someone else's work still genuinely open.
 
 ---
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 4. Open threads
 
 **86 things started and not finished.** This is the list that didn't exist before. It will
@@ -481,11 +498,11 @@ matters:
 | **The five named Studio scenarios** (§15) and the V3 studio bridge. `studioBridge.ts` still binds only the legacy `/castle/classic` scene; V3 has read-only readouts plus the new mutating commands, which is what the scenarios would drive | Deliberately after the behaviour, so the scenarios assert something that exists | new `v2/studioBridgeV3.ts`, `v2/combatScenarios.ts` |
 | **Reduced motion in V3.** The presenter already honours a `motionOff` flag and the telegraph is a growing *ring* rather than only a flash, so the tell survives — but nothing yet reads `prefers-reduced-motion` and threads it in. The legacy scene's `COURTYARD_EVENTS.motionOff` is the pattern | Scoped out of the slice; the shape-based tell was the load-bearing half | `v2/constructPresenter.ts` `setMotionOff`, `courtyardRuntime.ts` `motionOff` |
 
-Three things from the previous session are still open and unchanged:
+From the previous session:
 
 | What | Why it stopped | Where |
 |---|---|---|
-| **The fall reads wrong in play.** Raheem: "he just looks like a dark spot." The sheet is verified good on disk (87.5% transparent, colours matching the walk sheet), the texture now loads, and the anchor was corrected from a copied 0.95 to a measured 0.786 — but nobody has confirmed it in play since | Claude could not see it run: the Browser pane does not composite in that session and the Chrome extension is not Windows-compatible on this machine. Raheem was testing everything by hand and had had enough | `card-engine/src/data/castle/knockdownSprite.ts`, `playKnockdown` in `courtyardRuntime.ts` |
+| ~~**The fall reads wrong in play**~~ — **very likely solved 2026-08-13, unconfirmed by eye.** The cause was almost certainly never the sheet or the anchor: it was the SPEED. Twelve frames at 45ms put the entire topple on screen in 540ms, which is a flicker rather than a fall, and "he just looks like a dark spot" is what a fall too fast to track looks like. Now 85ms a frame (~12fps), and he holds on the ground until you press a direction instead of bouncing straight up. **Raheem has not watched it since the change** | Retimed in both the module and the sprite sidecar — a parity test pins the two together and refused the change until both moved | `card-engine/src/data/castle/knockdownSprite.ts` |
 | **The draw-and-present clip is drafted and unfired.** Firing shows a card floating up rather than him drawing and presenting it. Its final pose would also give a measured muzzle offset to replace the 14-unit guess in `cardOrigin()` | Waiting on approval to spend ~8 generations | `card-engine/scripts/sprite-lab/configs/hero-card-blast.json` |
 | **The NE rock now draws in front of the upper wall segments** where the un-segmented wall used to hide it. Correct by the sorting rule, but a visible change | Needs Raheem's ruling, not a fix | `CourtyardV3.scene`, `L8_NATURE` |
 
@@ -1023,10 +1040,63 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-09 -->
+<!-- updated: 2026-08-13 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-13 — Two bugs that made a day's work invisible, and a rule about instructions
+
+Raheem played the slice and reported that he could not see any of it. He was right, and both
+causes were mine.
+
+**The construct's idle colour was byte-identical to the dummy it replaced** — the same brown,
+at the same size. Standing still it *was* the old dummy. **And it woke at 260 units while
+spawning 263 away**, three units outside its own wake radius, so on a fresh load it sat there
+inert and none of the new behaviour ever fired. I measured that 263 during my own
+verification and did not register what it meant.
+
+*What it closed:* the lesson is that verifying a feature WORKS is not the same as verifying
+it is VISIBLE, and I only did the first. Anything new in the world now needs a "would a
+person notice this had changed?" check before it is called done.
+
+**The bigger failure was the instructions.** I told him to open the browser's developer
+console and paste a function call. His reply: *"what the fuck is the console?"* Entirely
+fair — the information was never the problem, the door to it was. The three commands the
+playtest needed are now keys (R reset, T freeze, Y arm the knockdown) and the state is a
+panel on screen in plain words: "WINDING UP — move!" rather than `telegraph`.
+
+*Standing rule this establishes:* **if a test procedure requires typing code, the procedure
+is unfinished.** Raheem is the person who plays this game; a tool he cannot reach is a tool
+that does not exist.
+
+### 2026-08-13 — The summon has never animated, and the reason has now caught four assets
+
+Raheem: *"there is no animation associated with the summon."* There was — `startSummon()` has
+always played the approved 17-frame card slam. But the sheet was missing from the force-load
+list, so its texture never loaded, so the animation was never created, so the `anims.exists()`
+guard was false and the summon ran silently. Every time, since 2026-08-07. **The guard meant
+to prevent a crash hid the bug instead.**
+
+*Why it matters:* this is the FOURTH asset lost to the same trap — no scene NAMES these
+clips because they are played from code, so the dependency scanner skips them. The knockdown
+shipped registered, packed, timed and unplayable for exactly this reason. Any clip played
+from code must be added to `HERO_CLIPS` by hand, and a guard that silently swallows a missing
+asset should be treated as a place where a bug can hide for a week.
+
+### 2026-08-13 — The knockdown is slower, and he stays down until you ask
+
+Two changes from watching it play. The fall ran at 45ms a frame — the whole topple in 540ms,
+a flicker rather than a fall, and almost certainly the real reason it had been reported since
+2026-08-12 as *"he just looks like a dark spot."* It is now 85ms a frame. And knockdown no
+longer expires on its own: Raheem asked that *"he should stay on the ground until you hit an
+arrow to make him get up,"* because getting up is the first thing he does after losing
+everything and taking that beat away made a defeat read as a stumble.
+
+*What it closed:* a test asserting "always stands back up" started failing, which was correct
+— that is now false by design. The invariant did not disappear, it moved: he must always be
+ABLE to get up, or the phase has no exit. Worth noting because the temptation was to weaken
+the test rather than restate what it was protecting.
 
 ### 2026-08-13 — The Combat Truth Slice: an enemy that talks back, and four rulings
 
