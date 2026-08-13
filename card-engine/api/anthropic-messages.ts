@@ -65,6 +65,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { gameAction, cardId, ...forwardBody } = body;
 
+  // The Lore Desk's actions (desk_*) are a two-person tool — the spend gate
+  // already blocks anonymous sessions, but a crystal-holding ordinary player
+  // must not be able to invoke desk AI either.
+  if (gameAction?.startsWith('desk_') && !caller.isPrivileged) {
+    res.status(403).json({ error: 'Desk AI actions need a lore director or admin account' });
+    return;
+  }
+
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
 

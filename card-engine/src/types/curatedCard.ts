@@ -35,7 +35,7 @@ import type {
  *                  being made OUTSIDE the app. A real working state, not a
  *                  nicety — without it a half-started character is invisible on
  *                  the roster board and gets stranded
- *   awaiting_lore  proposal sent; sitting on Tori's desk in the studio wiki
+ *   awaiting_lore  proposal sent; sitting on the Lore Desk (/admin/lore-desk)
  *   lore_ready     Tori confirmed; sitting in the Workshop's review queue
  *   approved       passed final review; its variants may now be published
  *   retired        pulled from the roster
@@ -116,6 +116,46 @@ export interface VisualTiebreakerClaim {
   optionId: string;
 }
 
+/**
+ * A bespoke selection question drafted by Claude FROM the finished lore, then
+ * edited and approved by the lore director at the Lore Desk (Raheem,
+ * 2026-08-11: the questions players answer should come out of the lore that
+ * already exists, and Tori confirms the ones associated with a character).
+ *
+ * These are the TIEBREAKER ROUND (Raheem, 2026-08-12). The shared Story
+ * Pillar answers narrow an archetype's bank to two or three candidates; these
+ * separate those finalists. A question's job is therefore to DISTINGUISH this
+ * character from her same-archetype siblings, not to characterise her in the
+ * abstract — one every character of the archetype would answer identically
+ * decides nothing. See buildQuestionPrompt in services/workshop/loreAssist.ts.
+ *
+ * Distinct from `visualTiebreaker` above, which is the structural picture
+ * round that runs last when the narrative answers still tie.
+ *
+ * Ids are globally unique (`gq_<characterId>_<n>`), so a sibling character can
+ * claim options on another character's approved question later without a
+ * remodel. Approving a question writes an ordinary AnswerBinding for it; a
+ * discarded question must have its binding removed in the same edit — see
+ * removeGeneratedQuestion in services/workshop/loreReadiness.ts.
+ */
+export interface GeneratedQuestionOption {
+  /** `${questionId}_a${n}` */
+  id: string;
+  text: string;
+}
+
+export interface GeneratedQuestion {
+  /** `gq_${characterId}_${n}` — globally unique across the roster. */
+  id: string;
+  prompt: string;
+  options: GeneratedQuestionOption[];
+  /** Drafts are Claude's; only the lore director moves one to approved. */
+  status: 'draft' | 'approved' | 'discarded';
+  generatedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+}
+
 // ---------- Provenance ----------
 
 /** What the Image Engine produced, when a character came off the bench. */
@@ -149,7 +189,7 @@ export interface CuratedProvenance {
  * here.
  *
  * The thread travels between BOTH surfaces — the Workshop's review space and
- * Tori's desk in the wiki — so a send-back and the reply to it sit next to each
+ * the Lore Desk — so a send-back and the reply to it sit next to each
  * other rather than in two systems.
  */
 export interface ReviewNote {
@@ -177,9 +217,10 @@ export interface SignOff {
 // ---------- Loose drafts ----------
 
 /**
- * The lore itself — Tori's work, written at her desk in the studio wiki rather
- * than in the Workshop (Raheem, 2026-08-10: the lore director owns the lore for
- * every card before it becomes permanent).
+ * The lore itself — Tori's work, written at the Lore Desk rather than in the
+ * Workshop (Raheem, 2026-08-10: the lore director owns the lore for every card
+ * before it becomes permanent). The desk lived in the studio wiki until
+ * 2026-08-11, when it became its own admin page below the Workshop.
  *
  * The card's NAME lives here, not on the character, because naming is a lore
  * act. `displayName` on the character is only the operators' working handle for
@@ -256,6 +297,11 @@ export interface CuratedCharacter {
   /** Claimed by Tori — the questions come out of who the character is. */
   answerBindings: AnswerBinding[];
   visualTiebreaker?: VisualTiebreakerClaim;
+  /**
+   * Bespoke selection questions drafted from this character's lore at the
+   * Lore Desk. Approved ones carry a matching AnswerBinding keyed on their id.
+   */
+  generatedQuestions?: GeneratedQuestion[];
 
   /** The `derived` art mode's source set. */
   masterArt?: Partial<Record<Rank, CuratedRankArt>>;
@@ -321,6 +367,14 @@ export const ROSTER_SLOTS_PER_ARCHETYPE = 10;
 
 /** Default binding weight. Raised only for a character's signature answers. */
 export const DEFAULT_BINDING_WEIGHT = 10;
+
+/**
+ * How many approved generated questions a character needs before its lore can
+ * be confirmed. Paired with curated_character_lore_is_ready() in
+ * supabase/migrations/20260812_lore_desk_generated_questions.sql — the SQL and
+ * this constant must change together.
+ */
+export const MIN_APPROVED_GENERATED_QUESTIONS = 3;
 
 export function curatedCharacterId(archetype: ArchetypeName, slug: string): string {
   return `char_${archetype.toLowerCase().replace(/\s+/g, '_')}_${slug}`;

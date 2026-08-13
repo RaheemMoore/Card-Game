@@ -128,3 +128,9 @@
 .lore-readonly{display:grid;grid-template-columns:24px minmax(0,1fr);gap:14px;align-items:start}
 .lore-readonly h2{font-size:14px;margin:2px 0 6px}
 .lore-readonly p{font-size:12px;color:var(--muted);line-height:1.55;margin:0 0 8px}
+/* The pointer that replaced the editor when the desk moved to /admin/lore-desk. */
+.lore-moved{display:grid;grid-template-columns:24px minmax(0,1fr);gap:14px;align-items:start}
+.lore-moved h2{font-size:15px;margin:2px 0 6px}
+.lore-moved p{font-size:12px;color:var(--muted);line-height:1.55;margin:0 0 8px}
+.lore-moved-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--accent);border-radius:8px;padding:8px 14px}
+.lore-moved-link:hover{background:var(--accent);color:#fff}

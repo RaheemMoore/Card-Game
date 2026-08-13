@@ -1,0 +1,337 @@
+import { useMemo, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { RANKS, type Rank } from '../../../types/card';
+import type { CuratedCharacter } from '../../../types/curatedCard';
+import { ARCHETYPE_BIBLE } from '../../../data/archetypeBible';
+import { getQuestionsForArchetype } from '../../../data/storyPillars';
+import { loreProblems } from '../../../services/workshop/loreReadiness';
+import { AdminButton, AdminCard, AdminField, AdminTextArea } from '../../../components/admin/ui';
+import { SaveChip, type SaveState } from '../../../components/admin/workshop';
+import { ReferenceRail } from './ReferenceRail';
+import { MuseColumn } from './MuseColumn';
+import { NameAssist } from './NameAssist';
+import { RoutingSection } from './RoutingSection';
+import { ColumnHandle } from './ColumnHandle';
+import { useDeskColumns } from './useDeskColumns';
+
+/**
+ * The desk itself — the three-region story-creation layout.
+ *
+ *   reference rail | writing canvas | the Muse
+ *
+ * The rails are sticky so the character and the suggestions never scroll away
+ * from the writing. `activeRank` is the page's spine: the rank tabs on the
+ * writing canvas and the portrait in the reference rail are the same state,
+ * so she is always looking at the person she is describing.
+ */
+export function StoryDesk({
+  character,
+  siblings,
+  queueCount,
+  saveState,
+  saveError,
+  onChange,
+  onBack,
+  onConfirm,
+}: {
+  character: CuratedCharacter;
+  /** The rest of this archetype's bank — for naming and the tiebreaker round. */
+  siblings: readonly CuratedCharacter[];
+  queueCount: number;
+  saveState: SaveState;
+  saveError: string | null;
+  onChange: (next: CuratedCharacter) => void;
+  onBack: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  const [activeRank, setActiveRank] = useState<Rank>('Foundation');
+  const columns = useDeskColumns();
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  const chapter = ARCHETYPE_BIBLE[character.archetype];
+  const questions = useMemo(
+    () => getQuestionsForArchetype(character.archetype),
+    [character.archetype],
+  );
+  const problems = loreProblems(character, questions.map((q) => q.id));
+
+  // The lore fields alone — what unlocks the Question Forge. Bespoke-question
+  // problems must not gate the button that creates bespoke questions.
+  const loreFieldsComplete =
+    Boolean(character.lore?.cardName?.trim()) &&
+    Boolean(character.lore?.nameAndTitle?.trim()) &&
+    Boolean(character.coreLore?.trim()) &&
+    RANKS.every((r) => character.lore?.rankLore?.[r]?.trim());
+
+  const lastSendBack = [...(character.reviewThread ?? [])]
+    .reverse()
+    .find((n) => n.kind === 'send_back');
+
+  const setLore = (patch: Partial<NonNullable<CuratedCharacter['lore']>>) => {
+    onChange({
+      ...character,
+      lore: { cardName: '', nameAndTitle: '', rankLore: {}, ...(character.lore ?? {}), ...patch },
+    });
+  };
+
+  const setRankLore = (rank: Rank, text: string) => {
+    setLore({ rankLore: { ...(character.lore?.rankLore ?? {}), [rank]: text } });
+  };
+
+  const toggleClaim = (questionId: string, optionId: string) => {
+    const existing = character.answerBindings ?? [];
+    const found = existing.find((b) => b.questionId === questionId);
+    let next;
+    if (!found) {
+      next = [...existing, { questionId, optionIds: [optionId], weight: 10 }];
+    } else if (found.optionIds.includes(optionId)) {
+      const optionIds = found.optionIds.filter((id) => id !== optionId);
+      next = optionIds.length
+        ? existing.map((b) => (b.questionId === questionId ? { ...b, optionIds } : b))
+        : existing.filter((b) => b.questionId !== questionId);
+    } else {
+      next = existing.map((b) =>
+        b.questionId === questionId ? { ...b, optionIds: [...b.optionIds, optionId] } : b,
+      );
+    }
+    onChange({ ...character, answerBindings: next });
+  };
+
+  const claimed = (questionId: string, optionId: string) =>
+    (character.answerBindings ?? [])
+      .find((b) => b.questionId === questionId)
+      ?.optionIds.includes(optionId) ?? false;
+
+  const claimedCountFor = (questionId: string) =>
+    (character.answerBindings ?? []).find((b) => b.questionId === questionId)?.optionIds.length ?? 0;
+
+  const confirm = async () => {
+    setConfirming(true);
+    setConfirmError(null);
+    try {
+      await onConfirm();
+    } catch (err) {
+      setConfirmError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const wordCount = (text: string | undefined) =>
+    text?.trim() ? text.trim().split(/\s+/).length : 0;
+
+  return (
+    <div className="grid gap-4">
+      {/* Breadcrumb bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <AdminButton size="sm" variant="ghost" icon={<ArrowLeft size={14} />} onClick={onBack}>
+          Queue ({queueCount})
+        </AdminButton>
+        <h2 className="m-0 text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>
+          {character.displayName} — {character.archetype} · slot {character.slotIndex}
+        </h2>
+        <span className="flex-1" />
+        <SaveChip state={saveState} error={saveError} />
+      </div>
+
+      {lastSendBack && (
+        <AdminCard
+          surface="subtle"
+          className="border-l-4"
+          // Amber ribbon — the reviewer's reason this came back.
+        >
+          <p className="m-0 text-xs" style={{ color: 'var(--admin-text)' }}>
+            <strong style={{ color: 'var(--admin-warning, #d9a94a)' }}>Sent back:</strong>{' '}
+            {lastSendBack.body}
+            <span style={{ color: 'var(--admin-text-muted)' }}> — {lastSendBack.author}</span>
+          </p>
+        </AdminCard>
+      )}
+
+      {/* The three regions. Under 1024px everything stacks; from 1024px the
+          reference rail joins and sticks; from 1440px the Muse gets its own
+          column (below that it renders after the writing column). Widths are
+          draggable — see useDeskColumns. */}
+      <style>{`
+        @media (min-width: 1024px) {
+          .lore-desk-rail, .lore-desk-muse { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow-y: auto; }
+        }
+      `}</style>
+      <div
+        className="lore-desk-grid grid gap-4 items-start"
+        style={{ gridTemplateColumns: columns.gridTemplateColumns }}
+      >
+        <div className="lore-desk-rail">
+          <ReferenceRail character={character} activeRank={activeRank} onRankChange={setActiveRank} />
+        </div>
+
+        {columns.mode !== 'stacked' && (
+          <ColumnHandle
+            label="Resize the character column"
+            width={columns.railWidth}
+            grows="left"
+            onResize={columns.resizeRail}
+            onReset={columns.reset}
+          />
+        )}
+
+        {/* Writing canvas */}
+        <div className="grid gap-4 min-w-0">
+          <AdminCard className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AdminField
+                label="Card name"
+                placeholder="What players will call them"
+                value={character.lore?.cardName ?? ''}
+                onChange={(e) => setLore({ cardName: e.target.value })}
+              />
+              <AdminField
+                label="Name and title"
+                placeholder="Name, the Something"
+                value={character.lore?.nameAndTitle ?? ''}
+                onChange={(e) => setLore({ nameAndTitle: e.target.value })}
+              />
+            </div>
+            <AdminTextArea
+              label="Premise"
+              rows={2}
+              placeholder="One line: who is this?"
+              value={character.coreLore ?? ''}
+              onChange={(e) => onChange({ ...character, coreLore: e.target.value })}
+            />
+            <NameAssist
+              character={character}
+              siblings={siblings}
+              onApply={(cardName, nameAndTitle) => setLore({ cardName, nameAndTitle })}
+            />
+          </AdminCard>
+
+          {/* Rank writing — tabs mirror the reference rail */}
+          <AdminCard padded={false} className="overflow-hidden">
+            <div
+              className="grid grid-cols-3"
+              role="tablist"
+              aria-label="Rank lore"
+              style={{ borderBottom: '1px solid var(--admin-border)' }}
+            >
+              {RANKS.map((rank) => {
+                const active = rank === activeRank;
+                const words = wordCount(character.lore?.rankLore?.[rank]);
+                return (
+                  <button
+                    key={rank}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setActiveRank(rank)}
+                    className="px-2 py-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--admin-accent)]"
+                    style={{
+                      background: active ? 'var(--admin-active-wash)' : 'transparent',
+                      boxShadow: active ? 'inset 0 -2px 0 var(--admin-accent)' : undefined,
+                    }}
+                  >
+                    <span
+                      className="block text-[11px] font-bold uppercase tracking-wider"
+                      style={{ color: active ? 'var(--admin-accent-alt)' : 'var(--admin-text-muted)' }}
+                    >
+                      {rank}
+                    </span>
+                    <span className="block text-[10px] tabular-nums" style={{ color: 'var(--admin-text-muted)' }}>
+                      {words ? `${words} words` : 'unwritten'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="p-4 grid gap-2">
+              {chapter && (
+                <p className="m-0 text-[11px] italic" style={{ color: 'var(--admin-text-muted)' }}>
+                  {chapter.rankEvolution[activeRank]}
+                </p>
+              )}
+              <textarea
+                key={activeRank}
+                rows={12}
+                placeholder={`Who they are at ${activeRank}`}
+                value={character.lore?.rankLore?.[activeRank] ?? ''}
+                onFocus={() => setActiveRank(activeRank)}
+                onChange={(e) => setRankLore(activeRank, e.target.value)}
+                className="w-full p-3 text-[15px] resize-y focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-accent)]"
+                style={{
+                  background: 'var(--admin-surface-strong)',
+                  border: '1px solid var(--admin-border)',
+                  borderRadius: 'var(--admin-radius-control)',
+                  color: 'var(--admin-text)',
+                  lineHeight: 1.7,
+                  fontFamily: 'Georgia, "Times New Roman", serif',
+                }}
+              />
+            </div>
+          </AdminCard>
+
+          <RoutingSection
+            character={character}
+            siblings={siblings}
+            questions={questions}
+            loreComplete={loreFieldsComplete}
+            claimedCountFor={claimedCountFor}
+            isClaimed={claimed}
+            onToggle={toggleClaim}
+            onChange={onChange}
+          />
+
+          {/* Confirm. The reasons live in the rail's "What's left" when it is
+              on screen — printing the same list twice on one screen is what
+              made the first version of this page unreadable. Stacked, the
+              rail is far below the button, so the reasons come back here. */}
+          <AdminCard surface="glass" className="grid gap-2.5">
+            {problems.length > 0 && columns.mode !== 'stacked' ? (
+              <p className="m-0 text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+                {problems.length} {problems.length === 1 ? 'thing is' : 'things are'} still
+                missing — they are listed under <strong style={{ color: 'var(--admin-text)' }}>What's
+                left</strong>, on the right.
+              </p>
+            ) : problems.length > 0 ? (
+              <ul className="grid gap-1 m-0 p-0 list-none">
+                {problems.map((p) => (
+                  <li key={p} className="text-[11px]" style={{ color: 'var(--admin-text-muted)' }}>
+                    ○ {p}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="m-0 text-[11px]" style={{ color: 'var(--admin-success)' }}>
+                Everything needed is here. Confirming sends it back for review.
+              </p>
+            )}
+            {confirmError && (
+              <p className="m-0 text-[11px]" style={{ color: 'var(--admin-danger)' }}>{confirmError}</p>
+            )}
+            <AdminButton
+              variant="primary"
+              disabled={confirming || problems.length > 0}
+              onClick={() => void confirm()}
+            >
+              {confirming ? 'Confirming…' : 'Confirm — send back for review'}
+            </AdminButton>
+          </AdminCard>
+        </div>
+
+        {columns.mode === 'wide' && (
+          <ColumnHandle
+            label="Resize the Muse column"
+            width={columns.museWidth}
+            grows="right"
+            onResize={columns.resizeMuse}
+            onReset={columns.reset}
+          />
+        )}
+
+        <div className="lore-desk-muse" style={{ gridColumn: columns.museGridColumn }}>
+          <MuseColumn character={character} problems={problems} onJumpToRank={setActiveRank} />
+        </div>
+      </div>
+    </div>
+  );
+}

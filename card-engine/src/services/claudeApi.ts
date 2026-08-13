@@ -16,14 +16,7 @@ import { assembleHairFashionBlock, ARCHETYPE_FASHION_GUIDES } from '../data/hair
 // engine-separation cleanup). The Lore Engine imports back only the two it
 // references internally.
 import { PORTRAIT_PROMPT_MAX, ARCHETYPE_NON_HUMAN_FORMS } from './imageEngine/imageConstants';
-import {
-  NAMING_BIBLE,
-  NAMING_BANNED_TROPES,
-  NAME_STRUCTURE_LABELS,
-  EPITHET_BY_RANK,
-  NAMING_QUALITY_REMINDERS,
-  rotateSlice,
-} from '../data/namingBible';
+import { buildNamingBibleBlock } from './naming/namingPrompt';
 import { getRecentNames, formatRecentForPrompt, recordName, detectCollision } from './nameHistory';
 import { getQuestionsForArchetype } from '../data/storyPillars';
 import { getDefinition, getCurrentVersion, getFamily } from './abilities/registry';
@@ -707,7 +700,11 @@ function buildPrompt(input: {
   // character"). For fresh forges, we build a per-archetype naming block
   // with rotating sample slices + recent-name avoidance + banned tropes +
   // rank-appropriate epithet guidance.
-  const namingGuide = existingName ? null : NAMING_BIBLE[archetype];
+  //
+  // The block itself lives in services/naming/namingPrompt.ts — the Lore Desk
+  // asks for name candidates with the SAME block, and two copies of the
+  // banned-trope list would not stay a rule for long. The rotation cursor
+  // stays here: it is this pipeline's, and the desk keeps its own.
   const namingOffset = existingName ? 0 :
     (typeof window !== 'undefined'
       ? (parseInt(window.localStorage.getItem('card-engine-naming-offset') || '0', 10) || 0)
@@ -715,15 +712,6 @@ function buildPrompt(input: {
   if (!existingName && typeof window !== 'undefined') {
     window.localStorage.setItem('card-engine-naming-offset', String(namingOffset + 1));
   }
-  const rotatedSampleNames = namingGuide
-    ? rotateSlice(namingGuide.sampleNames, namingOffset * 3, nameSampleCount)
-    : [];
-  const rotatedFullNames = namingGuide
-    ? rotateSlice(namingGuide.sampleFullNames, namingOffset * 2, nameFullCount)
-    : [];
-  const rotatedRegisters = namingGuide
-    ? rotateSlice(namingGuide.culturalRegisters, namingOffset, nameRegisterCount)
-    : [];
   const recentNamesStr = formatRecentForPrompt(getRecentNames(), 15);
   const rankKey = (overallRank === 'Foundation' || overallRank === 'Forged' || overallRank === 'Ascendant')
     ? overallRank : 'Foundation';
@@ -770,37 +758,15 @@ function buildPrompt(input: {
     : -1;
   const fashionVariantIndex = rawFashionIdx >= 0 ? rawFashionIdx : undefined;
 
-  const namingBlock = existingName ? '' : `
-=== FANTASY CHARACTER NAMING BIBLE (Raheem v1.0 — enforce for cardName and nameAndTitle) ===
-CORE PRINCIPLE: A name is compressed worldbuilding. It should feel like the character existed BEFORE the prompt. Do NOT sample the example names below verbatim — they are showing STRUCTURE, RHYTHM, and CULTURAL DIRECTION only. Generate an ORIGINAL name that fits THIS character's ancestry (from the diversity axis + hiddenFate.skinTone), archetype, and story.
-
-ARCHETYPE NAMING IDENTITY (${archetype}): ${namingGuide?.identity ?? ''}.
-
-CULTURAL DIRECTION (pick ONE that fits the character's ancestry — do NOT default to a Norse/Latin/East-Asian stereotype for this archetype):
-${rotatedRegisters.map((r) => `  - ${r}`).join('\n')}
-
-SUITABLE NAME STRUCTURES for ${archetype} (choose ONE):
-${(namingGuide?.structures ?? []).map((s) => `  - ${NAME_STRUCTURE_LABELS[s]}`).join('\n')}
-
-EXAMPLE PERSONAL NAMES (for tone/rhythm reference — DO NOT copy verbatim): ${rotatedSampleNames.join(', ')}
-EXAMPLE FULL NAMES (for structure/epithet reference — DO NOT copy verbatim): ${rotatedFullNames.join(' ; ')}
-
-BANNED TROPES (project-wide — DO NOT use, no exceptions):
-  ${NAMING_BANNED_TROPES.slice(0, 25).join(', ')}
-  (and: any "X, Keeper of Y" / "X, the Warden of Y" / "X, Y's Vigil" default epithets — these are the exact tropes we are eliminating)
-
-ARCHETYPE-SPECIFIC AVOID for ${archetype}:
-${(namingGuide?.avoid ?? []).map((a) => `  - ${a}`).join('\n')}
-
-EPITHET GUIDANCE (rank = ${rankKey}): ${EPITHET_BY_RANK[rankKey]}
-
-QUALITY REMINDERS:
-${NAMING_QUALITY_REMINDERS.map((q) => `  - ${q}`).join('\n')}
-
-RECENT CARD NAMES (do NOT repeat these, do NOT reuse the same first-name shape or ending): ${recentNamesStr || '(none yet — this is an early forge)'}
-
-Before returning cardName + nameAndTitle, verify: (1) does it fit THIS character's specific ancestry/story, not just a generic archetype cliché? (2) is it structurally different from the recent names above? (3) is it FREE of every banned trope? (4) is any epithet EARNED by a specific Story Pillar answer (Foundation: usually no epithet)? If any answer is weak, revise the name.
-`;
+  const namingBlock = existingName ? '' : buildNamingBibleBlock({
+    archetype,
+    rank: rankKey,
+    offset: namingOffset,
+    sampleCount: nameSampleCount,
+    fullCount: nameFullCount,
+    registerCount: nameRegisterCount,
+    recentNamesStr,
+  });
 
 
   const promptText = `You are the generation authority for a fantasy card game. You are following the Character Generation Bible, which is the canonical source of truth. Ignore any prior stylistic conventions from other fantasy games or previous versions of this game.

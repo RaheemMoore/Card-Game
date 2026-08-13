@@ -10,7 +10,7 @@ import { Triptych, Checklist, StatusBadge, StageIntro } from '../../../component
  * Stage 4 — propose.
  *
  * The hand-off out of the Workshop. The three images and the identity sheet go
- * to Tori's desk in the studio wiki, where the lore and the Story Pillar
+ * to the Lore Desk at /admin/lore-desk, where the lore and the Story Pillar
  * bindings are written. Nothing becomes permanent without passing through her
  * (Raheem, 2026-08-10).
  *
@@ -109,7 +109,7 @@ export function Propose({ character }: { character: CuratedCharacter }) {
       <StageIntro
         step="04"
         title="Propose — hand the character to the lore director"
-        next="it appears on Tori's desk in the Studio Wiki. She names it, writes the lore for each rank, and chooses which player answers lead to it."
+        next="it appears on the Lore Desk, the page below this one. The lore director names it, writes the lore for each rank, chooses which player answers lead to it, and approves the bespoke questions drafted from that lore."
       >
         <p className="m-0">
           Your half is the pictures and the description. Hers is the story. The checklist below is
