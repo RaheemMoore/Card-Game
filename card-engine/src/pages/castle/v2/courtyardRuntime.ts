@@ -140,6 +140,14 @@ import {
   severityForCharge,
   type HitSeverity,
 } from '../combat/feel';
+import {
+  dispose as disposeAudio,
+  playCue,
+  setCharge as setChargeTone,
+  stopCharge as stopChargeTone,
+  toggleMuted as toggleAudioMuted,
+  unlock as unlockAudio,
+} from '../combat/courtyardAudio';
 import { attackPose, cardPose } from '../combat/attackPose';
 import { createHitstop, type Hitstop } from './hitstop';
 import { resolveMotionLevel } from './motionLevel';
@@ -1412,6 +1420,21 @@ export function makeScene(
         this.construct = setStrongHits(this.construct, !this.construct.strongHits);
         this.emitCombatState();
       });
+      /**
+       * Bring audio up on the first real gesture, and only then.
+       *
+       * Browsers keep an AudioContext suspended until a user does something,
+       * so this cannot happen at boot. Wired to BOTH keys and pointer because
+       * the courtyard is playable with either, and `unlock()` is safe to call
+       * on every one of them — asking "was this the first" would be a second
+       * thing to get wrong for no benefit.
+       */
+      this.input.on('pointerdown', unlockAudio);
+      keyboard.on('keydown', unlockAudio);
+      keyboard.on('keydown-M', () => {
+        this.constructStats.sound = toggleAudioMuted() ? 'MUTED (M)' : 'on (M)';
+      });
+
       keyboard.on('keydown-T', () => {
         if (!this.construct) return;
         this.construct = setAiEnabled(this.construct, !this.construct.aiEnabled);
@@ -1592,6 +1615,8 @@ export function makeScene(
        */
       this.applyHeroTransform();
 
+      this.updateAudio();
+
       // The hand row answers for the attack now — the charge climbing, the
       // release, the recovery — so it has to be offered every frame like the
       // pose is. It is keyed and early-returns unless something the shell
@@ -1651,7 +1676,12 @@ export function makeScene(
         this.cancelScenario();
         this.heroFlashTimer?.remove();
         this.heroFlashTimer = undefined;
+        // A held charge tone would otherwise sing on over a courtyard that no
+        // longer exists — the audio context outlives the scene exactly the way
+        // the animation manager does.
+        disposeAudio();
       });
+
 
       // The blast's view of it. Kept in step with the construct's own position
       // every frame — one of them is the truth and it is not this one.
@@ -1747,6 +1777,38 @@ export function makeScene(
      * frame and the key is what stops that becoming sixty React renders a
      * second. Everything the shell draws is in the key; nothing else is.
      */
+    /**
+     * The attack, heard.
+     *
+     * Driven off the SAME action phase the pose and the card row read, so the
+     * sound cannot drift out of step with the picture — there is one clock and
+     * three things listening to it, rather than a sound system with its own
+     * idea of when a shot happened.
+     *
+     * The charge is a held tone that follows `chargeLevel` continuously; the
+     * release is a one-shot on the transition into `active`. Everything else —
+     * contact, the tell, the kill — fires from the moment it belongs to, next
+     * to the flash and the freeze it is meant to arrive with.
+     */
+    private updateAudio() {
+      const phase = this.action.phase;
+      if (phase === 'charging') {
+        setChargeTone(this.action.chargeLevel);
+      } else if (this.lastAudioPhase === 'charging' || this.lastAudioPhase === 'windup') {
+        // Let go at the END of windup, not at the release: the blast has not
+        // left the card during windup, and a charge that fell silent while he
+        // was still bracing would sound like the shot was cancelled.
+        if (phase !== 'windup') stopChargeTone();
+      }
+
+      if (phase === 'active' && this.lastAudioPhase !== 'active') {
+        stopChargeTone();
+        playCue('release', { severity: severityForCharge(this.action.chargeLevel) });
+      }
+      this.lastAudioPhase = phase;
+    }
+    private lastAudioPhase = '';
+
     private emitHand() {
       // Twelfths. See HandView.charge — the shell's CSS transition covers the
       // gaps, so the bar looks continuous while React does an order of
@@ -2037,6 +2099,7 @@ export function makeScene(
           // information; it is not an event.
           if (shot.sim.outcome === 'hitBlocker') {
             this.kickCamera(feel, shot.sim.dir);
+            playCue('blocked');
           }
         }
       }
@@ -2507,7 +2570,12 @@ export function makeScene(
       if (hits.length > 0) this.flashConstruct(hitSeverity ?? 'normal', hitDir);
       if (before !== this.construct.phase) {
         this.constructStats.lastPhase = `${before}->${this.construct.phase}`;
-        if (this.construct.phase === 'telegraph') (this.constructStats.telegraphs as number)++;
+        if (this.construct.phase === 'telegraph') {
+          (this.constructStats.telegraphs as number)++;
+          // The tell, in a third channel. The ring says where, the colour says
+          // now, and this says it to a player who is looking somewhere else.
+          playCue('telegraph');
+        }
         if (this.construct.phase === 'defeated') {
           (this.constructStats.defeats as number)++;
           this.killConstruct(hitDir);
@@ -2718,6 +2786,9 @@ export function makeScene(
     private flashHeroHurt(severity: HitSeverity = 'normal') {
       if (!this.player) return;
       const feel = getHitFeel(severity, this.motion);
+      // Deliberately NOT the contact cue. Being hit is the one moment in the
+      // set that must not sound satisfying — it is not a reward.
+      playCue('hurt');
       this.player.setTintFill(0xffdada);
       /**
        * One timer, replaced — never a second one racing the first.
@@ -2774,6 +2845,10 @@ export function makeScene(
       this.constructView?.flash(feel);
       this.hitstop?.trigger(feel.hitstopMs);
       this.kickCamera(feel, dir);
+      // Same call, same frame as the flash and the freeze. Contact is the one
+      // moment where every channel has to agree to the millisecond — a sound
+      // even slightly adrift of its flash reads as two separate events.
+      playCue('contact', { severity });
     }
 
     /**
@@ -2805,6 +2880,9 @@ export function makeScene(
       this.constructView?.flash(feel);
       this.hitstop?.trigger(feel.hitstopMs);
       this.kickCamera(feel, dir);
+      // The longest sound in the game, over the contact that caused it. Both
+      // play: the hit landed AND the thing died, and those are two facts.
+      playCue('defeat');
 
       // The construct coming apart, in the construct's OWN colours — scorched
       // timber and ember. Not the element's: the elemental burst already played

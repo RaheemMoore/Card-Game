@@ -382,6 +382,10 @@ export function CastleV2() {
             ['G', 'summon (plant the card)'],
             ['SPACE', 'hop a ledge'],
             ['E', 'enter a door'],
+            // Sound is placeholder synthesis and will not be to everyone's
+            // taste while it is being tuned. Muting it must not require a
+            // settings menu that does not exist yet.
+            ['M', 'mute / unmute sound'],
             // The combat test keys. They were console commands, which assumed
             // the person testing the game writes JavaScript.
             ['—', ''],
