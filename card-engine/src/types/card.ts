@@ -148,8 +148,6 @@ export interface Card {
    * support one of the archetype's approved titles.
    */
   prestige?: import('./bible').PrestigeRole;
-  /** @deprecated legacy pre-Bible whisper word list — kept for grandfathered cards. */
-  whisperWords?: string[];
   identity?: CharacterIdentity;
   /** Lycanthrope only. See LycanthropeIdentity. */
   lycanIdentity?: LycanthropeIdentity;

@@ -22,7 +22,6 @@ function makeCard(stats: Partial<Record<StatName, StatEntry>>): Card {
     dominantStat: null,
     border: { baseVariant: 'Default', baseSource: '' },
     lore: '',
-    whisperWords: [],
     evolutionHistory: {},
     createdAt: '2026-01-01',
   };

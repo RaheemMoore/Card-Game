@@ -121,3 +121,7 @@ __pycache__/
 # Editor scene backups. The scene itself is source; a timestamped .bak is not.
 *.bak-*
 .forest_rows.json
+
+# Generated per-session by scripts/vscode-workspace.mjs — lists whichever
+# worktree is active right now, so it is machine- and session-specific.
+*.code-workspace

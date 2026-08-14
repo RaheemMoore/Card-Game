@@ -72,7 +72,6 @@ function makeCard(
     dominantStat: null,
     border: { baseVariant: 'Default', baseSource: 'none' },
     lore: '',
-    whisperWords: [],
     evolutionHistory: {},
     createdAt: '2026-07-28T00:00:00.000Z',
     stats,

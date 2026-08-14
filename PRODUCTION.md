@@ -87,7 +87,7 @@ from 2026-08-12: signed out, both the game and the studio show the login page, s
 landing difference is proven in the bundles and not on the live sites. The studio should
 open the admin studio; the game should open the castle.
 
-*Where:* `COMBAT_SLICE_PLAYTEST.md` is the ten-minute script.
+*Where:* `docs/archive/handoffs/COMBAT_SLICE_PLAYTEST.md` is the ten-minute script.
 
 ### ▲ Highest value — build the Forge menu next
 
@@ -2392,7 +2392,7 @@ state is stored, which gets expensive to reverse.
 
 ### 2026-07-31 — The board game is the warband design
 
-`card-engine-warband-battle-design.md` describes the same thing as "a TCG-style board game
+`docs/proposals/card-engine-warband-battle-design.md` describes the same thing as "a TCG-style board game
 you take leveled characters into." Revive rather than rewrite: reconcile the draft, resolve
 its open questions, assess the stranded branch.
 

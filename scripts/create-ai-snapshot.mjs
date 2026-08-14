@@ -84,7 +84,8 @@ const ASSET_PREFIX_RULES = [
   { prefix: 'card-engine/public/portraits/', category: 'portrait-sample', force: 'exclude' },
   { prefix: 'Card Images/', category: 'reference-art', force: 'exclude' },
   { prefix: 'Card Game Architype Symbols & Prompts/', category: 'reference-art', force: 'exclude' },
-  { prefix: 'Classes and Boss Battles/', category: 'reference-art', force: 'exclude' },
+  { prefix: 'docs/archive/classes-and-boss-battles/', category: 'reference-art', force: 'exclude' },
+  { prefix: 'docs/archive/handoffs/', category: 'retired-doc', force: 'exclude' },
 ];
 
 // Never printed — only pattern name + file path are reported.
@@ -753,7 +754,7 @@ function buildProjectIndex(pkgJson, generatedAt) {
   lines.push('## Documentation index (canonical docs kept in full)\n');
   lines.push('- `Character_Generation_Bible_Canonical_v1.md` — canonical creative source, overrides implementation on conflict.');
   lines.push('- `CLAUDE.md` — project instructions / current phase status / conventions.');
-  lines.push('- `card-engine-power-system-spec.md`, `card-engine-economy-currency-system-plan.md`, `card-engine-ability-system-spec.md`, `card-engine-boss-battle-spec.md`, `card-engine-warband-battle-design.md` — governing specs.');
+  lines.push('- `card-engine-power-system-spec.md`, `card-engine-economy-currency-system-plan.md`, `card-engine-ability-system-spec.md`, `card-engine-boss-battle-spec.md`, `docs/proposals/card-engine-warband-battle-design.md` — governing specs.');
   lines.push('- `STUDIO_CHARTER.md`, `WORKFLOW.md` — how this repo is operated.');
   lines.push('- `docs/archive/*.md` — retired docs kept for history; do not treat as current.\n');
   lines.push('## Known excluded/generated areas (see EXCLUSIONS.md and assets.json)\n');

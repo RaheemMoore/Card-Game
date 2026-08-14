@@ -4,7 +4,7 @@ import type { ArchetypeName } from '../types/card';
  * Body and Skin Representation Bible (Raheem, v1.0, 2026-07-19) — canonical
  * visual reference for body diversity, skin tone, skin texture, and prompt
  * guidance in character generation. Source of truth:
- * /Body_and_Skin_Representation_Bible.md.
+ * /docs/bibles/Body_and_Skin_Representation_Bible.md.
  *
  * Bible §17: "A character should not need a narrow beauty standard to feel
  * legendary. Body diversity is part of the fantasy. Skin diversity is part
