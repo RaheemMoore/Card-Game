@@ -12,6 +12,8 @@ import {
   type Status,
 } from './courtyardRuntime';
 import { ALWAYS_LOADED } from './sceneManifest';
+import { resolveMotionLevel } from './motionLevel';
+import { slotFeel } from '../combat/slotFeel';
 import { HERO_SHEET } from '../../../data/castle/heroSprite';
 import { getAllCards } from '../../../services/storage';
 import { DOOR_LABELS, type DoorDestination } from '../../dev/sceneColliders';
@@ -56,6 +58,15 @@ export function CastleV2() {
   const [openStall, setOpenStall] = useState<DoorDestination | null>(null);
   const [paused, setPaused] = useState(false);
   const [hand, setHand] = useState<HandView | null>(null);
+  /**
+   * The player's motion preference, read ONCE.
+   *
+   * Same setting the world reads, through the same resolver — a HUD that kept
+   * animating after the courtyard stopped would be the preference half-honoured,
+   * which is worse than not offering it. Not reactive, matching the scene:
+   * changing it mid-session already requires a reload.
+   */
+  const [motionOff] = useState(() => resolveMotionLevel() === 'off');
   /** The training construct's state, for the on-screen combat readout. */
   const [combat, setCombat] = useState<CombatStateView | null>(null);
 
@@ -232,16 +243,45 @@ export function CastleV2() {
           {hand.slots.map((slot, i) => {
             const selected = hand.selected === i;
             const dropped = slot.state === 'dropped';
+            /**
+             * The attack, said again where the player is already looking.
+             *
+             * Pure and tested in `slotFeel.ts` rather than worked out in JSX,
+             * for the same reason the hero's pose is: the thresholds it draws
+             * are the SAME ones `feel.ts` uses to decide the shot's severity,
+             * and a HUD that invented its own idea of "heavy" would be teaching
+             * a rule the game does not have.
+             */
+            const feel = slotFeel({
+              state: slot.state,
+              selected,
+              phase: hand.phase,
+              charge: hand.charge,
+              motionOff,
+            });
+            /**
+             * The pip is the CARD, so it wears the card's element.
+             *
+             * Every slot used to be the same parchment cream, which made a hand
+             * of four look like four of the same thing — and it was, because the
+             * practice cards had no element at all. Now that they do, the row is
+             * the fastest possible answer to "which one shoots fire": you can
+             * see it without selecting anything.
+             *
+             * A committed card still goes purple: "this one is in the air" is
+             * more urgent than what it is made of, and it is the only feedback
+             * that a slot is spent.
+             */
             const fill =
-              slot.state === 'ready'
-                ? '#f2e2b6'
-                : slot.state === 'committed'
-                  ? '#9a8ac0'
+              slot.state === 'committed'
+                ? '#9a8ac0'
+                : slot.state === 'ready'
+                  ? slot.tint ?? '#f2e2b6'
                   : 'transparent';
             return (
               <div
                 key={i}
-                className="grid h-14 w-10 place-items-center rounded-sm border-2 transition-colors"
+                className="grid h-14 w-10 place-items-center rounded-sm border-2"
                 style={{
                   /* A dropped slot has to look LOST, not empty. It read as
                      near-identical to an empty one — transparent fill, same
@@ -249,13 +289,30 @@ export function CastleV2() {
                      scatter: §12 wants the player to understand what they lost
                      and go and get it. Amber and dashed says "yours, and not
                      here" in a way an absence cannot. */
-                  borderColor: dropped ? '#d98a3a' : selected ? '#ffd479' : '#8a7a55',
+                  borderColor: dropped
+                    ? '#d98a3a'
+                    : /* Heavy takes the border, because at that point "this is
+                         the big one" outranks "this is the one selected" — and
+                         they are the same slot anyway. */
+                      feel.heavy
+                      ? '#ffb02e'
+                      : selected
+                        ? '#ffd479'
+                        : '#8a7a55',
                   borderStyle: dropped ? 'dashed' : 'solid',
                   background: selected ? 'rgba(13,11,8,0.78)' : 'rgba(13,11,8,0.55)',
+                  opacity: feel.opacity,
+                  /* The punch is a SNAP up with the settle left to the
+                     transition: `active` is 60ms, and easing into it would eat
+                     the whole phase and read as a swell instead of a hit. */
+                  transform: `scale(${feel.scale})`,
+                  transition: motionOff
+                    ? 'none'
+                    : 'transform 160ms ease-out, opacity 140ms linear, border-color 90ms linear',
                 }}
               >
                 <div
-                  className="h-9 w-6 rounded-[2px]"
+                  className="relative h-9 w-6 overflow-hidden rounded-[2px]"
                   style={{
                     background: fill,
                     opacity: slot.state === 'empty' ? 0.2 : 1,
@@ -263,7 +320,37 @@ export function CastleV2() {
                        hand — the slot still belongs to something. */
                     boxShadow: dropped ? 'inset 0 0 0 2px rgba(217,138,58,0.55)' : undefined,
                   }}
-                />
+                >
+                  {/* The charge, climbing the card itself rather than sitting
+                      in a bar beside it. A separate meter would be a fifth
+                      thing on a row of four, and it would be readable only by
+                      looking away from the card it describes. */}
+                  <div
+                    className="absolute inset-x-0 bottom-0"
+                    style={{
+                      height: `${feel.fill * 100}%`,
+                      background: 'rgba(255,255,255,0.55)',
+                      /* Twelfths arrive from the runtime; this is what makes
+                         them look continuous. Kept under the 75ms between
+                         steps so the bar is always moving, never catching up. */
+                      transition: motionOff ? 'none' : 'height 70ms linear',
+                    }}
+                  />
+                  {/* The cap. Dark until the shot is worth more than a tap,
+                      full at heavy — so the moment worth waiting for has its
+                      own mark rather than being inferred from a bar's height. */}
+                  {feel.glow > 0 && (
+                    <div
+                      className="absolute inset-x-0"
+                      style={{
+                        bottom: `calc(${feel.fill * 100}% - 2px)`,
+                        height: 2,
+                        background: `rgba(255,214,120,${0.35 + 0.65 * feel.glow})`,
+                        boxShadow: `0 0 ${4 + 6 * feel.glow}px rgba(255,176,46,${feel.glow})`,
+                      }}
+                    />
+                  )}
+                </div>
                 <span
                   className="text-[10px] leading-none"
                   style={{ color: dropped ? 'rgba(217,138,58,0.95)' : 'rgba(253,230,138,0.7)' }}
@@ -302,6 +389,13 @@ export function CastleV2() {
             ['T', 'freeze its brain'],
             ['Y', 'arm its knockdown'],
             ['K', 'knock yourself down'],
+            // The two feel keys. Charge is what every part of an attack's
+            // weight scales on, and holding a chosen charge by hand means
+            // timing a mouse press to the millisecond — so the comparison the
+            // review actually needs is impossible without these.
+            [', / .', 'fire the lightest / heaviest shot'],
+            // One key for the whole exchange, so two playtests are comparable.
+            ['P', 'play the scripted duel'],
           ].map(([key, what]) => (
             <div key={key} className="flex gap-2">
               <span className="w-16 shrink-0 font-bold text-amber-200/90">{key}</span>

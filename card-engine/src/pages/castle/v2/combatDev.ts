@@ -8,6 +8,7 @@ import {
   type ConstructPhase,
   type ConstructState,
 } from '../combat/construct';
+import type { HitSeverity } from '../combat/feel';
 
 /**
  * Semantic commands for driving the encounter, for humans AND automation.
@@ -45,6 +46,12 @@ export interface CombatDevPort {
   knockdownHero(): void;
   /** Move the hero outright. Placement, not walking — no collision is consulted. */
   placeHero(x: number, y: number): void;
+  /** Fire one hit's worth of feedback with no shot behind it. */
+  triggerImpact(severity: HitSeverity): void;
+  /** Run the named duel scenario from a fixed starting position. */
+  runScenario(): void;
+  /** Hold the trigger for `holdMs`, aimed at the construct. */
+  fireBlast(holdMs: number): void;
   snapshot(): unknown;
 }
 
@@ -60,6 +67,40 @@ export interface CombatDevCommands {
   setStrongHits(on: boolean): unknown;
   knockdownHero(): unknown;
   placeHero(x: number, y: number): unknown;
+  /**
+   * Play one tier's contact feedback on demand.
+   *
+   * The feel work's equivalent of `forceAttack`: it exists so the three tiers
+   * can be compared back to back without having to land three real shots of
+   * exactly the right charge — which, given the preview pane holds the mouse
+   * button down, is not something a scenario can arrange.
+   */
+  triggerImpact(severity?: HitSeverity): unknown;
+  /**
+   * Hold the trigger for a measured number of MILLISECONDS, aimed at the
+   * construct.
+   *
+   * THE benchmark command. It takes a hold rather than a charge because the
+   * first version took a charge and skipped the action machine to apply it —
+   * which meant it produced a shot with no throw, and the one command built to
+   * make the attack reviewable could not show the attack. Pressing the trigger
+   * for a measured time drives charging, release, wind-up, the pose, the card's
+   * throw and the projectile through the paths a mouse uses.
+   *
+   * `fireBlast(0)` is a tap; `fireBlast(1000)` is a full charge. Back to back,
+   * they are how the light and heavy tiers get compared on the same shot from
+   * the same place.
+   */
+  fireBlast(holdMs?: number): unknown;
+  /**
+   * Play one complete exchange, identically every time.
+   *
+   * Tap, charged shot, its telegraph and strike, the strong version with the
+   * knockdown and scatter, then the kill — all from one starting distance on
+   * one timeline. Played by hand no two runs are comparable; this makes the
+   * feel the only thing that can differ between two recordings.
+   */
+  runScenario(): unknown;
   snapshot(): unknown;
 }
 
@@ -95,6 +136,18 @@ export function createCombatDevCommands(port: CombatDevPort): CombatDevCommands 
     },
     placeHero: (x, y) => {
       port.placeHero(x, y);
+      return port.snapshot();
+    },
+    triggerImpact: (severity = 'normal') => {
+      port.triggerImpact(severity);
+      return port.snapshot();
+    },
+    runScenario: () => {
+      port.runScenario();
+      return port.snapshot();
+    },
+    fireBlast: (holdMs = 1000) => {
+      port.fireBlast(Math.max(0, holdMs));
       return port.snapshot();
     },
     snapshot: () => port.snapshot(),

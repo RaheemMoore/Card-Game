@@ -76,12 +76,14 @@ import {
   walkScale,
   type ActionState,
 } from '../combat/actionState';
-import { resolveAction } from '../combat/cardActions';
+import { attackStyleFor, resolveAction, type AttackStyle } from '../combat/cardActions';
 import {
   CONSTRUCT_TUNING,
+  forcePhase,
   initialConstruct,
   isHittable,
   resetConstruct,
+  reviveConstruct,
   setAiEnabled,
   setStrongHits,
   stepConstruct,
@@ -110,6 +112,7 @@ import {
   colourOf,
   createBlastSprite,
   createChargeEmitter,
+  playDirectionalBurst,
   playImpact,
   updateChargeEmitter,
 } from '../combat/blastVfx';
@@ -129,6 +132,18 @@ import {
   type BlastTarget,
   type Projectile,
 } from '../combat/blast';
+import {
+  HITSTOP_CAP_MS,
+  getAttackFeel,
+  getHitFeel,
+  louder,
+  severityForCharge,
+  type HitSeverity,
+} from '../combat/feel';
+import { attackPose, cardPose } from '../combat/attackPose';
+import { createHitstop, type Hitstop } from './hitstop';
+import { resolveMotionLevel } from './motionLevel';
+import type { MotionLevel } from '../../../vfx/types';
 
 export const DEFAULT_SCENE = 'CourtyardV2';
 
@@ -326,6 +341,27 @@ const WALK_SPEED = 190;
  */
 const PLACEHOLDER_CARD_IDS = ['practice_1', 'practice_2', 'practice_3', 'practice_4'] as const;
 
+/**
+ * What the four practice cards are made of.
+ *
+ * WHY THIS EXISTS. Raheem, testing on 2026-08-13: "Right now, I'm only testing
+ * with the pseudo blue ball that's shooting out. It doesn't really relate to any
+ * card." He was looking at `launchBlast`'s fallback circle — the placeholder
+ * cards carried NO element, so `effectKitFor` had nothing to resolve, and the
+ * entire 26-element art library the courtyard already loads was unreachable in
+ * the only situation anyone actually tests in.
+ *
+ * A hand that cannot show what a card does is not a testable hand. These four
+ * are chosen to be told apart at a glance and to exercise the pipeline
+ * honestly: Fire and Blood because Raheem named them, Storm and Void because
+ * they are the most visually distant from those two and from each other. All
+ * four have their own animated stream art rather than a family stand-in.
+ *
+ * Overridden by `?element=`, and never used at all once the profile has real
+ * forged cards — those bring their own.
+ */
+const PRACTICE_ELEMENTS: readonly ElementName[] = ['Fire', 'Blood', 'Storm', 'Void'];
+
 
 /**
  * DEV-only framing readout on `window.__cardEngineDev.castleFraming`.
@@ -387,6 +423,9 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       };
       projectiles?: { sim: { id: number; pos: { x: number; y: number }; outcome: string } }[];
       targets?: { pos: { x: number; y: number }; alive: boolean }[];
+      motion?: string;
+      presentDelta?: number;
+      hitstop?: { active(): boolean; remainingMs(): number };
     };
     if (!s.action) return null;
     const scn = scene as unknown as {
@@ -413,6 +452,11 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
             playing: p.anims?.isPlaying ?? false,
             origin: { x: p.originX, y: +p.originY.toFixed(3) },
             scale: { x: +p.scaleX.toFixed(3), y: +p.scaleY.toFixed(3) },
+            // The lean, in radians. Added 2026-08-13: the pose gained rotation
+            // and the readout could not see it, so "is he tilting?" was a
+            // question only a screenshot could answer — which is exactly the
+            // gap this bridge exists to close.
+            rotation: +p.rotation.toFixed(3),
             display: { w: Math.round(p.displayWidth), h: Math.round(p.displayHeight) },
             visible: p.visible,
             alpha: p.alpha,
@@ -436,6 +480,20 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
        * Each counter is the last stage that was reached.
        */
       fire: scn.fireStats ?? null,
+      /**
+       * How the picture is behaving, as distinct from the simulation.
+       *
+       * `presentDelta` reading 0 while the game is plainly still running is the
+       * signature of a hitstop in progress, and it is the one thing that
+       * separates "the freeze worked" from "the game hung" — which look
+       * identical in a screenshot and want completely different fixes.
+       */
+      feel: {
+        motion: s.motion ?? 'full',
+        hitstopActive: s.hitstop?.active() ?? false,
+        hitstopRemainingMs: Math.round(s.hitstop?.remainingMs() ?? 0),
+        presentDeltaMs: Math.round(s.presentDelta ?? 0),
+      },
       // Cards lying in the world. A scatter that strands one is the failure this
       // whole milestone is about, so it is reported rather than eyeballed.
       onGround: (
@@ -523,6 +581,10 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
       feetY: number;
       forceKnockdown(): void;
       placeHeroAt(x: number, y: number): void;
+      previewImpact(severity: HitSeverity): void;
+      scriptShot(holdMs: number): void;
+      runScenario(): void;
+      feetX: number;
     };
     dev.combat = createCombatDevCommands({
       getConstruct: () => s.construct,
@@ -530,9 +592,12 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
         s.construct = next;
       },
       home: () => s.constructHome,
-      heroFeet: () => ({ x: s.player?.x ?? 0, y: s.feetY }),
+      heroFeet: () => ({ x: s.feetX ?? 0, y: s.feetY }),
       knockdownHero: () => s.forceKnockdown(),
       placeHero: (x, y) => s.placeHeroAt(x, y),
+      triggerImpact: (severity) => s.previewImpact(severity),
+      fireBlast: (holdMs) => s.scriptShot(holdMs),
+      runScenario: () => s.runScenario(),
       snapshot: () => (dev.castleCombat as () => unknown)(),
     });
   }
@@ -586,7 +651,12 @@ export type Status = { phase: 'loading' | 'ready' | 'error'; message?: string };
 /** What the shell needs to draw the hand. A snapshot, not the live object. */
 export interface HandView {
   selected: number | null;
-  slots: { cardId: string | null; state: string }[];
+  slots: {
+    cardId: string | null;
+    state: string;
+    /** The element's colour, so a slot LOOKS like what it fires. Null when empty. */
+    tint: string | null;
+  }[];
   /**
    * Increments each time he tries to fire with nothing to fire.
    *
@@ -596,6 +666,27 @@ export interface HandView {
    * row so the answer is on screen at the moment the question is asked.
    */
   blockedCount: number;
+  /**
+   * What the Card-wright is doing, so the row can answer for the attack.
+   *
+   * Duplicated from `CombatStateView.heroPhase` on purpose: that view is the
+   * TEST readout and comes out with the R/T/Y keys when the courtyard stops
+   * being a test surface. The hand is player-facing chrome and has to keep
+   * working after that, so it carries what it needs itself rather than
+   * depending on a panel that is scheduled for deletion.
+   */
+  phase: string;
+  /**
+   * How far the charge has built, 0–1, QUANTIZED.
+   *
+   * Rounded to twelfths before it is sent, and the shell transitions between
+   * the steps in CSS. A continuous value would re-render React on every frame
+   * of every charge to move a bar a fraction of a pixel — the same cost
+   * `emitCombatState` refuses to pay for the distance readout, for the same
+   * reason. Twelve steps over 900ms is about one render every 75ms and the
+   * transition makes it look continuous anyway.
+   */
+  charge: number;
 }
 
 /**
@@ -734,6 +825,36 @@ export function makeScene(
     /** Set when its strike lands on him; consumed by the action machine. */
     private constructStruckHero: 'light' | 'strong' | null = null;
     /**
+     * How hard the hits waiting in `pendingHits` landed.
+     *
+     * Carried BESIDE the hits rather than on them. `ConstructHit` is part of the
+     * pure state machine's contract and severity is a presentation question; a
+     * field the simulation neither reads nor needs has no business in its input
+     * type. The runtime already knows the charge at the moment it queues a hit,
+     * so this costs nothing to keep in step.
+     */
+    private pendingHitSeverity: HitSeverity | null = null;
+    /**
+     * Which way the loudest pending hit was travelling.
+     *
+     * Force with no direction is the difference between "something happened
+     * here" and "he was hit from over there", and a camera that only ever
+     * rattles can say the first but never the second.
+     */
+    private pendingHitDir: { x: number; y: number } = { x: 1, y: 0 };
+    /** The directional camera lurch, so a second hit can replace rather than fight it. */
+    private cameraKick?: Phaser.Tweens.Tween;
+    /**
+     * Milliseconds left on a scripted trigger hold. See `scriptShot`.
+     *
+     * A number rather than a boolean because the whole point is the LENGTH of
+     * the hold: that is what the action machine turns into a charge, and the
+     * charge is what every part of the attack's weight scales on.
+     */
+    private scriptedHoldMs = 0;
+    /** Aim locked for the duration of a scripted hold, so the shot lands where asked. */
+    private scriptedAim: { x: number; y: number } | null = null;
+    /**
      * DEV counters for the encounter, alongside the fire chain's.
      *
      * Same reasoning: "the telegraph never fired" and "it fired and missed" look
@@ -753,6 +874,49 @@ export function makeScene(
      * SHAPE and survives this being on — see the presenter.
      */
     private motionOff = false;
+    /**
+     * How much motion the player consented to, resolved once on create.
+     *
+     * Was previously nothing at all: `motionOff` above was declared, read in two
+     * places, and NEVER ASSIGNED, so the courtyard's reduced-motion handling was
+     * a flag permanently stuck on false. Resolving it properly is the first
+     * thing the feel work owes anyone who needs it — every new effect from here
+     * reads this.
+     */
+    private motion: MotionLevel = 'full';
+    /** The contact freeze. Presentation only; see hitstop.ts for why. */
+    private hitstop?: Hitstop;
+    /**
+     * How long the hero is still visibly flinching, ms.
+     *
+     * A decaying counter rather than a tween because it has to COMPOSE with the
+     * attack pose: he can be shot while braced to cast, and a tween writing the
+     * sprite's scale directly would be overwritten by `applyHeroTransform` on
+     * the very next frame. As a number, the flinch is just another term in the
+     * one place that decides what he looks like.
+     */
+    private heroHurtMs = 0;
+    /** Total length of the flinch in progress, so it can decay proportionally. */
+    private heroHurtSpanMs = 1;
+    /** Which way the blow came from, so he folds away from it rather than at random. */
+    private heroHurtDir: { x: number; y: number } = { x: 0, y: 1 };
+    /** The one hurt-flash timer, so a second hit replaces it instead of racing it. */
+    private heroFlashTimer?: Phaser.Time.TimerEvent;
+    /**
+     * Pending steps of the named scenario.
+     *
+     * Held so a second run cancels the first rather than interleaving with it —
+     * two overlapping scripts would produce a sequence that matches neither and
+     * is reproducible as nothing.
+     */
+    private scenarioTimers: Phaser.Time.TimerEvent[] = [];
+    /**
+     * Elapsed time for PRESENTERS, which is zero while a hit is being held.
+     *
+     * Deliberately a separate number from the `delta` the state machines get.
+     * One frame, two clocks: the simulation never stops, the picture does.
+     */
+    private presentDelta = 0;
     /** The card he holds up. Visible only while a shot is being thrown. */
     private heldCard?: Phaser.GameObjects.Rectangle;
     /**
@@ -856,6 +1020,28 @@ export function makeScene(
      * a hero who can walk through walls at the top of his hop.
      */
     private feetY = 0;
+    /**
+     * Truth for the hero's horizontal position — the counterpart to `feetY`.
+     *
+     * WHY THIS APPEARED. The sprite's own `x` used to BE the truth, which was
+     * fine for as long as the sprite stood exactly where the character stood.
+     * The attack lunge broke that: the drawn body now leans, steps and settles
+     * through a throw while the character it belongs to has not moved an inch.
+     * Collision, depth, the blast's origin and the strike test all read this;
+     * only the picture reads the sprite. Conflating them would mean a hero who
+     * could be drawn — and hit — a lunge's distance from where he really is,
+     * which is the same class of bug the comment on `feetY` above warns about
+     * for the jump.
+     */
+    private feetX = 0;
+    /**
+     * The scale the current sheet is meant to render at, before the pose.
+     *
+     * Tracked rather than read back off the sprite because the pose MULTIPLIES
+     * it every frame: reading the sprite's own scale would compound the squash
+     * into a hero who shrinks to nothing over a few throws.
+     */
+    private heroBaseScale = 1;
     private level = 0;
     private air = 0;
     private jumpKey?: Phaser.Input.Keyboard.Key;
@@ -1029,7 +1215,7 @@ export function makeScene(
         //
         // Snap first, then follow. A lerped follow starting from 0,0 spends its first
         // second looking at the corner of the map, which reads as "nothing loaded".
-        cam.centerOn(this.player.x, this.player.y);
+        cam.centerOn(this.feetX, this.player.y);
         cam.startFollow(this.player, true, 0.12, 0.12);
       } else {
         // A lab is small enough to hold in one shot; a camera that chases the
@@ -1096,7 +1282,9 @@ export function makeScene(
       // Remembered because the knockdown swaps to its own sheet and has to put
       // this back afterwards.
       this.heroScale = scale;
+      this.heroBaseScale = scale;
 
+      this.feetX = x;
       this.feetY = y;
       this.level = levelAt(x, y - HERO_FEET.height / 2, this.elevation) ?? 0;
 
@@ -1234,6 +1422,27 @@ export function makeScene(
         this.construct = resetConstruct(this.construct, this.constructHome);
         this.emitCombatState();
       });
+
+      /**
+       * The benchmark, on two keys: `,` a tap and `.` a full charge.
+       *
+       * Same reasoning as the three above, and the same design failure it would
+       * be to omit them. Charge is the axis EVERY part of the feel scales on,
+       * and the only way to hold a chosen charge by hand is to time a mouse
+       * press to the millisecond — which nobody can do, and which the preview
+       * pane makes impossible outright by pinning the button down. Two adjacent
+       * keys let the lightest and heaviest hits be fired back to back, from the
+       * same spot, as many times as it takes to judge them.
+       *
+       * `,` and `.` are audited clear of every binding above and sit next to
+       * each other on the keyboard, which is the point: the comparison is the
+       * review.
+       */
+      keyboard.on('keydown-COMMA', () => this.scriptShot(0));
+      keyboard.on('keydown-PERIOD', () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 60));
+      // The whole exchange, on one key. Pressing it again restarts rather than
+      // layering a second script on top of the first.
+      keyboard.on('keydown-P', () => this.runScenario());
     }
 
     /**
@@ -1283,7 +1492,47 @@ export function makeScene(
      */
     private applyHeroTransform() {
       if (!this.player) return;
-      this.player.y = this.feetY - this.air;
+
+      /**
+       * The throw, drawn onto the body.
+       *
+       * Applied HERE and nowhere else, for the same reason everything else in
+       * this method is: one funnel means the sprite can never disagree with the
+       * state the collision maths is using. Note the asymmetry that is the
+       * whole point — `feetX`/`feetY`/`level` decide depth and collision and do
+       * not know the pose exists; only the three lines that touch the sprite
+       * read it.
+       */
+      const pose = attackPose({
+        style: this.attackStyle(),
+        phase: this.action.phase,
+        elapsedMs: this.action.elapsedMs,
+        chargeLevel: this.action.chargeLevel,
+        aim: this.poseAim(),
+        feel: getAttackFeel(severityForCharge(this.action.chargeLevel), this.motion),
+      });
+
+      /**
+       * The flinch, folded in on top of whatever he was doing.
+       *
+       * He can be hit while braced to cast, so this ADDS to the pose rather than
+       * replacing it — one body, two things happening to it. Decays to nothing,
+       * so it can never strand him bent over.
+       */
+      const hurt = this.heroHurtMs > 0 ? this.heroHurtMs / this.heroHurtSpanMs : 0;
+      const hurtSquash = hurt * 0.16;
+
+      this.player.x = this.feetX + pose.offsetX + this.heroHurtDir.x * hurt * 5;
+      this.player.y = this.feetY - this.air + pose.offsetY + this.heroHurtDir.y * hurt * 3;
+      this.player.setScale(
+        this.heroBaseScale * pose.scaleX * (1 + hurtSquash * 0.5),
+        this.heroBaseScale * pose.scaleY * (1 - hurtSquash),
+      );
+      // The sprite's origin is already at his feet, so this pivots him where a
+      // person pivots rather than around his navel.
+      this.player.setRotation(pose.rotation);
+      // Depth from the TRUE feet, not the drawn ones. A lunge must not let him
+      // sort in front of a wall he is still standing behind.
       this.player.setDepth(
         this.depthBand ? this.level * LEVEL_STRIDE + this.feetY : 100000,
       );
@@ -1292,7 +1541,7 @@ export function makeScene(
       // Pinned to the FLOOR, never to the sprite. It shrinks and fades with height
       // the way a real contact shadow does, which is what sells the arc.
       const lift = this.air / Math.max(JUMP_RISE, 1);
-      this.shadow.x = this.player.x;
+      this.shadow.x = this.feetX;
       this.shadow.y = this.feetY;
       this.shadow.setDepth(this.player.depth - 1);
       this.shadow.setScale(HERO_SHADOW.widthRatio * (1 - 0.2 * lift));
@@ -1301,6 +1550,18 @@ export function makeScene(
 
     update(time: number, delta: number) {
       this.compiledUpdate?.call(this, time, delta);
+
+      // ONE FRAME, TWO CLOCKS. `delta` is real elapsed time and everything that
+      // decides anything is driven by it — the action machine, the construct,
+      // the projectiles. `presentDelta` is what the PICTURE gets, and it is zero
+      // while a hit is being held. See hitstop.ts for why the split has to be
+      // this way round and not the other.
+      this.presentDelta = this.hitstop ? this.hitstop.step(delta) : delta;
+
+      // The flinch runs on the PICTURE's clock, so a hit that freezes the frame
+      // holds the flinch at its deepest rather than spending it behind the
+      // freeze — which is the whole reason the freeze is there.
+      if (this.heroHurtMs > 0) this.heroHurtMs = Math.max(0, this.heroHurtMs - this.presentDelta);
 
       // Before movePlayer, and outside it, so aim keeps resolving through a jump.
       // Sampled only on the frames movePlayer would skip and the pointer tracker
@@ -1311,12 +1572,38 @@ export function makeScene(
       this.movePlayer(delta);
       this.updateCombat(delta);
 
+      /**
+       * Draw the hero, every frame, whatever he is doing.
+       *
+       * THIS LINE IS THE FIX for "the hero doesn't do absolutely anything
+       * while attacking" (Raheem, 2026-08-13, from a recording). The attack
+       * pose was being computed correctly on every frame and applied on almost
+       * none of them: `applyHeroTransform` was only reached at the BOTTOM of
+       * movePlayer's walking branch, and movePlayer returns early when the
+       * player is not pressing a direction — which is exactly the situation you
+       * are in while standing still to charge and fire. The pose existed, was
+       * unit-tested, and never touched a pixel.
+       *
+       * Drawing is not something to do as a side effect of having walked. It is
+       * its own step, it happens after everything that could have changed what
+       * he looks like, and it happens unconditionally. The call inside
+       * movePlayer stays — it keeps walking pixel-exact within its own frame —
+       * but this one is the guarantee.
+       */
+      this.applyHeroTransform();
+
+      // The hand row answers for the attack now — the charge climbing, the
+      // release, the recovery — so it has to be offered every frame like the
+      // pose is. It is keyed and early-returns unless something the shell
+      // actually draws changed, which is what keeps it off React's back.
+      this.emitHand();
+
       // Last, so anything reacting to the player reads where the player is NOW
       // rather than where they were a frame ago.
       this.behavior?.update(
         time,
         delta,
-        this.player ? { x: this.player.x, y: this.player.y } : undefined,
+        this.player ? { x: this.feetX, y: this.player.y } : undefined,
       );
     }
 
@@ -1346,6 +1633,26 @@ export function makeScene(
       this.construct = resetConstruct(initialConstruct(this.constructHome), this.constructHome);
       this.constructView = createConstructView(this, this.depthBand, this.construct);
 
+      // The player's motion preference, shared with the boss battle rather than
+      // asked twice. Told to the view rather than read by it — the scene owns
+      // the preference, the presenter only obeys it.
+      this.motion = resolveMotionLevel();
+      this.motionOff = this.motion === 'off';
+      this.constructView.setMotionOff(this.motionOff);
+
+      this.hitstop = createHitstop(this);
+      // The animation manager outlives the scene, so a teardown mid-freeze that
+      // did not restore the global time scale would leave the NEXT scene frozen
+      // with nothing to point at as the cause.
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        this.hitstop?.destroy();
+        this.hitstop = undefined;
+        // A scenario mid-run must not keep firing into a scene that is gone.
+        this.cancelScenario();
+        this.heroFlashTimer?.remove();
+        this.heroFlashTimer = undefined;
+      });
+
       // The blast's view of it. Kept in step with the construct's own position
       // every frame — one of them is the truth and it is not this one.
       this.targets = [{ pos: { ...this.construct.pos }, radiusPx: 26, alive: true }];
@@ -1360,12 +1667,16 @@ export function makeScene(
       // repeats if it is shorter than the hand.
       const forcedFor = (i: number) => (forced.length ? forced[i % forced.length] : undefined);
 
-      cards.forEach((c, i) => this.cardElements.set(c.cardId, forcedFor(i) ?? c.element));
-      // Practice cards have no element of their own, so the override has to reach
-      // them too or the flag does nothing on exactly the profile that needs it.
+      // A card with no element of its own gets one, so a hand is never four
+      // identical blue circles. See PRACTICE_ELEMENTS.
+      const practiceFor = (i: number) => PRACTICE_ELEMENTS[i % PRACTICE_ELEMENTS.length];
+      cards.forEach((c, i) =>
+        this.cardElements.set(c.cardId, forcedFor(i) ?? c.element ?? practiceFor(i)),
+      );
+      // Practice cards had no element AT ALL, which is why testing only ever
+      // showed the placeholder circle. The `?element=` override still wins.
       PLACEHOLDER_CARD_IDS.forEach((id, i) => {
-        const e = forcedFor(i);
-        if (e) this.cardElements.set(id, e);
+        this.cardElements.set(id, forcedFor(i) ?? practiceFor(i));
       });
       this.hand = handFromCards(
         cards.length > 0 ? cards.map((c) => c.cardId) : PLACEHOLDER_CARD_IDS,
@@ -1426,13 +1737,48 @@ export function makeScene(
     }
     private lastCombatKey = '';
 
+    /**
+     * Push the hand to the shell, when it has actually changed.
+     *
+     * Guarded the same way `emitCombatState` is, and for the same reason — but
+     * the guard arrived later here, because this used to be called only at the
+     * handful of moments the hand's CONTENTS changed. It now also carries the
+     * attack's phase and charge, which change constantly, so it is called every
+     * frame and the key is what stops that becoming sixty React renders a
+     * second. Everything the shell draws is in the key; nothing else is.
+     */
     private emitHand() {
+      // Twelfths. See HandView.charge — the shell's CSS transition covers the
+      // gaps, so the bar looks continuous while React does an order of
+      // magnitude less work than a raw value would cost.
+      const charge = Math.round(this.action.chargeLevel * 12) / 12;
+      const key = [
+        this.hand.selected,
+        this.blockedCount,
+        this.action.phase,
+        charge,
+        this.hand.slots.map((s) => `${s.cardId ?? ''}:${s.state}`).join(','),
+      ].join('|');
+      if (key === this.lastHandKey) return;
+      this.lastHandKey = key;
+
       hooks.onHandChange?.({
+        phase: this.action.phase,
+        charge,
         selected: this.hand.selected,
-        slots: this.hand.slots.map((slot) => ({ cardId: slot.cardId, state: slot.state })),
+        slots: this.hand.slots.map((slot) => ({
+          cardId: slot.cardId,
+          state: slot.state,
+          // What this card SHOOTS, as a colour the shell can paint the chip
+          // with. Sent from here rather than looked up in React because the
+          // element↔card mapping lives in the scene, and a second copy of it in
+          // the HUD is a second thing that can disagree about what slot 1 is.
+          tint: slot.cardId ? effectKitFor(this.cardElements.get(slot.cardId)).palette[1] : null,
+        })),
         blockedCount: this.blockedCount,
       });
     }
+    private lastHandKey = '';
 
     /** Number keys pick a slot; shoulder buttons cycle for a pad. */
     private readSelection() {
@@ -1466,7 +1812,7 @@ export function makeScene(
 
       this.readSelection();
 
-      const feet = { x: this.player.x, y: this.feetY };
+      const feet = { x: this.feetX, y: this.feetY };
 
       // The construct moves FIRST, so a strike it lands this frame reaches the
       // action machine in the same frame rather than a frame late. A one-frame
@@ -1479,7 +1825,14 @@ export function makeScene(
       const previousPhase = this.action.phase;
       // Read and clear in one place. A latch left set would cancel the NEXT shot
       // too, which is a far more confusing bug than the one it exists to fix.
-      const cancelRequested = this.cancelLatch;
+      //
+      // A SCRIPTED hold is immune. The cancel exists because a lost focus means
+      // "the key-up is never coming" — but a scripted hold has no key-up to
+      // miss, it ends on its own clock. Without this exemption the command is
+      // unusable in the one place it matters: the preview pane bounces focus
+      // every few frames, so a scripted charge was cancelled and restarted
+      // forever and never once reached the wind-up. Found by running it.
+      const cancelRequested = this.cancelLatch && this.scriptedHoldMs <= 0;
       this.cancelLatch = false;
       if (cancelRequested) {
         // The held flag is sampled before this runs, so a cancel has to clear it
@@ -1487,10 +1840,27 @@ export function makeScene(
         this.fireHeld = false;
       }
 
+      /**
+       * A scripted hold presses the same trigger a mouse does.
+       *
+       * Read HERE, at the single place the real held-flag is read, rather than
+       * anywhere earlier — so a scripted shot and a human's shot are literally
+       * the same input to the same machine, and the review cannot be looking at
+       * a path the game does not use.
+       */
+      const scripted = this.scriptedHoldMs > 0;
+      if (scripted) this.scriptedHoldMs -= delta;
+      const firePressed = this.fireHeld || scripted;
+      // The hold ends the frame it runs out. `scriptShot(0)` therefore charges
+      // for exactly one frame and releases, which is what a tap is.
+      if (!scripted && this.scriptedAim && this.action.phase === 'explore') {
+        this.scriptedAim = null;
+      }
+
       this.action = stepAction(
         this.action,
         {
-          firePressed: this.fireHeld,
+          firePressed,
           summonPressed: this.summonKey
             ? Phaser.Input.Keyboard.JustDown(this.summonKey)
             : false,
@@ -1501,7 +1871,7 @@ export function makeScene(
           heavyHit:
             struckBy === 'strong' ||
             (this.knockdownKey ? Phaser.Input.Keyboard.JustDown(this.knockdownKey) : false),
-          aim: this.aim.aim,
+          aim: this.scriptedAim ?? this.aim.aim,
           cancelRequested,
           // Any direction gets him up. Read as HELD, so a player leaning on the
           // stick through the fall stands the moment he is allowed to.
@@ -1516,7 +1886,13 @@ export function makeScene(
       // An ordinary strike hurts and does not cost him his hand. §6.7: only a
       // clearly telegraphed STRONG hit scatters, or the cards are gone so often
       // that losing them stops meaning anything.
-      if (struckBy === 'light') this.flashHeroHurt();
+      //
+      // BOTH now flash. The strong hit used to fall straight through to the
+      // knockdown with no contact beat at all, so the single most violent thing
+      // in the fight was the one hit with no impact on it — the fall did all
+      // the talking, and the moment of being struck did none.
+      if (struckBy === 'light') this.flashHeroHurt('normal');
+      if (struckBy === 'strong') this.flashHeroHurt('heavy');
 
       // Pressing fire while disarmed must SAY so. The rule that the cards are his
       // only weapon is correct and invisible, and invisible correctness reads
@@ -1626,24 +2002,42 @@ export function makeScene(
             shot.sim.hitTargetIndex,
             shot.sim.def.damage,
             shot.sim.dir,
-            // A charged shot staggers; a tap flinches. Read from the shot rather
-            // than the release so a heavy that was interrupted early still lands
-            // as the shot it actually became.
-            shot.charge >= 0.6,
+            // A charged shot staggers; a tap flinches. The CHARGE is passed
+            // rather than a heavy flag derived from it, so the one threshold in
+            // feel.ts decides both the state's reaction and the picture's — and
+            // it is read from the shot rather than the release so a heavy that
+            // was interrupted early still lands as the shot it actually became.
+            shot.charge,
           );
         }
 
         // The burst plays wherever the shot stopped, walls included — a blast
         // that vanishes against stone reads as the collision being broken.
         if (shot.sim.outcome === 'hitTarget' || shot.sim.outcome === 'hitBlocker') {
-          playImpact(
-            this,
-            shot.kit,
-            shot.sim.pos.x,
-            shot.sim.pos.y - CARD_HEIGHT_PX,
-            this.level * LEVEL_STRIDE + shot.sim.pos.y + 1,
-            shot.charge,
-          );
+          const at = { x: shot.sim.pos.x, y: shot.sim.pos.y - CARD_HEIGHT_PX };
+          const depth = this.level * LEVEL_STRIDE + shot.sim.pos.y + 1;
+          playImpact(this, shot.kit, at.x, at.y, depth, shot.charge);
+
+          // And the force, pointed. The element's own burst says WHAT hit;
+          // this says which way it was going when it did.
+          const severity = severityForCharge(shot.charge);
+          const feel = getHitFeel(severity, this.motion);
+          playDirectionalBurst(this, {
+            x: at.x,
+            y: at.y,
+            depth: depth + 1,
+            dir: shot.sim.dir,
+            palette: shot.kit.palette,
+            count: feel.particleCount,
+            power: shot.charge,
+          });
+
+          // A wall gets the spray and the camera, but no flash and no freeze —
+          // those belong to a body that was hurt. Stone being hit is
+          // information; it is not an event.
+          if (shot.sim.outcome === 'hitBlocker') {
+            this.kickCamera(feel, shot.sim.dir);
+          }
         }
       }
 
@@ -1677,12 +2071,37 @@ export function makeScene(
       // The held card rides the hero while a shot is being thrown, so the shot
       // visibly comes FROM it.
       if (this.heldCard) {
-        const throwing =
-          charging || this.action.phase === 'windup' || this.action.phase === 'active';
-        this.heldCard.setVisible(throwing);
-        if (throwing) {
-          const lead = cardOrigin(feet, this.action.committedAim ?? this.aim.aim);
-          this.heldCard.setPosition(lead.x, lead.y - CARD_HEIGHT_PX);
+        const aim = this.poseAim();
+        /**
+         * The card throws itself.
+         *
+         * It used to sit at a fixed point beside him for the whole wind-up and
+         * then vanish, which is what Raheem saw as "the card just floats there
+         * above his head". It now draws back as the charge fills, whips forward
+         * through the wind-up, and is gone on the frame the projectile is born
+         * — because on that frame it IS the projectile.
+         */
+        const cp = cardPose({
+          style: this.attackStyle(),
+          phase: this.action.phase,
+          elapsedMs: this.action.elapsedMs,
+          chargeLevel: this.action.chargeLevel,
+          aim,
+          feel: getAttackFeel(severityForCharge(this.action.chargeLevel), this.motion),
+        });
+        this.heldCard.setVisible(cp.visible);
+        if (cp.visible) {
+          // The card in his hand IS the card he selected. Tinting it from the
+          // element's own palette is what makes "I am about to shoot fire"
+          // true before anything has been shot — and it costs one call, where
+          // real card faces are a whole art pipeline.
+          const kit = this.selectedKit();
+          this.heldCard.setFillStyle(colourOf(kit.palette[1]));
+          this.heldCard.setStrokeStyle(2, colourOf(kit.palette[2]));
+          const lead = cardOrigin(feet, aim);
+          this.heldCard.setPosition(lead.x + cp.offsetX, lead.y - CARD_HEIGHT_PX + cp.offsetY);
+          this.heldCard.setRotation(cp.rotation);
+          this.heldCard.setScale(cp.scale);
           this.heldCard.setDepth(this.level * LEVEL_STRIDE + this.feetY + 1);
         }
       }
@@ -1726,7 +2145,7 @@ export function makeScene(
       if (dropped.length === 0) return;
       this.hand = hand;
 
-      const from = { x: this.player!.x, y: this.feetY };
+      const from = { x: this.feetX, y: this.feetY };
       const points = scatterPoints({
         origin: from,
         count: dropped.length,
@@ -1769,7 +2188,7 @@ export function makeScene(
      */
     private updatePickups(delta: number) {
       if (this.pickups.length === 0 || !this.player) return;
-      const feet = { x: this.player.x, y: this.feetY };
+      const feet = { x: this.feetX, y: this.feetY };
 
       const survivors: typeof this.pickups = [];
       for (const p of this.pickups) {
@@ -1800,6 +2219,37 @@ export function makeScene(
     }
 
     /** The effect kit of whatever card is selected right now. */
+    /**
+     * Which body language the shot in progress calls for.
+     *
+     * Read from the CARD's action rather than assumed, so the day a melee card
+     * exists it poses correctly without a line changing here. Everything
+     * resolves to `ranged` today because every action is a blast.
+     *
+     * The committed slot wins over the selected one for the same reason
+     * `resolveAction` reads it in the fire path: pressing 1-4 mid-windup must
+     * not re-pose a throw that is already in the air.
+     */
+    /**
+     * The direction the body should be posing along.
+     *
+     * Committed aim first (a shot in flight owns its own direction), then a
+     * scripted hold's, then the live one. The middle case was missing and it
+     * cost a verification pass: a scripted shot flew at the construct while the
+     * hero braced along whatever direction the untouched mouse implied, so the
+     * lean read as zero and looked like the tilt was broken. The pose must face
+     * the way the shot is going, whoever is holding the trigger.
+     */
+    private poseAim(): { x: number; y: number } {
+      return this.action.committedAim ?? this.scriptedAim ?? this.aim.aim;
+    }
+
+    private attackStyle(): AttackStyle {
+      const slot = this.committedSlot ?? this.hand.selected;
+      const cardId = slot !== null ? this.hand.slots[slot]?.cardId ?? null : null;
+      return attackStyleFor(resolveAction(cardId, this.action.releaseKind));
+    }
+
     private selectedKit(): EffectKit {
       const slot = this.hand.selected === null ? null : this.hand.slots[this.hand.selected];
       return effectKitFor(slot?.cardId ? this.cardElements.get(slot.cardId) : undefined);
@@ -1824,7 +2274,7 @@ export function makeScene(
       // Where the card lands: a step ahead of him, and only somewhere he could
       // stand. The same predicate the scatter uses, so a summon can never appear
       // inside a wall or out over the pond.
-      const feet = { x: this.player.x, y: this.feetY };
+      const feet = { x: this.feetX, y: this.feetY };
       const ahead = this.groundAhead(feet, this.aim.aim);
 
       this.hand = summonSelected(this.hand);
@@ -1837,6 +2287,7 @@ export function makeScene(
       if (this.anims.exists(CARD_SLAM_ANIM) && this.player) {
         this.player.anims.stop();
         this.player.setTexture(CARD_SLAM_SHEET.key, 0);
+        this.heroBaseScale = 1;
         this.player.setScale(1);
         this.player.setOrigin(CARD_SLAM_ANCHOR.x, CARD_SLAM_ANCHOR.y);
         this.player.play(CARD_SLAM_ANIM);
@@ -1950,6 +2401,11 @@ export function makeScene(
       }
       this.player.anims.stop();
       this.player.setTexture(KNOCKDOWN_SHEET.key, 0);
+      // The fall has its own sheet at its own size; that becomes the base the
+      // pose would multiply. It never does — the pose is neutral while he is
+      // down — but leaving the old base here would make the first frame after
+      // he stands up the wrong size.
+      this.heroBaseScale = 1;
       // Both sheets are authored so he stands 71px tall, so this is 1:1 and the
       // swap does not change his size.
       this.player.setScale(1);
@@ -1983,6 +2439,7 @@ export function makeScene(
       this.standUpTimer = undefined;
       this.player.anims.stop();
       this.player.setTexture(this.heroSheetKey, idleFrame(this.facing));
+      this.heroBaseScale = this.heroScale;
       this.player.setScale(this.heroScale);
       // Back to feet-at-the-bottom, or he would walk around sunk into the floor.
       this.player.setOrigin(0.5, 1);
@@ -1995,9 +2452,22 @@ export function makeScene(
      * one place, and damage arriving mid-projectile-loop would mean two shots in
      * the same frame each seeing a different construct.
      */
-    private reactToHit(index: number, damage: number, dir: { x: number; y: number }, heavy: boolean) {
+    private reactToHit(
+      index: number,
+      damage: number,
+      dir: { x: number; y: number },
+      charge: number,
+    ) {
       if (index !== 0 || !this.construct) return;
-      this.pendingHits.push({ amount: damage, knockback: dir, heavy });
+      const severity = severityForCharge(charge);
+      this.pendingHits.push({ amount: damage, knockback: dir, heavy: severity === 'heavy' });
+      // The loudest of anything landing this frame decides the feel. Taking the
+      // max rather than the last means two shots arriving together read as the
+      // bigger of them, never as whichever happened to be resolved second.
+      // The direction belongs to whichever hit is deciding the feel, so it is
+      // only replaced when the severity is.
+      if (this.pendingHitSeverity !== severity) this.pendingHitDir = dir;
+      this.pendingHitSeverity = louder(this.pendingHitSeverity, severity);
     }
 
     /**
@@ -2012,7 +2482,10 @@ export function makeScene(
       if (!this.construct) return;
 
       const hits = this.pendingHits;
+      const hitSeverity = this.pendingHitSeverity;
+      const hitDir = this.pendingHitDir;
       this.pendingHits = [];
+      this.pendingHitSeverity = null;
 
       const before = this.construct.phase;
       const out = stepConstruct(
@@ -2031,11 +2504,14 @@ export function makeScene(
       );
       this.construct = out.state;
 
-      if (hits.length > 0) this.flashConstruct();
+      if (hits.length > 0) this.flashConstruct(hitSeverity ?? 'normal', hitDir);
       if (before !== this.construct.phase) {
         this.constructStats.lastPhase = `${before}->${this.construct.phase}`;
         if (this.construct.phase === 'telegraph') (this.constructStats.telegraphs as number)++;
-        if (this.construct.phase === 'defeated') (this.constructStats.defeats as number)++;
+        if (this.construct.phase === 'defeated') {
+          (this.constructStats.defeats as number)++;
+          this.killConstruct(hitDir);
+        }
       }
 
       // Does the committed strike reach him? Resolved against the SHAPE of the
@@ -2057,8 +2533,12 @@ export function makeScene(
           alive: isHittable(this.construct.phase),
         },
       ];
-      this.constructView?.update(this.construct, heroFeet, (groundY) =>
-        this.depthBand ? this.level * LEVEL_STRIDE + groundY : 100000,
+      this.constructView?.update(
+        this.construct,
+        heroFeet,
+        (groundY) => (this.depthBand ? this.level * LEVEL_STRIDE + groundY : 100000),
+        // The picture's clock, not the simulation's — see hitstop.ts.
+        this.presentDelta,
       );
       // Cheap: it early-returns unless something a human would notice changed.
       this.emitCombatState();
@@ -2086,9 +2566,144 @@ export function makeScene(
      * simulating a walk there, and it is a dev command precisely because it can
      * put him somewhere the game never would.
      */
+    /**
+     * Play a tier's contact feedback with no shot behind it.
+     *
+     * Deliberately routed through `flashConstruct`, the same method a real hit
+     * uses, rather than reproducing its parts. A preview that assembled the
+     * effect itself could look perfect while the real path was broken, which is
+     * the failure mode a dev command exists to rule out rather than create.
+     */
+    previewImpact(severity: HitSeverity) {
+      this.flashConstruct(severity);
+    }
+
+    /**
+     * Hold the trigger for a measured time, aimed at the construct.
+     *
+     * WHAT THIS REPLACED, and why the replacement matters. The first version
+     * called `launchBlast` directly with a charge number. It produced the right
+     * projectile and the right impact — and NO THROW AT ALL, because the action
+     * machine never ran, so there was no charging phase, no wind-up, no release,
+     * and therefore no pose. The one command built to make the attack reviewable
+     * was the one command that could not show the half of the attack under
+     * review. Whatever a benchmark bypasses is the part it cannot vouch for.
+     *
+     * So it now presses the trigger instead of firing the gun: `scriptedHoldMs`
+     * is read exactly where the real `fireHeld` is read, and everything
+     * downstream — charge accumulation, release classification, wind-up, the
+     * body pose, the card's throw, the projectile — happens through the paths a
+     * human's mouse would use. A hold of 0 releases on the next frame and comes
+     * out as a tap; a hold past `chargeMaxMs` comes out fully charged.
+     */
+    /**
+     * The named scenario: one complete exchange, the same way every time.
+     *
+     * WHY A SCRIPT AND NOT A CHECKLIST. Everything in this initiative is judged
+     * by watching it, and watching only means something if two runs are
+     * comparable. Played by hand, no two are: the charge is a different length,
+     * the distance is different, the construct is in a different mood. This
+     * puts the whole conversation — tap, charged shot, its telegraph, its
+     * strike, the kill — on one timeline from one starting position, so a
+     * change to the feel is the only thing that can differ between two
+     * recordings of it.
+     *
+     * Built from the same commands a human uses; it does not reach past them.
+     * A scenario with private access would be testing a path the game does not
+     * have, which is the failure `combatDev.ts`'s header was written about.
+     */
+    runScenario() {
+      if (!this.player || !this.construct) return;
+      this.cancelScenario();
+
+      const home = this.constructHome;
+      // A known distance, just outside its preferred range, so the approach and
+      // the telegraph both happen rather than starting mid-fight.
+      this.placeHeroAt(home.x - 200, home.y);
+      this.construct = resetConstruct(this.construct, home);
+      this.construct = setAiEnabled(this.construct, false);
+      this.construct = setStrongHits(this.construct, false);
+      this.emitCombatState();
+
+      const at = (ms: number, what: () => void) => {
+        this.scenarioTimers.push(this.time.delayedCall(ms, what));
+      };
+
+      /**
+       * TWO THINGS THIS SCRIPT LEARNED BY BEING RUN.
+       *
+       * `aiEnabled: false` freezes EVERY phase, not just the decision to start
+       * one — so the first version froze the construct for determinism and then
+       * forced a telegraph that could never resolve into a strike. The tell just
+       * sat there. The brain goes back on before anything is asked of it.
+       *
+       * And a strike only lands inside `lungeReachPx` (132). The hero starts at
+       * 200 so the shots have a flight to be seen, and is moved into reach
+       * before the construct is asked to swing — otherwise the strike resolves
+       * as a clean miss and the flinch, the knockdown and the scatter are all
+       * silently skipped while the log still looks busy.
+       */
+
+      // A tap, so the quiet tier is seen first and the heavy has something to
+      // be heavier THAN.
+      at(500, () => this.scriptShot(0));
+      // A full charge. Long enough after the tap that the two do not overlap.
+      at(1600, () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 100));
+
+      // Into its reach, and wake it up.
+      at(3000, () => {
+        this.placeHeroAt(home.x - 110, home.y);
+        if (!this.construct) return;
+        this.construct = setAiEnabled(this.construct, true);
+        this.emitCombatState();
+      });
+      // Its answer: a telegraph and a strike, with the hero standing still and
+      // taking it — the fold and the flash are the point here, not the dodge.
+      at(3300, () => {
+        if (!this.construct) return;
+        this.construct = forcePhase(this.construct, 'telegraph', { x: this.feetX, y: this.feetY });
+        this.emitCombatState();
+      });
+
+      // The kill, and with it the defeat feedback.
+      at(5400, () => this.scriptShot(ACTION_TIMING.chargeMaxMs + 100));
+
+      // Finale: back up, and the strong version — the knockdown and the
+      // scatter. Last on purpose, because it costs him his hand and nothing
+      // after it could fire.
+      at(7000, () => {
+        if (!this.construct) return;
+        this.construct = reviveConstruct(this.construct);
+        this.construct = setStrongHits(this.construct, true);
+        this.emitCombatState();
+      });
+      at(7800, () => {
+        if (!this.construct) return;
+        this.construct = forcePhase(this.construct, 'telegraph', { x: this.feetX, y: this.feetY });
+        this.emitCombatState();
+      });
+    }
+
+    /** Drop every pending step of a scenario that is no longer wanted. */
+    cancelScenario() {
+      for (const t of this.scenarioTimers) t.remove();
+      this.scenarioTimers = [];
+    }
+
+    scriptShot(holdMs: number) {
+      if (!this.player || !this.construct) return;
+      const dx = this.construct.pos.x - this.feetX;
+      const dy = this.construct.pos.y - this.feetY;
+      const len = Math.hypot(dx, dy) || 1;
+      // Aim is locked for the duration so the shot goes where the review needs
+      // it regardless of where the mouse happens to be sitting.
+      this.scriptedAim = { x: dx / len, y: dy / len };
+      this.scriptedHoldMs = Math.max(0, holdMs);
+    }
+
     placeHeroAt(x: number, y: number) {
       if (!this.player) return;
-      this.player.x = x;
+      this.feetX = x;
       this.feetY = y;
       this.applyHeroTransform();
     }
@@ -2100,19 +2715,188 @@ export function makeScene(
      * cards the loss would stop meaning anything, and the knockdown — the moment
      * the whole milestone is built around — would be just another hit.
      */
-    private flashHeroHurt() {
+    private flashHeroHurt(severity: HitSeverity = 'normal') {
       if (!this.player) return;
+      const feel = getHitFeel(severity, this.motion);
       this.player.setTintFill(0xffdada);
-      this.time.delayedCall(90, () => this.player?.clearTint());
-      if (!this.motionOff) this.cameras.main.shake(120, 0.003);
+      /**
+       * One timer, replaced — never a second one racing the first.
+       *
+       * Each flash used to schedule its own `delayedCall`, so two hits inside a
+       * flash's length meant the FIRST timer cleared the tint while the second
+       * flash was still meant to be showing. The second hit was the one that
+       * lost its feedback, which is exactly backwards: under pressure is when
+       * the player most needs to see that they were hit.
+       *
+       * Still time rather than an animation event — the same backstop rule
+       * every timed effect in this scene follows.
+       */
+      this.heroFlashTimer?.remove();
+      this.heroFlashTimer = this.time.delayedCall(feel.flashMs, () => {
+        this.player?.clearTint();
+        this.heroFlashTimer = undefined;
+      });
+
+      /**
+       * He folds, away from whatever hit him.
+       *
+       * The construct is the only thing that can hit him, so its position is
+       * the direction — and using it rather than a fixed axis is what makes
+       * being hit from the left look different from being hit from the right.
+       * A flinch with no direction says a hit happened; one with a direction
+       * says where to walk.
+       */
+      if (this.construct) {
+        const dx = this.feetX - this.construct.pos.x;
+        const dy = this.feetY - this.construct.pos.y;
+        const len = Math.hypot(dx, dy) || 1;
+        this.heroHurtDir = { x: dx / len, y: (dy / len) * 0.55 };
+      }
+      // Motion off zeroes the fold and leaves the flash, which is the rule the
+      // whole ladder exists to protect: losing motion costs movement, never the
+      // information that something hit him.
+      this.heroHurtSpanMs = Math.max(1, feel.flashMs * 1.6);
+      this.heroHurtMs = feel.staticFallback ? 0 : this.heroHurtSpanMs;
+
+      this.hitstop?.trigger(feel.hitstopMs);
+      this.kickCamera(feel, { x: -this.heroHurtDir.x, y: -this.heroHurtDir.y });
     }
 
-    /** A readable reaction, so a hit cannot be mistaken for a miss. */
-    private flashConstruct() {
-      // The phase colour already changes on a hit; this is the extra beat of
-      // contact on top of it, and it is a tween on the view's own body so the
-      // state machine stays unaware that animation exists.
-      this.cameras.main.shake(90, this.motionOff ? 0 : 0.002);
+    /**
+     * A readable reaction, so a hit cannot be mistaken for a miss.
+     *
+     * The camera half. The BODY's flash belongs to the view and is applied
+     * there — see constructPresenter's `flash()`, which is the tween this
+     * method's comment used to promise and never actually wrote.
+     */
+    private flashConstruct(severity: HitSeverity, dir = this.pendingHitDir) {
+      const feel = getHitFeel(severity, this.motion);
+      this.constructView?.flash(feel);
+      this.hitstop?.trigger(feel.hitstopMs);
+      this.kickCamera(feel, dir);
+    }
+
+    /**
+     * It died. Make that the loudest thing that has happened.
+     *
+     * WHAT THIS IS FOR. Death was the quietest event in the fight: the body
+     * went to 45% alpha and a dark brown, and stood there. A hit — any hit —
+     * had a flash, a freeze and a camera shove; the kill, which is the thing
+     * the whole exchange was for, had less feedback than the tap that preceded
+     * it. The escalation is the point, not the effects.
+     *
+     * It is deliberately built from the SAME parts as an ordinary heavy hit,
+     * fired together: heavy freeze, heavy flash, heavy camera, and a spray of
+     * the construct's own colours along the direction it is going down. A death
+     * that used a bespoke vocabulary would read as a cutscene rather than as
+     * the end of the fight the player was in.
+     *
+     * NOTHING HERE IS LOAD-BEARING. The revive is driven by `construct.ts`'s
+     * `reviveMs` off the phase clock, which never consults a tween — so if
+     * every effect below silently failed, the construct would still get back up
+     * exactly on time. That is the standing rule about state never waiting on
+     * animation, and here it means the backstop is the architecture rather than
+     * a timer someone has to remember to add.
+     */
+    private killConstruct(dir: { x: number; y: number }) {
+      if (!this.construct) return;
+      const feel = getHitFeel('heavy', this.motion);
+
+      this.constructView?.flash(feel);
+      this.hitstop?.trigger(feel.hitstopMs);
+      this.kickCamera(feel, dir);
+
+      // The construct coming apart, in the construct's OWN colours — scorched
+      // timber and ember. Not the element's: the elemental burst already played
+      // on the killing hit a frame ago, and repeating it would say the fire hit
+      // twice rather than that the thing it hit broke.
+      playDirectionalBurst(this, {
+        x: this.construct.pos.x,
+        y: this.construct.pos.y - 34,
+        depth: this.level * LEVEL_STRIDE + this.construct.pos.y + 2,
+        dir,
+        // Three, because every element kit's palette is three — the burst reads
+        // a fixed tuple and a fourth colour here would be a different shape of
+        // thing pretending to be a palette.
+        palette: ['#c98b4a', '#7a4a22', '#ffb02e'],
+        // From the tier, like every other burst in this file. A death is not
+        // licence to exceed the budget M3 pinned.
+        count: feel.particleCount,
+        power: 1,
+      });
+    }
+
+    /**
+     * The camera's answer to a hit: a rattle, plus a shove the way the force went.
+     *
+     * `shake` alone is undirected by nature — it is noise around a point, and
+     * noise cannot say which way anything was moving. The lurch is what makes
+     * the world appear to be struck FROM somewhere rather than merely to be
+     * vibrating.
+     *
+     * Done with `setFollowOffset` rather than by writing scroll directly,
+     * because the camera is following the hero: anything that sets scroll is
+     * overwritten on the very next frame by the follow, and the kick would
+     * never be seen. Offsetting the thing it follows moves the camera WITH the
+     * follow instead of fighting it.
+     *
+     * A world lurch is a `full`-motion privilege. On `subtle` the shake is
+     * already zero and this returns before touching anything.
+     */
+    private kickCamera(feel: { shakeIntensity: number; shakeMs: number }, dir: { x: number; y: number }) {
+      this.shakeCamera(feel);
+      if (this.motion !== 'full' || feel.shakeIntensity <= 0) return;
+
+      const cam = this.cameras.main;
+      // Roughly 4px at heavy. Small: this is a nudge that registers in the gut,
+      // not a camera move the player has to recover from.
+      const push = feel.shakeIntensity * 900;
+      const ox = dir.x * push;
+      const oy = dir.y * push;
+
+      // A second hit REPLACES the lurch. Two counters tweening one offset would
+      // leave the camera parked wherever they happened to disagree.
+      this.cameraKick?.stop();
+      cam.setFollowOffset(ox, oy);
+      this.cameraKick = this.tweens.addCounter({
+        from: 1,
+        to: 0,
+        duration: feel.shakeMs,
+        onUpdate: (t) => {
+          const v = t.getValue() ?? 0;
+          cam.setFollowOffset(ox * v, oy * v);
+        },
+        onComplete: () => {
+          cam.setFollowOffset(0, 0);
+          this.cameraKick = undefined;
+        },
+      });
+      // Time is the backstop. A tween interrupted by a scene teardown — or
+      // frozen by a hitstop that outlives it — must not leave the camera
+      // permanently off-centre, which is a bug with no visible cause.
+      this.time.delayedCall(feel.shakeMs + HITSTOP_CAP_MS + 200, () => {
+        if (!this.cameraKick) return;
+        this.cameraKick.stop();
+        this.cameraKick = undefined;
+        cam.setFollowOffset(0, 0);
+      });
+    }
+
+    /**
+     * Every camera shake in the courtyard goes through here.
+     *
+     * There were two of these, each with its own hardcoded pair of numbers and
+     * its own opinion about reduced motion. One funnel means severity is the
+     * only thing that decides how hard the world moves, and it means a shake
+     * can never be added without a tier to justify it.
+     *
+     * `shake` is left to Phaser to arbitrate when two land together: it
+     * replaces rather than accumulates, so a tap during a heavy hit cannot add
+     * to it. Bounded by construction rather than by a counter.
+     */
+    private shakeCamera(feel: { shakeIntensity: number; shakeMs: number }) {
+      if (feel.shakeIntensity <= 0 || feel.shakeMs <= 0) return;
+      this.cameras.main.shake(feel.shakeMs, feel.shakeIntensity);
     }
 
     /** Walk intent from the keys. Arrows and WASD are the same axis, not two. */
@@ -2171,7 +2955,7 @@ export function makeScene(
 
       const inputs = buildAimInputs(
         { move, pointerScreen, pointerWorld, stick, firePressed },
-        { x: this.player.x, y: this.feetY },
+        { x: this.feetX, y: this.feetY },
         this.pointerTracker,
         this.time.now,
       );
@@ -2242,7 +3026,7 @@ export function makeScene(
         this.level,
       );
 
-      this.player.x = Phaser.Math.Clamp(move.x + HERO_FEET.width / 2, b.x, b.right);
+      this.feetX = Phaser.Math.Clamp(move.x + HERO_FEET.width / 2, b.x, b.right);
       this.feetY = Phaser.Math.Clamp(move.y + HERO_FEET.height, b.y, b.bottom);
       this.level = move.level;
       this.applyHeroTransform();
@@ -2306,9 +3090,9 @@ export function makeScene(
       // A failed jump still PLAYS: he commits, does not make it, and comes back.
       // Silently refusing to move would read as a dead key rather than a hard ledge.
       this.jump = {
-        fromX: this.player!.x,
+        fromX: this.feetX,
         fromY: this.feetY,
-        toX: result.outcome === 'landed' ? result.x + HERO_FEET.width / 2 : this.player!.x,
+        toX: result.outcome === 'landed' ? result.x + HERO_FEET.width / 2 : this.feetX,
         toY: result.outcome === 'landed' ? result.y + HERO_FEET.height : this.feetY,
         toLevel: result.level,
         t: 0,
@@ -2327,7 +3111,7 @@ export function makeScene(
       j.t = Math.min(1, j.t + delta / (j.ok ? JUMP_MS : JUMP_MS * 0.6));
 
       if (j.ok) {
-        this.player!.x = j.fromX + (j.toX - j.fromX) * j.t;
+        this.feetX = j.fromX + (j.toX - j.fromX) * j.t;
         this.feetY = j.fromY + (j.toY - j.fromY) * j.t;
         this.air = jumpArc(j.t);
       } else {
@@ -2346,7 +3130,7 @@ export function makeScene(
     /** The hero's floor patch, centred on his x and ending at his feet. */
     private feetRect() {
       return {
-        x: this.player!.x - HERO_FEET.width / 2,
+        x: this.feetX - HERO_FEET.width / 2,
         y: this.feetY - HERO_FEET.height,
         width: HERO_FEET.width,
         height: HERO_FEET.height,

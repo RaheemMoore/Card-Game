@@ -59,6 +59,44 @@ export interface CardActionDef {
 }
 
 /**
+ * How the Card-wright's BODY performs an action.
+ *
+ * Raheem's ruling, 2026-08-13, after playing the first attempt: the card blast
+ * is not a throw. He is a card WIELDER — for a blast he holds the card up,
+ * plants his feet, and the shot comes out of the card, which never leaves his
+ * hand. The throw-and-release animation that was built for it is a good
+ * animation and belongs to MELEE, which does not exist yet.
+ *
+ * So the style is a property of the ACTION, resolved from the card's own spec
+ * rather than hardcoded in the runtime. Everything ships as `ranged` today
+ * because everything is a blast; `melee` exists so the parked throw has
+ * something to be keyed to, and so that adding a melee card later is a data
+ * change rather than a new branch in the pose code.
+ */
+export type AttackStyle = 'ranged' | 'melee';
+
+/**
+ * Which body language an action calls for.
+ *
+ * EVERY action resolves to `ranged` today, and that is not a placeholder — it
+ * is the true answer, because every action is a blast. `scaffold` resolves the
+ * same way rather than throwing: it dispatches and produces nothing, and the
+ * safe reading of "we do not know what this is" is the stance he uses for
+ * everything he can actually do.
+ *
+ * Written as an exhaustive switch rather than a default so that adding a melee
+ * action kind is a TYPE ERROR here. The one thing that must not happen is a new
+ * kind of attack silently inheriting the wrong body.
+ */
+export function attackStyleFor(spec: CardActionSpec): AttackStyle {
+  switch (spec.kind) {
+    case 'blast':
+    case 'scaffold':
+      return 'ranged';
+  }
+}
+
+/**
  * What a card does when nothing more specific is registered.
  *
  * Every card in the game uses this today, and that is the correct state of
