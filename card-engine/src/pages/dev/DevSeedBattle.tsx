@@ -172,7 +172,6 @@ function seedCards(): { seeded: number; existing: number } {
       border: { baseVariant: border, baseSource: '' },
       lore: spec.lore,
       elementSelection: spec.elementSelection,
-      whisperWords: [],
       evolutionHistory: {},
       createdAt: now,
     });

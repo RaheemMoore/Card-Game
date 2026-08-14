@@ -15,7 +15,6 @@ function makeCard(overrides: Partial<Card> & Pick<Card, 'archetype' | 'stats'>):
     dominantStat: null,
     border: { baseVariant: 'Default', baseSource: 'none' },
     lore: 'Test lore.',
-    whisperWords: [],
     evolutionHistory: {},
     createdAt: '2026-07-28T00:00:00.000Z',
     ...overrides,

@@ -36,7 +36,6 @@ function mockCards(): CardType[] {
       cardName: `${archetype} ${i + 1}`,
       nameAndTitle: `${archetype} of the Test Case`,
       lore: 'A stand-in used to review the case layout.',
-      whisperWords: [],
       // Spread the timestamps so the newest-first sort has something to do.
       createdAt: new Date(Date.now() - i * 3_600_000).toISOString(),
     } as CardType;

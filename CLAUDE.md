@@ -61,7 +61,6 @@ Card Game/                          # Git root
 │   │   ├── services/
 │   │   │   ├── cardGenerator.ts    # Stat generation, border mapping, card shell builder
 │   │   │   ├── claudeApi.ts        # Bible-driven prompt (Bible §Claude Generation Pipeline 14 steps)
-│   │   │   ├── promptAssembler.ts  # Local Leonardo prompt fallback, Bible-compliant
 │   │   │   ├── hiddenFate.ts       # Bible §Hidden Fate helpers — preserveIdentityAcrossRanks, LOCKED_HIDDEN_FATE_FIELDS
 │   │   │   ├── prestigeInference.ts # Bible §Prestige — narrative-earned only, Ascendant only, never player-selected
 │   │   │   ├── leonardoApi.ts      # Leonardo portrait generation
