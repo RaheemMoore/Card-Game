@@ -415,8 +415,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "EXPLOSIVE v2. Crystals blasting upward through a gold light burst. Colours sampled from the game's own element art \u2014 crimson, gold, poison green, indigo, magenta \u2014 not the counter's three. Paving is warm honey now, so it sits in the plate instead of on it."
+      "verdict": "rejected",
+      "note": "Not loved, and hard to cut. Superseded by the vertical wall-crack direction."
     },
     {
       "id": "fissure-B-column",
@@ -426,8 +426,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "A solid column of light roaring out of the chasm, water/spirit/plasma blues around the rim. The most legible from a distance."
+      "verdict": "rejected",
+      "note": "Not loved, and hard to cut. Superseded by the vertical wall-crack direction."
     },
     {
       "id": "fissure-C-crater",
@@ -437,8 +437,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "Shattered crater, magenta and crimson cluster, tumbled slabs."
+      "verdict": "rejected",
+      "note": "Not loved, and hard to cut. Superseded by the vertical wall-crack direction."
     },
     {
       "id": "fissure-D-geode",
@@ -448,8 +448,8 @@
       "endpoint": "/create-1-direction-object",
       "generations": 6,
       "faces": "1",
-      "verdict": "pending",
-      "note": "Geode cracked open flush in the paving. Beautiful but the most contained \u2014 reads smaller than the others."
+      "verdict": "approved",
+      "note": "KEPT FOR NOW. Raheem likes the geode but not the giant streak of light through it \u2014 to be improved later, not blocking."
     },
     {
       "id": "case-halo-blade",

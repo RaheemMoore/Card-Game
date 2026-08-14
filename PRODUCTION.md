@@ -187,7 +187,8 @@ being raised in a chat and lost.*
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
-| Q10 | If forging stops making a live API call, do Forge Crystals still make sense as purchase-only? | They are purchase-only *because* each generation costs real money (economy plan §13). A pool weakens that rationale. Pricing changes need your explicit approval, so this needs your ruling before anything moves. |
+| Q10 | ~~If forging stops making a live API call, do Forge Crystals still make sense as purchase-only?~~ **Answered by the 2026-08-04 ruling.** Crystals are earned, not bought — the in-game purchase system is removed and the game is a one-off Steam purchase. | Kept rather than deleted because it explains why the existing economy code still assumes purchase-only. |
+| Q15 | Now that Crystals are earned, should the mine yield Crystals as well as Gold? | The mine yields Gold *because* Crystals could not be earned. That reason is gone, so this is a live design question rather than a settled rule. |
 | Q11 | With a shared pool, two players can hold the same character. Is that acceptable? | The game's stated premise is "characters you made yourself." Speed and cost are good reasons to trade some of that — recorded so it stays a choice rather than becoming an accident. |
 | Q12 | Do you want walkable forest floor? You asked for animals "running around in the underbrush." The forest is currently traced solid edge to edge, so there is no forest to walk in — the animals are under the canopy at the courtyard's northern edge instead. Carving walkable pockets into the forest edge is collider work, and the animals need no code change to follow. | It is the difference between animals *at* the forest and animals *in* it. |
 | Q13 | ~~Is the Halo Stone wall-kit blocker still real?~~ **Answered by events, 2026-08-11.** The kit shipped to `main` in PR #37 and CourtyardV3 is built from it — 295 assets, one shared indexed palette, wall pieces placed and resegmented. Treating it as blocked would now contradict the scene. Say so if you meant to rule the other way; otherwise the §4 note stands retired. | A blocking note nobody believes is how this file starts lying. |
@@ -208,6 +209,19 @@ gets to make his own.
 this is built follows from that sentence. It's why the forge is a ritual and not a slot
 machine, and why identity fields are locked so advancement can never make someone younger,
 thinner, or less disabled.
+
+### It is a one-off indie game, sold on Steam — new, 2026-08-04
+
+Raheem: *"I am no longer going to make this an ever-ending game where you play with your
+friends. It's gonna be a one-off indie game that people buy on Steam. You purchase it, you
+play the card game, you challenge the tower."*
+
+You buy the game once. There is **no purchase system inside it** — Forge Crystals are earned
+by mining, challenges and play rather than bought. Multiplayer and the live-service framing
+are out.
+
+**The two currencies are unchanged.** Forge Crystals and Gold both stay, and a third may be
+added. What changed is where crystals come from, not what they are — see §7.
 
 ### It is a 2D pixel game — new, 2026-08-04
 
@@ -431,9 +445,9 @@ Every paid provider call routes through a server-side Vercel function under
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
 | PLANNED | The mine | Gold only. Not designed |
-| PLANNED | Multiplayer courtyard | After the tower. Needs Supabase Realtime |
+| WON'T DO | Multiplayer courtyard | **Dropped 2026-08-04** with the live-service model. Raheem: "I am no longer going to make this an ever-ending game where you play with your friends." |
 | PLANNED | Cosmetics | After multiplayer. Intersects the Fashion Bible |
-| PLANNED | Payments / real money | Blocked on economy plan §9 security prerequisites |
+| WON'T DO | Payments / real money | **Removed 2026-08-04.** The game is a one-off Steam purchase, so there are no bundles, no payment rails, no receipt verification, and the economy plan §9 security prerequisites are moot. Do not build toward them. |
 | PLANNED | PvP battles + trading | Not started |
 
 ### Branches with live work
@@ -1032,13 +1046,38 @@ From [economy plan §13](card-engine-economy-currency-system-plan.md), which is 
 
 No component hardcodes a price. Everything reads from `src/data/economy/` catalogs.
 
-### Why Forge Crystals are purchase-only
+### What changed on 2026-08-04 — how crystals are FUNDED, not what they are
 
-Each forge spends real money at Leonardo and Anthropic. Crystals are the player-facing
-representation of that cost. If they could be earned, the generation bill would be unbounded
-and land on you.
+> **The two currencies stay exactly as they are.** Forge Crystals and Gold both remain, and
+> Raheem has floated possibly adding a third. Nothing about the currency model, the catalogs,
+> or the prices is being redesigned here.
+>
+> Raheem, correcting an over-broad reading of this: *"Don't change any of the currency. The
+> economy is still gonna be Forge Crystals and Gold, and maybe even something else. It's just
+> not gonna be linked to API tokens and the person actually spending money. They will earn
+> gold, they'll earn Forge Crystals. It's gonna be a normal indie game."*
 
-**This is why the mine yields Gold, not Crystals.** *(Decided 2026-07-31 — see §8.)*
+**The one thing that changed:** crystals are no longer *bought with real money*. They are
+earned — the mine, little challenges, play. There is no in-game purchase system, because the
+game is bought once on Steam.
+
+The old rationale is kept struck through because it explains why a lot of the existing code
+looks the way it does — not because it still applies:
+
+> ~~Each forge spends real money at Leonardo and Anthropic. Crystals are the player-facing
+> representation of that cost. If they could be earned, the generation bill would be unbounded
+> and land on you.~~ *(Decided 2026-07-31; the funding half was reversed 2026-08-04.)*
+
+**What makes that affordable:** the pre-generated card pool takes the paid API call off the
+per-player path, so earning a crystal no longer maps to spending money on a live generation.
+The two decisions depend on each other — do not adopt one without the other.
+
+**Consequently the mine yielding Gold rather than Crystals is now an open design question,**
+not a settled rule. It was settled *by* the purchase-only rule that just changed.
+
+**No prices, rewards, balances or catalogs have been touched.** Economy plan §13 governance
+still stands: those need Raheem's explicit approval, and this was a funding-model ruling, not
+a numbers one.
 
 ### What blocks real money
 
@@ -1605,6 +1644,40 @@ in another zone. She is not wrong, she is in the wrong game's art style.
 games, and this project has now proved that a canonical document can be the thing causing the
 defect.
 
+
+### 2026-08-04 — It is an indie game you buy once, and the purchase system is removed
+
+Raheem: *"It's gonna be a one-off indie game that people buy on Steam… People will not be
+purchasing crystals anymore. They're gonna buy the game, and mine for crystals, and do other
+things to get crystals. We're removing the whole purchase system. We're just gonna sell the
+game."*
+
+*Why it matters:* it reverses the single load-bearing economy rule — that Forge Crystals are
+purchase-only because every forge spends real money at Leonardo and Anthropic. Crystals are
+now EARNED. Payments, bundles and the §9 production-security prerequisites move from PLANNED
+to WON'T DO, and multiplayer goes with the live-service model.
+
+*What it does NOT change, because I first wrote this too broadly and Raheem corrected it:*
+the currencies themselves. Forge Crystals and Gold both stay, possibly joined by a third.
+This is a ruling about how crystals are funded, not a redesign of the economy.
+
+*What makes it affordable:* the pre-generated card pool, decided the same day, takes the paid
+API call off the per-player path. The two decisions hold each other up — neither works alone.
+
+*What it re-opens:* the mine yields Gold rather than Crystals **because** crystals could not
+be earned. That reason is gone, so it is a live design question again rather than a rule.
+
+### 2026-08-04 — The generated Production Guide is retired; the Wiki is the record
+
+Raheem: *"The production guide that you linked is obsolete and has been retired… Don't update
+it anymore. We are updating the wiki."*
+
+`PRODUCTION.md` is still the written record and still gets updated every session. What is
+dead is the generated HTML page at `docs/production/production.html` and its artifact link —
+the Studio Wiki reads this same file and publishes itself. The `production-log` skill has had
+its regenerate-and-republish step removed so no future session recreates the second copy.
+
+*What it closed:* Q8, which had been sitting in §0 asking exactly this.
 
 ### 2026-08-04 — Cards will come from a pre-generated pool, not a live forge
 
