@@ -348,3 +348,10 @@ This repo is set up as an AI Game Studio (see [STUDIO_CHARTER.md](STUDIO_CHARTER
   - **"It's a monster" is not an exemption.** Bark, hide, fur, carapace or moss count as covering only when they fully sheath the torso and hips; a creature textured *like* skin is still nude. Say so in the positive prompt, don't hope.
   - Enforced via `BASE_NEGATIVE` in `services/claudeApi.ts` + `HAIR_FASHION_NEGATIVES` + Fashion Bible §22 + `STYLE_ANCHOR` for card art, and via the shared negative in each `scripts/bg-harness/configs/*.json` for offline plates and concepts. Both paths must carry it.
 - Commit messages should be concise, describe the "why"
+- **Work on `development`, never directly on `main`.** The repo runs a two-branch workflow:
+  `development` is the active branch every session commits and pushes to; `main` is the stable
+  version and is only ever updated by opening a pull request from `development`. Short-lived
+  branches off `development` are fine, but they get deleted when they merge — **a branch has no
+  "close", only merge or delete.** Abandoned work is preserved with an annotated tag
+  (`git tag -a archive/<name> <sha>`, pushed) and the branch is then deleted, so the branch list
+  stays at two. This replaced a 49-branch pile on 2026-08-14; see [WORKFLOW.md](WORKFLOW.md).

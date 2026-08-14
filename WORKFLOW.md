@@ -23,6 +23,28 @@ This is short by design. If it grows past two pages, I've made it too clerical.
 
 The control plane is `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json`. The Studio Lead reads only the relevant code/docs, not the entire project.
 
+## Branches — there are two, and that is the whole system
+
+```
+main          stable. Only ever updated by merging development in.
+└── development   everything happens here. Claude works here by default.
+```
+
+**`development` is the working branch.** Sessions start from it, commit to it, and push it.
+It is allowed to be mid-thought — that is what it is for.
+
+**`main` is the version you trust.** Nothing is committed to it directly. Work reaches it by
+opening a pull request from `development`, which is also the moment you get to see the whole
+change in one place before it becomes official.
+
+Short-lived branches off `development` are fine for a risky experiment. They are deleted when
+they merge — **a branch has no "close", only merge or delete**, and leaving them behind is how
+this repo reached 49 of them.
+
+Abandoned work is **tagged, then deleted**: `git tag -a archive/<name> <sha>` preserves the
+commits forever without leaving a branch in the list. Existing archive tags are listed with
+`git tag`, and any of them is restorable with `git branch <name> <tag>`.
+
 ## Evidence rule
 
 Every completed task ends as:
