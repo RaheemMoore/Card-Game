@@ -1,13 +1,18 @@
 # Card Engine — Production Guide
 
-> **This is the brain and the map.** What the game is, what's in flight, what got started and
-> abandoned, and why every decision was made. Read by Raheem and Tori.
+> **This is project infrastructure, not a report.** Claude has no memory between sessions and
+> reads this file at the start of every one. It is the only place that carries what the game
+> is, what got started and abandoned, and why each decision was made — everything a fresh
+> session would otherwise get wrong. Raheem can read it; nothing here assumes he has.
 >
 > **It is not an ops tool.** The admin dashboard owns live numbers — spend, balances, card
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
+>
+> **It is also the Studio Wiki's source.** `studio-wiki` reads this file at build time and
+> publishes it, so headings are page structure — keep them meaningful.
 
-**Last updated:** 2026-08-14 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-14 · **Updated when something material changes** — inside the same pull request as the work it describes, never as its own · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -2544,11 +2549,17 @@ in common, and both tools get used across both subjects.
 
 ## How to keep this alive
 
-**For Raheem:** open it, read §0, pick something, tell me. That's the whole ritual.
+**For Raheem:** nothing is required of you. If you want a way in, §0 is the one section worth
+opening — what I'd work on next, and what needs a ruling from you.
 
-**For me:** invoke the `production-log` skill at the end of any session that shipped work,
-made a decision, or raised a question. It updates the right sections, appends to the decision
-log, and redeploys the page to the same URL.
+**For me:** invoke the `production-log` skill **only when something material changed** — work
+shipped, a decision settled, a thread opened or closed, a question raised. A bug fix, refactor,
+test repair or art regeneration is not material; the commit history carries those.
+
+**The edit rides inside the same commit and pull request as the work it describes.** Never a
+separate push, never a separate merge. Raheem named that cost directly on 2026-08-14 and it was
+self-inflicted: `main` is protected, so a standalone doc update buys a whole extra review cycle
+for nothing. Touch only the sections that actually changed.
 
 **A caveat about the push warning:** `.gitignore` blanket-ignores `.claude/*`, and hooks were
 never un-ignored — so the freshness warning (and the older build check it runs after) exist

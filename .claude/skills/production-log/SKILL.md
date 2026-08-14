@@ -1,6 +1,6 @@
 ---
 name: production-log
-description: Update PRODUCTION.md and republish the production guide after work lands, a decision gets made, or a question needs Raheem's ruling. Refreshes the recommendations, moves status entries, opens or closes threads, appends a dated decision-log entry, regenerates the HTML page and redeploys it to the same URL. Use at the end of any session that shipped something, decided something, or raised something — and whenever the pre-push freshness warning fires. Do NOT use for routine doc edits that carry no decision (that's sync-project-knowledge), or to record work that is not actually finished.
+description: Update PRODUCTION.md when work lands, a decision gets made, or a question needs Raheem's ruling. Moves status entries, opens or closes threads, appends a dated decision-log entry, refreshes the recommendations. The edit rides inside the same commit and PR as the work it describes — it is never its own push or its own merge. Use when something material actually changed; skip a session that changed nothing. Do NOT use for routine doc edits that carry no decision (that's sync-project-knowledge), or to record work that is not actually finished.
 ---
 
 # Skill: production-log
@@ -12,6 +12,26 @@ ended. This skill is how it stays true.
 **Its only real enemy is inaccuracy.** If the guide claims something shipped that didn't,
 Raheem stops trusting it and it dies exactly the way `WORKFLOW.md`'s status section died.
 Every rule below serves that one goal.
+
+---
+
+## Rule zero — the update is never its own commit
+
+**Stage the `PRODUCTION.md` edit into the same commit and pull request as the work it
+describes.** Not a follow-up commit, not a second PR, not a separate merge.
+
+This is not a style preference. `main` is protected, so every separate doc update costs an
+extra push, an extra pull request and an extra merge — and Raheem named that directly on
+2026-08-14 as the thing making this file feel like a hassle: *"It feels like something that's
+a hassle to update every single time. It's an extra push, an extra merge every single time."*
+He is right, and the cost is entirely self-inflicted.
+
+So the order is: do the work → update `PRODUCTION.md` → `git add` both → one commit → one PR.
+The record and the change it describes land together, which is also the only way they cannot
+disagree.
+
+**The one exception** is a session whose *entire* product is a decision or a ruling, with no
+code. Then the doc edit is the work, and it is the PR.
 
 ---
 
@@ -30,8 +50,18 @@ Not everything deserves an entry. Ask, in this order:
 | Touch an economy rule or a governance constraint? | §7 Money and rules |
 | Change what the game *is*? | §1 What this game is — and tell Raheem plainly |
 
-If none apply, **stop.** A no-op update that bumps the date is worse than no update: it
-teaches the reader that the date means nothing.
+If none apply, **stop, and do not open the file.** A no-op update that bumps the date is worse
+than no update: it teaches the reader that the date means nothing.
+
+**Most sessions should stop here, and that is the intended outcome.** A bug fix, a refactor, a
+test repair, a styling pass, an art regeneration, a dependency bump — none of these change what
+the project *is*, what was decided, or what is still open. They are recorded in the commit
+history, which is where that kind of detail belongs. This file is for the things a future
+session would get wrong without it.
+
+**Touch only the sections the table above names.** Updating four sections because it feels
+thorough is how a fifteen-minute task becomes an hour, and every section touched is another
+place that can drift out of date.
 
 ---
 
@@ -106,9 +136,22 @@ Each entry:
 prevents, or unblocks.>
 ```
 
+**Six to ten lines. Hard ceiling.** Measured on 2026-08-14, §8 held 80 entries written over
+14 days at an average of 18 lines each — 1,429 lines, 43% of the whole file, for a fortnight of
+work. Nothing was archived to fix that because nothing was old enough to archive; the log was
+simply too verbose and too eager.
+
+An entry earns its length by recording **a decision and the reasoning behind it.** It does not
+need the narrative of how the session arrived there, what was tried first, or how the code
+works — the commit history has all three. If an entry is running long, the excess is almost
+always retelling rather than reasoning.
+
+**One entry per decision, not one per session.** A session that settles three things writes
+three short entries; a session that settles nothing writes none.
+
 **Record disagreements, including mine.** The warn-vs-block entry names Raheem's ruling and
 my reservation and the condition that would reopen it. That honesty is what makes the log
-worth reading later.
+worth reading later — and it fits comfortably in ten lines.
 
 **When Raheem overrules a recommendation, that is always an entry.** His reasoning is the
 most valuable thing this file collects.
@@ -153,10 +196,16 @@ on him. He should be able to skip opening the page and still know.
 
 ## Writing rules
 
-**Audience is Raheem and Tori.** Tori is a lore director who did not write the code and does
-not read markdown. In the reading sections (§0, §1, §5, §8, §9) explain any file path or
-piece of jargon in plain language, or leave it out. The reference sections (§2, §3, §4, §6,
-§7) may be denser — they're consulted, not read.
+**The audience is the next session, and Raheem if he chooses to look.** Tori was named as a
+second reader until 2026-08-14; she is not one now, and nothing should be written to suit her.
+Raheem's own words: *"No one is actually reading it… that should be useful to you, the game,
+and functioning."*
+
+Write for a cold start, then. Assume the reader knows the codebase but remembers nothing about
+this project's history — because that is literally true of the next session. Concretely: name
+the file path, give the exact value, say what was ruled out and why. Persuasive framing aimed
+at a human is wasted; **§0 is the one section still written for Raheem**, since it is the only
+one he is asked to act on.
 
 **Plain language, active voice, no hedging.** "The tower gates the game" beats "the tower is
 intended to function as a gating mechanism."
