@@ -194,7 +194,8 @@ describe('buildLeonardoPrompt', () => {
     const fireFamily = store.getFamily('fire');
 
     const tech = buildLeonardoPrompt({ def, version, family: techFamily });
-    expect(tech.prompt).toContain('cobalt');
+    expect(tech.prompt).toContain('circuit-cyan');
+    expect(tech.prompt).toContain('hologram-teal');
     expect(tech.prompt).not.toMatch(/warm ember|forged metal accents/);
     expect(tech.negativePrompt).toContain('steampunk gears');
     expect(tech.negativePrompt).not.toContain('sci-fi panels');
