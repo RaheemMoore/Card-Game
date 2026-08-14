@@ -3,7 +3,7 @@ import type { ArchetypeName } from '../types/card';
 /**
  * Fantasy Character Naming Bible (Raheem, v1.0, 2026-07-19) — canonical
  * naming reference for generated character cards. Source of truth:
- * /Fantasy_Character_Naming_Bible.md.
+ * /docs/bibles/Fantasy_Character_Naming_Bible.md.
  *
  * This module condenses the Bible's per-archetype chapters into structured
  * data that the character-generation prompt can compact per forge. The full

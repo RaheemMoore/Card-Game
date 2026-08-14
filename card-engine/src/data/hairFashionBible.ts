@@ -4,7 +4,7 @@ import type { ElementName } from '../types/bible';
 /**
  * Fantasy Hair, Fashion, and Clothing Bible (Raheem, v1.0, 2026-07-19) —
  * canonical reference for hair and costume construction in character
- * generation. Source: /Fantasy_Hair_Fashion_and_Clothing_Bible.md.
+ * generation. Source: /docs/bibles/Fantasy_Hair_Fashion_and_Clothing_Bible.md.
  *
  * Bible §27 Final Principle: "A character's appearance is worldbuilding on
  * a body. Hair carries lineage, discipline, and history. Clothing carries

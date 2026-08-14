@@ -29,7 +29,7 @@ If any of these are true, invoke instead of drafting from your own head:
 - [card-engine-power-system-spec.md](../../card-engine-power-system-spec.md) §10 — Card data structure
 - [card-engine-economy-currency-system-plan.md](../../card-engine-economy-currency-system-plan.md) §5 (architecture), §7 (transaction flow), §9 (production security), §10 (proposed repo structure)
 - [card-engine/supabase/README.md](../../card-engine/supabase/README.md) — schema, RLS, `is_admin()`, dashboard toggles
-- [Claude_Code_Admin_Operations_Dashboard_Plan.md](../../Claude_Code_Admin_Operations_Dashboard_Plan.md) — admin phase status, `AdminPreviewPanel` pattern, api_usage_events
+- [Claude_Code_Admin_Operations_Dashboard_Plan.md](../../docs/archive/handoffs/Claude_Code_Admin_Operations_Dashboard_Plan.md) — archived; admin phase status, `AdminPreviewPanel` pattern, api_usage_events
 
 The code lives at `card-engine/src/` and `card-engine/api/`. Read the modules you're being asked about before recommending changes. Recent commits (`git log --oneline -15`) show the trajectory.
 
