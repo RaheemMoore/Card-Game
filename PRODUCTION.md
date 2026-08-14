@@ -1,13 +1,18 @@
 # Card Engine — Production Guide
 
-> **This is the brain and the map.** What the game is, what's in flight, what got started and
-> abandoned, and why every decision was made. Read by Raheem and Tori.
+> **This is project infrastructure, not a report.** Claude has no memory between sessions and
+> reads this file at the start of every one. It is the only place that carries what the game
+> is, what got started and abandoned, and why each decision was made — everything a fresh
+> session would otherwise get wrong. Raheem can read it; nothing here assumes he has.
 >
 > **It is not an ops tool.** The admin dashboard owns live numbers — spend, balances, card
 > counts, moderation queues. This owns the record of the work: what we decided, why, and
 > what's still open. That record used to evaporate when a chat session ended.
+>
+> **It is also the Studio Wiki's source.** `studio-wiki` reads this file at build time and
+> publishes it, so headings are page structure — keep them meaningful.
 
-**Last updated:** 2026-08-14 · **Maintained by:** the primary Studio Lead, every session · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-14 · **Updated when something material changes** — inside the same pull request as the work it describes, never as its own · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -150,14 +155,7 @@ real money. On a curated roster, that reasoning weakens.
 
 *Where:* §4 "The three deployments" · *Related:* Q10
 
-### ○ Cheap win — rule six dead branches out
-
-Six of the eight in §3 are more than 280 commits behind and are finished experiments —
-`seraph-corruption-arc` (the arc shipped from elsewhere), `agent-tuning-1`, `dash-structure`,
-`feat/lore-director-role`, `claude/vigilant-kowalevski-e30267`. Ruling them `WON'T DO` costs
-a sentence each and makes the branch list mean something again.
-
-### ⚠ Risk worth naming — two big pieces of work exist on one machine each
+### ⚠ Risk worth naming — one big piece of work exists on one machine
 
 **The Still Season.** An entire boss and arena — sprites, clips, signature layers, arena
 plate, configs, two new manifests — representing days of work and real generation spend, is
@@ -169,7 +167,13 @@ not in the repository. Only `debt-bearer` and `emberborn-wraith` are committed u
 kit, the CourtyardV3 scene, and the offline scene renderer are all on `main` and pushed. The
 courtyard wildlife work rode in with it.
 
-The Still Season is still the outstanding one: it exists on one machine and nothing else.
+~~**Two branches that were never pushed.**~~ **RESOLVED 2026-08-14.** The warband combat core
+and the record of the 2026-08-04 business-model ruling both existed only on this laptop and
+have now merged to `main` via [PR #51](https://github.com/RaheemMoore/Card-Game/pull/51). That
+class of risk is closed structurally: branches are pushed or archive-tagged, never left local.
+
+The Still Season is still the outstanding one: it exists on one machine and nothing else. It is
+**assets, not a branch**, so the branch cleanup did not touch it.
 
 *Open the laptop with the Still Season and push that.*
 
@@ -183,7 +187,7 @@ being raised in a chat and lost.*
 | # | Question | Why it matters |
 |---|---|---|
 | Q1 | How many floors does the tower have? | Gates all planning behind it. See above. |
-| Q2 | Is `feat/warband-battle-mvp` worth reviving, or should the board game be rebuilt fresh? | A tested combat core is stranded 107 commits back. I can assess it if you want. |
+| Q2 | ~~Is `feat/warband-battle-mvp` worth reviving?~~ **Answered 2026-08-14 — revived.** The core is merged to `main`. What remains open is the *board game*, not the core: nothing is built on top of it. | Kept one more cycle because the follow-on question is real — the combat math exists, the game around it does not. |
 | Q4 | Is `human.png` acceptable to ship, or does it block? | The shipped sprite violates all four of its own art rules and is knowingly a placeholder. |
 | Q6 | Should an ability's `guard` EFFECT (e.g. Load-Bearing) count toward a `party_action: guard` charge break like First Notice, or only the literal Guard action? | The Decision Experience System now tells the player plainly that it does not — that's either correct design or a gap worth closing. |
 | Q7 | Should damage-over-time count toward damage-based objectives (The Whole Ledger) and the single-round interrupt bar? | Currently it counts toward neither. Same situation as Q6 — worth a deliberate ruling either way. |
@@ -441,7 +445,7 @@ Every paid provider call routes through a server-side Vercel function under
 | SHIPPED | The Collection, as an in-world case | `/collection` renders the pixel case and the pause menu already pointed there, so a player reaches it today. Painted cards inside pixel chrome; filters are a rack of the eleven archetype crests rather than a dropdown, rank is three chips, sort is one cycling button, and Inspect/Release carry the old page's detail and deletion. Scroll edges fade and show a chevron only where content continues. Verified at 1280x620 and 375x812. Preview with a full case at `/dev/collection-stall`. **Not yet opened from a courtyard stall — that waits on the four-quadrant design.** |
 | SHIPPED | Ability performances | The reviewed form × caster-element performances, 27 shipped element kits, and approved effect assets run in the authentic `/battle` event stream. Combat follows **select card → choose one action → collective charge → stagger three launches → shared impact → held boss reaction → silence → boss preparation and attack → every targeted card reacts → recovery → control return**. The full-motion exchange reaches the next intent in about 6.2 seconds; boss-bound volleys land in a readable triangle, and Motion Off preserves the order as still tableaux. Released through PR #34 at production commit `98f66e7`. |
 | SHIPPED | Decision Experience System — Stage 1 | The selected card exposes its abilities immediately, shared Mana/Tech availability matches reducer truth, and Wait is an explicit zero-output command. Strike and Guard remain optional only while that hero has a visible usable ability; otherwise a large lockout panel names the reason and offers **Wait & Continue**. Wait completes that card, focus advances to the next unfinished card, and selecting the next ability cannot snap back. Projections, the Threat Translator, contextual explanations, shared confirmation policy, authoritative receipts, and `/dev/decision-lab` remain intact. **Encounter Briefing and dedicated Pilot A/B comprehension passes are still open Stage 2 work** — see Combat gaps below. |
-| PARKED | Board game / warband | Draft doc with open questions; branch 107 commits stale |
+| PARKED | Board game / warband | Design doc has open questions, but **the combat core is now on `main`** — board geometry and damage/reaction math, 5 modules, 12 tests, merged 2026-08-14. Nothing is built on top of it yet. |
 | PARKED | Boss art polish | Deferred pending art-direction alignment — though Still Season is doing it anyway |
 | PLANNED | The tower (as a structure) | Two bosses exist; **length undecided** |
 | PLANNED | The mine | Gold only. Not designed |
@@ -450,45 +454,37 @@ Every paid provider call routes through a server-side Vercel function under
 | WON'T DO | Payments / real money | **Removed 2026-08-04.** The game is a one-off Steam purchase, so there are no bundles, no payment rails, no receipt verification, and the economy plan §9 security prerequisites are moot. Do not build toward them. |
 | PLANNED | PvP battles + trading | Not started |
 
-### Branches with live work
+### Branches
 
-Three more merged on 2026-08-13 and are gone from this list: the Combat Truth Slice
-([PR #45](https://github.com/RaheemMoore/Card-Game/pull/45)), a bench-replay test fix
-([#46](https://github.com/RaheemMoore/Card-Game/pull/46)) and a launch config that lets the
-game be run on its own port ([#47](https://github.com/RaheemMoore/Card-Game/pull/47)).
-Earlier merges — the two `codex/*` branches, `castle-grand-redesign`, `prompt-lab-replay`,
-`overworld-card-combat` — are likewise off the list; git keeps every commit, so a merged
-branch name carries no information and only makes the project look busier than it is.
+**There are two, and that is the whole system.** Rebuilt 2026-08-14 from a pile of 49.
 
-Counted against `origin/main` on 2026-08-13.
+| Branch | What it is |
+|---|---|
+| `main` | The stable version. Protected — it cannot be deleted or force-pushed, and nothing reaches it except through a pull request. |
+| `development` | Where work happens. Every session commits and pushes here. Allowed to be mid-thought. |
 
-| Branch | Ahead | Behind | What's on it |
-|---|---|---|---|
-| `worktree-studio-desks-open` | 3 | 125 | Opening both studio desks to both people behind one shared passphrase. **Open as [PR #38](https://github.com/RaheemMoore/Card-Game/pull/38)** |
-| `combat-cards-and-resource` | 3 | 308 | Boss readout + Debt-Bearer fix |
-| `seraph-corruption-arc` | 6 | 522 | Superseded — the arc shipped from elsewhere. Almost certainly a `WON'T DO` |
-| `agent-tuning-1` | 6 | 534 | Old studio-config experiment |
-| `dash-structure` | 2 | 525 | Old admin-shell experiment |
-| `feat/lore-director-role` | 2 | 523 | Predates the shipped lore-director role |
-| `feat/warband-battle-mvp` | 1 | ~200 | Tested warband combat core. **Local only — never pushed** |
-| `claude/vigilant-kowalevski-e30267` | 1 | 442 | One Workshop fix. Will conflict if revived |
+Merged branches are deleted immediately. Git keeps every commit, so a merged branch name
+carries no information and only makes the project look busier than it is — which is exactly
+how the list reached 49.
 
-**One of these has still never been pushed:** `feat/warband-battle-mvp`, a tested combat core
-about two hundred commits back. Like the Still Season it exists on one machine and will be
-silently absent from every other device you open. If it is worth keeping (Q2) push it; if it
-is not, say so and it becomes a `WON'T DO`.
+**Abandoned work is tagged, then deleted**, so nothing is ever lost to a cleanup:
 
-**Six of the eight branches above are stale experiments**, all more than 300 commits behind.
-They are not work in flight. Ruling on `seraph-corruption-arc`, `agent-tuning-1`,
-`dash-structure` and `feat/lore-director-role` as `WON'T DO` would cost one sentence each.
-`worktree-studio-desks-open` is the one piece of someone else's work still genuinely open.
+| Archive tag | What it holds |
+|---|---|
+| `archive/battle-tower-floor` | The Battle Tower's first walkable floor — 92 files, ~6,600 lines |
+| `archive/studio-desks-open` | Shared-passphrase Studio access. Was PR #38, closed unmerged |
+| `archive/pixel-ui-kit` | Superseded copy of the branch whose content was merged |
+| `archive/warband-combat-core` | Superseded copy of the branch whose content was merged |
+| `archive/ability-art-test` | One test assertion rescued from an abandoned worktree |
+
+Restore any of them with `git branch <name> <tag>`. Listed with `git tag`.
 
 ---
 
-<!-- updated: 2026-08-13 -->
+<!-- updated: 2026-08-14 -->
 ## 4. Open threads
 
-**86 things started and not finished.** This is the list that didn't exist before. It will
+**83 things started and not finished.** This is the list that didn't exist before. It will
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
@@ -756,13 +752,11 @@ Found while writing §6. Every one of these is a tool that exists and doesn't fu
 | Admin plan claims Phases 0–7 complete but lists unshipped items | admin plan §§496, 572, 759 |
 | The Production Guide generator is now unused — the guide retired 2026-08-07 and nothing republishes it. Decide whether to delete the build script and its last output, or keep them as a local offline read | `card-engine/scripts/production-page/build.mjs` + `docs/production/production.html` |
 
-### Stranded branches — 3 items {#stranded-branches}
+### Stranded branches — 0 items {#stranded-branches}
 
-| What | State |
-|---|---|
-| `feat/warband-battle-mvp` — tested combat core | 1 ahead, 107 behind |
-| `claude/vigilant-kowalevski-e30267` — Workshop fix | 1 ahead, 126 behind |
-| 17 fully-merged branches never deleted | Safe to delete; git retains every commit |
+**Closed 2026-08-14.** There are no stranded branches. The repository went from 49 remote
+branches to two — `main` and `development` — and everything that held unique work was either
+merged or preserved as an archive tag. See §8.
 
 ---
 
@@ -1101,6 +1095,36 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-14 — The repository runs two branches, and abandoned work is tagged before it is deleted
+
+The repo had 49 remote branches and 30 local ones. It now has two: `main` and `development`.
+
+The cause was not carelessness. Raheem said it plainly: *"That is all work that I either
+abandoned or decided not to move forward with and I had no idea how to close a branch. I still
+have no idea."* **There is no "close" for a branch** — only merge or delete — so every merged
+pull request left its branch behind and nothing ever removed them. 42 of the 49 contained
+nothing that was not already in `main`.
+
+`main` is now protected: it cannot be deleted or force-pushed, and nothing reaches it except
+through a pull request. No bypass was set, so the rule binds everyone including Raheem. Work
+happens on `development`, which has no rules at all.
+
+*What it closed:* the "Stranded branches" thread in §4, the six-dead-branches recommendation in
+§0, and Q2.
+
+*Why it matters:* two branches that had **never been pushed anywhere** were carrying real work,
+and a drive failure would have taken both. One was the warband combat core. The other held the
+written record of the 2026-08-04 business-model ruling — which meant `main` had been telling
+every session that payments and multiplayer were still `PLANNED`. Both are now on `main` via
+[PR #51](https://github.com/RaheemMoore/Card-Game/pull/51).
+
+*The thing worth keeping:* Raheem first said all seven remaining branches were dead, then
+corrected himself — *"Wait not all useless. The pixel UI kit and the warband combat core."*
+He was right, and the correction is why the business-model record survived. **Abandoned is a
+claim to verify, not a fact to act on.** Everything genuinely retired was preserved as an
+annotated archive tag rather than deleted outright, so the Battle Tower's first walkable floor
+and the closed PR #38 are both still recoverable with one command.
 
 ### 2026-08-13 — Synthesized combat sound was built, heard, and thrown away
 
@@ -2525,11 +2549,17 @@ in common, and both tools get used across both subjects.
 
 ## How to keep this alive
 
-**For Raheem:** open it, read §0, pick something, tell me. That's the whole ritual.
+**For Raheem:** nothing is required of you. If you want a way in, §0 is the one section worth
+opening — what I'd work on next, and what needs a ruling from you.
 
-**For me:** invoke the `production-log` skill at the end of any session that shipped work,
-made a decision, or raised a question. It updates the right sections, appends to the decision
-log, and redeploys the page to the same URL.
+**For me:** invoke the `production-log` skill **only when something material changed** — work
+shipped, a decision settled, a thread opened or closed, a question raised. A bug fix, refactor,
+test repair or art regeneration is not material; the commit history carries those.
+
+**The edit rides inside the same commit and pull request as the work it describes.** Never a
+separate push, never a separate merge. Raheem named that cost directly on 2026-08-14 and it was
+self-inflicted: `main` is protected, so a standalone doc update buys a whole extra review cycle
+for nothing. Touch only the sections that actually changed.
 
 **A caveat about the push warning:** `.gitignore` blanket-ignores `.claude/*`, and hooks were
 never un-ignored — so the freshness warning (and the older build check it runs after) exist
