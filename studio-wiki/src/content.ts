@@ -346,7 +346,7 @@ export const bossStates = [
 
 export const navigation = [
   { group: 'Explore', items: [['/', 'Studio Home'], ['/characters', 'Characters & Archetypes'], ['/bosses', 'Bosses & Arenas'], ['/characters/cards', 'Cards'], ['/elements', 'Elements'], ['/abilities', 'Abilities'], ['/world', 'Game World'], ['/interface', 'Interface & Menus'], ['/minigames', 'Battle Tower']] },
-  { group: 'Production', items: [['/production', 'Current Build'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decision Log'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
+  { group: 'Production', items: [['/production', 'Current Build'], ['/code-atlas', 'Code Atlas'], ['/studio', 'AI Studio Handbook'], ['/assets', 'Art & Assets'], ['/workshops', 'Workshops'], ['/decisions', 'Decision Log'], ['/technical', 'Technical Systems'], ['/archive', 'Archive']] },
   { group: 'Work Board', items: [['/work/advice', 'AI Advice'], ['/work/active', 'Active Work'], ['/work/required', 'Required & Deferred'], ['/work/tori', "Tori's Desk"], ['/work/raheem', "Raheem's Desk"]] },
 ] as const;
 
@@ -360,6 +360,7 @@ export const searchEntries = [
   { path: '/interface', title: 'Interface & Menus', text: 'pixel UI kit stall menus collection forge codex panel button bar slot scrim scroll doorway pause menu card detail retiring web pages PixelLab chrome' },
   { path: '/minigames', title: 'Battle Tower', text: 'primary game mode floors party cards boss intent attack mana tech elements guard strike abilities' },
   { path: '/production', title: 'Current Build', text: 'production status open threads priorities shipped in flight' },
+  { path: '/code-atlas', title: 'Code Atlas', text: 'where do I go code map folders files pages components services data assets castle battle combat collection forge codex minigames admin dev beginner' },
   { path: '/studio', title: 'AI Studio Handbook', text: 'coworker onboarding workflow accounts Figma Leonardo idea plan create build connect prove release agents skills evidence human approval' },
   { path: '/assets', title: 'Art & Assets', text: 'asset catalog OpenNest web previews provenance approved candidate missing' },
   { path: '/workshops', title: 'Workshops', text: 'harnesses sprite lab background arena prompt lab visual playtest' },

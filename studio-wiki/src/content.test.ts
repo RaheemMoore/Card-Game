@@ -89,9 +89,12 @@ describe('Studio Wiki content contracts', () => {
     ]);
   });
 
-  it('makes the coworker handbook a first-class Production destination', () => {
+  it('makes the Code Atlas and coworker handbook first-class Production destinations', () => {
     const productionItems = navigation.find(({ group }) => group === 'Production')?.items;
-    expect(productionItems?.[1]).toEqual(['/studio', 'AI Studio Handbook']);
+    expect(productionItems?.[0]).toEqual(['/production', 'Current Build']);
+    expect(productionItems?.[1]).toEqual(['/code-atlas', 'Code Atlas']);
+    expect(productionItems?.[2]).toEqual(['/studio', 'AI Studio Handbook']);
+    expect(searchEntries).toContainEqual(expect.objectContaining({ path: '/code-atlas', title: 'Code Atlas' }));
   });
 
   it('labels the append-only studio memory as the Decision Log', () => {

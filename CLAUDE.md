@@ -35,6 +35,8 @@ Requires a `.env` file in `card-engine/` with the client keys (`VITE_SUPABASE_UR
 
 ## Project Structure
 
+**Beginner code navigation:** the Studio Wiki's **Production → Code Atlas** page (`/code-atlas`) is the living “where do I go?” map. Its maintained source is [`studio-wiki/src/codeAtlas.ts`](studio-wiki/src/codeAtlas.ts). When a change moves, replaces, or adds a feature entry point, update the Atlas in the same branch; its test verifies that every listed repository path still exists.
+
 ```
 Card Game/                          # Git root
 ├── CLAUDE.md                       # This file
