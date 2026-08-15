@@ -29,22 +29,22 @@
       12
     ],
     "durationsMs": [
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      85,
-      180
+      130,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      23,
+      130
     ],
     "repeat": 0,
-    "note": "Retimed 2026-08-13 from 45ms/frame. At 45ms the whole fall played in 540ms and Raheem could not see it: \"way too fast for a human to see.\" 85ms is ~12fps, slow enough to read the stagger and the tip. The last frame is short because he now HOLDS on the ground until the player presses a direction, so the lying-down time belongs to the state machine, not here."
+    "note": "Retimed after the first visible playtest on 2026-08-15: 130ms on impact, 23ms through each connecting frame, and 130ms on landing, for a 513ms fall. The required 1200ms grounded hold remains separate. Stand-up plays this table backwards with the same 513ms state window."
   },
   "anchor": {
     "x": 0.5,

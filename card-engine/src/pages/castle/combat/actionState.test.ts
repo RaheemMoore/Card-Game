@@ -144,15 +144,24 @@ describe('action state', () => {
     for (let i = 0; i < 5; i++) s = stepAction(s, input({ heavyHit: true }), 16);
     expect(s.phase).toBe('knockdown');
 
-    const frames = Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4;
+    const frames = Math.ceil(
+      (ACTION_TIMING.knockdownFallMs +
+        ACTION_TIMING.knockdownGroundedMs +
+        ACTION_TIMING.standUpMs) /
+        16,
+    ) + 4;
     const recovered = run(s, frames, { getUpRequested: true });
     expect(recovered.state.phase).toBe('explore');
   });
 
-  it('will not stand out of a fall that has not finished playing', () => {
-    // Mashing forward during the fall must not snap him upright mid-topple.
+  it('requires time fully grounded even when get-up input is already held', () => {
+    // Mashing forward during the fall must not erase the punishment on the floor.
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
-    const early = run(s, Math.floor(ACTION_TIMING.knockdownMs / 16) - 4, { getUpRequested: true });
+    const early = run(
+      s,
+      Math.ceil(ACTION_TIMING.knockdownFallMs / 16) + 4,
+      { getUpRequested: true },
+    );
     expect(early.state.phase).toBe('knockdown');
   });
 
@@ -367,7 +376,16 @@ describe('action state', () => {
     // down is standing right there when he gets up, and without a grace window
     // he watches four cards scatter twice with no move in between.
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
-    const upright = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4, { getUpRequested: true });
+    const upright = run(
+      s,
+      Math.ceil(
+        (ACTION_TIMING.knockdownFallMs +
+          ACTION_TIMING.knockdownGroundedMs +
+          ACTION_TIMING.standUpMs) /
+          16,
+      ) + 4,
+      { getUpRequested: true },
+    );
     expect(upright.state.phase).toBe('explore');
     expect(upright.state.graceRemainingMs).toBeGreaterThan(0);
 
@@ -380,7 +398,10 @@ describe('action state', () => {
     // to the end of the grace he must go down exactly once — that whole span is
     // knockdown, stand-up, and the walk to his cards.
     const protectedMs =
-      ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs + ACTION_TIMING.knockdownGraceMs;
+      ACTION_TIMING.knockdownFallMs +
+      ACTION_TIMING.knockdownGroundedMs +
+      ACTION_TIMING.standUpMs +
+      ACTION_TIMING.knockdownGraceMs;
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
     let knockdowns = 1;
     for (let i = 0; i < Math.floor(protectedMs / 16) - 2; i++) {
@@ -394,7 +415,16 @@ describe('action state', () => {
 
   it('lets the grace run out, so he is not permanently safe', () => {
     let s = stepAction(initialAction(), input({ heavyHit: true }), 16);
-    s = run(s, Math.ceil((ACTION_TIMING.knockdownMs + ACTION_TIMING.standUpMs) / 16) + 4, { getUpRequested: true }).state;
+    s = run(
+      s,
+      Math.ceil(
+        (ACTION_TIMING.knockdownFallMs +
+          ACTION_TIMING.knockdownGroundedMs +
+          ACTION_TIMING.standUpMs) /
+          16,
+      ) + 4,
+      { getUpRequested: true },
+    ).state;
     s = run(s, Math.ceil(ACTION_TIMING.knockdownGraceMs / 16) + 4).state;
     expect(s.graceRemainingMs).toBe(0);
 

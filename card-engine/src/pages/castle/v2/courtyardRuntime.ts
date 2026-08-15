@@ -1334,8 +1334,8 @@ export function makeScene(
       }
 
       // The fall. Per-frame durations rather than a frame rate, so the trip stays
-      // fast and the sprawl holds — and they sum to the knockdown phase exactly,
-      // because the art was timed to the state machine rather than the reverse.
+      // fast between the emphasized impact and landing. The state machine adds
+      // the required grounded punishment after this animation finishes.
       if (this.textures.exists(KNOCKDOWN_SHEET.key) && !this.anims.exists(KNOCKDOWN_ANIM)) {
         this.anims.create({
           key: KNOCKDOWN_ANIM,
@@ -2965,6 +2965,12 @@ export function makeScene(
     private movePlayer(delta: number) {
       if (!this.player) return;
       if (this.jump) return this.advanceJump(delta);
+
+      // Knockdown and stand-up own the sprite while their clips are playing.
+      // Without this guard, the ordinary idle branch below stops the special
+      // animation on the very next frame and replaces it with one standing
+      // frame. The combat state still says DOWN, but the picture never falls.
+      if (this.action.phase === 'knockdown' || this.action.phase === 'standUp') return;
 
       const intent = this.readMove();
       const dx = intent.x;

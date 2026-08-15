@@ -9,6 +9,7 @@ import { MarkdownBody, sectionsFromMarkdown } from './markdown';
 import { useStudioSession, StudioSignIn } from './studioSession';
 import { LoreDesk } from './LoreDesk';
 import { ElementPerformancePlayer } from './ElementPerformancePlayer';
+import { CodeAtlas } from './CodeAtlasPage';
 import workshopArena from './assets/workshop-arena.png';
 import workshopBoss from './assets/workshop-boss.png';
 import workshopSprite from './assets/workshop-sprite.png';
@@ -21,7 +22,7 @@ import type { LiveReviewCard, ReviewStatus, StudioIdea, StudioSession } from './
 
 const iconsByPath = {
   '/': Command, '/characters': Users, '/bosses': Swords, '/characters/cards': Layers, '/elements': Gem, '/abilities': Sparkles, '/world': Castle, '/interface': LayoutPanelLeft, '/minigames': CircleHelp,
-  '/production': FileText, '/studio': Workflow, '/assets': Image, '/workshops': Hammer, '/decisions': BookOpen, '/technical': Boxes, '/archive': Archive,
+  '/production': FileText, '/code-atlas': BookOpen, '/studio': Workflow, '/assets': Image, '/workshops': Hammer, '/decisions': BookOpen, '/technical': Boxes, '/archive': Archive,
   '/work/advice': Lightbulb, '/work/active': ListChecks, '/work/required': TriangleAlert, '/work/tori': Feather, '/work/raheem': NotebookPen,
 } as const;
 
@@ -73,7 +74,7 @@ function Shell() {
       <header className="topbar"><button className="menu-button" onClick={() => setMenu(true)} aria-label="Open navigation"><Menu/></button><div className="search"><Search/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the studio…" aria-label="Search the Studio Wiki" onKeyDown={(event) => { if (event.key === 'Enter' && matches[0]) { navigate(matches[0].path); setSearch(''); } }}/>{search && <div className="search-results">{matches.length ? matches.map((entry) => <button key={entry.path} onClick={() => { navigate(entry.path); setSearch(''); }}><strong>{entry.title}</strong><span>{entry.text}</span></button>) : <p>No matching section</p>}</div>}</div><span className="crumb">{searchEntries.find((entry) => entry.path === path)?.title ?? 'Studio Home'}</span></header>
       <main>{({
         '/': <Home/>, '/characters': <Characters/>, '/characters/cards': <Cards/>, '/bosses': <Bosses/>, '/elements': <Elements/>, '/abilities': <Abilities/>,
-        '/world': <World/>, '/interface': <Interface/>, '/minigames': <Minigames/>, '/production': <Production/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
+        '/world': <World/>, '/interface': <Interface/>, '/minigames': <Minigames/>, '/production': <Production/>, '/code-atlas': <CodeAtlas/>, '/studio': <StudioHandbook/>, '/assets': <Assets/>,
         '/workshops': <Workshops/>, '/decisions': <Decisions/>, '/technical': <Technical/>, '/archive': <ArchivePage/>,
         '/work/advice': <WorkBoardPage kind="advice"/>, '/work/active': <WorkBoardPage kind="active"/>, '/work/required': <WorkBoardPage kind="required"/>, '/work/tori': <WorkBoardPage kind="tori"/>, '/work/raheem': <RaheemDesk/>,
       } as Record<string, ReactNode>)[path] ?? <Home/>}</main>

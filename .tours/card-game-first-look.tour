@@ -1,0 +1,59 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Card Game: First Look",
+  "description": "A beginner-friendly walk from the project entrance to the game, routes, features, rules, and runtime art.",
+  "isPrimary": true,
+  "steps": [
+    {
+      "title": "Welcome",
+      "description": "# Welcome\n\nThis tour shows how to look around without changing anything. Use the **Next** arrow to move forward. Every stop answers one question: what does this part of the project do?"
+    },
+    {
+      "title": "The project entrance",
+      "file": "README.md",
+      "pattern": "# Card Engine",
+      "description": "# The project entrance\n\nThis README explains what the game is and how to run it. It is the best general entrance, while the Card Game workspace puts shorter lessons in front of it as an onboarding path."
+    },
+    {
+      "title": "The game application",
+      "directory": "card-engine/src",
+      "description": "# The real game code\n\n`card-engine/src` contains the React screens, Phaser world, rules, data, and shared visual pieces. Opening this directory or its files is safe."
+    },
+    {
+      "title": "Where the app starts",
+      "file": "card-engine/src/main.tsx",
+      "pattern": "createRoot",
+      "description": "# Where the app starts\n\nThis small file asks React to place the Card Game application into the browser page. Think of it as turning the key in the ignition."
+    },
+    {
+      "title": "The screen map",
+      "file": "card-engine/src/App.tsx",
+      "pattern": "function App",
+      "description": "# The screen map\n\n`App.tsx` connects URLs to screens. When you wonder where a menu button or page leads, this is a useful map—not necessarily the place where that feature's rules live."
+    },
+    {
+      "title": "Feature screens",
+      "directory": "card-engine/src/pages",
+      "description": "# Feature screens\n\n`pages` contains full experiences: the castle, card battle, forge, collection, codex, studio, and minigames. This is organized partly by feature already."
+    },
+    {
+      "title": "Rules and services",
+      "directory": "card-engine/src/services",
+      "description": "# Rules and services\n\n`services` contains calculations, storage, generation, and other work that should not depend on one particular screen. During cleanup, we will gradually place feature-specific services closer to their features."
+    },
+    {
+      "title": "Game definitions",
+      "directory": "card-engine/src/data",
+      "description": "# Game definitions\n\n`data` answers questions like which archetypes, elements, abilities, rewards, and visual recipes exist. Data describes the game's content; services usually decide what happens to it."
+    },
+    {
+      "title": "Runtime art",
+      "directory": "card-engine/public/assets",
+      "description": "# Runtime art\n\nFiles under `public/assets` are served to the browser. Because they can ship with the game, we will eventually separate playable art from source material and review images very carefully."
+    },
+    {
+      "title": "Finish",
+      "description": "# You now know the main map\n\nYou have seen the entry point, routes, feature screens, rules, data, and art. Next we will create a dedicated combat tour after Claude's active combat work is merged. Until then, explore freely and use **Ctrl+P** whenever you know part of a filename."
+    }
+  ]
+}

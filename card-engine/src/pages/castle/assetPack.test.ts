@@ -136,12 +136,13 @@ describe('asset pack ↔ runtime parity', () => {
     });
   });
 
-  it('times the fall to the knockdown phase exactly', () => {
-    // The art was timed to the state machine rather than the reverse, so if
-    // either moves without the other he either stands up mid-air or lies on the
-    // floor with full control.
+  it('times the fall independently from the required grounded hold', () => {
+    // The art controls the trip to the floor. The state machine separately owns
+    // how long he must remain there before get-up input is accepted.
     expect(KNOCKDOWN_DURATIONS_MS).toHaveLength(KNOCKDOWN_SHEET.frameCount);
-    expect(KNOCKDOWN_TOTAL_MS).toBe(ACTION_TIMING.knockdownMs);
+    expect(KNOCKDOWN_TOTAL_MS).toBe(ACTION_TIMING.knockdownFallMs);
+    expect(ACTION_TIMING.knockdownGroundedMs).toBeGreaterThan(0);
+    expect(ACTION_TIMING.standUpMs).toBe(KNOCKDOWN_TOTAL_MS);
     expect(knockdownTwin.animation.durationsMs).toEqual([...KNOCKDOWN_DURATIONS_MS]);
     expect(knockdownTwin.frameCount).toBe(KNOCKDOWN_SHEET.frameCount);
   });

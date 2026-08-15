@@ -1,0 +1,173 @@
+{
+  "folders": [
+    {
+      "name": "1 — START HERE",
+      "path": "docs/start-here"
+    },
+    {
+      "name": "2 — GAME",
+      "path": "card-engine"
+    }
+  ],
+  "settings": {
+    "window.title": "CARD GAME — DEVELOPMENT (CODEX BRANCH) — ${activeEditorShort}",
+    "workbench.startupEditor": "readme",
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.labelFormat": "medium",
+    "workbench.panel.defaultLocation": "bottom",
+    "workbench.tree.indent": 18,
+    "explorer.compactFolders": false,
+    "explorer.autoReveal": true,
+    "explorer.confirmDelete": true,
+    "explorer.confirmDragAndDrop": true,
+    "editor.minimap.enabled": false,
+    "editor.stickyScroll.enabled": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "editor.tabSize": 2,
+    "editor.formatOnSave": false,
+    "breadcrumbs.enabled": true,
+    "scm.alwaysShowRepositories": true,
+    "git.openRepositoryInParentFolders": "always",
+    "typescript.tsdk": "${workspaceFolder:2 — GAME}/node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "css.lint.unknownAtRules": "ignore",
+    "scss.lint.unknownAtRules": "ignore",
+    "tailwindCSS.experimental.configFile": "${workspaceFolder:2 — GAME}/src/index.css",
+    "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+    "errorLens.excludeBySource": ["cSpell"],
+    "errorLens.gutterIconsEnabled": true,
+    "cSpell.enabledFileTypes": {
+      "markdown": true,
+      "typescript": true,
+      "typescriptreact": true,
+      "json": false
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.vercel": true,
+      "**/ai-snapshot-output": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.vercel": true,
+      "**/ai-snapshot-output": true,
+      "**/docs/archive": true,
+      "**/public/assets": true,
+      "**/scripts/sprite-lab/out": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/.git/objects/**": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.scene": "${capture}.js, ${capture}.scene.bak-*",
+      "*.ts": "${capture}.test.ts",
+      "package.json": "package-lock.json, .npmrc, vite.config.*, vitest.config.*, tsconfig*.json"
+    },
+    "codetour.promptForWorkspaceTours": true,
+    "bookmarks.saveBookmarksInProject": false
+  },
+  "extensions": {
+    "recommendations": [
+      "anthropic.claude-code",
+      "usernamehw.errorlens",
+      "yoavbls.pretty-ts-errors",
+      "oxc.oxc-vscode",
+      "vitest.explorer",
+      "gruntfuggly.todo-tree",
+      "aykutsarac.jsoncrack-vscode",
+      "yzhang.markdown-all-in-one",
+      "eamodio.gitlens",
+      "kisstkondoros.vscode-gutter-preview",
+      "tyriar.luna-paint",
+      "naumovs.color-highlight",
+      "bradlc.vscode-tailwindcss",
+      "christian-kohler.path-intellisense",
+      "streetsidesoftware.code-spell-checker",
+      "aaron-bond.better-comments",
+      "oderwat.indent-rainbow",
+      "ms-python.python",
+      "pkief.material-icon-theme",
+      "vsls-contrib.codetour",
+      "alefragnani.bookmarks"
+    ],
+    "unwantedRecommendations": [
+      "dbaeumer.vscode-eslint"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Card Game: Start the Game",
+        "detail": "Starts the local game at http://localhost:5173",
+        "type": "process",
+        "command": "npm",
+        "windows": { "command": "npm.cmd" },
+        "args": ["run", "dev"],
+        "options": { "cwd": "${workspaceFolder:2 — GAME}" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": { "reveal": "always", "panel": "dedicated" },
+        "group": { "kind": "build", "isDefault": true }
+      },
+      {
+        "label": "Card Game: Test the Game",
+        "detail": "Runs the automated tests that protect game behavior",
+        "type": "process",
+        "command": "npm",
+        "windows": { "command": "npm.cmd" },
+        "args": ["test"],
+        "options": { "cwd": "${workspaceFolder:2 — GAME}" },
+        "problemMatcher": [],
+        "presentation": { "reveal": "always" },
+        "group": { "kind": "test", "isDefault": true }
+      },
+      {
+        "label": "Card Game: Build the Game",
+        "detail": "Type-checks and builds the game",
+        "type": "process",
+        "command": "npm",
+        "windows": { "command": "npm.cmd" },
+        "args": ["run", "build"],
+        "options": { "cwd": "${workspaceFolder:2 — GAME}" },
+        "problemMatcher": ["$tsc"],
+        "presentation": { "reveal": "always" }
+      },
+      {
+        "label": "Card Game: Check Assets",
+        "detail": "Checks asset folders and the Phaser asset pack without changing them",
+        "dependsOrder": "sequence",
+        "dependsOn": [
+          "Card Game: Check Asset Folders",
+          "Card Game: Check Asset Pack"
+        ],
+        "problemMatcher": []
+      },
+      {
+        "label": "Card Game: Check Asset Folders",
+        "type": "process",
+        "command": "npm",
+        "windows": { "command": "npm.cmd" },
+        "args": ["run", "assets:lint"],
+        "options": { "cwd": "${workspaceFolder:2 — GAME}" },
+        "problemMatcher": []
+      },
+      {
+        "label": "Card Game: Check Asset Pack",
+        "type": "process",
+        "command": "npm",
+        "windows": { "command": "npm.cmd" },
+        "args": ["run", "assets:pack:check"],
+        "options": { "cwd": "${workspaceFolder:2 — GAME}" },
+        "problemMatcher": []
+      }
+    ]
+  }
+}

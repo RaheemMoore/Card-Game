@@ -1,0 +1,64 @@
+{
+  "folders": [
+    {
+      "name": "CARD GAME — PRODUCTION",
+      "path": "C:/Users/storm/Documents/ClaudeCodeProjects/Card Game/card-engine"
+    }
+  ],
+  "settings": {
+    "window.title": "CARD GAME — PRODUCTION (MAIN) — ${activeEditorShort}",
+    "workbench.startupEditor": "readme",
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.labelFormat": "medium",
+    "workbench.panel.defaultLocation": "bottom",
+    "workbench.tree.indent": 18,
+    "explorer.compactFolders": false,
+    "explorer.autoReveal": true,
+    "editor.minimap.enabled": false,
+    "editor.stickyScroll.enabled": true,
+    "breadcrumbs.enabled": true,
+    "scm.alwaysShowRepositories": true,
+    "git.openRepositoryInParentFolders": "always",
+    "files.readonlyInclude": {
+      "**/*": true
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.vercel": true,
+      "**/ai-snapshot-output": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/.vercel": true,
+      "**/ai-snapshot-output": true,
+      "**/public/assets": true,
+      "**/scripts/sprite-lab/out": true
+    },
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/.git/objects/**": true
+    },
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.patterns": {
+      "*.scene": "${capture}.js, ${capture}.scene.bak-*",
+      "*.ts": "${capture}.test.ts",
+      "package.json": "package-lock.json, .npmrc, vite.config.*, vitest.config.*, tsconfig*.json"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "eamodio.gitlens",
+      "pkief.material-icon-theme",
+      "usernamehw.errorlens",
+      "yoavbls.pretty-ts-errors",
+      "vitest.explorer",
+      "kisstkondoros.vscode-gutter-preview",
+      "naumovs.color-highlight",
+      "bradlc.vscode-tailwindcss"
+    ]
+  }
+}

@@ -175,6 +175,7 @@ I only raise these at design or delivery gates — not mid-implementation, unles
 | Thing | Location |
 |---|---|
 | **What's happening right now** | **[PRODUCTION.md](PRODUCTION.md)** — status, open threads, decisions, what to do next |
+| **Where to begin changing part of the game** | **Studio Wiki → Production → Code Atlas** (`/code-atlas`) — the searchable, beginner-facing map maintained in `studio-wiki/src/codeAtlas.ts` |
 | The full project context | [CLAUDE.md](CLAUDE.md) |
 | How the studio works | [STUDIO_CHARTER.md](STUDIO_CHARTER.md) |
 | Every art tool and readout | [HARNESS_INDEX.md](HARNESS_INDEX.md) |
