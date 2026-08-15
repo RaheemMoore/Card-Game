@@ -8,6 +8,14 @@ import { getEnvironmentDescriptor, getEnvironmentPool } from '../data/archetypeE
 import { getWeaponPool } from '../data/archetypeWeapons';
 import { getPosePool } from '../data/archetypePoses';
 import { getCompanionPool } from '../data/archetypeCompanions';
+// Player-facing choice ids live on the data side, not in this prompt builder —
+// three player surfaces used to reach in here to borrow them. See
+// data/visualIdentityIds.ts.
+import {
+  ANDROID_PATH_IDS,
+  LYCAN_MOON_PHASE_IDS,
+  beastmasterSummonIds,
+} from '../data/visualIdentityIds';
 import { hookPosePrefix, hookMandatorySegment, hookNarrativeAnchor } from './portrait/archetypeHooks';
 import { formsForGate, formsFor } from './imageEngine/formFamilies';
 import { getDefinition, getCurrentVersion } from './abilities/registry';
@@ -851,32 +859,14 @@ const BEASTMASTER_BEASTS: Partial<Record<ElementName, readonly string[]>> = {
     'crystalline ICE-ELK, antlers of jagged clear frost',
   ],
 };
-// Parallel ids for the element-gated apex beasts (SAME ORDER as BEASTMASTER_BEASTS)
-// so the player's companion-style pick (hiddenFate.summonId) selects the species.
-const BEASTMASTER_BEAST_IDS: Partial<Record<ElementName, readonly string[]>> = {
-  Beast: ['dire_wolf', 'sabertooth', 'war_boar'],
-  Earth: ['dire_bear', 'war_rhino', 'tortoise_titan'],
-  Wind: ['storm_raptor', 'wind_serpent', 'gale_stallion'],
-  Water: ['river_serpent', 'orca_beast', 'water_hound'],
-  Spirit: ['spirit_stag', 'spectral_tiger', 'spectral_owl'],
-  Ice: ['frost_mammoth', 'glacial_wolf', 'ice_elk'],
-};
-/** The Beastmaster's choosable apex beasts for an element ({id, label}), or [].
- *  label = the beast name (the leading CAPS word), title-cased. */
-export function beastmasterSummonOptions(element: ElementName): { id: string; label: string }[] {
-  const beasts = BEASTMASTER_BEASTS[element];
-  const ids = BEASTMASTER_BEAST_IDS[element];
-  if (!beasts || !ids) return [];
-  return ids.map((id, i) => {
-    // Grab the leading run of CAPS words (the beast name), e.g. "DIRE WOLF",
-    // "TUSKED WAR-BOAR", ignoring a lowercase lead like "great "/"coiling ".
-    const name = (beasts[i].match(/[A-Z][A-Z-]+(?:\s+[A-Z][A-Z-]+)?/)?.[0] ?? beasts[i]).toLowerCase();
-    return { id, label: name.charAt(0).toUpperCase() + name.slice(1) };
-  });
-}
+// The parallel ids (SAME ORDER as BEASTMASTER_BEASTS above, so the player's
+// pick — hiddenFate.summonId — selects the species prose) are authored in
+// data/visualIdentityIds.ts, along with the {id,label} list the wizard shows.
+// They live there because they are a player-facing choice, not a prompt detail:
+// this module is generation machinery and is destined for the studio side.
 function beastmasterSpeciesIndex(sheet: CharacterSheet, poolLength: number): number {
   const id = sheet.hiddenFate.summonId;
-  const ids = BEASTMASTER_BEAST_IDS[sheet.resolvedElement];
+  const ids = beastmasterSummonIds(sheet.resolvedElement);
   const i = id && ids ? ids.indexOf(id) : -1;
   return i >= 0 ? i : formSeed(sheet) % poolLength;
 }
@@ -919,7 +909,7 @@ const LYCAN_PACK_ROLES: readonly string[] = [
 ];
 const LYCAN_MOON_PHASES: readonly string[] = ['new moon', 'crescent moon', 'half moon', 'gibbous moon', 'full moon'];
 // Parallel ids (SAME ORDER) for the player's birth-moon pick (hiddenFate.moonPhase).
-export const LYCAN_MOON_PHASE_IDS: readonly string[] = ['new_moon', 'crescent', 'half', 'gibbous', 'full'];
+// LYCAN_MOON_PHASE_IDS is authored in data/visualIdentityIds.ts (imported above).
 // index = transformation level 0–4. Raheem 2026-07-24: the werewolf transformation
 // TEARS the clothes, so a bare muscular were-torso with TORN CLOTHING remnants is the
 // desired look for the shifted forms (2–4) — bare torso is fine there. The HUMAN /
@@ -993,7 +983,7 @@ const ANDROID_PATHS: readonly string[] = [
   'LEAVE ALL LIFE BEHIND — a dispersing CORE-CLOUD: a barely-solid drift of distributed cores, nanite-mist and star-geometry departing into the void; a cloud, not a figure — no body, no face',
 ];
 // Parallel ids (SAME ORDER) for the Ascendant path the player picks at tier-up.
-export const ANDROID_PATH_IDS: readonly string[] = ['protect', 'destroy', 'befriend', 'leave'];
+// ANDROID_PATH_IDS is authored in data/visualIdentityIds.ts (imported above).
 function pathSeed(sheet: CharacterSheet): number {
   const s = `path:${sheet.hiddenFate.age ?? ''}|${sheet.hiddenFate.skinTone ?? ''}|${sheet.hiddenFate.sex ?? ''}`;
   let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h);

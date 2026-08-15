@@ -137,9 +137,6 @@ const CodexStallPreview = DEV_ROUTES
 const PauseMenuPreview = DEV_ROUTES
   ? lazy(() => import('./pages/dev/PauseMenuPreview').then((m) => ({ default: m.PauseMenuPreview })))
   : null;
-const M55Harness = DEV_ROUTES
-  ? lazy(() => import('./pages/dev/M55Harness').then((m) => ({ default: m.M55Harness })))
-  : null;
 const PhaserSchool = DEV_ROUTES
   ? lazy(() => import('./pages/dev/PhaserSchool').then((m) => ({ default: m.PhaserSchool })))
   : null;
@@ -515,16 +512,6 @@ export default function App() {
                 element={
                   <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
                     <DevSeedBattle />
-                  </Suspense>
-                }
-              />
-            )}
-            {M55Harness && (
-              <Route
-                path="/m55harness"
-                element={
-                  <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
-                    <M55Harness />
                   </Suspense>
                 }
               />

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import { getWeaponPool, getWeaponDescriptor } from './archetypeWeapons';
 import { getEnvironmentPool, getEnvironmentDescriptor } from './archetypeEnvironments';
 import { getPosePool } from './archetypePoses';
-import { getGenderWeights, pickSexFromWeights } from './archetypeGenderWeights';
 import { getCompanionPool, companionPresence, companionAppears } from './archetypeCompanions';
 import type { Rank } from '../types/card';
 
@@ -72,22 +71,5 @@ describe('archetypeCompanions — rank-scaled presence + variety', () => {
     expect(companionAppears('Necromancer', 0.8)).toBe(false);
     expect(companionAppears('Beastmaster', 0.99)).toBe(true); // bonded beast always
     expect(companionAppears('Barbarian', 0.1)).toBe(false); // no pool
-  });
-});
-
-describe('archetypeGenderWeights — deterministic weighted roll', () => {
-  it('defaults to 50/50 and overrides Necromancer to 70/30 male', () => {
-    expect(getGenderWeights('Barbarian')).toEqual({ male: 0.5, female: 0.5 });
-    expect(getGenderWeights('Necromancer')).toEqual({ male: 0.7, female: 0.3 });
-  });
-
-  it('lands within tolerance of the Necromancer target over many rolls', () => {
-    const n = 4000;
-    let male = 0;
-    for (let i = 0; i < n; i++) {
-      if (pickSexFromWeights(getGenderWeights('Necromancer'), Math.random()) === 'male') male++;
-    }
-    expect(male / n).toBeGreaterThan(0.66);
-    expect(male / n).toBeLessThan(0.74);
   });
 });

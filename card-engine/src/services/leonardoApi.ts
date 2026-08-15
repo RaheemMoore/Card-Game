@@ -274,7 +274,7 @@ export async function generatePortraitStrict(
  * is a whole-frame blend that could never hold a face while releasing rank
  * spectacle (0.45 froze Ascendant into "Forged with a tint", 0.20 drifted
  * off-character); identity now rides the locked HiddenFate tokens instead.
- * Kept so M55Harness can still demonstrate the old img2img behavior.
+ * Retained for the studio bench; no player path calls it.
  */
 export function getInitStrengthForArchetype(
   archetype: ArchetypeName,

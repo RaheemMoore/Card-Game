@@ -15,7 +15,7 @@ export type ProposalEngine = 'image' | 'lore';
  * Which of the four layers a proposal is asking us to change — kept as an
  * INTERNAL coarse tag (the approval console, regen-verify, and layerSnapshot
  * key off it). Directors no longer pick this directly; they pick an engine +
- * a plain-language area (see data/archetypeLayers.ts) which maps onto a layer.
+ * a plain-language area, which maps onto a layer.
  */
 export type ProposalLayer = 'A' | 'B' | 'C' | 'D';
 
@@ -39,7 +39,7 @@ export type ProposalFailureType =
 /**
  * The plain-language AREA a director files against — the director-facing
  * successor to the raw A/B/C/D layer. Engine-scoped. Each area maps onto an
- * internal ProposalLayer (see data/archetypeLayers.ts areaToLayer). Stored in
+ * internal ProposalLayer. Stored in
  * the payload (not a column) so the approval console can show the specific
  * area without a schema change.
  */

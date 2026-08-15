@@ -19,7 +19,7 @@ import {
   acknowledge as acknowledgeCardJob,
   readResultCard,
 } from '../services/forge/cardJobController';
-import { ANDROID_PATH_IDS } from '../services/portraitAssembler';
+import { ANDROID_PATH_IDS } from '../data/visualIdentityIds';
 import { useCardJob } from '../services/forge/useCardJob';
 import * as wallet from '../services/economy/walletService';
 import { PREMIUM_PRICE_CATALOG } from '../data/economy/premiumPriceCatalog';
