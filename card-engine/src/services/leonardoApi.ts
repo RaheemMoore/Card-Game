@@ -265,32 +265,12 @@ export async function generatePortraitStrict(
   return { dataUrl, modelKey };
 }
 
-/**
- * Per-archetype + per-rank init_strength for img2img tier-up / regen.
- *
- * RETAINED FOR THE M5.5 img2img A/B HARNESS ONLY. The production tier-up and
- * regenerate-portrait paths went image-first (pure text-to-image off the
- * identity-locked prompt) — see tierUp.ts / regeneratePortrait.ts. init_strength
- * is a whole-frame blend that could never hold a face while releasing rank
- * spectacle (0.45 froze Ascendant into "Forged with a tint", 0.20 drifted
- * off-character); identity now rides the locked HiddenFate tokens instead.
- * Kept so M55Harness can still demonstrate the old img2img behavior.
- */
-export function getInitStrengthForArchetype(
-  archetype: ArchetypeName,
-  rank?: Rank,
-): number {
-  if (archetype === 'Lycanthrope') return 0.15;
-  // M5.7 — machine archetypes (Android + Mech Pilot) need TIGHTER init
-  // strength for identity persistence. Phoenix's chrome/robotic priors
-  // override loose init images and drift the chassis silhouette + optic
-  // color between ranks. Forged 0.55 (up from 0.45), Ascendant 0.30
-  // (up from 0.20). Organic archetypes keep the looser defaults.
-  const isMachineArchetype = archetype === 'Android' || archetype === 'Mech Pilot';
-  if (rank === 'Ascendant') return isMachineArchetype ? 0.30 : 0.20;
-  if (isMachineArchetype) return 0.55;
-  return 0.45;
-}
+// getInitStrengthForArchetype lived here, supplying per-archetype/per-rank
+// init_strength for img2img tier-up. Its own header said it was retained for
+// the M5.5 img2img A/B harness only; that harness (pages/dev/M55Harness) was
+// deleted 2026-08-15, leaving it with no caller at all. Removed rather than
+// left as dead code — the reasoning it carried is recorded in PRODUCTION.md's
+// decision log, and git history has the values.
 
 export async function generatePortrait(
   prompt: string,

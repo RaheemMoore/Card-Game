@@ -10,7 +10,7 @@ import { formsFor } from '../services/imageEngine/formFamilies';
 import { BODY_CLASSES, BODY_ALLOWLIST, type BodyClassId } from '../services/imageEngine/identityPools';
 import { getWeaponPool } from './archetypeWeapons';
 import { getCompanionPool } from './archetypeCompanions';
-import { beastmasterSummonOptions, LYCAN_MOON_PHASE_IDS } from '../services/portraitAssembler';
+import { beastmasterSummonOptions, LYCAN_MOON_PHASE_IDS } from './visualIdentityIds';
 
 /**
  * Image-first visual pillars (2026-07-24).

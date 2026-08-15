@@ -12,7 +12,7 @@
 > **It is also the Studio Wiki's source.** `studio-wiki` reads this file at build time and
 > publishes it, so headings are page structure — keep them meaningful.
 
-**Last updated:** 2026-08-14 · **Updated when something material changes** — inside the same pull request as the work it describes, never as its own · **Source:** `PRODUCTION.md`
+**Last updated:** 2026-08-15 · **Updated when something material changes** — inside the same pull request as the work it describes, never as its own · **Source:** `PRODUCTION.md`
 
 ---
 
@@ -63,7 +63,7 @@ yourself. **Lore** is Tori's.
 
 # Infrastructure
 
-<!-- updated: 2026-08-14 -->
+<!-- updated: 2026-08-15 -->
 ## 0. What I'd work on next
 
 *My recommendations, refreshed every session. Yours to overrule — and when you do, I record
@@ -139,16 +139,36 @@ costs nothing to decide and unblocks all planning behind it.
 
 *Needs:* a ruling from you, ideally with `game-systems-designer` consulted on pacing.
 
-### ◆ Decide, don't build — the game can't make a character right now
+### ▲ Highest value — stock one archetype and the forge turns on
+
+**The code side of the curated switch is now done and waiting.** The matcher exists, is tested,
+and can take a player's Story Pillar answers and hand back a real card built from art you
+authored. What it cannot do is invent the roster.
+
+Production holds **one** curated character — a sample Barbarian, still `awaiting_lore`, with no
+answer bindings — and **zero** variants. Zero variants means nothing is forgeable in any
+archetype, so the switch cannot be thrown for anyone.
+
+**The unblocking move is one archetype, not eleven.** One character taken through the Workshop
+and the Lore Desk to `approved`, with one element variant published `permanent` and its three
+ranks of art uploaded, is enough to turn the forge on for that archetype and prove the whole
+path end to end with a real pull. Everything after that is repetition you can do at your pace.
+
+This is authoring — art, lore, bindings, questions — and it is yours and Tori's. There is no
+engineering left to do first.
+
+*Where:* `/admin/workshop` → `/admin/lore-desk` · *Related:* the curated roster row in §3
+
+### ◆ Decide, don't build — the game still can't make a character
 
 The game deployment runs no serverless functions, so the Forge, tier-up and portrait
 regeneration return a 404 there. That was your call and it matches where this is going — the
 released game ships a curated roster and spends no money — but it means **the thing a player
 downloads currently cannot do the ritual the game is named for.**
 
-Two ways to close it, and the choice is yours: land the curated roster (the real answer, and
-larger), or accept that character creation is a studio activity until then. Either is fine;
-drifting without deciding is not, because the gap is invisible from the studio where you work.
+**This is now purely the roster's problem.** The matcher needs no serverless function at all: it
+reads the roster from Supabase and builds the card in the browser. So stocking one archetype
+closes this hole on the game deployment without adding a single endpoint back.
 
 This also gives Q10 teeth — Forge Crystals are purchase-only *because* each generation costs
 real money. On a curated roster, that reasoning weakens.
@@ -418,7 +438,7 @@ Every paid provider call routes through a server-side Vercel function under
 
 ---
 
-<!-- updated: 2026-08-14 -->
+<!-- updated: 2026-08-15 -->
 ## 3. Status board
 
 **Vocabulary — one set of words, no exceptions:**
@@ -427,6 +447,7 @@ Every paid provider call routes through a server-side Vercel function under
 | State | Workstream | Where it stands |
 |---|---|---|
 | SHIPPED | The forge | Image-first pipeline, 11 archetypes, Bible-driven generation |
+| IN FLIGHT | The curated roster | The permanent-card system that replaces runtime generation. **The authoring half is done and has been since 2026-08-10** — Workshop, Lore Desk, `curated_characters`/`curated_variants` with RLS, the `curated-art` bucket, the upload endpoint. **The consuming half now exists but is not connected:** `services/forge/curatedMatcher.ts` (PR [#53](https://github.com/RaheemMoore/Card-Game/pull/53)) scores Story Pillar answers against a character's `answerBindings`, picks the element variant, and mints a playable `Card` from the authored rank art. Nothing calls it yet — the forge still generates. **What actually blocks the switch is content, not code:** production holds 1 curated character (`char_barbarian_sample_gryndak`, status `awaiting_lore`, 0 bindings) and **0 variants**, so nothing is forgeable in any archetype. |
 | SHIPPED | Collection + card detail | Grid, filters, tier-up, evolution history |
 | SHIPPED | Ability system | Typed catalogs, power budget validator, discovery rewards, codex |
 | SHIPPED | Persistence + auth + admin | Supabase, RLS, anonymous→email upgrade, admin RBAC |
@@ -467,6 +488,13 @@ Merged branches are deleted immediately. Git keeps every commit, so a merged bra
 carries no information and only makes the project look busier than it is — which is exactly
 how the list reached 49.
 
+**Each assistant gets exactly one working branch off `development`** (added 2026-08-15). Claude
+works on one, Codex on another, and neither creates a second — or a worktree — without asking
+Raheem first. Work is committed and pushed to that branch repeatedly; it is merged when Raheem
+decides it has accumulated enough, not once per task. A branch-per-task convention is normal on
+a larger team and is precisely what regenerates the pile here, because one person merging one
+thing at a time gains nothing from the split. See the decision log.
+
 **Abandoned work is tagged, then deleted**, so nothing is ever lost to a cleanup:
 
 | Archive tag | What it holds |
@@ -481,7 +509,7 @@ Restore any of them with `git branch <name> <tag>`. Listed with `git tag`.
 
 ---
 
-<!-- updated: 2026-08-14 -->
+<!-- updated: 2026-08-15 -->
 ## 4. Open threads
 
 **83 things started and not finished.** This is the list that didn't exist before. It will
@@ -748,7 +776,7 @@ Found while writing §6. Every one of these is a tool that exists and doesn't fu
 | `arenaManifest` header says "placeholder rows only"; every row is approved | `data/combat/arenaManifest.ts:7` |
 | `combat/types.ts` carries the same stale C5 claim | `data/combat/types.ts:4` |
 | Dangling `dressing.throne` reference to a dropped asset | `ARENA_HANDOFF_still-season.md` |
-| Proposals page still carries the retired A/B/C/D layer tags in its DB column and payload | `data/archetypeLayers.ts` — UI cleaned 2026-07-31, migration pending |
+| Proposals page still carries the retired A/B/C/D layer tags in its DB column and payload. **The code side is now fully closed** — `data/archetypeLayers.ts` was deleted 2026-08-15 having had zero importers; only the DB column and stored payloads remain | DB migration pending; `types/archetypeProposal.ts` still defines `ProposalLayer` |
 | Admin plan claims Phases 0–7 complete but lists unshipped items | admin plan §§496, 572, 759 |
 | The Production Guide generator is now unused — the guide retired 2026-08-07 and nothing republishes it. Decide whether to delete the build script and its last output, or keep them as a local offline read | `card-engine/scripts/production-page/build.mjs` + `docs/production/production.html` |
 
@@ -1091,10 +1119,86 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 
 ---
 
-<!-- updated: 2026-08-14 -->
+<!-- updated: 2026-08-15 -->
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-15 — Claude and Codex get one working branch each, and neither opens another without asking
+
+The two-branch system from 2026-08-14 said where work lands. It did not say how many branches
+a *tool* may create, and I filled that gap with a convention of my own — a fresh short-lived
+branch per task — without ever saying so. Two sessions in, that had already produced a second
+Claude branch and an abandoned empty one.
+
+Raheem: *"Why would you not just finish the work or continue on that single branch so we can
+merge everything when it's done?"* The rule now: **one working branch per tool**, committed and
+pushed repeatedly, merged when Raheem decides it has grown enough. Neither assistant creates a
+branch or a worktree without asking first, in plain words, before running the command.
+
+*Why it matters:* the convention I applied is normal on a team where many people work in
+parallel and each branch is reviewed separately. Raheem is one person merging one thing at a
+time, and against that workflow the same convention manufactures exactly the branch pile the
+2026-08-14 cleanup existed to remove.
+
+### 2026-08-15 — Story Pillar answers will pick a curated character, and matching is deterministic
+
+The matcher `types/curatedCard.ts` had referred to twice as "the future matcher" now exists
+(`services/forge/curatedMatcher.ts`). Answers score against a character's `answerBindings`;
+element choice picks the variant; the authored rank art becomes the card.
+
+**The same answers always return the same character** — no seeding on `cardId`, no randomness
+anywhere. That is a deliberate constraint, not an implementation detail: it makes a bad match
+reproducible, and therefore fixable by editing a binding rather than by guesswork. What differs
+between two players who match to the same person is their stats, rolled fresh per pull, which
+is why a curated character deliberately carries no statline.
+
+`Card` gains `curatedCharacterId`/`curatedVariantId`, and **their absence is the legacy
+discriminator** — a card without them came from the retired pipeline, stays visible and
+playable forever, and cannot tier up because no authored rank art exists to advance it into.
+
+*What it did not close:* nothing calls it yet. The forge still generates.
+
+### 2026-08-15 — The curated switch is blocked by content, not code
+
+Production holds **1** curated character — `char_barbarian_sample_gryndak`, status
+`awaiting_lore`, 0 answer bindings, no lore — and **0** variants. With zero variants nothing is
+forgeable, so switching the forge over today would show "this pool isn't stocked yet" on all
+eleven archetypes.
+
+*Why it matters:* the remaining work on this transition is authoring through the Workshop and
+the Lore Desk — art, lore, bindings, questions — and it is Raheem and Tori's, not something to
+code around. The engineering that can be done without a roster has been done.
+
+### 2026-08-15 — Player-facing choices moved out of the prompt builder, and 1,228 dead lines went with them
+
+Three player surfaces reached into `services/portraitAssembler.ts` — a 1,500-line prompt builder
+for the retired pipeline — to borrow constants, so deleting the generation stack would have
+broken player code that has nothing to do with generation. Those ids now live in
+`data/visualIdentityIds.ts`.
+
+**The Beastmaster summon labels a player reads were being regex-scraped out of the AI prompt
+prose.** "Tusked war-boar" existed because a prompt happened to read `great TUSKED WAR-BOAR,
+scarred and snorting` — so editing a prompt for the image model would silently rename a
+player-facing option. They are authored data now, pinned by test against the old output.
+
+Deleted for having no runtime consumer: `archetypeLayers.ts` (343 lines, zero importers),
+`imageQuestionScaffold.ts` (243), `archetypeGenderWeights.ts` (34), and `pages/dev/M55Harness.tsx`.
+
+### 2026-08-15 — img2img is gone for good; recording why before the code that held it went
+
+`getInitStrengthForArchetype` was deleted from `leonardoApi.ts` — its own header said it was
+retained for the M5.5 img2img A/B harness, and that harness was deleted in the same sweep,
+leaving it with no caller.
+
+The reasoning is worth keeping even though the function is not: **`init_strength` is a
+whole-frame blend, and it could never hold a face while releasing rank spectacle.** At 0.45 an
+Ascendant came back as "Forged with a tint"; at 0.20 it drifted off-character. There is no value
+in between that does both. That is why tier-up and regeneration went image-first — pure
+text-to-image with identity riding the locked HiddenFate tokens instead of a reference image.
+
+*Why it matters:* if a future session is tempted to reach for img2img again to hold identity
+across ranks, this is the experiment that already ran.
 
 ### 2026-08-14 — The repository runs two branches, and abandoned work is tagged before it is deleted
 
@@ -2726,7 +2830,7 @@ question being re-asked in three months.
 
 ---
 
-<!-- updated: 2026-07-31 -->
+<!-- updated: 2026-08-15 -->
 ## 3. The two engines — how a character gets a face and a story
 
 *Every card is made by two systems. One writes who the character is; the other paints them. They
@@ -2876,10 +2980,12 @@ like filling in a form rather than making someone.
 Some quietly pin the picture, some feed the writing, and many do both. The player is answering
 questions about a person, and a character is assembling itself behind the answers.
 
-**The prototype already exists.** `data/imageQuestionScaffold.ts` holds 30 questions and 100 options
-across all 11 archetypes, and every option carries a hidden image directive — the text reads as
-story, the directive silently pins the portrait. Nothing imports it except its own test. It was
-built as an idea-starter and it proves the shape works.
+**A prototype existed and proved the shape works.** `data/imageQuestionScaffold.ts` held 30 questions
+and 100 options across all 11 archetypes, every option carrying a hidden image directive — the text
+read as story, the directive silently pinned the portrait. Nothing ever imported it except its own
+test, so it was **deleted 2026-08-15** in the generation-retirement sweep. Recover it with
+`git show 559b0d7:card-engine/src/data/imageQuestionScaffold.ts` if this idea is picked up. The
+idea below stands on its own; only the sample content went.
 
 **What it would actually take**, honestly: merging 30 scaffold questions against 45 live Story
 Pillars plus the generated visual set. The Story Pillar answers also feed the rare-element
