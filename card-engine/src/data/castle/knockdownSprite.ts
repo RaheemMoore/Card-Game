@@ -18,8 +18,8 @@
  * and the anchor does the aligning.
  *
  * TIMED TO THE STATE MACHINE, not the other way round: the durations sum to
- * exactly ACTION_TIMING.knockdownMs. The trip runs fast and the sprawl holds,
- * because the hold is what gives the player time to see where their cards landed.
+ * exactly ACTION_TIMING.knockdownFallMs. The impact and landing are emphasized;
+ * the connecting fall moves quickly between them.
  */
 
 export const KNOCKDOWN_SHEET = {
@@ -36,25 +36,21 @@ export const KNOCKDOWN_SHEET = {
 export const KNOCKDOWN_ANIM = 'hero-knockdown';
 
 /**
- * Per-frame durations in milliseconds, summing to 1200 — the knockdown phase.
+ * Per-frame durations for the fall, in milliseconds.
  *
- * WAS 45ms a frame, which put the entire fall on screen in 540ms. Raheem,
- * watching it: "the fall animation is way too fast for a human to see. It just
- * doesn't look good." He was right — twelve frames at 45ms is a flicker, not a
- * fall, and it is why the knockdown read as a dark smear rather than a man
- * going down.
+ * The first visible pass proved the clip was finally playing, but also proved
+ * its 1015ms trip to the floor looked suspended rather than physical. This pass
+ * roughly halves it: readable impact, fast connecting motion, readable landing.
+ * The separate 1200ms grounded punishment is deliberately unchanged.
  *
- * 85ms a frame is roughly 12fps: slow enough to read the stagger and the tip,
- * still quick enough to feel like an impact rather than a swoon. The last frame
- * is short because it is no longer where he waits — he now HOLDS on the ground
- * until the player asks to get up, so the lying-down time is unbounded and
- * belongs to the state machine rather than to this table.
+ * Stand-up plays this same table backwards, and its state-machine window matches
+ * this total so the reverse clip is not cut off before the character is upright.
  */
 export const KNOCKDOWN_DURATIONS_MS: readonly number[] = [
-  85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 180,
+  130, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 130,
 ];
 
-/** Total run time. Matches ACTION_TIMING.knockdownMs by construction. */
+/** Total fall-animation time. Matches ACTION_TIMING.knockdownFallMs. */
 export const KNOCKDOWN_TOTAL_MS = KNOCKDOWN_DURATIONS_MS.reduce((a, b) => a + b, 0);
 
 /**

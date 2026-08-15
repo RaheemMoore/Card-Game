@@ -45,16 +45,12 @@ export const ACTION_TIMING = {
   windupMs: 180,
   activeMs: 60,
   recoveryMs: 320,
-  /**
-   * The fall itself — and the MINIMUM time on the ground, not the total.
-   *
-   * He now lies there until the player asks to get up (see `getUpRequested`),
-   * so this is the floor rather than the duration: long enough for the fall to
-   * finish playing, after which standing is his to choose. Matches
-   * KNOCKDOWN_TOTAL_MS by construction.
-   */
-  knockdownMs: 1200,
-  standUpMs: 320,
+  /** The impact-to-floor animation. Matches KNOCKDOWN_TOTAL_MS. */
+  knockdownFallMs: 513,
+  /** Required punishment after the fall finishes, before get-up input counts. */
+  knockdownGroundedMs: 1200,
+  /** The same knockdown clip in reverse, so it needs the same full window. */
+  standUpMs: 513,
   /**
    * The grounded summoning ritual, matching the approved 17-frame card slam
    * exactly (CARD_SLAM_TOTAL_MS). The art is the clock here: he draws, raises,
@@ -369,10 +365,14 @@ function stepPhase(state: ActionState, input: ActionInput, dtMs: number): Action
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'knockdown':
-      // He does NOT get up on his own. The fall has to finish first — standing
-      // out of a half-played fall looks like a glitch — and after that it is
-      // the player's move to make.
-      if (elapsedMs >= t.knockdownMs && input.getUpRequested) return enter('standUp', null);
+      // Falling and lying down are two different beats. Even held movement must
+      // wait through both; otherwise the final grounded pose disappears.
+      if (
+        elapsedMs >= t.knockdownFallMs + t.knockdownGroundedMs &&
+        input.getUpRequested
+      ) {
+        return enter('standUp', null);
+      }
       return { ...state, elapsedMs, fireThisStep: false };
 
     case 'standUp':
