@@ -13,6 +13,40 @@ This is short by design. If it grows past two pages, I've made it too clerical.
 
 ---
 
+## The game-improvement loop
+
+**This is the default way we change anything a player can see.** It came out of the rhythm
+Raheem found with Codex, and it exists for one reason: an assistant that explains the file
+chain first makes more accurate edits than one that assumes it already understands. Raheem
+reads the code now, so that explanation is worth the minutes it costs.
+
+1. **Pick one task or one player-visible problem.** Pick who helps — Claude or Codex.
+2. **The assistant asks before creating the branch.** One active task branch per assistant,
+   named for the work (`claude/<task>`), off `development`. No branch appears without a yes.
+3. **Inspect and explain the file chain — before editing anything.** Where each file is in
+   VS Code, what it controls, and the specific numbers or lines producing the behavior
+   today. Concise and beginner-friendly. This step is not optional and not a summary of
+   intent; it is the actual chain.
+4. **Agree on current vs intended behavior, in player-visible terms.** What happens now, and
+   what should happen instead. No edit starts before both are written down and agreed.
+5. **Implement one focused change.** *Strict when tuning* — adjusting feel, numbers or layout
+   is one change per cycle. *Looser when building* — new construction lands as one working
+   slice, because reviewing half-built code teaches nothing.
+6. **Run the automated checks, then look at it live** — the game open beside VS Code. The
+   player-visible verdict is Raheem's, not the assistant's.
+7. **Repeat.** Describe the new current behavior, refine the intended behavior, change, review.
+8. **Finish:** commit, push, open a pull request into `development`, and say it is ready.
+   **Raheem merges.** The branch is deleted the moment it merges.
+
+**When the loop does not apply:** backend plumbing, tests, refactors with no visible effect,
+and documentation. There is nothing for Raheem to look at, so steps 3–6 collapse into "do it
+and show the checks." Say which mode you are in rather than skipping quietly.
+
+**Tools:** VS Code is for understanding and editing code. Phaser Editor is for scene
+composition, object placement and visual scene work.
+
+---
+
 ## Choose the smallest safe work mode
 
 | Mode | Use when | Default |
@@ -23,27 +57,70 @@ This is short by design. If it grows past two pages, I've made it too clerical.
 
 The control plane is `.claude/studio/STUDIO_CAPABILITY_REGISTRY.json`. The Studio Lead reads only the relevant code/docs, not the entire project.
 
-## Branches — there are two, and that is the whole system
+**Mode sets how much ceremony, not whether the loop runs.** A FAST player-visible fix still
+shows the chain and agrees the behavior first — it is just a two-minute version of it. What
+FAST skips is specialists, written designs and skills, not Raheem's eyes.
+
+## Branches — two permanent, plus one per assistant while they work
 
 ```
-main          stable. Only ever updated by merging development in.
-└── development   everything happens here. Claude works here by default.
+main                    the version you trust. Only ever updated by merging development in.
+└── development          where finished work collects. Nobody commits to it directly.
+    ├── claude/<task>    one at a time, while Claude is working
+    └── codex/<task>     one at a time, while Codex is working
 ```
 
-**`development` is the working branch.** Sessions start from it, commit to it, and push it.
-It is allowed to be mid-thought — that is what it is for.
+**Neither assistant commits to `development` or `main`.** A pre-commit hook enforces it, so
+this is a rule the tools cannot forget. Work happens on a task branch and reaches `development`
+through a pull request.
 
-**`main` is the version you trust.** Nothing is committed to it directly. Work reaches it by
-opening a pull request from `development`, which is also the moment you get to see the whole
-change in one place before it becomes official.
+**One active branch per assistant, named for the work, created only after Raheem says yes.**
+It is deleted the moment it merges — **a branch has no "close", only merge or delete**, and
+leaving them behind is how this repo reached 49 of them.
 
-Short-lived branches off `development` are fine for a risky experiment. They are deleted when
-they merge — **a branch has no "close", only merge or delete**, and leaving them behind is how
-this repo reached 49 of them.
+Naming the branch after the task is deliberate: a branch that outlives its name stops telling
+you what is on it, which is the specific way the old pile became unreadable.
+
+**Raheem merges.** Every merge button is his — the task branch into `development`, and
+`development` into `main`. Assistants open the pull request and report it ready; they do not
+press it.
 
 Abandoned work is **tagged, then deleted**: `git tag -a archive/<name> <sha>` preserves the
 commits forever without leaving a branch in the list. Existing archive tags are listed with
 `git tag`, and any of them is restorable with `git branch <name> <tag>`.
+
+## Worktrees — folders are people, branches are work
+
+A **worktree** is a folder on one computer with the project files in it. A **branch** is a
+named line of work. They are not the same thing and neither contains the other: a folder
+*shows* a branch, the way a window shows one page.
+
+**The rule that keeps them straight:**
+
+> **Folders are named after people. Branches are named after work.**
+
+| Folder | Who | Branch it holds |
+|---|---|---|
+| `Card Game` | Raheem | whatever he is looking at |
+| `.claude/worktrees/claude` | Claude | `claude/<task>`, changes per task |
+| Codex's folder | Codex | `codex/<task>`, changes per task |
+
+A person does not change, so the folder name never goes stale. Only the branch inside it does.
+
+**Three things worth knowing:**
+
+- **Raheem's folder is the repository.** Its `.git` is a real directory holding all history
+  (~218 MB). The assistants' folders contain a one-line pointer back to it. Delete theirs and
+  nothing is lost; delete his and they all break.
+- **Two folders cannot show the same branch.** Git refuses, because both would edit the same
+  files. This is the "Couldn't switch branches" error — it means some other folder is holding
+  the branch you clicked, not that anything is broken.
+- **Worktrees are per-machine and never sync.** GitHub has no idea they exist. Moving to the
+  laptop means cloning once and getting *one* folder; branches come down automatically because
+  those do live on GitHub. Extra folders exist only so several people can work at once, so a
+  laptop used alone needs one, plus one per assistant actually working.
+
+Assistants ask before creating or removing a worktree, same as branches.
 
 ## Evidence rule
 
@@ -57,10 +134,12 @@ Phaser/UI work requires runtime and visual evidence when compilation cannot prov
 
 ## What you do
 
-You do exactly two things in this repo:
+You do four things in this repo:
 
 1. **Ask for things** — features, tweaks, fixes, questions. In your own words, at whatever level of detail feels right. "Make the wallet popover feel less intrusive on mobile" is enough; "add a fourth modifier pool" is enough.
-2. **Approve or redirect** — when I come back with a proposal, a plan, or "about to do X, ok?" — you say yes, no, or "actually do Y instead."
+2. **Approve or redirect** — when I come back with a proposal, a plan, or "about to do X, ok?" — you say yes, no, or "actually do Y instead." Creating a branch or a worktree is always one of these moments.
+3. **Judge what you can see** — in the loop, the "is that right?" verdict on player-visible behavior is yours. I can show you the change running; I can't tell you whether it feels correct.
+4. **Merge** — every pull request, into `development` and into `main`. That button is yours and I don't reach for it.
 
 You do NOT need to:
 - Organize files or folders
@@ -115,7 +194,10 @@ I will NOT interrupt you for:
 
 **You:** "Fix the badge padding on mobile — it's overlapping the stat number."
 
-**I do:** Look at the code, fix it, verify visually, commit. No skill, no specialist, no ceremony.
+**I do:** This is player-visible, so it runs the game-improvement loop — just a short one. Ask
+for the branch, show you the file and the exact value causing the overlap, agree what it should
+look like instead, change that one thing, and put it in front of you. No skill, no specialist,
+no ceremony beyond that.
 
 If it turns out to be bigger than it looked, I'll come back and say "this is actually a Card Renderer redesign — should I run `design-feature`?"
 
@@ -137,7 +219,10 @@ If it turns out to be bigger than it looked, I'll come back and say "this is act
 
 **You:** "The forge stopped working, I get a blank card."
 
-**I do:** Reproduce it in the browser preview, read the console + network requests, trace to the source, fix, verify, commit. No skill invocation — this is what I'm for.
+**I do:** Reproduce it in the browser preview, read the console + network requests, trace to
+the source. Then — because you can see this one — I show you the chain I traced and the line
+that is actually wrong before I touch it, so the fix is something you watched happen rather
+than something you were handed. Fix, verify live, commit.
 
 If the fix requires an economy change (refund logic, price change, reward tweak) I stop and escalate before touching those values.
 
@@ -145,7 +230,7 @@ If the fix requires an economy change (refund logic, price change, reward tweak)
 
 **You:** "Go ahead with the dual-wield thing we designed."
 
-**I do:** `ship-approved-plan` from the approved proposal. Branch, tasks, implement, verify, PR body drafted, wait for your push authorization.
+**I do:** `ship-approved-plan` from the approved proposal — ask for the branch, implement, verify, push, open the PR, and tell you it's ready. You merge.
 
 ### Pattern 7: "I noticed something repeatable"
 
