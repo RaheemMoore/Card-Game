@@ -488,12 +488,18 @@ Merged branches are deleted immediately. Git keeps every commit, so a merged bra
 carries no information and only makes the project look busier than it is — which is exactly
 how the list reached 49.
 
-**Each assistant gets exactly one working branch off `development`** (added 2026-08-15). Claude
-works on one, Codex on another, and neither creates a second — or a worktree — without asking
-Raheem first. Work is committed and pushed to that branch repeatedly; it is merged when Raheem
-decides it has accumulated enough, not once per task. A branch-per-task convention is normal on
-a larger team and is precisely what regenerates the pile here, because one person merging one
-thing at a time gains nothing from the split. See the decision log.
+**One active task branch per assistant, named for the work** (2026-08-15; this replaced a
+standing-branch rule made earlier the same day — see the decision log for why). Claude holds at
+most one, Codex at most one, and **neither creates a branch or a worktree without asking Raheem
+first**. It is named after the task, not the person, so it always describes its own contents;
+it is deleted the moment it merges.
+
+**Raheem merges every pull request** — task branch into `development`, and `development` into
+`main`. Assistants open it and report it ready.
+
+Folders work the other way round: **worktrees are named after people, branches after work.**
+`Card Game` is Raheem's and holds the real `.git`; the assistants' folders are satellites
+holding a pointer to it. A person does not change, so a folder name never goes stale.
 
 **Abandoned work is tagged, then deleted**, so nothing is ever lost to a cleanup:
 
@@ -1123,6 +1129,41 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-15 — The game-improvement loop: explain the chain, agree the behavior, change one thing, look at it
+
+Raheem found this rhythm working with Codex and is adopting it for both assistants: **before
+any code changes, walk the complete file chain in VS Code** — where each file is, what it
+controls, the exact numbers producing today's behavior — then agree *current vs intended
+player-visible behavior*, make one focused change, and review it live in the game.
+
+*Why it matters:* he can read code now. The explanation is not a courtesy, it is the accuracy
+mechanism — an assistant that states the chain out loud gets corrected before it edits the
+wrong file, instead of after.
+
+Scope: **player-visible work only.** Backend plumbing, tests and doc syncs have nothing to look
+at and skip steps 3–6. Change size is **strict when tuning** (one adjustment per cycle, review
+between) and **looser when building** (one working slice, because half-built code teaches
+nothing). VS Code is for code; Phaser Editor is for scene composition and placement.
+
+*Also settled:* **Raheem merges every pull request**, into `development` and into `main`.
+Assistants open it and report ready.
+
+### 2026-08-15 — Fresh branch per task, superseding the standing-branch rule made hours earlier
+
+The entry below ("one working branch each") is **superseded**. Branches are now created per
+task, named for the work, one active per assistant at a time, and deleted the moment they
+merge.
+
+*Why the reversal:* the standing-branch rule fixed the right problem — branches appearing
+without Raheem's say-so — but with the wrong instrument. A branch reused across tasks stops
+describing its own contents, and unreadable names are precisely how the 49-branch pile became
+impossible to audit. The guardrail that actually matters is **asking before creating one**, and
+that is kept. Both rules were made the same day; this one is the considered version.
+
+*The naming rule that came with it:* **folders are named after people, branches after work.**
+`Card Game` (Raheem's, holding the real `.git`), `.claude/worktrees/claude`, Codex's folder. A
+person does not change tasks — their branch does — so a folder name never goes stale.
 
 ### 2026-08-15 — Claude and Codex get one working branch each, and neither opens another without asking
 
