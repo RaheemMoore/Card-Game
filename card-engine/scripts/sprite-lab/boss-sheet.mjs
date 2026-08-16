@@ -20,7 +20,7 @@
  *
  * Assets are inlined as base64 so the file can be opened or sent anywhere.
  *
- * Usage: boss-sheet.mjs <packed_dir> [--out sheet.html] [--clip name:fps:loop ...]
+ * Usage: boss-sheet.mjs <packed_dir> [--out sheet.html] [--frame <w>] [--clip name:fps:loop ...]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -88,7 +88,16 @@ const clips = strips.map((file) => {
 // from the narrowest strip's implied cell and verify the rest divide evenly —
 // a mismatch here is the "boss changes size mid-fight" bug, caught before it
 // reaches the manifest rather than after it reaches the player.
-const frameW = Math.min(...clips.map((c) => c.sheetW / Math.round(c.sheetW / c.h)));
+// Deriving the cell width from the strip's aspect ratio assumes a roughly
+// SQUARE cell. That holds for the bosses this was written for and breaks for
+// anything markedly wider or shorter than it is tall -- the Ember Jelly packs
+// to a 63x54 box, where the guess lands on 51.5 and every clip reports a false
+// geometry mismatch. `--frame <w>` lets the caller state the box the packer
+// already printed ("SHARED frame box: WxH"), which is knowledge, not a guess.
+// Without the flag the original heuristic still runs, so bosses are unchanged.
+const frameFlag = args.indexOf('--frame');
+const frameOverride = frameFlag > -1 ? Number(String(args[frameFlag + 1]).split('x')[0]) : null;
+const frameW = frameOverride || Math.min(...clips.map((c) => c.sheetW / Math.round(c.sheetW / c.h)));
 let geometryOk = true;
 for (const c of clips) {
   c.frames = Math.round(c.sheetW / frameW);

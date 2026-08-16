@@ -1326,3 +1326,47 @@ not PixelLab, owns sway, wind, motes, contact shadows, depth behavior, and day/n
 | Batch | Pieces | Cost | Verdict |
 |---|---|---|---|
 | Halo Stone magical trees v1 | fir, willow, fanwood, alder | 25 | HUMAN REVIEW — all mechanically pass; four silhouettes succeeded |
+
+## The Ember Jelly — the first enemy, and what an object run actually costs (2026-08-15)
+
+`configs/prop-ember-jelly.json`. The courtyard's rectangle construct got a body.
+
+**`size` cannot be sent when `style_images` are.** 422: *"size cannot be set when
+style_images are provided — the largest style image determines the output size."* The
+playbook already recorded this for `reference_image`; it applies to `style_images` too. It
+is not a limitation worth fighting — the style ref is a 28×69 crop of the hero, so the
+HERO'S OWN SCALE set the output at 69px, which is more correct than the 72 the config had
+hand-picked.
+
+**One `/create-1-direction-object` call with 4 `item_descriptions` returned SIXTEEN frames
+for $0.12** — four takes per description, not one. Ask for four descriptions even when you
+want one creature; the price is flat and the extra takes are the whole safety margin.
+
+**The job reports usage in USD, and animations report nothing at all.** Gate 1 said
+`usage.usd = 0.12`; the six animation jobs returned empty usage objects. Do not quote a
+generation count to Raheem from the job — quote the balance, or say it is unknown.
+
+**AN INCLUSION SUSPENDED INSIDE A DEFORMING BODY MUST BE PINNED IN EVERY CLIP.** This is
+the run's real lesson. The jelly carries an ember inside it. Nothing in the first
+descriptions said the ember was rigid, so the model deformed it along with the goo: it
+became a horizontal dark BAR mid-hop, and a tall CHIMNEY standing on the death puddle.
+Adding *"the small round dark ember staying the same size and shape"* fixed the splat
+outright. Say what must NOT change, not only what must.
+
+**A top-down view cannot draw vertical travel.** "Launches upward" produced a wobble in
+place, because there is no up on screen. Rewriting the hop as pure deformation
+(*squash flat → stretch tall and narrow → flatten wide*) fixed the ember but drained the
+energy — the retry read as barely moving. **Both hops were kept and Raheem chose the
+livelier one with the flawed ember**, which is the right trade at 69px and 10fps. If a
+clip needs to express height, the height belongs in the runtime's arc, not the frames.
+
+**Body and inclusion sit on separate palette ramps.** Recolouring the body to moss, frost
+and void via `lib/recolor.py --ramp` left the ember red every time. So the whole element
+family is free, and the ember stays the constant danger marker across all of them. Colour
+is a post-process — this creature must never be regenerated for hue.
+
+**Two harnesses needed fixing to review a prop at all**, both now done:
+`lib/pack_boss_clips.py` only matched `anim-<clip>-south-*` (characters); object clips are
+written `-unknown-`, so it could not pack a prop. And `boss-sheet.mjs` derived cell width
+from the strip's aspect ratio, which assumes a square-ish cell and reported a false
+geometry mismatch on the jelly's 63×54 box — it now takes `--frame <w>`.

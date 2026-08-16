@@ -45,11 +45,19 @@ MARGIN = 4
 
 def frames_for(frames_dir, clip):
     """Every frame of one clip, in order."""
-    prefix = f"anim-{clip}-south-"
+    # A boss is a CHARACTER and its frames carry a direction label ("-south-").
+    # An OBJECT prop has no direction to label -- a 1-direction object animates
+    # its single internal face -- so sprite-lab writes those frames "-unknown-".
+    # Both are the same shape of thing to pack, so accept either rather than
+    # forcing a rename that would throw away the provenance of which it was.
+    prefixes = [f"anim-{clip}-south-", f"anim-{clip}-unknown-"]
     names = sorted(n for n in os.listdir(frames_dir)
-                   if n.startswith(prefix) and n.endswith(".png"))
+                   if any(n.startswith(x) for x in prefixes) and n.endswith(".png"))
     if not names:
-        raise SystemExit(f"no frames found for clip '{clip}' (looked for {prefix}*.png)")
+        raise SystemExit(
+            f"no frames found for clip '{clip}' "
+            f"(looked for {' or '.join(x + '*.png' for x in prefixes)})"
+        )
     return [os.path.join(frames_dir, n) for n in names]
 
 

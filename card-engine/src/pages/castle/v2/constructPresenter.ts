@@ -7,6 +7,9 @@ import type Phaser from 'phaser';
 import { CONSTRUCT_TUNING, type ConstructPhase, type ConstructState } from '../combat/construct';
 import { HITSTOP_CAP_MS } from '../combat/feel';
 import { constructPose } from '../combat/constructPose';
+// Data only — frame ranges, keys and a palette. No Phaser, so the type-only
+// rule above is preserved.
+import { JELLY_SHEET, JELLY_ANIM, JELLY_ANCHOR, type JellyClipName } from '../../../data/castle/jellySprite';
 
 /**
  * How the training construct looks, and nothing else.
@@ -105,6 +108,23 @@ export interface ConstructView {
    * confirmation was the phase colour changing underneath it.
    */
   flash(feel: ConstructHitFeel): void;
+  /**
+   * What the BODY actually is right now, for the dev readout.
+   *
+   * Added 2026-08-15 after the jelly shipped looking frozen and neither Raheem
+   * nor I could tell whether a clip was playing, because nothing anywhere
+   * reported it. "It's just floating" is one symptom covering several causes --
+   * the anim was never created, play() is not being reached, the texture is
+   * missing, or the frames genuinely look alike -- and only this separates them.
+   */
+  debugSprite(): {
+    kind: 'sprite' | 'rectangle';
+    texture: string | null;
+    frame: string | null;
+    anim: string | null;
+    playing: boolean;
+    animsRegistered: number;
+  };
   destroy(): void;
 }
 
@@ -131,6 +151,37 @@ export interface ConstructHitFeel {
  * dropped cards. A second opinion about depth is how an actor ends up drawing
  * in front of a wall it is standing behind.
  */
+
+/**
+ * Which clip plays for each phase of the state machine.
+ *
+ * Four clips cover nine phases, and the collapsing is deliberate. `approach` is
+ * the only one that hops; everything the creature does while waiting -- idle,
+ * alert, facing, and both reaction stutters -- is the resting wobble, because a
+ * slime that changes its whole body language to flinch reads as a different
+ * creature. The flinch is carried by the white flash and the knockback lag,
+ * which are code and already tuned.
+ */
+function clipForPhase(phase: ConstructState['phase']): JellyClipName {
+  switch (phase) {
+    case 'approach':
+      return 'hop';
+    case 'telegraph':
+      return 'gather';
+    // The strike itself, its recovery, and the wound-down aftermath all play
+    // out of the gathered pose; constructPose supplies the lunge travel, so the
+    // frames only have to hold the tension.
+    case 'attack':
+    case 'recovery':
+      return 'gather';
+    case 'defeated':
+    case 'reviving':
+      return 'splat';
+    default:
+      return 'idle';
+  }
+}
+
 export function createConstructView(
   scene: Phaser.Scene,
   band: Phaser.GameObjects.Layer | undefined,
@@ -140,10 +191,37 @@ export function createConstructView(
   // than floating over it. The animals still lack this and can look adrift.
   const shadow = scene.add.ellipse(state.pos.x, state.pos.y, BODY_W * 0.9, 14, 0x000000, 0.28);
 
-  const body = scene.add.rectangle(state.pos.x, state.pos.y, BODY_W, BODY_H, PHASE_FILL.idle);
-  body.setStrokeStyle(3, 0x2a1608);
-  // Feet origin, the contract every actor in this world obeys.
-  body.setOrigin(0.5, 1);
+  /**
+   * The body. A SPRITE when the Ember Jelly's sheet is loaded, and the original
+   * rectangle when it is not.
+   *
+   * The fallback is not defensive padding — it is what lets the enemy keep
+   * working in any surface that does not load the castle-characters pack (the
+   * combat unit tests, a bare scene, a future harness). The rectangle carried
+   * this fight for weeks and is still a correct, readable opponent; losing the
+   * art should cost appearance, never behaviour.
+   */
+  const hasSheet = scene.textures.exists(JELLY_SHEET.key);
+  const body = hasSheet
+    ? scene.add.sprite(state.pos.x, state.pos.y, JELLY_SHEET.key)
+    : scene.add.rectangle(state.pos.x, state.pos.y, BODY_W, BODY_H, PHASE_FILL.idle);
+  if (!hasSheet) {
+    (body as Phaser.GameObjects.Rectangle).setStrokeStyle(3, 0x2a1608);
+  }
+  // Feet origin, the contract every actor in this world obeys -- but for the
+  // sprite the "feet" row is JELLY_ANCHOR, not the frame's bottom edge, because
+  // the packer pads below the ground line. Anchoring at 1.0 planted that padding
+  // on the floor and left the jelly hovering.
+  body.setOrigin(0.5, hasSheet ? JELLY_ANCHOR : 1);
+  /**
+   * Base scale for the sprite, so the pose's scaleX/scaleY stay MULTIPLIERS.
+   *
+   * The rectangle used setDisplaySize with absolute pixels; a sprite must not,
+   * or every squash would also resize it to the rectangle's dimensions and the
+   * art would stretch. Same pattern as heroBaseScale in courtyardRuntime.
+   */
+  const baseScale = hasSheet ? BODY_H / JELLY_SHEET.frameHeight : 1;
+  if (hasSheet) body.setScale(baseScale);
 
   /**
    * Which way it is facing, as a mark on the ground rather than on the body.
@@ -170,8 +248,28 @@ export function createConstructView(
    * rewrites the body's fill from the phase every single frame, so anything
    * written directly onto it would be stomped before it could be seen.
    */
-  const hitFlash = scene.add.rectangle(state.pos.x, state.pos.y, BODY_W, BODY_H, 0xffffff, 0);
-  hitFlash.setOrigin(0.5, 1);
+  /**
+   * The contact flash — a white copy of the body laid over it.
+   *
+   * ON THE SPRITE THIS MUST BE A SPRITE, NOT A RECTANGLE. The rectangle was
+   * correct when the body WAS a rectangle: a Rectangle cannot take setTintFill,
+   * so an overlay was the only way to flash it, and its shape matched by
+   * definition. Over the jelly the same overlay would flash a hard white BOX
+   * around a round creature -- the hit would read as a glitch rather than a
+   * blow. A second sprite on the same texture, filled white, takes the jelly's
+   * exact silhouette for free, including whichever frame is mid-play.
+   */
+  const hitFlash = hasSheet
+    ? scene.add.sprite(state.pos.x, state.pos.y, JELLY_SHEET.key)
+    : scene.add.rectangle(state.pos.x, state.pos.y, BODY_W, BODY_H, 0xffffff, 0);
+  if (hasSheet) {
+    // Fill, not tint: setTint multiplies and would leave the amber showing
+    // through, which reads as a colour wash instead of an impact.
+    (hitFlash as Phaser.GameObjects.Sprite).setTintFill(0xffffff);
+  }
+  // Must match the body exactly, or the white flash sits offset from the thing
+  // it is flashing.
+  hitFlash.setOrigin(0.5, hasSheet ? JELLY_ANCHOR : 1);
   hitFlash.setVisible(false);
 
   for (const o of [shadow, body, notch, tell, hp, hitFlash]) band?.add(o);
@@ -292,14 +390,39 @@ export function createConstructView(
       // frame rate. Driving it from the presentation clock fixes that and
       // freezes it during hitstop in the same stroke.
       bobT += motionOff ? 0 : presentDeltaMs * 0.0036;
-      const bob = next.phase === 'idle' && !motionOff ? Math.sin(bobT) * 2 : 0;
+      /**
+       * The idle bob -- RECTANGLE ONLY, and deliberately so.
+       *
+       * It existed because a rectangle cannot wobble on its own, so a 2px
+       * vertical nod was the only way to say "this thing is alive". The jelly
+       * has a seven-frame idle clip that squashes and rebounds IN PLACE, which
+       * is the same statement made properly.
+       *
+       * Keeping both is not merely redundant, it is wrong: lifting a slime off
+       * the floor on a sine wave is a HOVER, and a hovering slime reads as
+       * flying rather than as breathing. The clip deforms; the ground stays the
+       * ground.
+       */
+      const bob = !hasSheet && next.phase === 'idle' && !motionOff ? Math.sin(bobT) * 2 : 0;
 
       body.setPosition(drawX, groundY + bob);
       body.setDepth(depth);
       // Set absolutely, never multiplied into whatever was there last frame:
       // the pose is applied every frame, so compounding would shrink the body
       // to nothing over a few swings.
-      body.setDisplaySize(BODY_W * strike.scaleX, BODY_H * strike.scaleY);
+      if (hasSheet) {
+        // Multiplied off the base scale, so a squash squashes the ART rather
+        // than resizing it to the old rectangle's box.
+        (body as Phaser.GameObjects.Sprite).setScale(
+          baseScale * strike.scaleX,
+          baseScale * strike.scaleY,
+        );
+      } else {
+        (body as Phaser.GameObjects.Rectangle).setDisplaySize(
+          BODY_W * strike.scaleX,
+          BODY_H * strike.scaleY,
+        );
+      }
       // Pivots at the feet, because the origin is (0.5, 1) — so a rotation is a
       // topple rather than a spin about the middle. Zero for every pose but the
       // collapse, and written every frame so a revive cannot inherit the fall.
@@ -324,12 +447,62 @@ export function createConstructView(
        * Under reduced motion it holds the hot end from the halfway mark instead
        * of ramping — still a change of state, with nothing moving.
        */
-      if (next.phase === 'telegraph') {
+      if (hasSheet) {
+        /**
+         * On the SPRITE the phase colour becomes a TINT rather than a fill, and
+         * only during the telegraph.
+         *
+         * The rectangle recoloured itself every phase because a flat shape had
+         * nothing else to say what it was doing. The jelly has clips for that,
+         * so tinting it per phase would only fight its own art. What survives
+         * is the telegraph heat, because that one is not decoration: the ring
+         * says WHERE the strike lands and the colour says NOW, and losing the
+         * second half of that redundancy makes the tell harder to read.
+         */
+        const sprite = body as Phaser.GameObjects.Sprite;
+        if (next.phase === 'telegraph') {
+          const t = Math.min(1, next.elapsedMs / CONSTRUCT_TUNING.telegraphMs);
+          const heat = motionOff ? (t > 0.5 ? 1 : 0) : t * t;
+          sprite.setTint(mixColour(0xffffff, PHASE_FILL.attack, heat * 0.75));
+        } else {
+          sprite.clearTint();
+        }
+
+        /**
+         * The clip for this phase. `play` is a no-op when the key is already
+         * running, so this is safe to call every frame -- but `splat` is passed
+         * ignoreIfPlaying=false deliberately: a revive has to be able to restart
+         * the death clip after the sprite has been sitting on its held last
+         * frame.
+         */
+        const clip = clipForPhase(next.phase);
+        const animKey = JELLY_ANIM[clip];
+        /**
+         * Mount the clip for this phase.
+         *
+         * GUARD ON scene.anims, NEVER ON sprite.anims. The first version of this
+         * asked `sprite.anims.exists(animKey)` -- and `sprite.anims` is the
+         * sprite's LOCAL AnimationState, whose `exists` only knows animations
+         * added to that one sprite. These four are registered globally on the
+         * scene's AnimationManager, so the local check answered false every
+         * time, play() was never reached, and the jelly sat on frame 0 while
+         * looking otherwise perfectly correct -- right texture, right scale,
+         * four anims registered, deforming under the pose math. It read as
+         * "the sprite is just floating", which is exactly what it was.
+         */
+        if (scene.anims.exists(animKey) && sprite.anims.currentAnim?.key !== animKey) {
+          // ignoreIfPlaying: false -- a revive has to be able to restart the
+          // death clip after the sprite has been holding its last frame.
+          sprite.play(animKey, false);
+        }
+      } else if (next.phase === 'telegraph') {
         const t = Math.min(1, next.elapsedMs / CONSTRUCT_TUNING.telegraphMs);
         const heat = motionOff ? (t > 0.5 ? 1 : 0) : t * t;
-        body.setFillStyle(mixColour(PHASE_FILL.telegraph, PHASE_FILL.attack, heat));
+        (body as Phaser.GameObjects.Rectangle).setFillStyle(
+          mixColour(PHASE_FILL.telegraph, PHASE_FILL.attack, heat),
+        );
       } else {
-        body.setFillStyle(PHASE_FILL[next.phase]);
+        (body as Phaser.GameObjects.Rectangle).setFillStyle(PHASE_FILL[next.phase]);
       }
       // Was a flat 0.45 the instant it died. Now the collapse fades it as it
       // goes over and holds it at a legible third — a corpse, not a ghost, and
@@ -343,7 +516,22 @@ export function createConstructView(
       hitFlash.setDepth(depth + 0.5);
       // Matches the body's squash too, or a construct struck mid-swing would
       // wear a flash the wrong shape for the body under it.
-      hitFlash.setDisplaySize(BODY_W * strike.scaleX, BODY_H * strike.scaleY);
+      if (hasSheet) {
+        // Mirror the body's CURRENT FRAME as well as its transform, or the
+        // flash is the silhouette of whatever frame it was born on -- a
+        // gathered blob flashing in its resting shape.
+        const flashSprite = hitFlash as Phaser.GameObjects.Sprite;
+        const bodySprite = body as Phaser.GameObjects.Sprite;
+        if (bodySprite.frame && flashSprite.frame?.name !== bodySprite.frame.name) {
+          flashSprite.setFrame(bodySprite.frame.name);
+        }
+        flashSprite.setScale(baseScale * strike.scaleX, baseScale * strike.scaleY);
+      } else {
+        (hitFlash as Phaser.GameObjects.Rectangle).setDisplaySize(
+          BODY_W * strike.scaleX,
+          BODY_H * strike.scaleY,
+        );
+      }
 
       // Facing lives on the ground in front of the feet.
       notch.setPosition(drawX + next.facing.x * 26, groundY + next.facing.y * 14);
@@ -430,6 +618,19 @@ export function createConstructView(
       });
     },
 
+    debugSprite() {
+      const sprite = hasSheet ? (body as Phaser.GameObjects.Sprite) : null;
+      return {
+        kind: (hasSheet ? 'sprite' : 'rectangle') as 'sprite' | 'rectangle',
+        texture: sprite?.texture?.key ?? null,
+        frame: sprite?.frame?.name != null ? String(sprite.frame.name) : null,
+        anim: sprite?.anims?.currentAnim?.key ?? null,
+        playing: sprite?.anims?.isPlaying ?? false,
+        // How many of the four clips the anim manager actually knows about.
+        // Zero here with a live texture means creation never ran.
+        animsRegistered: Object.values(JELLY_ANIM).filter((k) => scene.anims.exists(k)).length,
+      };
+    },
     setMotionOff(off) {
       motionOff = off;
     },

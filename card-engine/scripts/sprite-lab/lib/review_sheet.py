@@ -17,7 +17,7 @@ The page is self-contained (images inlined as base64), so it opens from disk
 with no server and survives being copied anywhere.
 
 Usage:
-  review_sheet.py build                       rebuild the page from assets.json
+  review_sheet.py build [only]                rebuild the page; [only] filters ids by substring
   review_sheet.py add <id> <png> [options]    register a newly generated asset
   review_sheet.py decide <id> <verdict> [why] record a verdict
   review_sheet.py list                        print the register
@@ -36,21 +36,50 @@ LAB = os.path.dirname(HERE)
 CARD_ENGINE = os.path.dirname(os.path.dirname(LAB))
 REVIEW = os.path.join(LAB, "review")
 REGISTER = os.path.join(REVIEW, "assets.json")
-PLATE = os.path.join(
+# THE PLATE MUST BE THE COURTYARD THE GAME ACTUALLY SHIPS.
+#
+# This pointed at the V2 Figma plate until 2026-08-15, by which time /castle had
+# been CourtyardV3 for weeks -- so every context shot was staged in a courtyard
+# nobody had seen in the game for a month. Raheem, seeing it: "I don't even know
+# what this looks like in our game because I haven't seen this courtyard in
+# weeks." A review harness that stages art against a stale set is worse than no
+# harness, because it produces confident judgements about the wrong thing.
+#
+# V3 is an Editor scene rather than one painted PNG, so it is RENDERED on demand
+# by the offline scene renderer, in the game's own y-sort order:
+#
+#     python scripts/bg-harness/render_scene.py CourtyardV3 --ysort #         --out scripts/sprite-lab/review/courtyard-v3.png
+#
+# PRODUCTION_SCENE in src/pages/castle/v2/courtyardRuntime.ts is the source of
+# truth for which scene that is. If it changes, re-render.
+V3_PLATE = os.path.join(REVIEW, "courtyard-v3.png")
+V2_PLATE = os.path.join(
     CARD_ENGINE, "src", "assets", "dev-preview", "courtyard-v2-figma.png"
 )
+PLATE = V3_PLATE if os.path.exists(V3_PLATE) else V2_PLATE
 OUT = os.path.join(REVIEW, "review-sheet.html")
 ARTIFACT_OUT = os.path.join(REVIEW, "review-sheet.artifact.html")
 
-# Measured off the plate. The side walls splay outward toward the viewer, so an
-# object standing against one is NOT square to the camera. These anchors are
-# where a candidate is dropped for its context shot.
-WALLS = {
+# Anchors are measured per plate, because they are absolute pixel positions and
+# the two courtyards are neither the same size nor the same shape. V2 was a
+# walled room shot square-on; V3 is a 2560x1920 top-down map with a gatehouse,
+# a forge, a pond and a cliff. Using V2's coordinates on V3 drops the sprite in
+# open sky.
+WALLS_V3 = {
+    "floor": {"label": "courtyard dirt, below the gatehouse", "x": 1290, "y": 1240, "face": "south", "lean": 0},
+    "grass": {"label": "open grass, west side",               "x": 760,  "y": 1180, "face": "south", "lean": 0},
+    "forge": {"label": "the paved run outside the forge",     "x": 1500, "y": 620,  "face": "south", "lean": 0},
+    "pond":  {"label": "the pond's south bank",               "x": 2060, "y": 1330, "face": "south", "lean": 0},
+}
+
+WALLS_V2 = {
     "back":  {"label": "back wall (north)",  "x": 640,  "y": 470, "face": "south",      "lean": 0},
     "left":  {"label": "left wall (west)",   "x": 360,  "y": 640, "face": "south-east", "lean": 13},
     "right": {"label": "right wall (east)",  "x": 1210, "y": 640, "face": "south-west", "lean": -12},
-    "floor": {"label": "open floor",          "x": 700,  "y": 760, "face": "south",      "lean": 0},
+    "floor": {"label": "open floor",         "x": 700,  "y": 760, "face": "south",      "lean": 0},
 }
+
+WALLS = WALLS_V3 if PLATE == V3_PLATE else WALLS_V2
 
 VERDICTS = ("pending", "approved", "rejected")
 
@@ -58,13 +87,13 @@ VERDICTS = ("pending", "approved", "rejected")
 def load():
     if not os.path.exists(REGISTER):
         return {"assets": []}
-    with open(REGISTER) as f:
+    with open(REGISTER, encoding="utf-8") as f:
         return json.load(f)
 
 
 def save(reg):
     os.makedirs(REVIEW, exist_ok=True)
-    with open(REGISTER, "w") as f:
+    with open(REGISTER, "w", encoding="utf-8") as f:
         json.dump(reg, f, indent=2)
 
 
@@ -120,10 +149,22 @@ def swatch(sprite, scale=3):
     return bg.resize((bg.width * scale, bg.height * scale), Image.NEAREST)
 
 
-def build():
+def build(only=None):
+    """Render the sheet.  is a substring filter on the asset id.
+
+    THE FILTER IS NOT A NICETY. The register only ever grows -- it passed 70
+    assets on 2026-08-15 -- so an unfiltered page buries the thing you just
+    made under everything ever judged, and the reviewer cannot find it. When
+    you have generated one subject, build that subject.
+    """
     reg = load()
     assets = reg.get("assets", [])
+    if only:
+        assets = [a for a in assets if only.lower() in a["id"].lower()]
     if not assets:
+        if only:
+            print(f'No registered asset id contains "{only}".')
+            return
         print("No assets registered yet. Use: review_sheet.py add <id> <png>")
         return
 
@@ -263,11 +304,13 @@ here, and only once it is approved does it earn its animation and its other seve
 """
     html = "<!doctype html><meta charset=\"utf-8\">\n" + head + "\n" + body
     os.makedirs(REVIEW, exist_ok=True)
-    with open(OUT, "w") as f:
+    out_path = OUT if not only else OUT.replace(".html", f"-{only}.html")
+    art_path = ARTIFACT_OUT if not only else ARTIFACT_OUT.replace(".html", f"-{only}.html")
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)
     # Artifact-ready twin: no doctype/meta, since the Artifact host supplies the
     # skeleton. Same content, so the shared URL and the local file never diverge.
-    with open(ARTIFACT_OUT, "w") as f:
+    with open(art_path, "w", encoding="utf-8") as f:
         f.write(head + "\n" + body)
     print(OUT)
     print(ARTIFACT_OUT)
@@ -330,7 +373,7 @@ def show():
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "build"
     if cmd == "build":
-        build()
+        build(sys.argv[2] if len(sys.argv) > 2 else None)
     elif cmd == "add":
         add(sys.argv[2:])
     elif cmd == "decide":

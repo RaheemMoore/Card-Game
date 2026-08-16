@@ -81,6 +81,15 @@ const HERO_SIZE_TESTS = ['hero-chibi-56', 'hero-chibi-48', 'hero-chibi-40'] as c
 const HERO_CLIPS = ['hero-knockdown', 'hero-card-slam'] as const;
 
 /**
+ * The Ember Jelly's sheet. Same reason as HERO_CLIPS above: no scene file NAMES
+ * it, because the construct is spawned by code rather than placed in the
+ * Editor, so entriesUsedBy would skip it and the enemy would silently fall back
+ * to nothing. This is the trap that shipped hero-card-slam unplayable for six
+ * days.
+ */
+const CONSTRUCT_CLIPS = ['construct-ember-jelly'] as const;
+
+/**
  * The elemental blast and impact sheets.
  *
  * Same reason as the size tests: no scene NAMES them, because which element a
@@ -121,19 +130,19 @@ export const SCENE_MANIFEST: Record<string, SceneTraits> = {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...EFFECT_SHEETS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...CONSTRUCT_CLIPS, ...EFFECT_SHEETS],
   },
   CourtyardV3: {
     explorable: true,
     ySort: true,
     behavior: attachCourtyardWildlife,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...EFFECT_SHEETS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...CONSTRUCT_CLIPS, ...EFFECT_SHEETS],
   },
   WildlifeLab: {
     explorable: true,
     ySort: false,
     behavior: attachWildlifeLab,
-    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...EFFECT_SHEETS],
+    alwaysLoaded: [...WILDLIFE_SHEETS, ...HERO_SIZE_TESTS, ...HERO_CLIPS, ...CONSTRUCT_CLIPS, ...EFFECT_SHEETS],
   },
 };
 

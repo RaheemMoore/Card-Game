@@ -447,6 +447,7 @@ Every paid provider call routes through a server-side Vercel function under
 | State | Workstream | Where it stands |
 |---|---|---|
 | SHIPPED | The forge | Image-first pipeline, 11 archetypes, Bible-driven generation |
+| IN FLIGHT | The Ember Jelly — the first real enemy | The courtyard construct is no longer a rectangle. A translucent amber slime with an ember suspended inside it, four clips on one strip (idle wobble, hop, gather, splat), generated as an OBJECT rather than a character because a blob needs no walk cycle and object animation is the reliable route here. **In the game and animating** — verified live: it hops in, gathers to telegraph, and collapses into a puddle when killed. Zero directional requirement by design, so there are no facing rows; recolours are free, so frost/moss/void variants cost nothing later. **Open: the juice pass** — landing droplets, goo trail, shadow, and a death burst in its own palette. The rig for all of it (`playDirectionalBurst`, hitstop, camera kick, `constructPose` squash) is already built and wired. |
 | IN FLIGHT | The curated roster | The permanent-card system that replaces runtime generation. **The authoring half is done and has been since 2026-08-10** — Workshop, Lore Desk, `curated_characters`/`curated_variants` with RLS, the `curated-art` bucket, the upload endpoint. **The consuming half now exists but is not connected:** `services/forge/curatedMatcher.ts` (PR [#53](https://github.com/RaheemMoore/Card-Game/pull/53)) scores Story Pillar answers against a character's `answerBindings`, picks the element variant, and mints a playable `Card` from the authored rank art. Nothing calls it yet — the forge still generates. **What actually blocks the switch is content, not code:** production holds 1 curated character (`char_barbarian_sample_gryndak`, status `awaiting_lore`, 0 bindings) and **0 variants**, so nothing is forgeable in any archetype. |
 | SHIPPED | Collection + card detail | Grid, filters, tier-up, evolution history |
 | SHIPPED | Ability system | Typed catalogs, power budget validator, discovery rewards, codex |
@@ -1129,6 +1130,33 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-15 — The courtyard's rectangle got a body: the Ember Jelly
+
+The training construct has been a coloured rectangle since 2026-08-13, deliberately — "shapes,
+not sprites," so behaviour could be tuned before art was paid for. That bet paid: the state
+machine, the pose math and the hit feel were finished and playtested before a single frame was
+bought, and the sprite dropped into them unchanged.
+
+**It is a slime with an ember suspended inside it, and every part of that is a cost decision.**
+A symmetric blob has ZERO directional requirement, so there are no facing rows to generate or
+keep in sync — the cheapest quality lever in the prop pipeline. No torso and no limbs means
+modesty M5.7 never engages. And the interesting part sits INSIDE the silhouette, so it is
+painted into the same frames: Raheem rejected an earlier orbiting-shards concept precisely
+because separate layers would need per-frame syncing — *"that's gonna cause errors."*
+
+Four clips, one strip: idle wobble, hop, gather, splat. The revive is the splat played
+backwards in code, so it costs nothing. Body and ember sit on separate palette ramps, so
+recolouring mints frost/moss/void variants for zero generations while the ember stays the
+constant danger marker.
+
+*Why it matters:* the juice is deliberately code-side. `constructPose` already supplies squash,
+wind-back, lunge and topple; `playDirectionalBurst`, hitstop and camera kick are already wired.
+The frames only carry what code cannot — the body's own deformation.
+
+*What is not done:* the Phaser juice pass Raheem wants — landing droplets, goo trail, shadow,
+brighter death burst in the jelly's own palette. The sprite is in and animating; the spectacle
+is the next task.
 
 ### 2026-08-15 — The game-improvement loop: explain the chain, agree the behavior, change one thing, look at it
 
