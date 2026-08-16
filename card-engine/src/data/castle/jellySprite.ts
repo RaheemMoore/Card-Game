@@ -38,6 +38,27 @@ export const JELLY_SHEET = {
   frameCount: 32,
 } as const;
 
+
+/**
+ * Where the jelly's UNDERSIDE sits inside its frame, as a fraction of height.
+ *
+ * NOT 1.0, and that difference is why it floated. The packer leaves breathing
+ * room below the ground line so a lunge or a shake cannot clip an edge pixel,
+ * so the body's lowest opaque row is 50 of 54 -- four transparent pixels of
+ * padding. Anchoring at the frame's bottom edge plants that PADDING on the
+ * floor and leaves the creature hovering above it, which on a slime reads as
+ * flying rather than as a sprite offset.
+ *
+ * Measured off the shipped strip, not guessed: resting frames bottom out at row
+ * 50, mid-hop frames at 48 (it is off the ground -- that is the hop), and the
+ * final splat frames at 54 as the puddle spreads past the standing footprint.
+ * The anchor takes the RESTING row, so the creature stands correctly and the
+ * hop genuinely leaves the floor.
+ *
+ * Same reason and same shape as KNOCKDOWN_ANCHOR in knockdownSprite.ts.
+ */
+export const JELLY_ANCHOR = 50 / 54;
+
 export type JellyClipName = 'idle' | 'hop' | 'gather' | 'splat';
 
 /**

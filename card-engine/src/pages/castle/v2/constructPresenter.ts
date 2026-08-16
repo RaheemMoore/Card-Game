@@ -9,7 +9,7 @@ import { HITSTOP_CAP_MS } from '../combat/feel';
 import { constructPose } from '../combat/constructPose';
 // Data only — frame ranges, keys and a palette. No Phaser, so the type-only
 // rule above is preserved.
-import { JELLY_SHEET, JELLY_ANIM, type JellyClipName } from '../../../data/castle/jellySprite';
+import { JELLY_SHEET, JELLY_ANIM, JELLY_ANCHOR, type JellyClipName } from '../../../data/castle/jellySprite';
 
 /**
  * How the training construct looks, and nothing else.
@@ -208,8 +208,11 @@ export function createConstructView(
   if (!hasSheet) {
     (body as Phaser.GameObjects.Rectangle).setStrokeStyle(3, 0x2a1608);
   }
-  // Feet origin, the contract every actor in this world obeys.
-  body.setOrigin(0.5, 1);
+  // Feet origin, the contract every actor in this world obeys -- but for the
+  // sprite the "feet" row is JELLY_ANCHOR, not the frame's bottom edge, because
+  // the packer pads below the ground line. Anchoring at 1.0 planted that padding
+  // on the floor and left the jelly hovering.
+  body.setOrigin(0.5, hasSheet ? JELLY_ANCHOR : 1);
   /**
    * Base scale for the sprite, so the pose's scaleX/scaleY stay MULTIPLIERS.
    *
@@ -264,7 +267,9 @@ export function createConstructView(
     // through, which reads as a colour wash instead of an impact.
     (hitFlash as Phaser.GameObjects.Sprite).setTintFill(0xffffff);
   }
-  hitFlash.setOrigin(0.5, 1);
+  // Must match the body exactly, or the white flash sits offset from the thing
+  // it is flashing.
+  hitFlash.setOrigin(0.5, hasSheet ? JELLY_ANCHOR : 1);
   hitFlash.setVisible(false);
 
   for (const o of [shadow, body, notch, tell, hp, hitFlash]) band?.add(o);
@@ -385,7 +390,20 @@ export function createConstructView(
       // frame rate. Driving it from the presentation clock fixes that and
       // freezes it during hitstop in the same stroke.
       bobT += motionOff ? 0 : presentDeltaMs * 0.0036;
-      const bob = next.phase === 'idle' && !motionOff ? Math.sin(bobT) * 2 : 0;
+      /**
+       * The idle bob -- RECTANGLE ONLY, and deliberately so.
+       *
+       * It existed because a rectangle cannot wobble on its own, so a 2px
+       * vertical nod was the only way to say "this thing is alive". The jelly
+       * has a seven-frame idle clip that squashes and rebounds IN PLACE, which
+       * is the same statement made properly.
+       *
+       * Keeping both is not merely redundant, it is wrong: lifting a slime off
+       * the floor on a sine wave is a HOVER, and a hovering slime reads as
+       * flying rather than as breathing. The clip deforms; the ground stays the
+       * ground.
+       */
+      const bob = !hasSheet && next.phase === 'idle' && !motionOff ? Math.sin(bobT) * 2 : 0;
 
       body.setPosition(drawX, groundY + bob);
       body.setDepth(depth);
