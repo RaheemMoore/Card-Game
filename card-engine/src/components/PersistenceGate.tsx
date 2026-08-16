@@ -286,6 +286,12 @@ const DEV_ONLY_UNGATED_ROUTES = [
   // Guarded like the entry it replaced, so the path does not ship as a literal in
   // a build that has no such route to match it against.
   ...(import.meta.env.DEV ? ['/dev/castle-front-v4'] : []),
+  // The Phaser Editor Play target. It fetches one compiled scene and draws it —
+  // no cards, no wallet, no session — and it MUST be ungated, because the gate
+  // sends a signed-out visitor to the landing redirect, which on a narrow window
+  // lands on /forge. Pressing Play in the Editor and arriving at the character
+  // picker is indistinguishable from the button being broken.
+  ...(import.meta.env.DEV ? ['/dev/scene'] : []),
 ];
 
 function isDevOnlyArtRoute(): boolean {
