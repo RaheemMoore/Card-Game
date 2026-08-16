@@ -1,13 +1,13 @@
-import type Phaser from 'phaser';
+﻿import type Phaser from 'phaser';
 import { describe, expect, it } from 'vitest';
-import { HITSTOP_CAP_MS, getHitFeel } from '../combat/feel';
+import { HITSTOP_CAP_MS, getHitFeel } from './feel';
 import { createHitstop } from './hitstop';
 
 /**
  * A scene stand-in.
  *
  * Hitstop only ever touches two numbers on the scene, which is the whole reason
- * it can be tested at all — a real Phaser.Scene would drag in device detection
+ * it can be tested at all â€” a real Phaser.Scene would drag in device detection
  * and a canvas that does not exist here.
  */
 function fakeScene() {
@@ -57,7 +57,7 @@ describe('hitstop', () => {
 
   it('takes the longest pending freeze, never the sum', () => {
     // THE concurrency rule. Two shots landing in one frame must not add up to
-    // a longer pause than either of them asked for — that is how an idle game
+    // a longer pause than either of them asked for â€” that is how an idle game
     // with several attackers freezes solid at the exact moment it is busiest.
     const h = createHitstop(fakeScene());
     h.trigger(40);

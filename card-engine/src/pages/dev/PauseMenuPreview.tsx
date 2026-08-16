@@ -1,14 +1,14 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { PauseMenu } from '../castle/PauseMenu';
 import { PixelButton } from '../../components/ui/PixelButton';
 
 /**
- * `/dev/pause-menu` — the castle's pause menu over the courtyard, no account.
+ * `/dev/pause-menu` â€” the castle's pause menu over the courtyard, no account.
  *
  * The real one only appears inside the castle, which is behind sign-in, so
  * without this route the most-used surface in the game is also the one nobody
- * can review. It renders the REAL component — same nav items, same Directory
- * hand-off, same sign-out button — so what you see here is what Escape gives
+ * can review. It renders the REAL component â€” same nav items, same Directory
+ * hand-off, same sign-out button â€” so what you see here is what Escape gives
  * you in play.
  *
  * `isPrivileged` is toggleable because the admin entry only exists for some
@@ -24,7 +24,7 @@ export function PauseMenuPreview() {
       style={{
         position: 'relative',
         minHeight: '100dvh',
-        background: 'url(/assets/castle/courtyard.png) center/cover fixed',
+        background: 'linear-gradient(180deg, #2b1e3d 0%, #8c4a2f 62%, #d98b45 100%) center/cover fixed',
       }}
     >
       <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', gap: 10, zIndex: 90 }}>

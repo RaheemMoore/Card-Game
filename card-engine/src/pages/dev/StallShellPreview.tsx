@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { PixelButton } from '../../components/ui/PixelButton';
 import { StallShell } from '../../components/ui/StallShell';
 import { StallDoorway } from '../castle/stalls/StallDoorway';
-import { DESTINATIONS } from '../castle/courtyard/stalls';
+import { DESTINATIONS } from '../castle/stalls/types';
 import type { Stage } from '../../components/ui/StageRail';
 
 /**
- * `/dev/stall-shell` — the shared stall case with a stage rail, no account.
+ * `/dev/stall-shell` â€” the shared stall case with a stage rail, no account.
  *
  * The Forge's real flow is gated behind sign-in AND spends premium currency at
  * its last step, so the shell it lives in cannot be reviewed through the Forge
- * itself without both a session and money. This exercises the chrome — rail,
- * scroll region, footer, bottom sheet — against filler content, so layout faults
+ * itself without both a session and money. This exercises the chrome â€” rail,
+ * scroll region, footer, bottom sheet â€” against filler content, so layout faults
  * surface here rather than in a paid flow.
  *
  * The stage names are the Forge's real ones, because the rail's whole argument
@@ -45,7 +45,7 @@ export function StallShellPreview() {
     <div
       style={{
         minHeight: '100dvh',
-        background: 'url(/assets/castle/courtyard.png) center/cover fixed',
+        background: 'linear-gradient(180deg, #2b1e3d 0%, #8c4a2f 62%, #d98b45 100%) center/cover fixed',
       }}
     >
       <StallShell
@@ -55,7 +55,7 @@ export function StallShellPreview() {
         currentStage={step}
         narrow={narrow}
         onClose={() => window.location.reload()}
-        footerNote={`Step ${step + 1} of ${FORGE_STAGES.length} — ${FORGE_STAGES[step].label}`}
+        footerNote={`Step ${step + 1} of ${FORGE_STAGES.length} â€” ${FORGE_STAGES[step].label}`}
         footer={
           <>
             <PixelButton scale={1.2} onClick={() => setStep((s) => Math.max(0, s - 1))}>
@@ -85,7 +85,7 @@ export function StallShellPreview() {
                 fontSize: 13,
               }}
             >
-              Filler row {i + 1} — stands in for the archetype grid, the dice, the element
+              Filler row {i + 1} â€” stands in for the archetype grid, the dice, the element
               buckets or the story pillar questions, depending on the step.
             </div>
           ))}
@@ -93,7 +93,7 @@ export function StallShellPreview() {
       </StallShell>
 
       {/* AFTER the shell. Both use Scrim at the same z-index, so in this preview
-          — where the shell is permanently mounted — DOM order decides which
+          â€” where the shell is permanently mounted â€” DOM order decides which
           paints on top. In the courtyard they are mutually exclusive: the
           doorway is only up when nothing has been entered. */}
       {doorway !== null && (

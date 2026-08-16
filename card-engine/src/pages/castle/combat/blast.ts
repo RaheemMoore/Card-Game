@@ -1,5 +1,32 @@
 import type { Vec2 } from './aim';
-import { pointInPolygon, type Polygon } from '../v2-preview/walkBlocking';
+
+/**
+ * A closed shape a shot cannot pass through.
+ *
+ * Owned here rather than imported from the walk code. It used to come from the
+ * top-down courtyard's `walkBlocking`, which meant the projectile system depended
+ * on a module about where feet may stand — and when the top-down world was deleted
+ * in the side-view move, ten lines of geometry were the only thing keeping a live
+ * system tied to a dead one.
+ */
+export type Polygon = readonly (readonly [number, number])[];
+
+/**
+ * Crossing-number test. A point exactly on an edge may land either way, which is
+ * immaterial here: shots are sampled along a substepped path, so no single
+ * ambiguous sample decides a hit on its own.
+ */
+export function pointInPolygon(px: number, py: number, poly: Polygon): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
 
 /**
  * The held-card blast: what a card throws, and how it travels.

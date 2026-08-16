@@ -1,18 +1,18 @@
-import type Phaser from 'phaser';
-import { HITSTOP_CAP_MS } from '../combat/feel';
+﻿import type Phaser from 'phaser';
+import { HITSTOP_CAP_MS } from './feel';
 
 /**
  * The world holds still for a moment when something lands.
  *
  * WHICH CLOCK THIS STOPS, and why it matters more than the effect itself.
- * The pure state machines — actionState.ts, construct.ts — ALWAYS receive real
+ * The pure state machines â€” actionState.ts, construct.ts â€” ALWAYS receive real
  * elapsed milliseconds. They are never scaled, never paused, never told a frame
  * took zero time. Three reasons, in order of how expensive getting it wrong
  * would be:
  *
  *  1. `telegraphIsAvoidable()` is arithmetic over `telegraphMs` and the hero's
  *     walk speed. Scaling gameplay time would make the telegraph window elastic
- *     — longer in real seconds whenever anything happened to land — and the one
+ *     â€” longer in real seconds whenever anything happened to land â€” and the one
  *     fairness guarantee this enemy has would quietly stop being a guarantee.
  *  2. Every existing test drives those machines with fixed dt. A presentation
  *     feature has no business changing what they compute.
@@ -26,13 +26,13 @@ import { HITSTOP_CAP_MS } from '../combat/feel';
  *
  * NON-STACKING, BY CONSTRUCTION. `trigger` takes the MAX of what is pending and
  * what is asked for, never the sum, and the result is capped. This is not a
- * refinement — the courtyard is an idle game where several shots can land in one
+ * refinement â€” the courtyard is an idle game where several shots can land in one
  * frame, and summed hitstop would freeze it solid exactly when the most is
  * happening. See the concurrency tests.
  *
  * `scene.time` is deliberately left UNSCALED. Every timed effect in this
  * codebase carries a `delayedCall` backstop so nothing waits on an animation
- * event to finish — scaling the timer clock would stop those backstops firing
+ * event to finish â€” scaling the timer clock would stop those backstops firing
  * during a freeze, which is the one failure the pattern exists to prevent.
  */
 export interface Hitstop {
@@ -94,7 +94,7 @@ export function createHitstop(scene: Phaser.Scene): Hitstop {
 
     destroy() {
       // A scene torn down mid-freeze must not leave a global time scale at
-      // zero — the animation manager outlives the scene, and the next one to
+      // zero â€” the animation manager outlives the scene, and the next one to
       // start would render nothing moving with no obvious cause.
       setFrozen(false);
     },

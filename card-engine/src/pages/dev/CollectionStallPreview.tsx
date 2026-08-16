@@ -1,21 +1,21 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import type { Card as CardType } from '../../types/card';
 import { ARCHETYPE_NAMES } from '../../types/card';
 import { buildCardShell, generateStats } from '../../services/cardGenerator';
 import { CollectionStall } from '../castle/stalls/CollectionStall';
 
 /**
- * `/dev/collection-stall` — the Collection case, full, without an account.
+ * `/dev/collection-stall` â€” the Collection case, full, without an account.
  *
  * WHY THIS EXISTS: the real surface reads the signed-in player's cards, so it
- * cannot be reviewed at all without logging in — and a half-empty case says
+ * cannot be reviewed at all without logging in â€” and a half-empty case says
  * nothing about whether the layout works. Raheem asked to "see what the
  * collection stand will look like when you open it, and see all the cards in
  * there." This builds a full case from the real card factory so the grid,
  * scroll, and card scaling are exercised under load.
  *
- * The cards are REAL SHELLS from `buildCardShell` — same stats, same border
- * derivation, same rank maths as a forged card — so the borders and resource
+ * The cards are REAL SHELLS from `buildCardShell` â€” same stats, same border
+ * derivation, same rank maths as a forged card â€” so the borders and resource
  * pips vary the way a genuine collection does. Only the name, title and lore are
  * stubbed, because those come from a paid Claude call and this page must cost
  * nothing to open.
@@ -48,7 +48,7 @@ export function CollectionStallPreview() {
     <div
       style={{
         minHeight: '100dvh',
-        background: 'url(/assets/castle/courtyard.png) center/cover fixed',
+        background: 'linear-gradient(180deg, #2b1e3d 0%, #8c4a2f 62%, #d98b45 100%) center/cover fixed',
       }}
     >
       <CollectionStall cards={cards} onClose={() => window.location.reload()} />

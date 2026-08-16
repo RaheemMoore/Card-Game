@@ -50,7 +50,7 @@ import {
   playImpact,
 } from '../combat/blastVfx';
 import { getHitFeel, severityForCharge, type HitSeverity } from '../combat/feel';
-import { createHitstop, type Hitstop } from '../v2/hitstop';
+import { createHitstop, type Hitstop } from '../combat/hitstop';
 import {
   CONSTRUCT_TUNING,
   defeatConstruct,
@@ -101,6 +101,12 @@ import {
 import { BACKDROP_SLOTS, paintProvisionalBackdrop } from './backdrop';
 import { createJellyView, type JellyView } from './jellyPresenter';
 import { loadEditorWorld, type WorldLoadResult } from './worldLoader';
+import {
+  FRONT_V4_EVENTS,
+  type FixtureCard,
+  type FrontV4ScenePort,
+  type FrontV4Snapshot,
+} from './types';
 
 /**
  * The Phaser Editor scene Raheem places the world in.
@@ -109,12 +115,6 @@ import { loadEditorWorld, type WorldLoadResult } from './worldLoader';
  * plays fine without it — see worldLoader.
  */
 const WORLD_SCENE = 'CastleFrontWorld';
-import {
-  FRONT_V4_EVENTS,
-  type FixtureCard,
-  type FrontV4ScenePort,
-  type FrontV4Snapshot,
-} from './types';
 
 /**
  * The side-view proof, as a Phaser scene.

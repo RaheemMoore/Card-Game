@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { Stall } from '../courtyard/stalls';
+﻿import { useEffect, useState } from 'react';
+import type { Stall } from './types';
 import { Panel } from '../../../components/ui/Panel';
 import { PixelButton } from '../../../components/ui/PixelButton';
 import { Scrim } from '../../../components/ui/Scrim';
@@ -8,7 +8,7 @@ import { Scrim } from '../../../components/ui/Scrim';
  * The beat between walking up to a stall and being inside it.
  *
  * Design-locked with Raheem 2026-08-04: a stall does not host its feature, it
- * opens a doorway that hands off to one. The reason is concrete — the Forge is a
+ * opens a doorway that hands off to one. The reason is concrete â€” the Forge is a
  * five-stage ritual and the Collection is a full case, and running either
  * *inside* the courtyard's own modal means two chrome systems fighting for the
  * same screen. The doorway is the seam where the courtyard stops and the
@@ -19,14 +19,14 @@ import { Scrim } from '../../../components/ui/Scrim';
  * teleports you somewhere the instant you touch it makes walking feel dangerous.
  * "Not now" is the whole reason this is a question rather than a door.
  *
- * PHONE GETS A BOTTOM SHEET, not a centred dialog — a centred one covers the
+ * PHONE GETS A BOTTOM SHEET, not a centred dialog â€” a centred one covers the
  * character you are standing next to, which is the thing that tells you where
  * you are.
  */
 
 /**
  * What each door promises. Deliberately separate from `stall.placeholder`, which
- * is the "not yet connected" apology — this is the invitation, and it should
+ * is the "not yet connected" apology â€” this is the invitation, and it should
  * survive the placeholder being deleted.
  */
 const INVITATION: Record<string, string> = {
