@@ -43,9 +43,10 @@ export const codeAtlasFeatures: readonly AtlasFeature[] = [
       { goal: 'Change animals or ambient life', path: 'card-engine/src/pages/castle/wildlife', purpose: 'Wildlife behavior and visual helpers.' },
       { goal: 'Change the pause menu', path: 'card-engine/src/pages/castle/PauseMenu.tsx', purpose: 'The castle pause-menu interface.' },
       { goal: 'Study the older castle', path: 'card-engine/src/pages/castle/index.tsx', purpose: 'The classic castle route kept for comparison; do not treat it as the current implementation.', status: 'LEGACY' },
+      { goal: 'Try the side-view perspective proof', path: 'card-engine/src/pages/castle/front-v4', purpose: 'The same combat slice seen from the side rather than top-down, at /dev/castle-front-v4. A proof under evaluation, not a replacement: the rules live in pure modules (playerController, jellyLeap, jellyController, sideViewScatter) and the scene is only a seam.' },
     ],
-    caution: 'The live /castle route uses CastleV2. The older castle still exists at /castle/classic, so check the route before editing.',
-    keywords: ['castle', 'courtyard', 'movement', 'phaser', 'stalls', 'shops', 'wildlife', 'animals', 'pause', 'rooms'],
+    caution: 'The live /castle route uses CastleV2. The older castle still exists at /castle/classic, so check the route before editing. A side-view experiment lives at /dev/castle-front-v4 and deliberately shares no runtime code with either.',
+    keywords: ['castle', 'courtyard', 'movement', 'phaser', 'stalls', 'shops', 'wildlife', 'animals', 'pause', 'rooms', 'side-view', 'side-scroller', 'perspective'],
   },
   {
     id: 'battle',

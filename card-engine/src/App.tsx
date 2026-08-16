@@ -149,6 +149,13 @@ const LightLab = DEV_ROUTES
 const ScenePreview = DEV_ROUTES
   ? lazy(() => import('./pages/dev/ScenePreview').then((m) => ({ default: m.ScenePreview })))
   : null;
+/**
+ * The side-view perspective proof. Isolated from /castle on purpose: CourtyardV3
+ * remains the production experience while this is evaluated.
+ */
+const CastleFrontV4 = DEV_ROUTES
+  ? lazy(() => import('./pages/castle/front-v4').then((m) => ({ default: m.CastleFrontV4 })))
+  : null;
 
 /**
  * The V2 courtyard preview stays on `DEV` rather than the flag above: it pulls in
@@ -229,6 +236,19 @@ export default function App() {
               element={
                 <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
                   <ScenePreview />
+                </Suspense>
+              }
+            />
+          )}
+
+          {/* Castle Front V4 — the side-view perspective proof. Does not replace
+              /castle, which stays on CourtyardV3 while this is judged. */}
+          {CastleFrontV4 && (
+            <Route
+              path="/dev/castle-front-v4"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <CastleFrontV4 />
                 </Suspense>
               }
             />
