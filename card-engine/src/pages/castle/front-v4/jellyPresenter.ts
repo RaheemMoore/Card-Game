@@ -34,7 +34,7 @@ import {
  * land. In one axis, WHERE is the entire warning.
  */
 export interface JellyView {
-  update(state: JellyState, motionOff: boolean): void;
+  update(state: JellyState, motionOff: boolean, groundY: number): void;
   /** White flash on contact, driven by the shared hit-feel scale. */
   flash(feel: HitFeel): void;
   /** The current clip, for the dev snapshot. */
@@ -72,10 +72,10 @@ export function createJellyView(scene: Phaser.Scene, spawnX: number): JellyView 
   return {
     animation: () => clip,
 
-    update(state, motionOff) {
+    update(state, motionOff, groundY) {
       const construct = state.construct;
       const x = construct.pos.x;
-      const y = GROUND_Y - state.heightPx;
+      const y = groundY - state.heightPx;
       const visible = construct.phase !== 'disabled';
 
       body.setPosition(x, y).setVisible(visible);
@@ -88,7 +88,7 @@ export function createJellyView(scene: Phaser.Scene, spawnX: number): JellyView 
       // reading.
       const lift = Phaser.Math.Clamp(state.heightPx / LEAP_TUNING.apexPx, 0, 1);
       shadow
-        .setPosition(x, GROUND_Y)
+        .setPosition(x, groundY)
         .setScale(1 - 0.4 * lift)
         .setAlpha(0.34 - 0.14 * lift)
         .setVisible(visible && construct.phase !== 'defeated');
@@ -104,7 +104,7 @@ export function createJellyView(scene: Phaser.Scene, spawnX: number): JellyView 
       if (telegraphing || airborne) {
         const t = telegraphing ? construct.elapsedMs / CONSTRUCT_TUNING.telegraphMs : 1;
         tell
-          .setPosition(landingX!, GROUND_Y)
+          .setPosition(landingX!, groundY)
           .setScale(0.7 + 0.5 * t)
           .setAlpha(
             motionOff ? 0.6 : airborne ? 0.55 : 0.35 + 0.4 * Math.abs(Math.sin(t * Math.PI * 3)),

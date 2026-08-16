@@ -101,18 +101,30 @@ export interface JellyStepResult {
   events: JellyEvent[];
 }
 
-export interface JellyBounds {
+/**
+ * The strip of world the creature lives in.
+ *
+ * `groundY` is here rather than imported as a constant because the surface is
+ * authored in Phaser Editor now: move the GROUND rectangle and everything that
+ * stands on it has to follow, or the creature hops along an invisible line where
+ * the floor used to be. It defaults to the layout's value, which is what the
+ * scene uses until an authored ground is found.
+ */
+export interface JellyWorld {
   minX: number;
   maxX: number;
+  groundY: number;
 }
 
-export function initialJelly(x: number): JellyState {
+export const DEFAULT_JELLY_WORLD: JellyWorld = { ...ARENA, groundY: GROUND_Y };
+
+export function initialJelly(x: number, groundY = GROUND_Y): JellyState {
   return {
     mode: 'ground',
     // Straight to `idle`: `initialConstruct` starts `disabled`, which is correct
     // for a courtyard the player might never walk into and wrong for an arena that
     // exists only for this fight.
-    construct: { ...initialConstruct({ x, y: GROUND_Y }), phase: 'idle' },
+    construct: { ...initialConstruct({ x, y: groundY }), phase: 'idle' },
     leap: null,
     heightPx: 0,
     struckThisLeap: false,
@@ -123,19 +135,19 @@ export function stepJelly(
   state: JellyState,
   input: JellyStepInput,
   dtMs: number,
-  bounds: JellyBounds = ARENA,
+  world: JellyWorld = DEFAULT_JELLY_WORLD,
   t: LeapTuning = LEAP_TUNING,
 ): JellyStepResult {
   return state.mode === 'leaping'
-    ? stepAirborne(state, input, dtMs, bounds, t)
-    : stepGrounded(state, input, dtMs, bounds, t);
+    ? stepAirborne(state, input, dtMs, world, t)
+    : stepGrounded(state, input, dtMs, world, t);
 }
 
 function stepGrounded(
   state: JellyState,
   input: JellyStepInput,
   dtMs: number,
-  bounds: JellyBounds,
+  world: JellyWorld,
   t: LeapTuning,
 ): JellyStepResult {
   const before = state.construct.phase;
@@ -144,14 +156,14 @@ function stepGrounded(
     {
       // Same ground line for both, so `unit(toHero)` comes back as a pure
       // horizontal and every range check in the construct becomes |dx|.
-      heroFeet: { x: input.heroX, y: GROUND_Y },
+      heroFeet: { x: input.heroX, y: world.groundY },
       heroDownedOrGraced: input.heroDownedOrGraced,
       hits: input.hits,
     },
     dtMs,
   );
 
-  const construct = pinToGround(stepped, bounds);
+  const construct = pinToGround(stepped, world);
   const events: JellyEvent[] = [];
   if (construct.phase === 'defeated' && before !== 'defeated') events.push('defeated');
   if (before === 'reviving' && construct.phase === 'idle') events.push('revived');
@@ -163,7 +175,7 @@ function stepGrounded(
       state: {
         mode: 'leaping',
         construct,
-        leap: beginLeap(construct.pos.x, construct.committedTarget.x, bounds, t),
+        leap: beginLeap(construct.pos.x, construct.committedTarget.x, world, t),
         heightPx: 0,
         struckThisLeap: false,
       },
@@ -179,7 +191,7 @@ function stepAirborne(
   state: JellyState,
   input: JellyStepInput,
   dtMs: number,
-  bounds: JellyBounds,
+  world: JellyWorld,
   t: LeapTuning,
 ): JellyStepResult {
   // Frozen AI holds it mid-arc, exactly as it holds any grounded phase. The
@@ -200,7 +212,7 @@ function stepAirborne(
   // stays a miss: nothing here charges him for an attack that sailed overhead.
   let heroHit: JellyHitOnHero | null = null;
   let struckThisLeap = state.struckThisLeap;
-  if (!struckThisLeap && !input.heroDownedOrGraced && leapHitsHero(leap, { x: input.heroX }, GROUND_Y, t)) {
+  if (!struckThisLeap && !input.heroDownedOrGraced && leapHitsHero(leap, { x: input.heroX }, world.groundY, t)) {
     struckThisLeap = true;
     heroHit = {
       kind: state.construct.strongHits ? 'strong' : 'light',
@@ -210,7 +222,7 @@ function stepAirborne(
     };
   }
 
-  const construct: ConstructState = { ...state.construct, pos: { x, y: GROUND_Y } };
+  const construct: ConstructState = { ...state.construct, pos: { x, y: world.groundY } };
 
   if (leap.done) {
     events.push('leapLand');
@@ -220,7 +232,7 @@ function stepAirborne(
         // Straight into the punish window at the ground it committed to. The
         // construct's own 900ms recovery then runs unmodified, which is where the
         // rhythm of the fight comes from.
-        construct: pinToGround(forcePhase({ ...construct, pos: { x: leap.landingX, y: GROUND_Y } }, 'recovery'), bounds),
+        construct: pinToGround(forcePhase({ ...construct, pos: { x: leap.landingX, y: world.groundY } }, 'recovery'), world),
         leap: null,
         heightPx: 0,
         struckThisLeap: false,
@@ -241,17 +253,21 @@ function stepAirborne(
  * the walk blockers caught that; here there is nothing but this function between a
  * charged shot near the eastern edge and a creature standing outside the arena.
  */
-function pinToGround(construct: ConstructState, bounds: JellyBounds): ConstructState {
-  const x = Math.min(bounds.maxX, Math.max(bounds.minX, construct.pos.x));
-  if (x === construct.pos.x && construct.pos.y === GROUND_Y) return construct;
-  return { ...construct, pos: { x, y: GROUND_Y } };
+function pinToGround(construct: ConstructState, world: JellyWorld): ConstructState {
+  const x = Math.min(world.maxX, Math.max(world.minX, construct.pos.x));
+  if (x === construct.pos.x && construct.pos.y === world.groundY) return construct;
+  return { ...construct, pos: { x, y: world.groundY } };
 }
 
 /** Its box right now, grounded or airborne. Used for blast targeting and scatter exclusion. */
-export function jellyBody(state: JellyState, t: LeapTuning = LEAP_TUNING): Rect {
+export function jellyBody(
+  state: JellyState,
+  groundY = GROUND_Y,
+  t: LeapTuning = LEAP_TUNING,
+): Rect {
   return state.mode === 'leaping' && state.leap
-    ? leapBody(state.leap, GROUND_Y, t)
-    : groundedBody(state.construct.pos.x, GROUND_Y, t);
+    ? leapBody(state.leap, groundY, t)
+    : groundedBody(state.construct.pos.x, groundY, t);
 }
 
 /**
@@ -263,10 +279,10 @@ export const jellyIsTargetable = (state: JellyState) =>
   state.mode === 'ground' && isHittable(state.construct.phase);
 
 /** Centre of mass, for the projectile target and the HP bar. */
-export function jellyCentre(state: JellyState) {
+export function jellyCentre(state: JellyState, groundY = GROUND_Y) {
   return {
     x: state.construct.pos.x,
-    y: GROUND_Y - state.heightPx - JELLY_BODY.heightPx / 2,
+    y: groundY - state.heightPx - JELLY_BODY.heightPx / 2,
   };
 }
 
@@ -278,9 +294,9 @@ export const JELLY_TARGET_RADIUS = JELLY_BODY.heightPx / 2;
 // alike — automation must call these rather than synthesise keystrokes.
 // ---------------------------------------------------------------------------
 
-export const resetJelly = (state: JellyState, x: number): JellyState => ({
+export const resetJelly = (state: JellyState, x: number, groundY = GROUND_Y): JellyState => ({
   mode: 'ground',
-  construct: resetConstruct(state.construct, { x, y: GROUND_Y }),
+  construct: resetConstruct(state.construct, { x, y: groundY }),
   leap: null,
   heightPx: 0,
   struckThisLeap: false,
@@ -296,12 +312,13 @@ export const forceJellyPhase = (
   state: JellyState,
   phase: ConstructPhase,
   heroX?: number,
+  groundY = GROUND_Y,
 ): JellyState => ({
   mode: 'ground',
   construct: forcePhase(
-    { ...state.construct, pos: { x: state.construct.pos.x, y: GROUND_Y } },
+    { ...state.construct, pos: { x: state.construct.pos.x, y: groundY } },
     phase,
-    heroX === undefined ? undefined : { x: heroX, y: GROUND_Y },
+    heroX === undefined ? undefined : { x: heroX, y: groundY },
   ),
   leap: null,
   heightPx: 0,

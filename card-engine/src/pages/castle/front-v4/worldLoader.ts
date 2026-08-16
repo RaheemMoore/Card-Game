@@ -51,7 +51,35 @@ export interface WorldLoadResult {
   labels?: string[];
   /** True when the authored scene supplies the ground, so code should not. */
   suppliesGround?: boolean;
+  /**
+   * The surface everything stands on, measured off the authored `GROUND` object.
+   *
+   * `y` is its TOP edge — the contact line, not the middle of the slab — and
+   * `minX`/`maxX` its horizontal extent, so the scene can tell when the ground is
+   * narrower than the arena the player can walk in.
+   */
+  ground?: { y: number; minX: number; maxX: number };
   message?: string;
+}
+
+/**
+ * Where the authored ground's surface actually is.
+ *
+ * Read from rendered bounds rather than from `y`, because the object's origin is
+ * whatever was set in the Editor: a rectangle placed with `originY: 0` reports the
+ * surface as its `y`, one with `originY: 1` reports the bottom of the slab, and
+ * trusting `y` would put the hero waist-deep or floating depending on a setting
+ * nobody would think to check.
+ */
+function measureGround(
+  object: Phaser.GameObjects.GameObject | undefined,
+): { y: number; minX: number; maxX: number } | undefined {
+  const withBounds = object as unknown as {
+    getBounds?: () => { top: number; left: number; right: number };
+  };
+  if (!withBounds?.getBounds) return undefined;
+  const bounds = withBounds.getBounds();
+  return { y: bounds.top, minX: bounds.left, maxX: bounds.right };
 }
 
 interface PackFile {
@@ -120,6 +148,13 @@ export async function loadEditorWorld(
     // stripped and it says so, because removing the WRONG object from someone's
     // level is far worse than leaving a ghost visible.
     const labels = parseAuthoredLabels(source);
+    // Captured while the labels and the objects still line up one-to-one, which
+    // is only true before anything is stripped.
+    const groundObject =
+      labels.length === authored.length
+        ? authored[labels.indexOf(AUTHORED_GROUND_LABEL)]
+        : undefined;
+
     if (labels.length === authored.length) {
       const kept: typeof authored = [];
       authored.forEach((child, i) => {
@@ -153,6 +188,7 @@ export async function loadEditorWorld(
       texturesLoaded,
       objects: authored.length,
       labels,
+      ground: measureGround(groundObject),
       suppliesGround: labels.includes(AUTHORED_GROUND_LABEL),
     };
   } catch (error) {

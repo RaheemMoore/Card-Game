@@ -40,6 +40,17 @@ export const BACKDROP_SLOTS = {
 
 export interface ProvisionalBackdrop {
   /**
+   * Move the hills to meet a ground line that is not the default one.
+   *
+   * The sky and the hills are painted before the authored world has loaded, so
+   * they are drawn against `GROUND_Y`. If Raheem then puts his GROUND rectangle
+   * somewhere else, the horizon stays where it was and the new ground slices
+   * through the middle of the hills — which reads as a rendering bug rather than
+   * as the placeholder following instructions. Only the hills move: the sky fills
+   * the frame from the top regardless, and the sun is a position in the sky.
+   */
+  followGroundLine(groundY: number): void;
+  /**
    * Drop the ground and castle stand-ins, because the authored Editor scene
    * supplies them.
    *
@@ -54,6 +65,7 @@ export interface ProvisionalBackdrop {
 export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdrop {
   const { width, height } = FRONT_V4_VIEW;
   const groundAndCastle: Phaser.GameObjects.GameObject[] = [];
+  let hills: Phaser.GameObjects.Graphics | null = null;
 
   // A supplied plate replaces its whole layer, stretched to the authored 16:9
   // frame — the composition is fixed and letterboxed, so the plate is authored
@@ -73,11 +85,16 @@ export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdr
       .setDisplaySize(width, height)
       .setDepth(DEPTH.hills);
   } else {
-    paintHills(scene);
+    hills = paintHills(scene);
     groundAndCastle.push(...paintCastle(scene), paintGround(scene));
   }
 
   return {
+    followGroundLine(groundY) {
+      // Graphics were drawn in absolute coordinates against GROUND_Y, so shifting
+      // the object is the whole move — no repaint, and no second copy.
+      hills?.setY(groundY - GROUND_Y);
+    },
     yieldGroundToAuthoredWorld() {
       for (const object of groundAndCastle.splice(0)) object.destroy();
     },
@@ -108,7 +125,7 @@ function paintSky(scene: Phaser.Scene) {
   g.fillCircle(width * 0.74, GROUND_Y - 150, 46);
 }
 
-function paintHills(scene: Phaser.Scene) {
+function paintHills(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
   const { width } = FRONT_V4_VIEW;
   const g = scene.add.graphics().setDepth(DEPTH.hills);
 
@@ -127,6 +144,7 @@ function paintHills(scene: Phaser.Scene) {
 
   ridge(340, DUSK.hillFar, 70, (x) => 38 * Math.sin(x / 190) + 20 * Math.sin(x / 61));
   ridge(300, DUSK.hillNear, 34, (x) => 22 * Math.sin(x / 120 + 1.4));
+  return g;
 }
 
 function paintCastle(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {

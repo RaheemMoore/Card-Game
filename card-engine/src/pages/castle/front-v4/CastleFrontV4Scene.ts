@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser';
+import Phaser from 'phaser';
 import { HERO_SHEET, idleFrame, walkFrames } from '../../../data/castle/heroSprite';
 import {
   CARD_BLAST_MUZZLES,
@@ -62,6 +62,7 @@ import {
 } from '../combat/construct';
 import {
   JELLY_TARGET_RADIUS,
+  type JellyWorld,
   forceJellyPhase,
   initialJelly,
   jellyCentre,
@@ -185,6 +186,15 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   private lastStrike: 'none' | 'hit' | 'missed' = 'none';
   private scatterReport: { degraded: boolean; reason: string | null } = { degraded: false, reason: null };
   private world: WorldLoadResult | null = null;
+  /**
+   * The surface everything stands on, live.
+   *
+   * Seeded from `layout.GROUND_Y` and replaced by the top edge of the authored
+   * `GROUND` object once the Editor scene loads — so moving that rectangle in
+   * Phaser Editor actually moves the floor, rather than leaving the hero walking
+   * along an invisible line where the floor used to be.
+   */
+  private groundY = GROUND_Y;
   private errors: string[] = [];
 
   // ---- presentation -----------------------------------------------------
@@ -295,6 +305,10 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       // The authored scene owns the ground and the castle once it has them, so
       // the stand-ins go rather than sitting underneath being invisible.
       if (result.suppliesGround) provisional.yieldGroundToAuthoredWorld();
+      if (result.ground) {
+        this.adoptAuthoredGround(result.ground);
+        provisional.followGroundLine(this.groundY);
+      }
       if (result.status === 'failed') {
         this.errors.push(`world ${result.sceneName}: ${result.message}`);
         console.error('[front-v4] authored world failed to load', result);
@@ -310,6 +324,39 @@ export class CastleFrontV4Scene extends Phaser.Scene {
 
     this.reset();
     this.game.events.emit(FRONT_V4_EVENTS.ready, this.port());
+  }
+
+  /**
+   * Stand everything on the floor Raheem drew.
+   *
+   * The world arrives a frame or two after `create`, so the actors are already
+   * spawned on the default line when it lands. Rather than nudging each of them,
+   * this re-seats the whole scene through the ordinary reset — which is the one
+   * path already known to put every actor, card and projectile in a coherent
+   * starting state, and therefore the one least likely to leave something behind
+   * at the old height.
+   *
+   * It also checks the floor actually spans the walkable arena. A ground narrower
+   * than `ARENA` means the player can walk off the end of it, which reads as a
+   * bug in the game and is really a gap in the level — so it says so plainly
+   * rather than letting him wonder.
+   */
+  /** The strip of world the creature lives in, at the CURRENT ground line. */
+  private jellyWorld(): JellyWorld {
+    return { minX: ARENA.minX, maxX: ARENA.maxX, groundY: this.groundY };
+  }
+
+  private adoptAuthoredGround(ground: { y: number; minX: number; maxX: number }) {
+    if (ground.minX > ARENA.minX + 1 || ground.maxX < ARENA.maxX - 1) {
+      const message =
+        `authored GROUND spans ${Math.round(ground.minX)}..${Math.round(ground.maxX)} ` +
+        `but the player may walk ${ARENA.minX}..${ARENA.maxX} — widen it, or he will walk off the edge`;
+      this.errors.push(message);
+      console.warn(`[front-v4] ${message}`);
+    }
+    if (Math.abs(ground.y - this.groundY) < 0.5) return;
+    this.groundY = ground.y;
+    this.reset();
   }
 
   private teardown() {
@@ -363,10 +410,10 @@ export class CastleFrontV4Scene extends Phaser.Scene {
 
   private buildActors() {
     this.heroShadow = this.add
-      .ellipse(HERO_SPAWN_X, GROUND_Y, 46, 12, 0x000000, 0.32)
+      .ellipse(HERO_SPAWN_X, this.groundY, 46, 12, 0x000000, 0.32)
       .setDepth(DEPTH.shadow);
     this.hero = this.add
-      .sprite(HERO_SPAWN_X, GROUND_Y, HERO_SHEET.key, idleFrame('right'))
+      .sprite(HERO_SPAWN_X, this.groundY, HERO_SHEET.key, idleFrame('right'))
       .setOrigin(0.5, HERO_ANCHOR_Y)
       .setScale(SPRITE_SCALE)
       .setDepth(DEPTH.hero);
@@ -441,11 +488,16 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     this.applySelection();
 
     // 1. The creature, against LAST frame's hero position and this frame's damage.
-    const jellyOut = stepJelly(this.jelly, {
-      heroX: this.player.x,
-      heroDownedOrGraced: this.heroIsDownOrGraced(),
-      hits: this.pendingHits,
-    }, dt);
+    const jellyOut = stepJelly(
+      this.jelly,
+      {
+        heroX: this.player.x,
+        heroDownedOrGraced: this.heroIsDownOrGraced(),
+        hits: this.pendingHits,
+      },
+      dt,
+      this.jellyWorld(),
+    );
     this.jelly = jellyOut.state;
     this.pendingHits = [];
     if (jellyOut.events.includes('leapStart')) this.lastStrike = 'missed';
@@ -572,7 +624,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     // height above the ground IS its screen position, not a separate draw channel.
     const origin = {
       x: this.player.x + muzzle.groundOffsetX * SPRITE_SCALE,
-      y: GROUND_Y - muzzle.heightPx * SPRITE_SCALE,
+      y: this.groundY - muzzle.heightPx * SPRITE_SCALE,
     };
     const charge = this.action.chargeLevel;
     const kit = effectKitFor(fixture.element);
@@ -589,7 +641,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   }
 
   private stepProjectiles(dt: number) {
-    const centre = jellyCentre(this.jelly);
+    const centre = jellyCentre(this.jelly, this.groundY);
     const targets = [
       { pos: centre, radiusPx: JELLY_TARGET_RADIUS, alive: jellyIsTargetable(this.jelly) },
     ];
@@ -689,11 +741,11 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       });
       this.tweens.add({
         targets: view,
-        y: { from: GROUND_Y - 40, to: GROUND_Y - peak },
+        y: { from: this.groundY - 40, to: this.groundY - peak },
         duration: 190,
         yoyo: true,
         ease: 'Quad.easeOut',
-        onComplete: () => view.setY(GROUND_Y - 10),
+        onComplete: () => view.setY(this.groundY - 10),
       });
     });
   }
@@ -703,7 +755,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     const body = this.add.rectangle(0, 0, 22, 32, tint).setStrokeStyle(2, 0xf6e6c8);
     const glow = this.add.ellipse(0, 18, 34, 10, tint, 0.35);
     return this.add
-      .container(x, GROUND_Y - 10, [glow, body])
+      .container(x, this.groundY - 10, [glow, body])
       .setDepth(DEPTH.dropped);
   }
 
@@ -720,7 +772,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       this.hand = recoverCard(this.hand, live.card);
       this.tweens.add({
         targets: live.view,
-        y: GROUND_Y - 90,
+        y: this.groundY - 90,
         alpha: 0,
         duration: 220,
         onComplete: () => live.view.destroy(),
@@ -735,13 +787,13 @@ export class CastleFrontV4Scene extends Phaser.Scene {
 
   private present(_dt: number) {
     this.presentHero();
-    this.jellyView.update(this.jelly, this.motion === 'off');
+    this.jellyView.update(this.jelly, this.motion === 'off', this.groundY);
   }
 
   private presentHero() {
     const phase = this.action.phase;
     this.hero.setX(this.player.x);
-    this.heroShadow.setPosition(this.player.x, GROUND_Y).setVisible(phase !== 'knockdown');
+    this.heroShadow.setPosition(this.player.x, this.groundY).setVisible(phase !== 'knockdown');
 
     if (phase === 'knockdown' || phase === 'standUp') {
       // Front-facing, and therefore TEMPORARY â€” only the south direction of this
@@ -749,7 +801,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       if (this.hero.texture.key !== KNOCKDOWN_SHEET.key) {
         this.hero.setTexture(KNOCKDOWN_SHEET.key, 0).setOrigin(KNOCKDOWN_ANCHOR.x, KNOCKDOWN_ANCHOR.y);
       }
-      this.hero.setY(GROUND_Y);
+      this.hero.setY(this.groundY);
       const wantReverse = phase === 'standUp';
       const key = wantReverse ? `${KNOCKDOWN_ANIM}:up` : KNOCKDOWN_ANIM;
       if (this.heroAnim !== key) {
@@ -770,7 +822,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         this.motion === 'off',
       );
       this.hero.setTexture(sheet.key, frame).setOrigin(sheet.anchor.x, sheet.anchor.y);
-      this.hero.setY(GROUND_Y);
+      this.hero.setY(this.groundY);
       this.hero.stop();
       this.heroAnim = `card-blast-${facing}`;
       return;
@@ -780,7 +832,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     if (this.hero.texture.key !== HERO_SHEET.key) {
       this.hero.setTexture(HERO_SHEET.key, idleFrame(facing)).setOrigin(0.5, HERO_ANCHOR_Y);
     }
-    this.hero.setY(GROUND_Y);
+    this.hero.setY(this.groundY);
     const moving = this.player.vx !== 0 && this.motion !== 'off';
     const key = moving ? `front-v4-walk-${facing}` : `idle-${facing}`;
     if (this.heroAnim !== key) {
@@ -825,7 +877,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         this.jelly = { ...this.jelly, construct: setStrongHits(this.jelly.construct, enabled) };
       },
       forceJellyPhase: (phase: ConstructPhase) => {
-        this.jelly = forceJellyPhase(this.jelly, phase, this.player.x);
+        this.jelly = forceJellyPhase(this.jelly, phase, this.player.x, this.groundY);
       },
       forceKnockdown: () => this.forceKnockdown(),
       defeatJelly: () => {
@@ -855,7 +907,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   }
 
   private resetJellyOnly() {
-    this.jelly = resetJelly(this.jelly, JELLY_SPAWN_X);
+    this.jelly = resetJelly(this.jelly, JELLY_SPAWN_X, this.groundY);
     this.lastStrike = 'none';
   }
 
@@ -876,7 +928,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     this.player = initialPlayer(HERO_SPAWN_X);
     this.action = initialAction();
     this.hand = handFromCards(FIXTURE_CARDS.map((c) => c.cardId));
-    this.jelly = resetJelly(initialJelly(JELLY_SPAWN_X), JELLY_SPAWN_X);
+    this.jelly = resetJelly(initialJelly(JELLY_SPAWN_X, this.groundY), JELLY_SPAWN_X, this.groundY);
     this.scriptedFireUntilMs = 0;
     this.scriptedMoveUntilMs = 0;
     this.scriptedMoveX = 0;
@@ -889,7 +941,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   };
 
   snapshot(): FrontV4Snapshot {
-    const body = playerBody(this.player, GROUND_Y, HERO_BODY);
+    const body = playerBody(this.player, this.groundY, HERO_BODY);
     return {
       bridgeVersion: 1,
       scene: 'CastleFrontV4',
@@ -905,10 +957,10 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         scrollX: this.cameras.main.scrollX,
         scrollY: this.cameras.main.scrollY,
       },
-      world: { groundY: GROUND_Y, minX: ARENA.minX, maxX: ARENA.maxX },
+      world: { groundY: this.groundY, minX: ARENA.minX, maxX: ARENA.maxX },
       player: {
         x: this.player.x,
-        y: GROUND_Y,
+        y: this.groundY,
         facing: this.player.facing,
         vx: this.player.vx,
         grounded: true,
@@ -936,7 +988,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         cardId: c.card.cardId,
         slotIndex: c.card.slotIndex,
         x: c.x,
-        y: GROUND_Y,
+        y: this.groundY,
       })),
       projectiles: this.projectiles.map((p) => ({
         id: p.sim.id,
