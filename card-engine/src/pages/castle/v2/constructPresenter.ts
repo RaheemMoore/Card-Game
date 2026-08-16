@@ -108,6 +108,23 @@ export interface ConstructView {
    * confirmation was the phase colour changing underneath it.
    */
   flash(feel: ConstructHitFeel): void;
+  /**
+   * What the BODY actually is right now, for the dev readout.
+   *
+   * Added 2026-08-15 after the jelly shipped looking frozen and neither Raheem
+   * nor I could tell whether a clip was playing, because nothing anywhere
+   * reported it. "It's just floating" is one symptom covering several causes --
+   * the anim was never created, play() is not being reached, the texture is
+   * missing, or the frames genuinely look alike -- and only this separates them.
+   */
+  debugSprite(): {
+    kind: 'sprite' | 'rectangle';
+    texture: string | null;
+    frame: string | null;
+    anim: string | null;
+    playing: boolean;
+    animsRegistered: number;
+  };
   destroy(): void;
 }
 
@@ -442,12 +459,23 @@ export function createConstructView(
          */
         const clip = clipForPhase(next.phase);
         const animKey = JELLY_ANIM[clip];
-        if (sprite.anims.exists?.(animKey) ?? true) {
-          if (sprite.anims.currentAnim?.key !== animKey) sprite.play(animKey, true);
-        }
-        // Death holds its last frame rather than looping a corpse.
-        if (clip === 'splat' && sprite.anims.currentAnim?.key === animKey) {
-          // repeat:0 already stops it; nothing further to do.
+        /**
+         * Mount the clip for this phase.
+         *
+         * GUARD ON scene.anims, NEVER ON sprite.anims. The first version of this
+         * asked `sprite.anims.exists(animKey)` -- and `sprite.anims` is the
+         * sprite's LOCAL AnimationState, whose `exists` only knows animations
+         * added to that one sprite. These four are registered globally on the
+         * scene's AnimationManager, so the local check answered false every
+         * time, play() was never reached, and the jelly sat on frame 0 while
+         * looking otherwise perfectly correct -- right texture, right scale,
+         * four anims registered, deforming under the pose math. It read as
+         * "the sprite is just floating", which is exactly what it was.
+         */
+        if (scene.anims.exists(animKey) && sprite.anims.currentAnim?.key !== animKey) {
+          // ignoreIfPlaying: false -- a revive has to be able to restart the
+          // death clip after the sprite has been holding its last frame.
+          sprite.play(animKey, false);
         }
       } else if (next.phase === 'telegraph') {
         const t = Math.min(1, next.elapsedMs / CONSTRUCT_TUNING.telegraphMs);
@@ -572,6 +600,19 @@ export function createConstructView(
       });
     },
 
+    debugSprite() {
+      const sprite = hasSheet ? (body as Phaser.GameObjects.Sprite) : null;
+      return {
+        kind: (hasSheet ? 'sprite' : 'rectangle') as 'sprite' | 'rectangle',
+        texture: sprite?.texture?.key ?? null,
+        frame: sprite?.frame?.name != null ? String(sprite.frame.name) : null,
+        anim: sprite?.anims?.currentAnim?.key ?? null,
+        playing: sprite?.anims?.isPlaying ?? false,
+        // How many of the four clips the anim manager actually knows about.
+        // Zero here with a live texture means creation never ran.
+        animsRegistered: Object.values(JELLY_ANIM).filter((k) => scene.anims.exists(k)).length,
+      };
+    },
     setMotionOff(off) {
       motionOff = off;
     },

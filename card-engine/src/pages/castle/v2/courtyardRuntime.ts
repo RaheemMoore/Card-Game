@@ -479,7 +479,18 @@ function publishFramingBridge(scene: Phaser.Scene, sceneName: string): void {
         knockdown: scene.textures.exists('hero-knockdown'),
         walk: scene.textures.exists('hero-chibi'),
         fireStream: scene.textures.exists('fx-lash-fire-stream'),
+        emberJelly: scene.textures.exists('construct-ember-jelly'),
       },
+      /**
+       * The construct's BODY, as distinct from its brain.
+       *
+       * Everything else here reports the state machine, which was never the
+       * thing in doubt. This reports the picture: which clip is mounted, which
+       * frame is showing, whether it is advancing, and how many of the four
+       * clips the anim manager knows about at all.
+       */
+      constructSprite: (scn as { constructView?: { debugSprite(): unknown } }).constructView
+        ?.debugSprite?.() ?? null,
       /**
        * Where the fire chain breaks, rather than merely that it did.
        *
