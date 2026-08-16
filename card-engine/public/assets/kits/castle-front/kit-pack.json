@@ -29,5 +29,44 @@
         "url": "assets/kits/castle-front/terrain/castle-front-ground-band-grass.png"
       }
     ]
+  },
+  "castle-front--v4-perspective-shift--side-view-background": {
+    "files": [
+      {
+        "type": "image",
+        "key": "castle-front-sunset-sky",
+        "url": "assets/kits/castle-front/background/sky/castle-front-sunset-sky.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-mountains-loop",
+        "url": "assets/kits/castle-front/background/mountains/castle-front-mountains-loop.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-forest-loop",
+        "url": "assets/kits/castle-front/background/forest/castle-front-forest-loop.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-cloud-broad-sunset",
+        "url": "assets/kits/castle-front/background/clouds/cloud-broad-sunset.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-cloud-mound-sunset",
+        "url": "assets/kits/castle-front/background/clouds/cloud-mound-sunset.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-cloud-puffs-sunset",
+        "url": "assets/kits/castle-front/background/clouds/cloud-puffs-sunset.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-cloud-sweep-sunset",
+        "url": "assets/kits/castle-front/background/clouds/cloud-sweep-sunset.png"
+      }
+    ]
   }
 }

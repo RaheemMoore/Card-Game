@@ -1,0 +1,66 @@
+{
+  "_readme": [
+    "Castle Front V4 first scenic proof. This is a composition gate, not final shipped art.",
+    "The dimensions and landmarks come directly from front-v4/layout.ts: 1280x720, GROUND_Y 590, castle silhouette ending at x330, gate centred near x176.",
+    "Phoenix is used because this is a frontal side-view stage. Lucid Origin remains the project choice for high top-down maps.",
+    "There is deliberately no style reference on this first call. Prior arena work proved that even a beautiful reference can import its content. First establish the new side-view composition, then reference the accepted result or a deliberately cropped style-only sample.",
+    "Prompt enhancement and the default Dynamic style are explicitly disabled. The written composition is the contract and must not be silently rewritten.",
+    "The provider result stays raw. pixelize.py creates the deterministic game-grid preview for free, and build_review_sheet.py overlays the exact castle, combat and ground regions for visual inspection.",
+    "One paid call is the gate. Do not reroll unchanged language. If it fails, name the structural failure and change the causal sentence before another call."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 417203,
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1280,
+  "height": 720,
+  "negative": "people, person, character, hero, adventurer, guard, enemies, monsters, creatures, animals, crowd, human silhouettes, statues, text, letters, numbers, signage, watermark, signature, logo, user interface, HUD, decorative border, isometric, top-down, overhead view, three-quarter camera, tilted camera, diagonal ground, curved ground, central vanishing point, converging ground lines, road receding toward the horizon, highway, asphalt, road markings, yellow centre line, floating platforms, platforming ledges, pits, chasms, stairs, obstacles in the gameplay lane, foreground objects blocking the lane, modern buildings, machinery, vehicles, weapons, photorealistic, photograph, 3d render, CGI, plastic surfaces, fisheye, tilt-shift, close-up, portrait crop, night, horror, grimdark, ruined castle, burning castle, storm, rain, snow, neon",
+  "styleHeader": "Wide 16:9 side-view environment plate for a 2D scrolling fantasy action game. Fixed straight-on side camera at human eye height. One perfectly level horizontal walking surface crosses the entire frame at 82 percent of the image height, with solid earth below it. The castle is the permanent home landmark and occupies only the left region from the frame edge to roughly one quarter of the width. Everything from the middle through the right edge remains a broad readable combat lane. Hand-painted medieval fantasy game art with crisp grouped shapes, controlled detail, layered distance haze and a restrained 16-bit-inspired colour structure, designed to be converted onto a deterministic pixel grid later.",
+  "familyLabels": {
+    "golden-dusk": "Castle Front — rejected first composition experiment"
+  },
+  "anchors": {
+    "golden-dusk": {
+      "label": "Castle Front A — Golden Dusk",
+      "line": "At the far left, a welcoming fortified castle facade rises behind the road: pale lavender-grey stone, warm amber-gold trim, two sturdy towers, a large pointed gate arch centred within the left quarter, heavy timber doors, long burgundy banners and a few warmly lit windows. The castle mass continues beyond the left frame edge so it feels like part of a much larger protected kingdom, while its rightmost stonework ends clearly before the open field. The road leads east across cropped grass and low earth with no interruption. Beyond it, rolling fields descend toward a distant tree line, slender watchtowers and blue-violet mountains. A large low golden sun and apricot, rose and lavender clouds fill an expansive sky. Golden dusk light touches the castle and road; distant layers cool gradually into blue haze. Welcoming, adventurous and cinematic, the feeling of leaving a safe home to defend the world outside."
+    }
+  },
+  "states": [
+    {
+      "id": "golden-dusk-a",
+      "label": "Castle Front A — Golden Dusk",
+      "family": "golden-dusk",
+      "isAnchor": true
+    }
+  ],
+  "review": {
+    "title": "Castle Front V4 — Golden Dusk composition gate",
+    "lede": "Judge the raw scene for structure and emotion, then the pixel preview for game cohesion. The overlay is derived from the live Phaser layout rather than estimated by eye.",
+    "pixelize": {
+      "enabled": true,
+      "scale": 4,
+      "colors": 64,
+      "saturation": 1.08
+    },
+    "overlay": {
+      "groundY": 590,
+      "castleEndX": 330,
+      "combatStartX": 420
+    },
+    "checklist": [
+      "Walking surface is level and meets the live GROUND_Y 590 contract",
+      "Castle reads as safe home and stays inside the left x0-x330 region",
+      "Gate is immediately readable near x176",
+      "Middle and right remain open enough for the hero, jelly and giant abilities",
+      "Castle scale feels protective beside a roughly 142px-tall displayed hero",
+      "Mood is warm golden adventure, never grim or evil",
+      "Sky, far landscape and midground can later become separate parallax layers",
+      "No actors, enemies, interface, text or permanent spell effects were baked in"
+    ]
+  }
+}

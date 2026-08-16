@@ -1,0 +1,43 @@
+{
+  "subject": "castle-front-cloud-family-v2",
+  "label": "Castle Front - approved rounded cloud family",
+
+  "notes": [
+    "APPROVED by Raheem 2026-08-16: one PixelLab object call for variations of the selected broad rounded cloud; no automatic retry.",
+    "The transparent neutral version of the user-selected cloud is the style anchor. Match its chunky rounded lobes, three large value bands, soft storybook mass, and scalloped underside.",
+    "Hard rejection: long flat shelf bottoms, straight horizontal bases, tower/plume silhouettes, detached wisps, tiny orphan specks, and unrelated objects.",
+    "Color is still post-process. The reference is neutral so deterministic afternoon, sunset, and twilight palettes can be applied without regenerating shape.",
+    "NOT REPRODUCIBLE: /create-1-direction-object rejects seed. Preserve the raw job, object id, and every returned image."
+  ],
+
+  "styleReference": "approved-broad-cloud.png",
+
+  "objects": [
+    {
+      "id": "rounded-cloud-family-v2",
+      "styleAnchor": true,
+      "note": "One style-anchored sidescroller object call returning four differently proportioned cousins of the approved cloud.",
+      "params": {
+        "description": "four distinct isolated cloud sprites belonging to exactly the same 2D pixel-art family as the supplied reference cloud, side-scrolling warm fantasy game asset, preserve the reference's soft rounded overlapping cumulus lobes, compact chunky pixel clusters, exactly three broad neutral value regions, pale upper crowns, gentle middle body and muted scalloped underside, every formation is one connected opaque mass with an irregular rounded bottom contour. Each must vary in silhouette and proportion while unmistakably sharing the reference's drawing language. Empty transparent canvas around each cloud. No long flat bottom, no straight shelf base, no horizontal platform shape, no tower or smoke plume, no thin streaks, no detached wisps, no orphan pixels, no gradient, no dithering, no transparency inside the cloud body, no sky rectangle, no horizon, no sun, no scenery, no rain, no lightning, no face, no character, no object, no building, no text, no watermark",
+        "view": "sidescroller",
+        "item_descriptions": [
+          "Compact mound cousin: one connected medium cloud about twice as wide as tall, high rounded center crown surrounded by five to seven smaller overlapping puffs, strongly scalloped lower contour with three visible downward curves and absolutely no straight baseline, same three-value cluster style as the reference",
+          "Asymmetrical drifting cousin: one connected medium-wide cloud leaning gently toward the right, two offset crown heights and a chain of rounded side puffs, lively uneven silhouette, rolling scalloped underside from edge to edge with no horizontal shelf, same three-value cluster style as the reference",
+          "Grand layered cousin: one connected large storybook cumulus about two and a half times wider than tall, three overlapping tiers of soft rounded puffs, broad but clearly curved underside made from several large downward lobes, never a flat platform, same three-value cluster style as the reference",
+          "Small airy cousin: one connected low-detail cloud formed from four differently sized rounded puffs sharing a softly rolling base, compact enough for distant parallax but still substantial and opaque, no separate dots and no flat bottom, same three-value cluster style as the reference"
+        ]
+      }
+    }
+  ],
+
+  "review": {
+    "acceptance": [
+      "Every result reads as a close stylistic relative of the selected broad cloud.",
+      "Every underside is visibly scalloped or rounded; none forms a straight shelf.",
+      "Every file contains one connected cloud and no scenery, streaks, detached wisps, or unrelated object.",
+      "Each silhouette differs enough in height, width, crown placement, and lobe rhythm to support believable sky variety.",
+      "The body is opaque and retains clear value regions suitable for exact palette remapping."
+    ],
+    "sheetContext": "Review all candidates in the sunset palette over the locked cloudless Castle Front sky; keep only silhouettes that pass the underside test."
+  }
+}

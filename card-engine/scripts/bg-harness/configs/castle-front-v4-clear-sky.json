@@ -1,0 +1,46 @@
+{
+  "_readme": [
+    "Castle Front V4 clear-sky plate 01: one empty golden-dusk atmosphere for the fixed deepest background layer.",
+    "This image contains no clouds and no sun. Those are separate reusable layers in the scrolling harness.",
+    "The generation is permanently capped at one paid call and one returned image.",
+    "No style-reference image is supplied because the previous cloud painting caused Leonardo to reproduce cloud structures instead of an empty plate."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "LOW",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 811644,
+  "paidCallCap": 1,
+  "alchemy": false,
+  "styleRef": false,
+  "tiling": false,
+  "width": 1280,
+  "height": 720,
+  "negative": "cloud, clouds, cumulus, cloud bank, cloud formation, cloud streak, fog shape, smoke, sun, moon, star, celestial body, horizon line, ocean, sea, water, land, ground, road, field, grass, hill, mountain, cliff, tree, forest, castle, tower, wall, gate, building, village, architecture, person, character, creature, animal, object, text, watermark, signature, logo, user interface, border, frame, central focal point, radial composition, vertical division, hard edge, vignette, photorealistic, photograph, 3d render, CGI, storm, rain, lightning, night, horror",
+  "styleHeader": "EMPTY CLEAR-SKY BACKGROUND PLATE for the fixed deepest layer of a wide 16:9 2D side-scrolling warm medieval-fantasy game. Paint only an uninterrupted atmospheric colour field across the complete canvas. The upper sky is calm muted cornflower and deep storybook blue, transitioning gradually through soft blue-cyan into warm apricot, pale gold and dusty rose near the lower edge. Use broad quiet horizontal colour bands, restrained painterly texture, crisp grouped 16-bit-inspired colour structure and a welcoming cinematic dusk mood.",
+  "familyLabels": {
+    "clear-golden-dusk": "Clear golden-dusk sky plate"
+  },
+  "states": [
+    {
+      "id": "clear-golden-dusk-01",
+      "label": "Clear Golden Dusk 01 — Empty Sky Plate",
+      "family": "clear-golden-dusk",
+      "line": "The entire frame remains empty and spacious from left edge to right edge. Show only the smooth atmospheric transition and very subtle horizontal haze bands. There are absolutely no distinct shapes, subjects, silhouettes, weather formations, landmarks or light sources anywhere in the image. Keep brightness and colour balanced across the width so independent cloud sprites can travel over it without visual competition."
+    }
+  ],
+  "review": {
+    "title": "Castle Front V4 — clear golden-dusk sky plate 01",
+    "lede": "Approve only if this reads as an empty atmospheric canvas for separate moving clouds rather than as a completed landscape painting.",
+    "checklist": [
+      "No clouds or cloud-like formations appear",
+      "No sun, moon, stars, horizon, land, water or architecture appears",
+      "The full width has a calm balanced colour field without a central focal point",
+      "Upper blue transitions gradually into warm apricot-gold and dusty rose below",
+      "Texture remains restrained enough that moving cloud sprites stay dominant",
+      "No vertical division, hard edge, vignette, text or watermark appears"
+    ]
+  }
+}

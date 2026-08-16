@@ -1,0 +1,59 @@
+{
+  "_readme": [
+    "Castle Front V4 parallax layer 01: SKY ONLY. The entire image belongs to the sky layer.",
+    "Do not reserve space for a castle, combat lane, road or ground. Phaser will compose every other layer later.",
+    "This calibration run produces exactly one image. Approve its sky language before generating another sky or any mountain layer.",
+    "Future sky variants should inherit the accepted palette, lighting direction, cloud language and sun placement so they can crossfade without a visual jump.",
+    "Prompt enhancement and the default Dynamic style are disabled so the written layer boundary is not rewritten."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 417203,
+  "paidCallCap": 1,
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1280,
+  "height": 720,
+  "negative": "land, ground, road, path, field, grass, hill, mountain, cliff, tree, forest, castle, fortress, tower, wall, gate, building, house, village, architecture, bridge, ruins, people, person, character, hero, enemy, monster, creature, animal, statue, prop, object, weapon, text, letters, numbers, signage, watermark, signature, logo, user interface, HUD, decorative border, isometric, top-down, overhead view, three-quarter camera, tilted camera, horizon line, central vanishing point, perspective grid, modern object, machinery, vehicle, photorealistic, photograph, 3d render, CGI, plastic surface, fisheye, tilt-shift, close-up, portrait crop, night, horror, grimdark, storm, rain, snow, neon",
+  "styleHeader": "SKY LAYER ONLY for a wide 16:9 2D side-scrolling medieval-fantasy game. The full canvas is painted sky and atmosphere from top edge to bottom edge. This independent opaque parallax layer will sit behind every other separately generated layer in Phaser. Hand-painted fantasy background art with crisp grouped cloud shapes, restrained 16-bit-inspired colour structure, subtle atmospheric texture and broad readable colour fields, designed for deterministic pixel conversion later.",
+  "familyLabels": {
+    "golden-dusk-sky": "Castle Front sky 01 — golden fantasy dusk"
+  },
+  "anchors": {
+    "golden-dusk-sky": {
+      "label": "Sky 01 — Golden Dusk",
+      "line": "Paint only an expansive warm dusk sky. A soft low golden sun sits in the right third, surrounded by an amber glow. Large gentle cloud banks stretch horizontally across the image in layered bands of apricot, rose, dusty lavender and soft blue. The upper sky cools gradually into clear blue while the lower sky warms toward peach and gold. Clouds have elegant hand-painted fantasy shapes with enough broad open colour between them for darker silhouette layers to read clearly later. Keep the lighting direction, palette and cloud scale coherent across the entire width. Avoid hard edge-cropped focal clouds so the sky can extend or crossfade smoothly. Welcoming, cinematic and adventurous; the beginning of a beautiful journey outside a safe kingdom. Every visible pixel is sky, cloud, sunlight or atmospheric haze."
+    }
+  },
+  "states": [
+    {
+      "id": "golden-dusk-sky-01",
+      "label": "Sky 01 — Golden Dusk",
+      "family": "golden-dusk-sky",
+      "isAnchor": true
+    }
+  ],
+  "review": {
+    "title": "Castle Front V4 — sky layer 01",
+    "lede": "Judge this as one isolated parallax layer. Any land, mountain, architecture, object or gameplay element is an automatic failure.",
+    "pixelize": {
+      "enabled": true,
+      "scale": 4,
+      "colors": 64,
+      "saturation": 1.08
+    },
+    "checklist": [
+      "Every visible pixel belongs to sky, cloud, sunlight or atmospheric haze",
+      "No land, road, mountain, tree, castle, building, actor or object appears",
+      "Warm golden fantasy dusk feels safe, adventurous and cinematic",
+      "Cloud bands travel horizontally and use broad shapes suitable for pixel conversion",
+      "Lighting direction and palette remain coherent across the full width",
+      "Lower sky stays readable behind mountain layers that will be added later",
+      "No hard cropped focal feature makes future extension or crossfade visibly discontinuous"
+    ]
+  }
+}

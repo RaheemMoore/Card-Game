@@ -1,0 +1,49 @@
+{
+  "_readme": [
+    "Castle Front V4 moving-cloud experiment 01: one sprite sheet containing several independent cloud clusters.",
+    "This replaces the failed full-frame repeating-sky strategy. The approved sky remains fixed while this transparent layer is recycled as separate moving images.",
+    "Generate exactly one paid image. The flat chroma background is removed locally after generation.",
+    "No landscape, architecture, sun, horizon or full-frame sky painting belongs in this asset."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 811643,
+  "paidCallCap": 1,
+  "alchemy": false,
+  "styleRef": true,
+  "styleRefFile": "out/castle-front-v4-sky-layer/anchor-golden-dusk-sky.png",
+  "styleRefStrength": "High",
+  "tiling": false,
+  "width": 1280,
+  "height": 720,
+  "negative": "sky background, blue background, gradient background, textured background, horizon, sunlight, sun, moon, stars, land, ground, road, field, grass, mountain, hill, cliff, tree, forest, castle, tower, wall, gate, building, village, architecture, people, character, creature, animal, object, text, watermark, signature, logo, user interface, border, frame, overlapping clouds, connected cloud bank, cloud touching canvas edge, giant central cloud, photorealistic, photograph, 3d render, CGI, dark storm cloud, rain, lightning, night, horror, blur, soft transparent haze, smoke, fog",
+  "styleHeader": "2D SIDE-SCROLLER BACKGROUND SPRITE SHEET. Create exactly four separate opaque painterly fantasy cloud clusters on a perfectly flat solid pure chroma-green #00FF00 background for clean background removal. Match the warm golden-dusk palette, crisp grouped shapes, subtle 16-bit-inspired colour structure and painterly edge treatment of the supplied style reference. Each cloud is a self-contained horizontal formation with a distinct silhouette, gentle peach-gold rim light and dusty lavender-blue shadow shapes.",
+  "familyLabels": {
+    "moving-clouds": "Moving cloud sprite sheet — golden dusk"
+  },
+  "states": [
+    {
+      "id": "moving-clouds-01",
+      "label": "Moving Clouds 01 — Four Golden-Dusk Clusters",
+      "family": "moving-clouds",
+      "strength": "High",
+      "line": "Arrange the four clouds in a clean two-by-two sprite-sheet layout with wide empty green gutters between every cloud and generous green padding on all four canvas edges. Two clouds should be long and low, one medium and rounded, and one small distant wisp. Keep every cloud completely separated from the others and completely inside the canvas. The green background must be one perfectly uniform colour with no texture, shadow, glow, gradient or atmospheric contamination. No cloud may touch an edge. No cast shadow, no watermark and no text."
+    }
+  ],
+  "review": {
+    "title": "Castle Front V4 — moving-cloud sprite test 01",
+    "lede": "Approve only if the four clusters can be cleanly separated and recycled over the fixed sky without rectangular edges.",
+    "checklist": [
+      "Exactly four independent cloud clusters are visible",
+      "Wide pure-green gutters separate every cluster",
+      "No cloud touches a canvas edge",
+      "No sky, horizon, land, architecture, sun, text or object appears",
+      "Cloud palette and painterly shape language match the approved golden-dusk sky",
+      "Cloud edges remain crisp enough for clean chroma removal"
+    ]
+  }
+}

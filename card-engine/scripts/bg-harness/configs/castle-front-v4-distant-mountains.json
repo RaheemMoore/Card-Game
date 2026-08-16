@@ -1,0 +1,52 @@
+{
+  "_readme": [
+    "One distant mountain layer for the first Castle Front sunset scene only.",
+    "Clouds, sky, castle, ground and gameplay actors remain separate Phaser layers.",
+    "The bright green surround is temporary extraction material and will be removed locally.",
+    "This calibration run is permanently capped at one paid call and one returned image."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "QUALITY",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 8162026,
+  "paidCallCap": 1,
+  "alchemy": false,
+  "styleRef": false,
+  "tiling": false,
+  "width": 1280,
+  "height": 720,
+  "negative": "cloud, clouds, fog bank, sun, moon, star, sky gradient, sunrise, daytime, night, forest, foreground tree, large tree, grass, meadow, field, ground, soil, road, path, river, lake, ocean, castle, fortress, tower, wall, gate, building, house, village, ruins, bridge, people, person, character, monster, creature, animal, prop, text, letters, numbers, watermark, signature, logo, user interface, frame, border, top-down, isometric, three-quarter camera, aerial view, central vanishing point, road into distance, photorealistic, photograph, 3d render, CGI, plastic, blurry, soft focus, black outline, harsh black silhouette, dramatic focal peak, volcano, snowstorm, rain, lightning, horror, grimdark",
+  "styleHeader": "ISOLATED DISTANT MOUNTAIN LAYER for the first Castle Front sunset scene in a side-scrolling 2D fantasy action game. Create one continuous wide mountain range seen straight from the side, spanning the complete canvas from left edge to right edge. Render it as restrained hand-crafted pixel art with broad clustered shapes, stepped pixel edges, low detail and atmospheric depth. Use dusty blue-gray, muted slate-violet and soft mauve shadow planes with only a very subtle warm apricot rim from the existing dusk light. The mountains must feel far away and subordinate to the separate moving cloud actors and foreground gameplay.",
+  "familyLabels": {
+    "sunset-distant-mountains": "Castle Front — distant sunset mountains"
+  },
+  "anchors": {
+    "sunset-distant-mountains": {
+      "label": "Castle Front — Distant Sunset Mountains 01",
+      "line": "ASSET EXTRACTION PLATE, not a finished scene. Place the entire mountain range in the lower half of the canvas, with a naturally varied but calm ridge line and a solid continuous mountain mass extending to the bottom edge. Keep the tallest peak below 58 percent of the canvas height. Leave the whole upper area as one perfectly uniform, flat, saturated chroma-green background with no texture, haze, gradient, shadow or extra shapes. The green is temporary and must contrast cleanly with every mountain pixel so it can be removed. No separate floating islands or detached pieces. No scenery except the single distant mountain range."
+    }
+  },
+  "states": [
+    {
+      "id": "sunset-distant-mountains-01",
+      "label": "Castle Front — Distant Sunset Mountains 01",
+      "family": "sunset-distant-mountains",
+      "isAnchor": true
+    }
+  ],
+  "review": {
+    "title": "Castle Front — distant mountain layer 01",
+    "lede": "Judge only this one mountain layer in the current sunset scene.",
+    "checklist": [
+      "A single distant mountain range spans left to right",
+      "The ridge is restrained and does not become the scene's focal subject",
+      "Blue-gray, slate-violet and mauve values fit the current sunset sky",
+      "No clouds, celestial objects, forest, architecture, ground or actors appear",
+      "The upper surround is flat chroma green and removable",
+      "The mountain mass reaches the bottom edge without gaps"
+    ]
+  }
+}
