@@ -235,7 +235,7 @@ describe('the card throws itself — MELEE (parked)', () => {
  *
  * Raheem, 2026-08-13, after playing the throw: the blast is not a throw. He is
  * a card wielder — he holds the card up, plants, and the shot comes out of it,
- * with a jerk as it leaves. Everything below is that ruling as arithmetic, so
+ * from a planted stance. Everything below is that ruling as arithmetic, so
  * "it looks like a throw again" is a failing test rather than another video.
  */
 describe('braced cast — RANGED, the only style anything uses today', () => {
@@ -288,38 +288,20 @@ describe('braced cast — RANGED, the only style anything uses today', () => {
     expect(windup.scaleY).toBeLessThan(charging.scaleY);
   });
 
-  it('JERKS BACKWARD as the blast leaves — the recoil is the impact', () => {
+  it('holds the final brace while the blast leaves instead of jumping backward', () => {
     const before = brace({ phase: 'windup', elapsedMs: ACTION_TIMING.windupMs });
-    const after = brace({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
-    // Further back than he ever was while winding up, by the recoil's width.
-    expect(after.offsetX).toBeLessThan(before.offsetX);
-    expect(before.offsetX - after.offsetX).toBeCloseTo(FEEL.recoilPx, 1);
-  });
-
-  it('is already recoiling on the first frame of the shot', () => {
-    // Same rule as the throw: the projectile is born on entry to `active`, so
-    // the shove is the shot leaving, not a reaction to having watched it go.
     const first = brace({ phase: 'active', elapsedMs: 0 });
     const last = brace({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
-    expect(last.offsetX).toBeLessThan(first.offsetX);
+    expect(first).toEqual(before);
+    expect(last).toEqual(before);
   });
 
-  it('rises out of the crouch as it is pushed back', () => {
-    const windup = brace({ phase: 'windup', elapsedMs: ACTION_TIMING.windupMs });
-    const fired = brace({ phase: 'active', elapsedMs: ACTION_TIMING.activeMs });
-    expect(fired.scaleY).toBeGreaterThan(windup.scaleY);
-  });
-
-  it('recoils harder for a heavier shot', () => {
-    const light = attackPose({
-      style: 'ranged',
-      phase: 'active',
-      elapsedMs: ACTION_TIMING.activeMs,
-      chargeLevel: MIN_CHARGE_LEVEL,
-      aim: AIM,
-      feel: getAttackFeel('light', 'full'),
-    });
-    expect(brace().offsetX).toBeLessThan(light.offsetX);
+  it('uses recovery to unwind the brace toward neutral', () => {
+    const start = brace({ phase: 'recovery', elapsedMs: 0 });
+    const middle = brace({ phase: 'recovery', elapsedMs: ACTION_TIMING.recoveryMs / 2 });
+    expect(middle.offsetX).toBeGreaterThan(start.offsetX);
+    expect(middle.scaleY).toBeGreaterThan(start.scaleY);
+    expect(middle.rotation).toBeGreaterThan(start.rotation);
   });
 
   it('stands all the way back up by the end of recovery', () => {

@@ -1,0 +1,67 @@
+{
+  "provider": "PixelLab",
+  "operation": "existing-character v3 custom animation",
+  "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+  "runtimeCharacterAsset": "public/assets/castle/hero/chibi.png",
+  "backgroundJobId": "225e6aa0-da59-42d5-b4cf-be846f68a4f6",
+  "config": "scripts/sprite-lab/configs/hero-card-blast.json",
+  "animation": "hero-card-blast-south-v1",
+  "direction": "south",
+  "requestedGeneratedFrames": 12,
+  "returnedFramesIncludingPinnedStart": 13,
+  "actualGenerations": 8,
+  "paidRetryCount": 0,
+  "providerValidation": {
+    "initialRequestedFrames": 14,
+    "result": "rejected before generation because the 180x232 source permits at most 12 frames",
+    "charged": false
+  },
+  "outputs": {
+    "animatedPreview": "card-blast-south-preview.gif",
+    "contactSheet": "card-blast-south-contact-sheet.png"
+  },
+  "verdict": "HUMAN REVIEW",
+  "approval": {
+    "status": "approved-for-left-direction-gameplay-proof",
+    "reviewer": "Raheem",
+    "note": "Approved for a leftward in-game proof. Do not spend generations on the other directions until this version has been judged in the live courtyard. Phaser owns projectile origin and supplemental recoil."
+  },
+  "directionalBatch": {
+    "approvedBy": "Raheem",
+    "approvedMaximumGenerations": 24,
+    "automaticRetryCap": 0,
+    "actualProviderReportedGenerations": 8,
+    "directions": {
+      "right": {
+        "animation": "hero-card-blast-right-v1",
+        "pixelLabDirection": "east",
+        "backgroundJobId": "bf106423-5d77-4131-bc20-08038377bbc1",
+        "returnedFramesIncludingPinnedStart": 13,
+        "providerReportedGenerations": 8,
+        "runtimeReview": "pass",
+        "humanApproval": "pending"
+      },
+      "up": {
+        "animation": "hero-card-blast-up-v1",
+        "pixelLabDirection": "north",
+        "backgroundJobId": "89965a82-055b-4ebd-a316-88a4f6ed8837",
+        "returnedFramesIncludingPinnedStart": 13,
+        "providerReportedGenerations": 0,
+        "runtimeReview": "pass-with-local-frame-substitution",
+        "localFinishing": "Runtime frame 7 uses clean hold frame 8 because raw frame 7 contained a forbidden baked fire orb. Raw provider frames are preserved unchanged.",
+        "humanApproval": "pending"
+      },
+      "down": {
+        "animation": "hero-card-blast-down-v1",
+        "pixelLabDirection": "south",
+        "backgroundJobId": "2881f980-baf6-4318-aec2-be460d1d7f4f",
+        "returnedFramesIncludingPinnedStart": 13,
+        "providerReportedGenerations": 0,
+        "runtimeReview": "pass",
+        "humanApproval": "pending"
+      }
+    },
+    "paidRetries": 0,
+    "runtimeDirectionSelection": "Nearest cardinal body pose with a 120ms cross-fade; selected card, charge emitter, and projectile muzzle interpolate continuously from live aim without resetting stance progress."
+  }
+}

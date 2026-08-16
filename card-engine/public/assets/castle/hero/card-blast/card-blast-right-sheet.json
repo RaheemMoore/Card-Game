@@ -1,0 +1,21 @@
+{
+  "image": "card-blast-right-sheet.png",
+  "frameWidth": 86,
+  "frameHeight": 109,
+  "frameCount": 13,
+  "columns": 13,
+  "rows": 1,
+  "baselineY": 87,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.7981651376146789
+  },
+  "resampledFrom": {
+    "frameWidth": 180,
+    "frameHeight": 228,
+    "referenceBodyHeight": 148,
+    "colours": 256
+  },
+  "substitutedFrames": [],
+  "note": "One fixed-direction performance, uniformly area-resampled to the live hero's body height. Original canvas coordinates and shared feet baseline are preserved; render at 1:1 or upscale, never downscale at runtime."
+}

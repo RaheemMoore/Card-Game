@@ -43,8 +43,10 @@ export const ACTION_TIMING = {
   chargeMaxMs: 900,
   /** Release to the projectile leaving the card — the thrust, not the draw. */
   windupMs: 180,
-  activeMs: 60,
-  recoveryMs: 320,
+  /** Brief planted contact; authored recoil will replace this hold later. */
+  activeMs: 30,
+  /** Frame 11 retracts, frame 12 settles, then the body blends back to idle. */
+  recoveryMs: 250,
   /** The impact-to-floor animation. Matches KNOCKDOWN_TOTAL_MS. */
   knockdownFallMs: 513,
   /** Required punishment after the fall finishes, before get-up input counts. */
@@ -198,33 +200,32 @@ export function initialAction(): ActionState {
 /** Phases during which the player cannot start another attack. */
 export const isBusy = (phase: ActionPhase) => phase !== 'explore';
 
-/** Phases during which the player keeps full walking control. */
-export const canWalk = (phase: ActionPhase) =>
-  phase === 'explore' || phase === 'charging' || phase === 'windup' || phase === 'recovery';
+/** Only exploration returns locomotion control to the player. */
+export const canWalk = (phase: ActionPhase) => phase === 'explore';
 
 /**
  * Movement multiplier for the phase.
  *
- * Firing slows rather than roots. Rooting a deliberately weak character while a
- * projectile is in flight makes the fantasy "helpless", which is the failure mode
- * the handoff warns about in §12.8 — he is supposed to be fragile and mobile.
+ * The current firing performance is a planted stance, so every action phase is
+ * rooted until its authored recovery is complete. Walking can return once it has
+ * its own transition/aimed locomotion art instead of sliding this static stance.
  */
 export function walkScale(phase: ActionPhase): number {
-  switch (phase) {
-    case 'explore':
-      return 1;
-    case 'charging':
-      // Slower than a walk, faster than a crawl. Charging while repositioning is
-      // the interesting decision; charging while rooted is just waiting.
-      return 0.6;
-    case 'windup':
-      return 0.45;
-    case 'recovery':
-      return 0.7;
-    default:
-      // active, knockdown, standUp: he is not going anywhere.
-      return 0;
-  }
+  return phase === 'explore' ? 1 : 0;
+}
+
+/**
+ * The directional firing sheet owns a planted body from the trigger press
+ * through the final recovery frame. `firePressed` covers the input frame before
+ * `stepAction` has had a chance to transition exploration into charging.
+ */
+export function locksFiringStanceMovement(
+  phase: ActionPhase,
+  firePressed: boolean,
+  hasReadyCard: boolean,
+): boolean {
+  if (phase === 'explore') return firePressed && hasReadyCard;
+  return phase === 'charging' || phase === 'windup' || phase === 'active' || phase === 'recovery';
 }
 
 const enter = (

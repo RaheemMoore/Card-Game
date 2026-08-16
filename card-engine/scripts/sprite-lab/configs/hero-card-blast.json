@@ -1,7 +1,16 @@
 {
   "subject": "hero-card-blast",
-  "label": "The Card-wright (chibi) — draw, present, and fire from the card, south-facing proof",
+  "label": "The live castle Card-wright — mage-inspired card-firing stance and recoil, south-facing proof",
   "characterId": "148f4899-79e4-42b0-a09b-056e8f7e895a",
+
+  "runtimeCharacterAuthority": {
+    "asset": "public/assets/castle/hero/chibi.png",
+    "manifest": "public/assets/castle/hero/chibi.json",
+    "runtimeContract": "src/data/castle/heroSprite.ts",
+    "assetKey": "hero-chibi",
+    "displayFrame": { "width": 36, "height": 71 },
+    "rule": "This live PixelLab chibi is the only visual identity and proportion reference for the animation. Never use hero-cardwright/cardwright.png or any detailed portrait-register character as an animation reference."
+  },
 
   "identity": {
     "description": "Athletic middle-aged Black man, a card-wright artisan, drawn as a big-headed chibi game character. Close-cropped black hair greying at the temples, short trimmed beard, warm dark brown skin, friendly readable face. Wears a slate-grey canvas work apron with brass tool loops over a deep teal rolled-sleeve tunic, dark work trousers, and a hard brass-cornered card case on his hip.",
@@ -9,8 +18,8 @@
   },
 
   "bibleNotes": [
-    "Derived from the exact approved Card-wright character record; identity and costume must not change.",
-    "THE CARD IS THE WEAPON AND HE IS NOT. He never punches, swings, or takes a fighting stance. The power leaves the card; his body only presents it. A combat pose would contradict the premise the whole game rests on.",
+    "Animate the exact PixelLab character used in the live castle under the hero-chibi asset key; identity, chibi proportions, costume, palette, and low top-down camera must not change.",
+    "THE CARD IS THE WEAPON AND HE IS NOT. He never punches, swings, or throws the card. His stance is a grounded casting brace: the body prepares for recoil while the power leaves the card.",
     "The card is a temporary rigid prop for the body performance. Phaser renders the player's actual selected card over it.",
     "NO FIRE IN THE SPRITE. The blast itself is a Phaser projectile spawned at the card. That is what lets one body performance serve every element in the game — fire, ice, void and the other 25 — instead of buying a clip per element."
   ],
@@ -30,15 +39,58 @@
   },
 
   "seed": 902551,
-  "directions": ["south"],
+  "directions": ["south", "east", "north"],
+
+  "runtimeDirectionMap": {
+    "left": "hero-card-blast-south-v1 (approved existing clip; visually presents the card screen-left)",
+    "right": "hero-card-blast-right-v1 / PixelLab east rotation",
+    "up": "hero-card-blast-up-v1 / PixelLab north rotation",
+    "down": "hero-card-blast-down-v1 / PixelLab south rotation",
+    "diagonals": "Phaser selects the nearest cardinal pose from the continuous aim vector. Do not spend on eight directions before the four-direction set is reviewed in game."
+  },
+
+  "poseReferenceNotes": [
+    "PRIMARY AESTHETIC: use the clean, elegant limb placement of the selected PoseMy.Art mage spell-casting pose — a strong diagonal through the body, one casting arm reaching clearly into open space, an uncluttered chest silhouette, and the other arm providing visible counterbalance.",
+    "GROUND THAT ELEGANCE FOR RECOIL: keep one foot forward and one foot back, widen the base enough to read at 36x71, soften both knees, lower the hips slightly, and lean the torso toward the target before release. Do not copy the reference's narrow crossed feet.",
+    "Replace the spellcasting palm with one small rigid rectangular trading card held in the extended lead hand at chest-to-shoulder height. Let the support hand brace low on the presenting forearm near the elbow, not crowd the wrist or hide the card; preserve the long readable line of the casting arm.",
+    "The prepared pose leans forward. Only the release beat rocks the shoulders, hands, and card briefly backward and slightly upward as recoil; the planted feet do not slide.",
+    "Preserve an elegant asymmetrical silhouette at game scale: staggered feet form the base, the extended arm and card remain clearly separated from the face and chest, and the support arm reads as a distinct diagonal rather than merging into the torso."
+  ],
 
   "animations": [
     {
       "id": "hero-card-blast-south-v1",
       "name": "hero-card-blast-south-v1",
       "mode": "v3",
-      "action": "Begin standing upright in the exact front-facing start pose. In one flowing dramatic sequence: sweep one hand down to the card case at his hip and snap out a single small rigid rectangular trading card; sweep that card upward and outward in a wide showman's arc; then set his feet, lean his weight forward, and thrust the card straight out ahead of him at arm's length, held flat and face-forward like a lantern, with his other arm braced back for balance. Hold that final presenting pose with the card pushed out in front of him and his face still visible and determined. The card stays one rigid rectangle in his hand at all times and never becomes a weapon he swings. The same person, face, beard, teal tunic, slate apron, brass loops, trousers, boots, body size, and camera angle remain consistent in every frame. Full body always visible. No fire, no flame, no projectile, no glow, no magic, no dust, no background, no camera movement, no extra cards.",
-      "frameCount": 14,
+      "action": "Begin standing upright in the exact front-facing start pose of the live castle PixelLab chibi. Draw one small rigid rectangular trading card from the card case at his hip. Flow into an elegant mage-like casting stance with clean separated limbs: step one foot forward and the other foot back, widen the base, soften both knees, lower the hips slightly, and lean the torso toward the target. Extend the lead arm into open space at chest-to-shoulder height, presenting the card flat and face-forward. Bring the other arm diagonally across the body to support low on the presenting forearm near the elbow, leaving the wrist, hand, card, face, and chest visually clear. Hold this planted prepared pose for a readable anticipation beat. Then fire: keep both feet fixed while the card, extended arm, support arm, shoulders, and upper torso jerk a short distance backward and slightly upward from recoil. Absorb the recoil through the knees, then settle forward into the same elegant grounded stance before beginning to return upright. Preserve the long casting-arm line and distinct negative space between both arms and the torso throughout. The card remains one rigid rectangle in the lead hand for the entire sequence; it is never thrown, swung, duplicated, or transformed. Preserve the exact live hero-chibi person, face, beard, teal tunic, slate apron, brass loops, trousers, boots, chibi proportions, body size, palette, and low top-down camera in every frame. Full body and both feet always visible. No detailed or realistic proportions, no portrait-register character, no gun, no firearm, no weapon, no staff, no fire, no flame, no projectile, no glow, no magic, no dust, no background, no camera movement, no extra cards.",
+      "frameCount": 12,
+      "directions": ["south"],
+      "startFromRotation": "south"
+    },
+    {
+      "id": "hero-card-blast-right-v1",
+      "name": "hero-card-blast-right-v1",
+      "mode": "v3",
+      "action": "Begin standing upright in the exact PixelLab east rotation, in profile facing screen-right. Draw one small rigid rectangular trading card from the card case at the hip, then step into the same elegant grounded casting brace as hero-card-blast-south-v1: right-side target, one foot forward and one back, wide planted base, soft knees, lowered hips, torso leaning toward screen-right. Extend the lead arm horizontally into clear space toward screen-right at chest-to-shoulder height and present the card face-forward at the outermost point. Bring the support arm diagonally across the body to brace low on the presenting forearm near the elbow without hiding the card, hand, face, or chest. Hold the fully extended stance for a long readable anticipation beat suitable for charging or repeated firing. Keep both feet fixed. Preserve clean negative space between arms and torso and the exact live hero-chibi identity, proportions, costume, palette, pixel style, and low top-down camera. Finish by beginning to settle upright. Full body and both feet always visible. Exactly one card. No leftward presentation, no front-facing pose, no back-facing pose, no detailed portrait proportions, no gun, no weapon, no staff, no projectile, no fire, no glow, no magic effects, no dust, no background, no camera movement, no extra cards.",
+      "frameCount": 12,
+      "directions": ["east"],
+      "startFromRotation": "east"
+    },
+    {
+      "id": "hero-card-blast-up-v1",
+      "name": "hero-card-blast-up-v1",
+      "mode": "v3",
+      "action": "Begin standing upright in the exact PixelLab north rotation, with the back of the live castle Card-wright facing the camera and the target directly toward the top of the screen. Draw one small rigid rectangular trading card from the hip case, then step into the same elegant grounded casting brace as hero-card-blast-south-v1: one foot forward toward screen-up and one foot back, wide planted base, soft knees, lowered hips, torso leaning away from the camera toward the target. Extend the lead arm away from the camera toward screen-up at chest-to-shoulder height so the hand and one card remain readable beyond the shoulder silhouette. Bring the support arm diagonally across the body to brace low on the presenting forearm near the elbow. Hold the fully extended stance for a long readable anticipation beat suitable for charging or repeated firing. Keep both feet fixed. Preserve clear arm separation and the exact live hero-chibi identity, proportions, costume, palette, pixel style, and low top-down camera. Finish by beginning to settle upright. Full body and both feet always visible. Exactly one card. Remain back-facing throughout; no turning toward camera, no side-facing pose, no detailed portrait proportions, no gun, no weapon, no staff, no projectile, no fire, no glow, no magic effects, no dust, no background, no camera movement, no extra cards.",
+      "frameCount": 12,
+      "directions": ["north"],
+      "startFromRotation": "north"
+    },
+    {
+      "id": "hero-card-blast-down-v1",
+      "name": "hero-card-blast-down-v1",
+      "mode": "v3",
+      "action": "Begin standing upright in the exact PixelLab south rotation, front-facing toward the camera with the target directly toward the bottom of the screen. Draw one small rigid rectangular trading card from the hip case, then step into the same elegant grounded casting brace as hero-card-blast-south-v1: one foot forward toward screen-down and one foot back, wide planted base, soft knees, lowered hips, torso leaning toward the camera. Extend the lead arm forward toward the camera at chest-to-shoulder height using clear foreshortening; place the single card centered below and in front of the chest, visibly farther toward screen-bottom than the body, never off to screen-left or screen-right. Bring the support hand under or beside the lead forearm near the elbow, leaving the card, hand, face, and chest readable. Hold the fully extended stance for a long readable anticipation beat suitable for charging or repeated firing. Keep both feet fixed. Preserve a strong centered silhouette and the exact live hero-chibi identity, proportions, costume, palette, pixel style, and low top-down camera. Finish by beginning to settle upright. Full body and both feet always visible. Exactly one card. Remain front-facing throughout; no sideways card presentation, no back-facing pose, no detailed portrait proportions, no gun, no weapon, no staff, no projectile, no fire, no glow, no magic effects, no dust, no background, no camera movement, no extra cards.",
+      "frameCount": 12,
       "directions": ["south"],
       "startFromRotation": "south"
     }
@@ -50,8 +102,9 @@
     "THE PROJECTILE MUST LEAVE THE CARD. The final presenting pose exists so Phaser has an unambiguous muzzle: the card's outer edge at arm's length. Record that offset from the feet anchor when packing — it replaces the estimated cardOrigin() forward offset in combat/blast.ts, which is currently a guess of 14 world units.",
     "NO FIRE IN THE SPRITE, deliberately. Baking a fireball in would force one clip per element and lock the art to fire; as a Phaser projectile the same performance serves all 28 elements, and recolour handles their palettes for zero generations.",
     "One continuous v3 clip rather than a chain, matching hero-card-slam: a chained generated start frame is where identity drift enters.",
-    "READS BY SILHOUETTE. He ships 71 world pixels tall. The card held out at arm's length against his body is the shape that has to carry it; judge the packed sheet at 1:1, never zoomed in.",
-    "TIMING TARGET: the runtime currently runs 140ms windup, 60ms active, 220ms recovery (ACTION_TIMING in combat/actionState.ts) — 420ms in total, which is too fast for a 14-frame performance. Expect to lengthen the windup to fit the draw and raise, and to fire the projectile on the frame the card reaches full extension. Change the code to match the art, not the art to match the code.",
-    "NO AUTOMATIC PAID RETRY. Validate and present this result before another generation is fired."
+    "READS BY SILHOUETTE. He ships as a 36x71 frame at 71 world pixels tall. The staggered base, soft knees, forward brace, long lead-arm diagonal, separated support arm, and card isolated from the chest have to carry it; judge the packed sheet at 1:1, never zoomed in.",
+    "RUNTIME TIMING: the shot uses a 180ms windup, 30ms active beat, and 250ms recovery (ACTION_TIMING in combat/actionState.ts). Recovery retracts through frame 11 for 90ms, settles on frame 12, then spends the final 60ms blending into the current idle or walk direction.",
+    "NO AUTOMATIC PAID RETRY. Validate and present every direction before another generation is fired.",
+    "RAPID-FIRE CONTRACT: generation supplies entry, a long stable held stance, and exit. Phaser can keep the stance active between consecutive shots without replaying the draw from idle. Whole-body procedural recoil is intentionally disabled; any future recoil should come from approved character frames."
   ]
 }
