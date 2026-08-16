@@ -22,6 +22,11 @@
         "type": "image",
         "key": "castle-front-ground-band",
         "url": "assets/kits/castle-front/terrain/castle-front-ground-band.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-ground-band-grass",
+        "url": "assets/kits/castle-front/terrain/castle-front-ground-band-grass.png"
       }
     ]
   }

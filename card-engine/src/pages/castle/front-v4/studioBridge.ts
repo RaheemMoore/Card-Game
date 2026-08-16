@@ -168,9 +168,10 @@ const SCENARIOS: Record<FrontV4ScenarioName, Scenario> = {
 
 async function combatLoop(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   const a: StudioAssertion[] = [];
-  port.reset();
+  const ready = await settle(port);
+  a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
   port.setJellyAi(false);
-  await wait(80);
+  await wait(60);
 
   const start = port.snapshot();
   a.push(check('scene-is-front-v4', start.scene === 'CastleFrontV4', start.scene, 'CastleFrontV4'));
@@ -248,7 +249,8 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   const a: StudioAssertion[] = [];
 
   // Leg 1 — he stands in it. The tell has to mean something.
-  port.reset();
+  const ready = await settle(port);
+  a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
   port.setJellyAi(true);
   port.setStrongHits(false);
   port.placePlayer(JELLY_SPAWN_X - CONSTRUCT_TUNING.preferredRangePx);
@@ -275,7 +277,7 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   a.push(check('lands-in-the-punish-window', landed.jelly.phase === 'recovery', landed.jelly.phase, 'recovery'));
 
   // Leg 2 — he runs. The same attack, answered.
-  port.reset();
+  await settle(port);
   port.setJellyAi(true);
   port.setStrongHits(false);
   const heroStart = JELLY_SPAWN_X - CONSTRUCT_TUNING.preferredRangePx;
@@ -308,7 +310,8 @@ async function scatterRecover(port: FrontV4ScenePort): Promise<StudioAssertion[]
     ['near-the-castle', ARENA.minX + 20],
     ['near-the-eastern-bound', ARENA.maxX - 20],
   ] as const) {
-    port.reset();
+    const ready = await settle(port);
+    a.push(check(`${label}:settles-to-a-clean-start`, ready, ready, 'true'));
     port.setJellyAi(false);
     port.placePlayer(x);
     await wait(80);
@@ -359,6 +362,38 @@ const check = (id: string, pass: boolean, actual: unknown, expected: string): St
 });
 
 const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+/**
+ * Reset, and do not proceed until the scene AGREES it has reset.
+ *
+ * WHY THIS IS NOT JUST `reset(); await wait(80)`. That is what it was, and it
+ * made the first scenario run after a page load fail roughly every time while
+ * passing on every retry — which is the worst way for a test to behave, because
+ * the failure looks like a real defect and the pass looks like the fix. The cause
+ * is that the scene is LIVE before a scenario starts: the creature has already
+ * woken, closed, leapt and knocked the hero across the arena, and a fixed 80ms is
+ * a guess about how long it takes that to unwind.
+ *
+ * So this polls the scene's own snapshot until the start state is true — hero at
+ * his spawn and free to act, creature home and idle — and reports honestly if it
+ * never arrives rather than asserting against a world still mid-fight.
+ */
+async function settle(port: FrontV4ScenePort, timeoutMs = 2000): Promise<boolean> {
+  port.reset();
+  const clean = await until(
+    port,
+    (s) =>
+      Math.abs(s.player.x - s.world.minX) > 1 && // spawn is not the wall
+      s.player.phase === 'explore' &&
+      s.player.graceRemainingMs === 0 &&
+      s.dropped.length === 0 &&
+      s.projectiles.length === 0 &&
+      s.jelly.mode === 'ground' &&
+      s.jelly.hp === CONSTRUCT_TUNING.maxHp,
+    timeoutMs,
+  );
+  return clean !== null;
+}
 
 /**
  * Poll the snapshot until a condition holds, or give up.
