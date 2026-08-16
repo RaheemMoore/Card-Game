@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { DEPTH } from './layout';
 import {
   AUTHORED_GROUND_LABEL,
+  BACKGROUND_PREFIX,
   EDITOR_ONLY_PREFIX,
   WALL_PREFIX,
   parseAuthoredLabels,
@@ -68,7 +69,23 @@ export interface WorldLoadResult {
    * east; the scene decides which is which from where the player starts.
    */
   walls?: Array<{ left: number; right: number }>;
+  /**
+   * Where Raheem put each background layer, keyed by its `BG_*` label.
+   *
+   * Measured from rendered bounds and handed to the backdrop, which rebuilds the
+   * layer camera-pinned at those proportions. See `BACKGROUND_PREFIX`.
+   */
+  background?: Record<string, AuthoredPlacement>;
   message?: string;
+}
+
+/** A rectangle somebody dragged, plus how strongly they wanted it to read. */
+export interface AuthoredPlacement {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  alpha: number;
 }
 
 /**
@@ -87,6 +104,32 @@ function measureGround(
   const withTop = object as unknown as { getBounds?: () => { top: number } };
   if (!bounds || !withTop?.getBounds) return undefined;
   return { y: withTop.getBounds().top, minX: bounds.left, maxX: bounds.right };
+}
+
+/**
+ * The full rectangle an authored object occupies, plus its alpha.
+ *
+ * From rendered bounds rather than from `x`/`y`/`width`, for the same reason
+ * `measureGround` does: the origin is whatever was set in the Editor, and a
+ * TileSprite dragged with `originY: 1` reports its BOTTOM as `y`. Bounds are the
+ * one reading that means the same thing however the object was configured.
+ */
+function measurePlacement(
+  object: Phaser.GameObjects.GameObject | undefined,
+): AuthoredPlacement | undefined {
+  const withBounds = object as unknown as {
+    getBounds?: () => { left: number; top: number; width: number; height: number };
+    alpha?: number;
+  };
+  if (!withBounds?.getBounds) return undefined;
+  const b = withBounds.getBounds();
+  return {
+    left: b.left,
+    top: b.top,
+    width: b.width,
+    height: b.height,
+    alpha: typeof withBounds.alpha === 'number' ? withBounds.alpha : 1,
+  };
 }
 
 /** Horizontal extent of any authored object, or undefined if it has no bounds. */
@@ -189,10 +232,26 @@ export async function loadEditorWorld(
           .filter((b): b is { left: number; right: number } => b !== undefined)
       : [];
 
+    // The background layers, measured while the objects still exist. They are
+    // removed a few lines below along with the reference art: the backdrop rebuilds
+    // each one pinned to the camera, and an authored copy left in world space would
+    // slide past at full speed — a mountain range travelling with the ground, which
+    // is the one thing a background must never do.
+    const background: Record<string, AuthoredPlacement> = {};
+    if (aligned) {
+      labels.forEach((label, i) => {
+        if (!label.startsWith(BACKGROUND_PREFIX)) return;
+        const placement = measurePlacement(authored[i]);
+        if (placement) background[label] = placement;
+      });
+    }
+
     if (labels.length === authored.length) {
       const kept: typeof authored = [];
       authored.forEach((child, i) => {
-        if (labels[i].startsWith(EDITOR_ONLY_PREFIX)) child.destroy();
+        const editorOnly =
+          labels[i].startsWith(EDITOR_ONLY_PREFIX) || labels[i].startsWith(BACKGROUND_PREFIX);
+        if (editorOnly) child.destroy();
         else kept.push(child);
       });
       authored = kept;
@@ -224,6 +283,7 @@ export async function loadEditorWorld(
       labels,
       ground: measureGround(groundObject),
       walls,
+      background,
       suppliesGround: labels.includes(AUTHORED_GROUND_LABEL),
     };
   } catch (error) {

@@ -47,6 +47,36 @@ export const AUTHORED_GROUND_LABEL = 'GROUND';
 export const WALL_PREFIX = 'WALL';
 
 /**
+ * A background layer whose PLACEMENT is authored, and whose MOTION is not.
+ *
+ * Raheem, 2026-08-16, on a background the code had positioned for him: *"the
+ * ground is not properly aligned… I would rather adjust it myself."* He is right,
+ * and the reason is structural rather than a matter of taste — where the tree line
+ * meets the floor is a composition decision made by eye against the castle and the
+ * grass, and there is no formula that gets it right, only a number somebody typed.
+ *
+ * So the split is: the Editor owns WHERE each layer sits, how big it is and how
+ * strongly it reads; the code owns how fast it travels. He can drag the tree line
+ * down four pixels to sit on the grass without touching a constant, and cannot
+ * accidentally flatten the parallax by dragging something, because the rates are
+ * not expressed as position at all.
+ *
+ * These objects are removed from the display list once measured, exactly like
+ * `REF_*`, and rebuilt by `backdrop.ts` pinned to the camera. They have to be:
+ * an authored object lives in world space and would slide past at full speed,
+ * which is the one thing a background must never do.
+ */
+export const BACKGROUND_PREFIX = 'BG_';
+
+/** The authored layer labels the backdrop knows how to adopt. */
+export const BACKGROUND_LABELS = {
+  sky: 'BG_SKY',
+  mountains: 'BG_MOUNTAINS',
+  forest: 'BG_FOREST',
+  clouds: ['BG_CLOUD_BROAD', 'BG_CLOUD_MOUND', 'BG_CLOUD_PUFFS', 'BG_CLOUD_SWEEP'],
+} as const;
+
+/**
  * Read the object labels out of a compiled Editor scene, in creation order.
  *
  * WHY PARSE RATHER THAN ASK. Phaser Editor's compiler writes each object's label

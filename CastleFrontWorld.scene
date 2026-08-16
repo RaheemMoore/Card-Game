@@ -19,6 +19,106 @@
             "height": 590
         },
         {
+            "type": "TileSprite",
+            "id": "1f90c507-e9b4-4c45-9e3e-08e6f6be22f9",
+            "label": "BG_SKY",
+            "texture": {
+                "key": "castle-front-sunset-sky"
+            },
+            "originX": 0,
+            "originY": 0,
+            "width": 4999,
+            "height": 720
+        },
+        {
+            "type": "TileSprite",
+            "id": "212b54da-2c62-4f46-9732-62847787a5e6",
+            "label": "BG_MOUNTAINS",
+            "texture": {
+                "key": "castle-front-mountains-loop"
+            },
+            "y": 590,
+            "originX": 0,
+            "originY": 1,
+            "alpha": 0.82,
+            "width": 5000,
+            "height": 396,
+            "tileScaleX": 1.529,
+            "tileScaleY": 1.529
+        },
+        {
+            "type": "TileSprite",
+            "id": "7d64102c-e1b1-4def-b9b0-e1d34d06ea88",
+            "label": "BG_FOREST",
+            "texture": {
+                "key": "castle-front-forest-loop"
+            },
+            "y": 590,
+            "originX": 0,
+            "originY": 1,
+            "alpha": 0.92,
+            "width": 5001,
+            "height": 202,
+            "tileScaleX": 1.3808,
+            "tileScaleY": 1.3808
+        },
+        {
+            "type": "Image",
+            "id": "71583724-d31f-4397-82e6-484588dd5e76",
+            "label": "BG_CLOUD_BROAD",
+            "texture": {
+                "key": "castle-front-cloud-broad-sunset"
+            },
+            "x": 90,
+            "y": 108,
+            "scaleX": 2.2442,
+            "scaleY": 2.2442,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Image",
+            "id": "a583ae5b-460a-41b5-bf75-79bc8abae116",
+            "label": "BG_CLOUD_MOUND",
+            "texture": {
+                "key": "castle-front-cloud-mound-sunset"
+            },
+            "x": 435,
+            "y": 281,
+            "scaleX": 1.9117,
+            "scaleY": 1.9117,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Image",
+            "id": "3a344474-6e23-425d-97ba-f5b530e22683",
+            "label": "BG_CLOUD_PUFFS",
+            "texture": {
+                "key": "castle-front-cloud-puffs-sunset"
+            },
+            "x": 794,
+            "y": 58,
+            "scaleX": 2.2486,
+            "scaleY": 2.2486,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Image",
+            "id": "543a451c-e6d2-40af-b728-52b06b44b008",
+            "label": "BG_CLOUD_SWEEP",
+            "texture": {
+                "key": "castle-front-cloud-sweep-sunset"
+            },
+            "x": 896,
+            "y": 202,
+            "scaleX": 2.3735,
+            "scaleY": 2.3735,
+            "originX": 0,
+            "originY": 0
+        },
+        {
             "type": "Rectangle",
             "id": "5f47b38d-cb07-45f3-bc4b-454d30166692",
             "label": "GROUND",
@@ -98,10 +198,10 @@
                 "key": "construct-ember-jelly",
                 "frame": 0
             },
-            "x": 660,
+            "x": 481,
             "y": 590,
-            "scaleX": 2,
-            "scaleY": 2,
+            "scaleX": 0.65,
+            "scaleY": 0.65,
             "originX": 0.571,
             "originY": 0.926
         },
@@ -139,8 +239,6 @@
             },
             "x": 380,
             "y": 590,
-            "scaleX": 2,
-            "scaleY": 2,
             "originY": 0.986
         }
     ],

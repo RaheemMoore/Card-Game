@@ -103,7 +103,7 @@ import {
   applyLevelCamera,
 } from './layout';
 import {
-  BACKDROP_SLOTS,
+  BACKDROP_TEXTURES,
   paintProvisionalBackdrop,
   type ProvisionalBackdrop,
 } from './backdrop';
@@ -291,17 +291,26 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         }
       }
     }
-    // Raheem's own background plates, if he has delivered them yet. Attempted
-    // every boot and silently absent until then — see BACKDROP_SLOTS.
-    for (const slot of Object.values(BACKDROP_SLOTS)) {
+    // The background package: sky plate, two parallax strips, four cloud actors.
+    //
+    // These are REQUIRED now, and were optional before. Until 2026-08-16 no
+    // side-view background existed and a missing plate was the expected state, so a
+    // failure here was silent and the code-drawn stand-in took over. The art has
+    // landed and is in the kit pack, so a plate that fails to load is a real fault —
+    // and one that would otherwise present as "the sky looks a bit flat today"
+    // rather than as an error. The stand-ins remain, as a degraded mode, not as the
+    // plan.
+    //
+    // `worldLoader` also loads the kit pack these come from, which would ordinarily
+    // make this redundant; it is done here as well because the pack load is
+    // asynchronous and racing the first frame, and Phaser skips a key it already
+    // holds rather than fetching it twice.
+    for (const slot of BACKDROP_TEXTURES) {
       this.load.image(slot.key, slot.path);
     }
 
     this.load.on('loaderror', (file: Phaser.Loader.File) => {
-      // A missing backdrop plate is the EXPECTED state, not an error: the code
-      // backdrop stands in. Only report things that were supposed to be there.
-      const optional = Object.values(BACKDROP_SLOTS).some((s) => s.key === file.key);
-      if (!optional) this.errors.push(`failed to load ${file.key}`);
+      this.errors.push(`failed to load ${file.key}`);
     });
   }
 
@@ -324,6 +333,10 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       // The authored scene owns the ground and the castle once it has them, so
       // the stand-ins go rather than sitting underneath being invisible.
       if (result.suppliesGround) provisional.yieldGroundToAuthoredWorld();
+      // And it owns where each background layer sits, if he has placed them.
+      // Before `followGroundLine`, so a layer he bottom-aligned by hand is not
+      // then dragged back onto the code's idea of the ground line.
+      if (result.background) provisional.adoptAuthoredPlacement(result.background);
       if (result.ground) {
         this.adoptAuthoredGround(result.ground, result.walls ?? []);
         provisional.followGroundLine(this.groundY);
@@ -383,6 +396,11 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       camera.startFollow(this.hero, true, 0.14, 0.14);
       camera.setDeadzone(CAMERA_DEADZONE.width, CAMERA_DEADZONE.height);
     }
+    // Every background layer is pinned to the camera, so it has to be sized in the
+    // camera's terms. The zoom fits height and lets width run, which means a window
+    // wider than 16:9 sees MORE world than FRONT_V4_VIEW.width — and a sky sized to
+    // that constant would leave a fixed bar of empty canvas down each side.
+    this.backdrop?.fitViewport(camera.width / camera.zoom, camera.height / camera.zoom);
   }
 
   private adoptAuthoredGround(
@@ -1098,6 +1116,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       },
       hitstop: { active: this.hitstop.active(), remainingMs: this.hitstop.remainingMs() },
       scatter: { lastDegraded: this.scatterReport.degraded, lastReason: this.scatterReport.reason },
+      backdrop: this.backdrop.readout(),
       authoredWorld: {
         sceneName: WORLD_SCENE,
         status: this.world?.status ?? 'pending',

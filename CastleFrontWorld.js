@@ -21,6 +21,48 @@ class CastleFrontWorld extends Phaser.Scene {
 		rEF_sky.isFilled = true;
 		rEF_sky.fillColor = 9194031;
 
+		// BG_SKY
+		const bG_SKY = this.add.tileSprite(0, 0, 4999, 720, "castle-front-sunset-sky");
+		bG_SKY.setOrigin(0, 0);
+
+		// BG_MOUNTAINS
+		const bG_MOUNTAINS = this.add.tileSprite(0, 590, 5000, 396, "castle-front-mountains-loop");
+		bG_MOUNTAINS.setOrigin(0, 1);
+		bG_MOUNTAINS.alpha = 0.82;
+		bG_MOUNTAINS.tileScaleX = 1.529;
+		bG_MOUNTAINS.tileScaleY = 1.529;
+
+		// BG_FOREST
+		const bG_FOREST = this.add.tileSprite(0, 590, 5001, 202, "castle-front-forest-loop");
+		bG_FOREST.setOrigin(0, 1);
+		bG_FOREST.alpha = 0.92;
+		bG_FOREST.tileScaleX = 1.3808;
+		bG_FOREST.tileScaleY = 1.3808;
+
+		// BG_CLOUD_BROAD
+		const bG_CLOUD_BROAD = this.add.image(90, 108, "castle-front-cloud-broad-sunset");
+		bG_CLOUD_BROAD.scaleX = 2.2442;
+		bG_CLOUD_BROAD.scaleY = 2.2442;
+		bG_CLOUD_BROAD.setOrigin(0, 0);
+
+		// BG_CLOUD_MOUND
+		const bG_CLOUD_MOUND = this.add.image(435, 281, "castle-front-cloud-mound-sunset");
+		bG_CLOUD_MOUND.scaleX = 1.9117;
+		bG_CLOUD_MOUND.scaleY = 1.9117;
+		bG_CLOUD_MOUND.setOrigin(0, 0);
+
+		// BG_CLOUD_PUFFS
+		const bG_CLOUD_PUFFS = this.add.image(794, 58, "castle-front-cloud-puffs-sunset");
+		bG_CLOUD_PUFFS.scaleX = 2.2486;
+		bG_CLOUD_PUFFS.scaleY = 2.2486;
+		bG_CLOUD_PUFFS.setOrigin(0, 0);
+
+		// BG_CLOUD_SWEEP
+		const bG_CLOUD_SWEEP = this.add.image(896, 202, "castle-front-cloud-sweep-sunset");
+		bG_CLOUD_SWEEP.scaleX = 2.3735;
+		bG_CLOUD_SWEEP.scaleY = 2.3735;
+		bG_CLOUD_SWEEP.setOrigin(0, 0);
+
 		// GROUND
 		const gROUND = this.add.rectangle(2500, 590, 5000, 130);
 		gROUND.setOrigin(0.5, 0);
@@ -58,9 +100,9 @@ class CastleFrontWorld extends Phaser.Scene {
 		gATE.fillColor = 3812415;
 
 		// REF_jelly_spawn
-		const rEF_jelly_spawn = this.add.image(660, 590, "construct-ember-jelly", 0);
-		rEF_jelly_spawn.scaleX = 2;
-		rEF_jelly_spawn.scaleY = 2;
+		const rEF_jelly_spawn = this.add.image(481, 590, "construct-ember-jelly", 0);
+		rEF_jelly_spawn.scaleX = 0.65;
+		rEF_jelly_spawn.scaleY = 0.65;
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
 
 		// WALL_bastion
@@ -73,8 +115,6 @@ class CastleFrontWorld extends Phaser.Scene {
 
 		// REF_hero_spawn
 		const rEF_hero_spawn = this.add.image(380, 590, "hero-chibi", 21);
-		rEF_hero_spawn.scaleX = 2;
-		rEF_hero_spawn.scaleY = 2;
 		rEF_hero_spawn.setOrigin(0.5, 0.986);
 
 		this.events.emit("scene-awake");

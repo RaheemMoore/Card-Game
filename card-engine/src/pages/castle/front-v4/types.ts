@@ -3,6 +3,7 @@ import type { ActionPhase } from '../combat/actionState';
 import type { SlotState } from '../combat/hand';
 import type { ConstructPhase } from '../combat/construct';
 import type { JellyMode } from './jellyController';
+import type { BackdropReadout } from './backdrop';
 
 /**
  * The contracts the React host, the dev bridge and the scene agree on.
@@ -101,6 +102,14 @@ export interface FrontV4Snapshot {
   hitstop: { active: boolean; remainingMs: number };
   scatter: { lastDegraded: boolean; lastReason: string | null };
   /**
+   * What the parallax is doing, which a screenshot cannot show.
+   *
+   * A background scrolling at the wrong rate photographs identically to one
+   * scrolling at the right rate, so this is the only way to check it without a
+   * human watching. See `BackdropReadout`.
+   */
+  backdrop: BackdropReadout;
+  /**
    * The Phaser Editor world, if one has been authored.
    *
    * `absent` is the normal state until Raheem has placed something, and it is
@@ -160,6 +169,7 @@ export const FRONT_V4_SCENARIOS = [
   'castle-front-v4-combat-loop',
   'castle-front-v4-jelly-leap-evade',
   'castle-front-v4-scatter-recover',
+  'castle-front-v4-parallax',
 ] as const;
 
 export type FrontV4ScenarioName = (typeof FRONT_V4_SCENARIOS)[number];

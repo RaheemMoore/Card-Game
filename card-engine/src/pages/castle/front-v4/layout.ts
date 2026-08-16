@@ -35,10 +35,23 @@
  */
 export const DEPTH = {
   sky: 0,
-  /** Between the sky and the land: the one plane that moves on its own. */
-  clouds: 1,
-  hills: 2,
-  /** The near tree line, in front of the mountains and behind the castle. */
+  /**
+   * The mountain line. Furthest land, so it sits directly on the sky.
+   *
+   * Named `hills` because a code-drawn ridge stood here before the real art
+   * existed; the slot is the same one and renaming it would touch every call site
+   * for no gain.
+   */
+  hills: 1,
+  /**
+   * Clouds fly BETWEEN the mountains and the tree line, which looks wrong written
+   * down and is right on screen: a cloud passing in front of a distant peak is
+   * ordinary, and a cloud hidden behind one reads as a hole in the sky. They were
+   * behind the mountains until the real art arrived, when the mountains stopped
+   * being a flat silhouette and started having summits for clouds to cross.
+   */
+  clouds: 2,
+  /** The near tree line, in front of the clouds and behind the castle. */
   trees: 3,
   castle: 4,
   ground: 6,
@@ -84,17 +97,47 @@ export const FRONT_V4_VIEW = { width: 1280, height: 720 } as const;
  * Kept here rather than in the backdrop so the code-drawn stand-in and Raheem's
  * generated plates use the SAME numbers — otherwise swapping his art in would
  * silently change how far away the world feels.
+ *
+ * THESE NUMBERS ARE ADOPTED, NOT INVENTED, and they are a contract rather than a
+ * set of sliders. They come with the background package (see
+ * `background/background-manifest.json`, `motion`), which took them from Godot's
+ * documented parallax stack — forest .7, hills .5, clouds .3 and .2 — because a
+ * ratio somebody shipped and tuned against real art beats a ratio that felt about
+ * right in an afternoon. The art was BUILT to these: the mountain and forest strips
+ * are drawn at the density that reads correctly when moving at half and
+ * seven-tenths of the camera. Changing one here without regenerating its plate
+ * changes how fast the world goes past, not how far away it looks.
+ *
+ * The previous values (.25 / .55) predate any art and were guesses.
  */
 export const PARALLAX = {
   /** Sky: pinned to the camera. A sky that slides is a sky you can see the edge of. */
   sky: 0,
-  /** Far hills: a slow drift, enough to read as movement without reading as nearby. */
-  far: 0.25,
-  /** Near scenery, once it exists. */
-  near: 0.55,
+  /** High clouds — the ones nearly as far off as the sky itself. */
+  cloudHigh: 0.2,
+  /** Low clouds, closer in, crossing the frame noticeably faster than the high ones. */
+  cloudLow: 0.3,
+  /** The mountain line. */
+  mountains: 0.5,
+  /** The near tree line: the last thing between the player and the distance. */
+  forest: 0.7,
   /** The ground and everything standing on it. */
   gameplay: 1,
 } as const;
+
+/**
+ * How fast a cloud crosses the sky with NOBODY WALKING, in world units per second.
+ *
+ * This is the whole difference between a sky and a painting of a sky, and it is
+ * deliberately a second, independent motion source rather than a bigger parallax
+ * number: parallax is a response to the camera and dies the instant the player
+ * stops, so a cloud that only had parallax would freeze mid-air every time he stood
+ * still. Wind and parallax simply add, so walking gives both and neither needs to
+ * know about the other.
+ *
+ * 12 is from the background package's motion contract.
+ */
+export const CLOUD_WIND_PX_PER_SEC = 12;
 
 /** The canonical contact line. Feet, jelly undersides and landed cards all sit here. */
 export const GROUND_Y = 590;
