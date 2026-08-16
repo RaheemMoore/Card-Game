@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
 import { DEPTH } from './layout';
+import {
+  AUTHORED_GROUND_LABEL,
+  EDITOR_ONLY_PREFIX,
+  parseAuthoredLabels,
+} from './worldLabels';
 
 /**
  * Loads the world Raheem places in Phaser Editor.
@@ -40,8 +45,12 @@ export interface WorldLoadResult {
   sceneName: string;
   /** How many textures were pulled in for it. */
   texturesLoaded: number;
-  /** How many game objects the authored scene contributed. */
+  /** How many game objects the authored scene contributed, after stripping refs. */
   objects?: number;
+  /** Labels in creation order, refs included. For the dev readout. */
+  labels?: string[];
+  /** True when the authored scene supplies the ground, so code should not. */
+  suppliesGround?: boolean;
   message?: string;
 }
 
@@ -103,7 +112,27 @@ export async function loadEditorWorld(
     // apart from the backdrop and the actors afterwards.
     const before = new Set(scene.children.list);
     editorCreate.call(scene);
-    const authored = scene.children.list.filter((child) => !before.has(child));
+    let authored = scene.children.list.filter((child) => !before.has(child));
+
+    // Strip the editor-only reference art. Positional: the labels are emitted one
+    // per object in creation order (see parseAuthoredLabels). If the counts ever
+    // disagree — a nested container, a change in the Editor's output — nothing is
+    // stripped and it says so, because removing the WRONG object from someone's
+    // level is far worse than leaving a ghost visible.
+    const labels = parseAuthoredLabels(source);
+    if (labels.length === authored.length) {
+      const kept: typeof authored = [];
+      authored.forEach((child, i) => {
+        if (labels[i].startsWith(EDITOR_ONLY_PREFIX)) child.destroy();
+        else kept.push(child);
+      });
+      authored = kept;
+    } else if (labels.some((l) => l.startsWith(EDITOR_ONLY_PREFIX))) {
+      console.warn(
+        `[front-v4] ${sceneName}: ${labels.length} labels for ${authored.length} objects — ` +
+          `leaving ${EDITOR_ONLY_PREFIX}* reference objects in place rather than guessing which they are.`,
+      );
+    }
 
     // THE DEPTH OFFSET, and it is the difference between placement working and
     // appearing to do nothing. Phaser Editor hands a new object depth 0, which in
@@ -118,7 +147,14 @@ export async function loadEditorWorld(
         withDepth.setDepth(DEPTH.world + (withDepth.depth ?? 0));
       }
     }
-    return { status: 'loaded', sceneName, texturesLoaded, objects: authored.length };
+    return {
+      status: 'loaded',
+      sceneName,
+      texturesLoaded,
+      objects: authored.length,
+      labels,
+      suppliesGround: labels.includes(AUTHORED_GROUND_LABEL),
+    };
   } catch (error) {
     return { ...empty('failed', String(error)), texturesLoaded };
   }

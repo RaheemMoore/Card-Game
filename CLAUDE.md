@@ -307,7 +307,12 @@ shelf lost detail). That is the price of a real game asset, and it is worth it.
 
   Verification runs through `window.__CARD_ENGINE_FRONT_V4_STUDIO__` (DEV only) — `getSnapshot()`, `commands.*` and three named scenarios — rather than synthesised input, because the preview pane holds the mouse button down and cannot play the game. Never run two scenarios at once; the bridge refuses, having once produced five confident and entirely bogus failures that way.
 
-  **Raheem places the world in Phaser Editor.** `worldLoader.ts` fetches a compiled Editor scene from `/editor-scenes/<Name>.js` and runs its `editorCreate()` over the live scene; absence is the normal state and never blocks booting. Background plates drop into `public/assets/castle/front-v4/{sky,background}.png` and replace the code-drawn stand-in with no code change. **Nothing is placed until it exists at the right angle** — see the angle spec.
+  **Raheem places the world in Phaser Editor**, in `CastleFrontWorld.scene` at the repo root (NOT `game/dist/editor-scenes/`, which is build output and gets wiped). `worldLoader.ts` fetches the compiled `/editor-scenes/<Name>.js` and runs its `editorCreate()` over the live scene; absence is the normal state and never blocks booting. Two conventions make the Editor what-you-see-is-what-you-get:
+
+  - **`REF_*`** — objects whose label starts with this are **editor-only** and are destroyed before the first frame. That is how the hero and the creature can be visible for judging scale without the game drawing a second, static ghost of each. Identified by parsing labels out of the compiled source in creation order (`worldLabels.ts` — the compiler writes them as comments and never as `.name`), and if the counts ever disagree it strips **nothing** and says so, because deleting the wrong object from a level is worse than a visible ghost.
+  - **`GROUND`** — an object with this label means the authored scene supplies the ground and castle, so the code-drawn stand-ins for those are dropped. The sky's gradient and the hills' curves stay in code regardless: a rectangle cannot be either.
+
+  Authored objects are depth-offset by `DEPTH.world`, because Phaser Editor hands a new object depth 0 — which in this scene is the **sky**, so an un-offset placement renders behind the backdrop and the Editor looks broken. Background plates drop into `public/assets/castle/front-v4/{sky,background}.png`. **Nothing is placed until it exists at the right angle** — see the angle spec.
 - **Phase 4: PvP Battles + Trading** — NOT STARTED.
 
 Do NOT proceed to real-money bundle sales without landing the rest of Phase 2 (§9 production security prerequisites in the economy plan).

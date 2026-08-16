@@ -9,39 +9,115 @@
     "displayList": [
         {
             "type": "Rectangle",
-            "id": "5f47b38d-cb07-45f3-bc4b-454d30166692",
-            "label": "PLACEHOLDER_block_left",
-            "x": 240,
-            "y": 590,
-            "originY": 1,
+            "id": "e8570b8c-c9cc-4095-8a22-cb8a7c355308",
+            "label": "REF_sky",
+            "x": 640,
+            "y": 295,
             "isFilled": true,
-            "fillColor": "#4a3a5c",
-            "width": 90,
+            "fillColor": "#8c4a2f",
+            "width": 1280,
+            "height": 590
+        },
+        {
+            "type": "Rectangle",
+            "id": "5f47b38d-cb07-45f3-bc4b-454d30166692",
+            "label": "GROUND",
+            "x": 640,
+            "y": 590,
+            "originY": 0,
+            "isFilled": true,
+            "fillColor": "#3d2a1f",
+            "width": 1280,
             "height": 130
         },
         {
             "type": "Rectangle",
             "id": "b25d99fe-5d5f-482b-b5b2-63dad3c8bd95",
-            "label": "PLACEHOLDER_block_mid",
-            "x": 760,
+            "label": "GROUND_LIP",
+            "x": 640,
             "y": 590,
-            "originY": 1,
+            "originY": 0,
             "isFilled": true,
-            "fillColor": "#5c4436",
-            "width": 120,
-            "height": 70
+            "fillColor": "#6b4a33",
+            "width": 1280,
+            "height": 7
         },
         {
             "type": "Rectangle",
             "id": "75d88d59-4d2c-4b43-95ae-7ed11c730726",
-            "label": "PLACEHOLDER_block_right",
-            "x": 1080,
+            "label": "WALL_LEFT",
+            "x": 145,
             "y": 590,
             "originY": 1,
             "isFilled": true,
-            "fillColor": "#4a3a5c",
-            "width": 70,
-            "height": 190
+            "fillColor": "#241c2c",
+            "width": 370,
+            "height": 290
+        },
+        {
+            "type": "Rectangle",
+            "id": "080158b7-3323-4b0c-9cd8-59a212b81dc0",
+            "label": "WALL_TOWER_A",
+            "x": 43,
+            "y": 590,
+            "originY": 1,
+            "isFilled": true,
+            "fillColor": "#241c2c",
+            "width": 86,
+            "height": 414
+        },
+        {
+            "type": "Rectangle",
+            "id": "2dba5472-c2b1-475c-af0f-fcff844ac4ae",
+            "label": "WALL_TOWER_B",
+            "x": 287,
+            "y": 590,
+            "originY": 1,
+            "isFilled": true,
+            "fillColor": "#241c2c",
+            "width": 86,
+            "height": 414
+        },
+        {
+            "type": "Rectangle",
+            "id": "38ab1e48-7e77-4fe2-8f4f-e93ac5859994",
+            "label": "GATE",
+            "x": 176,
+            "y": 590,
+            "originY": 1,
+            "isFilled": true,
+            "fillColor": "#3a2c3f",
+            "width": 104,
+            "height": 218
+        },
+        {
+            "type": "Image",
+            "id": "3f98b626-b6ff-4ec3-8d72-d7c66bce95ff",
+            "label": "REF_hero_spawn",
+            "texture": {
+                "key": "hero-chibi",
+                "frame": 21
+            },
+            "x": 380,
+            "y": 590,
+            "scaleX": 2,
+            "scaleY": 2,
+            "originY": 0.986
+        },
+        {
+            "type": "Image",
+            "id": "6f023c8f-2de6-45cf-9479-bbe6bef51244",
+            "label": "REF_jelly_spawn",
+            "texture": {
+                "key": "construct-ember-jelly",
+                "frame": 0
+            },
+            "x": 660,
+            "y": 590,
+            "scaleX": 2,
+            "scaleY": 2,
+            "originX": 0.571,
+            "originY": 0.926
         }
     ],
     "plainObjects": [],

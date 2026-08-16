@@ -38,8 +38,22 @@ export const BACKDROP_SLOTS = {
   scenery: { key: 'front-v4-scenery', path: '/assets/castle/front-v4/background.png' },
 } as const;
 
-export function paintProvisionalBackdrop(scene: Phaser.Scene): void {
+export interface ProvisionalBackdrop {
+  /**
+   * Drop the ground and castle stand-ins, because the authored Editor scene
+   * supplies them.
+   *
+   * Only those two: the sky's gradient and the hills' curves are things a
+   * rectangle cannot be, so they stay in code whatever the Editor contains.
+   * Called after the world loads — which is asynchronous, so the stand-ins are
+   * painted first and removed a frame or two later rather than being predicted.
+   */
+  yieldGroundToAuthoredWorld(): void;
+}
+
+export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdrop {
   const { width, height } = FRONT_V4_VIEW;
+  const groundAndCastle: Phaser.GameObjects.GameObject[] = [];
 
   // A supplied plate replaces its whole layer, stretched to the authored 16:9
   // frame — the composition is fixed and letterboxed, so the plate is authored
@@ -60,9 +74,14 @@ export function paintProvisionalBackdrop(scene: Phaser.Scene): void {
       .setDepth(DEPTH.hills);
   } else {
     paintHills(scene);
-    paintCastle(scene);
-    paintGround(scene);
+    groundAndCastle.push(...paintCastle(scene), paintGround(scene));
   }
+
+  return {
+    yieldGroundToAuthoredWorld() {
+      for (const object of groundAndCastle.splice(0)) object.destroy();
+    },
+  };
 }
 
 function paintSky(scene: Phaser.Scene) {
@@ -110,7 +129,7 @@ function paintHills(scene: Phaser.Scene) {
   ridge(300, DUSK.hillNear, 34, (x) => 22 * Math.sin(x / 120 + 1.4));
 }
 
-function paintCastle(scene: Phaser.Scene) {
+function paintCastle(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
   const c = CASTLE_SILHOUETTE;
   const g = scene.add.graphics().setDepth(DEPTH.castle);
 
@@ -147,7 +166,7 @@ function paintCastle(scene: Phaser.Scene) {
 
   // Says so on the page, so a screenshot of this can never be mistaken for art
   // that somebody approved.
-  scene.add
+  const label = scene.add
     .text(c.gate.centerX, c.wallTopY - 44, 'CASTLE — provisional silhouette', {
       fontFamily: 'monospace',
       fontSize: '13px',
@@ -156,9 +175,11 @@ function paintCastle(scene: Phaser.Scene) {
     .setOrigin(0.5)
     .setAlpha(0.55)
     .setDepth(DEPTH.castle);
+
+  return [g, label];
 }
 
-function paintGround(scene: Phaser.Scene) {
+function paintGround(scene: Phaser.Scene): Phaser.GameObjects.GameObject {
   const { width, height } = FRONT_V4_VIEW;
   const g = scene.add.graphics().setDepth(DEPTH.ground);
   g.fillStyle(DUSK.groundBody, 1);
@@ -168,6 +189,7 @@ function paintGround(scene: Phaser.Scene) {
   // single most important line in a side view.
   g.fillStyle(DUSK.groundTop, 1);
   g.fillRect(0, GROUND_Y, width, 7);
+  return g;
 }
 
 /** Blend two packed RGB colours. Used only for the provisional sky. */

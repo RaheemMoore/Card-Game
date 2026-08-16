@@ -281,7 +281,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     this.motion = prefersReducedMotion() ? 'off' : 'full';
     this.hitstop = createHitstop(this);
 
-    paintProvisionalBackdrop(this);
+    const provisional = paintProvisionalBackdrop(this);
     this.registerAnimations();
     this.buildActors();
     this.bindInput();
@@ -292,6 +292,9 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     // delays nothing. Placement is Raheem's, in Phaser Editor; see worldLoader.
     void loadEditorWorld(this, WORLD_SCENE).then((result) => {
       this.world = result;
+      // The authored scene owns the ground and the castle once it has them, so
+      // the stand-ins go rather than sitting underneath being invisible.
+      if (result.suppliesGround) provisional.yieldGroundToAuthoredWorld();
       if (result.status === 'failed') {
         this.errors.push(`world ${result.sceneName}: ${result.message}`);
         console.error('[front-v4] authored world failed to load', result);
