@@ -239,7 +239,24 @@
             },
             "x": 380,
             "y": 590,
+            "scaleX": 1.5,
+            "scaleY": 1.5,
             "originY": 0.986
+        },
+        {
+            "type": "Sprite",
+            "id": "694d1736-b715-4d66-8501-eacaa0c307ed",
+            "label": "LIVE_PROOF_delete_me",
+            "texture": {
+                "key": "construct-ember-jelly",
+                "frame": 0
+            },
+            "x": 1500,
+            "y": 578,
+            "scaleX": 0.8,
+            "scaleY": 0.8,
+            "originX": 0.571,
+            "originY": 0.926
         }
     ],
     "plainObjects": [],

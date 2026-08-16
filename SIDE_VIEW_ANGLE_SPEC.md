@@ -89,10 +89,39 @@ batch, and the wall kit that would not tile).
 | 6 | **Hero summon slam**, side profile | character route, `side` | ~8 |
 | 7 | **Keepers / NPCs** (Card-wright dwarf, Archivist) | character route, `side` | ~25 each — and note their original seeds were never recorded, so these are new characters rather than re-rolls |
 
-Sky and parallax backdrops are **not** on this list: Raheem is generating those
-himself in the bg-harness workstream. The scene reads them from
-`public/assets/castle/front-v4/sky.png` and `background.png` the moment they land,
-with no code change.
+Sky and parallax backdrops are **not** on this list: Raheem generated those himself
+in the bg-harness workstream, and they shipped 2026-08-16 — a fixed sunset plate,
+seamless mountain and forest loops, and four cloud actors, all in the `castle-front`
+kit and placed from Phaser Editor as `BG_*` objects.
+
+## Background life — the castle as a scene you run past
+
+Raheem, 2026-08-16, with Wonder Boy on screen: the castle stays WEST and the
+entrance stays west, closed by a hard wall. Running east is *leaving*, out into the
+countryside. So the castle is not the level's destination — it is a **big living
+scene you run past on the way to its door**, with workers tending it and a farm
+being managed outside while the fight happens in front. *"Add life that's gonna
+give us a little bit flexibility."*
+
+Almost none of this needed engine work, which was the surprise. An object dragged
+into the Editor already lands behind the hero (`DEPTH.world` is 7, the hero is 12)
+and already has no collision unless it is a `WALL*` or the `GROUND`. A whole castle
+could go back there today. The only thing missing was motion — **a worker who does
+not move is a statue** — so one label was added:
+
+- **`LIVE_*`** — plays its texture's `<key>-loop` animation, forever, from the first
+  frame. No trigger, no state, no proximity: ambient is what scenery *is*, and the
+  moment it needs logic it has stopped being scenery. It must be a **Sprite** in the
+  Editor, not an Image; an Image has no `anims` and simply shows its first frame.
+  A missing loop is not an error — art and animation land in separate runs.
+
+The snapshot reports `authoredWorld.live` as `{placed, animating}`. Both numbers,
+because **a castle full of statues photographs exactly like a castle full of
+workers** and the gap between them is the only way to tell without standing there.
+
+Art for it is the shopping list above, ordered one piece at a time: castle
+elevation (modular, so it can be damaged later), a farm strip, one worker, then
+animated dressing. Everything still passes the one-second test before it is placed.
 
 ## Until the art exists
 

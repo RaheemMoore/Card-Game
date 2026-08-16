@@ -1194,6 +1194,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         sceneName: WORLD_SCENE,
         status: this.world?.status ?? 'pending',
         texturesLoaded: this.world?.texturesLoaded ?? 0,
+        live: this.world?.live ?? { placed: 0, animating: 0 },
         message: this.world?.message ?? null,
       },
       errors: [...this.errors],

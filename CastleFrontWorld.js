@@ -115,7 +115,15 @@ class CastleFrontWorld extends Phaser.Scene {
 
 		// REF_hero_spawn
 		const rEF_hero_spawn = this.add.image(380, 590, "hero-chibi", 21);
+		rEF_hero_spawn.scaleX = 1.5;
+		rEF_hero_spawn.scaleY = 1.5;
 		rEF_hero_spawn.setOrigin(0.5, 0.986);
+
+		// LIVE_PROOF_delete_me
+		const lIVE_PROOF_delete_me = this.add.sprite(1500, 578, "construct-ember-jelly", 0);
+		lIVE_PROOF_delete_me.scaleX = 0.8;
+		lIVE_PROOF_delete_me.scaleY = 0.8;
+		lIVE_PROOF_delete_me.setOrigin(0.571, 0.926);
 
 		this.events.emit("scene-awake");
 	}

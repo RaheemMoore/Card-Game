@@ -69,6 +69,46 @@ export const WALL_PREFIX = 'WALL';
 export const BACKGROUND_PREFIX = 'BG_';
 
 /**
+ * A placed object that MOVES ON ITS OWN — the castle's life.
+ *
+ * Raheem, 2026-08-16, looking at Wonder Boy: he wants the castle to stop being a
+ * wall you spawn beside and become *"a big scene"* you run past on your way to the
+ * entrance — workers tending it, a farm being managed outside it, things happening
+ * back there while you fight in front. *"Add life that's gonna give us a little bit
+ * flexibility."*
+ *
+ * Almost none of that needed new engine work, which was the surprise: an object he
+ * drags into the Editor already lands at `DEPTH.world`, already draws BEHIND the
+ * hero, and already has no collision unless it is a `WALL` or the `GROUND`. He
+ * could put a whole castle back there today. The one thing missing was motion — a
+ * worker who does not move is a statue, and a banner that does not ripple is a
+ * sticker.
+ *
+ * So this label means: whatever animation belongs to this object's texture, play
+ * it, loop it, forever. No trigger, no state, no proximity — background life is
+ * ambient by definition, and the moment it needs logic it stops being scenery and
+ * becomes a character, which is a different thing with a different file.
+ *
+ * A `LIVE_*` object whose texture has no animation is NOT an error. It draws its
+ * static frame and says nothing. Art and animation arrive in separate runs — often
+ * days apart, since PixelLab charges per direction — and a scene that refused to
+ * boot because a banner had not been animated yet would make the pipeline worse
+ * for no protection.
+ */
+export const LIVE_PREFIX = 'LIVE_';
+
+/**
+ * The animation a `LIVE_*` object looks for, given its texture key.
+ *
+ * One clip per texture, by convention, because ambient scenery has no states to
+ * switch between. A worker who both hammers and rests is two objects or a longer
+ * loop, not a state machine.
+ */
+export function liveClipKey(textureKey: string): string {
+  return `${textureKey}-loop`;
+}
+
+/**
  * The two `REF_*` markers that are ALSO configuration.
  *
  * They started as pure reference art — a hero and a creature to judge a wall

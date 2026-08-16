@@ -120,6 +120,14 @@ export interface FrontV4Snapshot {
     sceneName: string;
     status: 'loaded' | 'absent' | 'failed' | 'pending';
     texturesLoaded: number;
+    /**
+     * `LIVE_*` scenery: how much was placed, and how much is actually moving.
+     *
+     * A castle full of statues photographs exactly like a castle full of workers.
+     * The gap between these two numbers is the only way to tell them apart without
+     * standing there watching it.
+     */
+    live: { placed: number; animating: number };
     message: string | null;
   };
   errors: string[];
