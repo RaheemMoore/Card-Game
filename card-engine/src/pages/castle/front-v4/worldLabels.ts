@@ -68,6 +68,26 @@ export const WALL_PREFIX = 'WALL';
  */
 export const BACKGROUND_PREFIX = 'BG_';
 
+/**
+ * The two `REF_*` markers that are ALSO configuration.
+ *
+ * They started as pure reference art — a hero and a creature to judge a wall
+ * against — and were destroyed before the first frame like every other `REF_`.
+ * That turned out to be the wrong call. Raheem, 2026-08-16, after halving the hero
+ * and shrinking the creature in the Editor and seeing nothing change: *"in my
+ * brain, that's where the game is loading from. Is that not what's happening?"*
+ *
+ * It was: his file was read, those two objects were found, and then deleted, and
+ * the game drew its own pair at a size written in `layout.ts`. He was editing a
+ * photograph of the game. So they are still destroyed — the game must not draw a
+ * frozen second copy of a hero who walks — but their POSITION and SCALE are read
+ * off them first and become where each actor spawns and how big it is drawn.
+ */
+export const ACTOR_MARKERS = {
+  hero: 'REF_hero_spawn',
+  jelly: 'REF_jelly_spawn',
+} as const;
+
 /** The authored layer labels the backdrop knows how to adopt. */
 export const BACKGROUND_LABELS = {
   sky: 'BG_SKY',

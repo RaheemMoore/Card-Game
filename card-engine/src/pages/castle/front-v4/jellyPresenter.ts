@@ -42,23 +42,46 @@ export interface JellyView {
   destroy(): void;
 }
 
-export function createJellyView(scene: Phaser.Scene, spawnX: number): JellyView {
+/**
+ * @param spriteScale how big the creature is drawn. Defaults to `SPRITE_SCALE`,
+ *   and is overridden by whatever Raheem set on `REF_jelly_spawn` in the Editor.
+ *
+ *   The shadow and the landing ring take it as a RATIO against `SPRITE_SCALE`,
+ *   because their pixel sizes below were chosen to look right at that scale — a
+ *   smaller creature casts a smaller shadow and commits to a smaller patch of
+ *   ground, and leaving either at full size would have the tell claiming a
+ *   footprint the creature does not occupy.
+ *
+ *   The health bar deliberately does NOT scale. It is readability furniture, and a
+ *   bar that shrinks with the monster is one you cannot read on a small one.
+ */
+export function createJellyView(
+  scene: Phaser.Scene,
+  spawnX: number,
+  spriteScale: number = SPRITE_SCALE,
+): JellyView {
   registerClips(scene);
 
-  const shadow = scene.add.ellipse(spawnX, GROUND_Y, 74, 18, 0x000000, 0.34).setDepth(DEPTH.shadow);
+  // Everything sized in pixels below was drawn against SPRITE_SCALE, so an
+  // authored scale enters as a ratio rather than as an absolute multiplier.
+  const sizeRatio = spriteScale / SPRITE_SCALE;
+
+  const shadow = scene.add
+    .ellipse(spawnX, GROUND_Y, 74 * sizeRatio, 18 * sizeRatio, 0x000000, 0.34)
+    .setDepth(DEPTH.shadow);
   const tell = scene.add
-    .ellipse(spawnX, GROUND_Y, 104, 28, 0xff7a3c, 0.5)
+    .ellipse(spawnX, GROUND_Y, 104 * sizeRatio, 28 * sizeRatio, 0xff7a3c, 0.5)
     .setDepth(DEPTH.tell)
     .setVisible(false);
   const body = scene.add
     .sprite(spawnX, GROUND_Y, JELLY_SHEET.key, 0)
     .setOrigin(JELLY_ANCHOR_X, JELLY_ANCHOR)
-    .setScale(SPRITE_SCALE)
+    .setScale(spriteScale)
     .setDepth(DEPTH.jelly);
   const overlay = scene.add
     .sprite(spawnX, GROUND_Y, JELLY_SHEET.key, 0)
     .setOrigin(JELLY_ANCHOR_X, JELLY_ANCHOR)
-    .setScale(SPRITE_SCALE)
+    .setScale(spriteScale)
     .setDepth(DEPTH.jellyFlash)
     .setTintFill(0xffffff)
     .setAlpha(0);
@@ -121,7 +144,10 @@ export function createJellyView(scene: Phaser.Scene, spawnX: number): JellyView 
       const ratio = Phaser.Math.Clamp(construct.hp / CONSTRUCT_TUNING.maxHp, 0, 1);
       // Close over the body rather than floating above it: at 18 units clear of an
       // 82-unit creature the bar read as an unrelated stick hanging in the air.
-      const barY = y - JELLY_BODY.heightPx - 9;
+      // Against the SCALED body, not the constant: the bar sits above the
+      // creature's head, and a smaller creature has a lower head. Left at
+      // JELLY_BODY it floated where the old, larger version used to be.
+      const barY = y - JELLY_BODY.heightPx * sizeRatio - 9;
       hpBack.setPosition(x, barY).setVisible(alive);
       hpFill
         .setPosition(x - 40 + 40 * ratio, barY)

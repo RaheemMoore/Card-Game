@@ -184,6 +184,28 @@ export const HERO_BODY = {
 /** Where his feet sit in the frame: 2 rows of padding below them, same reason as JELLY_ANCHOR. */
 export const HERO_ANCHOR_Y = 70 / 71;
 
+/**
+ * Re-measure a body for an actor drawn at a different scale.
+ *
+ * THE BODIES BELOW ARE STATED AT `SPRITE_SCALE`, and Raheem now sets the actual
+ * scale in Phaser Editor — he halved the hero and took the creature to 0.65 on
+ * 2026-08-16. A collider left at the old size is the worst kind of wrong: the
+ * picture is right, so the bug presents as the game being unfair rather than as
+ * anything visibly broken. Everything derived from a body — how close he can get,
+ * how wide the leap's hitbox is, how far a scattered card must clear it — has to
+ * move with the art.
+ *
+ * A pure ratio, deliberately. The measurements were taken off the sheets by hand
+ * (see `HERO_BODY`), so the only honest transformation is the same scaling the
+ * renderer applies; anything cleverer would be inventing a body nobody measured.
+ */
+export function bodyAtScale<T extends Record<string, number>>(body: T, scale: number): T {
+  const ratio = scale / SPRITE_SCALE;
+  const out = {} as Record<string, number>;
+  for (const [key, value] of Object.entries(body)) out[key] = value * ratio;
+  return out as T;
+}
+
 export const JELLY_BODY = {
   /** Half of the 41-unit blob at scale. Mid-hop it reaches 45; resting is the honest figure. */
   halfWidthPx: 41,

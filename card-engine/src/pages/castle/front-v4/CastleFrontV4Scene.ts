@@ -61,7 +61,6 @@ import {
   type ConstructPhase,
 } from '../combat/construct';
 import {
-  JELLY_TARGET_RADIUS,
   type JellyWorld,
   forceJellyPhase,
   initialJelly,
@@ -71,7 +70,7 @@ import {
   stepJelly,
   type JellyState,
 } from './jellyController';
-import { blockGroundedApproach } from './jellyLeap';
+import { LEAP_TUNING, blockGroundedApproach, leapTuningFor, type LeapTuning } from './jellyLeap';
 import {
   applyKnockback,
   initialPlayer,
@@ -97,6 +96,7 @@ import {
   JELLY_SPAWN_X,
   PICKUP_RADIUS_PX,
   SPRITE_SCALE,
+  bodyAtScale,
   CAMERA_DEADZONE,
   SCATTER_WINDOW_PX,
   LEVEL_EDGE_MARGIN,
@@ -108,7 +108,8 @@ import {
   type ProvisionalBackdrop,
 } from './backdrop';
 import { createJellyView, type JellyView } from './jellyPresenter';
-import { loadEditorWorld, type WorldLoadResult } from './worldLoader';
+import { ACTOR_MARKERS } from './worldLabels';
+import { loadEditorWorld, type AuthoredActor, type WorldLoadResult } from './worldLoader';
 import {
   FRONT_V4_EVENTS,
   type FixtureCard,
@@ -181,6 +182,22 @@ interface LiveCard {
 
 export class CastleFrontV4Scene extends Phaser.Scene {
   // ---- simulation -------------------------------------------------------
+  /**
+   * ACTOR SIZE AND SPAWN COME FROM THE EDITOR, and these are only the fallback.
+   *
+   * Raheem sets both on `REF_hero_spawn` / `REF_jelly_spawn`; `adoptAuthoredActors`
+   * replaces every field below the moment the world lands. They stay as defaults
+   * because the scene has to be playable before that — and because a marker he has
+   * not touched should keep the size the art was measured at, not collapse to 1.
+   */
+  private heroScale = SPRITE_SCALE;
+  private jellyScale = SPRITE_SCALE;
+  private heroBody = HERO_BODY;
+  private jellyBody = JELLY_BODY;
+  private leapTuning: LeapTuning = LEAP_TUNING;
+  private heroSpawnX = HERO_SPAWN_X;
+  private jellySpawnX = JELLY_SPAWN_X;
+
   private player: PlayerState = initialPlayer(HERO_SPAWN_X);
   private action: ActionState = initialAction();
   private hand: Hand = handFromCards(FIXTURE_CARDS.map((c) => c.cardId));
@@ -337,6 +354,9 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       // Before `followGroundLine`, so a layer he bottom-aligned by hand is not
       // then dragged back onto the code's idea of the ground line.
       if (result.background) provisional.adoptAuthoredPlacement(result.background);
+      // Before the ground is adopted, so the arena is inset by the hero's REAL
+      // half-width rather than by the one he had a frame ago.
+      if (result.actors) this.adoptAuthoredActors(result.actors);
       if (result.ground) {
         this.adoptAuthoredGround(result.ground, result.walls ?? []);
         provisional.followGroundLine(this.groundY);
@@ -377,6 +397,47 @@ export class CastleFrontV4Scene extends Phaser.Scene {
    * rather than letting him wonder.
    */
   /** The strip of world the creature lives in, at the CURRENT ground line. */
+  /**
+   * Take the actor size and spawn Raheem set in Phaser Editor.
+   *
+   * SIZE IS NOT COSMETIC, which is the whole reason this is more than assigning a
+   * scale to a sprite. Halving the hero halves the body a leap has to clear and
+   * halves how close he may stand; shrinking the creature narrows its hitbox, its
+   * landing footprint and the strip of ground a scattered card must avoid. Every
+   * one of those is derived here so the picture and the rules cannot drift apart —
+   * a collider left behind at the old size makes the game feel unfair while
+   * looking perfectly correct, which is the hardest kind of bug to be told about.
+   *
+   * The actors are already standing when this arrives, so it re-seats them through
+   * the ordinary reset rather than nudging each one.
+   */
+  private adoptAuthoredActors(actors: Record<string, AuthoredActor>) {
+    const hero = actors[ACTOR_MARKERS.hero];
+    const jelly = actors[ACTOR_MARKERS.jelly];
+    if (!hero && !jelly) return;
+
+    if (hero) {
+      this.heroSpawnX = hero.x;
+      this.heroScale = hero.scale;
+      this.heroBody = bodyAtScale(HERO_BODY, hero.scale);
+    }
+    if (jelly) {
+      this.jellySpawnX = jelly.x;
+      this.jellyScale = jelly.scale;
+      this.jellyBody = bodyAtScale(JELLY_BODY, jelly.scale);
+    }
+    this.leapTuning = leapTuningFor(this.jellyBody, this.heroBody);
+
+    // Rebuilt rather than rescaled: the shadow, the telegraph ring and the flash
+    // overlay are all sized at construction, and reaching in to adjust four
+    // objects is how one of them gets forgotten.
+    this.jellyView.destroy();
+    this.jellyView = createJellyView(this, this.jellySpawnX, this.jellyScale);
+    const heroSizeRatio = this.heroScale / SPRITE_SCALE;
+    this.hero.setScale(this.heroScale);
+    this.heroShadow.setSize(46 * heroSizeRatio, 12 * heroSizeRatio);
+  }
+
   private jellyWorld(): JellyWorld {
     return { minX: this.arena.minX, maxX: this.arena.maxX, groundY: this.groundY };
   }
@@ -411,8 +472,8 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     // longer; there is no separate length to remember to update. The walkable
     // strip is inset by the hero's own half-width so he stops with both feet on
     // the floor rather than half over the edge.
-    let minX = ground.minX + HERO_BODY.halfWidthPx;
-    let maxX = ground.maxX - HERO_BODY.halfWidthPx;
+    let minX = ground.minX + this.heroBody.halfWidthPx;
+    let maxX = ground.maxX - this.heroBody.halfWidthPx;
 
     // Then the walls close it in. Which end a wall belongs to is decided by its
     // CENTRE against the spawn, not by its name — so the castle at the west and
@@ -422,8 +483,8 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     // spawn, which an edge test reads as "neither side" and silently ignores.
     for (const wall of walls) {
       const centre = (wall.left + wall.right) / 2;
-      if (centre < HERO_SPAWN_X) minX = Math.max(minX, wall.right + HERO_BODY.halfWidthPx);
-      else maxX = Math.min(maxX, wall.left - HERO_BODY.halfWidthPx);
+      if (centre < this.heroSpawnX) minX = Math.max(minX, wall.right + this.heroBody.halfWidthPx);
+      else maxX = Math.min(maxX, wall.left - this.heroBody.halfWidthPx);
     }
     const movedLine = Math.abs(ground.y - this.groundY) >= 0.5;
     const movedEdges = Math.abs(minX - this.arena.minX) >= 1 || Math.abs(maxX - this.arena.maxX) >= 1;
@@ -496,16 +557,17 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   }
 
   private buildActors() {
+    const heroSizeRatio = this.heroScale / SPRITE_SCALE;
     this.heroShadow = this.add
-      .ellipse(HERO_SPAWN_X, this.groundY, 46, 12, 0x000000, 0.32)
+      .ellipse(this.heroSpawnX, this.groundY, 46 * heroSizeRatio, 12 * heroSizeRatio, 0x000000, 0.32)
       .setDepth(DEPTH.shadow);
     this.hero = this.add
-      .sprite(HERO_SPAWN_X, this.groundY, HERO_SHEET.key, idleFrame('right'))
+      .sprite(this.heroSpawnX, this.groundY, HERO_SHEET.key, idleFrame('right'))
       .setOrigin(0.5, HERO_ANCHOR_Y)
-      .setScale(SPRITE_SCALE)
+      .setScale(this.heroScale)
       .setDepth(DEPTH.hero);
 
-    this.jellyView = createJellyView(this, JELLY_SPAWN_X);
+    this.jellyView = createJellyView(this, this.jellySpawnX, this.jellyScale);
 
     for (const key of [HERO_SHEET.key, KNOCKDOWN_SHEET.key]) {
       // Per texture, not a global `pixelArt: true`: the sky is a smooth gradient
@@ -584,6 +646,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       },
       dt,
       this.jellyWorld(),
+      this.leapTuning,
     );
     this.jelly = jellyOut.state;
     this.pendingHits = [];
@@ -629,7 +692,13 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       // through, he arrives flush and is caught by the takeoff.
       this.player = {
         ...this.player,
-        x: blockGroundedApproach(this.player.x, previousX, this.jelly.construct.pos.x),
+        x: blockGroundedApproach(
+          this.player.x,
+          previousX,
+          this.jelly.construct.pos.x,
+          this.leapTuning,
+          this.heroBody,
+        ),
       };
     }
     if (heroHit) {
@@ -710,8 +779,8 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     // sprite. `heightPx` becomes a literal Y here â€” in a side view the card's
     // height above the ground IS its screen position, not a separate draw channel.
     const origin = {
-      x: this.player.x + muzzle.groundOffsetX * SPRITE_SCALE,
-      y: this.groundY - muzzle.heightPx * SPRITE_SCALE,
+      x: this.player.x + muzzle.groundOffsetX * this.heroScale,
+      y: this.groundY - muzzle.heightPx * this.heroScale,
     };
     const charge = this.action.chargeLevel;
     const kit = effectKitFor(fixture.element);
@@ -730,7 +799,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   private stepProjectiles(dt: number) {
     const centre = jellyCentre(this.jelly, this.groundY);
     const targets = [
-      { pos: centre, radiusPx: JELLY_TARGET_RADIUS, alive: jellyIsTargetable(this.jelly) },
+      { pos: centre, radiusPx: this.jellyBody.heightPx / 2, alive: jellyIsTargetable(this.jelly) },
     ];
 
     for (const p of this.projectiles) {
@@ -801,7 +870,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     const jellyX = this.jelly.construct.pos.x;
     const exclusions: ScatterZone[] = [
       CASTLE_NO_DROP,
-      { minX: jellyX - JELLY_BODY.halfWidthPx, maxX: jellyX + JELLY_BODY.halfWidthPx },
+      { minX: jellyX - this.jellyBody.halfWidthPx, maxX: jellyX + this.jellyBody.halfWidthPx },
     ];
     // A window around him, clipped to the level — NOT the whole level. On one
     // screen those were the same thing; on a long level, scattering across the
@@ -1006,7 +1075,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   }
 
   private resetJellyOnly() {
-    this.jelly = resetJelly(this.jelly, JELLY_SPAWN_X, this.groundY);
+    this.jelly = resetJelly(this.jelly, this.jellySpawnX, this.groundY);
     this.lastStrike = 'none';
   }
 
@@ -1027,11 +1096,15 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     // Clamped, because the spawn is a constant and the level is authored: place
     // the castle over where he starts and he would otherwise begin inside it.
     this.player = initialPlayer(
-      Phaser.Math.Clamp(HERO_SPAWN_X, this.arena.minX, this.arena.maxX),
+      Phaser.Math.Clamp(this.heroSpawnX, this.arena.minX, this.arena.maxX),
     );
     this.action = initialAction();
     this.hand = handFromCards(FIXTURE_CARDS.map((c) => c.cardId));
-    this.jelly = resetJelly(initialJelly(JELLY_SPAWN_X, this.groundY), JELLY_SPAWN_X, this.groundY);
+    this.jelly = resetJelly(
+      initialJelly(this.jellySpawnX, this.groundY),
+      this.jellySpawnX,
+      this.groundY,
+    );
     this.scriptedFireUntilMs = 0;
     this.scriptedMoveUntilMs = 0;
     this.scriptedMoveX = 0;
@@ -1044,7 +1117,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   };
 
   snapshot(): FrontV4Snapshot {
-    const body = playerBody(this.player, this.groundY, HERO_BODY);
+    const body = playerBody(this.player, this.groundY, this.heroBody);
     return {
       bridgeVersion: 1,
       scene: 'CastleFrontV4',

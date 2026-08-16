@@ -70,14 +70,61 @@
       var params = new URLSearchParams(location.search);
       if (pathMatch && !params.get('start')) params.set('start', pathMatch[1]);
 
-      var port = params.get('port') || '5173';
+      /**
+       * FIND THE DEV SERVER RATHER THAN ASSUME IT.
+       *
+       * This used to hardcode 5173 and tell you to pass ?port= when that was
+       * wrong — which is a note to a human, on a button whose whole job is that
+       * you press it and the game appears. Vite takes the next free port whenever
+       * 5173 is busy, so "wrong port" is the ORDINARY case, not an edge one, and
+       * the failure looks exactly like the server being down.
+       *
+       * So it asks. Every candidate is probed at once and the first to answer
+       * wins; an explicit ?port= still short-circuits the search.
+       */
+      var CANDIDATE_PORTS = [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180, 5190];
+      var forced = params.get('port');
       params.delete('port');
-      var app = 'http://localhost:' + port;
+      var ports = forced ? [Number(forced)] : CANDIDATE_PORTS;
+      var app = 'http://localhost:' + ports[0];
+
+      /**
+       * Which scene opens which page.
+       *
+       * `/dev/scene` draws a compiled scene and nothing else — no combat, no
+       * camera, no rules — which was right when the editor held set dressing for a
+       * top-down world that no longer exists. `CastleFrontWorld` is not set
+       * dressing: it IS the side-view level, and the thing worth looking at is the
+       * game running in it. Raheem, 2026-08-16: *"I just wanna be able to hit play,
+       * and I wanna see my game running that I'm working on in the editor."*
+       *
+       * Anything else still falls through to the generic viewer.
+       */
+      var SCENE_ROUTES = { CastleFrontWorld: '/dev/castle-front-v4' };
 
       function runUrl(name) {
+        if (SCENE_ROUTES[name]) return app + SCENE_ROUTES[name];
         var p = new URLSearchParams(params);
         p.set('start', name);
         return app + '/dev/scene?' + p.toString();
+      }
+
+      /** The first candidate port that serves the scene index. */
+      function findApp() {
+        return Promise.all(
+          ports.map(function (candidate) {
+            var base = 'http://localhost:' + candidate;
+            return fetch(base + '/editor-scenes/index.json')
+              .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+              .then(function (scenes) { return { base: base, scenes: scenes }; })
+              .catch(function () { return null; });
+          }),
+        ).then(function (results) {
+          var hit = results.filter(Boolean)[0];
+          if (!hit) throw new Error('no dev server');
+          app = hit.base;
+          return hit.scenes;
+        });
       }
 
       function ago(ms) {
@@ -89,50 +136,52 @@
         return h < 24 ? h + ' hr ago' : Math.round(h / 24) + ' days ago';
       }
 
-      // Preview Scene told us exactly what to open — no need to ask or guess.
-      if (params.get('start')) {
-        document.getElementById('title').textContent = 'Opening ' + params.get('start') + '…';
-        location.replace(runUrl(params.get('start')));
-      } else {
-        document.getElementById('sub').textContent = 'Finding your scenes…';
-        fetch(app + '/editor-scenes/index.json')
-          .then(function (r) { return r.json(); })
-          .then(function (scenes) {
-            var runnable = scenes.filter(function (s) { return s.compiled; });
-            if (!runnable.length) throw new Error('no saved scenes');
+      var wanted = params.get('start');
+      document.getElementById('title').textContent = wanted ? 'Opening ' + wanted + '…' : 'Opening…';
+      document.getElementById('sub').textContent = 'Finding the game…';
 
-            var newest = runnable[0];
-            document.getElementById('title').textContent = 'Opening ' + newest.name + '…';
-            document.getElementById('sub').textContent =
-              'Most recently saved. Pick another to switch.';
+      findApp()
+        .then(function (scenes) {
+          // Preview Scene told us exactly what to open — no need to ask or guess.
+          if (wanted) {
+            location.replace(runUrl(wanted));
+            return;
+          }
+          var runnable = scenes.filter(function (s) { return s.compiled; });
+          if (!runnable.length) throw new Error('no saved scenes');
 
-            var ul = document.getElementById('list');
-            scenes.forEach(function (s, i) {
-              var li = document.createElement('li');
-              var a = document.createElement('a');
-              a.className = 'scene' + (i === 0 && s.compiled ? ' newest' : '') + (s.compiled ? '' : ' stale');
-              a.href = s.compiled ? runUrl(s.name) : '#';
-              a.innerHTML =
-                '<span>' + s.name + '</span><span class="when">' + ago(s.savedAt) + '</span>';
-              li.appendChild(a);
-              ul.appendChild(li);
-            });
+          var newest = runnable[0];
+          document.getElementById('title').textContent = 'Opening ' + newest.name + '…';
+          document.getElementById('sub').textContent = 'Most recently saved. Pick another to switch.';
 
-            document.getElementById('help').innerHTML =
-              'Tip: <b>Ctrl+0</b> in the Editor opens whichever scene you are editing, directly.' +
-              '<br>A scene only appears here once it has been <b>saved</b>.';
-
-            // Long enough to notice the list and click something else.
-            setTimeout(function () { location.replace(runUrl(newest.name)); }, 1200);
-          })
-          .catch(function () {
-            document.getElementById('title').textContent = 'Cannot reach the game';
-            document.getElementById('sub').innerHTML =
-              'The Vite dev server has to be running:<br><code>cd card-engine &amp;&amp; npm run dev</code>';
-            document.getElementById('help').innerHTML =
-              'Expected it at <code>' + app + '</code>. On another port? Add <code>?port=1234</code>.';
+          var ul = document.getElementById('list');
+          scenes.forEach(function (s, i) {
+            var li = document.createElement('li');
+            var a = document.createElement('a');
+            a.className =
+              'scene' + (i === 0 && s.compiled ? ' newest' : '') + (s.compiled ? '' : ' stale');
+            a.href = s.compiled ? runUrl(s.name) : '#';
+            a.innerHTML =
+              '<span>' + s.name + '</span><span class="when">' + ago(s.savedAt) + '</span>';
+            li.appendChild(a);
+            ul.appendChild(li);
           });
-      }
+
+          document.getElementById('help').innerHTML =
+            'Tip: <b>Ctrl+0</b> in the Editor opens whichever scene you are editing, directly.' +
+            '<br>A scene only appears here once it has been <b>saved</b>.';
+
+          // Long enough to notice the list and click something else.
+          setTimeout(function () { location.replace(runUrl(newest.name)); }, 1200);
+        })
+        .catch(function () {
+          document.getElementById('title').textContent = 'Cannot reach the game';
+          document.getElementById('sub').innerHTML =
+            'The Vite dev server has to be running:<br><code>cd card-engine &amp;&amp; npm run dev</code>';
+          document.getElementById('help').innerHTML =
+            'Looked on ports <code>' + ports.join(', ') + '</code>. ' +
+            'Somewhere else? Add <code>?port=1234</code>.';
+        });
     </script>
   </body>
 </html>

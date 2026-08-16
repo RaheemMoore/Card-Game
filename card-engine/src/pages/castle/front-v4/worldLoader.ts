@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { DEPTH } from './layout';
 import {
+  ACTOR_MARKERS,
   AUTHORED_GROUND_LABEL,
   BACKGROUND_PREFIX,
   EDITOR_ONLY_PREFIX,
@@ -76,7 +77,18 @@ export interface WorldLoadResult {
    * layer camera-pinned at those proportions. See `BACKGROUND_PREFIX`.
    */
   background?: Record<string, AuthoredPlacement>;
+  /**
+   * Where the actors stand and how big they are, from the `REF_*_spawn` markers.
+   * Keyed by label. See `ACTOR_MARKERS`.
+   */
+  actors?: Record<string, AuthoredActor>;
   message?: string;
+}
+
+/** A spawn marker: its ground contact, and the scale it was drawn at. */
+export interface AuthoredActor {
+  x: number;
+  scale: number;
 }
 
 /** A rectangle somebody dragged, plus how strongly they wanted it to read. */
@@ -150,6 +162,9 @@ interface PackFile {
   url: string;
   frameConfig?: { frameWidth: number; frameHeight: number };
 }
+
+/** Fast membership test for the two marker labels. */
+const MARKER_LABELS = new Set<string>(Object.values(ACTOR_MARKERS));
 
 /**
  * Asset packs the authored world may draw from. Order is irrelevant; keys are unique.
@@ -238,11 +253,25 @@ export async function loadEditorWorld(
     // slide past at full speed — a mountain range travelling with the ground, which
     // is the one thing a background must never do.
     const background: Record<string, AuthoredPlacement> = {};
+    const actors: Record<string, AuthoredActor> = {};
     if (aligned) {
       labels.forEach((label, i) => {
-        if (!label.startsWith(BACKGROUND_PREFIX)) return;
-        const placement = measurePlacement(authored[i]);
-        if (placement) background[label] = placement;
+        if (label.startsWith(BACKGROUND_PREFIX)) {
+          const placement = measurePlacement(authored[i]);
+          if (placement) background[label] = placement;
+          return;
+        }
+        if (!MARKER_LABELS.has(label)) return;
+        // `x` and `scaleX` off the object itself, not from bounds: the markers are
+        // placed with their origin ON the ground contact (0.5/0.986 for the hero,
+        // 0.571/0.926 for the creature — both measured off the sheets' padding), so
+        // `x` already IS the spawn point, and bounds would give the art's edge.
+        const marker = authored[i] as unknown as { x?: number; scaleX?: number };
+        if (typeof marker?.x !== 'number') return;
+        actors[label] = {
+          x: marker.x,
+          scale: typeof marker.scaleX === 'number' && marker.scaleX > 0 ? marker.scaleX : 1,
+        };
       });
     }
 
@@ -284,6 +313,7 @@ export async function loadEditorWorld(
       ground: measureGround(groundObject),
       walls,
       background,
+      actors,
       suppliesGround: labels.includes(AUTHORED_GROUND_LABEL),
     };
   } catch (error) {

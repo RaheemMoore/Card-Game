@@ -1,13 +1,7 @@
 import { CONSTRUCT_TUNING } from '../combat/construct';
 import { HAND_SIZE } from '../combat/hand';
 import { LEAP_TUNING } from './jellyLeap';
-import {
-  CLOUD_WIND_PX_PER_SEC,
-  GROUND_Y,
-  JELLY_SPAWN_X,
-  PARALLAX,
-  PICKUP_RADIUS_PX,
-} from './layout';
+import { CLOUD_WIND_PX_PER_SEC, GROUND_Y, PARALLAX, PICKUP_RADIUS_PX } from './layout';
 import {
   FRONT_V4_SCENARIOS,
   type FrontV4Commands,
@@ -203,7 +197,13 @@ async function combatLoop(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   a.push(check('never-leaves-the-ground', back.player.y === GROUND_Y && back.player.canJump === false, { y: back.player.y, canJump: back.player.canJump }, `y=${GROUND_Y}, canJump=false`));
 
   // A tap, fired east, travelling horizontally.
-  port.placePlayer(420);
+  //
+  // Placed a fixed distance WEST OF WHERE THE CREATURE ACTUALLY IS, not at a
+  // constant. Its spawn is authored in Phaser Editor now, and the old literal
+  // happened to sit 61 units from it — close enough that the shot spawned and
+  // connected inside one frame, so "a shot exists" was never observably true and
+  // the scenario reported a firing system that was working perfectly as broken.
+  port.placePlayer(port.snapshot().jelly.x - 240);
   port.holdMove(1, 60);
   await wait(120);
   port.selectSlot(0);
@@ -263,7 +263,7 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
   port.setJellyAi(true);
   port.setStrongHits(false);
-  port.placePlayer(JELLY_SPAWN_X - CONSTRUCT_TUNING.preferredRangePx);
+  port.placePlayer(port.snapshot().jelly.x - CONSTRUCT_TUNING.preferredRangePx);
   await wait(60);
   port.forceJellyPhase('telegraph');
   await wait(60);
@@ -290,7 +290,7 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   await settle(port);
   port.setJellyAi(true);
   port.setStrongHits(false);
-  const heroStart = JELLY_SPAWN_X - CONSTRUCT_TUNING.preferredRangePx;
+  const heroStart = port.snapshot().jelly.x - CONSTRUCT_TUNING.preferredRangePx;
   port.placePlayer(heroStart);
   await wait(60);
   port.forceJellyPhase('telegraph');
@@ -402,7 +402,7 @@ async function parallax(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   // east from the spawn covers one second of ground and then reports a camera that
   // never moved, which reads as a broken camera rather than as a creature standing
   // in a doorway.
-  port.placePlayer(JELLY_SPAWN_X + 260);
+  port.placePlayer(port.snapshot().jelly.x + 260);
   await wait(80);
 
   // Far enough east to cross several screens, so a seam or a plate that ran out
