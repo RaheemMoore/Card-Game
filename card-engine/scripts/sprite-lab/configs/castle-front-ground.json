@@ -1,0 +1,32 @@
+{
+  "subject": "castle-front-ground",
+  "label": "The ground the side-view castle stands on — a tileable cross-section band",
+
+  "notes": [
+    "WHAT A SIDE-SCROLLER'S GROUND ACTUALLY IS, and why this is not a tileset. Every ground asset in this repo is a top-down Wang set: 16 tiles describing how two materials meet when seen from above. A side view has no 'above' — the ground is a horizontal band showing the SURFACE LINE and the EARTH CROSS-SECTION beneath it, and it repeats along one axis only. So this is a single seamlessly-tileable strip on /create-image-pixen, at 1 generation, rather than /create-tiles-pro at the ~20 the two existing Wang sets each cost. The cheaper instrument is also the correct one here.",
+
+    "MATCHES THE BASTION IT SITS UNDER. Same run, same palette family: the honey-gold and violet-grey of castle-front-bastion, with the earth in the warm browns the game's dusk already uses (DUSK.groundTop 0x6b4a33, DUSK.groundBody 0x3d2a1f in front-v4/layout.ts). Raheem rejected a cool-grey castle in blunt terms; the ground must not reintroduce that coldness underneath it.",
+
+    "THE SURFACE LINE IS THE MOST IMPORTANT LINE IN A SIDE VIEW. It is where every character's feet are, so it gets a distinct lit lip rather than fading into the earth below — the code placeholder already does exactly this (a 7-unit DUSK.groundTop strip along the top of the band) and it is the one part of the placeholder worth keeping.",
+
+    "SIZE. The game's ground band is 130 units tall (y=590 to 720 in a 1280x720 frame). 384x160 native gives a little headroom for the surface detail and tiles four times across the frame. Sides divisible by 4 and well inside the endpoint's 512x512 area cap.",
+
+    "ANGLE, per SIDE_VIEW_ANGLE_SPEC.md. A cross-section is the one thing that CANNOT be drawn from above, so the risk here is lower than the bastion's — but the prompt still says it outright, because this endpoint has produced a raking projection before when left to infer."
+  ],
+
+  "images": [
+    {
+      "id": "ground-band",
+      "seed": 881602,
+      "note": "Tiles horizontally. Surface line on top, earth below, nothing above it.",
+      "params": {
+        "description": "a seamlessly horizontally tileable side-view cross-section of ground, drawn as a completely flat side elevation as if the earth has been sliced open and you are looking straight at the cut face, orthographic, no perspective, not seen from above, not isometric, the top edge is a straight horizontal surface line of packed warm brown dirt lit slightly brighter than everything below it with a few small pebbles and tufts of dry grass sitting on it, beneath that a deep band of darker packed earth in warm browns with scattered small stones and thin paler mineral seams running horizontally through it, the earth gets gradually darker toward the bottom, the left and right edges match exactly so the strip repeats without a seam, warm storybook fantasy, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 160 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

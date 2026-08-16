@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "app": "Phaser Editor 2D - Asset Pack Editor",
+    "contentType": "phasereditor2d.pack.core.AssetContentType",
+    "url": "https://phasereditor2d.com",
+    "version": 2,
+    "kit": "castle-front",
+    "editorOnly": true
+  },
+  "castle-front--other--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "castle-front-bastion",
+        "url": "assets/kits/castle-front/structures/castle-front-bastion.png"
+      }
+    ]
+  },
+  "castle-front--terrain--unreviewed": {
+    "files": [
+      {
+        "type": "image",
+        "key": "castle-front-ground-band",
+        "url": "assets/kits/castle-front/terrain/castle-front-ground-band.png"
+      }
+    ]
+  }
+}

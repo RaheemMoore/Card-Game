@@ -89,8 +89,20 @@ interface PackFile {
   frameConfig?: { frameWidth: number; frameHeight: number };
 }
 
-/** Asset packs the authored world may draw from. Order is irrelevant; keys are unique. */
-const PACKS = ['/asset-pack.json', '/assets/kits/halo-stone-castle/kit-pack.json'];
+/**
+ * Asset packs the authored world may draw from. Order is irrelevant; keys are unique.
+ *
+ * `castle-front` is the side-view kit and the only one whose art belongs in this
+ * scene. `halo-stone-castle` is kept reachable because it still holds the hero and
+ * creature sheets the reference markers use — but its structures are top-down and
+ * three-quarter, and placing them here is the mistake SIDE_VIEW_ANGLE_SPEC.md
+ * exists to prevent.
+ */
+const PACKS = [
+  '/asset-pack.json',
+  '/assets/kits/castle-front/kit-pack.json',
+  '/assets/kits/halo-stone-castle/kit-pack.json',
+];
 
 export async function loadEditorWorld(
   scene: Phaser.Scene,

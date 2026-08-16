@@ -34,25 +34,25 @@ class CastleFrontWorld extends Phaser.Scene {
 		gROUND_LIP.fillColor = 7031347;
 
 		// WALL_LEFT
-		const wALL_LEFT = this.add.rectangle(145, 590, 370, 290);
+		const wALL_LEFT = this.add.rectangle(-600, -300, 370, 290);
 		wALL_LEFT.setOrigin(0.5, 1);
 		wALL_LEFT.isFilled = true;
 		wALL_LEFT.fillColor = 2366508;
 
 		// WALL_TOWER_A
-		const wALL_TOWER_A = this.add.rectangle(43, 590, 86, 414);
+		const wALL_TOWER_A = this.add.rectangle(-600, -450, 86, 414);
 		wALL_TOWER_A.setOrigin(0.5, 1);
 		wALL_TOWER_A.isFilled = true;
 		wALL_TOWER_A.fillColor = 2366508;
 
 		// WALL_TOWER_B
-		const wALL_TOWER_B = this.add.rectangle(287, 590, 86, 414);
+		const wALL_TOWER_B = this.add.rectangle(-600, -600, 86, 414);
 		wALL_TOWER_B.setOrigin(0.5, 1);
 		wALL_TOWER_B.isFilled = true;
 		wALL_TOWER_B.fillColor = 2366508;
 
 		// GATE
-		const gATE = this.add.rectangle(176, 590, 104, 218);
+		const gATE = this.add.rectangle(-600, -750, 104, 218);
 		gATE.setOrigin(0.5, 1);
 		gATE.isFilled = true;
 		gATE.fillColor = 3812415;
@@ -68,6 +68,14 @@ class CastleFrontWorld extends Phaser.Scene {
 		rEF_jelly_spawn.scaleX = 2;
 		rEF_jelly_spawn.scaleY = 2;
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
+
+		// BASTION
+		const bASTION = this.add.image(200, 592, "castle-front-bastion");
+		bASTION.setOrigin(0.5, 1);
+
+		// GROUND_SURFACE
+		const gROUND_SURFACE = this.add.tileSprite(640, 590, 1280, 160, "castle-front-ground-band");
+		gROUND_SURFACE.setOrigin(0.5, 0);
 
 		this.events.emit("scene-awake");
 	}

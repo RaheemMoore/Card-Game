@@ -1,0 +1,28 @@
+{
+  "kitId": "castle-front",
+  "version": 1,
+  "sourceFamily": "castle-front-side-view",
+  "rawOutputsPreserved": true,
+  "note": "The side-view castle kit. SEPARATE FROM halo-stone-castle deliberately: that kit is top-down and three-quarter art for a game that no longer exists, and mixing the two angles in one palette is how three-quarter walls ended up placed in the side-view scene on 2026-08-16. Everything in here is flat front elevation per SIDE_VIEW_ANGLE_SPEC.md. Generated one piece at a time and looked at before the next was ordered.",
+  "assetCount": 2,
+  "assets": [
+    {
+      "assetId": "castle-front.bastion",
+      "label": "Castle entrance bastion — flat front elevation, arched gate with portcullis",
+      "status": "HUMAN REVIEW",
+      "path": "structures/castle-front-bastion.png",
+      "sourceSubject": "castle-front-bastion",
+      "rawSource": "image-bastion.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle-front.ground-band",
+      "label": "Ground cross-section — surface line and earth, tiles horizontally",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-front-ground-band.png",
+      "sourceSubject": "castle-front-ground",
+      "rawSource": "image-ground-band.png",
+      "usedTrimmedExport": false
+    }
+  ]
+}

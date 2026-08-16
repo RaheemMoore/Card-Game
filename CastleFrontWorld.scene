@@ -46,8 +46,8 @@
             "type": "Rectangle",
             "id": "75d88d59-4d2c-4b43-95ae-7ed11c730726",
             "label": "WALL_LEFT",
-            "x": 145,
-            "y": 590,
+            "x": -600,
+            "y": -300,
             "originY": 1,
             "isFilled": true,
             "fillColor": "#241c2c",
@@ -58,8 +58,8 @@
             "type": "Rectangle",
             "id": "080158b7-3323-4b0c-9cd8-59a212b81dc0",
             "label": "WALL_TOWER_A",
-            "x": 43,
-            "y": 590,
+            "x": -600,
+            "y": -450,
             "originY": 1,
             "isFilled": true,
             "fillColor": "#241c2c",
@@ -70,8 +70,8 @@
             "type": "Rectangle",
             "id": "2dba5472-c2b1-475c-af0f-fcff844ac4ae",
             "label": "WALL_TOWER_B",
-            "x": 287,
-            "y": 590,
+            "x": -600,
+            "y": -600,
             "originY": 1,
             "isFilled": true,
             "fillColor": "#241c2c",
@@ -82,8 +82,8 @@
             "type": "Rectangle",
             "id": "38ab1e48-7e77-4fe2-8f4f-e93ac5859994",
             "label": "GATE",
-            "x": 176,
-            "y": 590,
+            "x": -600,
+            "y": -750,
             "originY": 1,
             "isFilled": true,
             "fillColor": "#3a2c3f",
@@ -118,6 +118,30 @@
             "scaleY": 2,
             "originX": 0.571,
             "originY": 0.926
+        },
+        {
+            "type": "Image",
+            "id": "ee5ea175-5bfa-45c6-8877-0f97449eb471",
+            "label": "BASTION",
+            "texture": {
+                "key": "castle-front-bastion"
+            },
+            "x": 200,
+            "y": 592,
+            "originY": 1
+        },
+        {
+            "type": "TileSprite",
+            "id": "48a9b5a1-a785-4ddc-b13f-2fbf4b5d4f12",
+            "label": "GROUND_SURFACE",
+            "texture": {
+                "key": "castle-front-ground-band"
+            },
+            "x": 640,
+            "y": 590,
+            "originY": 0,
+            "width": 1280,
+            "height": 160
         }
     ],
     "plainObjects": [],
