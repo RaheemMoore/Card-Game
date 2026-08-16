@@ -3,6 +3,7 @@ import {
   chargeFrom,
   MIN_CHARGE_LEVEL,
   initialAction,
+  locksFiringStanceMovement,
   releaseKindFrom,
   stepAction,
   walkScale,
@@ -73,6 +74,11 @@ describe('action state', () => {
     const total = ACTION_TIMING.windupMs + ACTION_TIMING.activeMs + ACTION_TIMING.recoveryMs;
     const after = run(s, Math.ceil(total / 16) + 4);
     expect(after.state.phase).toBe('explore');
+  });
+
+  it('uses the approved planted-contact and stance-exit timings', () => {
+    expect(ACTION_TIMING.activeMs).toBe(30);
+    expect(ACTION_TIMING.recoveryMs).toBe(250);
   });
 
   it('spawns exactly one projectile per press', () => {
@@ -239,10 +245,20 @@ describe('action state', () => {
     expect(s.chargeLevel).toBe(0);
   });
 
-  it('lets him keep moving while charging, but slower', () => {
-    expect(walkScale('charging')).toBeGreaterThan(0);
-    expect(walkScale('charging')).toBeLessThan(walkScale('explore'));
-    expect(canWalk('charging')).toBe(true);
+  it('roots him from charging through the end of firing recovery', () => {
+    expect(walkScale('charging')).toBe(0);
+    expect(walkScale('windup')).toBe(0);
+    expect(walkScale('active')).toBe(0);
+    expect(walkScale('recovery')).toBe(0);
+    expect(canWalk('charging')).toBe(false);
+    expect(canWalk('recovery')).toBe(false);
+  });
+
+  it('plants his feet on the trigger frame before charging begins', () => {
+    expect(locksFiringStanceMovement('explore', true, true)).toBe(true);
+    expect(locksFiringStanceMovement('explore', false, true)).toBe(false);
+    expect(locksFiringStanceMovement('explore', true, false)).toBe(false);
+    expect(locksFiringStanceMovement('recovery', false, false)).toBe(true);
   });
 
   it('runs the whole summoning ritual, then hands control back', () => {
@@ -279,10 +295,9 @@ describe('action state', () => {
     expect(s.phase).toBe('knockdown');
   });
 
-  it('roots him for the ritual, unlike firing', () => {
-    // Planting a card is a commitment. Firing is not.
+  it('roots him for both the ritual and the current firing performance', () => {
     expect(walkScale('summoning')).toBe(0);
-    expect(walkScale('windup')).toBeGreaterThan(0);
+    expect(walkScale('windup')).toBe(0);
   });
 
   it('reads a tap as the quick slot and a hold as the heavy one', () => {
@@ -444,14 +459,11 @@ describe('action state', () => {
     expect(fired.graceRemainingMs).toBe(0);
   });
 
-  it('slows the walk while firing instead of rooting him', () => {
-    // §12.8: a deliberately weak character who cannot move while attacking reads
-    // as helpless rather than fragile.
+  it('returns walking only after the full action finishes', () => {
     expect(walkScale('explore')).toBe(1);
-    expect(walkScale('windup')).toBeGreaterThan(0);
-    expect(walkScale('windup')).toBeLessThan(1);
+    expect(walkScale('windup')).toBe(0);
     expect(walkScale('knockdown')).toBe(0);
-    expect(canWalk('windup')).toBe(true);
+    expect(canWalk('windup')).toBe(false);
     expect(canWalk('knockdown')).toBe(false);
     expect(isBusy('explore')).toBe(false);
     expect(isBusy('windup')).toBe(true);

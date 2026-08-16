@@ -12,6 +12,12 @@ import {
 } from '../../data/castle/cardSlamSprite';
 import slamTwin from '../../../public/assets/castle/hero/card-slam/card-slam-sheet.json';
 import {
+  CARD_BLAST_ANCHOR,
+  CARD_BLAST_SHEET,
+  CARD_BLAST_SHEETS,
+} from '../../data/castle/cardBlastSprite';
+import blastTwin from '../../../public/assets/castle/hero/card-blast/card-blast-sheet.json';
+import {
   KNOCKDOWN_SHEET,
   KNOCKDOWN_ANCHOR,
   KNOCKDOWN_DURATIONS_MS,
@@ -122,6 +128,33 @@ describe('asset pack ↔ runtime parity', () => {
     expect(slamTwin.anchor.x).toBe(CARD_SLAM_ANCHOR.x);
     expect(slamTwin.anchor.y).toBe(CARD_SLAM_ANCHOR.y);
     expect(slamTwin.frameCount).toBe(CARD_SLAM_SHEET.frameCount);
+  });
+
+  it('carries the left-facing card-blast proof at its measured frame size and anchor', () => {
+    const blast = entries.get(CARD_BLAST_SHEET.key);
+    expect(blast, 'card-blast sheet missing — re-run build-asset-pack.mjs').toBeDefined();
+    expect(blast!.url).toBe(CARD_BLAST_SHEET.path);
+    expect(blast!.raw.type).toBe('spritesheet');
+    expect(blast!.raw.frameConfig).toEqual({
+      frameWidth: CARD_BLAST_SHEET.frameWidth,
+      frameHeight: CARD_BLAST_SHEET.frameHeight,
+    });
+    expect(blastTwin.frameCount).toBe(CARD_BLAST_SHEET.frameCount);
+    expect(CARD_BLAST_ANCHOR.x).toBeCloseTo(blastTwin.anchor.x, 6);
+    expect(CARD_BLAST_ANCHOR.y).toBeCloseTo(blastTwin.anchor.y, 6);
+  });
+
+  it('carries every directional card-blast strip at its independently measured size', () => {
+    for (const [facing, sheet] of Object.entries(CARD_BLAST_SHEETS)) {
+      const entry = entries.get(sheet.key);
+      expect(entry, `${facing} card-blast sheet missing — re-run build-asset-pack.mjs`).toBeDefined();
+      expect(entry!.url).toBe(sheet.path);
+      expect(entry!.raw.type).toBe('spritesheet');
+      expect(entry!.raw.frameConfig).toEqual({
+        frameWidth: sheet.frameWidth,
+        frameHeight: sheet.frameHeight,
+      });
+    }
   });
 
   it('carries the fall at its own frame size, not the walk grid', () => {

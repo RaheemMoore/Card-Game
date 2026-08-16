@@ -1,0 +1,26 @@
+{
+  "image": "card-blast-up-sheet.png",
+  "frameWidth": 95,
+  "frameHeight": 112,
+  "frameCount": 13,
+  "columns": 13,
+  "rows": 1,
+  "baselineY": 94,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.8392857142857143
+  },
+  "resampledFrom": {
+    "frameWidth": 196,
+    "frameHeight": 232,
+    "referenceBodyHeight": 147,
+    "colours": 256
+  },
+  "substitutedFrames": [
+    {
+      "destination": 7,
+      "source": 8
+    }
+  ],
+  "note": "One fixed-direction performance, uniformly area-resampled to the live hero's body height. Original canvas coordinates and shared feet baseline are preserved; render at 1:1 or upscale, never downscale at runtime."
+}

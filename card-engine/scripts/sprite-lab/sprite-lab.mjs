@@ -35,6 +35,8 @@ const ENV = path.join(CARD_ENGINE, '.env.local');
 const BASE = 'https://api.pixellab.ai/v2';
 
 function loadKey() {
+  const supplied = (process.env.PIXELLAB_API_KEY ?? '').replace(/["'\r ]/g, '');
+  if (supplied) return supplied;
   const t = fs.readFileSync(ENV, 'utf8');
   const m = t.match(/^PIXELLAB_API_KEY=(.*)$/m);
   const k = (m ? m[1] : '').replace(/["'\r ]/g, '');

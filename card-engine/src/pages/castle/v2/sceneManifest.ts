@@ -78,7 +78,14 @@ const HERO_SIZE_TESTS = ['hero-chibi-56', 'hero-chibi-48', 'hero-chibi-40'] as c
  * the guard was false and the summon ran silently every single time. The guard
  * that was supposed to prevent a crash hid the bug instead.
  */
-const HERO_CLIPS = ['hero-knockdown', 'hero-card-slam'] as const;
+const HERO_CLIPS = [
+  'hero-knockdown',
+  'hero-card-slam',
+  'hero-card-blast',
+  'hero-card-blast-right',
+  'hero-card-blast-up',
+  'hero-card-blast-down',
+] as const;
 
 /**
  * The Ember Jelly's sheet. Same reason as HERO_CLIPS above: no scene file NAMES

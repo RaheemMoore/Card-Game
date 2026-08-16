@@ -58,6 +58,17 @@ import {
   CARD_SLAM_DURATIONS_MS,
   CARD_SLAM_SHEET,
 } from '../../../data/castle/cardSlamSprite';
+import {
+  CARD_BLAST_SHEETS,
+  CARD_BLAST_EXIT_BLEND_MS,
+  CARD_BLAST_TURN_MS,
+  cardBlastFrame,
+  cardBlastFacingForAim,
+  cardBlastLayerOffsetsForAim,
+  cardBlastMuzzleForAim,
+  type CardBlastFacing,
+  type CardBlastPhase,
+} from '../../../data/castle/cardBlastSprite';
 import { KEEPERS } from '../../../data/castle/keepers';
 import {
   KNOCKDOWN_ANCHOR,
@@ -79,6 +90,7 @@ import { buildAimInputs, moveVector, newPointerTracker } from '../combat/inputIn
 import {
   ACTION_TIMING,
   initialAction,
+  locksFiringStanceMovement,
   stepAction,
   walkScale,
   type ActionState,
@@ -823,6 +835,8 @@ export function makeScene(
       gfx: Phaser.GameObjects.Arc | Phaser.GameObjects.Sprite;
       kit: EffectKit;
       charge: number;
+      /** Visible height above the ground-plane simulation point. */
+      drawHeightPx: number;
     }[] = [];
     /** Element per card id, so a shot knows which art it wears. */
     private cardElements = new Map<string, ElementName | undefined>();
@@ -937,6 +951,16 @@ export function makeScene(
     private presentDelta = 0;
     /** The card he holds up. Visible only while a shot is being thrown. */
     private heldCard?: Phaser.GameObjects.Rectangle;
+    /** True while the approved directional firing sheets own the body. */
+    private usingCardBlastSprite = false;
+    /** Cardinal art currently receiving aim; charge progress is shared across all four. */
+    private cardBlastFacing: CardBlastFacing | null = null;
+    /** Previous pose, briefly retained so a held turn reads as motion rather than a cut. */
+    private cardBlastBlendFrom: CardBlastFacing | null = null;
+    private cardBlastBlendElapsedMs = CARD_BLAST_TURN_MS;
+    private cardBlastBlendSprite?: Phaser.GameObjects.Sprite;
+    /** Walking-sheet pose faded in over the final recovery beat. */
+    private cardBlastExitSprite?: Phaser.GameObjects.Sprite;
     /**
      * Whether a card is selected and ready to fire.
      *
@@ -1566,10 +1590,9 @@ export function makeScene(
 
       this.player.x = this.feetX + pose.offsetX + this.heroHurtDir.x * hurt * 5;
       this.player.y = this.feetY - this.air + pose.offsetY + this.heroHurtDir.y * hurt * 3;
-      this.player.setScale(
-        this.heroBaseScale * pose.scaleX * (1 + hurtSquash * 0.5),
-        this.heroBaseScale * pose.scaleY * (1 - hurtSquash),
-      );
+      const scaleX = this.heroBaseScale * pose.scaleX * (1 + hurtSquash * 0.5);
+      const scaleY = this.heroBaseScale * pose.scaleY * (1 - hurtSquash);
+      this.player.setScale(scaleX, scaleY);
       // The sprite's origin is already at his feet, so this pivots him where a
       // person pivots rather than around his navel.
       this.player.setRotation(pose.rotation);
@@ -1578,6 +1601,26 @@ export function makeScene(
       this.player.setDepth(
         this.depthBand ? this.level * LEVEL_STRIDE + this.feetY : 100000,
       );
+
+      // During a directional turn the outgoing and incoming authored poses share
+      // this exact transform. Only their alpha differs, so the feet, recoil, hurt
+      // fold, depth, and continuous aim all remain one body rather than two actors.
+      if (this.cardBlastBlendSprite?.visible) {
+        this.cardBlastBlendSprite.setPosition(this.player.x, this.player.y);
+        this.cardBlastBlendSprite.setScale(scaleX, scaleY);
+        this.cardBlastBlendSprite.setRotation(pose.rotation);
+        this.cardBlastBlendSprite.setDepth(this.player.depth + 0.001);
+      }
+
+      if (this.cardBlastExitSprite?.visible) {
+        this.cardBlastExitSprite.setPosition(this.player.x, this.player.y);
+        this.cardBlastExitSprite.setScale(
+          this.heroScale * pose.scaleX * (1 + hurtSquash * 0.5),
+          this.heroScale * pose.scaleY * (1 - hurtSquash),
+        );
+        this.cardBlastExitSprite.setRotation(pose.rotation);
+        this.cardBlastExitSprite.setDepth(this.player.depth + 0.002);
+      }
 
       if (!this.shadow) return;
       // Pinned to the FLOOR, never to the sprite. It shrinks and fades with height
@@ -1613,6 +1656,7 @@ export function makeScene(
 
       this.movePlayer(delta);
       this.updateCombat(delta);
+      this.presentCardBlastSprite();
 
       /**
        * Draw the hero, every frame, whatever he is doing.
@@ -2030,7 +2074,7 @@ export function makeScene(
 
       for (const shot of this.projectiles) {
         shot.sim = stepProjectile(shot.sim, delta, this.colliders.blockers, this.targets);
-        shot.gfx.setPosition(shot.sim.pos.x, shot.sim.pos.y - CARD_HEIGHT_PX);
+        shot.gfx.setPosition(shot.sim.pos.x, shot.sim.pos.y - shot.drawHeightPx);
         // Depth from the GROUND point, not from where it is drawn. See §7.6 and
         // CARD_HEIGHT_PX — sorting on the drawn height makes a blast pass in
         // front of walls it flew behind.
@@ -2056,7 +2100,7 @@ export function makeScene(
         // The burst plays wherever the shot stopped, walls included — a blast
         // that vanishes against stone reads as the collision being broken.
         if (shot.sim.outcome === 'hitTarget' || shot.sim.outcome === 'hitBlocker') {
-          const at = { x: shot.sim.pos.x, y: shot.sim.pos.y - CARD_HEIGHT_PX };
+          const at = { x: shot.sim.pos.x, y: shot.sim.pos.y - shot.drawHeightPx };
           const depth = this.level * LEVEL_STRIDE + shot.sim.pos.y + 1;
           playImpact(this, shot.kit, at.x, at.y, depth, shot.charge);
 
@@ -2093,18 +2137,24 @@ export function makeScene(
       // power visibly collects INTO the thing that will throw it.
       const charging = this.action.phase === 'charging';
       if (charging) {
-        const lead = cardOrigin(feet, this.aim.aim);
+        const aim = this.poseAim();
+        const shot = this.shotPresentation(feet, aim);
         if (!this.chargeEmitter) {
           this.chargeEmitter = createChargeEmitter(this, this.selectedKit().palette);
-          this.chargeEmitter.setDepth(this.level * LEVEL_STRIDE + this.feetY + 2);
           this.depthBand?.add(this.chargeEmitter);
         }
+        const layerOffsets = this.cardBlastActive()
+          ? cardBlastLayerOffsetsForAim(aim)
+          : { chargeFlash: 2 };
+        this.chargeEmitter.setDepth(
+          this.level * LEVEL_STRIDE + this.feetY + layerOffsets.chargeFlash,
+        );
         this.chargeEmitter.emitting = true;
         updateChargeEmitter(
           this.chargeEmitter,
           this.action.chargeLevel,
-          lead.x,
-          lead.y - CARD_HEIGHT_PX,
+          shot.origin.x,
+          shot.origin.y - shot.drawHeightPx,
         );
       } else if (this.chargeEmitter) {
         this.chargeEmitter.emitting = false;
@@ -2114,6 +2164,26 @@ export function makeScene(
       // visibly comes FROM it.
       if (this.heldCard) {
         const aim = this.poseAim();
+        if (this.cardBlastActive()) {
+          const shot = this.shotPresentation(feet, aim);
+          const kit = this.selectedKit();
+          this.heldCard.setVisible(true);
+          this.heldCard.setFillStyle(colourOf(kit.palette[1]));
+          this.heldCard.setStrokeStyle(2, colourOf(kit.palette[2]));
+          this.heldCard.setPosition(
+            shot.origin.x,
+            shot.origin.y - shot.drawHeightPx,
+          );
+          // The authored card is held landscape; cover that blocking prop with
+          // the player's actual selected card at the exact launch point.
+          this.heldCard.setRotation(Math.PI / 2);
+          this.heldCard.setScale(0.5);
+          const layerOffsets = cardBlastLayerOffsetsForAim(aim);
+          this.heldCard.setDepth(
+            this.level * LEVEL_STRIDE + this.feetY + layerOffsets.heldCard,
+          );
+          return;
+        }
         /**
          * The card throws itself.
          *
@@ -2157,21 +2227,22 @@ export function makeScene(
      */
     private launchBlast(feet: { x: number; y: number }, aim: { x: number; y: number }, charge: number) {
       const kit = this.selectedKit();
-      const origin = cardOrigin(feet, aim);
+      const shot = this.shotPresentation(feet, aim);
+      const origin = shot.origin;
       // Charge changes the shot itself, not just how it looks — see scaleBlast.
       const sim = spawnProjectile(origin, aim, scaleBlast(DEFAULT_BLAST, charge));
 
       // The element's own art where it exists; the placeholder circle only when
       // nothing has been drawn for it, so a missing sheet is visible rather
       // than silently absent.
-      const art = createBlastSprite(this, kit, origin.x, origin.y - CARD_HEIGHT_PX, aim, charge);
+      const art = createBlastSprite(this, kit, origin.x, origin.y - shot.drawHeightPx, aim, charge);
       const gfx =
         art ??
         this.add
-          .circle(origin.x, origin.y - CARD_HEIGHT_PX, 5 + 4 * charge, 0x8fd6ff)
+          .circle(origin.x, origin.y - shot.drawHeightPx, 5 + 4 * charge, 0x8fd6ff)
           .setStrokeStyle(2, 0xffffff);
       this.depthBand?.add(gfx);
-      this.projectiles.push({ sim, gfx, kit, charge });
+      this.projectiles.push({ sim, gfx, kit, charge, drawHeightPx: shot.drawHeightPx });
       (this.fireStats.projectilesSpawned as number)++;
     }
 
@@ -2284,6 +2355,168 @@ export function makeScene(
      */
     private poseAim(): { x: number; y: number } {
       return this.action.committedAim ?? this.scriptedAim ?? this.aim.aim;
+    }
+
+    /** Whether the approved directional sheets own this ranged attack. */
+    private cardBlastActive(): boolean {
+      const attacking =
+        this.action.phase === 'charging' ||
+        this.action.phase === 'windup' ||
+        this.action.phase === 'active' ||
+        this.action.phase === 'recovery';
+      return attacking && this.attackStyle() === 'ranged';
+    }
+
+    /** One source of truth for the held card, gather effect, and launched shot. */
+    private shotPresentation(feet: Vec2, aim: Vec2) {
+      if (this.cardBlastActive()) return cardBlastMuzzleForAim(feet, aim);
+      return { origin: cardOrigin(feet, aim), drawHeightPx: CARD_HEIGHT_PX };
+    }
+
+    /**
+     * Swap the body onto the approved PixelLab performance after movement and
+     * combat have both advanced. State remains the clock; the art cannot stall
+     * control by failing to emit an animation event.
+     */
+    private presentCardBlastSprite() {
+      if (!this.player) return;
+      const active = this.cardBlastActive();
+      const target = cardBlastFacingForAim(this.poseAim());
+      const targetSheet = CARD_BLAST_SHEETS[target];
+
+      if (!active || !this.textures.exists(targetSheet.key)) {
+        if (this.usingCardBlastSprite) {
+          // A knockdown or summon may already have replaced the blast texture.
+          // Never overwrite that higher-priority performance with the walk sheet.
+          const ownsTexture = Object.values(CARD_BLAST_SHEETS).some(
+            (sheet) => sheet.key === this.player?.texture.key,
+          );
+          if (ownsTexture) this.restoreWalkSprite();
+          else {
+            this.player.setAlpha(1);
+            this.cardBlastBlendSprite?.setVisible(false);
+            this.cardBlastExitSprite?.setVisible(false);
+            this.cardBlastFacing = null;
+            this.cardBlastBlendFrom = null;
+            this.cardBlastBlendElapsedMs = CARD_BLAST_TURN_MS;
+          }
+          this.usingCardBlastSprite = false;
+        }
+        return;
+      }
+
+      if (!this.usingCardBlastSprite || this.cardBlastFacing === null) {
+        this.cardBlastFacing = target;
+        this.cardBlastBlendFrom = null;
+        this.cardBlastBlendElapsedMs = CARD_BLAST_TURN_MS;
+      } else if (target !== this.cardBlastFacing) {
+        // If aim reverses mid-blend, continue from whichever pose is visually
+        // dominant instead of flashing back to an older cardinal direction.
+        const blendT = this.cardBlastBlendElapsedMs / CARD_BLAST_TURN_MS;
+        const visibleFrom =
+          this.cardBlastBlendFrom && blendT < 0.5
+            ? this.cardBlastBlendFrom
+            : this.cardBlastFacing;
+        this.cardBlastBlendFrom = visibleFrom;
+        this.cardBlastFacing = target;
+        this.cardBlastBlendElapsedMs = 0;
+      } else if (this.cardBlastBlendFrom) {
+        this.cardBlastBlendElapsedMs = Math.min(
+          CARD_BLAST_TURN_MS,
+          this.cardBlastBlendElapsedMs + this.presentDelta,
+        );
+      }
+
+      const facing = this.cardBlastFacing ?? target;
+      const sheet = CARD_BLAST_SHEETS[facing];
+      const frame = cardBlastFrame(
+        this.action.phase as CardBlastPhase,
+        this.action.elapsedMs,
+        this.action.chargeLevel,
+        this.motionOff,
+      );
+      this.player.anims.stop();
+      this.player.setTexture(sheet.key, frame);
+      this.heroBaseScale = 1;
+      this.player.setOrigin(sheet.anchor.x, sheet.anchor.y);
+      this.player.setFlipX(false);
+      this.player.setAlpha(1);
+
+      if (this.cardBlastBlendFrom) {
+        const fromSheet = CARD_BLAST_SHEETS[this.cardBlastBlendFrom];
+        const overlay = this.ensureCardBlastBlendSprite();
+        overlay.setTexture(fromSheet.key, frame);
+        overlay.setOrigin(fromSheet.anchor.x, fromSheet.anchor.y);
+        overlay.setFlipX(false);
+        overlay.setVisible(true);
+        const t = Math.max(0, Math.min(1, this.cardBlastBlendElapsedMs / CARD_BLAST_TURN_MS));
+        const eased = 0.5 - Math.cos(t * Math.PI) / 2;
+        this.player.setAlpha(eased);
+        overlay.setAlpha(1 - eased);
+        if (t >= 1) {
+          overlay.setVisible(false);
+          this.player.setAlpha(1);
+          this.cardBlastBlendFrom = null;
+        }
+      } else if (this.cardBlastBlendSprite) {
+        this.cardBlastBlendSprite.setVisible(false);
+      }
+
+      // Start one typical presentation frame early so the blend reaches 100%
+      // before the state machine crosses into exploration on the next update.
+      const exitBlendStart =
+        ACTION_TIMING.recoveryMs - CARD_BLAST_EXIT_BLEND_MS - 16;
+      if (
+        !this.motionOff &&
+        this.action.phase === 'recovery' &&
+        this.action.elapsedMs >= exitBlendStart
+      ) {
+        // If movement is already held, settle toward that walk direction. With
+        // no movement intent, settle toward the direction the shot was aimed.
+        const move = this.readMove();
+        const exitFacing =
+          move.x !== 0 || move.y !== 0 ? quantiseFacing(move) : quantiseFacing(this.poseAim());
+        this.facing = exitFacing;
+        const overlay = this.ensureCardBlastExitSprite();
+        overlay.setTexture(this.heroSheetKey, idleFrame(exitFacing));
+        overlay.setOrigin(0.5, 1);
+        overlay.setFlipX(false);
+        overlay.setVisible(true);
+        const t = Math.max(
+          0,
+          Math.min(1, (this.action.elapsedMs - exitBlendStart) / CARD_BLAST_EXIT_BLEND_MS),
+        );
+        const eased = 0.5 - Math.cos(t * Math.PI) / 2;
+        this.player.setAlpha(1 - eased);
+        overlay.setAlpha(eased);
+      } else if (this.cardBlastExitSprite) {
+        this.cardBlastExitSprite.setVisible(false);
+      }
+      this.usingCardBlastSprite = true;
+    }
+
+    private ensureCardBlastBlendSprite() {
+      if (this.cardBlastBlendSprite) return this.cardBlastBlendSprite;
+      const sheet = CARD_BLAST_SHEETS.left;
+      this.cardBlastBlendSprite = this.add.sprite(this.feetX, this.feetY, sheet.key, 0);
+      this.cardBlastBlendSprite.setOrigin(sheet.anchor.x, sheet.anchor.y);
+      this.cardBlastBlendSprite.setVisible(false);
+      this.depthBand?.add(this.cardBlastBlendSprite);
+      return this.cardBlastBlendSprite;
+    }
+
+    private ensureCardBlastExitSprite() {
+      if (this.cardBlastExitSprite) return this.cardBlastExitSprite;
+      this.cardBlastExitSprite = this.add.sprite(
+        this.feetX,
+        this.feetY,
+        this.heroSheetKey,
+        idleFrame(this.facing),
+      );
+      this.cardBlastExitSprite.setOrigin(0.5, 1);
+      this.cardBlastExitSprite.setVisible(false);
+      this.depthBand?.add(this.cardBlastExitSprite);
+      return this.cardBlastExitSprite;
     }
 
     private attackStyle(): AttackStyle {
@@ -2485,6 +2718,14 @@ export function makeScene(
       this.player.setScale(this.heroScale);
       // Back to feet-at-the-bottom, or he would walk around sunk into the floor.
       this.player.setOrigin(0.5, 1);
+      this.player.setFlipX(false);
+      this.player.setAlpha(1);
+      this.cardBlastBlendSprite?.setVisible(false);
+      this.cardBlastExitSprite?.setVisible(false);
+      this.usingCardBlastSprite = false;
+      this.cardBlastFacing = null;
+      this.cardBlastBlendFrom = null;
+      this.cardBlastBlendElapsedMs = CARD_BLAST_TURN_MS;
     }
 
     /**
@@ -3031,13 +3272,33 @@ export function makeScene(
         hooks.onDoorEnter?.(this.atDoor);
         return;
       }
+
+      // This firing sheet is a planted performance, not locomotion art. Lock on
+      // the trigger frame as well as every authored action phase so held movement
+      // cannot create one frame of foot slide before charging begins. Directional
+      // input remains sampled for aim; it simply cannot translate the hero until
+      // recovery hands control back to exploration.
+      const firingStanceLocked =
+        this.attackStyle() === 'ranged' &&
+        locksFiringStanceMovement(
+          this.action.phase,
+          this.fireHeld || this.scriptedHoldMs > 0,
+          canFire(this.hand),
+        );
+      if (firingStanceLocked) {
+        this.checkDoors();
+        return;
+      }
+
       if (this.jumpKey && Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
         return this.startJump(dx, dy);
       }
 
       if (dx === 0 && dy === 0) {
-        this.player.anims.stop();
-        this.player.setFrame(idleFrame(this.facing));
+        if (!this.usingCardBlastSprite) {
+          this.player.anims.stop();
+          this.player.setFrame(idleFrame(this.facing));
+        }
         // Still poll: you walk into a doorway, STOP, and then press E. Returning
         // early here would drop the prompt the instant the hero stood still.
         this.checkDoors();
@@ -3049,11 +3310,11 @@ export function makeScene(
       // written twice — two quantisers agree everywhere except the diagonal, and
       // disagreeing only there is a defect nobody finds by looking at the code.
       this.facing = quantiseFacing({ x: dx, y: dy });
-      this.player.anims.play(this.heroWalkKey(this.facing), true);
+      if (!this.usingCardBlastSprite) this.player.anims.play(this.heroWalkKey(this.facing), true);
 
-      // Firing slows the walk rather than rooting it — he is meant to be fragile,
-      // not helpless (§12.8). walkScale is 1 outside combat, so exploration is
-      // untouched by this line.
+      // Exploration is the only phase with locomotion. The explicit stance lock
+      // above also catches the initial trigger frame before the action machine
+      // has entered `charging`.
       const step = (WALK_SPEED * walkScale(this.action.phase) * delta) / 1000;
       const b = this.cameras.main.getBounds();
 

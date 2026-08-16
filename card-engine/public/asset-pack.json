@@ -224,6 +224,42 @@
       },
       {
         "type": "spritesheet",
+        "key": "hero-card-blast",
+        "url": "assets/castle/hero/card-blast/card-blast-sheet.png",
+        "frameConfig": {
+          "frameWidth": 86,
+          "frameHeight": 111
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-card-blast-right",
+        "url": "assets/castle/hero/card-blast/card-blast-right-sheet.png",
+        "frameConfig": {
+          "frameWidth": 86,
+          "frameHeight": 109
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-card-blast-up",
+        "url": "assets/castle/hero/card-blast/card-blast-up-sheet.png",
+        "frameConfig": {
+          "frameWidth": 95,
+          "frameHeight": 112
+        }
+      },
+      {
+        "type": "spritesheet",
+        "key": "hero-card-blast-down",
+        "url": "assets/castle/hero/card-blast/card-blast-down-sheet.png",
+        "frameConfig": {
+          "frameWidth": 86,
+          "frameHeight": 111
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "hero-knockdown",
         "url": "assets/castle/hero/knockdown/knockdown-sheet.png",
         "frameConfig": {

@@ -140,15 +140,14 @@ export function attackPose(input: AttackPoseInput): AttackPose {
  * The shape that follows from that, and the one thing that makes it read as a
  * cast rather than a throw: he does NOT travel forward. He sinks. Charging
  * settles him down into the stance, the wind-up braces harder, and then the
- * blast leaving the card shoves him BACKWARD — the recoil is the impact, and it
- * is the exact opposite of the melee lunge. A caster who steps into his own
- * shot looks like he threw it.
+ * shot holds that planted shape. Whole-sprite recoil was removed after playtest:
+ * translating the finished PixelLab body read as the character jumping backward,
+ * not as recoil. A future authored clip can express impact through the limbs.
  *
  * What this cannot do procedurally is put one leg forward and one leg back:
  * that is a limb, and the walk sheet has no such frame. The crouch, the tilt
- * and the recoil are the parts of a braced stance that CAN be expressed by
- * moving a whole sprite, and they are here so the timing can be judged before
- * any art is paid for.
+ * and the settle are the parts of a braced stance that can be expressed without
+ * fighting the authored firing art.
  */
 function rangedPose(input: AttackPoseInput): AttackPose {
   const { phase, elapsedMs, chargeLevel, aim, feel } = input;
@@ -190,22 +189,23 @@ function rangedPose(input: AttackPoseInput): AttackPose {
     }
 
     case 'active': {
-      // THE JERK. 60ms, eased in so the first frame is already moving: the
-      // projectile is born on entry to this phase, and the recoil is the shot
-      // leaving, not a reaction to having seen it leave. He rises out of the
-      // crouch as he is pushed back — the brace unloads.
-      const t = easeIn(clamp01(elapsedMs / ACTION_TIMING.activeMs));
+      // Hold the final brace while the projectile is born. Moving the complete
+      // authored sprite backward read as a hop; recoil now belongs to future art.
       return brace(
-        feel.squash * 0.9 * (1 - t),
-        feel.windupLeanPx * 0.3 + feel.recoilPx * t,
-        -feel.tiltRad * (0.55 + 0.45 * t),
+        feel.squash * 0.9,
+        feel.windupLeanPx * 0.3,
+        -feel.tiltRad * 0.55,
       );
     }
 
     case 'recovery': {
-      // Absorbing it and standing back up.
+      // Unwind the same planted brace into neutral alongside frames 11 and 12.
       const t = easeOut(clamp01(elapsedMs / ACTION_TIMING.recoveryMs));
-      return brace(0, (feel.windupLeanPx * 0.3 + feel.recoilPx) * (1 - t), -feel.tiltRad * (1 - t));
+      return brace(
+        feel.squash * 0.9 * (1 - t),
+        feel.windupLeanPx * 0.3 * (1 - t),
+        -feel.tiltRad * 0.55 * (1 - t),
+      );
     }
 
     default:
