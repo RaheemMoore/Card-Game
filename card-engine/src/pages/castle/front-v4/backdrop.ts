@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import { CASTLE_SILHOUETTE, DEPTH, DUSK, FRONT_V4_VIEW, GROUND_Y } from './layout';
+import { CASTLE_SILHOUETTE, DEPTH, DUSK, FRONT_V4_VIEW, GROUND_Y, PARALLAX } from './layout';
 
 /**
  * The provisional world behind the fight: sky, hills, castle, ground.
@@ -33,12 +33,98 @@ import { CASTLE_SILHOUETTE, DEPTH, DUSK, FRONT_V4_VIEW, GROUND_Y } from './layou
  * these arrive by hand, and a pack rebuild must not be the thing standing between
  * him and seeing his own art.
  */
+export interface BackdropPlane {
+  key: string;
+  path: string;
+  /**
+   * How fast this plane travels against the camera. 0 never moves, 1 travels with
+   * the ground. The DIFFERENCE between planes is the whole illusion of distance.
+   */
+  parallax: number;
+  /**
+   * World units per second this plane moves ON ITS OWN, with nobody walking.
+   *
+   * Only the clouds have it, and it is the thing that separates a living sky from
+   * a painted one: stand still and the mountains and the tree line hold, while the
+   * clouds keep going. Walk, and the drift and the parallax simply add together —
+   * they are independent, so neither has to know about the other.
+   */
+  driftPerSecond: number;
+  depth: number;
+}
+
+/**
+ * The background, as four planes.
+ *
+ * DROP A FILE IN AND IT WINS. Raheem is building these separately: a continuous
+ * walkable backdrop with a mountain line and a tree line, plus clouds that keep
+ * moving when he does not. Each plane that lands replaces its code-drawn stand-in;
+ * the ones that have not arrived stay provisional, so a finished sky can ship
+ * before a finished tree line rather than neither showing until both exist.
+ *
+ * EVERY PLANE TILES, and none of them is sized to the level. Each is pinned to the
+ * camera and its texture is OFFSET each frame instead — see `update()`. That is
+ * what makes the world continuous no matter how far east the ground is stretched:
+ * there is no plate to run out of, because the plate never moves.
+ *
+ * The files are deliberately NOT in the asset pack. The pack is generated and
+ * these arrive by hand, and a pack rebuild must not stand between him and seeing
+ * his own art.
+ */
 export const BACKDROP_SLOTS = {
-  sky: { key: 'front-v4-sky', path: '/assets/castle/front-v4/sky.png' },
-  scenery: { key: 'front-v4-scenery', path: '/assets/castle/front-v4/background.png' },
-} as const;
+  sky: {
+    key: 'front-v4-sky',
+    path: '/assets/castle/front-v4/sky.png',
+    parallax: PARALLAX.sky,
+    driftPerSecond: 0,
+    depth: DEPTH.sky,
+  },
+  clouds: {
+    key: 'front-v4-clouds',
+    path: '/assets/castle/front-v4/clouds.png',
+    // Barely any parallax — clouds are nearly as far off as the sky — but a real
+    // drift, which is where all of their movement comes from.
+    parallax: 0.08,
+    driftPerSecond: 7,
+    depth: DEPTH.clouds,
+  },
+  mountains: {
+    key: 'front-v4-mountains',
+    path: '/assets/castle/front-v4/mountains.png',
+    parallax: PARALLAX.far,
+    driftPerSecond: 0,
+    depth: DEPTH.hills,
+  },
+  trees: {
+    key: 'front-v4-trees',
+    path: '/assets/castle/front-v4/trees.png',
+    parallax: PARALLAX.near,
+    driftPerSecond: 0,
+    depth: DEPTH.trees,
+  },
+} as const satisfies Record<string, BackdropPlane>;
 
 export interface ProvisionalBackdrop {
+  /**
+   * Advance the background one frame.
+   *
+   * Takes the camera's scroll so the planes can offset themselves by it, and the
+   * elapsed time so the clouds keep moving when nothing else does. Called every
+   * frame from the scene, which is the only place that knows both.
+   */
+  update(scrollX: number, dtMs: number): void;
+  /**
+   * Redraw the scenery to cover a level of this length.
+   *
+   * The backdrop is painted before the authored world has loaded, so it is drawn
+   * one screen wide against the default arena. Once the ground's real extent is
+   * known the hills have to reach the end of it, or the world visibly runs out
+   * partway along and the player is running past a torn edge.
+   *
+   * The sky does not take part: it is pinned to the camera (PARALLAX.sky is 0) and
+   * therefore already covers every screen there will ever be.
+   */
+  extendToLevel(levelWidth: number, groundY: number): void;
   /**
    * Move the hills to meet a ground line that is not the default one.
    *
@@ -67,29 +153,65 @@ export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdr
   const groundAndCastle: Phaser.GameObjects.GameObject[] = [];
   let hills: Phaser.GameObjects.Graphics | null = null;
 
-  // A supplied plate replaces its whole layer, stretched to the authored 16:9
-  // frame — the composition is fixed and letterboxed, so the plate is authored
-  // against the same 1280x720 and never needs cropping.
-  if (scene.textures.exists(BACKDROP_SLOTS.sky.key)) {
-    scene.add
-      .image(width / 2, height / 2, BACKDROP_SLOTS.sky.key)
-      .setDisplaySize(width, height)
-      .setDepth(DEPTH.sky);
-  } else {
-    paintSky(scene);
+  let levelWidth: number = FRONT_V4_VIEW.width;
+  const planes: Array<{ tile: Phaser.GameObjects.TileSprite; plane: BackdropPlane; drift: number }> = [];
+
+  // EVERY supplied plane is pinned to the camera and scrolled by its TEXTURE, not
+  // by its position. A plate placed in the world has to be long enough for the
+  // level; a plate pinned to the camera with a moving texture offset is infinite
+  // for free, which is what "you can just keep running to the right" requires.
+  for (const plane of Object.values(BACKDROP_SLOTS) as BackdropPlane[]) {
+    if (!scene.textures.exists(plane.key)) continue;
+    const tile = scene.add
+      .tileSprite(0, 0, width, height, plane.key)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(plane.depth);
+    planes.push({ tile, plane, drift: 0 });
   }
 
-  if (scene.textures.exists(BACKDROP_SLOTS.scenery.key)) {
-    scene.add
-      .image(width / 2, height / 2, BACKDROP_SLOTS.scenery.key)
-      .setDisplaySize(width, height)
-      .setDepth(DEPTH.hills);
-  } else {
-    hills = paintHills(scene);
-    groundAndCastle.push(...paintCastle(scene), paintGround(scene));
+  const supplied = new Set(planes.map((p) => p.plane.key));
+  if (!supplied.has(BACKDROP_SLOTS.sky.key)) {
+    paintSky(scene).setScrollFactor(PARALLAX.sky);
   }
+  // The code hills stand in for the mountain line until the real one lands. They
+  // stay in world space because they are a formula drawn across the level rather
+  // than a texture, and redrawing is cheaper than pretending they tile.
+  if (!supplied.has(BACKDROP_SLOTS.mountains.key)) {
+    hills = paintHills(scene, levelWidth).setScrollFactor(PARALLAX.far);
+  }
+  groundAndCastle.push(...paintCastle(scene), paintGround(scene, levelWidth));
 
   return {
+    update(scrollX, dtMs) {
+      for (const entry of planes) {
+        entry.drift += (entry.plane.driftPerSecond * dtMs) / 1000;
+        // Parallax and drift are simply added. They are independent — one is a
+        // response to the camera, the other happens regardless — so standing still
+        // leaves only the drift, and walking gives both, with no special case for
+        // either.
+        entry.tile.tilePositionX = scrollX * entry.plane.parallax + entry.drift;
+      }
+    },
+
+    extendToLevel(nextWidth, groundY) {
+      levelWidth = Math.max(FRONT_V4_VIEW.width, nextWidth);
+      // Only the code-drawn stand-ins need this. The supplied planes are pinned to
+      // the camera and tile forever, so the level's length means nothing to them.
+      const reach = Math.ceil(levelWidth * PARALLAX.far) + FRONT_V4_VIEW.width;
+      if (hills) {
+        hills.clear();
+        drawHills(hills, reach);
+        hills.setY(groundY - GROUND_Y);
+      }
+      for (const object of groundAndCastle) {
+        const ground = object as Phaser.GameObjects.Graphics & { __isGround?: boolean };
+        if (!ground.__isGround) continue;
+        ground.clear();
+        drawGround(ground, levelWidth);
+      }
+    },
+
     followGroundLine(groundY) {
       // Graphics were drawn in absolute coordinates against GROUND_Y, so shifting
       // the object is the whole move — no repaint, and no second copy.
@@ -101,7 +223,7 @@ export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdr
   };
 }
 
-function paintSky(scene: Phaser.Scene) {
+function paintSky(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
   const { width } = FRONT_V4_VIEW;
   const g = scene.add.graphics().setDepth(DEPTH.sky);
 
@@ -123,11 +245,23 @@ function paintSky(scene: Phaser.Scene) {
 
   g.fillStyle(DUSK.sun, 0.85);
   g.fillCircle(width * 0.74, GROUND_Y - 150, 46);
+  return g;
 }
 
-function paintHills(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
-  const { width } = FRONT_V4_VIEW;
+function paintHills(scene: Phaser.Scene, width: number): Phaser.GameObjects.Graphics {
   const g = scene.add.graphics().setDepth(DEPTH.hills);
+  drawHills(g, width);
+  return g;
+}
+
+/**
+ * Two ridges of summed sines, out to `width`.
+ *
+ * Separated from `paintHills` so the level can grow: the ridges are a formula
+ * rather than an image, so covering another four thousand units costs a redraw and
+ * nothing else. Not parallax by itself — the caller sets the scroll factor.
+ */
+function drawHills(g: Phaser.GameObjects.Graphics, width: number) {
 
   // Two ridges of summed sines. Not parallax — they do not move, because nothing
   // scrolls yet; they exist to put something between the sky and the ground line
@@ -197,9 +331,19 @@ function paintCastle(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
   return [g, label];
 }
 
-function paintGround(scene: Phaser.Scene): Phaser.GameObjects.GameObject {
-  const { width, height } = FRONT_V4_VIEW;
-  const g = scene.add.graphics().setDepth(DEPTH.ground);
+function paintGround(scene: Phaser.Scene, width: number): Phaser.GameObjects.GameObject {
+  const g = scene.add.graphics().setDepth(DEPTH.ground) as Phaser.GameObjects.Graphics & {
+    __isGround?: boolean;
+  };
+  // Tagged so `extendToLevel` can find it again among the castle's graphics and
+  // redraw it at the new length. Cheaper and clearer than keeping a parallel list.
+  g.__isGround = true;
+  drawGround(g, width);
+  return g;
+}
+
+function drawGround(g: Phaser.GameObjects.Graphics, width: number): void {
+  const { height } = FRONT_V4_VIEW;
   g.fillStyle(DUSK.groundBody, 1);
   g.fillRect(0, GROUND_Y, width, height - GROUND_Y);
   // A lit lip on the contact line. Without it the ground and the hills merge into
@@ -207,7 +351,6 @@ function paintGround(scene: Phaser.Scene): Phaser.GameObjects.GameObject {
   // single most important line in a side view.
   g.fillStyle(DUSK.groundTop, 1);
   g.fillRect(0, GROUND_Y, width, 7);
-  return g;
 }
 
 /** Blend two packed RGB colours. Used only for the provisional sky. */

@@ -33,6 +33,20 @@ export const EDITOR_ONLY_PREFIX = 'REF_';
 export const AUTHORED_GROUND_LABEL = 'GROUND';
 
 /**
+ * A label prefix marking something the player cannot walk past.
+ *
+ * The level is bounded by the ground at both ends, but the WEST end is supposed
+ * to be the castle — Raheem: *"there's gonna be a wall on the left side, and then
+ * there's gonna be a castle, and you can't go past the wall."* Without this he
+ * walks to the ground's left edge, which is somewhere inside the gatehouse.
+ *
+ * A wall placed left of the player's spawn pushes the west boundary to its RIGHT
+ * edge; one placed to the east pulls the east boundary to its LEFT edge. So the
+ * same label closes off either end of the level and nothing has to say which.
+ */
+export const WALL_PREFIX = 'WALL';
+
+/**
  * Read the object labels out of a compiled Editor scene, in creation order.
  *
  * WHY PARSE RATHER THAN ASK. Phaser Editor's compiler writes each object's label

@@ -1,7 +1,7 @@
 import { CONSTRUCT_TUNING } from '../combat/construct';
 import { HAND_SIZE } from '../combat/hand';
 import { LEAP_TUNING } from './jellyLeap';
-import { ARENA, GROUND_Y, JELLY_SPAWN_X, PICKUP_RADIUS_PX } from './layout';
+import { GROUND_Y, JELLY_SPAWN_X, PICKUP_RADIUS_PX } from './layout';
 import {
   FRONT_V4_SCENARIOS,
   type FrontV4Commands,
@@ -175,9 +175,12 @@ async function combatLoop(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
 
   const start = port.snapshot();
   a.push(check('scene-is-front-v4', start.scene === 'CastleFrontV4', start.scene, 'CastleFrontV4'));
-  a.push(check('camera-is-fixed-fit', start.camera.mode === 'fixed-fit', start.camera.mode, 'fixed-fit'));
+  // The level is longer than the screen now, so the camera should be following.
+  // `fixed` here would mean the ground never got stretched — worth failing on,
+  // because a level that fits on one screen is not a level.
+  a.push(check('camera-follows-along-the-level', start.camera.mode === 'level-follow', start.camera.mode, 'level-follow'));
   a.push(check('hand-is-full', start.hand.slots.filter((s) => s.state === 'ready').length === HAND_SIZE, start.hand.slots.map((s) => s.state), 'four ready cards'));
-  a.push(check('spawns-inside-the-arena', start.player.x >= ARENA.minX && start.player.x <= ARENA.maxX, start.player.x, `${ARENA.minX}..${ARENA.maxX}`));
+  a.push(check('spawns-inside-the-level', start.player.x >= start.world.minX && start.player.x <= start.world.maxX, start.player.x, `${start.world.minX.toFixed(0)}..${start.world.maxX.toFixed(0)}`));
 
   // He walks, and he stays on the floor. There is no input that produces height.
   port.holdMove(1, 300);
@@ -267,7 +270,7 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
 
   const peak = await until(port, (s) => s.jelly.heightPx > 150, LEAP_TUNING.durationMs);
   a.push(check('it-genuinely-leaves-the-ground', peak !== null, peak?.jelly.heightPx ?? 0, '> 150'));
-  a.push(check('landing-stays-inside-the-arena', committedLanding !== null && committedLanding >= ARENA.minX && committedLanding <= ARENA.maxX, committedLanding, `${ARENA.minX}..${ARENA.maxX}`));
+  a.push(check('landing-stays-inside-the-level', committedLanding !== null && committedLanding >= telegraphing.world.minX && committedLanding <= telegraphing.world.maxX, committedLanding, `${telegraphing.world.minX.toFixed(0)}..${telegraphing.world.maxX.toFixed(0)}`));
 
   const struck = await until(port, (s) => s.jelly.lastStrike === 'hit', LEAP_TUNING.durationMs + 600);
   a.push(check('standing-still-is-punished', struck !== null, struck?.jelly.lastStrike ?? 'none', 'hit'));
@@ -306,9 +309,14 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
 async function scatterRecover(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   const a: StudioAssertion[] = [];
 
+  // Both ends of the LIVE level. The corners are the whole point of this scenario
+  // — a scatter is easy in open ground and hard against a wall — so they have to
+  // be the level's real edges, not a constant that stopped being true the moment
+  // the ground became something Raheem stretches.
+  const level = port.snapshot().world;
   for (const [label, x] of [
-    ['near-the-castle', ARENA.minX + 20],
-    ['near-the-eastern-bound', ARENA.maxX - 20],
+    ['near-the-castle', level.minX + 20],
+    ['near-the-eastern-bound', level.maxX - 20],
   ] as const) {
     const ready = await settle(port);
     a.push(check(`${label}:settles-to-a-clean-start`, ready, ready, 'true'));
@@ -326,7 +334,11 @@ async function scatterRecover(port: FrontV4ScenePort): Promise<StudioAssertion[]
 
     const xs = down.dropped.map((d) => d.x).sort((p, q) => p - q);
     a.push(check(`${label}:every-card-on-the-ground-line`, down.dropped.every((d) => d.y === GROUND_Y), down.dropped.map((d) => d.y), String(GROUND_Y)));
-    a.push(check(`${label}:every-card-inside-the-arena`, down.dropped.every((d) => d.x >= ARENA.minX && d.x <= ARENA.maxX), xs, `${ARENA.minX}..${ARENA.maxX}`));
+    // Against the LIVE level from the snapshot, not the `ARENA` constant. The
+    // level is authored now — stretch the ground in the Editor and it is thousands
+    // of units long — so a scenario holding the old one-screen constant fails on a
+    // card that landed perfectly well.
+    a.push(check(`${label}:every-card-inside-the-arena`, down.dropped.every((d) => d.x >= down.world.minX && d.x <= down.world.maxX), xs, `${down.world.minX.toFixed(0)}..${down.world.maxX.toFixed(0)}`));
     a.push(check(`${label}:cards-are-separated`, xs.every((v, i) => i === 0 || v - xs[i - 1] >= 48), xs, 'no two closer than 48'));
     a.push(check(`${label}:no-card-is-free`, down.dropped.every((d) => Math.abs(d.x - down.player.x) > PICKUP_RADIUS_PX), xs, `> ${PICKUP_RADIUS_PX} from him`));
     const ids = new Set(down.dropped.map((d) => d.cardId));
@@ -383,7 +395,12 @@ async function settle(port: FrontV4ScenePort, timeoutMs = 2000): Promise<boolean
   const clean = await until(
     port,
     (s) =>
-      Math.abs(s.player.x - s.world.minX) > 1 && // spawn is not the wall
+      // In the level, not off the end of it. NOT "away from the west wall" — that
+      // was the first version, and it started failing the moment a castle was
+      // placed over the spawn, because his clamped start position then IS the
+      // wall. A start state check has no business asserting the level's layout.
+      s.player.x >= s.world.minX - 1 &&
+      s.player.x <= s.world.maxX + 1 &&
       s.player.phase === 'explore' &&
       s.player.graceRemainingMs === 0 &&
       s.dropped.length === 0 &&

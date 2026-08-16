@@ -97,9 +97,16 @@ import {
   JELLY_SPAWN_X,
   PICKUP_RADIUS_PX,
   SPRITE_SCALE,
-  applyFitCamera,
+  CAMERA_DEADZONE,
+  SCATTER_WINDOW_PX,
+  LEVEL_EDGE_MARGIN,
+  applyLevelCamera,
 } from './layout';
-import { BACKDROP_SLOTS, paintProvisionalBackdrop } from './backdrop';
+import {
+  BACKDROP_SLOTS,
+  paintProvisionalBackdrop,
+  type ProvisionalBackdrop,
+} from './backdrop';
 import { createJellyView, type JellyView } from './jellyPresenter';
 import { loadEditorWorld, type WorldLoadResult } from './worldLoader';
 import {
@@ -195,12 +202,23 @@ export class CastleFrontV4Scene extends Phaser.Scene {
    * along an invisible line where the floor used to be.
    */
   private groundY = GROUND_Y;
+  /**
+   * How far the level runs, live.
+   *
+   * Seeded from `layout.ARENA` and then taken from the width of the authored
+   * `GROUND` object, so the level is exactly as long as the ground Raheem stretches
+   * in Phaser Editor. There is deliberately no level-length constant to keep in
+   * sync: the floor he can see IS the level, and running past the end of it is not
+   * a thing that can happen by forgetting to update a number.
+   */
+  private arena: { minX: number; maxX: number } = { ...ARENA };
   private errors: string[] = [];
 
   // ---- presentation -----------------------------------------------------
   private hero!: Phaser.GameObjects.Sprite;
   private heroShadow!: Phaser.GameObjects.Ellipse;
   private jellyView!: JellyView;
+  private backdrop!: ProvisionalBackdrop;
   private hitstop!: Hitstop;
   private motion: 'full' | 'off' = 'full';
   private heroAnim = '';
@@ -292,6 +310,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     this.hitstop = createHitstop(this);
 
     const provisional = paintProvisionalBackdrop(this);
+    this.backdrop = provisional;
     this.registerAnimations();
     this.buildActors();
     this.bindInput();
@@ -306,8 +325,11 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       // the stand-ins go rather than sitting underneath being invisible.
       if (result.suppliesGround) provisional.yieldGroundToAuthoredWorld();
       if (result.ground) {
-        this.adoptAuthoredGround(result.ground);
+        this.adoptAuthoredGround(result.ground, result.walls ?? []);
         provisional.followGroundLine(this.groundY);
+        // The scenery has to reach the end of the level, or he runs past a torn
+        // edge where the world was only ever drawn one screen wide.
+        provisional.extendToLevel(this.arena.maxX + LEVEL_EDGE_MARGIN, this.groundY);
       }
       if (result.status === 'failed') {
         this.errors.push(`world ${result.sceneName}: ${result.message}`);
@@ -315,8 +337,8 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       }
     });
 
-    applyFitCamera(this.cameras.main, this.scale.gameSize);
-    this.resizeHandler = (size) => applyFitCamera(this.cameras.main, size);
+    this.applyCamera();
+    this.resizeHandler = () => this.applyCamera();
     this.scale.on('resize', this.resizeHandler);
 
     this.game.events.on(FRONT_V4_EVENTS.snapshot, this.emitSnapshot, this);
@@ -343,19 +365,66 @@ export class CastleFrontV4Scene extends Phaser.Scene {
    */
   /** The strip of world the creature lives in, at the CURRENT ground line. */
   private jellyWorld(): JellyWorld {
-    return { minX: ARENA.minX, maxX: ARENA.maxX, groundY: this.groundY };
+    return { minX: this.arena.minX, maxX: this.arena.maxX, groundY: this.groundY };
   }
 
-  private adoptAuthoredGround(ground: { y: number; minX: number; maxX: number }) {
-    if (ground.minX > ARENA.minX + 1 || ground.maxX < ARENA.maxX - 1) {
+  /**
+   * Point the camera at the level and keep it on him.
+   *
+   * Re-run on resize because the zoom is derived from the window height, and on
+   * level change because the bounds are derived from the ground's width. Follow is
+   * re-established each time: `applyLevelCamera` calls `stopFollow` when the whole
+   * level fits on screen, and it has to come back when it does not.
+   */
+  private applyCamera() {
+    const camera = this.cameras.main;
+    applyLevelCamera(camera, this.scale.gameSize, this.arena.maxX + LEVEL_EDGE_MARGIN);
+    if (camera.useBounds && this.hero) {
+      camera.startFollow(this.hero, true, 0.14, 0.14);
+      camera.setDeadzone(CAMERA_DEADZONE.width, CAMERA_DEADZONE.height);
+    }
+  }
+
+  private adoptAuthoredGround(
+    ground: { y: number; minX: number; maxX: number },
+    walls: Array<{ left: number; right: number }>,
+  ) {
+    // THE GROUND IS THE LEVEL. Stretch it east in the Editor and the world gets
+    // longer; there is no separate length to remember to update. The walkable
+    // strip is inset by the hero's own half-width so he stops with both feet on
+    // the floor rather than half over the edge.
+    let minX = ground.minX + HERO_BODY.halfWidthPx;
+    let maxX = ground.maxX - HERO_BODY.halfWidthPx;
+
+    // Then the walls close it in. Which end a wall belongs to is decided by its
+    // CENTRE against the spawn, not by its name — so the castle at the west and
+    // whatever ends the level at the east are the same kind of object and neither
+    // needs a special label. Centre rather than edge because a gatehouse the hero
+    // spawns beside straddles him: the bastion's right edge sits 3 units past the
+    // spawn, which an edge test reads as "neither side" and silently ignores.
+    for (const wall of walls) {
+      const centre = (wall.left + wall.right) / 2;
+      if (centre < HERO_SPAWN_X) minX = Math.max(minX, wall.right + HERO_BODY.halfWidthPx);
+      else maxX = Math.min(maxX, wall.left - HERO_BODY.halfWidthPx);
+    }
+    const movedLine = Math.abs(ground.y - this.groundY) >= 0.5;
+    const movedEdges = Math.abs(minX - this.arena.minX) >= 1 || Math.abs(maxX - this.arena.maxX) >= 1;
+
+    if (maxX - minX < FRONT_V4_VIEW.width / 2) {
       const message =
-        `authored GROUND spans ${Math.round(ground.minX)}..${Math.round(ground.maxX)} ` +
-        `but the player may walk ${ARENA.minX}..${ARENA.maxX} — widen it, or he will walk off the edge`;
+        `authored GROUND is only ${Math.round(maxX - minX)} units of walkable floor — ` +
+        `too short to be a level; stretch it east in Phaser Editor`;
       this.errors.push(message);
       console.warn(`[front-v4] ${message}`);
+      return;
     }
-    if (Math.abs(ground.y - this.groundY) < 0.5) return;
+
+    if (!movedLine && !movedEdges) return;
     this.groundY = ground.y;
+    this.arena = { minX, maxX };
+    // Bounds changed, so the camera's clamp and follow have to be rebuilt before
+    // anything is re-seated into the new world.
+    this.applyCamera();
     this.reset();
   }
 
@@ -535,7 +604,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
 
     // 5. Him.
     const previousX = this.player.x;
-    this.player = stepPlayer(this.player, { intent, walkScale: walkScale(this.action.phase) }, dt);
+    this.player = stepPlayer(this.player, { intent, walkScale: walkScale(this.action.phase) }, dt, this.arena);
     if (this.jelly.mode === 'ground') {
       // He may not walk through it. The evasion proof assumes exactly this rule â€”
       // cornered, he stops one body short and the leap clears him; allowed
@@ -546,7 +615,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       };
     }
     if (heroHit) {
-      this.player = applyKnockback(this.player, heroHit.dirX, heroHit.kind === 'strong' ? 96 : 44);
+      this.player = applyKnockback(this.player, heroHit.dirX, heroHit.kind === 'strong' ? 96 : 44, this.arena);
     }
 
     // 6. The cost of going down, and the walk back.
@@ -716,10 +785,18 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       CASTLE_NO_DROP,
       { minX: jellyX - JELLY_BODY.halfWidthPx, maxX: jellyX + JELLY_BODY.halfWidthPx },
     ];
+    // A window around him, clipped to the level — NOT the whole level. On one
+    // screen those were the same thing; on a long level, scattering across the
+    // whole arena would fling a card somewhere he has not walked yet, which is a
+    // lost card rather than a setback.
+    const bounds: ScatterZone = {
+      minX: Math.max(this.arena.minX, this.player.x - SCATTER_WINDOW_PX),
+      maxX: Math.min(this.arena.maxX, this.player.x + SCATTER_WINDOW_PX),
+    };
     const result = sideViewScatter(
       this.player.x,
       dropped.length,
-      { ...DEFAULT_SCATTER_CONSTRAINTS, exclusions },
+      { ...DEFAULT_SCATTER_CONSTRAINTS, bounds, exclusions },
       ++this.knockdowns,
     );
     this.scatterReport = { degraded: result.degraded, reason: result.degradedReason };
@@ -785,9 +862,13 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   // Drawing
   // =========================================================================
 
-  private present(_dt: number) {
+  private present(dt: number) {
     this.presentHero();
     this.jellyView.update(this.jelly, this.motion === 'off', this.groundY);
+    // Reduced motion stops the clouds drifting but leaves the parallax, because
+    // parallax is a response to the player's own movement and stopping it would
+    // make the world feel stuck rather than calm.
+    this.backdrop.update(this.cameras.main.scrollX, this.motion === 'off' ? 0 : dt);
   }
 
   private presentHero() {
@@ -855,7 +936,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       snapshot: () => this.snapshot(),
       reset: () => this.reset(),
       placePlayer: (x) => {
-        this.player = { ...this.player, x: Phaser.Math.Clamp(x, ARENA.minX, ARENA.maxX) };
+        this.player = { ...this.player, x: Phaser.Math.Clamp(x, this.arena.minX, this.arena.maxX) };
       },
       holdMove: (dirX, ms) => {
         this.scriptedMoveX = dirX;
@@ -925,7 +1006,11 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     this.knockdowns = 0;
     this.lastStrike = 'none';
     this.scatterReport = { degraded: false, reason: null };
-    this.player = initialPlayer(HERO_SPAWN_X);
+    // Clamped, because the spawn is a constant and the level is authored: place
+    // the castle over where he starts and he would otherwise begin inside it.
+    this.player = initialPlayer(
+      Phaser.Math.Clamp(HERO_SPAWN_X, this.arena.minX, this.arena.maxX),
+    );
     this.action = initialAction();
     this.hand = handFromCards(FIXTURE_CARDS.map((c) => c.cardId));
     this.jelly = resetJelly(initialJelly(JELLY_SPAWN_X, this.groundY), JELLY_SPAWN_X, this.groundY);
@@ -952,12 +1037,12 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       view: { width: FRONT_V4_VIEW.width, height: FRONT_V4_VIEW.height },
       canvas: { width: this.scale.width, height: this.scale.height },
       camera: {
-        mode: 'fixed-fit',
+        mode: this.cameras.main.useBounds ? 'level-follow' : 'fixed',
         zoom: this.cameras.main.zoom,
         scrollX: this.cameras.main.scrollX,
         scrollY: this.cameras.main.scrollY,
       },
-      world: { groundY: this.groundY, minX: ARENA.minX, maxX: ARENA.maxX },
+      world: { groundY: this.groundY, minX: this.arena.minX, maxX: this.arena.maxX },
       player: {
         x: this.player.x,
         y: this.groundY,

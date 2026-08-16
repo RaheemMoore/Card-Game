@@ -3,6 +3,7 @@ import { DEPTH } from './layout';
 import {
   AUTHORED_GROUND_LABEL,
   EDITOR_ONLY_PREFIX,
+  WALL_PREFIX,
   parseAuthoredLabels,
 } from './worldLabels';
 
@@ -59,6 +60,14 @@ export interface WorldLoadResult {
    * narrower than the arena the player can walk in.
    */
   ground?: { y: number; minX: number; maxX: number };
+  /**
+   * Hard edges the player cannot walk past, from objects labelled `WALL*`.
+   *
+   * Reported as the walls' inner faces so the scene can just take the tightest
+   * pair. A wall left of the spawn closes the west; one to the east closes the
+   * east; the scene decides which is which from where the player starts.
+   */
+  walls?: Array<{ left: number; right: number }>;
   message?: string;
 }
 
@@ -74,12 +83,22 @@ export interface WorldLoadResult {
 function measureGround(
   object: Phaser.GameObjects.GameObject | undefined,
 ): { y: number; minX: number; maxX: number } | undefined {
+  const bounds = measureBounds(object);
+  const withTop = object as unknown as { getBounds?: () => { top: number } };
+  if (!bounds || !withTop?.getBounds) return undefined;
+  return { y: withTop.getBounds().top, minX: bounds.left, maxX: bounds.right };
+}
+
+/** Horizontal extent of any authored object, or undefined if it has no bounds. */
+function measureBounds(
+  object: Phaser.GameObjects.GameObject | undefined,
+): { left: number; right: number } | undefined {
   const withBounds = object as unknown as {
-    getBounds?: () => { top: number; left: number; right: number };
+    getBounds?: () => { left: number; right: number };
   };
   if (!withBounds?.getBounds) return undefined;
   const bounds = withBounds.getBounds();
-  return { y: bounds.top, minX: bounds.left, maxX: bounds.right };
+  return { left: bounds.left, right: bounds.right };
 }
 
 interface PackFile {
@@ -162,10 +181,13 @@ export async function loadEditorWorld(
     const labels = parseAuthoredLabels(source);
     // Captured while the labels and the objects still line up one-to-one, which
     // is only true before anything is stripped.
-    const groundObject =
-      labels.length === authored.length
-        ? authored[labels.indexOf(AUTHORED_GROUND_LABEL)]
-        : undefined;
+    const aligned = labels.length === authored.length;
+    const groundObject = aligned ? authored[labels.indexOf(AUTHORED_GROUND_LABEL)] : undefined;
+    const walls = aligned
+      ? labels
+          .map((label, i) => (label.startsWith(WALL_PREFIX) ? measureBounds(authored[i]) : undefined))
+          .filter((b): b is { left: number; right: number } => b !== undefined)
+      : [];
 
     if (labels.length === authored.length) {
       const kept: typeof authored = [];
@@ -201,6 +223,7 @@ export async function loadEditorWorld(
       objects: authored.length,
       labels,
       ground: measureGround(groundObject),
+      walls,
       suppliesGround: labels.includes(AUTHORED_GROUND_LABEL),
     };
   } catch (error) {

@@ -57,7 +57,13 @@ export interface FrontV4Snapshot {
 
   view: { width: number; height: number };
   canvas: { width: number; height: number };
-  camera: { mode: 'fixed-fit'; zoom: number; scrollX: number; scrollY: number };
+  /**
+   * `level-follow` scrolls with the player along a level longer than the screen;
+   * `fixed` is the fallback when the whole level fits and there is nothing to
+   * scroll. Reported rather than assumed, because which one is active depends on
+   * the window size and how far the ground has been stretched.
+   */
+  camera: { mode: 'level-follow' | 'fixed'; zoom: number; scrollX: number; scrollY: number };
   world: { groundY: number; minX: number; maxX: number };
 
   player: {

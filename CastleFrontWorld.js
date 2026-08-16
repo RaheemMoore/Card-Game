@@ -22,13 +22,13 @@ class CastleFrontWorld extends Phaser.Scene {
 		rEF_sky.fillColor = 9194031;
 
 		// GROUND
-		const gROUND = this.add.rectangle(640, 590, 1280, 130);
+		const gROUND = this.add.rectangle(2500, 590, 5000, 130);
 		gROUND.setOrigin(0.5, 0);
 		gROUND.isFilled = true;
 		gROUND.fillColor = 4008479;
 
 		// GROUND_LIP
-		const gROUND_LIP = this.add.rectangle(640, 590, 1280, 7);
+		const gROUND_LIP = this.add.rectangle(2500, 590, 5000, 7);
 		gROUND_LIP.setOrigin(0.5, 0);
 		gROUND_LIP.isFilled = true;
 		gROUND_LIP.fillColor = 7031347;
@@ -57,25 +57,25 @@ class CastleFrontWorld extends Phaser.Scene {
 		gATE.isFilled = true;
 		gATE.fillColor = 3812415;
 
-		// REF_hero_spawn
-		const rEF_hero_spawn = this.add.image(380, 590, "hero-chibi", 21);
-		rEF_hero_spawn.scaleX = 2;
-		rEF_hero_spawn.scaleY = 2;
-		rEF_hero_spawn.setOrigin(0.5, 0.986);
-
 		// REF_jelly_spawn
 		const rEF_jelly_spawn = this.add.image(660, 590, "construct-ember-jelly", 0);
 		rEF_jelly_spawn.scaleX = 2;
 		rEF_jelly_spawn.scaleY = 2;
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
 
-		// ASSET_bastion
-		const aSSET_bastion = this.add.image(-320, 560, "castle-front-bastion");
-		aSSET_bastion.setOrigin(0.5, 1);
+		// WALL_bastion
+		const wALL_bastion = this.add.image(191, 592, "castle-front-bastion");
+		wALL_bastion.setOrigin(0.5, 1);
 
-		// ASSET_ground_band
-		const aSSET_ground_band = this.add.tileSprite(-320, 640, 384, 76, "castle-front-ground-band");
-		aSSET_ground_band.setOrigin(0.5, 0);
+		// ASSET_ground_band_grass
+		const aSSET_ground_band_grass = this.add.tileSprite(2500, 574, 5000, 76, "castle-front-ground-band-grass");
+		aSSET_ground_band_grass.setOrigin(0.5, 0);
+
+		// REF_hero_spawn
+		const rEF_hero_spawn = this.add.image(380, 590, "hero-chibi", 21);
+		rEF_hero_spawn.scaleX = 2;
+		rEF_hero_spawn.scaleY = 2;
+		rEF_hero_spawn.setOrigin(0.5, 0.986);
 
 		this.events.emit("scene-awake");
 	}

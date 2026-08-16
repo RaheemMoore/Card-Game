@@ -22,24 +22,24 @@
             "type": "Rectangle",
             "id": "5f47b38d-cb07-45f3-bc4b-454d30166692",
             "label": "GROUND",
-            "x": 640,
+            "x": 2500,
             "y": 590,
             "originY": 0,
             "isFilled": true,
             "fillColor": "#3d2a1f",
-            "width": 1280,
+            "width": 5000,
             "height": 130
         },
         {
             "type": "Rectangle",
             "id": "b25d99fe-5d5f-482b-b5b2-63dad3c8bd95",
             "label": "GROUND_LIP",
-            "x": 640,
+            "x": 2500,
             "y": 590,
             "originY": 0,
             "isFilled": true,
             "fillColor": "#6b4a33",
-            "width": 1280,
+            "width": 5000,
             "height": 7
         },
         {
@@ -92,20 +92,6 @@
         },
         {
             "type": "Image",
-            "id": "3f98b626-b6ff-4ec3-8d72-d7c66bce95ff",
-            "label": "REF_hero_spawn",
-            "texture": {
-                "key": "hero-chibi",
-                "frame": 21
-            },
-            "x": 380,
-            "y": 590,
-            "scaleX": 2,
-            "scaleY": 2,
-            "originY": 0.986
-        },
-        {
-            "type": "Image",
             "id": "6f023c8f-2de6-45cf-9479-bbe6bef51244",
             "label": "REF_jelly_spawn",
             "texture": {
@@ -122,26 +108,40 @@
         {
             "type": "Image",
             "id": "ee5ea175-5bfa-45c6-8877-0f97449eb471",
-            "label": "ASSET_bastion",
+            "label": "WALL_bastion",
             "texture": {
                 "key": "castle-front-bastion"
             },
-            "x": -320,
-            "y": 560,
+            "x": 191,
+            "y": 592,
             "originY": 1
         },
         {
             "type": "TileSprite",
-            "id": "48a9b5a1-a785-4ddc-b13f-2fbf4b5d4f12",
-            "label": "ASSET_ground_band",
+            "id": "d1835712-849f-4be9-8471-ef4debdec856",
+            "label": "ASSET_ground_band_grass",
             "texture": {
-                "key": "castle-front-ground-band"
+                "key": "castle-front-ground-band-grass"
             },
-            "x": -320,
-            "y": 640,
+            "x": 2500,
+            "y": 574,
             "originY": 0,
-            "width": 384,
+            "width": 5000,
             "height": 76
+        },
+        {
+            "type": "Image",
+            "id": "3f98b626-b6ff-4ec3-8d72-d7c66bce95ff",
+            "label": "REF_hero_spawn",
+            "texture": {
+                "key": "hero-chibi",
+                "frame": 21
+            },
+            "x": 380,
+            "y": 590,
+            "scaleX": 2,
+            "scaleY": 2,
+            "originY": 0.986
         }
     ],
     "plainObjects": [],

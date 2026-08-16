@@ -35,7 +35,11 @@
  */
 export const DEPTH = {
   sky: 0,
+  /** Between the sky and the land: the one plane that moves on its own. */
+  clouds: 1,
   hills: 2,
+  /** The near tree line, in front of the mountains and behind the castle. */
+  trees: 3,
   castle: 4,
   ground: 6,
   /**
@@ -60,8 +64,37 @@ export const DEPTH = {
   hud: 20,
 } as const;
 
-/** The logical world the composition is authored against. Letterboxed, never stretched. */
+/**
+ * The VIEWPORT — one screen — not the world.
+ *
+ * The level is as wide as the ground Raheem stretches in Phaser Editor; this is
+ * only how much of it you see at once. Height is fixed: the world is one screen
+ * tall and scrolls sideways, like Mario, so vertical is a framing decision and
+ * horizontal is a level-design one.
+ */
 export const FRONT_V4_VIEW = { width: 1280, height: 720 } as const;
+
+/**
+ * PARALLAX SPEEDS — how fast each background plane moves relative to the player.
+ *
+ * A "plane" is one image scrolling at its own rate; the difference between the
+ * rates is the entire illusion of depth. 0 is painted on the camera and never
+ * moves, 1 travels exactly with the ground. Everything between reads as distance.
+ *
+ * Kept here rather than in the backdrop so the code-drawn stand-in and Raheem's
+ * generated plates use the SAME numbers — otherwise swapping his art in would
+ * silently change how far away the world feels.
+ */
+export const PARALLAX = {
+  /** Sky: pinned to the camera. A sky that slides is a sky you can see the edge of. */
+  sky: 0,
+  /** Far hills: a slow drift, enough to read as movement without reading as nearby. */
+  far: 0.25,
+  /** Near scenery, once it exists. */
+  near: 0.55,
+  /** The ground and everything standing on it. */
+  gameplay: 1,
+} as const;
 
 /** The canonical contact line. Feet, jelly undersides and landed cards all sit here. */
 export const GROUND_Y = 590;
@@ -210,21 +243,70 @@ export const CASTLE_SILHOUETTE = {
 } as const;
 
 /**
- * Fit the camera to the host, letterboxing rather than stretching.
+ * Point the camera at a level that is one screen tall and as long as you like.
  *
- * `removeBounds()` IS THE POINT, and it is the one non-obvious line in this file.
- * Phaser's camera clamp assumes the world is larger than the view; under a fit
- * zoom the view is larger than the world, and `setBounds` then shoves the whole
- * composition against the left edge. The legacy courtyard lost an afternoon to
- * exactly this. Centre on the logical middle instead and let the margins be empty.
+ * THE ZOOM FITS HEIGHT ONLY, and that is the whole change from the fixed camera
+ * this replaced. Fitting both axes is what pinned the game to a single 1280-wide
+ * screen; fitting height alone means the vertical framing is still authored — the
+ * ground sits where it was drawn, the hero is the size he was drawn — while the
+ * horizontal is free to run as far as the ground does.
  *
- * Kept as one function so the later change — a follow camera with real world
- * bounds, once the world grows east — is a change to this function and nothing
- * else. Combat must never learn the camera's habits.
+ * `setBounds` IS CORRECT NOW, AND WAS NOT BEFORE. Phaser's camera clamp assumes
+ * the world is larger than the view. Under the old fit-both zoom the view was
+ * larger than the world, so the clamp shoved the composition against the left edge
+ * — the legacy courtyard lost an afternoon to exactly that, and the fix then was
+ * `removeBounds()`. A level wider than the screen inverts the premise, so the
+ * clamp becomes the thing that stops the camera running off the end of the world.
+ *
+ * The narrow-window case is still real and still handled: if the whole level fits
+ * on screen there is nothing to scroll, and clamping would reintroduce the old bug
+ * — so it centres instead, exactly as before.
  */
-export function applyFitCamera(camera: Phaser.Cameras.Scene2D.Camera, size: { width: number; height: number }) {
-  const zoom = Math.min(size.width / FRONT_V4_VIEW.width, size.height / FRONT_V4_VIEW.height);
-  camera.removeBounds();
+export function applyLevelCamera(
+  camera: Phaser.Cameras.Scene2D.Camera,
+  size: { width: number; height: number },
+  levelWidth: number,
+) {
+  const zoom = size.height / FRONT_V4_VIEW.height;
   camera.setZoom(zoom > 0 ? zoom : 1);
-  camera.centerOn(FRONT_V4_VIEW.width / 2, FRONT_V4_VIEW.height / 2);
+
+  const visibleWorldWidth = size.width / (zoom > 0 ? zoom : 1);
+  if (levelWidth <= visibleWorldWidth) {
+    camera.removeBounds();
+    camera.stopFollow();
+    camera.centerOn(levelWidth / 2, FRONT_V4_VIEW.height / 2);
+    return;
+  }
+  camera.setBounds(0, 0, levelWidth, FRONT_V4_VIEW.height);
 }
+
+/**
+ * How far he can drift before the camera bothers to move, in world units.
+ *
+ * A camera welded to the player makes the world slide under a man who looks
+ * stationary, which is both unpleasant and hard to aim in. A deadzone lets him
+ * lead his own shot and step back from the creature without the horizon lurching.
+ */
+export const CAMERA_DEADZONE = { width: 320, height: 720 } as const;
+
+/**
+ * A little world beyond where he can walk, so the level does not end at a cliff
+ * of empty screen the moment he reaches the last step of floor.
+ */
+export const LEVEL_EDGE_MARGIN = 160;
+
+/**
+ * How far from him his hand scatters when he is knocked down, in world units.
+ *
+ * A WINDOW AROUND HIM, not the whole level — and that distinction only appeared
+ * once the level got long. Scattering across the full arena was fine on one
+ * screen; on a level several thousand units wide it would fling a card somewhere
+ * he has not walked yet, which is not a setback, it is a lost card.
+ *
+ * The camera deliberately does NOT cut away to show where they landed. Raheem:
+ * *"it should just stay on you, and you gotta go back and get them."* Losing the
+ * hand should feel like losing ground, and being shown the answer would take that
+ * away — so the window is sized to reach a little past one screen, far enough that
+ * some cards land behind him and out of sight.
+ */
+export const SCATTER_WINDOW_PX = 760;
