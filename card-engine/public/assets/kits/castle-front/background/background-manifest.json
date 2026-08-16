@@ -1,0 +1,32 @@
+{
+  "setId": "castle-front-scene-one-background",
+  "label": "Background for the Castle Front V4 perspective shift — 2D side-to-side scene",
+  "phaserEditorPack": "../kit-pack.json",
+  "phaserEditorSection": "castle-front--v4-perspective-shift--side-view-background",
+  "status": "HUMAN APPROVED STARTING SET",
+  "timeOfDay": "warm medieval-fantasy sunset",
+  "assetCount": 15,
+  "motion": {
+    "skyScrollFactor": 0,
+    "highCloudScrollFactor": 0.2,
+    "lowCloudScrollFactor": 0.3,
+    "mountainScrollFactor": 0.5,
+    "forestScrollFactor": 0.7,
+    "gameplayScrollFactor": 1,
+    "defaultCloudWindPixelsPerSecond": 12
+  },
+  "layers": {
+    "sky": "sky/castle-front-sunset-sky.png",
+    "mountains": "mountains/castle-front-mountains-loop.png",
+    "forest": "forest/castle-front-forest-loop.png",
+    "clouds": {
+      "shapes": ["broad", "mound", "puffs", "sweep"],
+      "palettes": ["afternoon", "sunset", "twilight"],
+      "pathPattern": "clouds/cloud-{shape}-{palette}.png",
+      "sceneOnePalette": "sunset",
+      "highCloudShapes": ["broad", "puffs"],
+      "lowCloudShapes": ["mound", "sweep"]
+    }
+  },
+  "implementationNote": "Camera travel drives the forest, mountains, and cloud parallax factors. Cloud wind is added independently and continues when the character and camera stop."
+}

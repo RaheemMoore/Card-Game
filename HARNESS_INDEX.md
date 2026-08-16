@@ -72,9 +72,22 @@ added here in the same commit.
 Leonardo (Phoenix / Lucid Origin). One JSON config per subject in `configs/`.
 
 ```bash
-node scripts/bg-harness/harness.mjs gen <config> [stateId]   # generate (skips what exists)
-node scripts/bg-harness/harness.mjs sheet <config>           # HTML review gallery
+node scripts/bg-harness/harness.mjs validate <config> [stateId]  # local preflight; no network or spend
+node scripts/bg-harness/harness.mjs plan <config> [stateId]      # exact provider/call/cap plan
+node scripts/bg-harness/harness.mjs gen <config> [stateId] --approve-paid --max-paid-calls=1
+node scripts/bg-harness/harness.mjs sheet <config>               # HTML raw + pixel review gallery
+node scripts/bg-harness/harness.mjs verdict <config> <stateId> PASS|FAIL|HUMAN_REVIEW "note"
 ```
+
+`gen` is deliberately blocked without `--approve-paid` and defaults to one new paid call. The
+manifest records the generation ID immediately after submission, before polling, so a timeout is
+resumed instead of resubmitted. Modern configs may set `apiVersion: "v2"`, `mode`, `contrast`,
+`promptEnhance`, a fixed seed and an explicit style UUID; old configs stay on their proven v1 path.
+Every provider request asks for exactly one image. A calibration config can also set
+`paidCallCap: 1`, which cannot be raised by a larger command-line cap; this prevents a test command
+from becoming a multi-image or multi-call batch accidentally.
+After visual inspection, `verdict` writes the human judgment and reason into both the state and its
+anchor record; rebuilding `sheet` makes that decision visible beside the generated art.
 
 | Config | What it made | Model |
 |---|---|---|
@@ -84,8 +97,12 @@ node scripts/bg-harness/harness.mjs sheet <config>           # HTML review galle
 | `courtyard.json` / `courtyard-v2.json` | Castle courtyard plate | Lucid Origin |
 | `druid.json` | Druid forge scene layers | Phoenix |
 | `bosses.json` | Boss concept exploration | Phoenix |
+| `castle-front-v4-background.json` | Rejected first Castle Front experiment; baked castle and receding road retained as evidence | Phoenix v2 |
+| `castle-front-v4-background-only.json` | Superseded ungenerated whole-plate prompt; retained only as planning history | Phoenix v2 |
+| `castle-front-v4-sky-layer.json` | Layer 01 only: full-canvas golden-dusk sky, one-image calibration gate | Phoenix v2 |
 
-Re-running `gen` is cheap — it skips anything already in the manifest and only fills gaps.
+Re-running `gen` is recovery-first — complete outputs are skipped and pending generation IDs are
+polled before another paid request can be submitted.
 
 > ⚠️ **Audit, 2026-08-04 — most of the table below is not in the repository.** Only
 > `finish_arena.py`, `pixelize.py`, `cutout.py`, `nobg.sh`, `process_plume.py`, `leo.sh` and
@@ -111,6 +128,7 @@ Re-running `gen` is cheap — it skips anything already in the manifest and only
 | `process_plume.py` | Seat + white-fog an element plume for the forge scene |
 | `placement_brief.py` | **Placement-first.** Reads Raheem's Figma `place-*` footprint marks and derives each object's size and REQUIRED FACING from where it sits — against a wall means square-on, open floor means free-standing. Built because the forge came back catty-corner twice while the angle was being written from a description instead of read off a position. |
 | `zone_mock.py` / `area_mock.py` | Render traced areas on a plate and place objects in them at true world scale, with welded cast shadows — judge a room before buying it |
+| `build_review_sheet.py` | **BUILT 2026-08-16.** Environment visual QA: raw Leonardo output beside the deterministic pixel preview, plus a full-width overlay for the live ground line, castle/home zone, open combat zone and a config-owned human checklist. |
 | `review_sheet.py` | **Lives at `sprite-lab/lib/review_sheet.py`, not here.** The asset review harness: one self-contained page showing every generated asset composited on the real plate at true game scale, feet-anchored, with its provenance, cost and verdict. See §2. |
 | `cut_flat_background.py` | Flood-fill a flat background off a generated sprite from the frame edge (PixelLab's `no_background` is a request, not a guarantee) |
 | `trim_forge.py` | Trim an approved asset down to the part that belongs, by measured crop rather than a re-roll |
@@ -172,6 +190,7 @@ These are how a human decides. **Every one of them is offered, not requested.**
 | **Battle seed** | `/dev/seed-battle` | Jump straight into a fight |
 | **Courtyard sample** | `/dev/courtyard-sample` | Castle scene composition |
 | **Courtyard V2 forge preview** | `/dev/courtyard-v2-preview` | DEV-only walk-through of the pending V2 forge quadrant: Figma-derived colliders/occlusion, chibi movement, heel dust, forge atmosphere, named aisle checks, and reduced-motion behavior. It does not replace `/castle` and is excluded from production builds. |
+| **Castle Front V4 — side-view proof** | `/dev/castle-front-v4` | Does the game work seen from the SIDE? The courtyard's combat truth slice — walk, cycle, charge, fire, telegraph, leap, knockdown, scatter, recover — rebuilt on one horizontal axis with no jump. Bridge `window.__CARD_ENGINE_FRONT_V4_STUDIO__` (DEV only) exposes `getSnapshot()`, `commands.*` and three scenarios: `castle-front-v4-combat-loop`, `-jelly-leap-evade`, `-scatter-recover`. Does NOT replace `/castle`, which stays CourtyardV3. Composition and character scale are HUMAN REVIEW. |
 | **Phaser School** | `/dev/phaser-school` | How do I do this myself next time? The world-authoring syllabus — one lesson per build (Ground, Castle, Forest), each with a table of contents, a single "key idea", the real kit art shown inline, a who-does-what step list (Claude drives MCP, Raheem drives the mouse), `Try it` experiments that prove a claim rather than asserting it, and persisted checkpoints. Built 2026-08-06 because Phaser Editor knowledge was living in chat transcripts. **Lessons are data** in `src/pages/dev/phaserSchool/lessons.ts` — adding one never touches the renderer, which is what lets it grow. Images point at real files in `public/assets/`, so a lesson cannot drift from the art it describes without visibly breaking. |
 | **Scene Preview (Editor runtime)** | `/dev/scene?start=<SceneName>` | The game half of Phaser Editor — runs whichever saved Editor scene it is asked for, with the hero, camera and input owned by our code and every placement owned by the Editor. Save in the Editor, refresh the browser: that is the whole loop. Collision is authored the same way, as red/blue rectangles in an `L14_COLLIDERS` layer, read back by `src/pages/dev/sceneColliders.ts` and resolved through the polygon walker in `walkBlocking.ts` (so a rotated wall blocks along its lean). Append `&colliders=show` to see the collision layer over the art while walking. Taught by Phaser School lesson 5. |
 | **Offline scene render** | `python scripts/bg-harness/render_scene.py <SceneName> [--ysort] [--report] [--out x.png]` | **Why doesn't the game look like my Editor?** Draws a saved Editor scene straight to a PNG with no browser and no dev server, reading the `.scene` and compiled `.js` off disk. Plain, it draws the Editor's own layer order — what Raheem sees while placing. `--ysort` draws the same scene in the **game's** order instead: ground-contact Y plus elevation stride, mirroring `src/pages/dev/sceneDepth.ts`. Rendering both and diffing them is how the CourtyardV3 tower/wall defect was found on 2026-08-09, after the browser pane stopped compositing frames and every screenshot timed out. `--report` prints each object's contact Y, level and final depth in game order — the numeric form of the same answer. **It mirrors `sceneDepth.ts`; the two must be changed together, and the file says so at both ends.** It honours `visible:false`, layer visibility, scale, flips, origins and `tilePositionY` (that last one was a bug: without it every segment of a cut wall drew as the same top strip, which made correct art look shattered). It skips Rectangles and Text, so colliders, elevation plates and markers do not appear. |

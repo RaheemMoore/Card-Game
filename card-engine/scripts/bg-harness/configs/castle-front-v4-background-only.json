@@ -1,0 +1,66 @@
+{
+  "_readme": [
+    "Castle Front V4 scenic BACKGROUND ONLY. The castle, gate, characters, enemies, vegetation props and interactable objects are separate PixelLab/Phaser layers and must not appear in this image.",
+    "The live scene is 1280x720 with GROUND_Y 590. The left x0-x330 region must stay visually quiet enough for the separate castle facade, while x420-right remains readable behind combat.",
+    "This gate tests only the side-on camera, horizontal road geometry, distant scenery, palette and mood.",
+    "Calibration is locked to one private image per run. Do not batch variants or raise the paid-call cap until Raheem and Codex approve the angle and prompt language.",
+    "Prompt enhancement and the default Dynamic style are disabled so Leonardo does not rewrite the composition contract.",
+    "The raw provider result is preserved. Pixel conversion and composition overlays are deterministic local review artifacts, not additional generations."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 417203,
+  "paidCallCap": 1,
+  "alchemy": false,
+  "styleRef": false,
+  "width": 1280,
+  "height": 720,
+  "negative": "castle, fortress, palace, tower, wall, gate, building, house, village, architecture, bridge, ruins, people, person, character, hero, guard, enemy, monster, creature, animal, statue, tree in the foreground, prop, crate, barrel, cart, fence, weapon, text, letters, numbers, signage, watermark, signature, logo, user interface, HUD, decorative border, isometric, top-down, overhead view, three-quarter camera, tilted camera, diagonal ground, curved ground, central vanishing point, converging lines, road receding toward the horizon, road going into the distance, highway, asphalt, road markings, yellow centre line, floating platform, ledge, pit, chasm, stairs, obstacle in the gameplay lane, foreground object blocking the lane, modern object, machinery, vehicle, photorealistic, photograph, 3d render, CGI, plastic surface, fisheye, tilt-shift, close-up, portrait crop, night, horror, grimdark, storm, rain, snow, neon",
+  "styleHeader": "BACKGROUND PLATE ONLY for a wide 16:9 2D side-scrolling fantasy action game. Generate only sky, distant natural landscape and the continuous ground strip. All foreground content will be composited later as separate PixelLab and Phaser layers. Fixed orthographic side elevation at human eye height, like a classic left-to-right platform game. Hand-painted medieval-fantasy scenery with crisp grouped shapes, restrained 16-bit-inspired colour structure, controlled detail and layered atmospheric depth, designed for deterministic pixel conversion later.",
+  "familyLabels": {
+    "side-scroll-background": "Castle Front B — empty scenic side-view background"
+  },
+  "anchors": {
+    "side-scroll-background": {
+      "label": "Castle Front B — Background Only",
+      "line": "SIDE-VIEW GEOMETRY IS THE PRIMARY REQUIREMENT. The playable road crosses continuously from the extreme left edge to the extreme right edge as one straight horizontal band, parallel to the bottom edge of the image. We see the road from its side, not looking along its length. Its near edge and far edge are straight, horizontal and parallel; they never converge. The walking line is at y590, 82 percent of image height. Beneath it, show a vertical cutaway face of warm brown soil and embedded stone extending to the bottom edge. Above it, arrange only distant scenery in flat lateral layers: a low golden meadow band, a soft distant tree-line silhouette, blue-violet mountain silhouettes, and an expansive sunset sky. Keep the left third simple and low-contrast for a large separate home-facade sprite. Keep the middle and right uncluttered behind large spell effects. A low golden sun with apricot, rose and lavender clouds creates warm, safe, adventurous dusk. Leave the entire foreground empty except for the continuous horizontal ground strip."
+    }
+  },
+  "states": [
+    {
+      "id": "golden-dusk-background-b",
+      "label": "Castle Front B — Background Only",
+      "family": "side-scroll-background",
+      "isAnchor": true
+    }
+  ],
+  "review": {
+    "title": "Castle Front V4 — Background-only side-view gate",
+    "lede": "Judge only the scenic plate: correct left-to-right side elevation, clean staging space for separate PixelLab assets, and warm fantasy atmosphere. Any baked castle, building, prop, actor or receding road is an automatic structural failure.",
+    "pixelize": {
+      "enabled": true,
+      "scale": 4,
+      "colors": 64,
+      "saturation": 1.08
+    },
+    "overlay": {
+      "groundY": 590,
+      "castleEndX": 330,
+      "combatStartX": 420
+    },
+    "checklist": [
+      "Background contains no castle, gate, building, foreground prop, character or enemy",
+      "Road travels left-to-right as a horizontal band rather than receding into the image",
+      "Walking surface is level and meets the live GROUND_Y 590 contract",
+      "Visible soil-and-stone cross-section fills the area below the walking line",
+      "Left x0-x330 stays quiet enough for the separate castle facade",
+      "Middle and right stay readable behind the hero, jelly and giant spell effects",
+      "Mood is warm golden fantasy adventure, never grim or evil",
+      "Sky and distant natural scenery can later be separated into parallax layers"
+    ]
+  }
+}

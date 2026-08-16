@@ -1,0 +1,43 @@
+{
+  "subject": "castle-front-cloud-actors-v1",
+  "label": "Castle Front - palette-ready moving cloud actors",
+
+  "notes": [
+    "APPROVED by Raheem 2026-08-16: exactly one PixelLab object call for four cloud actors; no automatic retry.",
+    "Research target: the readable silhouettes and restrained value clusters used by polished side-scrolling pixel-art skies, without copying any game's cloud design.",
+    "These are actors, not a painted sky. Every cloud must be an isolated opaque sprite on transparency so Phaser can move, fade, scale, tint, and recycle it independently.",
+    "Palette-first construction: neutral value bands only. Day, sunset, and twilight color belong to deterministic palette maps after generation, not baked illumination.",
+    "The four silhouettes intentionally cover different runtime jobs: broad foreground drift, tall hero cloud, long middle-distance bank, and small distant puffs.",
+    "NOT REPRODUCIBLE: /create-1-direction-object rejects seed. Preserve the raw job, object id, and every returned image."
+  ],
+
+  "objects": [
+    {
+      "id": "neutral-cloud-family-v1",
+      "styleAnchor": false,
+      "note": "One sidescroller object call returning four distinct palette-ready cloud silhouettes.",
+      "params": {
+        "description": "a cohesive family of four separate weather-cloud sprites for a beautiful warm fantasy side-scrolling 2D pixel-art game, clean readable silhouettes built from large deliberate pixel clusters, softly rounded lobes with irregular natural rhythm, exactly five neutral value bands from pale highlight through medium body to a restrained darker underside, flat opaque color regions with crisp pixel edges, no gradients, no dithering, no texture noise, no colored lighting and no baked time of day, each cloud fully isolated and centered on an otherwise empty transparent canvas: 1). broad gentle cumulus drift cloud 2). tall adventurous cumulus tower 3). long low stratocumulus bank 4). small distant puff family. No sky, no horizon, no sun, no ground, no scenery, no rain, no lightning, no storm darkness, no faces, no characters, no text, no watermark, no frame, no cast shadow, no detached streaks, no tiny orphan specks, no wispy transparent fade, no hard black outline, no photorealism, no 3D rendering",
+        "view": "sidescroller",
+        "size": 168,
+        "item_descriptions": [
+          "Broad drift cloud: one complete wide horizontal cumulus silhouette, about three times wider than tall, seven to nine overlapping rounded lobes forming one connected body, gently uneven crown, long calm base with a subtly scalloped underside, five clean neutral value bands, strong readable mass, fully isolated with generous transparent padding, no separate wisps or streaks",
+          "Hero tower cloud: one complete tall cumulus silhouette, a broad connected base rising into three asymmetrical stacked towers, heroic storybook scale without resembling a castle, rounded wind-shaped lobes, five clean neutral value bands, clearly different from the broad drift cloud, fully isolated with generous transparent padding, no separate wisps or streaks",
+          "Cloud bank: one complete long low stratocumulus silhouette, about five times wider than tall, connected chain of low rolling mounds with two slightly higher accents, calm clean underside, five clean neutral value bands, readable as a middle-distance bank, fully isolated with generous transparent padding, no detached trails or horizontal speed lines",
+          "Distant puffs: one complete compact family of exactly three connected small cumulus puffs sharing one subtle base, uneven sizes and spacing, simple low-detail silhouette, five clean neutral value bands with larger clusters and fewer internal divisions, fully isolated with generous transparent padding, no detached dots or streaks"
+        ]
+      }
+    }
+  ],
+
+  "review": {
+    "acceptance": [
+      "Every file contains one connected cloud formation and nothing else.",
+      "All four silhouettes are materially different and remain readable when scaled down.",
+      "Cloud bodies are opaque; only the outer contour may use antialiasing.",
+      "The artwork uses a small ordered neutral value ramp that can be remapped to afternoon, sunset, and twilight palettes.",
+      "There is no sky rectangle, horizon line, detached streak, orphan speck, baked glow, or cast shadow."
+    ],
+    "sheetContext": "Review individually on checkerboard, then over the locked cloudless Castle Front sky in three palette modes."
+  }
+}

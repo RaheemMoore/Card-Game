@@ -557,7 +557,10 @@ async function cmdScene(subject) {
 
   // Only the style-anchored routes need a reference. /create-image-pixen does
   // not take one, so a config that is purely images must not be blocked by it.
-  const needsStyleRef = (c.tiles?.length || c.objects?.length || 0) > 0;
+  const needsStyleRef = [
+    ...(c.tiles ?? []),
+    ...(c.objects ?? []),
+  ].some((spec) => spec.styleAnchor !== false);
   const refPath = c.styleReference ? path.join(d, c.styleReference) : null;
   if (needsStyleRef && !refPath) {
     throw new Error(`${subject}: tiles/objects need a styleReference`);

@@ -1,0 +1,60 @@
+{
+  "_readme": [
+    "Castle Front V4 continuity experiment 01: one horizontally tileable sky-and-cloud layer.",
+    "This is an opaque deep-background tile, not a complete scene and not a transparent sprite.",
+    "Leonardo tiling is enabled. The harness must repeat the result three times and expose the left-right join before approval.",
+    "The sun remains a separate non-repeating layer. No land, mountains, architecture, objects or actors belong here.",
+    "This calibration run is permanently capped at one paid call and one returned image."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "seed": 811642,
+  "paidCallCap": 1,
+  "alchemy": false,
+  "styleRef": false,
+  "tiling": true,
+  "width": 1280,
+  "height": 720,
+  "negative": "sun, moon, star, horizon line, land, ground, road, path, field, grass, hill, mountain, cliff, tree, forest, castle, fortress, tower, wall, gate, building, house, village, architecture, bridge, ruins, people, person, character, hero, enemy, monster, creature, animal, statue, prop, object, weapon, text, letters, numbers, signage, watermark, signature, logo, user interface, HUD, decorative border, isometric, top-down, overhead view, three-quarter camera, tilted camera, central vanishing point, perspective grid, modern object, machinery, vehicle, photorealistic, photograph, 3d render, CGI, plastic surface, fisheye, tilt-shift, close-up, portrait crop, night, horror, grimdark, storm, rain, snow, lightning, neon, radial composition, central focal point, single giant cloud, hard vertical edge",
+  "styleHeader": "SEAMLESS HORIZONTAL SKY-AND-CLOUD TILE for the deepest parallax layer of a wide 16:9 2D side-scrolling medieval-fantasy game. Paint only sky colour, distant atmospheric haze and gentle cloud formations across the full canvas. Hand-painted fantasy background art with crisp grouped cloud shapes, restrained 16-bit-inspired colour structure, subtle atmospheric texture and broad readable colour fields, designed for deterministic pixel conversion later.",
+  "familyLabels": {
+    "golden-dusk-cloud-loop": "Cloud continuity 01 — golden dusk"
+  },
+  "anchors": {
+    "golden-dusk-cloud-loop": {
+      "label": "Cloud Continuity 01 — Golden Dusk Loop",
+      "line": "Create a horizontally seamless repeating panorama tile. The LEFT EDGE and RIGHT EDGE must connect exactly when placed side by side: matching sky colour, brightness, cloud height, cloud density and cloud direction at both edges. Use a calm blue upper sky warming gradually into peach, apricot and dusty lavender below. Arrange several broad, low-contrast cloud bands flowing horizontally, with generous open sky between them. Distribute forms evenly across the width without a central subject, unique landmark, isolated giant cloud or dramatic focal point. No sun is painted into this repeating tile; the sun will be added separately. Keep the outer edges quiet and continuation-friendly. Welcoming, cinematic and adventurous. Every visible pixel is sky, cloud or atmospheric haze. The image must still read naturally when its right edge wraps directly back to its left edge."
+    }
+  },
+  "states": [
+    {
+      "id": "golden-dusk-cloud-loop-01",
+      "label": "Cloud Continuity 01 — Golden Dusk Loop",
+      "family": "golden-dusk-cloud-loop",
+      "isAnchor": true
+    }
+  ],
+  "review": {
+    "title": "Castle Front V4 — cloud continuity test 01",
+    "lede": "Judge the repeated join in motion. A beautiful single frame still fails if its left and right edges reveal a jump when the camera loops.",
+    "pixelize": {
+      "enabled": true,
+      "scale": 4,
+      "colors": 64,
+      "saturation": 1.08
+    },
+    "checklist": [
+      "The left and right edges connect without a visible colour, brightness or cloud-position jump",
+      "Three repeated copies read as one longer sky rather than three obvious panels",
+      "No sun or other unique landmark repeats",
+      "Every visible pixel belongs to sky, cloud or atmospheric haze",
+      "No land, mountain, architecture, actor or object appears",
+      "Cloud bands flow horizontally and retain broad shapes after pixel conversion",
+      "The warm fantasy-dusk palette remains compatible with the approved Sky 01 mood anchor"
+    ]
+  }
+}
