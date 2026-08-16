@@ -714,6 +714,83 @@
       "faces": "1 static tree",
       "verdict": "pending",
       "note": "Warm courtyard family; radial open canopy. Pending visual verdict."
+    },
+    {
+      "id": "jelly-a-dome",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\object-ember-jelly-frame_0.png",
+      "wall": "floor",
+      "source": "prop-ember-jelly gate 1",
+      "endpoint": "C:/Program Files/Git/create-1-direction-object",
+      "generations": 25,
+      "faces": "1 (symmetric blob \u2014 needs NO other faces, that is the point)",
+      "verdict": "pending",
+      "note": "SHAPE A: classic dome with drips. The juiciest silhouette and the best squash candidate. As generated (amber)."
+    },
+    {
+      "id": "jelly-b-nubs",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\object-ember-jelly-frame_3.png",
+      "wall": "floor",
+      "source": "prop-ember-jelly gate 1",
+      "endpoint": "C:/Program Files/Git/create-1-direction-object",
+      "generations": 0,
+      "faces": "1 (symmetric)",
+      "verdict": "pending",
+      "note": "SHAPE B: rounded body with two stubby goo nubs. Most personality of the sixteen. Amber."
+    },
+    {
+      "id": "jelly-c-cluster",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\object-ember-jelly-frame_6.png",
+      "wall": "floor",
+      "source": "prop-ember-jelly gate 1",
+      "endpoint": "C:/Program Files/Git/create-1-direction-object",
+      "generations": 0,
+      "faces": "1 (symmetric)",
+      "verdict": "pending",
+      "note": "SHAPE C: three jellies as ONE sprite \u2014 the 'multiplying' read, with zero extra layers to sync."
+    },
+    {
+      "id": "jelly-a-moss",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\recolor\\f0-moss.png",
+      "wall": "floor",
+      "source": "recolor.py --ramp (free)",
+      "endpoint": "none \u2014 local recolour",
+      "generations": 0,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "SHAPE A recoloured moss. Zero generations. NOTE the ember stayed red \u2014 body and ember are on separate ramps, so the whole element family is free."
+    },
+    {
+      "id": "jelly-a-frost",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\recolor\\f0-frost.png",
+      "wall": "floor",
+      "source": "recolor.py --ramp (free)",
+      "endpoint": "none \u2014 local recolour",
+      "generations": 0,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "SHAPE A recoloured frost. Zero generations."
+    },
+    {
+      "id": "jelly-b-moss",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\recolor\\f3-moss.png",
+      "wall": "floor",
+      "source": "recolor.py --ramp (free)",
+      "endpoint": "none \u2014 local recolour",
+      "generations": 0,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "SHAPE B recoloured moss. Zero generations."
+    },
+    {
+      "id": "jelly-c-void",
+      "file": "scripts\\sprite-lab\\out\\prop-ember-jelly\\recolor\\f6-void.png",
+      "wall": "floor",
+      "source": "recolor.py --ramp (free)",
+      "endpoint": "none \u2014 local recolour",
+      "generations": 0,
+      "faces": "1",
+      "verdict": "pending",
+      "note": "SHAPE C recoloured void. Zero generations."
     }
   ]
 }

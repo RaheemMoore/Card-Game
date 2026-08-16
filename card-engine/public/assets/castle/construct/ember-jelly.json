@@ -1,0 +1,25 @@
+{
+  "image": "ember-jelly.png",
+  "frameWidth": 63,
+  "frameHeight": 54,
+  "columns": 32,
+  "clips": {
+    "idle": {
+      "start": 0,
+      "frames": 7
+    },
+    "hop": {
+      "start": 7,
+      "frames": 9
+    },
+    "gather": {
+      "start": 16,
+      "frames": 7
+    },
+    "splat": {
+      "start": 23,
+      "frames": 9
+    }
+  },
+  "note": "One strip, four clips, shared 63x54 box. Frame ranges rather than rows because the clips have different lengths (7/9/7/9) and a grid would need padding. Order is the creature\u2019s life, not alphabetical."
+}

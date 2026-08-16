@@ -1,0 +1,81 @@
+{
+  "subject": "prop-ember-jelly",
+  "label": "The Ember Jelly — the courtyard's first real enemy",
+  "notes": [
+    "RAHEEM'S BRIEF, 2026-08-15: the first real enemy, replacing the procedural brown-rectangle training construct. He asked for something with 'very little directional requirements to looking good on the screen', explicitly rejected orbiting crystal shards as a desync risk ('that's gonna cause errors'), and asked for juicy motion — 'blubbery... splooping and splashing looking juicy'.",
+    "BUILT AS AN OBJECT, NOT A CHARACTER — the load-bearing decision, same as prop-forge-pet. Quadruped/character animation is 0-for-3 here; object animation worked first try on the lectern. A blob needs no walk cycle, so nothing is lost.",
+    "WHY A JELLY AND NOT THE ORBITING-CORE CONCEPT: orbiting shards would be separate Phaser layers needing per-frame sync with the body, and every extra layer is a desync bug we are not equipped to chase yet. A jelly puts the interesting part INSIDE the silhouette — the ember is painted into the same frames, so there is nothing to sync and still a character rather than a circle.",
+    "ZERO DIRECTIONAL REQUIREMENT — see create-prop Step 1b. A symmetric blob reads identically from every angle, so this is ONE generation family reused for every facing, not one per orientation. That is the cheapest quality lever in the prop pipeline and it is why this creature was chosen over anything with a front face.",
+    "NO GLOW IN ANY CLIP. The ember's brightening is the attack tell, but it is a Phaser layer, not frames. Standing rule: never ask a clip to animate a glow — the crystal's glow dimmed and never came back. Frames carry a static-brightness ember; the ramp is free code.",
+    "REVIVE IS SPLAT-DEATH PLAYED BACKWARDS in code. Zero generations. Still Season precedent: its rage is the first three frames of its ultimate, its ultimate is a rejected hit animation — two states, no extra spend. The jelly re-gathering around its ember is also the story reason the training dummy can revive forever.",
+    "MOTION IS DOUBLE-SOURCED. constructPose.ts already supplies squash/stretch, a 9px wind-back, a 30px lunge and a 420ms topple as pure math, and constructPresenter.ts already does the white hit-flash and knockback view-lag. The generated clips only need to carry what CODE CANNOT: the jelly's own idle wobble, the gather, and the splat. Everything else is free and already tuned.",
+    "NOT GENERATED, deliberately: walk (code slide at 70px/s + idle wobble reads correctly for a slime), attack lunge (constructPose), hit react (existing flash overlay), knockback (existing view-lag), glow ramp (Phaser).",
+    "SIZE IS NOT SET, AND CANNOT BE. /create-1-direction-object returns 422 'size cannot be set when style_images are provided - the largest style image determines the output size'. The playbook recorded this rule for `reference_image`; it applies to `style_images` too, which is a new trap found on this run. The style ref is a 28x69 crop of the hero, so THE HERO'S OWN SCALE sets the output - which is more correct than the 72px this config originally hand-picked, since the whole point of the anchor is to match his register. The construct's current footprint is 44x68 at courtyard zoom 1.5, so ~69px lands right where it should.",
+    "Modesty M5.7 is NOT engaged — no figure, no torso, no limbs, nothing to clothe. This is a second reason the creature class was chosen.",
+    "/create-1-direction-object rejects `seed`, so object output is NOT reproducible. A bad result is a reroll with a changed description, never a re-roll of the same prompt. Accepted params are description, size, view, style_images, item_descriptions only.",
+    "PROBE: a TRANSLUCENT body with an object suspended INSIDE it is unproven in this repo. Risk: the model paints the ember ON the jelly instead of within it, or the translucency reads as a flat blob and the ember disappears at 72px. Mitigation: all four item_descriptions state 'visible through' explicitly, and they vary how deep the ember sits so at least one should separate. ONE CALL, four takes. If none read, the fallback is an opaque jelly with the ember as a surface gem — still one sprite, still no directional requirement.",
+    "GATE 2 (this run): four clips on the promoted object - idle-sploop, hop, gather, splat. THE HOP IS THE NEW ONE and it is the point: Raheem wants the juiciest mob in the game, and a slime that hops rather than slides is where that lives while it is alive. Frames carry the BODY (crouch, stretch, land-splat); Phaser carries the WORLD (travel arc, landing droplets, hitstop, shadow) in a later wiring task.",
+    "v3 stores the reference frame, so a frameCount of 6 returns 7 images and 8 returns 9. Expect it; do not fight it when packing.",
+    "GATE 2 RESULT: idle-sploop and gather landed first try. hop and splat both failed on THE EMBER - it deformed (a bar in hop, a chimney in splat), because nothing in the description pinned it. Lesson worth generalising: an inclusion suspended inside a deforming body must be explicitly held constant in every clip description, or the model deforms it along with the body. Retried as -v2 names, since re-POSTing a used animation name silently returns the old clip."
+  ],
+  "styleReference": "style-ref-hero.png",
+  "objects": [
+    {
+      "id": "ember-jelly",
+      "note": "Four takes on the same creature in one call. /create-1-direction-object is a flat ~25 generations whether you ask for one item or four, so asking for one would waste the other three slots. The variable being tested is how deep the ember sits and how the translucency reads at size — that is the whole risk.",
+      "params": {
+        "description": "a small round translucent amber jelly slime creature with a dim dark ember coal suspended inside its body, seen from a low top-down angle, glossy wobbling goo, black pixel outline, basic shading, no background",
+        "view": "top-down",
+        "item_descriptions": [
+          "a small rounded dome of translucent amber jelly, glossy and wobbling, with a single dim dark red ember coal suspended deep in the middle of its body and visible through the goo, a few soft drips running down its sides, no face, no limbs",
+          "a small translucent honey-amber jelly blob with a slightly tall teardrop shape, a dim charcoal ember suspended high inside it and visible through the translucent body, thick glossy surface, soft rounded base spreading slightly, no face, no limbs",
+          "a wide low translucent amber jelly mound with a rising bulge on top, a dim dark ember coal sitting low and deep inside the body and visible through the goo, heavy glossy drips along the base, no face, no limbs",
+          "a small translucent amber jelly creature with a thick rounded body and two tiny stubby goo nubs at its base, a dim dark ember suspended in its centre and visible through the translucent goo, glossy wet surface, no face"
+        ]
+      }
+    }
+  ],
+  "_objectIds": {
+    "review-object": "a9475353-39ab-4b21-964a-e3238caf1232",
+    "ember-jelly-nubs": "6b4d730a-179e-4782-9d4d-105dcd2050ea",
+    "_note": "Gate 1 returned ONE review object holding 16 candidate frames for $0.12 USD (the job billed in usd, not subscription generations - correcting the estimate given before the call). Raheem picked frame 3, \"shape B - nubs\", amber as generated. A review object CANNOT be animated, so frame 3 was promoted to its own object via POST /objects/{id}/select-frames - free, no usage reported."
+  },
+  "objectAnimations": [
+    {
+      "id": "jelly-idle-sploop",
+      "objectId": "6b4d730a-179e-4782-9d4d-105dcd2050ea",
+      "displayName": "idle-sploop",
+      "description": "the jelly blob squashes down and springs back up in a slow wobbling bounce, its body flattening and stretching while the ember inside stays put, settling back to its resting shape",
+      "frameCount": 6,
+      "mode": "v3",
+      "note": "THE RESTING WOBBLE. Covers idle/disabled/alert. One action: squash and rebound. The ember explicitly STAYS PUT so the body reads as moving around a fixed core. 1-direction object, so `directions` is deliberately OMITTED (passing it is a 400)."
+    },
+    {
+      "id": "jelly-gather",
+      "objectId": "6b4d730a-179e-4782-9d4d-105dcd2050ea",
+      "displayName": "gather",
+      "description": "the jelly blob pulls itself inward and upward into a tall tense bulge, its base narrowing as its body gathers over the ember, holding that compressed shape",
+      "frameCount": 6,
+      "mode": "v3",
+      "note": "THE TELEGRAPH - maps to the 650ms telegraph phase, which is the fairness invariant (telegraphIsAvoidable: the hero has no dodge, so the tell must be walkable-out-of). Must loop or hold. Ends compressed so the code lunge fires from a wound-up pose. NO glow language: the ember brightening is a Phaser layer, and a generated glow dimmed and never came back once already."
+    },
+    {
+      "id": "jelly-hop-v2",
+      "objectId": "6b4d730a-179e-4782-9d4d-105dcd2050ea",
+      "displayName": "hop",
+      "description": "the jelly blob squashes down flat and wide, then stretches tall and narrow with its base pulling in, then flattens wide again as it settles, the small round dark ember staying the same size and shape the whole time",
+      "frameCount": 8,
+      "mode": "v3",
+      "note": "RETRY of jelly-hop. TWO defects in v1: the ember deformed into a horizontal dark bar at frames 5-6, and there was no landing splat. ROOT CAUSE of the missing hop: from a LOW TOP-DOWN view you cannot draw vertical travel - \"launch upward\" gave the model nothing to render, so it wobbled in place. The runtime arcs the travel through the air itself, so this clip is now PURE DEFORMATION language (squash / stretch narrow / flatten wide) with no jump, leap, rise or upward words at all. The ember is explicitly pinned as unchanging, because an ember that squashes reads as a mouth."
+    },
+    {
+      "id": "jelly-splat-v2",
+      "objectId": "6b4d730a-179e-4782-9d4d-105dcd2050ea",
+      "displayName": "splat",
+      "description": "the jelly blob slumps and spreads outward into a flat wide puddle of goo, the small round dark ember staying the same size and shape and coming to rest half sunk in the middle of the spilled jelly",
+      "frameCount": 8,
+      "mode": "v3",
+      "note": "RETRY of jelly-splat. The puddle was good; the EMBER was the defect - it grew into a tall dark cylinder standing on the goo like a chimney, because \"resting on top of\" invited a vertical object. Now pinned to the same size and shape and explicitly HALF SUNK, which keeps it inside the silhouette and keeps the last frame a legible corpse (and therefore the first frame of the code-reversed revive)."
+    }
+  ]
+}

@@ -71,6 +71,13 @@ const SHEETS = [
   { key: 'keeper-archivist', dir: 'keepers', manifest: 'archivist-breathe.json' },
   { key: 'prop-horse', dir: 'keepers', manifest: 'horse-eating.json' },
 
+  // The Ember Jelly — the courtyard's first real enemy, replacing the
+  // procedural rectangle construct. ONE strip carries all four clips as frame
+  // ranges (idle 0-6, hop 7-15, gather 16-22, splat 23-31) because the clips
+  // have different lengths and a row grid would need padding. Ranges live in
+  // the twin JSON's `clips` and are restated in src/data/castle/jellySprite.ts.
+  { key: 'construct-ember-jelly', dir: 'construct', manifest: 'ember-jelly.json' },
+
   // TEMPORARY — hero size test, 2026-08-09. Raheem: "I think our characters may
   // be a bit too big", against the reference tilemaps. These are the same sheet
   // area-averaged down by lib/resample.py to smaller NATIVE frame heights, so

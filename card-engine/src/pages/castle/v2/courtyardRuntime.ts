@@ -65,6 +65,13 @@ import {
   KNOCKDOWN_DURATIONS_MS,
   KNOCKDOWN_SHEET,
 } from '../../../data/castle/knockdownSprite';
+import {
+  JELLY_SHEET,
+  JELLY_ANIM,
+  JELLY_CLIPS,
+  jellyFrames,
+  type JellyClipName,
+} from '../../../data/castle/jellySprite';
 import { EXPLORABLE_SCENES, YSORT_SCENES } from './sceneManifest';
 import { quantiseFacing, resolveAim, initialAim, type AimState, type Vec2 } from '../combat/aim';
 import { ELEMENT_NAMES, type ElementName } from '../../../types/bible';
@@ -1363,6 +1370,30 @@ export function makeScene(
           })),
           repeat: 0,
         });
+      }
+
+      // The Ember Jelly's four clips. One sheet, four frame ranges; keys are
+      // namespaced by the sheet (JELLY_ANIM) because the anim manager is global
+      // and a bare key like 'idle' would be claimed by whoever created it first.
+      //
+      // Uniform frame rates rather than per-frame durations: unlike the fall and
+      // the summon, no single frame here is a beat that has to be held. The
+      // holds that matter are imposed by the state machine -- the 650ms
+      // telegraph and the 900ms recovery -- and the clip loops underneath them.
+      if (this.textures.exists(JELLY_SHEET.key)) {
+        for (const name of Object.keys(JELLY_CLIPS) as JellyClipName[]) {
+          const key = JELLY_ANIM[name];
+          if (this.anims.exists(key)) continue;
+          const clip = JELLY_CLIPS[name];
+          this.anims.create({
+            key,
+            frames: this.anims.generateFrameNumbers(JELLY_SHEET.key, {
+              frames: jellyFrames(name),
+            }),
+            frameRate: clip.fps,
+            repeat: clip.loop ? -1 : 0,
+          });
+        }
       }
 
       const keyboard = this.input.keyboard!;

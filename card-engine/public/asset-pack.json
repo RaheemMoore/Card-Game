@@ -260,6 +260,15 @@
       },
       {
         "type": "spritesheet",
+        "key": "construct-ember-jelly",
+        "url": "assets/castle/construct/ember-jelly.png",
+        "frameConfig": {
+          "frameWidth": 63,
+          "frameHeight": 54
+        }
+      },
+      {
+        "type": "spritesheet",
         "key": "hero-chibi-56",
         "url": "assets/castle/hero/sizetest/chibi-56.png",
         "frameConfig": {
