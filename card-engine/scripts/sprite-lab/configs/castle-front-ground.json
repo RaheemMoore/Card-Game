@@ -11,7 +11,9 @@
 
     "SIZE. The game's ground band is 130 units tall (y=590 to 720 in a 1280x720 frame). 384x160 native gives a little headroom for the surface detail and tiles four times across the frame. Sides divisible by 4 and well inside the endpoint's 512x512 area cap.",
 
-    "ANGLE, per SIDE_VIEW_ANGLE_SPEC.md. A cross-section is the one thing that CANNOT be drawn from above, so the risk here is lower than the bastion's — but the prompt still says it outright, because this endpoint has produced a raking projection before when left to infer."
+    "ANGLE, per SIDE_VIEW_ANGLE_SPEC.md. A cross-section is the one thing that CANNOT be drawn from above, so the risk here is lower than the bastion's — but the prompt still says it outright, because this endpoint has produced a raking projection before when left to infer.",
+
+    "CROPPED, NOT MATTED. Unlike the bastion this came back correctly transparent, so no cut was needed. But it dissolves toward the bottom: measured row by row it is fully solid only from y=42 to y=104, with grass tufts breaking the surface above and scattered debris fading out below. Shipped crop is y=28..104 with any trailing non-solid row trimmed, giving 384x76 whose TOP row is transparent (tufts standing up against the sky) and whose BOTTOM row is 100% opaque — which is what lets the band stack downward without a seam showing. Re-measure after any regeneration rather than reusing these numbers."
   ],
 
   "images": [

@@ -122,26 +122,26 @@
         {
             "type": "Image",
             "id": "ee5ea175-5bfa-45c6-8877-0f97449eb471",
-            "label": "BASTION",
+            "label": "ASSET_bastion",
             "texture": {
                 "key": "castle-front-bastion"
             },
-            "x": 200,
-            "y": 592,
+            "x": -320,
+            "y": 560,
             "originY": 1
         },
         {
             "type": "TileSprite",
             "id": "48a9b5a1-a785-4ddc-b13f-2fbf4b5d4f12",
-            "label": "GROUND_SURFACE",
+            "label": "ASSET_ground_band",
             "texture": {
                 "key": "castle-front-ground-band"
             },
-            "x": 640,
-            "y": 590,
+            "x": -320,
+            "y": 640,
             "originY": 0,
-            "width": 1280,
-            "height": 160
+            "width": 384,
+            "height": 76
         }
     ],
     "plainObjects": [],

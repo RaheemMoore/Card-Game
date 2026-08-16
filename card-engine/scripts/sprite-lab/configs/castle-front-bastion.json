@@ -17,7 +17,13 @@
 
     "ENDPOINT: /create-image-pixen, view 'side'. Not /create-tiles-pro with tile_feature 'building' — that route is what produced the raking projection this whole spec exists to prevent. no_background so it drops onto the dusk sky without matting.",
 
-    "ONE PIECE, ONE GENERATION, THEN A HUMAN LOOKS. The angle spec's own rule, written after this repo bought a part-isometric tower batch and a wall kit that would not tile. Do not queue the walls until Raheem has seen this."
+    "ONE PIECE, ONE GENERATION, THEN A HUMAN LOOKS. The angle spec's own rule, written after this repo bought a part-isometric tower batch and a wall kit that would not tile. Do not queue the walls until Raheem has seen this.",
+
+    "MATTING, AND IT TOOK TWO STEPS — REPRODUCE IT EXACTLY. `no_background: true` was ignored: the raw return is 100% opaque on a solid black field (corners rgb(0,0,0,255)), which is the same 'no_background is a request, not a guarantee' failure lib/cut_flat_background.py was written for. Step 1: `cut_flat_background.py image-bastion.png image-bastion-cut.png --tolerance 24` — flood from the frame edge, never a global black threshold, because the art's own outline is 'single colour black' and a threshold would dissolve it. That cut 47,172 px and kept 124,860.",
+
+    "STEP 2 IS THE ONE THAT IS NOT OBVIOUS. The edge flood walks THROUGH THE PORTCULLIS BARS, so the cut left a gateway you could see the sky through — a hole punched in the building rather than a passage into it. `close_openings.py image-bastion-cut.png image-bastion-final.png --below 230` restores it: any transparent run with the sprite's own pixels on both sides is interior and gets filled. `--below 230` is load-bearing — the gaps between the battlements are open to the sky and must NOT be filled, and 230 is below the arch springline and well below the crenellations. It filled 19,637 px. dehalo afterwards found 0 residue.",
+
+    "SHIPPED SIZE 384x448 with a transparent surround, in the castle-front kit. Kept apart from halo-stone-castle on purpose: that kit is top-down art for a game that no longer exists."
   ],
 
   "images": [

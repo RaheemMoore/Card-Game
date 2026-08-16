@@ -69,13 +69,13 @@ class CastleFrontWorld extends Phaser.Scene {
 		rEF_jelly_spawn.scaleY = 2;
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
 
-		// BASTION
-		const bASTION = this.add.image(200, 592, "castle-front-bastion");
-		bASTION.setOrigin(0.5, 1);
+		// ASSET_bastion
+		const aSSET_bastion = this.add.image(-320, 560, "castle-front-bastion");
+		aSSET_bastion.setOrigin(0.5, 1);
 
-		// GROUND_SURFACE
-		const gROUND_SURFACE = this.add.tileSprite(640, 590, 1280, 160, "castle-front-ground-band");
-		gROUND_SURFACE.setOrigin(0.5, 0);
+		// ASSET_ground_band
+		const aSSET_ground_band = this.add.tileSprite(-320, 640, 384, 76, "castle-front-ground-band");
+		aSSET_ground_band.setOrigin(0.5, 0);
 
 		this.events.emit("scene-awake");
 	}
