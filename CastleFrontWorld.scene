@@ -1,0 +1,54 @@
+{
+    "id": "6acf1af7-d51a-4f1f-a880-eca282f738c9",
+    "sceneType": "SCENE",
+    "settings": {
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "CastleFrontWorld"
+    },
+    "displayList": [
+        {
+            "type": "Rectangle",
+            "id": "5f47b38d-cb07-45f3-bc4b-454d30166692",
+            "label": "PLACEHOLDER_block_left",
+            "x": 240,
+            "y": 590,
+            "originY": 1,
+            "isFilled": true,
+            "fillColor": "#4a3a5c",
+            "width": 90,
+            "height": 130
+        },
+        {
+            "type": "Rectangle",
+            "id": "b25d99fe-5d5f-482b-b5b2-63dad3c8bd95",
+            "label": "PLACEHOLDER_block_mid",
+            "x": 760,
+            "y": 590,
+            "originY": 1,
+            "isFilled": true,
+            "fillColor": "#5c4436",
+            "width": 120,
+            "height": 70
+        },
+        {
+            "type": "Rectangle",
+            "id": "75d88d59-4d2c-4b43-95ae-7ed11c730726",
+            "label": "PLACEHOLDER_block_right",
+            "x": 1080,
+            "y": 590,
+            "originY": 1,
+            "isFilled": true,
+            "fillColor": "#4a3a5c",
+            "width": 70,
+            "height": 190
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
+}

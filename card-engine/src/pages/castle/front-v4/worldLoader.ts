@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DEPTH } from './layout';
 
 /**
  * Loads the world Raheem places in Phaser Editor.
@@ -39,6 +40,8 @@ export interface WorldLoadResult {
   sceneName: string;
   /** How many textures were pulled in for it. */
   texturesLoaded: number;
+  /** How many game objects the authored scene contributed. */
+  objects?: number;
   message?: string;
 }
 
@@ -95,12 +98,30 @@ export async function loadEditorWorld(
     if (typeof editorCreate !== 'function') {
       return { ...empty('failed', 'compiled scene has no editorCreate()'), texturesLoaded };
     }
+
+    // Remember what was already on stage, so the authored objects can be told
+    // apart from the backdrop and the actors afterwards.
+    const before = new Set(scene.children.list);
     editorCreate.call(scene);
+    const authored = scene.children.list.filter((child) => !before.has(child));
+
+    // THE DEPTH OFFSET, and it is the difference between placement working and
+    // appearing to do nothing. Phaser Editor hands a new object depth 0, which in
+    // this scene is the SKY — so a wall placed at the castle renders behind the
+    // backdrop and the editor looks broken. Offsetting by DEPTH.world puts the
+    // whole authored set in front of the scenery and behind the people, while
+    // ADDING whatever depth was set in the Editor preserves the ordering that was
+    // deliberately chosen there.
+    for (const child of authored) {
+      const withDepth = child as unknown as { depth?: number; setDepth?: (d: number) => unknown };
+      if (typeof withDepth.setDepth === 'function') {
+        withDepth.setDepth(DEPTH.world + (withDepth.depth ?? 0));
+      }
+    }
+    return { status: 'loaded', sceneName, texturesLoaded, objects: authored.length };
   } catch (error) {
     return { ...empty('failed', String(error)), texturesLoaded };
   }
-
-  return { status: 'loaded', sceneName, texturesLoaded };
 }
 
 /**

@@ -38,6 +38,17 @@ export const DEPTH = {
   hills: 2,
   castle: 4,
   ground: 6,
+  /**
+   * Base depth for everything authored in Phaser Editor.
+   *
+   * The Editor gives a new object depth 0, which in this scene is the SKY — so a
+   * wall placed in the editor renders behind the backdrop and appears to have
+   * done nothing. `worldLoader` offsets every authored object by this base and
+   * adds whatever depth was set in the Editor on top, so relative ordering is
+   * preserved while the whole set lands in front of the scenery and behind the
+   * people.
+   */
+  world: 7,
   dropped: 8,
   shadow: 9,
   jelly: 10,
