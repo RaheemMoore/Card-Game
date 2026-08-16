@@ -461,7 +461,8 @@ Every paid provider call routes through a server-side Vercel function under
 | IN FLIGHT | Boss battles | 2 bosses. **Still Season is uncommitted** — see §0 |
 | SHIPPED | Castle courtyard + overworld combat | **`/castle` is CourtyardV3 and it is a game you can play** (merged to main 2026-08-12). Hold F to charge, release to throw a real elemental blast — the 27-element PixelLab library from the boss battle, reused for zero new generations. Four cards carried, exactly one place each. K knocks him down and scatters them onto validated reachable ground to be physically collected. G plants a card and a keeper rises out of where it landed, using the slam performance approved 2026-08-07. Hero draws at his native 71px. The 4 stalls are still unwired, and the controls list is a deliberate placeholder Raheem has chosen to keep for now. **The Combat Truth Slice shipped to production 2026-08-13** ([PR #45](https://github.com/RaheemMoore/Card-Game/pull/45)) and replaced the two biggest placeholders. The inert dummy is now a training construct that notices you from 340 units, turns, closes — always slower than you — telegraphs with a growing ring on the ground, commits its strike to the spot you were standing on, lunges, recovers so you can punish it, flinches, dies and revives. **A strong strike, not the K key, is what knocks the Card-wright down.** Tap fires a quick action and holding past 220ms fires a heavy one, dispatched through a per-card seam so different cards can carry different heavies later. Getting up buys 1.5s of protection so nothing can chain-knock him. The fall now plays at 12fps instead of 22 — at the old speed the whole topple was over in 540ms, which is why it kept being reported as "a dark spot" — **and he stays on the ground until you press a direction.** A readout in the top-right says what the construct is doing in plain words, and R/T/Y reset it, freeze it and arm its knockdown, so none of this needs a browser console. Water is a category the collider layer now understands, **awaiting one shape drawn in the Editor** (see §0). |
 | SHIPPED | Combat feel — how a hit lands | **Merged to main 2026-08-14 ([PR #49](https://github.com/RaheemMoore/Card-Game/pull/49)).** An attack now has a shape you can watch: he braces, the blast shoves him back, the construct flashes white and is visibly *shoved* rather than teleported, the world stops for a few dozen milliseconds on a heavy hit, and the card row under him fills as you charge and punches when you fire. The construct falls over when it dies instead of dimming and standing there. One severity scale — light, normal, heavy — drives every one of those, so a charged shot is louder than a tap in the same way everywhere. Two rules were held throughout and are guarded by tests: an ordinary enemy attack is still avoidable by walking (he has no dodge, roll or shield), and only a telegraphed strong hit scatters the hand. **No damage number changed.** `P` plays one complete scripted duel so two playtests are comparable. **Open: sound.** Synthesized cues were built and rejected on hearing them, so the courtyard is silent — deliberately, until Raheem picks sounds he likes. See Q14 and the decision log. |
-| IN FLIGHT | The perspective shift — side view | **Raheem changed the camera on 2026-08-16.** Four-directional exploration is too much for a first game and multiplies every animation by four; the game becomes a 2D side-scroller so the effort goes into dramatic card magic instead of directional coverage. **The proof is playable at `/dev/castle-front-v4`** — the courtyard's whole combat truth slice rebuilt on one horizontal axis: walk left/right with **no jump**, wheel or 1–4 to cycle four cards, hold F to charge and release to fire horizontally, and an Ember Jelly that telegraphs a **committed leap you can run underneath**. It lands on the ground you were standing on, so standing still is punished and both running past it and running away are real answers. A strong hit knocks him down and scatters all four cards onto separated, reachable ground; proximity picks them back up. **`/castle` is untouched and still CourtyardV3** — this shares no runtime code with it, only the pure modules (`hand`, `actionState`, `blast`, `construct`, `feel`, `hitstop`), and the whole thing lives in one new directory. 61 unit tests plus 51 runtime assertions across three named scenarios, all passing, console clean. **The fairness proof found two real design bugs before anything was drawn:** cornered against the castle he had no escape, and the leap's minimum travel silently overrode every ordinary commit. **Open and deliberately not decided by code: composition, character scale, castle art and how the leap feels.** The castle is a code-drawn silhouette because no side-view façade art exists; a parallel session is generating the real background. See §4. |
+| SHIPPED | The perspective shift — the game is a side-scroller | **`/castle` IS the side view, and the top-down world is deleted** (2026-08-16). Walk left/right with **no jump**, wheel or 1–4 to cycle four cards, hold F to charge and release to fire horizontally, and an Ember Jelly that telegraphs a **committed leap landing on the ground you were standing on** — so standing still is punished, and running past it or running away are both real answers. A strong hit knocks him down and scatters the hand onto separated, reachable ground; walking over a card picks it up. **The fairness proof found two real design bugs before anything was drawn:** cornered against his own castle he had no escape, and a minimum meant for a degenerate hop was silently overriding every ordinary commit. Gone entirely: CourtyardV2/V3 and their 3470-line runtime, the classic plate castle, the v2-preview, the sample, the root Editor scene files, the dev scene tooling, and the four combat modules that encoded a camera rather than a rule. The boot screen and five dev pages stopped showing the painted courtyard. **1144 tests pass; 51 runtime assertions across three named scenarios; console clean.** **Open: all of the art** — the castle is a code-drawn silhouette that says so on itself. See the angle spec and §4. |
+| WON'T DO | Top-down / three-quarter exploration | **Deleted 2026-08-16**, not parked. Raheem: *"I definitely don't wanna try to work on that anymore. We're going straight side to side."* Git history holds it; do not resurrect it. The 2026-08-06 wall-kit projection ruling dies with it — that batch was top-down art, so the question it was blocking no longer exists. |
 | IN FLIGHT | Wildlife | Fox, rabbit and glowcap tortoise live their own lives in the courtyard — wandering, sniffing, nibbling, and reacting to you. One shared brain drives all three; what makes the rabbit timid and the tortoise calm is a sheet of numbers, not three separate AIs. They obey the traced walls, cannot climb a cliff face, and draw correctly in front of and behind the castle. Two rooms: a bare test bench with a live readout of what each animal is thinking, and Courtyard V2 itself, where five animals live in three areas Raheem drew. Verified by simulation — 15,000 samples with zero animals inside a wall. Phaser School's ChatGPT lesson 2 now teaches the whole thing, including how to add and move animals yourself. **Reachable only through the developer routes, because Courtyard V2 is not the production castle yet.** |
 | IN FLIGHT | Art harnesses + skills | `create-arena` / `create-boss` / `create-prop` written, uncommitted |
 | IN FLIGHT | Pixel UI kit | Six primitives shipped in `src/components/ui/` — Panel, PixelButton, Bar, Slot, Scrim, ScrollArea — on four PixelLab pieces (Round 3, approved by Raheem 2026-08-04 after 60 generations across three rounds). Variants come from props, never new art. Gallery at `/dev/ui-kit`. Assembly rules that cost real review time are written down in `public/assets/ui/PROVENANCE.md`. **Open: the other three stall menus.** |
@@ -524,19 +525,21 @@ Restore any of them with `git branch <name> <tag>`. Listed with `git tag`.
 feel like a lot the first time. That's the point — and marking something `WON'T DO` is a
 legitimate, encouraged way to close it.
 
-### The perspective shift — 6 items
+### The side-view castle — 8 items
 
-The proof runs and is verified. What is open is everything a machine cannot answer, plus the
-work that only makes sense once Raheem has said the perspective is right.
+The game plays. **Everything open is art, or work that art unblocks.** Read
+[SIDE_VIEW_ANGLE_SPEC.md](SIDE_VIEW_ANGLE_SPEC.md) before touching any of it.
 
 | What | Where |
 |---|---|
-| **Look at it and rule on the perspective.** This is the decision the whole slice exists to serve. Open `/dev/castle-front-v4`, play it, and say whether the game moves to side view. Everything below is wasted effort until that is answered | `/dev/castle-front-v4` |
-| **Character scale against the castle.** The hero draws at 2× his native 71px, so he is about a fifth of the frame height — roughly twice his share of the top-down courtyard. It is one constant, `SPRITE_SCALE`, and every position derives from it | `card-engine/src/pages/castle/front-v4/layout.ts` |
-| **The castle is a code-drawn silhouette.** No side-view façade, sky or parallax art exists in the repository; the gate-house PNG is a top-down kit piece and would read wrong lying on its side. A parallel session is generating the real background through `bg-harness` — that work and this scene have not been joined up yet | `card-engine/src/pages/castle/front-v4/CastleFrontV4Scene.ts` `paintCastle()`, `scripts/bg-harness/configs/castle-front-v4-*.json` |
-| **The knockdown clip faces the camera.** Only the south direction was ever generated, so in a side view he falls toward the viewer. Honest placeholder; a side-profile fall is a real generation when the perspective is confirmed | `card-engine/public/assets/castle/hero/knockdown/` |
-| **The leap's feel is unjudged.** Apex 260, duration 780ms, landing on the ground he was standing on. The arithmetic is proven fair and tested; whether it reads as heavy, threatening and readable is a human question. All of it is one exported object | `card-engine/src/pages/castle/front-v4/jellyLeap.ts` `LEAP_TUNING` |
-| **Nothing is wired to the rest of the game.** No castle interior, no doorway, no stalls, no scrolling world, no ledges, no jump. Deliberately — §5 of the handoff lists them as non-goals for the proof | — |
+| **Generate the castle front.** Gate, horizontally-tileable curtain wall, corner tower, at flat side elevation. ~1 generation each. **Generate ONE and look at it before ordering the rest** — this repo has already bought a part-isometric tower batch and a wall kit that would not tile, and on 2026-08-16 three-quarter kit art went into the side-view scene because a config claimed `view: "side"` | `/create-image-pixen`, `side` + the prose clause in the angle spec |
+| **Generate the ground.** A side-view ground strip — the surface line plus the earth cross-section beneath it, tileable. The most load-bearing line in a side view, and there is nothing usable: every existing ground asset is a top-down Wang set. ~20 generations for a small kit | `/create-tiles-pro`, `sidescroller` |
+| **Generate props and foliage.** Barrel, crate, brazier, banner, signpost, trees. ~1–2 generations each | `/create-1-direction-object`, `sidescroller` |
+| **The knockdown clip faces the camera.** Only the south direction was ever generated, so he falls toward the viewer. ~8 generations for a side profile. The summon slam has the same problem and is not needed yet | `card-engine/public/assets/castle/hero/knockdown/` |
+| **Character scale is unjudged.** The hero draws at 2× his native 71px — about a fifth of the frame height, roughly twice his share of the old courtyard. One constant, and every position derives from it | `card-engine/src/pages/castle/front-v4/layout.ts` `SPRITE_SCALE` |
+| **The leap's feel is unjudged.** Apex 260, duration 780ms, landing on the ground he was standing on. Proven fair by simulation; whether it reads as heavy and threatening is a human question. One exported object | `card-engine/src/pages/castle/front-v4/jellyLeap.ts` `LEAP_TUNING` |
+| **Nothing is wired to the rest of the game.** No castle interior, no doorway, no stalls opening, no scrolling world, no ledges, no jump. The stall panels survived the deletion and have their own identity contract, but nothing opens them | `card-engine/src/pages/castle/stalls/types.ts` |
+| **Dead top-down art still sits in `public/`.** The painted courtyard plate, its traced occluders, the layer cutouts and the pixel-sample props — ~3.7 MB, referenced by nothing the player loads but still listed in `asset-pack.json`. Harmless, untidy; clearing it means editing the pack builder and its test | `card-engine/public/assets/castle/{courtyard.png,occluders,layers,pixel-sample}` |
 
 ### The three deployments — 3 items
 
@@ -1145,6 +1148,46 @@ runtime code reads it. Every call writes an `api_usage_events` row.
 ## 8. Decision log
 
 *Why, not just what. Newest first. This section is append-only.*
+
+### 2026-08-16 (later) — The top-down world is deleted, and the angle is written down
+
+Raheem played the proof, liked it, and made two rulings in one breath: the side view is the
+game, and the old world goes. Not parked — **deleted.** *"I definitely don't wanna try to work
+on that anymore."* Git history holds every line of it, and a dead world nobody will open again
+is only something for the next person to trip over.
+
+**What went, and why it could go safely.** The courtyard runtime and its 3470-line scene module,
+the classic plate castle, the v2-preview, the sample, the Editor scene files at the repo root,
+and the dev scene tooling that existed only to serve them. From `combat/`, four modules that
+encode a camera rather than a rule: radial scatter, the attack pose's vertical foreshortening,
+the construct lunge pose, and the four-key input intent. What survived is everything that was
+never about perspective — the hand, the action state, the blast, the construct, the hit feel —
+which is exactly the split the side-view scene had already been built against, so the deletion
+was mostly a matter of letting go.
+
+Two modules had to move first, and both are small lessons in coupling. `hitstop` sat in the
+courtyard's directory doing combat's job, so it moved. And `blast.ts` imported point-in-polygon
+from the top-down *walk* code: ten lines of geometry were the only thing tying a live system to
+a dying one, so it owns them now.
+
+**The mistake worth recording.** Between those two rulings I placed the Halo Stone gate, wall and
+tower into the side-view scene, because their configs said `view: "side"`. Raheem stopped me:
+they are plainly three-quarter, and the tower shows its whole top face. I had trusted a metadata
+field over the pixels, in a repository whose standing rule is already *look at the live surface*.
+Pulled straight back out.
+
+So the angle is written down once now, in **SIDE_VIEW_ANGLE_SPEC.md**, with a test that takes a
+second and settles every argument: **if you can see the TOP of a thing, it is the wrong angle.**
+It records that a `view` field is a claim rather than evidence, names the only three assets we
+own that qualify — the Ember Jelly, the effect strips, the hero's left/right rows — and prices
+the batch we need, with the rule that one piece is generated and looked at before the rest are
+ordered. This repo has already bought a part-isometric tower batch and a wall kit that would not
+tile; that is twice, and the spec exists so it is not three times.
+
+Generation was deliberately NOT started in parallel while this landed. The spec's own rule needs
+a human eye on the first piece, and an agent spending paid generations with nobody looking is the
+same failure at a larger scale. Silhouettes hold the scene up meanwhile — the "shapes, not
+sprites" bet this project already won once with the construct.
 
 ### 2026-08-16 — The camera turns sideways, and the proof was built before the art
 
