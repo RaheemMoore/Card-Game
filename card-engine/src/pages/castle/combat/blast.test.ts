@@ -10,7 +10,7 @@ import {
   scaleBlast,
   type BlastTarget,
 } from './blast';
-import type { Polygon } from '../v2-preview/walkBlocking';
+import type { Polygon } from './blast';
 
 const box = (x: number, y: number, w: number, h: number): Polygon => [
   [x, y],

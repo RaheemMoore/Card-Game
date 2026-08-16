@@ -282,7 +282,16 @@ const DEV_ONLY_UNGATED_ROUTES = [
   // Phaser School: a syllabus read beside Phaser Editor. Static lesson data and
   // asset PNGs only, no player data.
   '/dev/phaser-school',
-  ...(import.meta.env.DEV ? ['/dev/courtyard-v2-preview'] : []),
+  // The side-view castle's own harness: bridge, scenario runner, tuning readouts.
+  // Guarded like the entry it replaced, so the path does not ship as a literal in
+  // a build that has no such route to match it against.
+  ...(import.meta.env.DEV ? ['/dev/castle-front-v4'] : []),
+  // The Phaser Editor Play target. It fetches one compiled scene and draws it —
+  // no cards, no wallet, no session — and it MUST be ungated, because the gate
+  // sends a signed-out visitor to the landing redirect, which on a narrow window
+  // lands on /forge. Pressing Play in the Editor and arriving at the character
+  // picker is indistinguishable from the button being broken.
+  ...(import.meta.env.DEV ? ['/dev/scene'] : []),
 ];
 
 function isDevOnlyArtRoute(): boolean {
@@ -664,17 +673,20 @@ export function PersistenceGate({ children }: { children: ReactNode }) {
     );
   }
 
-  // Boot screen. This is the beat straight after signing in — the courtyard's
-  // Phaser chunk is ~1.2 MB and the cards are still hydrating — so it gets the
-  // courtyard plate behind it rather than a spinner on black. Landing in the
-  // world should start here, not at the moment the canvas appears.
+  // Boot screen. This is the beat straight after signing in — the castle's Phaser
+  // chunk is ~1.2 MB and the cards are still hydrating — so it gets a warm ground
+  // rather than a spinner on black. Landing in the world should start here, not at
+  // the moment the canvas appears.
+  //
+  // It used to show the painted top-down courtyard plate. That world was deleted in
+  // the 2026-08-16 perspective change, and a loading screen advertising a place the
+  // game no longer contains is the first thing a player would see — so it is the
+  // castle's own dusk instead, which is at least the sky they are about to land in.
   return (
     <div className="relative min-h-dvh flex items-center justify-center overflow-hidden">
-      <img
-        src="/assets/castle/courtyard.png"
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ filter: 'blur(3px) brightness(0.55)', transform: 'scale(1.06)' }}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(180deg, #2b1e3d 0%, #8c4a2f 62%, #d98b45 100%)' }}
       />
       <div className="absolute inset-0" style={{ background: 'rgba(20,14,6,0.35)' }} />
 

@@ -7,8 +7,7 @@ import { Codex } from './pages/Codex';
 import { Battle } from './pages/battle';
 import { ForgeStrike } from './pages/minigames/forge-strike';
 import { MiniGamesHub } from './pages/minigames/MiniGamesHub';
-import { Castle } from './pages/castle';
-import { CastleV2 } from './pages/castle/v2/CastleV2';
+import { CastleFront } from './pages/castle/front-v4/CastleFront';
 import { CodexFamily } from './pages/CodexFamily';
 import { CodexAbility } from './pages/CodexAbility';
 import { CodexElements } from './pages/CodexElements';
@@ -98,9 +97,6 @@ const LoreDeskPage = ADMIN_ROUTES
  * for byte the same size. Folding the condition must delete the `import()` itself.
  */
 
-const CourtyardSample = DEV_ROUTES
-  ? lazy(() => import('./pages/castle/sample').then((m) => ({ default: m.CourtyardSample })))
-  : null;
 const DevAbilities = DEV_ROUTES
   ? lazy(() => import('./pages/dev/DevAbilities').then((m) => ({ default: m.DevAbilities })))
   : null;
@@ -149,16 +145,13 @@ const LightLab = DEV_ROUTES
 const ScenePreview = DEV_ROUTES
   ? lazy(() => import('./pages/dev/ScenePreview').then((m) => ({ default: m.ScenePreview })))
   : null;
-
 /**
- * The V2 courtyard preview stays on `DEV` rather than the flag above: it pulls in
- * 5.6 MB of dev-preview art, and it is a local walk-through rather than something
- * reviewed on a deploy.
+ * The developer harness for the castle — bridge, scenario runner, tuning readouts.
+ * The GAME surface is `CastleFront`, imported statically below; this is the same
+ * world wearing instruments, and it ships in no player build.
  */
-const CourtyardV2Preview = import.meta.env.DEV
-  ? lazy(() =>
-      import('./pages/castle/v2-preview').then((module) => ({ default: module.CourtyardV2Preview })),
-    )
+const CastleFrontV4 = DEV_ROUTES
+  ? lazy(() => import('./pages/castle/front-v4').then((m) => ({ default: m.CastleFrontV4 })))
   : null;
 
 // Wallet + card-store initialization now happens inside PersistenceGate,
@@ -229,6 +222,19 @@ export default function App() {
               element={
                 <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
                   <ScenePreview />
+                </Suspense>
+              }
+            />
+          )}
+
+          {/* Castle Front V4 — the side-view perspective proof. Does not replace
+              /castle, which stays on CourtyardV3 while this is judged. */}
+          {CastleFrontV4 && (
+            <Route
+              path="/dev/castle-front-v4"
+              element={
+                <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
+                  <CastleFrontV4 />
                 </Suspense>
               }
             />
@@ -404,17 +410,6 @@ export default function App() {
             />
           )}
 
-          {CourtyardV2Preview && (
-            <Route
-              path="/dev/courtyard-v2-preview"
-              element={
-                <Suspense fallback={<p className="p-6 text-white/60">Loading preview…</p>}>
-                  <CourtyardV2Preview />
-                </Suspense>
-              }
-            />
-          )}
-
           {/* The castle. Mounts OUTSIDE PlayerShell, deliberately — no NavBar,
               no fantasy background, no content offset. Raheem, 2026-08-08: "I
               don't like that to be the actual landing page without the nav
@@ -424,9 +419,14 @@ export default function App() {
               A persistent web nav sitting on top of a full-screen world reads as
               a website with a game embedded in it. Escape opens the Game Menu,
               which is where the nav lives now — and which is the only way out,
-              so it is not optional. The old courtyard stays inside PlayerShell
-              at /castle/classic; it was built expecting that chrome. */}
-          <Route path="/castle" element={<CastleV2 />} />
+              so it is not optional.
+
+              SIDE-VIEW SINCE 2026-08-16. This was the top-down CourtyardV3; the
+              perspective changed and the top-down world was deleted rather than
+              parked, so there is no /castle/classic to fall back to and no
+              CourtyardV2 preview. Raheem: "I do not want to see the old
+              courtyards anymore." */}
+          <Route path="/castle" element={<CastleFront />} />
 
           {/* Admin: full-viewport professional operations surface. Mounts
               outside PlayerShell — no fantasy background, no player NavBar,
@@ -485,17 +485,6 @@ export default function App() {
             <Route path="/battle" element={<Battle />} />
             <Route path="/minigames" element={<MiniGamesHub />} />
             <Route path="/minigames/forge-strike" element={<ForgeStrike />} />
-            <Route path="/castle/classic" element={<Castle />} />
-            {CourtyardSample && (
-              <Route
-                path="/dev/courtyard-sample"
-                element={
-                  <Suspense fallback={<p className="p-6 text-white/60">Loading…</p>}>
-                    <CourtyardSample />
-                  </Suspense>
-                }
-              />
-            )}
             {DevAbilities && (
               <Route
                 path="/dev/abilities"

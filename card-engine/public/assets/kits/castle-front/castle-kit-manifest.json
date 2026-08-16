@@ -1,0 +1,38 @@
+{
+  "kitId": "castle-front",
+  "version": 1,
+  "sourceFamily": "castle-front-side-view",
+  "rawOutputsPreserved": true,
+  "note": "The side-view castle kit. SEPARATE FROM halo-stone-castle deliberately: that kit is top-down and three-quarter art for a game that no longer exists, and mixing the two angles in one palette is how three-quarter walls ended up placed in the side-view scene on 2026-08-16. Everything in here is flat front elevation per SIDE_VIEW_ANGLE_SPEC.md. Generated one piece at a time and looked at before the next was ordered.",
+  "assetCount": 3,
+  "assets": [
+    {
+      "assetId": "castle-front.bastion",
+      "label": "Castle entrance bastion — flat front elevation, arched gate with portcullis",
+      "status": "HUMAN REVIEW",
+      "path": "structures/castle-front-bastion.png",
+      "sourceSubject": "castle-front-bastion",
+      "rawSource": "image-bastion.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle-front.ground-band",
+      "label": "Ground cross-section, bare dirt — surface line and earth, tiles horizontally",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-front-ground-band.png",
+      "sourceSubject": "castle-front-ground",
+      "rawSource": "image-ground-band.png",
+      "usedTrimmedExport": false
+    },
+    {
+      "assetId": "castle-front.ground-band.grass",
+      "label": "Ground cross-section, grass surface — same band, greened from the lush tileset",
+      "status": "HUMAN REVIEW",
+      "path": "terrain/castle-front-ground-band-grass.png",
+      "sourceSubject": "castle-front-ground",
+      "rawSource": "image-ground-band.png",
+      "usedTrimmedExport": false,
+      "note": "NOT A SECOND GENERATION. A palette map off the dirt band, taking its greens from halo-stone-castle's castle-ground-grass-dirt-wang-32-lush (78,138,60 and its ramp) so the two kits agree about what grass is. Region-limited to the top 30% because the surface brown is the SAME brown as the earth below it — a global swap turns the whole cross-section green, which is the shared-ramp trap recolor.py warns about. Reproduce with: recolor.py <dirt band> <out> --from 206,149,101 --to 78,138,60 --ramp --region 0,0,1,0.30"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Bar } from '../../components/ui/Bar';
 import { Panel, type PanelVariant } from '../../components/ui/Panel';
 import { PixelButton } from '../../components/ui/PixelButton';
@@ -8,7 +8,7 @@ import { Slot } from '../../components/ui/Slot';
  * The pixel UI kit, every primitive and every variant, on one page.
  *
  * WHY THIS EXISTS: the kit's whole premise is that variants come from PROPS and
- * not from new art — one frame asset serving a 40px pill and an 860px menu. The
+ * not from new art â€” one frame asset serving a 40px pill and an 860px menu. The
  * only way to know that premise still holds is to see every variant rendered at
  * once. A build passing proves nothing here: `border-image` with a wrong slice
  * compiles perfectly and renders as smeared mush.
@@ -19,7 +19,7 @@ import { Slot } from '../../components/ui/Slot';
  * it.
  *
  * The dark strip and the plate strip both exist because chrome approved on one
- * ground ships broken on the other — round 1 of this art looked fine loose and
+ * ground ships broken on the other â€” round 1 of this art looked fine loose and
  * disappeared against the courtyard's light paving.
  */
 
@@ -38,7 +38,7 @@ export function UiKit() {
         </h1>
         <p style={{ color: '#9b8f7e', fontSize: 14, maxWidth: '60ch' }}>
           PixelLab Round 3, approved 2026-08-04. Every variant below uses the{' '}
-          <strong>same four art files</strong> — only render size changes.
+          <strong>same four art files</strong> â€” only render size changes.
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
           <PixelButton onClick={() => setGround('plate')}>On the plate</PixelButton>
@@ -54,11 +54,11 @@ export function UiKit() {
           borderRadius: 8,
           background:
             ground === 'plate'
-              ? 'url(/assets/castle/courtyard.png) center/cover'
+              ? 'linear-gradient(180deg, #2b1e3d 0%, #8c4a2f 62%, #d98b45 100%) center/cover'
               : '#161119',
         }}
       >
-        <Section title="Panel — five variants, one asset">
+        <Section title="Panel â€” five variants, one asset">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-start' }}>
             {VARIANTS.map((v) => (
               <Panel key={v} variant={v} style={{ width: 180, height: 110, padding: 10 }}>
@@ -68,12 +68,12 @@ export function UiKit() {
           </div>
         </Section>
 
-        <Section title="Panel — stretched, to prove the 9-slice tiles">
+        <Section title="Panel â€” stretched, to prove the 9-slice tiles">
           <Panel variant="sheet" style={{ height: 150, padding: 16 }}>
             <p style={{ fontSize: 13, color: '#cbb9a0', margin: 0 }}>
               Full-width at 32px corner slices. The ornaments stay in the corners; the
               middle of each edge repeats. If you see a smeared or doubled ornament here,
-              the slice value is wrong — not the art.
+              the slice value is wrong â€” not the art.
             </p>
           </Panel>
         </Section>
@@ -87,7 +87,7 @@ export function UiKit() {
           </div>
         </Section>
 
-        <Section title="Bar — one trough, three tones, drawn inside the channel">
+        <Section title="Bar â€” one trough, three tones, drawn inside the channel">
           <div style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
             <Bar value={hp} tone="hp" label="Health" scale={2} />
             <Bar value={0.35} tone="rage" label="Rage" scale={2} />
@@ -104,10 +104,10 @@ export function UiKit() {
           </div>
         </Section>
 
-        <Section title="Slot — empty is framed, a card is not">
+        <Section title="Slot â€” empty is framed, a card is not">
           <p style={{ fontSize: 13, color: '#cbb9a0', maxWidth: '58ch', marginTop: -4 }}>
             An EMPTY slot wears the gem frame, to mark a place a character can go. A
-            FILLED one drops the frame entirely — the card is the star of this game and
+            FILLED one drops the frame entirely â€” the card is the star of this game and
             chrome around it competes with the art you paid to generate.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
@@ -122,7 +122,7 @@ export function UiKit() {
                   style={{ width: 104, aspectRatio: '326 / 470' }}
                 >
                   {filled && (
-                    // Stand-in for a real card — this page touches no player
+                    // Stand-in for a real card â€” this page touches no player
                     // data, so it cannot read the collection.
                     <span
                       style={{

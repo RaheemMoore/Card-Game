@@ -146,8 +146,11 @@ export function PauseMenu({
 
         <div style={{ height: 1, background: 'rgba(201,162,39,0.28)', margin: '0 0 12px' }} />
 
-        {/* Walking is the point of the courtyard; the Directory is the
-            non-spatial way to reach the same stalls. */}
+        {/* Walking is the point of the castle; the Directory is the non-spatial
+            way to reach the same stalls. Named "Castle" rather than "Courtyard"
+            since 2026-08-16 — the courtyard it referred to was deleted with the
+            top-down perspective, and a menu naming a place the game no longer
+            contains is the kind of stale copy a player reads as a broken link. */}
         <div className="flex flex-col gap-2 mb-3">
           <PixelButton
             scale={1.15}
@@ -157,7 +160,7 @@ export function PauseMenu({
               onOpenDirectory();
             }}
           >
-            Courtyard directory
+            Castle directory
           </PixelButton>
 
         {/* The courtyard covers the NavBar, which is where signing out normally

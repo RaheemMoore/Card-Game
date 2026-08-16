@@ -1,0 +1,44 @@
+{
+  "subject": "castle-front-bastion",
+  "label": "The castle entrance — one bastion, flat front elevation, for the side-view game",
+
+  "notes": [
+    "SCOPE IS ONE PIECE, BY RAHEEM'S INSTRUCTION (2026-08-16): 'We are only regenerating the front of the castle. Only the bastion in between the two walls. Only the entrance of the castle. Don't try to do the sides and the towers and all that.' Walls, towers, corners and buttresses are NOT in this run and must not be added to it. Keep it modular.",
+
+    "WHY A REGENERATION AT ALL. The game changed perspective on 2026-08-16 from top-down to a 2D side-scroller, and nothing in the castle kit survives that. castle-walls-v3 produced the current wall/tower/gate and they are the WRONG ANGLE despite this same config family asking for 'view: side' and 'flat elevation'. See SIDE_VIEW_ANGLE_SPEC.md.",
+
+    "THE EXACT FAILURE, MEASURED FROM THE RETURNED ART, NOT GUESSED. castle-wall-straight-v3.png is 318x202 and reads as: a crenellated band, then a large flat GREY FIELD, then a second crenellated band, then a lower storey. That grey field is the PARAPET WALKWAY SEEN FROM ABOVE. The model took 'a crenellated parapet with square merlons along the very top' to mean a walled walkway, and tilted the camera down to show its floor. Two rows of battlements with a floor between them is the signature of that mistake.",
+
+    "SO THE PROMPT BELOW NEVER SAYS 'PARAPET'. It says the wall is a flat vertical face; it describes the battlements as shapes standing up against empty sky with gaps between them; and it says outright that no walkway, floor or top surface is visible. Negatives are stated positively as well as negatively, because a negative alone has not been enough on this endpoint twice now.",
+
+    "PALETTE IS THE ONE THING NOT CHANGING. Raheem approved it and rejected a cool-grey alternative in blunt terms ('Why are you trying to make a Malfoy grey castle... What you built is depressing'). Measured from the approved pieces: honey-gold sandstone rgb(214,184,145)/(224,188,137) at R-B +69 to +88, cream highlight rgb(204,188,162), cool VIOLET-grey brick rgb(119,109,117)/(89,78,87) at R-B ~0 to +6. Honey trim is 25-35% of the visible surface, a major element and not an accent.",
+
+    "SIZE. The game frame is 1280x720 with the ground line at y=590 and the hero drawn 142 units tall. Raheem chose 'dominant — fills the left third'. 384x448 native, placed at 1x, puts the bastion at 30% of frame width and just over three times the hero's height, which is where the placeholder silhouette already sits and what he has been looking at.",
+
+    "ENDPOINT: /create-image-pixen, view 'side'. Not /create-tiles-pro with tile_feature 'building' — that route is what produced the raking projection this whole spec exists to prevent. no_background so it drops onto the dusk sky without matting.",
+
+    "ONE PIECE, ONE GENERATION, THEN A HUMAN LOOKS. The angle spec's own rule, written after this repo bought a part-isometric tower batch and a wall kit that would not tile. Do not queue the walls until Raheem has seen this.",
+
+    "MATTING, AND IT TOOK TWO STEPS — REPRODUCE IT EXACTLY. `no_background: true` was ignored: the raw return is 100% opaque on a solid black field (corners rgb(0,0,0,255)), which is the same 'no_background is a request, not a guarantee' failure lib/cut_flat_background.py was written for. Step 1: `cut_flat_background.py image-bastion.png image-bastion-cut.png --tolerance 24` — flood from the frame edge, never a global black threshold, because the art's own outline is 'single colour black' and a threshold would dissolve it. That cut 47,172 px and kept 124,860.",
+
+    "STEP 2 IS THE ONE THAT IS NOT OBVIOUS. The edge flood walks THROUGH THE PORTCULLIS BARS, so the cut left a gateway you could see the sky through — a hole punched in the building rather than a passage into it. `close_openings.py image-bastion-cut.png image-bastion-final.png --below 230` restores it: any transparent run with the sprite's own pixels on both sides is interior and gets filled. `--below 230` is load-bearing — the gaps between the battlements are open to the sky and must NOT be filled, and 230 is below the arch springline and well below the crenellations. It filled 19,637 px. dehalo afterwards found 0 residue.",
+
+    "SHIPPED SIZE 384x448 with a transparent surround, in the castle-front kit. Kept apart from halo-stone-castle on purpose: that kit is top-down art for a game that no longer exists."
+  ],
+
+  "images": [
+    {
+      "id": "bastion",
+      "seed": 881601,
+      "note": "The entrance. A gatehouse block with the arch dead centre, standing alone.",
+      "params": {
+        "description": "a fantasy castle gatehouse entrance building, drawn as a completely flat front elevation as if you are standing on the ground directly in front of it and looking straight ahead at its face, orthographic, no perspective, no tilt, not seen from above, not isometric, a tall rounded stone archway opening through the centre at ground level with a dark raised iron portcullis inside it, pale violet-grey stone brickwork laid in even regular courses across the whole face, bright warm honey-gold sandstone forming a heavy ring around the arch and running up both outer edges as quoin stones, a honey-gold horizontal band across the face above the arch, cream-white highlight stones scattered through the brickwork, two tall narrow arrow slits high on the face, along the very top edge a single row of square honey-capped stone battlements standing up like teeth with open empty transparent gaps between them so only their flat front faces show, the whole building is one single flat vertical surface with no walkway, no floor, no rooftop and no top surface anywhere, flat even daylight with no gradient from top to bottom, warm storybook fantasy castle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 448 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}
