@@ -890,7 +890,10 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     return {
       bridgeVersion: 1,
       scene: 'CastleFrontV4',
-      route: '/dev/castle-front-v4',
+      // Read, not asserted. The same scene serves `/castle` and the dev harness,
+      // and a snapshot that always claimed the dev route would quietly mislabel
+      // every reading taken from the live game.
+      route: typeof window === 'undefined' ? '' : window.location.pathname,
       view: { width: FRONT_V4_VIEW.width, height: FRONT_V4_VIEW.height },
       canvas: { width: this.scale.width, height: this.scale.height },
       camera: {

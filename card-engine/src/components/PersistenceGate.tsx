@@ -283,7 +283,9 @@ const DEV_ONLY_UNGATED_ROUTES = [
   // asset PNGs only, no player data.
   '/dev/phaser-school',
   // The side-view castle's own harness: bridge, scenario runner, tuning readouts.
-  '/dev/castle-front-v4',
+  // Guarded like the entry it replaced, so the path does not ship as a literal in
+  // a build that has no such route to match it against.
+  ...(import.meta.env.DEV ? ['/dev/castle-front-v4'] : []),
 ];
 
 function isDevOnlyArtRoute(): boolean {
