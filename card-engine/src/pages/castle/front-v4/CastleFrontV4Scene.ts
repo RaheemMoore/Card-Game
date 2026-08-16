@@ -98,8 +98,17 @@ import {
   SPRITE_SCALE,
   applyFitCamera,
 } from './layout';
-import { paintProvisionalBackdrop } from './backdrop';
+import { BACKDROP_SLOTS, paintProvisionalBackdrop } from './backdrop';
 import { createJellyView, type JellyView } from './jellyPresenter';
+import { loadEditorWorld, type WorldLoadResult } from './worldLoader';
+
+/**
+ * The Phaser Editor scene Raheem places the world in.
+ *
+ * Its absence is the normal state until he has put something in it, and the game
+ * plays fine without it — see worldLoader.
+ */
+const WORLD_SCENE = 'CastleFrontWorld';
 import {
   FRONT_V4_EVENTS,
   type FixtureCard,
@@ -175,6 +184,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   private knockdowns = 0;
   private lastStrike: 'none' | 'hit' | 'missed' = 'none';
   private scatterReport: { degraded: boolean; reason: string | null } = { degraded: false, reason: null };
+  private world: WorldLoadResult | null = null;
   private errors: string[] = [];
 
   // ---- presentation -----------------------------------------------------
@@ -253,9 +263,18 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         }
       }
     }
-    this.load.on('loaderror', (file: Phaser.Loader.File) =>
-      this.errors.push(`failed to load ${file.key}`),
-    );
+    // Raheem's own background plates, if he has delivered them yet. Attempted
+    // every boot and silently absent until then — see BACKDROP_SLOTS.
+    for (const slot of Object.values(BACKDROP_SLOTS)) {
+      this.load.image(slot.key, slot.path);
+    }
+
+    this.load.on('loaderror', (file: Phaser.Loader.File) => {
+      // A missing backdrop plate is the EXPECTED state, not an error: the code
+      // backdrop stands in. Only report things that were supposed to be there.
+      const optional = Object.values(BACKDROP_SLOTS).some((s) => s.key === file.key);
+      if (!optional) this.errors.push(`failed to load ${file.key}`);
+    });
   }
 
   create() {
@@ -266,6 +285,18 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     this.registerAnimations();
     this.buildActors();
     this.bindInput();
+
+    // The authored world arrives asynchronously and slots in UNDER the actors,
+    // which are already standing. Deliberately not awaited: the game is playable
+    // the moment `create()` returns, and a world that is slow, missing or broken
+    // delays nothing. Placement is Raheem's, in Phaser Editor; see worldLoader.
+    void loadEditorWorld(this, WORLD_SCENE).then((result) => {
+      this.world = result;
+      if (result.status === 'failed') {
+        this.errors.push(`world ${result.sceneName}: ${result.message}`);
+        console.error('[front-v4] authored world failed to load', result);
+      }
+    });
 
     applyFitCamera(this.cameras.main, this.scale.gameSize);
     this.resizeHandler = (size) => applyFitCamera(this.cameras.main, size);
@@ -924,6 +955,12 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       },
       hitstop: { active: this.hitstop.active(), remainingMs: this.hitstop.remainingMs() },
       scatter: { lastDegraded: this.scatterReport.degraded, lastReason: this.scatterReport.reason },
+      authoredWorld: {
+        sceneName: WORLD_SCENE,
+        status: this.world?.status ?? 'pending',
+        texturesLoaded: this.world?.texturesLoaded ?? 0,
+        message: this.world?.message ?? null,
+      },
       errors: [...this.errors],
     };
   }

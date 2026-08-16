@@ -20,11 +20,49 @@ import { CASTLE_SILHOUETTE, DEPTH, DUSK, FRONT_V4_VIEW, GROUND_Y } from './layou
  * does the dusk read as warm and welcoming rather than grim. All of those are
  * HUMAN REVIEW questions and the numbers behind them are in layout.ts.
  */
+/**
+ * Texture keys the scene tries to load before falling back to code.
+ *
+ * DROP A FILE IN AND IT WINS. Raheem is generating the real plates in his own
+ * bg-harness workstream; when a PNG lands at the matching path the scene uses it
+ * and the code-drawn stand-in for that layer disappears. Two independent layers,
+ * so a finished sky can ship before a finished foreground — the alternative, one
+ * all-or-nothing plate, would mean neither shows until both exist.
+ *
+ * The files are deliberately NOT in the asset pack: the pack is generated and
+ * these arrive by hand, and a pack rebuild must not be the thing standing between
+ * him and seeing his own art.
+ */
+export const BACKDROP_SLOTS = {
+  sky: { key: 'front-v4-sky', path: '/assets/castle/front-v4/sky.png' },
+  scenery: { key: 'front-v4-scenery', path: '/assets/castle/front-v4/background.png' },
+} as const;
+
 export function paintProvisionalBackdrop(scene: Phaser.Scene): void {
-  paintSky(scene);
-  paintHills(scene);
-  paintCastle(scene);
-  paintGround(scene);
+  const { width, height } = FRONT_V4_VIEW;
+
+  // A supplied plate replaces its whole layer, stretched to the authored 16:9
+  // frame — the composition is fixed and letterboxed, so the plate is authored
+  // against the same 1280x720 and never needs cropping.
+  if (scene.textures.exists(BACKDROP_SLOTS.sky.key)) {
+    scene.add
+      .image(width / 2, height / 2, BACKDROP_SLOTS.sky.key)
+      .setDisplaySize(width, height)
+      .setDepth(DEPTH.sky);
+  } else {
+    paintSky(scene);
+  }
+
+  if (scene.textures.exists(BACKDROP_SLOTS.scenery.key)) {
+    scene.add
+      .image(width / 2, height / 2, BACKDROP_SLOTS.scenery.key)
+      .setDisplaySize(width, height)
+      .setDepth(DEPTH.hills);
+  } else {
+    paintHills(scene);
+    paintCastle(scene);
+    paintGround(scene);
+  }
 }
 
 function paintSky(scene: Phaser.Scene) {

@@ -94,6 +94,19 @@ export interface FrontV4Snapshot {
 
   hitstop: { active: boolean; remainingMs: number };
   scatter: { lastDegraded: boolean; lastReason: string | null };
+  /**
+   * The Phaser Editor world, if one has been authored.
+   *
+   * `absent` is the normal state until Raheem has placed something, and it is
+   * reported rather than hidden: "nothing appeared" and "the file is not there
+   * yet" look identical on screen and mean very different things.
+   */
+  authoredWorld: {
+    sceneName: string;
+    status: 'loaded' | 'absent' | 'failed' | 'pending';
+    texturesLoaded: number;
+    message: string | null;
+  };
   errors: string[];
 }
 
