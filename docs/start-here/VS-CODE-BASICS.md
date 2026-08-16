@@ -36,9 +36,14 @@ These deserve a pause and a check:
 - Clicking Source Control's commit, sync, or publish buttons.
 - Running a task whose name says generate, migrate, deploy, upload, or publish.
 
-The Card Game tasks named **Start**, **Test**, **Build**, and **Check Game Assets**
-are safe development checks. Starting the game keeps a terminal running; use
-the terminal's trash-can icon when you want to stop it.
+The Card Game tasks named **Start the Game**, **Play as a Player**, **Test**,
+**Build**, and **Check Assets** are safe development checks. Starting the game
+keeps a terminal running; use the terminal's trash-can icon when you want to
+stop it.
+
+**Ctrl + Shift + B** runs *Start the Game* on its own and opens the castle in
+your browser. See [PLAY-THE-GAME.md](PLAY-THE-GAME.md) for the difference
+between the two ways of running it, and what to do when a port is busy.
 
 ## Three shortcuts worth learning
 

@@ -7,6 +7,12 @@ for building and teaching this workspace. It started from `development`.
 The workspace does not copy, move, or reorganize the game. It only controls
 how Visual Studio Code presents the real files to you.
 
+## Play it right now
+
+Press **Ctrl + Shift + B**. The game builds and opens in your browser on the
+castle courtyard. Full instructions, including how to run it exactly as a
+player gets it, are in [PLAY-THE-GAME.md](PLAY-THE-GAME.md).
+
 ## What you should see
 
 The Explorer on the left has two sections:

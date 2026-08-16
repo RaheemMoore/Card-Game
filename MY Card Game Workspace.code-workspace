@@ -106,16 +106,48 @@
     "tasks": [
       {
         "label": "Card Game: Start the Game",
-        "detail": "Starts the local game at http://localhost:5173",
+        "detail": "Opens the castle at http://localhost:5173/castle — the full version, with the admin pages",
         "type": "process",
         "command": "npm",
         "windows": { "command": "npm.cmd" },
-        "args": ["run", "dev"],
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--open",
+          "/castle",
+          "--port",
+          "5173",
+          "--strictPort"
+        ],
         "options": { "cwd": "${workspaceFolder:2 — GAME}" },
         "isBackground": true,
         "problemMatcher": [],
         "presentation": { "reveal": "always", "panel": "dedicated" },
         "group": { "kind": "build", "isDefault": true }
+      },
+      {
+        "label": "Card Game: Play as a Player",
+        "detail": "Opens http://localhost:5175/castle as a PLAYER gets it — no admin, no dev pages. Run this before merging development into main.",
+        "type": "process",
+        "command": "npm",
+        "windows": { "command": "npm.cmd" },
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--mode",
+          "game",
+          "--open",
+          "/castle",
+          "--port",
+          "5175",
+          "--strictPort"
+        ],
+        "options": { "cwd": "${workspaceFolder:2 — GAME}" },
+        "isBackground": true,
+        "problemMatcher": [],
+        "presentation": { "reveal": "always", "panel": "dedicated" }
       },
       {
         "label": "Card Game: Test the Game",
