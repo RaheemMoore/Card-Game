@@ -1,0 +1,16 @@
+{
+  "image": "bellhide-idle-front.png",
+  "frameWidth": 140,
+  "frameHeight": 158,
+  "frameCount": 5,
+  "direction": "south",
+  "recommendedFps": 3,
+  "loop": true,
+  "baselineY": 155,
+  "targetBodyHeight": 152,
+  "anchor": "feet",
+  "sourceAnimation": "idle-front-v2",
+  "approvedBy": "Raheem",
+  "approvedOn": "2026-08-16",
+  "note": "Approved front-facing breathing loop with planted feet and delayed central clapper motion. Phaser supplies rune glow and blinking later."
+}
