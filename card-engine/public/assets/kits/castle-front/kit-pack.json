@@ -18,6 +18,16 @@
         "type": "image",
         "key": "castle-front-tower-v3",
         "url": "assets/kits/castle-front/structures/castle-front-tower-v3.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-wall-v3",
+        "url": "assets/kits/castle-front/structures/castle-front-wall-v3.png"
+      },
+      {
+        "type": "image",
+        "key": "castle-front-gatehouse-v3",
+        "url": "assets/kits/castle-front/structures/castle-front-gatehouse-v3.png"
       }
     ]
   },

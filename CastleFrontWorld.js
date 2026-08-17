@@ -79,30 +79,6 @@ class CastleFrontWorld extends Phaser.Scene {
 		gROUND_LIP.isFilled = true;
 		gROUND_LIP.fillColor = 7031347;
 
-		// WALL_LEFT
-		const wALL_LEFT = this.add.rectangle(-600, -300, 370, 290);
-		wALL_LEFT.setOrigin(0.5, 1);
-		wALL_LEFT.isFilled = true;
-		wALL_LEFT.fillColor = 2366508;
-
-		// WALL_TOWER_A
-		const wALL_TOWER_A = this.add.rectangle(-600, -450, 86, 414);
-		wALL_TOWER_A.setOrigin(0.5, 1);
-		wALL_TOWER_A.isFilled = true;
-		wALL_TOWER_A.fillColor = 2366508;
-
-		// WALL_TOWER_B
-		const wALL_TOWER_B = this.add.rectangle(-600, -600, 86, 414);
-		wALL_TOWER_B.setOrigin(0.5, 1);
-		wALL_TOWER_B.isFilled = true;
-		wALL_TOWER_B.fillColor = 2366508;
-
-		// GATE
-		const gATE = this.add.rectangle(-600, -750, 104, 218);
-		gATE.setOrigin(0.5, 1);
-		gATE.isFilled = true;
-		gATE.fillColor = 3812415;
-
 		// REF_jelly_spawn
 		const rEF_jelly_spawn = this.add.image(481, 830, "construct-ember-jelly", 0);
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
@@ -126,6 +102,18 @@ class CastleFrontWorld extends Phaser.Scene {
 		castle_front_tower_v3.scaleX = 3.5;
 		castle_front_tower_v3.scaleY = 3.5;
 		castle_front_tower_v3.setOrigin(0, 1);
+
+		// PARK_gatehouse_v3
+		const pARK_gatehouse_v3 = this.add.image(-700, 830, "castle-front-gatehouse-v3");
+		pARK_gatehouse_v3.scaleX = 3.5;
+		pARK_gatehouse_v3.scaleY = 3.5;
+		pARK_gatehouse_v3.setOrigin(0.5, 1);
+
+		// PARK_wall_v3
+		const pARK_wall_v3 = this.add.image(-1500, 830, "castle-front-wall-v3");
+		pARK_wall_v3.scaleX = 3.5;
+		pARK_wall_v3.scaleY = 3.5;
+		pARK_wall_v3.setOrigin(0.5, 1);
 
 		this.events.emit("scene-awake");
 	}

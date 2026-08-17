@@ -148,54 +148,6 @@
             "height": 7
         },
         {
-            "type": "Rectangle",
-            "id": "75d88d59-4d2c-4b43-95ae-7ed11c730726",
-            "label": "WALL_LEFT",
-            "x": -600,
-            "y": -300,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#241c2c",
-            "width": 370,
-            "height": 290
-        },
-        {
-            "type": "Rectangle",
-            "id": "080158b7-3323-4b0c-9cd8-59a212b81dc0",
-            "label": "WALL_TOWER_A",
-            "x": -600,
-            "y": -450,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#241c2c",
-            "width": 86,
-            "height": 414
-        },
-        {
-            "type": "Rectangle",
-            "id": "2dba5472-c2b1-475c-af0f-fcff844ac4ae",
-            "label": "WALL_TOWER_B",
-            "x": -600,
-            "y": -600,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#241c2c",
-            "width": 86,
-            "height": 414
-        },
-        {
-            "type": "Rectangle",
-            "id": "38ab1e48-7e77-4fe2-8f4f-e93ac5859994",
-            "label": "GATE",
-            "x": -600,
-            "y": -750,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#3a2c3f",
-            "width": 104,
-            "height": 218
-        },
-        {
             "type": "Image",
             "id": "6f023c8f-2de6-45cf-9479-bbe6bef51244",
             "label": "REF_jelly_spawn",
@@ -260,6 +212,32 @@
             "scaleX": 3.5,
             "scaleY": 3.5,
             "originX": 0,
+            "originY": 1
+        },
+        {
+            "type": "Image",
+            "id": "a21aa16f-5db2-4703-8e7e-50ce102869a9",
+            "label": "PARK_gatehouse_v3",
+            "texture": {
+                "key": "castle-front-gatehouse-v3"
+            },
+            "x": -700,
+            "y": 830,
+            "scaleX": 3.5,
+            "scaleY": 3.5,
+            "originY": 1
+        },
+        {
+            "type": "Image",
+            "id": "f9a115fb-18e4-458a-a54c-b14e7373948c",
+            "label": "PARK_wall_v3",
+            "texture": {
+                "key": "castle-front-wall-v3"
+            },
+            "x": -1500,
+            "y": 830,
+            "scaleX": 3.5,
+            "scaleY": 3.5,
             "originY": 1
         }
     ],

@@ -20,13 +20,13 @@
   ],
   "objects": [
     {
-      "id": "tower",
-      "note": "GATE PIECE, and the only one authorised in this run. If the angle ports, the three held descriptions below become three further calls.",
+      "id": "gatehouse",
+      "note": "Gate piece #3 — the entrance he actually walks into. Its arch is the one held to the 1.29x-hero ratio measured off the tower.",
       "params": {
         "description": "a fantasy castle exterior piece built from dark blue-grey slate stonework with deep saturated golden-amber trim and banding, ornate storybook fantasy castle, drawn as a completely flat front elevation seen straight on from ground level, black pixel outline, basic shading, no background",
         "view": "sidescroller",
         "item_descriptions": [
-          "a tall slender castle watchtower, drawn as a completely flat front elevation as if you are standing on the ground directly in front of it looking straight ahead at its face, orthographic, no perspective, no tilt, not seen from above, not isometric, a straight vertical shaft of dark blue-grey slate brickwork with golden quoins up both outer edges, three golden horizontal banded string courses dividing it into storeys, a round golden medallion on the upper storey, tall narrow arched windows stacked up the face, a golden arched doorway at the base, along the very top edge a single row of square golden-capped battlements standing up like teeth with open empty transparent gaps between them so only their flat front faces show against the sky, a pennant on a thin pole rising from behind the battlements, the whole tower is one single flat vertical surface with no roof, no walkway, no rooftop floor and no top surface anywhere"
+          "a castle gatehouse entrance, drawn as a completely flat front elevation as if you are standing on the ground directly in front of it looking straight ahead at its face, orthographic, no perspective, no tilt, not seen from above, not isometric, dark blue-grey slate brickwork, a tall rounded archway opening through the centre at ground level with a dark iron portcullis inside it, a heavy golden-amber ring of stone around the arch and golden quoins up both outer edges, a golden horizontal banded string course across the face above the arch, a round golden medallion set high on the face, narrow arrow slits either side, along the very top edge a single row of square golden-capped battlements standing up like teeth with open empty transparent gaps between them so only their flat front faces show against the sky, the whole building is one single flat vertical surface with no walkway, no floor, no rooftop and no top surface anywhere"
         ]
       }
     }
