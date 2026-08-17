@@ -1,0 +1,88 @@
+{
+  "subject": "mob-bellhide",
+  "label": "Bellhide — first recurring side-scroller mob",
+  "referenceImage": "../bg-harness/refs/bellhide/bellhide-leonardo-approved-168.png",
+  "provenance": [
+    "Raheem approved this right-facing side-profile design on 2026-08-16.",
+    "The protected source is the full-quality 1024x1024 Leonardo export supplied directly by Raheem; PixelLab receives a high-quality 168x168 derivative because create-character-pro enforces that hard reference limit.",
+    "The base pixel conversion, front life idle, west heavy walk and east heavy walk were visually approved by Raheem on 2026-08-16.",
+    "Approved packed sheets live in public/assets/combat/mobs/bellhide; runtime rune glow, footstep cracks, dust, sound and camera bump remain intentionally deferred to Phaser integration."
+  ],
+  "description": "The exact Bellhide creature in the supplied design reference: one compact hunched magical brute in a strict flat side profile facing right, with a massive rounded slate-blue cracked shell-like upper back, a small tucked head with one bright cyan eye, one long heavy near arm, one massive bowed near leg, weathered bronze harness bands and circular fasteners, a large bronze ward-bell hanging behind its shoulder, and a long dark rear strap ending in a heavy bronze clapper weight. Bright turquoise-cyan angular runes are visibly carved across its shell, shoulder, arm, hip and leg, with restrained cyan magical sparks and a warm gold glow from the rear bell. Preserve the reference silhouette, proportions, bell placement, rune placement, palette and creature identity. Charming readable high-quality 2D pixel art for a warm medieval side-scrolling action game, compact color clusters, crisp single dark outline, basic directional shading, complete body and both feet visible, isolated on transparent background, no ground patch, no cast shadow.",
+  "view": "side",
+  "size": {
+    "width": 168,
+    "height": 168
+  },
+  "seed": 20260816,
+  "characterId": "27b096a6-4511-498c-97a3-23f630a60ffc",
+  "animations": [
+    {
+      "id": "idle-front",
+      "name": "idle-front",
+      "template": "breathing-idle",
+      "directions": [
+        "south"
+      ],
+      "skip": true,
+      "rejected": true,
+      "note": "REJECTED 2026-08-16 after Castle Front V2 motion review. The four-frame breathing-idle template redraws Bellhide as two incompatible bodies: frames 0-1 are wide with long arms, frames 2-3 abruptly become much smaller and thinner, while the harness, bells, runes, hands, and silhouette change. Preserve the completed remote job and downloaded frames as evidence; never resubmit this template clip."
+    },
+    {
+      "id": "idle-front-v2",
+      "name": "idle-front-v2",
+      "mode": "v3",
+      "directions": [
+        "south"
+      ],
+      "startFromRotation": "south",
+      "frameCount": 4,
+      "approved": true,
+      "approvedBy": "Raheem",
+      "approvedOn": "2026-08-16",
+      "action": "standing completely in place facing the viewer and taking one slow heavy breath, the massive rounded slate-blue shell and shoulders expanding upward by only one or two pixels then settling, while the two existing hanging bronze ward-bells sway unevenly with delayed secondary motion, one bell moving slightly after the other and their existing clapper weights making one small final jiggle as the body settles, the long heavy hands loosening slightly, knees and both feet remaining completely planted on the same ground line, exact compact hunched body proportions, bronze harness bands, circular fasteners, ward-bells, clapper weights, turquoise-cyan runes, palette and silhouette unchanged in every frame, seamlessly returning to the exact supplied starting pose, no walking, no bouncing, no whole-body bob, no crouching, no foot movement, no tail, no camera movement, no particles, no new objects, no animated glow",
+      "note": "APPROVED by Raheem on 2026-08-16: feet stay planted, the creature moves convincingly, and the central clapper motion reads clearly. This is the locked front-facing life idle. Bell and clapper secondary motion makes it Bellhide-specific rather than generic breathing. Uses v3 free-text motion pinned to rot-south.png instead of the rejected breathing-idle skeleton template. Four requested frames returned the pinned starting pose plus four generated frames. Eye blinking and cyan rune glow are deliberately deferred to reliable Phaser runtime layers rather than asking PixelLab to redraw them."
+    },
+    {
+      "id": "walk-heavy-west-v1",
+      "name": "walk-heavy-west-v1",
+      "mode": "v3",
+      "directions": [
+        "west"
+      ],
+      "startFromRotation": "west",
+      "frameCount": 6,
+      "approved": true,
+      "approvedBy": "Raheem",
+      "approvedOn": "2026-08-16",
+      "action": "a slow heavy lugging stomp walk cycle in place facing screen left, the massive rounded slate-blue shell leaning slightly into travel while its weight shifts clearly over each foot, one huge bowed leg lifting and planting with a forceful heel-to-toe stomp then the other, the body dipping only slightly on each impact, long heavy arms counter-swinging with restrained momentum, the existing rear bronze ward-bell, long dark strap and bronze clapper weight lagging behind each step then catching up, compact hunched body proportions, small tucked head, one cyan eye, bronze harness bands, circular fasteners, turquoise-cyan runes, palette and silhouette remaining the same creature in every frame, seamless loop returning to the exact supplied starting pose, no running, no sliding, no hopping, no exaggerated bounce, no camera movement, no ground, no cracks, no dust, no shadow, no particles, no new objects, no animated glow",
+      "note": "APPROVED by Raheem on 2026-08-16. This is the locked west-facing heavy stomp. West faces screen left toward a player standing to Bellhide's left. Six requested frames plus the pinned west rotation produced a readable heavy alternating stomp. Ground cracks, dust, stomp sound, rune flash and camera bump are Phaser effects triggered on contact frames, never baked into the sprite.",
+      "reviewFile": "scripts/sprite-lab/review/bellhide-walk-heavy-west-v1/bellhide-walk-heavy-west-v1-preview.gif"
+    },
+    {
+      "id": "walk-heavy-east-v1",
+      "name": "walk-heavy-east-v1",
+      "mode": "v3",
+      "directions": [
+        "east"
+      ],
+      "startFromRotation": "east",
+      "frameCount": 6,
+      "approved": true,
+      "approvedBy": "Raheem",
+      "approvedOn": "2026-08-16",
+      "action": "a slow heavy lugging stomp walk cycle in place facing screen right, matching the approved west-facing Bellhide stomp cadence and weight, the massive rounded slate-blue shell leaning slightly into travel while its weight shifts clearly over each foot, one huge bowed leg lifting and planting with a forceful heel-to-toe stomp then the other, the body dipping only slightly on each impact, long heavy arms counter-swinging with restrained momentum, the existing rear bronze ward-bell, long dark strap and bronze clapper weight lagging behind each step then catching up, compact hunched body proportions, small tucked head, one cyan eye, bronze harness bands, circular fasteners, turquoise-cyan runes, palette and silhouette remaining the same creature in every frame, seamless loop returning to the exact supplied starting pose, no running, no sliding, no hopping, no exaggerated bounce, no camera movement, no ground, no cracks, no dust, no shadow, no particles, no new objects, no animated glow",
+      "note": "APPROVED by Raheem on 2026-08-16 together with the west-facing counterpart. This is the locked east-facing heavy stomp. It matches the approved west walk's lugging cadence while remaining anchored to rot-east.png so the asymmetric rear bell and clapper stay on the correct designed side. Ground cracks, dust, stomp sound, rune flash and camera bump remain Phaser effects.",
+      "reviewFile": "scripts/sprite-lab/review/bellhide-walk-heavy-east-v1/bellhide-walk-heavy-east-v1-preview.gif"
+    }
+  ],
+  "review": {
+    "acceptance": [
+      "Strict right-facing side profile with one visible cyan eye.",
+      "Same hunched Bellhide silhouette and proportions as the approved reference.",
+      "Bronze rear ward-bell and long clapper-weight strap remain distinct.",
+      "Cyan runes remain readable on the blue body at gameplay scale.",
+      "Complete uncropped body on transparency with no baked ground or shadow."
+    ]
+  }
+}
