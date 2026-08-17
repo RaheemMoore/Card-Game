@@ -85,7 +85,24 @@ export const DEPTH = {
  * tall and scrolls sideways, like Mario, so vertical is a framing decision and
  * horizontal is a level-design one.
  */
-export const FRONT_V4_VIEW = { width: 1280, height: 720 } as const;
+export const FRONT_V4_VIEW = {
+  width: 1280,
+  /**
+   * 960, up from 720 — and the extra 240 is SKY, not ground.
+   *
+   * Raheem chose it off four composed mock-ups (`lib/frame_mock.py`) with the real
+   * art in them: at 720 his tower's battlements were cut off by the top of the
+   * frame, so there was literally nowhere to put the things he wants happening up
+   * there. *"Let's go with D because I plan on putting the walls on… having a
+   * scene occurring on the walls when you're running by."*
+   *
+   * At 960 the tower stands at 83% of the frame — the same proportion Wonder Boy
+   * gives its castle, measured off the screenshot he brought — with real sky above
+   * the battlements, and the hero at 11%, which is where a game that wants
+   * environmental grandeur puts him.
+   */
+  height: 960,
+} as const;
 
 /**
  * PARALLAX SPEEDS — how fast each background plane moves relative to the player.
@@ -140,7 +157,7 @@ export const PARALLAX = {
 export const CLOUD_WIND_PX_PER_SEC = 12;
 
 /** The canonical contact line. Feet, jelly undersides and landed cards all sit here. */
-export const GROUND_Y = 590;
+export const GROUND_Y = 830;
 
 /**
  * Uniform display scale for every pixel sprite in the scene.
@@ -343,6 +360,17 @@ export function applyLevelCamera(
     return;
   }
   camera.setBounds(0, 0, levelWidth, FRONT_V4_VIEW.height);
+  /**
+   * PIN THE VERTICAL. Nothing else ever writes it.
+   *
+   * The deadzone is the full frame height, so the follow has no cause to move the
+   * camera on Y — which sounds like Y takes care of itself and means the opposite:
+   * `scrollY` keeps whatever it was given first and no later bounds change disturbs
+   * it. When the frame grew from 720 to 960 the camera stayed where the old world
+   * had put it and painted a band across the sky that read as a backdrop failing to
+   * load. A number that never moves is not being clamped; it is not being set.
+   */
+  camera.setScroll(camera.scrollX, 0);
 }
 
 /**
@@ -350,9 +378,15 @@ export function applyLevelCamera(
  *
  * A camera welded to the player makes the world slide under a man who looks
  * stationary, which is both unpleasant and hard to aim in. A deadzone lets him
+ *
+ * ITS HEIGHT IS THE WHOLE FRAME, DELIBERATELY, and it is derived rather than typed
+ * so it cannot fall behind. A deadzone shorter than the view lets the camera track
+ * him VERTICALLY, which in a game with no jump is pure defect: the horizon lurches
+ * for no reason the player can act on. It was left at a literal 720 when the frame
+ * grew to 960 and immediately produced exactly that.
  * lead his own shot and step back from the creature without the horizon lurching.
  */
-export const CAMERA_DEADZONE = { width: 320, height: 720 } as const;
+export const CAMERA_DEADZONE = { width: 320, height: FRONT_V4_VIEW.height } as const;
 
 /**
  * A little world beyond where he can walk, so the level does not end at a cliff

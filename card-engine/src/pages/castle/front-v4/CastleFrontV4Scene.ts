@@ -452,6 +452,13 @@ export class CastleFrontV4Scene extends Phaser.Scene {
    */
   private applyCamera() {
     const camera = this.cameras.main;
+    // THE CAMERA DOES NOT FOLLOW THE CANVAS ON ITS OWN. Phaser.Scale.RESIZE grows
+    // the drawing buffer and fires `resize`, but the main camera keeps the viewport
+    // it was born with — so the extra height renders nothing and reads as a black
+    // band across the top, which is indistinguishable from a backdrop that failed
+    // to load. It only surfaced when the frame's aspect changed for the taller sky;
+    // before that the canvas only ever changed size, never shape.
+    camera.setSize(this.scale.width, this.scale.height);
     applyLevelCamera(camera, this.scale.gameSize, this.arena.maxX + LEVEL_EDGE_MARGIN);
     if (camera.useBounds && this.hero) {
       camera.startFollow(this.hero, true, 0.14, 0.14);
@@ -1132,6 +1139,11 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         zoom: this.cameras.main.zoom,
         scrollX: this.cameras.main.scrollX,
         scrollY: this.cameras.main.scrollY,
+        bounds: {
+          y: this.cameras.main.getBounds().y,
+          height: this.cameras.main.getBounds().height,
+          viewHeight: this.cameras.main.height / this.cameras.main.zoom,
+        },
       },
       world: { groundY: this.groundY, minX: this.arena.minX, maxX: this.arena.maxX },
       player: {

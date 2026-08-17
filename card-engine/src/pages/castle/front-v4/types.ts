@@ -64,7 +64,14 @@ export interface FrontV4Snapshot {
    * scroll. Reported rather than assumed, because which one is active depends on
    * the window size and how far the ground has been stretched.
    */
-  camera: { mode: 'level-follow' | 'fixed'; zoom: number; scrollX: number; scrollY: number };
+  camera: {
+    mode: 'level-follow' | 'fixed';
+    zoom: number;
+    scrollX: number;
+    scrollY: number;
+    /** What the camera is actually clamped to, versus how much world it shows. */
+    bounds: { y: number; height: number; viewHeight: number };
+  };
   world: { groundY: number; minX: number; maxX: number };
 
   player: {

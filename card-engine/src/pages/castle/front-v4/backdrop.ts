@@ -277,6 +277,7 @@ export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdr
   let viewWidth: number = FRONT_V4_VIEW.width;
   let viewHeight: number = FRONT_V4_VIEW.height;
   let groundLine: number = GROUND_Y;
+
   let windTravel = 0;
   const missing: string[] = [];
   /** Authored `BG_*` rectangles, empty until the Editor scene has loaded. */
@@ -357,15 +358,25 @@ export function paintProvisionalBackdrop(scene: Phaser.Scene): ProvisionalBackdr
   const layout = () => {
     if (sky) {
       const authored = placed[BACKGROUND_LABELS.sky];
-      // Cover: the larger of the two ratios, so neither axis is left short. The
-      // width term is always the live viewport even when authored, because a sky
-      // narrower than the screen shows canvas down the side — and it is pinned, so
-      // that gap would sit there permanently rather than scrolling away.
-      const targetHeight = authored ? authored.height : viewHeight;
-      const cover = Math.max(viewWidth / sky.width, targetHeight / sky.height);
+      /**
+       * THE SKY ALWAYS FILLS THE FRAME, and its authored rectangle is deliberately
+       * ignored — the one layer where placement is not a judgement call.
+       *
+       * Every other layer's position is a composition Raheem makes by eye. The sky
+       * is not: it is the thing behind everything, and the only correct answer is
+       * "all of it". Honouring its authored top broke the moment the frame grew,
+       * because a plate dragged to fill 720 units leaves the new 240 as a black
+       * band across the top — and no amount of dragging makes a fixed plate the
+       * right answer for a frame whose height can change.
+       *
+       * Cover-scaled rather than stretched, so a window that is not 16:9 crops the
+       * plate instead of distorting the sun into an ellipse. His authored ALPHA is
+       * still honoured — that one is a real decision.
+       */
+      const cover = Math.max(viewWidth / sky.width, viewHeight / sky.height);
       sky
         .setScale(cover)
-        .setPosition((viewWidth - sky.width * cover) / 2, authored ? authored.top : 0)
+        .setPosition((viewWidth - sky.width * cover) / 2, 0)
         .setAlpha(authored?.alpha ?? 1);
     }
     for (const { tile, plane, sourceHeight } of strips) {
