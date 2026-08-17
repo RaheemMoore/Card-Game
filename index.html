@@ -102,6 +102,9 @@
        */
       var SCENE_ROUTES = { CastleFrontWorld: '/dev/castle-front-v4' };
 
+      /** Set when more than one dev server answered, so the choice is visible. */
+      var staleNote = '';
+
       function runUrl(name) {
         if (SCENE_ROUTES[name]) return app + SCENE_ROUTES[name];
         var p = new URLSearchParams(params);
@@ -109,7 +112,22 @@
         return app + '/dev/scene?' + p.toString();
       }
 
-      /** The first candidate port that serves the scene index. */
+      /**
+       * The candidate port serving the MOST RECENTLY SAVED scene.
+       *
+       * NOT the first one that answers, which is what this did and which was
+       * wrong in a way that wasted an afternoon. More than one dev server is the
+       * ordinary state here — an abandoned worktree left one on 5173 while the
+       * live one ran on 5190 — and taking the first port in list order meant Play
+       * always opened the stale one. Raheem, 2026-08-16: *"when I hit play, it
+       * goes to an old version of the game, old version of the scene."* He had
+       * just saved; the Editor had saved; the game he was shown was 1.4 hours old
+       * and there was nothing on screen to say so.
+       *
+       * Freshness is the right tie-break because it is the thing he actually
+       * means by "play my game": the server whose scene file was written last is
+       * the one he is working in. Port numbers carry no such meaning.
+       */
       function findApp() {
         return Promise.all(
           ports.map(function (candidate) {
@@ -120,10 +138,22 @@
               .catch(function () { return null; });
           }),
         ).then(function (results) {
-          var hit = results.filter(Boolean)[0];
-          if (!hit) throw new Error('no dev server');
-          app = hit.base;
-          return hit.scenes;
+          var live = results.filter(Boolean).filter(function (r) { return r.scenes.length; });
+          if (!live.length) throw new Error('no dev server');
+          var newest = function (r) {
+            return r.scenes.reduce(function (max, s) { return Math.max(max, s.savedAt || 0); }, 0);
+          };
+          live.sort(function (a, b) { return newest(b) - newest(a); });
+          app = live[0].base;
+          // Say so when there was a choice. A second server is not an error, but
+          // silently picking one of them is how the wrong game gets played for an
+          // hour without anybody suspecting the launcher.
+          if (live.length > 1) {
+            staleNote =
+              'Found ' + live.length + ' dev servers. Using ' + app +
+              ' — its scene was saved most recently.';
+          }
+          return live[0].scenes;
         });
       }
 
@@ -143,8 +173,15 @@
       findApp()
         .then(function (scenes) {
           // Preview Scene told us exactly what to open — no need to ask or guess.
+          // Still pause on a multi-server warning: opening the wrong one silently
+          // is the failure this whole function exists to stop.
           if (wanted) {
-            location.replace(runUrl(wanted));
+            if (staleNote) {
+              document.getElementById('sub').textContent = staleNote;
+              setTimeout(function () { location.replace(runUrl(wanted)); }, 1600);
+            } else {
+              location.replace(runUrl(wanted));
+            }
             return;
           }
           var runnable = scenes.filter(function (s) { return s.compiled; });
@@ -152,7 +189,8 @@
 
           var newest = runnable[0];
           document.getElementById('title').textContent = 'Opening ' + newest.name + '…';
-          document.getElementById('sub').textContent = 'Most recently saved. Pick another to switch.';
+          document.getElementById('sub').textContent =
+            staleNote || 'Most recently saved. Pick another to switch.';
 
           var ul = document.getElementById('list');
           scenes.forEach(function (s, i) {

@@ -4,7 +4,7 @@
   "sourceFamily": "castle-front-side-view",
   "rawOutputsPreserved": true,
   "note": "The side-view castle kit. SEPARATE FROM halo-stone-castle deliberately: that kit is top-down and three-quarter art for a game that no longer exists, and mixing the two angles in one palette is how three-quarter walls ended up placed in the side-view scene on 2026-08-16. Everything in here is flat front elevation per SIDE_VIEW_ANGLE_SPEC.md. Generated one piece at a time and looked at before the next was ordered.",
-  "assetCount": 3,
+  "assetCount": 4,
   "assets": [
     {
       "assetId": "castle-front.bastion",
@@ -33,6 +33,16 @@
       "rawSource": "image-ground-band.png",
       "usedTrimmedExport": false,
       "note": "NOT A SECOND GENERATION. A palette map off the dirt band, taking its greens from halo-stone-castle's castle-ground-grass-dirt-wang-32-lush (78,138,60 and its ramp) so the two kits agree about what grass is. Region-limited to the top 30% because the surface brown is the SAME brown as the earth below it — a global swap turns the whole cross-section green, which is the shared-ramp trap recolor.py warns about. Reproduce with: recolor.py <dirt band> <out> --from 206,149,101 --to 78,138,60 --ramp --region 0,0,1,0.30"
+    },
+    {
+      "assetId": "castle-front.tower-v3",
+      "label": "Watchtower, flat front elevation — Raheem's CourtyardV3 castle ported to the side view",
+      "status": "HUMAN REVIEW",
+      "path": "structures/castle-front-tower-v3.png",
+      "sourceSubject": "castle-front-v3",
+      "rawSource": "object-tower-unknown.png",
+      "usedTrimmedExport": true,
+      "note": "THE FIRST PIECE OF THE REAL CASTLE. Raheem, 2026-08-16: 'I want the castle that was in the courtyard v three. I made them.' Generated through /create-1-direction-object with a crop of his own castle-tower-battle-v3 as the style anchor — cropped BELOW its octagonal roof, because that roof is a plan view and handing it over would be asking for the tilt while telling the model not to. /create-image-pixen was the wrong route for this: it takes no style reference, which is why every earlier attempt came back honey-and-grey instead of his blue-and-gold. Returned already transparent, so no matting chain was needed; cropped 216x216 -> 94x200 and otherwise untouched. Scale is Raheem's to set in Phaser Editor."
     }
   ]
 }

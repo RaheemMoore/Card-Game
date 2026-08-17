@@ -22,11 +22,14 @@ class CastleFrontWorld extends Phaser.Scene {
 		rEF_sky.fillColor = 9194031;
 
 		// BG_SKY
-		const bG_SKY = this.add.tileSprite(0, 0, 4999, 720, "castle-front-sunset-sky");
-		bG_SKY.setOrigin(0, 0);
+		const bG_SKY = this.add.tileSprite(2499.5, 720, 4999, 720, "castle-front-sunset-sky");
+		bG_SKY.scaleY = 1.1668960362046086;
+		bG_SKY.setOrigin(0.5, 1);
 
 		// BG_MOUNTAINS
 		const bG_MOUNTAINS = this.add.tileSprite(0, 590, 5000, 396, "castle-front-mountains-loop");
+		bG_MOUNTAINS.scaleX = 1.3;
+		bG_MOUNTAINS.scaleY = 1.3;
 		bG_MOUNTAINS.setOrigin(0, 1);
 		bG_MOUNTAINS.alpha = 0.82;
 		bG_MOUNTAINS.tileScaleX = 1.529;
@@ -34,6 +37,8 @@ class CastleFrontWorld extends Phaser.Scene {
 
 		// BG_FOREST
 		const bG_FOREST = this.add.tileSprite(0, 590, 5001, 202, "castle-front-forest-loop");
+		bG_FOREST.scaleX = 1.4;
+		bG_FOREST.scaleY = 1.4;
 		bG_FOREST.setOrigin(0, 1);
 		bG_FOREST.alpha = 0.92;
 		bG_FOREST.tileScaleX = 1.3808;
@@ -41,26 +46,26 @@ class CastleFrontWorld extends Phaser.Scene {
 
 		// BG_CLOUD_BROAD
 		const bG_CLOUD_BROAD = this.add.image(90, 108, "castle-front-cloud-broad-sunset");
-		bG_CLOUD_BROAD.scaleX = 2.2442;
-		bG_CLOUD_BROAD.scaleY = 2.2442;
+		bG_CLOUD_BROAD.scaleX = 2.6273476752407743;
+		bG_CLOUD_BROAD.scaleY = 1.9769093798893045;
 		bG_CLOUD_BROAD.setOrigin(0, 0);
 
 		// BG_CLOUD_MOUND
 		const bG_CLOUD_MOUND = this.add.image(435, 281, "castle-front-cloud-mound-sunset");
-		bG_CLOUD_MOUND.scaleX = 1.9117;
-		bG_CLOUD_MOUND.scaleY = 1.9117;
+		bG_CLOUD_MOUND.scaleX = 2.5633390300581427;
+		bG_CLOUD_MOUND.scaleY = 1.9009408598438295;
 		bG_CLOUD_MOUND.setOrigin(0, 0);
 
 		// BG_CLOUD_PUFFS
 		const bG_CLOUD_PUFFS = this.add.image(794, 58, "castle-front-cloud-puffs-sunset");
-		bG_CLOUD_PUFFS.scaleX = 2.2486;
-		bG_CLOUD_PUFFS.scaleY = 2.2486;
+		bG_CLOUD_PUFFS.scaleX = 3.4851171503965;
+		bG_CLOUD_PUFFS.scaleY = 1.9225001715931307;
 		bG_CLOUD_PUFFS.setOrigin(0, 0);
 
 		// BG_CLOUD_SWEEP
 		const bG_CLOUD_SWEEP = this.add.image(896, 202, "castle-front-cloud-sweep-sunset");
-		bG_CLOUD_SWEEP.scaleX = 2.3735;
-		bG_CLOUD_SWEEP.scaleY = 2.3735;
+		bG_CLOUD_SWEEP.scaleX = 3.0448749193231253;
+		bG_CLOUD_SWEEP.scaleY = 2.1209538023703955;
 		bG_CLOUD_SWEEP.setOrigin(0, 0);
 
 		// GROUND
@@ -101,13 +106,7 @@ class CastleFrontWorld extends Phaser.Scene {
 
 		// REF_jelly_spawn
 		const rEF_jelly_spawn = this.add.image(481, 590, "construct-ember-jelly", 0);
-		rEF_jelly_spawn.scaleX = 0.65;
-		rEF_jelly_spawn.scaleY = 0.65;
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
-
-		// WALL_bastion
-		const wALL_bastion = this.add.image(191, 592, "castle-front-bastion");
-		wALL_bastion.setOrigin(0.5, 1);
 
 		// ASSET_ground_band_grass
 		const aSSET_ground_band_grass = this.add.tileSprite(2500, 574, 5000, 76, "castle-front-ground-band-grass");
@@ -121,9 +120,13 @@ class CastleFrontWorld extends Phaser.Scene {
 
 		// LIVE_PROOF_delete_me
 		const lIVE_PROOF_delete_me = this.add.sprite(1500, 578, "construct-ember-jelly", 0);
-		lIVE_PROOF_delete_me.scaleX = 0.8;
-		lIVE_PROOF_delete_me.scaleY = 0.8;
 		lIVE_PROOF_delete_me.setOrigin(0.571, 0.926);
+
+		// castle_front_tower_v3
+		const castle_front_tower_v3 = this.add.image(-9, 588, "castle-front-tower-v3");
+		castle_front_tower_v3.scaleX = 3.5;
+		castle_front_tower_v3.scaleY = 3.5;
+		castle_front_tower_v3.setOrigin(0, 1);
 
 		this.events.emit("scene-awake");
 	}

@@ -144,13 +144,27 @@ function editorScenes(): Plugin {
         const compiled = path.join(editorRoot, `${base}.js`);
         if (!fs.existsSync(compiled)) continue;
 
-        for (const name of [`${base}.scene`, `${base}.js`]) {
-          this.emitFile({
-            type: 'asset',
-            fileName: `editor-scenes/${name}`,
-            source: fs.readFileSync(path.join(editorRoot, name)),
-          });
-        }
+        /**
+         * ONLY THE COMPILED `.js`. Emitting the `.scene` beside it BROKE SAVING
+         * IN PHASER EDITOR, which is a worse failure than it sounds: the Editor
+         * indexes every `.scene` under the project root, `game/dist` is under the
+         * project root, and a build therefore planted a second file carrying the
+         * same scene ID. The Editor then refused every save with *"has a
+         * duplicated ID … Run the command Fix Duplicated Scenes ID"*, so Raheem
+         * placed a tower, saved, and lost it — the error looks like a problem
+         * with HIS scene rather than with a build artefact sitting in a folder he
+         * never opens.
+         *
+         * Nothing wanted the shipped `.scene` anyway. It is the Editor's own
+         * authoring format; `worldLoader` fetches `/editor-scenes/<Name>.js` and
+         * has never read the other one. So this was always dead weight that
+         * happened to be load-bearing for a bug.
+         */
+        this.emitFile({
+          type: 'asset',
+          fileName: `editor-scenes/${base}.js`,
+          source: fs.readFileSync(compiled),
+        });
       }
     },
   };

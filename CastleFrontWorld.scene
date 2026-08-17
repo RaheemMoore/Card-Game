@@ -25,8 +25,10 @@
             "texture": {
                 "key": "castle-front-sunset-sky"
             },
-            "originX": 0,
-            "originY": 0,
+            "x": 2499.5,
+            "y": 720,
+            "scaleY": 1.1668960362046086,
+            "originY": 1,
             "width": 4999,
             "height": 720
         },
@@ -38,6 +40,8 @@
                 "key": "castle-front-mountains-loop"
             },
             "y": 590,
+            "scaleX": 1.3,
+            "scaleY": 1.3,
             "originX": 0,
             "originY": 1,
             "alpha": 0.82,
@@ -54,6 +58,8 @@
                 "key": "castle-front-forest-loop"
             },
             "y": 590,
+            "scaleX": 1.4,
+            "scaleY": 1.4,
             "originX": 0,
             "originY": 1,
             "alpha": 0.92,
@@ -71,8 +77,8 @@
             },
             "x": 90,
             "y": 108,
-            "scaleX": 2.2442,
-            "scaleY": 2.2442,
+            "scaleX": 2.6273476752407743,
+            "scaleY": 1.9769093798893045,
             "originX": 0,
             "originY": 0
         },
@@ -85,8 +91,8 @@
             },
             "x": 435,
             "y": 281,
-            "scaleX": 1.9117,
-            "scaleY": 1.9117,
+            "scaleX": 2.5633390300581427,
+            "scaleY": 1.9009408598438295,
             "originX": 0,
             "originY": 0
         },
@@ -99,8 +105,8 @@
             },
             "x": 794,
             "y": 58,
-            "scaleX": 2.2486,
-            "scaleY": 2.2486,
+            "scaleX": 3.4851171503965,
+            "scaleY": 1.9225001715931307,
             "originX": 0,
             "originY": 0
         },
@@ -113,8 +119,8 @@
             },
             "x": 896,
             "y": 202,
-            "scaleX": 2.3735,
-            "scaleY": 2.3735,
+            "scaleX": 3.0448749193231253,
+            "scaleY": 2.1209538023703955,
             "originX": 0,
             "originY": 0
         },
@@ -200,21 +206,8 @@
             },
             "x": 481,
             "y": 590,
-            "scaleX": 0.65,
-            "scaleY": 0.65,
             "originX": 0.571,
             "originY": 0.926
-        },
-        {
-            "type": "Image",
-            "id": "ee5ea175-5bfa-45c6-8877-0f97449eb471",
-            "label": "WALL_bastion",
-            "texture": {
-                "key": "castle-front-bastion"
-            },
-            "x": 191,
-            "y": 592,
-            "originY": 1
         },
         {
             "type": "TileSprite",
@@ -253,10 +246,22 @@
             },
             "x": 1500,
             "y": 578,
-            "scaleX": 0.8,
-            "scaleY": 0.8,
             "originX": 0.571,
             "originY": 0.926
+        },
+        {
+            "type": "Image",
+            "id": "fe167c31-c878-481f-991a-97b3c7e606ec",
+            "label": "castle_front_tower_v3",
+            "texture": {
+                "key": "castle-front-tower-v3"
+            },
+            "x": -9,
+            "y": 588,
+            "scaleX": 3.5,
+            "scaleY": 3.5,
+            "originX": 0,
+            "originY": 1
         }
     ],
     "plainObjects": [],
