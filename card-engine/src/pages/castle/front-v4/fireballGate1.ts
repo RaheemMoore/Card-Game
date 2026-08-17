@@ -67,9 +67,14 @@ export function fireballVisual(charge01: number): FireballVisualFootprint {
 
 export interface FireCardHeat {
   visible: boolean;
+  charge01: number;
   alpha: number;
   radiusPx: number;
   coreAlpha: number;
+  gatherRadiusPx: number;
+  flameHeightPx: number;
+  /** Charge-only wind that gathers into the flame, then becomes the launch wake. */
+  windGatherAlpha: number;
 }
 
 /**
@@ -84,25 +89,45 @@ export function fireCardHeat(
 ): FireCardHeat {
   const charge = clampCharge(charge01);
   if (phase === 'explore' || phase === 'knockdown' || phase === 'standUp' || phase === 'summoning') {
-    return { visible: false, alpha: 0, radiusPx: 0, coreAlpha: 0 };
+    return {
+      visible: false,
+      charge01: 0,
+      alpha: 0,
+      radiusPx: 0,
+      coreAlpha: 0,
+      gatherRadiusPx: 0,
+      flameHeightPx: 0,
+      windGatherAlpha: 0,
+    };
   }
 
   if (phase === 'recovery') {
     const remaining = 1 - Math.max(0, Math.min(1, elapsedMs / Math.max(1, recoveryMs)));
     return {
       visible: remaining > 0,
-      alpha: 0.72 * remaining,
-      radiusPx: 8 + 8 * remaining,
-      coreAlpha: 0.95 * remaining,
+      charge01: charge * remaining,
+      alpha: 0.88 * remaining,
+      radiusPx: 15 + 13 * charge * remaining,
+      coreAlpha: remaining,
+      gatherRadiusPx: 30 + 26 * charge * remaining,
+      flameHeightPx: 18 + 24 * charge * remaining,
+      windGatherAlpha: 0,
     };
   }
 
-  const commitment = phase === 'charging' ? charge : 1;
+  const commitment = phase === 'charging' ? charge : clampCharge(charge01);
   return {
     visible: true,
-    alpha: 0.18 + 0.54 * commitment,
-    radiusPx: 7 + 9 * commitment,
-    coreAlpha: 0.35 + 0.65 * commitment,
+    charge01: commitment,
+    alpha: 0.58 + 0.34 * commitment,
+    radiusPx: 13 + 17 * commitment,
+    coreAlpha: 0.76 + 0.24 * commitment,
+    gatherRadiusPx: 38 + 30 * commitment,
+    flameHeightPx: 20 + 28 * commitment,
+    windGatherAlpha:
+      phase === 'charging' || phase === 'windup'
+        ? 0.1 + commitment * commitment * 0.78
+        : 0,
   };
 }
 
@@ -119,15 +144,16 @@ export interface FireballContact {
 
 export function fireballContact(projectile: Projectile, charge01: number): FireballContact {
   const length = Math.hypot(projectile.dir.x, projectile.dir.y) || 1;
+  const charge = clampCharge(charge01);
   return {
     position: { ...projectile.pos },
     direction: { x: projectile.dir.x / length, y: projectile.dir.y / length },
-    charge01: clampCharge(charge01),
-    severity: severityForCharge(charge01),
+    charge01: charge,
+    severity: severityForCharge(charge),
     damage: projectile.def.damage,
     travelSpeedPxPerSec: projectile.def.speed,
     visualFootprint: {
-      ...fireballVisual(charge01),
+      ...fireballVisual(charge),
       collisionRadiusPx: projectile.def.radiusPx,
     },
   };

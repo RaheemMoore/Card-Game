@@ -44,6 +44,13 @@ describe('Fire Card Gate 1 contract', () => {
     expect(cold.visible).toBe(false);
     expect(hot.alpha).toBeGreaterThan(warming.alpha);
     expect(hot.radiusPx).toBeGreaterThan(warming.radiusPx);
+    expect(hot.gatherRadiusPx).toBeGreaterThan(warming.gatherRadiusPx);
+    expect(hot.flameHeightPx).toBeGreaterThan(warming.flameHeightPx);
+    expect(hot.windGatherAlpha).toBeGreaterThan(warming.windGatherAlpha);
+    expect(fireCardHeat('windup', 1, 80, 250).windGatherAlpha).toBeGreaterThan(0.8);
+    expect(fireCardHeat('active', 1, 0, 250).windGatherAlpha).toBe(0);
+    expect(cooling.windGatherAlpha).toBe(0);
+    expect(Math.abs(hot.radiusPx * 2 - fireballVisual(1).bodyDiameterPx)).toBeLessThanOrEqual(2);
     expect(cooling.alpha).toBeGreaterThan(0);
     expect(fireCardHeat('recovery', 1, 250, 250).visible).toBe(false);
   });
@@ -62,6 +69,9 @@ describe('Fire Card Gate 1 contract', () => {
     expect(contact.severity).toBe('heavy');
     expect(contact.damage).toBe(def.damage);
     expect(contact.travelSpeedPxPerSec).toBe(def.speed);
-    expect(contact.visualFootprint.collisionRadiusPx).toBe(def.radiusPx);
+    expect(contact.visualFootprint).toEqual({
+      ...fireballVisual(1),
+      collisionRadiusPx: def.radiusPx,
+    });
   });
 });
