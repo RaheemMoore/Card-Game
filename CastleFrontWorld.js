@@ -83,6 +83,24 @@ class CastleFrontWorld extends Phaser.Scene {
 		const rEF_jelly_spawn = this.add.image(481, 830, "construct-ember-jelly", 0);
 		rEF_jelly_spawn.setOrigin(0.571, 0.926);
 
+		// PARK_wall_v3
+		const pARK_wall_v3 = this.add.tileSprite(301, 620, 214, 211, "castle-front-wall-v3");
+		pARK_wall_v3.scaleX = 2;
+		pARK_wall_v3.scaleY = 2;
+		pARK_wall_v3.setOrigin(0, 0.5);
+
+		// castle_front_tower_v3
+		const castle_front_tower_v3 = this.add.image(-9, 830, "castle-front-tower-v3");
+		castle_front_tower_v3.scaleX = 3.5;
+		castle_front_tower_v3.scaleY = 3.5;
+		castle_front_tower_v3.setOrigin(0, 1);
+
+		// PARK_gatehouse_v3
+		const pARK_gatehouse_v3 = this.add.image(992, 830, "castle-front-gatehouse-v3");
+		pARK_gatehouse_v3.scaleX = 2.5;
+		pARK_gatehouse_v3.scaleY = 2.5;
+		pARK_gatehouse_v3.setOrigin(0.5, 1);
+
 		// ASSET_ground_band_grass
 		const aSSET_ground_band_grass = this.add.tileSprite(2500, 814, 5000, 76, "castle-front-ground-band-grass");
 		aSSET_ground_band_grass.setOrigin(0.5, 0);
@@ -96,24 +114,6 @@ class CastleFrontWorld extends Phaser.Scene {
 		// LIVE_PROOF_delete_me
 		const lIVE_PROOF_delete_me = this.add.sprite(1500, 818, "construct-ember-jelly", 0);
 		lIVE_PROOF_delete_me.setOrigin(0.571, 0.926);
-
-		// castle_front_tower_v3
-		const castle_front_tower_v3 = this.add.image(-9, 828, "castle-front-tower-v3");
-		castle_front_tower_v3.scaleX = 3.5;
-		castle_front_tower_v3.scaleY = 3.5;
-		castle_front_tower_v3.setOrigin(0, 1);
-
-		// PARK_gatehouse_v3
-		const pARK_gatehouse_v3 = this.add.image(-700, 830, "castle-front-gatehouse-v3");
-		pARK_gatehouse_v3.scaleX = 3.5;
-		pARK_gatehouse_v3.scaleY = 3.5;
-		pARK_gatehouse_v3.setOrigin(0.5, 1);
-
-		// PARK_wall_v3
-		const pARK_wall_v3 = this.add.image(-1500, 830, "castle-front-wall-v3");
-		pARK_wall_v3.scaleX = 3.5;
-		pARK_wall_v3.scaleY = 3.5;
-		pARK_wall_v3.setOrigin(0.5, 1);
 
 		this.events.emit("scene-awake");
 	}
