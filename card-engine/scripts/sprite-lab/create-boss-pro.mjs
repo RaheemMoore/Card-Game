@@ -135,11 +135,25 @@ man.detail = detail;
 man.actualSize = detail.size ?? detail.image_size ?? null;
 save();
 console.log('actual size reported by API:', JSON.stringify(man.actualSize));
+fs.writeFileSync(path.join(outDir, 'character.json'), JSON.stringify(detail, null, 2));
 
 const rotations = detail.rotations ?? detail.images ?? [];
-console.log('rotations returned:', Array.isArray(rotations) ? rotations.length : 'n/a');
+const rotationUrls = detail.rotation_urls ?? {};
+console.log(
+  'rotations returned:',
+  Object.keys(rotationUrls).length || (Array.isArray(rotations) ? rotations.length : 'n/a'),
+);
 
 let n = 0;
+for (const [direction, url] of Object.entries(rotationUrls)) {
+  if (!url) continue;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`download ${direction} -> ${res.status}`);
+  const file = path.join(outDir, `rot-${direction}.png`);
+  fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
+  console.log('  wrote', path.relative(ROOT, file));
+  n++;
+}
 for (const [i, rot] of (Array.isArray(rotations) ? rotations : []).entries()) {
   const b64 = rot?.image?.base64 ?? rot?.base64 ?? (typeof rot === 'string' ? rot : null);
   if (!b64) continue;

@@ -181,6 +181,7 @@ export const FRONT_V4_EVENTS = {
 } as const;
 
 export const FRONT_V4_SCENARIOS = [
+  'castle-front-v4-fire-card-charge',
   'castle-front-v4-combat-loop',
   'castle-front-v4-jelly-leap-evade',
   'castle-front-v4-scatter-recover',

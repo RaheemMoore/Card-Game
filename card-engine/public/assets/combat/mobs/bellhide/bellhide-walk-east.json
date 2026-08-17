@@ -1,0 +1,16 @@
+{
+  "image": "bellhide-walk-east.png",
+  "frameWidth": 114,
+  "frameHeight": 155,
+  "frameCount": 7,
+  "direction": "east",
+  "recommendedFps": 8,
+  "loop": true,
+  "baselineY": 152,
+  "targetBodyHeight": 149,
+  "anchor": "feet",
+  "sourceAnimation": "walk-heavy-east-v1",
+  "approvedBy": "Raheem",
+  "approvedOn": "2026-08-16",
+  "note": "Approved right-facing heavy lugging stomp. Phaser supplies footstep cracks, dust, sound, rune flash and camera bump later."
+}

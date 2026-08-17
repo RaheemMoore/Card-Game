@@ -35,21 +35,14 @@ import {
   type Hand,
 } from '../combat/hand';
 import {
-  DEFAULT_BLAST,
   resetProjectileIds,
-  scaleBlast,
   spawnProjectile,
   stepProjectile,
   type Projectile,
 } from '../combat/blast';
-import { effectKitFor, type EffectKit } from '../combat/effectKit';
-import {
-  colourOf,
-  createBlastSprite,
-  playDirectionalBurst,
-  playImpact,
-} from '../combat/blastVfx';
-import { getHitFeel, severityForCharge, type HitSeverity } from '../combat/feel';
+import { effectKitFor } from '../combat/effectKit';
+import { colourOf } from '../combat/blastVfx';
+import { getHitFeel } from '../combat/feel';
 import { createHitstop, type Hitstop } from '../combat/hitstop';
 import {
   CONSTRUCT_TUNING,
@@ -109,6 +102,25 @@ import {
 } from './backdrop';
 import { createJellyView, type JellyView } from './jellyPresenter';
 import { ACTOR_MARKERS } from './worldLabels';
+import {
+  FIRE_CARD_FIXTURES,
+  fireCardHeat,
+  fireballContact,
+  fireballDef,
+} from './fireballGate1';
+import {
+  createFireballView,
+  createFireCardHeroLightView,
+  createFireCardHeatView,
+  FIRE_CARD_CHARGE_SHEET,
+  FIRE_CARD_PROJECTILE_SHEET,
+  playFireballLaunchBurst,
+  playFireballImpact,
+  registerFireballAnimations,
+  type FireballView,
+  type FireCardHeroLightView,
+  type FireCardHeatView,
+} from './fireballView';
 import { loadEditorWorld, type AuthoredActor, type WorldLoadResult } from './worldLoader';
 import {
   FRONT_V4_EVENTS,
@@ -156,21 +168,14 @@ const WORLD_SCENE = 'CastleFrontWorld';
  *
  * Fixtures, not persistence: the DEV route must run without a collection, and
  * wiring real cards in would drag storage, auth and the sync queue into a scene
- * whose entire job is proving a camera angle. Elements chosen for contrast â€”
- * Shadow's impact is a still frame, which exercises the one-frame path.
+ * whose entire job is proving a camera angle. Gate 1 deliberately uses four
+ * training copies of one reusable Fire Card, not four temporary attacks.
  */
-const FIXTURE_CARDS: FixtureCard[] = [
-  { cardId: 'front-v4-fire', name: 'Ember Sigil', element: 'Fire' },
-  { cardId: 'front-v4-ice', name: 'Rime Sigil', element: 'Ice' },
-  { cardId: 'front-v4-storm', name: 'Gale Sigil', element: 'Storm' },
-  { cardId: 'front-v4-shadow', name: 'Umbral Sigil', element: 'Shadow' },
-];
+const FIXTURE_CARDS: readonly FixtureCard[] = FIRE_CARD_FIXTURES;
 
 interface LiveProjectile {
   sim: Projectile;
-  sprite: Phaser.GameObjects.Sprite | null;
-  fallback: Phaser.GameObjects.Arc | null;
-  kit: EffectKit;
+  view: FireballView;
   charge: number;
 }
 
@@ -234,6 +239,8 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   // ---- presentation -----------------------------------------------------
   private hero!: Phaser.GameObjects.Sprite;
   private heroShadow!: Phaser.GameObjects.Ellipse;
+  private fireCardHeatView!: FireCardHeatView;
+  private fireCardHeroLightView!: FireCardHeroLightView;
   private jellyView!: JellyView;
   private backdrop!: ProvisionalBackdrop;
   private hitstop!: Hitstop;
@@ -295,18 +302,11 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         frameHeight: sheet.frameHeight,
       });
     }
-    // Only the fixtures' elements, for the same reason â€” the full library is 52
-    // strips and this route uses four.
-    for (const card of FIXTURE_CARDS) {
-      const kit = effectKitFor(card.element);
-      for (const clip of [kit.stream, kit.impact]) {
-        if (clip && !this.textures.exists(clip.key)) {
-          this.load.spritesheet(clip.key, `/assets/combat/effects/packed/${clip.key}.png`, {
-            frameWidth: 128,
-            frameHeight: 32,
-          });
-        }
-      }
+    for (const sheet of [FIRE_CARD_CHARGE_SHEET, FIRE_CARD_PROJECTILE_SHEET]) {
+      this.load.spritesheet(sheet.key, sheet.path, {
+        frameWidth: sheet.frameWidth,
+        frameHeight: sheet.frameHeight,
+      });
     }
     // The background package: sky plate, two parallax strips, four cloud actors.
     //
@@ -338,7 +338,10 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     const provisional = paintProvisionalBackdrop(this);
     this.backdrop = provisional;
     this.registerAnimations();
+    registerFireballAnimations(this);
     this.buildActors();
+    this.fireCardHeatView = createFireCardHeatView(this, DEPTH.fx);
+    this.fireCardHeroLightView = createFireCardHeroLightView(this, DEPTH.hero + 0.02);
     this.bindInput();
 
     // The authored world arrives asynchronously and slots in UNDER the actors,
@@ -525,6 +528,8 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       else window.removeEventListener(event, handler);
     }
     this.focusListeners = [];
+    this.fireCardHeatView?.destroy();
+    this.fireCardHeroLightView?.destroy();
     this.hitstop?.destroy();
   }
 
@@ -776,7 +781,6 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   private launch() {
     const slot = this.committedSlot ?? this.hand.selected;
     const cardId = slot === null ? null : this.hand.slots[slot]?.cardId ?? null;
-    const fixture = FIXTURE_CARDS.find((c) => c.cardId === cardId) ?? FIXTURE_CARDS[0];
     const spec = resolveAction(cardId, this.action.releaseKind);
     if (spec.kind !== 'blast') return;
 
@@ -790,17 +794,19 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       y: this.groundY - muzzle.heightPx * this.heroScale,
     };
     const charge = this.action.chargeLevel;
-    const kit = effectKitFor(fixture.element);
-    const sim = spawnProjectile(origin, { x: facing, y: 0 }, scaleBlast(DEFAULT_BLAST, charge));
-    const sprite = createBlastSprite(this, kit, origin.x, origin.y, { x: facing, y: 0 }, charge);
-    sprite?.setDepth(DEPTH.projectile);
-    const fallback = sprite
-      ? null
-      : this.add
-          .circle(origin.x, origin.y, 6 + 6 * charge, colourOf(kit.palette[0]))
-          .setDepth(DEPTH.projectile);
+    const sim = spawnProjectile(origin, { x: facing, y: 0 }, fireballDef(charge));
+    playFireballLaunchBurst(
+      this,
+      origin,
+      { x: this.player.x, groundY: this.groundY },
+      facing,
+      charge,
+      DEPTH.hero - 0.01,
+      this.motion === 'off',
+    );
+    const view = createFireballView(this, origin.x, origin.y, facing, charge, DEPTH.projectile);
 
-    this.projectiles.push({ sim, sprite, fallback, kit, charge });
+    this.projectiles.push({ sim, view, charge });
   }
 
   private stepProjectiles(dt: number) {
@@ -813,8 +819,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       // No blockers: the arena is bounded by range and by its own edges, and the
       // courtyard's walk polygons describe a top-down world that does not exist here.
       p.sim = stepProjectile(p.sim, dt, [], targets);
-      p.sprite?.setPosition(p.sim.pos.x, p.sim.pos.y);
-      p.fallback?.setPosition(p.sim.pos.x, p.sim.pos.y);
+      p.view.update(p.sim.pos.x, p.sim.pos.y, dt);
 
       if (p.sim.outcome === 'hitTarget') {
         this.resolveHit(p);
@@ -826,32 +831,25 @@ export class CastleFrontV4Scene extends Phaser.Scene {
 
     this.projectiles = this.projectiles.filter((p) => {
       if (p.sim.outcome === 'flying') return true;
-      p.sprite?.destroy();
-      p.fallback?.destroy();
+      p.view.destroy();
       return false;
     });
   }
 
   private resolveHit(p: LiveProjectile) {
-    const severity: HitSeverity = severityForCharge(p.charge);
-    const feel = getHitFeel(severity, this.motion);
+    const contact = fireballContact(p.sim, p.charge);
+    const feel = getHitFeel(contact.severity, this.motion);
 
+    // Enemy-lane consumption starts here. It receives the Fire Card's exact
+    // contact payload; its hurtbox and all body reactions remain enemy-owned.
     this.pendingHits.push({
-      amount: p.sim.def.damage,
-      knockback: { x: Math.sign(p.sim.dir.x) || 1, y: 0 },
-      heavy: severity === 'heavy',
+      amount: contact.damage,
+      knockback: { ...contact.direction },
+      heavy: contact.severity === 'heavy',
     });
 
-    playImpact(this, p.kit, p.sim.pos.x, p.sim.pos.y, DEPTH.fx, p.charge);
-    playDirectionalBurst(this, {
-      x: p.sim.pos.x,
-      y: p.sim.pos.y,
-      depth: DEPTH.fx,
-      dir: p.sim.dir,
-      palette: p.kit.palette,
-      count: feel.particleCount,
-      power: p.charge,
-    });
+    // Fire-lane consumption: light and burst only, never the struck body.
+    playFireballImpact(this, contact, DEPTH.fx, this.motion === 'off');
     this.hitstop.trigger(feel.hitstopMs);
     if (feel.shakeIntensity > 0) this.cameras.main.shake(feel.shakeMs, feel.shakeIntensity);
     this.jellyView.flash(feel);
@@ -967,8 +965,30 @@ export class CastleFrontV4Scene extends Phaser.Scene {
 
   private presentHero() {
     const phase = this.action.phase;
-    this.hero.setX(this.player.x);
+    const facingSign = this.player.facing < 0 ? -1 : 1;
+    const muzzle = CARD_BLAST_MUZZLES[facingSign < 0 ? 'left' : 'right'];
+    const heat = fireCardHeat(
+      phase,
+      this.action.chargeLevel,
+      this.action.elapsedMs,
+      ACTION_TIMING.recoveryMs,
+    );
+    this.hero
+      .setX(this.player.x)
+      .setY(this.groundY)
+      .setRotation(0)
+      .setScale(SPRITE_SCALE);
     this.heroShadow.setPosition(this.player.x, this.groundY).setVisible(phase !== 'knockdown');
+    this.fireCardHeatView.set(
+      {
+        x: this.player.x + muzzle.groundOffsetX * SPRITE_SCALE,
+        y: this.groundY - muzzle.heightPx * SPRITE_SCALE,
+      },
+      heat,
+      facingSign,
+      this.groundY,
+      this.motion === 'off',
+    );
 
     if (phase === 'knockdown' || phase === 'standUp') {
       // Front-facing, and therefore TEMPORARY â€” only the south direction of this
@@ -976,7 +996,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
       if (this.hero.texture.key !== KNOCKDOWN_SHEET.key) {
         this.hero.setTexture(KNOCKDOWN_SHEET.key, 0).setOrigin(KNOCKDOWN_ANCHOR.x, KNOCKDOWN_ANCHOR.y);
       }
-      this.hero.setY(this.groundY);
+      this.hero.setY(this.groundY).setRotation(0).setScale(SPRITE_SCALE);
       const wantReverse = phase === 'standUp';
       const key = wantReverse ? `${KNOCKDOWN_ANIM}:up` : KNOCKDOWN_ANIM;
       if (this.heroAnim !== key) {
@@ -984,6 +1004,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         if (wantReverse) this.hero.playReverse(KNOCKDOWN_ANIM);
         else this.hero.play(KNOCKDOWN_ANIM);
       }
+      this.fireCardHeroLightView.set(this.hero, heat, facingSign);
       return;
     }
 
@@ -997,9 +1018,9 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         this.motion === 'off',
       );
       this.hero.setTexture(sheet.key, frame).setOrigin(sheet.anchor.x, sheet.anchor.y);
-      this.hero.setY(this.groundY);
       this.hero.stop();
       this.heroAnim = `card-blast-${facing}`;
+      this.fireCardHeroLightView.set(this.hero, heat, facingSign);
       return;
     }
 
@@ -1007,7 +1028,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
     if (this.hero.texture.key !== HERO_SHEET.key) {
       this.hero.setTexture(HERO_SHEET.key, idleFrame(facing)).setOrigin(0.5, HERO_ANCHOR_Y);
     }
-    this.hero.setY(this.groundY);
+    this.hero.setY(this.groundY).setRotation(0).setScale(SPRITE_SCALE);
     const moving = this.player.vx !== 0 && this.motion !== 'off';
     const key = moving ? `front-v4-walk-${facing}` : `idle-${facing}`;
     if (this.heroAnim !== key) {
@@ -1018,6 +1039,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
         this.hero.setFrame(idleFrame(facing));
       }
     }
+    this.fireCardHeroLightView.set(this.hero, heat, facingSign);
   }
 
 
@@ -1089,8 +1111,7 @@ export class CastleFrontV4Scene extends Phaser.Scene {
   reset() {
     resetProjectileIds();
     for (const p of this.projectiles) {
-      p.sprite?.destroy();
-      p.fallback?.destroy();
+      p.view.destroy();
     }
     for (const c of this.cards) c.view.destroy();
     this.projectiles = [];

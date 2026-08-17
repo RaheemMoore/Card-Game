@@ -1,0 +1,46 @@
+{
+  "_readme": [
+    "Bellhide concept gate 03, directed by Raheem: combine the heavy upright form of gate B with the actual bell-and-rune idea of gate A, while correcting both to a true side-scroller angle.",
+    "Image roles: gate B is a LOW image-to-image anatomy reference; gate A is a LOW style/material reference. Neither reference owns the pose.",
+    "Exactly one image. This is still Leonardo concept design, not PixelLab sprite production."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "width": 1024,
+  "height": 1024,
+  "seed": 731944,
+  "paidCallCap": 1,
+  "styleRefFile": "out/mob-bellhide-concept/anchor-design.png",
+  "styleRefStrength": "Low",
+  "initImageFile": "out/mob-bellhide-concept-b/anchor-design.png",
+  "initStrength": 0.25,
+  "styleHeader": "Painterly hand-painted fantasy creature concept art for a warm medieval side-scrolling game. Clean production design, crisp readable silhouette, tactile dark hide, weathered cast bronze and luminous engraved runes.",
+  "negative": "wolf, dog, cat, lion, bear, ram, boar, horse, turtle, armadillo, ordinary pet, four-legged animal, fur, mane, pointed animal ears, canine muzzle, human, human face, human skin, handsome man, bodybuilder, giant, towering boss, knight, soldier, weapon, helmet, church, tower, scenery, landscape, multiple creatures, character sheet, turnaround sheet, labels, text, letters, signature, logo, watermark, cropped body, hidden feet, rear view, back view, three-quarter view, front view, top-down view, isometric view, dramatic perspective, foreshortening, photorealistic, photograph, 3d render, cgi, anime, cartoon, pixel art",
+  "familyLabels": {
+    "design": "Bellhide — combined creature concept"
+  },
+  "states": [
+    {
+      "id": "bellhide-c",
+      "label": "Bellhide C — detachable ward-bells",
+      "family": "design",
+      "line": "A single compact recurring fantasy enemy in a precise orthographic SIDE ELEVATION facing right, designed for a horizontal side-scrolling game. Its shoulders and hips are perfectly perpendicular to the camera with no torso twist; only one cyan eye is visible; the far arm and far leg nearly overlap behind the near limbs. Show its complete silhouette and both grounded feet. It is a strange nonhuman hunched biped about goblin-sized: massive bowed spring-loaded legs, a broad heavy torso pitched forward, very long muscular arms hanging near the ground, dark slate-blue pebbled hide, and a small blunt head tucked beneath its raised shoulders. No clothing and no familiar animal anatomy. Mounted across its shoulders and upper back are exactly THREE detachable ancient bronze ward-bells, each a visibly different silhouette: one broad cracked bell, one tall narrow bell, and one small squat bell. They are separate physical pieces secured by simple dark metal pins and short leather straps so each could be knocked loose during combat. The bells overlap into an asymmetrical armored ridge without hiding the creature's head or limbs. Their weathered bronze surfaces carry sparse deeply engraved turquoise-cyan runes; the creature's one visible eye glows the exact same cyan. One bell has a visible heavy clapper tucked inside its rim. The result is unusual, sturdy and mischievously dangerous, clearly a reusable main mob rather than a hero or boss, able to crouch, leap, charge, remove a bell and launch resonant magic. Neutral alert idle stance. Centered isolated full-body presentation on a plain warm neutral studio backdrop with generous empty space, no environment and no other objects."
+    }
+  ],
+  "review": {
+    "title": "Bellhide concept gate 03",
+    "lede": "Gate C combines gate B's heavy upright form with gate A's bronze bell and cyan rune identity. The non-negotiable review question is whether Leonardo finally produced a usable side-scroller profile.",
+    "checklist": [
+      "Exact flat side profile with one eye visible",
+      "Compact hunched biped, neither dog nor towering humanoid boss",
+      "Exactly three differently shaped detachable bells",
+      "Bells read as usable armor and potential attacks",
+      "Cyan eye and engraved cyan runes match",
+      "Full silhouette can plausibly crouch, leap, charge and fire"
+    ]
+  }
+}

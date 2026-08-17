@@ -1,0 +1,49 @@
+{
+  "_readme": [
+    "Bellhide concept gate 01. Leonardo establishes the original creature design; an approved user-refined image will later become PixelLab's sprite reference.",
+    "Exactly one image per paid call. Do not animate, pixelize, create variants, or place it in the game until the base creature silhouette is approved.",
+    "This first pass tests one idea only: an asymmetrical carapace assembled from overlapping fragments of ancient ward-bells, with a clapper-shaped tail and a shared eye/rune color."
+  ],
+  "apiVersion": "v2",
+  "model": "phoenix",
+  "mode": "FAST",
+  "contrast": "MEDIUM",
+  "promptEnhance": "OFF",
+  "styleId": "556c1ee5-ec38-42e8-955a-1e82dad0ffa1",
+  "width": 1024,
+  "height": 1024,
+  "seed": 731942,
+  "paidCallCap": 1,
+  "styleRef": false,
+  "styleHeader": "Painterly hand-painted fantasy creature concept art for a warm medieval side-scrolling game. Clean production design, crisp readable silhouette, tactile natural materials, cinematic soft light.",
+  "negative": "ordinary intact bell, perfect symmetrical household bell, bell costume, bell hat, bell helmet, turtle, armadillo, ram, boar, wolf, dog, horse, insect, robot, humanoid, biped, rider, saddle, harness, church, tower, scenery, landscape, multiple creatures, character sheet, turnaround sheet, labels, text, letters, logo, watermark, cropped body, hidden feet, front view, rear view, top-down view, isometric view, photorealistic, photograph, 3d render, cgi, anime, cartoon, pixel art",
+  "familyLabels": {
+    "design": "Bellhide — first creature concept"
+  },
+  "anchors": {
+    "design": {
+      "label": "Bellhide A — fractured ward-bell carapace",
+      "line": "A single original low-slung four-legged fantasy creature shown in strict side profile facing right, its complete body and all four feet visible. It has a compact powerful animal body of dark slate-blue hide, broad grounded paws, and a blunt alert head emerging from beneath the front edge of its back. Its protective back is NOT one normal bell: it is a distinctive asymmetrical carapace made from three overlapping fragments of ancient cast-bronze ward-bells, each fragment differently curved, cracked and weathered, with irregular broken lower rims forming a memorable layered silhouette. Engraved runes follow the inner edges of the bronze fragments and glow clear turquoise-cyan; the creature's two visible eyes glow the exact same cyan. A flexible dark tail curls beneath the rear of the carapace and ends in one heavy bronze clapper-shaped weight, suggesting that the creature can strike its own metal shell. Calm alert idle stance, believable anatomy, charming but dangerous, suitable as a recurring main enemy rather than a boss. Centered isolated full-body presentation on a plain warm neutral studio backdrop with generous empty space, no environment and no other objects."
+    }
+  },
+  "states": [
+    {
+      "id": "bellhide-a",
+      "label": "Bellhide A — fractured ward-bell carapace",
+      "family": "design",
+      "isAnchor": true
+    }
+  ],
+  "review": {
+    "title": "Bellhide concept gate 01",
+    "lede": "Judge only the original creature idea: silhouette, side-view readability, anatomy, ward-bell carapace and the shared cyan rune/eye identity. This is not sprite art yet.",
+    "checklist": [
+      "One full creature in strict side profile",
+      "Reads as a living recurring enemy, not a prop or boss",
+      "Carapace is made from asymmetrical bell fragments, not one ordinary bell",
+      "Head, feet and direction are immediately readable",
+      "Cyan eyes and runes clearly belong to the same magical type",
+      "Design can plausibly crouch, leap, charge and fire later"
+    ]
+  }
+}

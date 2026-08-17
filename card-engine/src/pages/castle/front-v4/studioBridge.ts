@@ -161,11 +161,55 @@ export function installFrontV4StudioBridge(getPort: () => FrontV4ScenePort | nul
 type Scenario = (port: FrontV4ScenePort) => Promise<StudioAssertion[]>;
 
 const SCENARIOS: Record<FrontV4ScenarioName, Scenario> = {
+  'castle-front-v4-fire-card-charge': fireCardCharge,
   'castle-front-v4-combat-loop': combatLoop,
   'castle-front-v4-jelly-leap-evade': leapEvade,
   'castle-front-v4-scatter-recover': scatterRecover,
   'castle-front-v4-parallax': parallax,
 };
+
+/**
+ * A deliberately slow visual-review lane for the Fire Card. It holds at full
+ * charge long enough for a human to inspect where the fire starts, how it
+ * gathers, and whether the launched ball visibly continues from that origin.
+ */
+async function fireCardCharge(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
+  const a: StudioAssertion[] = [];
+  const ready = await settle(port);
+  a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
+  port.setJellyAi(false);
+  // A fixed distance WEST OF WHERE THE CREATURE ACTUALLY IS, not a literal.
+  //
+  // This read `placePlayer(420)`, which was right when the creature spawned at 660
+  // and wrong the moment its spawn became authored in Phaser Editor — Raheem moved
+  // it to 481, leaving the hero 61 units away, so the fireball spawned and
+  // connected inside a single poll and `projectiles.length > 0` was never
+  // observably true. The scenario then reported a firing system that works
+  // perfectly as broken. Same fault, same fix, as `combat-loop`'s tap.
+  port.placePlayer(port.snapshot().jelly.x - 240);
+  port.holdMove(1, 60);
+  await wait(120);
+  port.selectSlot(0);
+  port.fireHeld(2400);
+
+  const full = await until(
+    port,
+    (snapshot) => snapshot.player.phase === 'charging' && snapshot.player.chargeLevel >= 0.99,
+    1800,
+  );
+  a.push(check('holds-a-visible-full-charge', full !== null, full?.player.chargeLevel ?? 0, '>= 0.99'));
+
+  // Leave a long inspection beat after reaching full charge. The scripted hold
+  // remains active throughout this wait, so the live flame continues gathering.
+  await wait(850);
+  const held = port.snapshot();
+  a.push(check('full-charge-stays-held-for-review', held.player.phase === 'charging', held.player.phase, 'charging'));
+
+  const inFlight = await until(port, (snapshot) => snapshot.projectiles.length > 0, 1800);
+  a.push(check('full-charge-releases-a-fireball', inFlight !== null, inFlight?.projectiles.length ?? 0, '> 0'));
+  a.push(check('no-runtime-errors', port.snapshot().errors.length === 0, port.snapshot().errors, 'none'));
+  return a;
+}
 
 async function combatLoop(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   const a: StudioAssertion[] = [];
