@@ -1,9 +1,13 @@
 import Phaser from 'phaser';
 import { DEPTH } from './layout';
 import {
+  ACTOR_MARKERS,
   AUTHORED_GROUND_LABEL,
+  BACKGROUND_PREFIX,
   EDITOR_ONLY_PREFIX,
+  LIVE_PREFIX,
   WALL_PREFIX,
+  liveClipKey,
   parseAuthoredLabels,
 } from './worldLabels';
 
@@ -68,7 +72,42 @@ export interface WorldLoadResult {
    * east; the scene decides which is which from where the player starts.
    */
   walls?: Array<{ left: number; right: number }>;
+  /**
+   * Where Raheem put each background layer, keyed by its `BG_*` label.
+   *
+   * Measured from rendered bounds and handed to the backdrop, which rebuilds the
+   * layer camera-pinned at those proportions. See `BACKGROUND_PREFIX`.
+   */
+  background?: Record<string, AuthoredPlacement>;
+  /**
+   * Where the actors stand and how big they are, from the `REF_*_spawn` markers.
+   * Keyed by label. See `ACTOR_MARKERS`.
+   */
+  actors?: Record<string, AuthoredActor>;
+  /**
+   * How many `LIVE_*` objects were placed, and how many are actually animating.
+   *
+   * Both numbers, because the gap between them is the whole story. A scene with
+   * six placed and zero playing photographs exactly like one that is alive, so
+   * this is the only way the difference is visible without watching it.
+   */
+  live?: { placed: number; animating: number };
   message?: string;
+}
+
+/** A spawn marker: its ground contact, and the scale it was drawn at. */
+export interface AuthoredActor {
+  x: number;
+  scale: number;
+}
+
+/** A rectangle somebody dragged, plus how strongly they wanted it to read. */
+export interface AuthoredPlacement {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  alpha: number;
 }
 
 /**
@@ -89,6 +128,66 @@ function measureGround(
   return { y: withTop.getBounds().top, minX: bounds.left, maxX: bounds.right };
 }
 
+/**
+ * The full rectangle an authored object occupies, plus its alpha.
+ *
+ * From rendered bounds rather than from `x`/`y`/`width`, for the same reason
+ * `measureGround` does: the origin is whatever was set in the Editor, and a
+ * TileSprite dragged with `originY: 1` reports its BOTTOM as `y`. Bounds are the
+ * one reading that means the same thing however the object was configured.
+ */
+function measurePlacement(
+  object: Phaser.GameObjects.GameObject | undefined,
+): AuthoredPlacement | undefined {
+  const withBounds = object as unknown as {
+    getBounds?: () => { left: number; top: number; width: number; height: number };
+    alpha?: number;
+  };
+  if (!withBounds?.getBounds) return undefined;
+  const b = withBounds.getBounds();
+  return {
+    left: b.left,
+    top: b.top,
+    width: b.width,
+    height: b.height,
+    alpha: typeof withBounds.alpha === 'number' ? withBounds.alpha : 1,
+  };
+}
+
+/**
+ * Set every `LIVE_*` object playing its texture's loop.
+ *
+ * WHAT MAKES THIS SAFE TO CALL ON ANYTHING: it asks the object whether it can
+ * animate at all. Phaser Editor emits an `Image` unless the object was explicitly
+ * made a `Sprite`, and only a Sprite carries `anims` — so a banner Raheem dropped
+ * in as an Image simply does not qualify, draws its first frame, and waits for him
+ * to convert it. Nothing throws, nothing is logged as broken, because neither of
+ * those is a fault: art routinely lands before its animation does.
+ *
+ * Returns how many actually started, which is the number worth reporting. "Six
+ * LIVE_ objects placed, zero animating" is the exact shape of the problem a human
+ * cannot see in a screenshot — a still frame of a scene that should be alive looks
+ * identical to a scene that is.
+ */
+function startLiveObjects(labels: string[], objects: Phaser.GameObjects.GameObject[]): number {
+  let started = 0;
+  labels.forEach((label, i) => {
+    if (!label.startsWith(LIVE_PREFIX)) return;
+    const sprite = objects[i] as unknown as {
+      anims?: { play?: (key: string) => unknown };
+      texture?: { key?: string };
+      scene?: { anims?: { exists?: (key: string) => boolean } };
+    };
+    const textureKey = sprite?.texture?.key;
+    if (!textureKey || typeof sprite.anims?.play !== 'function') return;
+    const clip = liveClipKey(textureKey);
+    if (!sprite.scene?.anims?.exists?.(clip)) return;
+    sprite.anims.play(clip);
+    started += 1;
+  });
+  return started;
+}
+
 /** Horizontal extent of any authored object, or undefined if it has no bounds. */
 function measureBounds(
   object: Phaser.GameObjects.GameObject | undefined,
@@ -107,6 +206,9 @@ interface PackFile {
   url: string;
   frameConfig?: { frameWidth: number; frameHeight: number };
 }
+
+/** Fast membership test for the two marker labels. */
+const MARKER_LABELS = new Set<string>(Object.values(ACTOR_MARKERS));
 
 /**
  * Asset packs the authored world may draw from. Order is irrelevant; keys are unique.
@@ -189,19 +291,65 @@ export async function loadEditorWorld(
           .filter((b): b is { left: number; right: number } => b !== undefined)
       : [];
 
+    // The background layers, measured while the objects still exist. They are
+    // removed a few lines below along with the reference art: the backdrop rebuilds
+    // each one pinned to the camera, and an authored copy left in world space would
+    // slide past at full speed — a mountain range travelling with the ground, which
+    // is the one thing a background must never do.
+    const background: Record<string, AuthoredPlacement> = {};
+    const actors: Record<string, AuthoredActor> = {};
+    if (aligned) {
+      labels.forEach((label, i) => {
+        if (label.startsWith(BACKGROUND_PREFIX)) {
+          const placement = measurePlacement(authored[i]);
+          if (placement) background[label] = placement;
+          return;
+        }
+        if (!MARKER_LABELS.has(label)) return;
+        // `x` and `scaleX` off the object itself, not from bounds: the markers are
+        // placed with their origin ON the ground contact (0.5/0.986 for the hero,
+        // 0.571/0.926 for the creature — both measured off the sheets' padding), so
+        // `x` already IS the spawn point, and bounds would give the art's edge.
+        const marker = authored[i] as unknown as { x?: number; scaleX?: number };
+        if (typeof marker?.x !== 'number') return;
+        actors[label] = {
+          x: marker.x,
+          scale: typeof marker.scaleX === 'number' && marker.scaleX > 0 ? marker.scaleX : 1,
+        };
+      });
+    }
+
+    // Kept in lockstep with `authored` through the strip, because after it the
+    // label list and the object list no longer line up — and everything downstream
+    // that asks "which object is this?" has to ask the surviving pair, not the
+    // original one.
+    let keptLabels: string[] = labels;
     if (labels.length === authored.length) {
       const kept: typeof authored = [];
+      const keptNames: string[] = [];
       authored.forEach((child, i) => {
-        if (labels[i].startsWith(EDITOR_ONLY_PREFIX)) child.destroy();
-        else kept.push(child);
+        const editorOnly =
+          labels[i].startsWith(EDITOR_ONLY_PREFIX) || labels[i].startsWith(BACKGROUND_PREFIX);
+        if (editorOnly) {
+          child.destroy();
+          return;
+        }
+        kept.push(child);
+        keptNames.push(labels[i]);
       });
       authored = kept;
+      keptLabels = keptNames;
     } else if (labels.some((l) => l.startsWith(EDITOR_ONLY_PREFIX))) {
       console.warn(
         `[front-v4] ${sceneName}: ${labels.length} labels for ${authored.length} objects — ` +
           `leaving ${EDITOR_ONLY_PREFIX}* reference objects in place rather than guessing which they are.`,
       );
     }
+
+    // Wake the scenery up. Anything labelled LIVE_* whose texture has a registered
+    // loop starts playing it and never stops — see LIVE_PREFIX for why background
+    // life is ambient rather than triggered.
+    const live = startLiveObjects(keptLabels, authored);
 
     // THE DEPTH OFFSET, and it is the difference between placement working and
     // appearing to do nothing. Phaser Editor hands a new object depth 0, which in
@@ -224,6 +372,9 @@ export async function loadEditorWorld(
       labels,
       ground: measureGround(groundObject),
       walls,
+      background,
+      actors,
+      live: { placed: keptLabels.filter((l) => l.startsWith(LIVE_PREFIX)).length, animating: live },
       suppliesGround: labels.includes(AUTHORED_GROUND_LABEL),
     };
   } catch (error) {
@@ -285,5 +436,50 @@ async function loadTexturesFor(scene: Phaser.Scene, source: string): Promise<num
       scene.textures.get(file.key)?.setFilter(Phaser.Textures.FilterMode.NEAREST);
     }
   }
+  registerLiveClips(scene, entries);
   return queued;
+}
+
+/**
+ * Frames per second for ambient scenery.
+ *
+ * Deliberately slower than a character's. Background life is meant to be noticed
+ * and then ignored — a smith at 10fps in the middle distance reads as frantic, and
+ * pulls the eye off the fight, which is the opposite of what scenery is for. Per
+ * sheet override belongs in the kit manifest if a piece ever needs it; nothing has
+ * yet, and inventing the knob before the need is how a config grows.
+ */
+const LIVE_CLIP_FPS = 6;
+
+/**
+ * Give every loaded multi-frame sheet a `<key>-loop` animation.
+ *
+ * WHY EVERY SHEET RATHER THAN A DECLARED LIST: the whole arrangement is that
+ * Raheem drags a thing in and it works. A separate list of "which kit art is
+ * animatable" is a second place to update, three directories from the art, that
+ * silently does nothing when forgotten — and "I placed it and it just stands
+ * there" is exactly the failure this convention exists to remove.
+ *
+ * A single-frame sheet gets nothing, which is correct: an animation of one frame
+ * is a still image with a timer attached.
+ */
+function registerLiveClips(scene: Phaser.Scene, entries: PackFile[]) {
+  for (const file of entries) {
+    if (file.type !== 'spritesheet') continue;
+    const texture = scene.textures.get(file.key);
+    // `__BASE` is Phaser's own whole-image frame and is present on every texture,
+    // so it has to come out before the count means anything.
+    const frames = texture?.getFrameNames?.() ?? [];
+    if (frames.length < 2) continue;
+    const key = liveClipKey(file.key);
+    // The animation manager is global and throws on a duplicate, so this has to
+    // stay idempotent across scene restarts and route changes.
+    if (scene.anims.exists(key)) continue;
+    scene.anims.create({
+      key,
+      frames: frames.map((frame) => ({ key: file.key, frame })),
+      frameRate: LIVE_CLIP_FPS,
+      repeat: -1,
+    });
+  }
 }

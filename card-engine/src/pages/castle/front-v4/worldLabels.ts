@@ -47,6 +47,96 @@ export const AUTHORED_GROUND_LABEL = 'GROUND';
 export const WALL_PREFIX = 'WALL';
 
 /**
+ * A background layer whose PLACEMENT is authored, and whose MOTION is not.
+ *
+ * Raheem, 2026-08-16, on a background the code had positioned for him: *"the
+ * ground is not properly aligned… I would rather adjust it myself."* He is right,
+ * and the reason is structural rather than a matter of taste — where the tree line
+ * meets the floor is a composition decision made by eye against the castle and the
+ * grass, and there is no formula that gets it right, only a number somebody typed.
+ *
+ * So the split is: the Editor owns WHERE each layer sits, how big it is and how
+ * strongly it reads; the code owns how fast it travels. He can drag the tree line
+ * down four pixels to sit on the grass without touching a constant, and cannot
+ * accidentally flatten the parallax by dragging something, because the rates are
+ * not expressed as position at all.
+ *
+ * These objects are removed from the display list once measured, exactly like
+ * `REF_*`, and rebuilt by `backdrop.ts` pinned to the camera. They have to be:
+ * an authored object lives in world space and would slide past at full speed,
+ * which is the one thing a background must never do.
+ */
+export const BACKGROUND_PREFIX = 'BG_';
+
+/**
+ * A placed object that MOVES ON ITS OWN — the castle's life.
+ *
+ * Raheem, 2026-08-16, looking at Wonder Boy: he wants the castle to stop being a
+ * wall you spawn beside and become *"a big scene"* you run past on your way to the
+ * entrance — workers tending it, a farm being managed outside it, things happening
+ * back there while you fight in front. *"Add life that's gonna give us a little bit
+ * flexibility."*
+ *
+ * Almost none of that needed new engine work, which was the surprise: an object he
+ * drags into the Editor already lands at `DEPTH.world`, already draws BEHIND the
+ * hero, and already has no collision unless it is a `WALL` or the `GROUND`. He
+ * could put a whole castle back there today. The one thing missing was motion — a
+ * worker who does not move is a statue, and a banner that does not ripple is a
+ * sticker.
+ *
+ * So this label means: whatever animation belongs to this object's texture, play
+ * it, loop it, forever. No trigger, no state, no proximity — background life is
+ * ambient by definition, and the moment it needs logic it stops being scenery and
+ * becomes a character, which is a different thing with a different file.
+ *
+ * A `LIVE_*` object whose texture has no animation is NOT an error. It draws its
+ * static frame and says nothing. Art and animation arrive in separate runs — often
+ * days apart, since PixelLab charges per direction — and a scene that refused to
+ * boot because a banner had not been animated yet would make the pipeline worse
+ * for no protection.
+ */
+export const LIVE_PREFIX = 'LIVE_';
+
+/**
+ * The animation a `LIVE_*` object looks for, given its texture key.
+ *
+ * One clip per texture, by convention, because ambient scenery has no states to
+ * switch between. A worker who both hammers and rests is two objects or a longer
+ * loop, not a state machine.
+ */
+export function liveClipKey(textureKey: string): string {
+  return `${textureKey}-loop`;
+}
+
+/**
+ * The two `REF_*` markers that are ALSO configuration.
+ *
+ * They started as pure reference art — a hero and a creature to judge a wall
+ * against — and were destroyed before the first frame like every other `REF_`.
+ * That turned out to be the wrong call. Raheem, 2026-08-16, after halving the hero
+ * and shrinking the creature in the Editor and seeing nothing change: *"in my
+ * brain, that's where the game is loading from. Is that not what's happening?"*
+ *
+ * It was: his file was read, those two objects were found, and then deleted, and
+ * the game drew its own pair at a size written in `layout.ts`. He was editing a
+ * photograph of the game. So they are still destroyed — the game must not draw a
+ * frozen second copy of a hero who walks — but their POSITION and SCALE are read
+ * off them first and become where each actor spawns and how big it is drawn.
+ */
+export const ACTOR_MARKERS = {
+  hero: 'REF_hero_spawn',
+  jelly: 'REF_jelly_spawn',
+} as const;
+
+/** The authored layer labels the backdrop knows how to adopt. */
+export const BACKGROUND_LABELS = {
+  sky: 'BG_SKY',
+  mountains: 'BG_MOUNTAINS',
+  forest: 'BG_FOREST',
+  clouds: ['BG_CLOUD_BROAD', 'BG_CLOUD_MOUND', 'BG_CLOUD_PUFFS', 'BG_CLOUD_SWEEP'],
+} as const;
+
+/**
  * Read the object labels out of a compiled Editor scene, in creation order.
  *
  * WHY PARSE RATHER THAN ASK. Phaser Editor's compiler writes each object's label

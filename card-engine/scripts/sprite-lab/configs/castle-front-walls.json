@@ -1,0 +1,59 @@
+{
+  "subject": "castle-front-walls",
+  "label": "The castle as a background scene — one tower, one tileable curtain wall, flat front elevation",
+
+  "notes": [
+    "WHAT THIS IS FOR, IN RAHEEM'S WORDS (2026-08-16). The castle stops being a wall you spawn beside and becomes a big scene you run PAST on the way to its door: 'You're gonna see the tower, the first tower, and the wall. You're still running past the first tower and the wall, and then you'll finally reach the middle where you can actually enter.' He will stretch the wall so the run alongside it takes a while, and wants room for 'dudes on the wall or scenery on the wall or things happening while the character's running.' The castle stays WEST; running east is leaving, out into the countryside.",
+
+    "TWO PIECES, GATED ONE AT A TIME. Total first-pass spend is 2 generations. Corners, buttresses and anything joining wall-to-tower-to-bastion are NOT in this run and must not be added to it — the same modular discipline the bastion config was written under.",
+
+    "TOWER FIRST, AND THE ORDER IS NOT ARBITRARY. The wall's height derives from the tower's, not the reverse, and the tower's height is the number nobody can be confident about from a config: at 512 native on a ground line of y=590 its top lands at y=78, well above the mountain band (top 194) and up in the space the four cloud actors fly through. That is a placement question that costs one look and cannot be answered by reasoning. Generate the tower, put it against the real sky plate, THEN commit the wall.",
+
+    "THE PARAPET TRAP, AND WHY THIS PIECE IS THE DANGEROUS ONE. castle-wall-straight-v3.png came back as a crenellated band, a large flat GREY FIELD, a second crenellated band, then a lower storey — the grey field being the walkway floor seen from above, because the model read 'crenellated parapet with square merlons' as a walled walkway and tilted the camera down to show it. Two rows of battlements with a floor between them is the signature. A curtain wall is structurally the SAME SHAPE as the image that failed, so this is the highest-risk piece in the kit.",
+
+    "THE WORD 'PARAPET' APPEARS NOWHERE BELOW, and that alone is not enough — the ambiguity (crenellations imply a walkway) is a model prior, not a word. So the prompts also state the flat surface positively ('one single flat vertical surface with no walkway, no floor, no rooftop and no top surface anywhere') and describe the battlements as shapes standing against empty sky with transparent gaps between them. Negatives ride INSIDE the description string: `negative_description` is not a valid field on /create-image-pixen, and every winning config in this repo folds them in this way.",
+
+    "ENDPOINT HELD CONSTANT: /create-image-pixen, view 'side'. NOT /create-tiles-pro with tile_feature 'building' — that route is named in the bastion's notes as the cause of the original raking projection, and it has never been re-qualified. Tiling comes from prompt language instead, which is already proven in THIS kit: castle-front-ground.json's band tiles across 5000 units in the live scene on the strength of one clause about the left and right edges matching.",
+
+    "DO NOT MIRROR-TILE THE WALL IN CODE. Masonry coursing is directional, and mirroring is what turned a stair into a symmetric arch in castle-walls-v3. If the seam misses, re-crop to the nearest matching brick course; do not regenerate for it.",
+
+    "PALETTE IS THE ONE THING NOT CHANGING, measured off the approved bastion: honey-gold sandstone rgb(214,184,145)/(224,188,137), cream highlight rgb(204,188,162), cool violet-grey brick rgb(119,109,117)/(89,78,87). Honey trim is 25-35% of the visible surface — a major element, not an accent. If a piece returns close in composition but off in hue, that is a recolor.py job and NOT a fourth paid regeneration on colour alone.",
+
+    "THE MERLON GAPS ARE A FUNCTIONAL REQUIREMENT, NOT DECORATION. Figures on the wall are deliberately NOT drawn into this art: they will be separate LIVE_* sprites placed in Phaser Editor, standing behind the battlements and read chest-up through the gaps. That keeps each one independently animatable, lets one wall tile serve every stretch of the run whatever is happening on it, and — the real reason — asking the model to draw a figure standing on a walkway is asking it to draw the walkway. So the gaps must be wide and tall enough to show a head and shoulders, and the merlon spacing must be even so placing figures is a repeat rather than per-instance guesswork. MEASURE the returned gap height in pixels before commissioning any figure sprite against it.",
+
+    "SIZES. Wall 384x320: the width matches the bastion so the family reads as one castle and the tiling maths stays simple; the height is ~71% of the bastion's 448, echoing the 75% wall:tower ratio Raheem already approved once in castle-walls-v3. Tower 256x512: narrower than the bastion so it does not compete for 'dominant', and taller than everything else because a tower is the landmark silhouette in a skyline. On the ground line y=590 that puts the wall's top at y=270 (fully in front of the forest, whose top is 388, and dipping into the lower mountains, top 194 — correct, walls are foreground and should occlude the mountains) and the tower's top at y=78, in cloud space by design.",
+
+    "MATTING WILL PROBABLY BE NEEDED AND THE RECIPE IS KNOWN. `no_background: true` was ignored on the bastion — it returned 100% opaque on solid black. Step 1 `cut_flat_background.py <in> <out> --tolerance 24`, flooding from the frame edge and never a global black threshold, because the art's own outline is black. Step 2 `close_openings.py` ONLY if an edge flood walks through an opening (the bastion's portcullis); for these two the arrow slits are narrow and enclosed, and the battlement gaps MUST stay open to the sky, so any --below cut has to sit under the battlement bases. Then dehalo.py.",
+
+    "BIGGEST RISK ON EACH RETURN, CHECK THIS BEFORE ANYTHING ELSE. Wall: a grey band reappearing between two rows of battlements — the exact v3 failure — even with the trigger word gone. Tower: the pennant pole inviting a top-down view of its mounting point, a miniature of the same trap; inspect the top few rows of pixels for circular or plan-view geometry."
+  ],
+
+  "images": [
+    {
+      "id": "tower",
+      "seed": 880911,
+      "note": "GATE PIECE. The first tower you run past. Generate this alone, look at it against the live sky plate, and confirm 512 or trim toward 448-480 before ordering the wall.",
+      "params": {
+        "description": "a tall fantasy castle watchtower, drawn as a completely flat front elevation as if you are standing on the ground directly in front of it and looking straight ahead at its face, orthographic, no perspective, no tilt, not seen from above, not isometric, pale violet-grey stone brickwork laid in even regular courses, bright warm honey-gold sandstone quoins up both outer edges, a honey-gold horizontal string-course band beneath the top, cream-white highlight stones scattered through the brickwork, two tall narrow arrow slits stacked up the face, along the very top edge a single row of square honey-capped stone battlements standing up like teeth with open empty transparent gaps between them so only their flat front faces show against the sky, a small honey-gold arched doorway at the base, a pennant flying from a pole at the very top edge, the whole tower is one single flat vertical surface with no walkway, no roof, no rooftop floor and no top surface anywhere, flat even daylight with no gradient from top to bottom, warm storybook fantasy castle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 256, "height": 512 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    },
+    {
+      "id": "wall-span",
+      "seed": 880910,
+      "note": "HELD until the tower is approved. The tileable curtain wall Raheem stretches to make the run alongside the castle take a while.",
+      "params": {
+        "description": "a fantasy castle curtain wall span, drawn as a completely flat front elevation as if you are standing on the ground directly in front of it and looking straight ahead at its face, orthographic, no perspective, no tilt, not seen from above, not isometric, pale violet-grey stone brickwork laid in even regular courses continuing edge to edge with no break in the coursing so the piece repeats seamlessly left to right, bright warm honey-gold sandstone forming a horizontal string-course band partway up the face and capping every merlon, cream-white highlight stones scattered evenly through the brickwork, along the very top edge a single row of square honey-capped stone battlements standing up like teeth with wide open empty transparent gaps between them tall enough to show a person's head and shoulders standing behind them, so only the battlements' flat front faces show against the sky, narrow vertical arrow slits evenly spaced along the face, the whole wall is one single flat vertical surface with no walkway, no floor, no rooftop and no top surface anywhere, flat even daylight with no gradient from top to bottom, seamlessly horizontally tileable, warm storybook fantasy castle, standing alone against transparency, detailed pixel art, single colour black outline, basic shading",
+        "image_size": { "width": 384, "height": 320 },
+        "outline": "single color black outline",
+        "detail": "highly detailed",
+        "view": "side",
+        "no_background": true
+      }
+    }
+  ]
+}

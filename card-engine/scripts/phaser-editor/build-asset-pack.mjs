@@ -441,6 +441,13 @@ function buildKitPacks() {
 
     for (const [section, files] of [...bucketed].sort()) pack[section] = { files };
 
+    const background = buildKitBackgroundSection(kitId, kitPath);
+    if (background) {
+      pack[background.section] = { files: background.files };
+      count += background.files.length;
+      missing.push(...background.missing);
+    }
+
     out.push({
       path: join(kitPath, 'kit-pack.json'),
       label: `kits/${kitId}/kit-pack.json`,
@@ -450,6 +457,63 @@ function buildKitPacks() {
     });
   }
   return out;
+}
+
+/**
+ * A KIT MAY ALSO CARRY A BACKGROUND, and it does not come from the kit manifest.
+ *
+ * `castle-kit-manifest.json` describes objects you place — a wall, a tower, a band
+ * of ground. A parallax background is not that: it is a small fixed set of planes
+ * plus a family of cloud cutouts in three palettes, and what matters about it is
+ * the MOTION contract (which plane moves at what fraction of the camera), which the
+ * kit manifest has no vocabulary for. So it has its own file,
+ * `background/background-manifest.json`, written by the bg-harness workstream.
+ *
+ * This function exists because that section was originally hand-added to
+ * `kit-pack.json` — and the pack is GENERATED, so the next `npm run assets:pack`
+ * would have silently deleted an entire day's art from the Editor while reporting
+ * success. Reading the manifest here makes the rebuild idempotent instead.
+ *
+ * Only the scene's chosen palette is exposed. All three are kept on disk so a later
+ * scene can be afternoon or twilight without regenerating anything, but registering
+ * twelve near-identical clouds would make the Blocks panel unreadable for no gain.
+ */
+function buildKitBackgroundSection(kitId, kitPath) {
+  const dir = join(kitPath, 'background');
+  const manifestPath = join(dir, 'background-manifest.json');
+  if (!existsSync(manifestPath)) return null;
+
+  const manifest = readJson(manifestPath);
+  const layers = manifest.layers ?? {};
+  const clouds = layers.clouds ?? {};
+  const palette = clouds.sceneOnePalette;
+
+  const relPaths = [layers.sky, layers.mountains, layers.forest].filter(Boolean);
+  for (const shape of clouds.shapes ?? []) {
+    if (!palette || !clouds.pathPattern) continue;
+    relPaths.push(clouds.pathPattern.replace('{shape}', shape).replace('{palette}', palette));
+  }
+
+  const files = [];
+  const missing = [];
+  for (const relPath of relPaths) {
+    const url = `assets/kits/${kitId}/background/${relPath}`;
+    if (!existsSync(join(PUBLIC, url))) {
+      missing.push(`background/${relPath}`);
+      continue;
+    }
+    // The filename IS the key, because these were named for the Blocks panel in the
+    // first place (`cloud-sweep-sunset` reads at a glance where `bg-04` does not).
+    // The kit prefix is added only when the name does not already carry it, which
+    // keeps `castle-front-sunset-sky` from becoming `castle-front-castle-front-…`.
+    const base = relPath.split('/').pop().replace(/\.png$/, '');
+    const key = base.startsWith(`${kitId}-`) ? base : `${kitId}-${base}`;
+    files.push({ type: 'image', key, url });
+  }
+
+  const section =
+    manifest.phaserEditorSection ?? `${kitId}--background`;
+  return files.length ? { section, files, missing } : null;
 }
 
 const pack = buildPack();

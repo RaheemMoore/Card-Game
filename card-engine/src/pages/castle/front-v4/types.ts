@@ -3,6 +3,7 @@ import type { ActionPhase } from '../combat/actionState';
 import type { SlotState } from '../combat/hand';
 import type { ConstructPhase } from '../combat/construct';
 import type { JellyMode } from './jellyController';
+import type { BackdropReadout } from './backdrop';
 
 /**
  * The contracts the React host, the dev bridge and the scene agree on.
@@ -63,7 +64,14 @@ export interface FrontV4Snapshot {
    * scroll. Reported rather than assumed, because which one is active depends on
    * the window size and how far the ground has been stretched.
    */
-  camera: { mode: 'level-follow' | 'fixed'; zoom: number; scrollX: number; scrollY: number };
+  camera: {
+    mode: 'level-follow' | 'fixed';
+    zoom: number;
+    scrollX: number;
+    scrollY: number;
+    /** What the camera is actually clamped to, versus how much world it shows. */
+    bounds: { y: number; height: number; viewHeight: number };
+  };
   world: { groundY: number; minX: number; maxX: number };
 
   player: {
@@ -101,6 +109,14 @@ export interface FrontV4Snapshot {
   hitstop: { active: boolean; remainingMs: number };
   scatter: { lastDegraded: boolean; lastReason: string | null };
   /**
+   * What the parallax is doing, which a screenshot cannot show.
+   *
+   * A background scrolling at the wrong rate photographs identically to one
+   * scrolling at the right rate, so this is the only way to check it without a
+   * human watching. See `BackdropReadout`.
+   */
+  backdrop: BackdropReadout;
+  /**
    * The Phaser Editor world, if one has been authored.
    *
    * `absent` is the normal state until Raheem has placed something, and it is
@@ -111,6 +127,14 @@ export interface FrontV4Snapshot {
     sceneName: string;
     status: 'loaded' | 'absent' | 'failed' | 'pending';
     texturesLoaded: number;
+    /**
+     * `LIVE_*` scenery: how much was placed, and how much is actually moving.
+     *
+     * A castle full of statues photographs exactly like a castle full of workers.
+     * The gap between these two numbers is the only way to tell them apart without
+     * standing there watching it.
+     */
+    live: { placed: number; animating: number };
     message: string | null;
   };
   errors: string[];
@@ -161,6 +185,7 @@ export const FRONT_V4_SCENARIOS = [
   'castle-front-v4-combat-loop',
   'castle-front-v4-jelly-leap-evade',
   'castle-front-v4-scatter-recover',
+  'castle-front-v4-parallax',
 ] as const;
 
 export type FrontV4ScenarioName = (typeof FRONT_V4_SCENARIOS)[number];

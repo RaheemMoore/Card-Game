@@ -1,7 +1,7 @@
 import { CONSTRUCT_TUNING } from '../combat/construct';
 import { HAND_SIZE } from '../combat/hand';
 import { LEAP_TUNING } from './jellyLeap';
-import { GROUND_Y, JELLY_SPAWN_X, PICKUP_RADIUS_PX } from './layout';
+import { CLOUD_WIND_PX_PER_SEC, GROUND_Y, PARALLAX, PICKUP_RADIUS_PX } from './layout';
 import {
   FRONT_V4_SCENARIOS,
   type FrontV4Commands,
@@ -165,6 +165,7 @@ const SCENARIOS: Record<FrontV4ScenarioName, Scenario> = {
   'castle-front-v4-combat-loop': combatLoop,
   'castle-front-v4-jelly-leap-evade': leapEvade,
   'castle-front-v4-scatter-recover': scatterRecover,
+  'castle-front-v4-parallax': parallax,
 };
 
 /**
@@ -177,7 +178,15 @@ async function fireCardCharge(port: FrontV4ScenePort): Promise<StudioAssertion[]
   const ready = await settle(port);
   a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
   port.setJellyAi(false);
-  port.placePlayer(420);
+  // A fixed distance WEST OF WHERE THE CREATURE ACTUALLY IS, not a literal.
+  //
+  // This read `placePlayer(420)`, which was right when the creature spawned at 660
+  // and wrong the moment its spawn became authored in Phaser Editor — Raheem moved
+  // it to 481, leaving the hero 61 units away, so the fireball spawned and
+  // connected inside a single poll and `projectiles.length > 0` was never
+  // observably true. The scenario then reported a firing system that works
+  // perfectly as broken. Same fault, same fix, as `combat-loop`'s tap.
+  port.placePlayer(port.snapshot().jelly.x - 240);
   port.holdMove(1, 60);
   await wait(120);
   port.selectSlot(0);
@@ -232,7 +241,13 @@ async function combatLoop(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   a.push(check('never-leaves-the-ground', back.player.y === GROUND_Y && back.player.canJump === false, { y: back.player.y, canJump: back.player.canJump }, `y=${GROUND_Y}, canJump=false`));
 
   // A tap, fired east, travelling horizontally.
-  port.placePlayer(420);
+  //
+  // Placed a fixed distance WEST OF WHERE THE CREATURE ACTUALLY IS, not at a
+  // constant. Its spawn is authored in Phaser Editor now, and the old literal
+  // happened to sit 61 units from it — close enough that the shot spawned and
+  // connected inside one frame, so "a shot exists" was never observably true and
+  // the scenario reported a firing system that was working perfectly as broken.
+  port.placePlayer(port.snapshot().jelly.x - 240);
   port.holdMove(1, 60);
   await wait(120);
   port.selectSlot(0);
@@ -292,7 +307,7 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
   port.setJellyAi(true);
   port.setStrongHits(false);
-  port.placePlayer(JELLY_SPAWN_X - CONSTRUCT_TUNING.preferredRangePx);
+  port.placePlayer(port.snapshot().jelly.x - CONSTRUCT_TUNING.preferredRangePx);
   await wait(60);
   port.forceJellyPhase('telegraph');
   await wait(60);
@@ -319,7 +334,7 @@ async function leapEvade(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
   await settle(port);
   port.setJellyAi(true);
   port.setStrongHits(false);
-  const heroStart = JELLY_SPAWN_X - CONSTRUCT_TUNING.preferredRangePx;
+  const heroStart = port.snapshot().jelly.x - CONSTRUCT_TUNING.preferredRangePx;
   port.placePlayer(heroStart);
   await wait(60);
   port.forceJellyPhase('telegraph');
@@ -395,6 +410,77 @@ async function scatterRecover(port: FrontV4ScenePort): Promise<StudioAssertion[]
   const armed = await until(port, (s) => s.hand.canFire, 3000);
   a.push(check('firing-resumes-after-recovery', armed !== null, armed?.hand.canFire ?? false, 'true'));
   a.push(check('no-runtime-errors', port.snapshot().errors.length === 0, port.snapshot().errors, 'none'));
+  return a;
+}
+
+/**
+ * The background, which is the one part of this scene a screenshot cannot judge.
+ *
+ * A still of a correct parallax and a still of a broken one are the same picture:
+ * everything is in the right place, and only the RATE is wrong. The failure mode is
+ * not a missing mountain, it is a mountain travelling at the tree line's speed —
+ * which flattens the world into a sticker without producing a single visible
+ * artefact to point at. So the rates are measured instead of looked at.
+ *
+ * Three properties, and each one is a real thing that has to hold:
+ *
+ *  - every texture arrived, so nothing quietly fell back to a code-drawn stand-in;
+ *  - the strips move at EXACTLY their stated fraction of the camera, which is what
+ *    makes distance read as distance;
+ *  - and when the camera stops, they stop dead while the clouds do not. That last
+ *    one is the whole reason the wind is a separate motion source rather than a
+ *    bigger parallax number, and it is the property Raheem asked for by name.
+ */
+async function parallax(port: FrontV4ScenePort): Promise<StudioAssertion[]> {
+  const a: StudioAssertion[] = [];
+  const ready = await settle(port);
+  a.push(check('settles-to-a-clean-start', ready, ready, 'true'));
+  port.setJellyAi(false);
+  await wait(60);
+
+  const start = port.snapshot();
+  a.push(check('every-background-texture-loaded', start.backdrop.missing.length === 0, start.backdrop.missing, 'no fallbacks'));
+
+  // PAST THE CREATURE BEFORE SETTING OFF. A grounded jelly is a solid obstacle —
+  // `blockGroundedApproach` stops him dead about 65 units short of it — so a walk
+  // east from the spawn covers one second of ground and then reports a camera that
+  // never moved, which reads as a broken camera rather than as a creature standing
+  // in a doorway.
+  port.placePlayer(port.snapshot().jelly.x + 260);
+  await wait(80);
+
+  // Far enough east to cross several screens, so a seam or a plate that ran out
+  // would have shown itself long before the measurement is taken.
+  port.holdMove(1, 9000);
+  await wait(9100);
+  // The camera follows with a lerp, so it is still gliding when the walk ends.
+  // Measuring during that glide compares a strip against a scroll value that has
+  // already moved on, and the ratio comes out a fraction low — which looks exactly
+  // like a genuine misconfiguration. Wait for it to actually settle.
+  await wait(2500);
+
+  const ran = port.snapshot();
+  a.push(check('camera-travelled-several-screens', ran.camera.scrollX > ran.view.width, ran.camera.scrollX.toFixed(0), `> ${ran.view.width}`));
+  const ratio = (offset: number) => offset / ran.camera.scrollX;
+  a.push(check('mountains-move-at-half-the-camera', Math.abs(ratio(ran.backdrop.mountainsOffsetPx) - PARALLAX.mountains) < 0.005, ratio(ran.backdrop.mountainsOffsetPx).toFixed(4), String(PARALLAX.mountains)));
+  a.push(check('forest-moves-at-seven-tenths', Math.abs(ratio(ran.backdrop.forestOffsetPx) - PARALLAX.forest) < 0.005, ratio(ran.backdrop.forestOffsetPx).toFixed(4), String(PARALLAX.forest)));
+  a.push(check('forest-outruns-the-mountains', ran.backdrop.forestOffsetPx > ran.backdrop.mountainsOffsetPx, { forest: ran.backdrop.forestOffsetPx.toFixed(1), mountains: ran.backdrop.mountainsOffsetPx.toFixed(1) }, 'forest further'));
+
+  // Now stand perfectly still. The land freezes; the sky does not.
+  const still = 2000;
+  await wait(still);
+  const after = port.snapshot();
+  a.push(check('camera-is-actually-stopped', after.camera.scrollX === ran.camera.scrollX, after.camera.scrollX, String(ran.camera.scrollX)));
+  a.push(check('mountains-freeze-when-he-does', after.backdrop.mountainsOffsetPx === ran.backdrop.mountainsOffsetPx, after.backdrop.mountainsOffsetPx, 'unchanged'));
+  a.push(check('forest-freezes-when-he-does', after.backdrop.forestOffsetPx === ran.backdrop.forestOffsetPx, after.backdrop.forestOffsetPx, 'unchanged'));
+
+  const windMoved = after.backdrop.windTravelPx - ran.backdrop.windTravelPx;
+  const expectedWind = (CLOUD_WIND_PX_PER_SEC * still) / 1000;
+  a.push(check('clouds-keep-moving-when-he-stops', windMoved > expectedWind * 0.6, windMoved.toFixed(1), `~${expectedWind} px over ${still}ms`));
+  const cloudsMoved = after.backdrop.cloudXs.every((x, i) => x !== ran.backdrop.cloudXs[i]);
+  a.push(check('every-cloud-is-still-drifting', cloudsMoved, after.backdrop.cloudXs.map((x) => x.toFixed(1)), 'all changed'));
+
+  a.push(check('no-runtime-errors', after.errors.length === 0, after.errors, 'none'));
   return a;
 }
 

@@ -1,5 +1,13 @@
 ﻿import { describe, it, expect } from 'vitest';
-import { AUTHORED_GROUND_LABEL, EDITOR_ONLY_PREFIX, parseAuthoredLabels } from './worldLabels';
+import {
+  AUTHORED_GROUND_LABEL,
+  BACKGROUND_PREFIX,
+  EDITOR_ONLY_PREFIX,
+  LIVE_PREFIX,
+  WALL_PREFIX,
+  liveClipKey,
+  parseAuthoredLabels,
+} from './worldLabels';
 
 /**
  * The label parser is what lets the Editor be what-you-see-is-what-you-get.
@@ -83,5 +91,45 @@ describe('parseAuthoredLabels', () => {
     expect(parseAuthoredLabels('\t\t// GROUND\r\n\t\tconst g = this.add.rectangle(0,0,1,1);')).toEqual([
       'GROUND',
     ]);
+  });
+
+  /**
+   * The label conventions have to stay mutually exclusive. Every one of them is
+   * tested with `startsWith`, and a prefix that is also the start of another would
+   * quietly route objects to the wrong rule — a `LIVE_` worker stripped as
+   * reference art, or a background layer left in world space travelling at full
+   * speed. Cheap to assert, and invisible until something disappears.
+   */
+  it('keeps the label prefixes from shadowing one another', () => {
+    const prefixes = [EDITOR_ONLY_PREFIX, BACKGROUND_PREFIX, LIVE_PREFIX, WALL_PREFIX];
+    for (const a of prefixes) {
+      for (const b of prefixes) {
+        if (a === b) continue;
+        expect(a.startsWith(b), `${a} shadows ${b}`).toBe(false);
+      }
+    }
+    // GROUND is a whole label rather than a prefix, and must not begin with one.
+    for (const prefix of prefixes) {
+      expect(AUTHORED_GROUND_LABEL.startsWith(prefix)).toBe(false);
+    }
+  });
+
+  it('parses a LIVE_ label like any other', () => {
+    const source = [
+      '\t\t// LIVE_smith',
+      '\t\tconst s = this.add.sprite(700, 590, "smith");',
+    ].join('\n');
+    expect(parseAuthoredLabels(source)).toEqual(['LIVE_smith']);
+  });
+});
+
+describe('liveClipKey', () => {
+  /**
+   * One clip per texture, derived rather than declared. A second place to write
+   * the name down is a second place for it to be wrong, and the failure is silent
+   * — the object just stands still, which looks like art that was never animated.
+   */
+  it('names the loop after the texture it belongs to', () => {
+    expect(liveClipKey('castle-front-smith')).toBe('castle-front-smith-loop');
   });
 });

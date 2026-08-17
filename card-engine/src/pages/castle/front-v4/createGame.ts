@@ -19,11 +19,29 @@ export function createCastleFrontV4Game(parent: HTMLElement): Phaser.Game {
     type: Phaser.AUTO,
     parent,
     backgroundColor: '#120c18',
+    /**
+     * FIT AT THE FRAME'S OWN SIZE, not RESIZE at 100%.
+     *
+     * RESIZE hands the scene whatever pixel size the container happens to be and
+     * leaves it to derive a zoom, which worked only for as long as the container
+     * and the world were the same shape. The moment the frame went from 720 to 960
+     * for the taller sky, three separate things had to agree — the CSS aspect
+     * ratio, the camera's viewport, and the zoom — and they did not: the canvas
+     * grew, the camera kept its old viewport, and the extra height rendered nothing.
+     * It presented as a black band across the sky, which is indistinguishable from
+     * a backdrop that failed to load, and cost most of an evening.
+     *
+     * FIT makes the frame the single authority. The game is exactly
+     * `FRONT_V4_VIEW` units, the camera is exactly that many units, the zoom is 1,
+     * and the browser scales the finished canvas to whatever box it is given —
+     * letterboxing if the shapes disagree, which is honest and visible rather than
+     * silently cropping the world.
+     */
     scale: {
-      mode: Phaser.Scale.RESIZE,
-      autoCenter: Phaser.Scale.NO_CENTER,
-      width: '100%',
-      height: '100%',
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: FRONT_V4_VIEW.width,
+      height: FRONT_V4_VIEW.height,
     },
     // Stops the wheel scrolling the page out from under the canvas while the
     // player is cycling their hand.

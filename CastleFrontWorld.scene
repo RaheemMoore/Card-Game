@@ -12,18 +12,123 @@
             "id": "e8570b8c-c9cc-4095-8a22-cb8a7c355308",
             "label": "REF_sky",
             "x": 640,
-            "y": 295,
+            "y": 415,
             "isFilled": true,
             "fillColor": "#8c4a2f",
             "width": 1280,
-            "height": 590
+            "height": 830
+        },
+        {
+            "type": "TileSprite",
+            "id": "1f90c507-e9b4-4c45-9e3e-08e6f6be22f9",
+            "label": "BG_SKY",
+            "texture": {
+                "key": "castle-front-sunset-sky"
+            },
+            "x": 2499.5,
+            "y": 960,
+            "originY": 1,
+            "width": 4999,
+            "height": 960
+        },
+        {
+            "type": "TileSprite",
+            "id": "212b54da-2c62-4f46-9732-62847787a5e6",
+            "label": "BG_MOUNTAINS",
+            "texture": {
+                "key": "castle-front-mountains-loop"
+            },
+            "y": 830,
+            "scaleX": 1.3,
+            "scaleY": 1.3,
+            "originX": 0,
+            "originY": 1,
+            "alpha": 0.82,
+            "width": 5000,
+            "height": 396,
+            "tileScaleX": 1.529,
+            "tileScaleY": 1.529
+        },
+        {
+            "type": "TileSprite",
+            "id": "7d64102c-e1b1-4def-b9b0-e1d34d06ea88",
+            "label": "BG_FOREST",
+            "texture": {
+                "key": "castle-front-forest-loop"
+            },
+            "y": 830,
+            "scaleX": 1.4,
+            "scaleY": 1.4,
+            "originX": 0,
+            "originY": 1,
+            "alpha": 0.92,
+            "width": 5001,
+            "height": 202,
+            "tileScaleX": 1.3808,
+            "tileScaleY": 1.3808
+        },
+        {
+            "type": "Image",
+            "id": "71583724-d31f-4397-82e6-484588dd5e76",
+            "label": "BG_CLOUD_BROAD",
+            "texture": {
+                "key": "castle-front-cloud-broad-sunset"
+            },
+            "x": 90,
+            "y": 144,
+            "scaleX": 2.6273476752407743,
+            "scaleY": 1.9769093798893045,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Image",
+            "id": "a583ae5b-460a-41b5-bf75-79bc8abae116",
+            "label": "BG_CLOUD_MOUND",
+            "texture": {
+                "key": "castle-front-cloud-mound-sunset"
+            },
+            "x": 435,
+            "y": 375,
+            "scaleX": 2.5633390300581427,
+            "scaleY": 1.9009408598438295,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Image",
+            "id": "3a344474-6e23-425d-97ba-f5b530e22683",
+            "label": "BG_CLOUD_PUFFS",
+            "texture": {
+                "key": "castle-front-cloud-puffs-sunset"
+            },
+            "x": 794,
+            "y": 77,
+            "scaleX": 3.4851171503965,
+            "scaleY": 1.9225001715931307,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Image",
+            "id": "543a451c-e6d2-40af-b728-52b06b44b008",
+            "label": "BG_CLOUD_SWEEP",
+            "texture": {
+                "key": "castle-front-cloud-sweep-sunset"
+            },
+            "x": 896,
+            "y": 269,
+            "scaleX": 3.0448749193231253,
+            "scaleY": 2.1209538023703955,
+            "originX": 0,
+            "originY": 0
         },
         {
             "type": "Rectangle",
             "id": "5f47b38d-cb07-45f3-bc4b-454d30166692",
             "label": "GROUND",
             "x": 2500,
-            "y": 590,
+            "y": 830,
             "originY": 0,
             "isFilled": true,
             "fillColor": "#3d2a1f",
@@ -35,60 +140,12 @@
             "id": "b25d99fe-5d5f-482b-b5b2-63dad3c8bd95",
             "label": "GROUND_LIP",
             "x": 2500,
-            "y": 590,
+            "y": 830,
             "originY": 0,
             "isFilled": true,
             "fillColor": "#6b4a33",
             "width": 5000,
             "height": 7
-        },
-        {
-            "type": "Rectangle",
-            "id": "75d88d59-4d2c-4b43-95ae-7ed11c730726",
-            "label": "WALL_LEFT",
-            "x": -600,
-            "y": -300,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#241c2c",
-            "width": 370,
-            "height": 290
-        },
-        {
-            "type": "Rectangle",
-            "id": "080158b7-3323-4b0c-9cd8-59a212b81dc0",
-            "label": "WALL_TOWER_A",
-            "x": -600,
-            "y": -450,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#241c2c",
-            "width": 86,
-            "height": 414
-        },
-        {
-            "type": "Rectangle",
-            "id": "2dba5472-c2b1-475c-af0f-fcff844ac4ae",
-            "label": "WALL_TOWER_B",
-            "x": -600,
-            "y": -600,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#241c2c",
-            "width": 86,
-            "height": 414
-        },
-        {
-            "type": "Rectangle",
-            "id": "38ab1e48-7e77-4fe2-8f4f-e93ac5859994",
-            "label": "GATE",
-            "x": -600,
-            "y": -750,
-            "originY": 1,
-            "isFilled": true,
-            "fillColor": "#3a2c3f",
-            "width": 104,
-            "height": 218
         },
         {
             "type": "Image",
@@ -98,22 +155,51 @@
                 "key": "construct-ember-jelly",
                 "frame": 0
             },
-            "x": 660,
-            "y": 590,
-            "scaleX": 2,
-            "scaleY": 2,
+            "x": 481,
+            "y": 830,
             "originX": 0.571,
             "originY": 0.926
         },
         {
-            "type": "Image",
-            "id": "ee5ea175-5bfa-45c6-8877-0f97449eb471",
-            "label": "WALL_bastion",
+            "type": "TileSprite",
+            "id": "f9a115fb-18e4-458a-a54c-b14e7373948c",
+            "label": "PARK_wall_v3",
             "texture": {
-                "key": "castle-front-bastion"
+                "key": "castle-front-wall-v3"
             },
-            "x": 191,
-            "y": 592,
+            "x": 301,
+            "y": 620,
+            "scaleX": 2,
+            "scaleY": 2,
+            "originX": 0,
+            "width": 214,
+            "height": 211
+        },
+        {
+            "type": "Image",
+            "id": "fe167c31-c878-481f-991a-97b3c7e606ec",
+            "label": "castle_front_tower_v3",
+            "texture": {
+                "key": "castle-front-tower-v3"
+            },
+            "x": -9,
+            "y": 830,
+            "scaleX": 3.5,
+            "scaleY": 3.5,
+            "originX": 0,
+            "originY": 1
+        },
+        {
+            "type": "Image",
+            "id": "a21aa16f-5db2-4703-8e7e-50ce102869a9",
+            "label": "PARK_gatehouse_v3",
+            "texture": {
+                "key": "castle-front-gatehouse-v3"
+            },
+            "x": 992,
+            "y": 830,
+            "scaleX": 2.5,
+            "scaleY": 2.5,
             "originY": 1
         },
         {
@@ -124,7 +210,7 @@
                 "key": "castle-front-ground-band-grass"
             },
             "x": 2500,
-            "y": 574,
+            "y": 814,
             "originY": 0,
             "width": 5000,
             "height": 76
@@ -138,10 +224,23 @@
                 "frame": 21
             },
             "x": 380,
-            "y": 590,
-            "scaleX": 2,
-            "scaleY": 2,
+            "y": 830,
+            "scaleX": 1.5,
+            "scaleY": 1.5,
             "originY": 0.986
+        },
+        {
+            "type": "Sprite",
+            "id": "694d1736-b715-4d66-8501-eacaa0c307ed",
+            "label": "LIVE_PROOF_delete_me",
+            "texture": {
+                "key": "construct-ember-jelly",
+                "frame": 0
+            },
+            "x": 1500,
+            "y": 818,
+            "originX": 0.571,
+            "originY": 0.926
         }
     ],
     "plainObjects": [],

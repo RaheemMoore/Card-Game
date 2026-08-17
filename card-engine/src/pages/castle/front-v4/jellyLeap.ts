@@ -112,6 +112,34 @@ export const LEAP_TUNING: LeapTuning = {
   boundInsetPx: JELLY_BODY.halfWidthPx + HERO_BODY.halfWidthPx + 8,
 };
 
+/**
+ * The same arc, sized for actors drawn at a scale Raheem chose in the Editor.
+ *
+ * ONLY THE BODY TERMS MOVE. The apex, the duration and the minimum travel are
+ * properties of the ARC — how long the creature is committed and how high it goes
+ * — and they are stated against the hero's walking speed and the construct's
+ * preferred range, neither of which changes when the art gets smaller. Scaling
+ * them would quietly re-tune the whole encounter every time he nudged a slider.
+ *
+ * The clearance is likewise absolute: it is the gap over a man's head, and if the
+ * man is now half as tall the gap is more generous, not smaller.
+ *
+ * Whether the result is still FAIR is not assumed here — `evaluateEvade` re-runs
+ * the proof against these numbers, and a scale that makes the attack unavoidable
+ * is meant to be reported, not silently corrected.
+ */
+export function leapTuningFor(
+  jellyBody: { halfWidthPx: number; heightPx: number },
+  heroBody: { halfWidthPx: number },
+): LeapTuning {
+  return {
+    ...LEAP_TUNING,
+    bodyHalfWidthPx: jellyBody.halfWidthPx,
+    bodyHeightPx: jellyBody.heightPx,
+    boundInsetPx: jellyBody.halfWidthPx + heroBody.halfWidthPx + 8,
+  };
+}
+
 export interface LeapState {
   startX: number;
   /** Committed at launch. Nothing may write this afterwards. */

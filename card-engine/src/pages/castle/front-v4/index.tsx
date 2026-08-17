@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type Phaser from 'phaser';
 import { FRONT_V4_EVENTS, type FrontV4ScenePort, type FrontV4Snapshot } from './types';
+import { FRONT_V4_VIEW } from './layout';
 
 /**
  * The React host for the side-view proof.
@@ -117,7 +118,14 @@ export function CastleFrontV4() {
 
       <section
         className="relative mx-auto max-w-[1280px] overflow-hidden rounded-xl border border-white/15 bg-black shadow-2xl"
-        style={{ aspectRatio: '16 / 9' }}
+        /*
+         * Derived from the frame, not typed as 16/9. The camera fits HEIGHT, so a
+         * box shaped differently from the world letterboxes it — which is exactly
+         * what happened when the frame grew to 960 for the taller sky: a black bar
+         * across the top that looked like a rendering fault and was a CSS constant
+         * nobody thought to look at.
+         */
+        style={{ aspectRatio: `${FRONT_V4_VIEW.width} / ${FRONT_V4_VIEW.height}` }}
       >
         <div ref={hostRef} className="absolute inset-0" />
         {status === 'loading' && (
